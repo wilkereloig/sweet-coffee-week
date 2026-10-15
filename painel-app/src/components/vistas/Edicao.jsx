@@ -175,7 +175,7 @@ function AbaTemas({ edicao, pode, irPara, registrarAtualizar }) {
               <div className="ui-linha-acoes">
                 {pode('curadoria.decidir') && t.status === 'proposto' && !g.aprovado && <button className="og-btn og-btn--mini" type="button" onClick={() => decidir(t, 'aprovado')}>Aprovar</button>}
                 {pode('curadoria.decidir') && t.status === 'proposto' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => decidir(t, 'recusado')}>Pedir outro tema</button>}
-                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => irPara('participantes', { vista: 'participantes', id: t.participante_id, sub: 'operacao' })}>Abrir ficha</button>
+                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => irPara('participantes', { vista: 'participantes', id: t.participante_id, sub: 'tema' })}>Abrir ficha</button>
               </div>
             </li>
           ))}</ol>

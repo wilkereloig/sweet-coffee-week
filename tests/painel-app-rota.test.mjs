@@ -66,3 +66,34 @@ test('link forjado com chave do protótipo não derruba o painel', () => {
   }
   assert.deepEqual(rotaDoLink('edicao/constructor'), { vista: 'edicao', aba: 'configuracao', filtros: {} })
 })
+
+// Ficha geral (15/10/2026): dez abas viraram quatro vistas + âncoras. Todo
+// link antigo (notificação, favorito, fila) continua chegando ao assunto.
+test('abas antigas da ficha chegam à vista e à seção certas', async () => {
+  const { destinoNaFicha, subDaFicha, VISTAS_FICHA } = await import('../painel-app/src/lib/rota.js')
+  const casos = {
+    '': ['visao', ''], resumo: ['visao', ''], cadastro: ['visao', 'cadastro'], combo: ['visao', 'combo'],
+    tema: ['visao', 'combo'], unidades: ['visao', 'unidades'], operacao: ['visao', 'operacao'],
+    publicacao: ['visao', 'publicacao'], fotos: ['visao', 'fotos'],
+    mensagens: ['comunicacao', ''], historico: ['historico', ''], trajetoria: ['historico', 'trajetoria'],
+    acesso: ['gestao', ''], gestao: ['gestao', ''], comunicacao: ['comunicacao', ''],
+  }
+  for (const [sub, [vista, secao]] of Object.entries(casos)) assert.deepEqual(destinoNaFicha(sub), { vista, secao }, sub)
+  // Desconhecido, ausente ou forjado: visão, sem seção — nunca quebra.
+  for (const sub of [undefined, null, 'xyz', 'constructor', '__proto__']) assert.deepEqual(destinoNaFicha(sub), { vista: 'visao', secao: '' })
+  // Ida e volta: o sub gravado volta à mesma vista/seção (recarregar, Voltar/Avançar).
+  for (const v of VISTAS_FICHA) assert.equal(destinoNaFicha(subDaFicha(v)).vista, v)
+  assert.equal(subDaFicha('visao'), '')
+  assert.deepEqual(destinoNaFicha(subDaFicha('visao', 'unidades')), { vista: 'visao', secao: 'unidades' })
+  assert.deepEqual(destinoNaFicha(subDaFicha('historico', 'trajetoria')), { vista: 'historico', secao: 'trajetoria' })
+  // A notificação de mensagem do banco abre a Comunicação.
+  assert.equal(destinoNaFicha(rotaDoLink('marcas/p1/mensagens').filtros.sub).vista, 'comunicacao')
+})
+
+test('a busca da lista de marcas sobrevive no endereço', () => {
+  const r = { vista: 'participantes', aba: 'lista', filtros: { busca: 'café & cia', ordem: 'nome', situacao: 'incompleto' } }
+  assert.deepEqual(lerRota(montarRota(r)), r)
+  // Abrir a ficha só acrescenta item/sub: busca, filtro e ordem continuam lá para a volta.
+  const comFicha = { ...r, filtros: { ...r.filtros, item: 'p1' } }
+  assert.deepEqual(lerRota(montarRota(comFicha)).filtros.busca, 'café & cia')
+})

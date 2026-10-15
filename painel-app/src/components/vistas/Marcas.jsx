@@ -106,7 +106,6 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const [conversas, setConversas] = React.useState([])
   const [logos, setLogos] = React.useState({})
   const [erro, setErro] = React.useState(null)
-  const [termo, setTermo] = React.useState('')
   const [cadastroAberto, setCadastroAberto] = React.useState(false)
   // Seleção para ações em lote (29/09/2026) e o lote que está rodando.
   const [sel, setSel] = React.useState(() => new Set())
@@ -124,6 +123,23 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   // Arquivadas é outra leitura (o banco só devolve arquivadas quando pedidas).
   const arquivadas = status === 'arquivadas'
   const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'resumo' ? x.aba : '' } : { item: '', sub: '' }, false)
+  // A busca também mora no endereço (15/10/2026): abrir uma ficha e voltar
+  // devolve a lista como estava. Digitar troca a entrada, não empilha Voltar.
+  const termo = f.busca || ''
+  const setTermo = (v) => mudar({ busca: v })
+
+  // Posição da lista: guardada ao abrir a ficha, devolvida ao voltar (pelo
+  // botão ou pelo Voltar do navegador). Quem rola é a vista (.og-vista).
+  const raiz = React.useRef(null)
+  const rolagem = React.useRef(null)
+  const rolador = () => raiz.current && raiz.current.closest('.og-vista')
+  const abrirFicha = (id) => { const r = rolador(); rolagem.current = r ? r.scrollTop : null; setFicha({ id }) }
+  React.useLayoutEffect(() => {
+    const r = rolador()
+    if (!r) return
+    if (ficha) { if (!ficha.aba) r.scrollTop = 0; return }
+    if (participantes && rolagem.current != null) { r.scrollTop = rolagem.current; rolagem.current = null }
+  }, [ficha && ficha.id, !!participantes]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const pedido = React.useRef(0)
   const carregar = React.useCallback(async () => {
@@ -243,15 +259,15 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   )
   if (ficha) {
     return (
-      <div className="og-embutida">
+      <div className="og-embutida" ref={raiz}>
         {erro && <Erro texto={erro} onTentar={carregar} />}
         {!erro && participantes && !participanteFicha && <Vazio titulo="Marca não encontrada">Ela pode ter sido arquivada. <button type="button" className="ui-link" onClick={() => setFicha(null)}>Voltar às marcas</button></Vazio>}
         {!erro && (!participantes || participanteFicha) && (
           <FichaMarcaPagina
             participante={participanteFicha && { ...participanteFicha, _naoLidas: Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) }}
             logo={participanteFicha && logos[participanteFicha.id]}
-            aba={ficha.aba}
-            onAba={(a) => mudar({ sub: a === 'resumo' ? '' : a })}
+            sub={ficha.aba || ''}
+            onSub={(s, o = {}) => mudar({ sub: s }, !!o.substituir)}
             onVoltar={() => setFicha(null)}
             pode={pode}
             naoLidas={participanteFicha ? Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) : 0}
@@ -265,7 +281,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   }
 
   return (
-    <div className="og-embutida">
+    <div className="og-embutida" ref={raiz}>
 
       <div className="ui-barra">
         <div className="og-filtros">
@@ -358,7 +374,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
               return (
                 <li key={p.id} className="ac-item">
                   <label className="ac-item__sel"><input type="checkbox" checked={sel.has(p.id)} onChange={() => alternar(p.id)} /><span className="ui-oculto">Selecionar {p.nome_marca}</span></label>
-                  <button type="button" className="og-item og-item--marca" onClick={() => setFicha({ id: p.id, aba: p._naoLidas ? 'mensagens' : 'resumo' })}>
+                  <button type="button" className="og-item og-item--marca" onClick={() => abrirFicha(p.id)}>
                     <LogoMarca url={urlLogo(l && l.path)} nome={p.nome_marca} tamanho={40} />
                     <span className="og-item__nome-bloco">
                       <span className="og-item__nome">{p.nome_marca || '(sem nome)'}{p._naoLidas > 0 && <span className="og-item__novas" title={p._naoLidas + (p._naoLidas === 1 ? ' mensagem nova' : ' mensagens novas')}>{p._naoLidas}</span>}</span>

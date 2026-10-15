@@ -97,6 +97,17 @@ class Protegida extends React.Component {
   }
 }
 
+/* Prévia = a página do site desenhada pelo componente do site, sob demanda.
+ * Usada aqui e na visão geral da ficha (15/10/2026). */
+export function PreviaPagina({ conteudo, nome }) {
+  return (
+    <section className="eo-previa" aria-label={'Prévia da página de ' + nome}>
+      <p className="eo-previa__faixa">Prévia, ainda não publicada</p>
+      <Protegida><React.Suspense fallback={<Carregando linhas={3} texto="Abrindo a prévia…" />}><PreviaPublica p={conteudo} /></React.Suspense></Protegida>
+    </section>
+  )
+}
+
 /* ── Ficha › Publicação ────────────────────────────────────────────────── */
 export function AbaPublicacao({ participante, pode, onMudou }) {
   const id = participante.participacao_id
@@ -199,12 +210,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
       <MacroSecao rotulo="Conferir" titulo={v ? 'O que mudou desde a v' + v.versao : 'O que seria publicado'}
         acoes={<Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => setPrevia((x) => !x)}>{previa ? 'Fechar prévia' : 'Ver como no site'}</Botao>}>
         {v ? <Diferenca antes={v.conteudo} depois={pub.atual} /> : <p className="ui-nota">Nenhuma versão no ar ainda: a prévia mostra a página inteira como ficaria.</p>}
-        {previa && pub.atual && (
-          <section className="eo-previa" aria-label={'Prévia da página de ' + nome}>
-            <p className="eo-previa__faixa">Prévia, ainda não publicada</p>
-            <Protegida><React.Suspense fallback={<Carregando linhas={3} texto="Abrindo a prévia…" />}><PreviaPublica p={pub.atual} /></React.Suspense></Protegida>
-          </section>
-        )}
+        {previa && pub.atual && <PreviaPagina conteudo={pub.atual} nome={nome} />}
       </MacroSecao>
 
       <MacroSecao rotulo="Mapa" titulo="Unidades e localização" nota="Só a organização grava a coordenada; o mapa público só usa a conferida.">
@@ -277,6 +283,9 @@ function Endereco({ pub, participacaoId, pode, onSalvo }) {
 }
 
 /* ── Unidades: coordenada conferida ────────────────────────────────────── */
+// Exportadas para os editores da visão geral da ficha (15/10/2026).
+export { Unidades as ConferirLocalizacao, Fotos as RevisarFotos }
+
 function Unidades({ unidades, pode, onSalvo }) {
   const lista = unidades || []
   if (!lista.length) return <Vazio titulo="Nenhuma unidade">A marca ainda não escolheu as unidades desta edição.</Vazio>
