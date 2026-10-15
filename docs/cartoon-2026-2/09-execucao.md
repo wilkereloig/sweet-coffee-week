@@ -11,7 +11,7 @@ Registro da execução de 14/10/2026 (pedido do Wilker: "siga todas as fases at�
 | 3 · Cadastro e revisão no painel | **NO AR desde 15/10/2026** (merge `cb80048` em `master`; testes 275/275) | `vistas-marca/edicao/*`, `vistas/Publicacao*.jsx`, `lib/edicaoMarca.js`, `lib/publicacao.js` |
 | 4 · Páginas públicas | **feita** (`5e25519`) | `src/edicao/**`, `src/styles/scw-cartoon.css` |
 | 5 · Mapa e Minha rota | **feita** | `src/edicao/componentes/mapa/MapaUnidades.jsx` (OpenFreeMap, sob demanda), `src/edicao/rota/*` |
-| 6 · Avaliação e premiação | **feita no site e no banco (não aplicado)**; Edge Function alterada, **não publicada** | `paginas/Avaliar.jsx`, `paginas/Premiacao.jsx`, migration 04, `supabase/functions/enviar-formulario` |
+| 6 · Avaliação e premiação | **feita no site e no banco** (migration 04 aplicada em 14/10); Edge Function **publicada em 15/10** | `paginas/Avaliar.jsx`, `paginas/Premiacao.jsx`, migration 04, `supabase/functions/enviar-formulario` |
 | 7 · Validação integrada | **com dados de demonstração**; com o banco real depende da 9.2 | `npm run test:cartoon`, `npm run test:cartoon-navegador` |
 | 8 · Lançamento | **roteiro pronto** (9.5); depende do Wilker | — |
 | 9 · Encerramento | **roteiro pronto** (9.6); depois de 15/11 | — |
@@ -27,7 +27,7 @@ A aplicação pela ferramenta foi recusada na tela de permissão duas vezes, ent
   - ponta a ponta: pendências 7 → 0, publicação v1, recorte sem combo, preço R$ 38,90, nada privado na resposta, versão pública intacta depois da alteração, retirada.
 - Advisor: "RLS sem política" nas 5 tabelas acessadas só por RPC é proposital; as funções abertas são as previstas.
 - **15/10/2026:** 03 aplicada (Wilker, SQL Editor) e painel novo publicado (merge `cb80048`). Testes SQL de novo: autorização 12/12; ponta a ponta ok (o reenvio no teste volta `ok:false` só porque o bloco não preenche tema e itens, campos que a função já exigia antes).
-- **Falta:** deploy das Edge Functions `enviar-formulario` e `arquivo-url` (sem a `arquivo-url`, o envio de foto oficial no painel mostra erro).
+- **Edge Functions publicadas em 15/10/2026** pelo MCP `supabase-scw`: `arquivo-url` v11 (bucket `edicao-publico`) e `enviar-formulario` v11 (avaliação + Turnstile). Teste de fumaça sem gravar nada: `edicao-publico` sem credencial → 401 `nao_autorizado`, caminho fora do padrão → 422; `avaliacao` com corpo nulo → 400 `corpo_invalido` (não mais `formulario_desconhecido`). As outras sete funções já batiam com o repositório.
 
 **Estado anterior (registro):**
 - A única mudança aplicada foi a função auxiliar `marca_dona_participacao`, que não é usada por nada.
@@ -52,7 +52,7 @@ Depois de aplicar:
 
 1. Rodar os dois blocos de `supabase/testes/edicao-cartoon.sql`, um por vez. Cada bloco termina em exceção de propósito, e a mensagem traz o resultado (o esperado está no cabeçalho do arquivo).
 2. Conferir os avisos de segurança do Supabase (advisors).
-3. Publicar duas Edge Functions alteradas, pelo caminho de sempre (`docs/regras/04-stack-e-estrutura.md`):
+3. ✅ (15/10/2026) Publicar duas Edge Functions alteradas, pelo caminho de sempre (`docs/regras/04-stack-e-estrutura.md`):
    - `enviar-formulario`: agora aceita a avaliação, com Turnstile;
    - `arquivo-url`: agora aceita o bucket `edicao-publico`, caminho `<edição>/<participação>/<uuid>.webp`, sem sobrescrever. Sem ela, o envio de foto oficial no painel mostra erro.
 
