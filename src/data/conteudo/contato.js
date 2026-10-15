@@ -10,7 +10,6 @@
  */
 
 export const ABERTURA = {
-  rotulo: 'Contato',
   titulo: 'Sua dúvida, respondida aqui.',
   // `{total}` vira a contagem real de perguntas da central (não é digitada).
   lead: 'Público, marcas, imprensa e parceiros: busque entre {total} respostas ou escreva para a equipe.',

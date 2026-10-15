@@ -47,9 +47,7 @@
 
 /* Geometria, cor e foto do herói compartilhado (.scw-heroi-foto, scw-2026.css,
    §6.9); aqui só o texto. */
-/* Marrom sobre laranja não fecha 4,5:1 em 12px; a tinta da chapa fecha 4,78. */
-.edx-abre__rotulo { color: currentColor; }
-.edx-abre__titulo { margin-top: 14px; max-width: 15ch; }
+.edx-abre__titulo { margin-top: 0; max-width: 15ch; }
 .edx-abre__lead { margin-top: 18px; }
 .edx-abre__dados {
   margin: 22px 0 0;

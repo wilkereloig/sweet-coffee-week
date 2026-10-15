@@ -10,7 +10,7 @@ const FOTOS = heroPhotos('historico-awards')
 const PREMIADOS = SECOES.resultados.id
 
 /*
- * 01 — Abertura. Rótulo, título, lead, a ação que leva aos premiados e os três
+ * 01 — Abertura. Título, lead, a ação que leva aos premiados e os três
  * números, num conjunto só, sobre o herói fotográfico compartilhado (§6.9). A vitrine dos quatro primeiros lugares saiu em 06/08/2026
  * (§7.3, §11). A foto surge pelo scw-motion.css; o texto já abre legível.
  */
@@ -19,7 +19,6 @@ export function Abertura({ numeros }) {
     <section className="scw-heroi-foto swa-hero" aria-labelledby="swa-titulo" data-mo-fora>
       <HeroFotos fotos={FOTOS} />
       <div className="scw-heroi-foto__texto swa-hero__texto">
-        <span className="scw-rotulo swa-hero__rotulo">{ABERTURA.rotulo}</span>
         <h1 className="scw-h1" id="swa-titulo">{ABERTURA.titulo}</h1>
         <p className="scw-lead">{ABERTURA.lead}</p>
         <a className="scw-btn scw-btn--solido swa-hero__acao" href={`#${PREMIADOS}`} onClick={irPara(PREMIADOS)}>

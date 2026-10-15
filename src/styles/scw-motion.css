@@ -173,7 +173,6 @@
 
 /* --- Contato (abertura compacta) ----------------------------------------- */
 .ctt-abertura .scw-hero-banda      { animation: moSurge var(--mo-longo) var(--mo-ease) both; }
-.ctt-abertura .ctt-abertura__rotulo { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 140ms both; }
 .ctt-abertura .ctt-abertura__titulo { animation: moSobe var(--mo-entra) var(--mo-mola) 230ms both; }
 .ctt-abertura .ctt-abertura__lead   { animation: moSobeCurto var(--mo-entra) var(--mo-mola) 360ms both; }
 /* As ações fecham a sequência, como nos outros heróis. O atraso de 470ms era
