@@ -7,8 +7,8 @@ Registro da execução de 14/10/2026 (pedido do Wilker: "siga todas as fases at�
 | Fase | Estado | Onde |
 |---|---|---|
 | 1 · Rotas e configuração | **feita** (`2bb3b3d`) | `src/edicao/config.js`, `src/lib/rotas.js`, `src/router.js` (endereço limpo), `vercel.json` |
-| 2 · Modelo de dados e publicação | **01, 02, 04 e 05 APLICADAS em 14/10/2026** (SQL Editor + MCP); testes SQL ok; **03 pendente** (vai com o merge do painel) | `supabase/migrations/20261014_cartoon_01…04_*.sql`, `supabase/testes/edicao-cartoon.sql` |
-| 3 · Cadastro e revisão no painel | **feita** (testes 213/213); depende do banco aplicado | `vistas-marca/edicao/*`, `vistas/Publicacao*.jsx`, `lib/edicaoMarca.js`, `lib/publicacao.js` |
+| 2 · Modelo de dados e publicação | **TODAS APLICADAS**: 01, 02, 04 e 05 em 14/10; **03 em 15/10/2026** (SQL Editor), junto com o merge do painel; testes SQL ok | `supabase/migrations/20261014_cartoon_01…04_*.sql`, `supabase/testes/edicao-cartoon.sql` |
+| 3 · Cadastro e revisão no painel | **NO AR desde 15/10/2026** (merge `cb80048` em `master`; testes 275/275) | `vistas-marca/edicao/*`, `vistas/Publicacao*.jsx`, `lib/edicaoMarca.js`, `lib/publicacao.js` |
 | 4 · Páginas públicas | **feita** (`5e25519`) | `src/edicao/**`, `src/styles/scw-cartoon.css` |
 | 5 · Mapa e Minha rota | **feita** | `src/edicao/componentes/mapa/MapaUnidades.jsx` (OpenFreeMap, sob demanda), `src/edicao/rota/*` |
 | 6 · Avaliação e premiação | **feita no site e no banco (não aplicado)**; Edge Function alterada, **não publicada** | `paginas/Avaliar.jsx`, `paginas/Premiacao.jsx`, migration 04, `supabase/functions/enviar-formulario` |
@@ -26,7 +26,8 @@ A aplicação pela ferramenta foi recusada na tela de permissão duas vezes, ent
   - autorização: 12 de 12 conferências como esperado;
   - ponta a ponta: pendências 7 → 0, publicação v1, recorte sem combo, preço R$ 38,90, nada privado na resposta, versão pública intacta depois da alteração, retirada.
 - Advisor: "RLS sem política" nas 5 tabelas acessadas só por RPC é proposital; as funções abertas são as previstas.
-- **Falta:** a 03, junto com o merge do painel novo em `master`, e o deploy das Edge Functions `enviar-formulario` e `arquivo-url`.
+- **15/10/2026:** 03 aplicada (Wilker, SQL Editor) e painel novo publicado (merge `cb80048`). Testes SQL de novo: autorização 12/12; ponta a ponta ok (o reenvio no teste volta `ok:false` só porque o bloco não preenche tema e itens, campos que a função já exigia antes).
+- **Falta:** deploy das Edge Functions `enviar-formulario` e `arquivo-url` (sem a `arquivo-url`, o envio de foto oficial no painel mostra erro).
 
 **Estado anterior (registro):**
 - A única mudança aplicada foi a função auxiliar `marca_dona_participacao`, que não é usada por nada.
