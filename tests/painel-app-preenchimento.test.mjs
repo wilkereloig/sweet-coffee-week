@@ -141,14 +141,14 @@ test('página: horário por seleção vira texto e volta igual', () => {
   assert.equal(ctx.diasTexto([1, 2, 3, 4, 5, 6]), 'Ter a Dom')
   assert.equal(ctx.diasTexto([0, 2, 4]), 'Seg, Qua, Sex')
   assert.equal(ctx.horaTexto('14:30') + ' · ' + ctx.horaTexto('9:00'), '14h30 · 9h')
-  for (const t of ['Todos os dias, 14h às 21h', 'Ter a Dom, 10h às 22h30', 'Seg, Qua, Sex, 9h às 18h', 'Sáb, Dom, 8h às 0h']) {
+  for (const t of ['Todos os dias, 14h às 21h', 'Ter a Dom, 10h às 22h30', 'Seg, Qua, Sex, 9h às 18h', 'Sáb e Dom, 8h às 0h']) {
     const l = ctx.lerHorario(t)
     assert.ok(l, 'não leu: ' + t)
     assert.equal(ctx.diasTexto(l.dias) + ', ' + ctx.horaTexto(l.abre) + ' às ' + ctx.horaTexto(l.fecha), t)
   }
   assert.equal(ctx.lerHorario('de terça a domingo, a partir das 14'), null, 'texto livre antigo fica como "Hoje está"')
   // Horário diferente por dia: faixas separadas por ";".
-  const multi = 'Seg a Sex, 12h às 21h; Sáb, Dom, 10h às 22h30'
+  const multi = 'Seg a Sex, 12h às 21h; Sáb e Dom, 10h às 22h30'
   const faixas = ctx.lerHorarios(multi)
   assert.equal(faixas.length, 2)
   assert.equal(ctx.textoHorarios(faixas), multi)

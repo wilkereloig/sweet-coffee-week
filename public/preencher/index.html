@@ -629,7 +629,8 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     if (idx.length === 7) return 'Todos os dias';
     var seguidos = idx.every(function (d, k) { return k === 0 || d === idx[k - 1] + 1; });
     if (seguidos && idx.length >= 3) return DIAS[idx[0]] + ' a ' + DIAS[idx[idx.length - 1]];
-    return idx.map(function (d) { return DIAS[d]; }).join(', ');
+    var nomes = idx.map(function (d) { return DIAS[d]; });
+    return nomes.length === 2 ? nomes.join(' e ') : nomes.join(', ');
   }
   function lerHorario(t) {
     var m = /^(.*), (\d{1,2})h(\d{2})? às (\d{1,2})h(\d{2})?$/.exec(txt(t).trim());
@@ -639,7 +640,7 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     var dias = [], parte = m[1].trim(), r = /^(\S+) a (\S+)$/.exec(parte);
     if (/^todos os dias$/i.test(parte)) dias = [0, 1, 2, 3, 4, 5, 6];
     else if (r) { var a = ix(r[1]), b = ix(r[2]); if (a < 0 || b < a) return null; for (var d = a; d <= b; d++) dias.push(d); }
-    else { dias = parte.split(',').map(ix); if (dias.some(function (d) { return d < 0; })) return null; }
+    else { dias = parte.replace(/ e /g, ',').split(',').map(ix); if (dias.some(function (d) { return d < 0; })) return null; }
     return { dias: dias, abre: Number(m[2]) + ':' + (m[3] || '00'), fecha: Number(m[4]) + ':' + (m[5] || '00') };
   }
   // Várias faixas: "Seg a Sex, 12h às 21h; Sáb, Dom, 10h às 22h". Uma que não lê = null.
