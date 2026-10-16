@@ -230,3 +230,15 @@ export const linkWhatsApp = (numero, texto = '') => (numero
   : '')
 
 export const urlPublica = (base, bucket, path) => (path ? `${base}/storage/v1/object/public/${bucket}/${path}` : '')
+
+/**
+ * Imagem devolvida pelo banco ({ bucket, path }) → URL. Caminho que começa com "/" é
+ * arquivo do próprio site, não objeto do Storage: é o caso da logo do acervo
+ * (`logos_marca.origem = 'acervo'`, `/logos/participants/<slug>.png`). Sem esta regra
+ * a URL sairia `…/logos//logos/participants/…` e a página mostraria o monograma.
+ */
+export const urlDaImagem = (base, foto, bucketPadrao) => {
+  if (!foto || !foto.path) return ''
+  if (typeof foto.path === 'string' && foto.path.startsWith('/')) return foto.path
+  return urlPublica(base, foto.bucket || bucketPadrao, foto.path)
+}

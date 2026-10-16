@@ -92,3 +92,13 @@ test('formatos e links', () => {
   assert.equal(M.enderecoEmLinha(aurora.unidades[0].endereco), '[DEMO] Rua Exemplo, 100 · Tirol · Natal/RN')
   assert.equal(M.juntar(['a', 'b', 'c']), 'a, b e c')
 })
+
+// Logo do acervo (origem 'acervo') é arquivo do site; só a do Storage passa pelo bucket.
+test('URL da imagem: caminho absoluto é do site, o resto é do Storage', () => {
+  const B = 'https://x.supabase.co'
+  assert.equal(M.urlDaImagem(B, { bucket: 'logos', path: '/logos/participants/cookitos.png' }, 'edicao-publico'), '/logos/participants/cookitos.png')
+  assert.equal(M.urlDaImagem(B, { bucket: 'logos', path: 'p1/17-logo.png' }, 'edicao-publico'), B + '/storage/v1/object/public/logos/p1/17-logo.png')
+  assert.equal(M.urlDaImagem(B, { path: '2026.2/a/b.webp' }, 'edicao-publico'), B + '/storage/v1/object/public/edicao-publico/2026.2/a/b.webp')
+  assert.equal(M.urlDaImagem(B, null, 'edicao-publico'), '')
+  assert.equal(M.urlDaImagem(B, { bucket: 'logos', path: '' }, 'edicao-publico'), '')
+})
