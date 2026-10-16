@@ -58,7 +58,7 @@
     }
   },
   "escolhaDeFamilia": "tamanho ≤ 24 usa o desenho de interface; ≥ 32 usa o expressivo. Um nome pode ter os dois desenhos; marca de terceiro vale nos dois.",
-  "estaticos": ["public/quero-participar/index.html"],
+  "estaticos": ["public/quero-participar/index.html", "public/preencher/index.html"],
   "css": ["feito", "exclamacao", "abrir", "avancar"],
   "cssPintado": [["exclamacao", "creme", "#FEF0DD"], ["exclamacao", "choco", "#3D1308"], ["exclamacao", "laranja", "#FF4810"], ["feito", "choco", "#3D1308"]],
   "selectSeta": { "icone": "abrir", "cor": "#3D1308", "tamanho": 16 }

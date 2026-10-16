@@ -1063,3 +1063,13 @@ teste `tests/painel-app-preenchimento.test.mjs`.
 - ⚠️ Fica de fora do formulário: declarações alimentares/alergênicos, trocas, horário do combo por dia
   (`unidade_disponibilidade`) e canais de delivery — o horário do combo chega como texto em
   `participacao_unidades.horarios`; alergias vêm em "Observações".
+- **v2 (16/10/2026, pedido do Wilker: "o jeito mais fácil de preencher"):** topo com 3 fatos (datas,
+  combo, valor) + prazo, sem agenda; uma confirmação só no fim; opcionais recolhidos em `<details>`;
+  ícones do registro (`<!--icone:…-->`, página listada em `icones/especificacao.json` › `estaticos`).
+  Quase tudo por seleção: alergênicos (contém / "Nenhum" / traços), características (vegano,
+  vegetariano, sem lactose, sem açúcar), troca por item (Sim/Não, disponibilidade, acréscimo em
+  valores prontos), custos em valores prontos + "Outro", cidade (Natal/Parnamirim/Outra), bairro com
+  sugestões, horários por dias + "das/às" (texto `Ter a Dom, 10h às 22h`, que a página lê de volta).
+  Migration `20261016_link_preenchimento_alimentar.sql`: o retrato e o "Aplicar" passam a cobrir
+  `declaracoes_alimentares` e `substituicoes`. ⛔ Desmarcar selo não grava "não": vira `nao_informado`
+  só se antes estava marcado; alergênico só vira `nao_contem` quando a pessoa respondeu a pergunta.
