@@ -541,7 +541,8 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
       if (it.tem_troca) {
         var disp = no.querySelector('[data-disp]:checked');
         it.troca = {
-          original: no.querySelector('[data-t="original"]').value.trim(),
+          // Em branco = o próprio item (o nome digitado agora, não o do cadastro antigo).
+          original: no.querySelector('[data-t="original"]').value.trim() || no.querySelector('[data-k="nome"]').value.trim(),
           alternativa: no.querySelector('[data-t="alternativa"]').value.trim(),
           disponibilidade: disp ? disp.value : 'sempre'
         };
