@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Dados da sua marca · Sweet &amp; Coffee Week</title>
+<meta name="description" content="Confira e complete os dados da sua marca para a próxima edição do Sweet &amp; Coffee Week.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Dados da sua marca · Sweet &amp; Coffee Week">
+<meta property="og:description" content="Confira e complete os dados da sua marca para a próxima edição.">
+<meta property="og:locale" content="pt_BR">
+<link rel="icon" href="/favicon.ico">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Sweet & Coffee Week — Link de preenchimento (16/10/2026)
+   Página da marca, aberta pelo link único mandado por WhatsApp.
+   Mesma paleta fechada e mesma fonte do /quero-participar.
+   O código do link vem no fragmento (#): nunca vai ao servidor.
+   ───────────────────────────────────────────────────────────── */
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Regular.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-xBold.woff2') format('woff2');font-weight:800;font-display:swap}
+
+:root{
+  --scw-creme:#FEF0DD; --scw-bege:#F8E4C1; --scw-choco:#3D1308; --scw-marrom:#6A2C15;
+  --scw-amarelo:#FDBB1A; --scw-cyan:#01AFCC; --scw-roxo:#4D257E; --scw-laranja:#FF4810;
+  --scw-filete:rgba(61,19,8,.14); --scw-borda-campo:rgba(61,19,8,.28);
+  --scw-font:'Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r:14px; --r-card:22px;
+  --trilho:clamp(16px,5vw,40px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--scw-creme);color:var(--scw-choco);font-family:var(--scw-font);
+  font-weight:500;font-size:16px;line-height:1.55;overflow-x:hidden}
+:where(a,button,input,select,textarea,summary):focus-visible{outline:3px solid var(--scw-cyan);outline-offset:2px;border-radius:6px}
+h1,h2,h3{line-height:1.15;margin:0;font-weight:800}
+p{margin:0}
+.oculto{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.topo{background:var(--scw-choco);color:var(--scw-creme);padding:calc(env(safe-area-inset-top) + 20px) var(--trilho) 28px}
+.topo__in{max-width:760px;margin:0 auto;display:flex;gap:16px;align-items:center}
+.topo__logo{width:76px;height:76px;flex:none;border-radius:18px;background:var(--scw-creme);object-fit:contain;padding:6px}
+.topo__ola{font-size:15px;color:var(--scw-amarelo);font-weight:700}
+.topo h1{font-size:clamp(22px,5vw,30px)}
+.topo__festival{font-size:13px;opacity:.85;margin-top:4px}
+
+main{max-width:760px;margin:0 auto;padding:24px var(--trilho) calc(env(safe-area-inset-bottom) + 48px)}
+.cartao{background:rgba(255,255,255,.55);border:1px solid var(--scw-filete);border-radius:var(--r-card);padding:20px;margin-bottom:18px}
+.cartao h2{font-size:21px;margin-bottom:12px}
+.cartao h3{font-size:17px;margin:18px 0 8px}
+.urgente{background:var(--scw-laranja);color:var(--scw-choco);border:0}
+.urgente h2{color:var(--scw-choco)}
+.urgente strong{font-weight:800}
+.manual ul{margin:0;padding-left:20px}
+.manual li{margin:6px 0}
+.agenda{list-style:none;padding:0!important;margin:0}
+.agenda li{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--scw-filete)}
+.agenda li:first-child{border-top:0}
+.agenda__data{flex:none;min-width:92px;font-weight:800;color:var(--scw-marrom)}
+.agenda__destaque .agenda__data,.agenda__destaque{color:var(--scw-laranja)}
+.nota{font-size:14px;color:var(--scw-marrom)}
+
+fieldset{border:0;padding:0;margin:0}
+.bloco{scroll-margin-top:16px}
+.bloco__cabeca{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.bloco__num{width:34px;height:34px;flex:none;border-radius:50%;background:var(--scw-amarelo);display:grid;place-items:center;font-weight:800}
+.bloco:nth-of-type(2n) .bloco__num{background:var(--scw-cyan)}
+.bloco__ok .bloco__num{background:var(--scw-choco);color:var(--scw-creme)}
+.campo{display:block;margin-top:14px}
+.campo>span{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.campo>span em{font-style:normal;font-weight:500;color:var(--scw-marrom)}
+.campo input,.campo textarea,.campo select{width:100%;min-height:48px;font:inherit;color:inherit;background:#fff;
+  border:1.5px solid var(--scw-borda-campo);border-radius:var(--r);padding:11px 13px}
+.campo textarea{min-height:96px;resize:vertical}
+.campo input:focus,.campo textarea:focus{border-color:var(--scw-choco)}
+.campo--falta input,.campo--falta textarea{border-color:var(--scw-laranja);background:rgba(255,72,16,.07)}
+.dupla{display:grid;grid-template-columns:1fr;gap:0 14px}
+@media (min-width:560px){.dupla{grid-template-columns:1fr 1fr}}
+.escolha{margin-top:14px}
+.escolha>span{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.escolha__ops{display:flex;gap:8px;flex-wrap:wrap}
+.escolha label{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1.5px solid var(--scw-borda-campo);
+  border-radius:999px;background:#fff;cursor:pointer}
+.escolha input{width:20px;height:20px;accent-color:var(--scw-choco)}
+.marcar{display:flex;gap:10px;align-items:flex-start;margin-top:14px;cursor:pointer}
+.marcar input{width:22px;height:22px;flex:none;margin-top:2px;accent-color:var(--scw-choco)}
+.confirma{margin-top:18px;padding:14px;border-radius:var(--r);background:var(--scw-bege);font-weight:700}
+.item,.unidade{border-top:1px dashed var(--scw-borda-campo);margin-top:18px;padding-top:4px}
+.unidade__cabeca{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.btn{font:inherit;font-weight:800;min-height:48px;padding:12px 20px;border-radius:999px;border:0;cursor:pointer;
+  background:var(--scw-choco);color:var(--scw-creme)}
+.btn--claro{background:transparent;color:var(--scw-choco);border:1.5px solid var(--scw-choco)}
+.btn--perigo{background:transparent;color:var(--scw-marrom);border:1.5px solid var(--scw-marrom);min-height:44px;padding:8px 14px;font-size:14px}
+.btn[disabled]{opacity:.55;cursor:wait}
+.enviar{position:sticky;bottom:0;background:var(--scw-creme);padding:14px 0 calc(env(safe-area-inset-bottom) + 14px);
+  border-top:1px solid var(--scw-filete)}
+.enviar .btn{width:100%;font-size:17px}
+.faltas{margin:0 0 12px;padding:12px 14px;border-radius:var(--r);background:rgba(255,72,16,.07);border:1.5px solid var(--scw-laranja);font-size:14px}
+.faltas ul{margin:6px 0 0;padding-left:18px}
+.faltas a{color:inherit;font-weight:700}
+.aviso{padding:12px 14px;border-radius:var(--r);background:var(--scw-bege);margin-bottom:18px;font-size:15px}
+.estado{text-align:center;padding:48px 8px}
+.estado h1{font-size:26px;margin-bottom:10px}
+.carregando{opacity:.7}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="topo" id="pr-topo">
+  <div class="topo__in" id="pr-topo-in">
+    <div>
+      <p class="topo__ola" id="pr-ola">Sweet &amp; Coffee Week</p>
+      <h1 id="pr-marca">Dados da sua marca</h1>
+      <p class="topo__festival" id="pr-festival"></p>
+    </div>
+  </div>
+</header>
+
+<main id="pr-main">
+  <div class="estado carregando" id="pr-estado" role="status" aria-live="polite">
+    <p>Carregando seus dados…</p>
+  </div>
+
+  <div id="pr-conteudo" class="oculto">
+    <section class="cartao urgente" aria-labelledby="pr-urgente-t">
+      <h2 id="pr-urgente-t">Preenchimento obrigatório e urgente</h2>
+      <p id="pr-urgente-texto">Confira cada bloco, corrija o que estiver errado, complete o que falta e toque em <strong>Enviar</strong> no fim da página.</p>
+    </section>
+
+    <section class="cartao manual" aria-labelledby="pr-manual-t">
+      <h2 id="pr-manual-t">A edição em 1 minuto</h2>
+      <ul id="pr-manual"></ul>
+      <h3>Agenda</h3>
+      <ul class="agenda" id="pr-agenda"></ul>
+    </section>
+
+    <p class="aviso oculto" id="pr-ja-enviou" role="status"></p>
+
+    <form id="pr-form" novalidate>
+      <fieldset class="cartao bloco" id="bloco-marca" data-bloco="marca">
+        <legend class="sr">Responsável e contato</legend>
+        <div class="bloco__cabeca"><span class="bloco__num" aria-hidden="true">1</span><h2>Responsável e contato</h2></div>
+        <p class="nota">Quem a organização procura durante a edição. O nome da marca vem do cadastro; se estiver errado, avise em “Observações”.</p>
+        <label class="campo"><span>Nome do responsável</span><input name="marca.responsavel" autocomplete="name" maxlength="120" data-obrigatorio="Nome do responsável"></label>
+        <div class="dupla">
+          <label class="campo"><span>WhatsApp do responsável</span><input name="marca.telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(84) 99999-9999" data-obrigatorio="WhatsApp do responsável"></label>
+          <label class="campo"><span>E-mail</span><input name="marca.email" type="email" inputmode="email" autocomplete="email" maxlength="160"></label>
+          <label class="campo"><span>Instagram da marca</span><input name="marca.instagram" maxlength="80" placeholder="@suamarca"></label>
+          <label class="campo"><span>Site <em>(se tiver)</em></span><input name="marca.site" inputmode="url" maxlength="200"></label>
+          <label class="campo"><span>CNPJ</span><input name="marca.cnpj" inputmode="numeric" maxlength="20"></label>
+          <label class="campo"><span>Razão social</span><input name="marca.razao_social" maxlength="200"></label>
+        </div>
+        <label class="marcar confirma"><input type="checkbox" data-confirma="marca"><span>Conferi: estes dados estão corretos.</span></label>
+      </fieldset>
+
+      <fieldset class="cartao bloco" id="bloco-tema" data-bloco="tema">
+        <legend class="sr">Tema do combo</legend>
+        <div class="bloco__cabeca"><span class="bloco__num" aria-hidden="true">2</span><h2>Tema do combo</h2></div>
+        <p class="nota" id="pr-tema-nota">Cada marca escolhe o desenho que inspira o seu combo.</p>
+        <label class="campo"><span>Desenho escolhido</span><input name="combo.tema_combo" maxlength="120" data-obrigatorio="Desenho escolhido"></label>
+        <label class="campo"><span>Por que esse desenho? <em>(como ele aparece no combo)</em></span><textarea name="combo.tema_justificativa" maxlength="800" data-obrigatorio="Por que esse desenho"></textarea></label>
+        <label class="marcar confirma"><input type="checkbox" data-confirma="tema"><span>Conferi: estes dados estão corretos.</span></label>
+      </fieldset>
+
+      <fieldset class="cartao bloco" id="bloco-combo" data-bloco="combo">
+        <legend class="sr">O combo</legend>
+        <div class="bloco__cabeca"><span class="bloco__num" aria-hidden="true">3</span><h2>O combo</h2></div>
+        <p class="nota" id="pr-combo-nota"></p>
+        <label class="campo"><span>Nome do combo <em>(aparece no site)</em></span><input name="combo.combo_nome" maxlength="80"></label>
+        <label class="campo"><span>Descrição do combo <em>(aparece no site, até 400 caracteres)</em></span><textarea name="combo.combo_descricao" maxlength="400"></textarea></label>
+        <div class="escolha" role="radiogroup" aria-labelledby="pr-viagem-t">
+          <span id="pr-viagem-t">O combo pode ser levado para viagem?</span>
+          <div class="escolha__ops">
+            <label><input type="radio" name="combo.combo_para_viagem" value="true"> Sim</label>
+            <label><input type="radio" name="combo.combo_para_viagem" value="false"> Não</label>
+          </div>
+        </div>
+        <label class="campo oculto" id="pr-custo-embalagem"><span>Custo da embalagem para viagem <em>(R$)</em></span><input name="combo.custo_embalagem" inputmode="decimal" maxlength="10" placeholder="0,00" data-obrigatorio="Custo da embalagem"></label>
+        <label class="campo oculto" id="pr-custo-delivery"><span>Custo do delivery <em>(R$)</em></span><input name="combo.custo_delivery" inputmode="decimal" maxlength="10" placeholder="0,00" data-obrigatorio="Custo do delivery"></label>
+        <label class="marcar confirma"><input type="checkbox" data-confirma="combo"><span>Conferi: estes dados estão corretos.</span></label>
+      </fieldset>
+
+      <fieldset class="cartao bloco" id="bloco-itens" data-bloco="itens">
+        <legend class="sr">Os três itens</legend>
+        <div class="bloco__cabeca"><span class="bloco__num" aria-hidden="true">4</span><h2>Os três itens</h2></div>
+        <p class="nota">Ingredientes completos: é o que o público usa para saber de alergia e restrição.</p>
+        <div id="pr-itens"></div>
+        <label class="marcar confirma"><input type="checkbox" data-confirma="itens"><span>Conferi: estes dados estão corretos.</span></label>
+      </fieldset>
+
+      <fieldset class="cartao bloco" id="bloco-unidades" data-bloco="unidades">
+        <legend class="sr">Onde o combo é vendido</legend>
+        <div class="bloco__cabeca"><span class="bloco__num" aria-hidden="true">5</span><h2>Onde o combo é vendido</h2></div>
+        <p class="nota">Uma ficha por loja que vende o combo. É o endereço do mapa da edição.</p>
+        <div id="pr-unidades"></div>
+        <p style="margin-top:16px"><button type="button" class="btn btn--claro" id="pr-add-unidade">+ Adicionar outra loja</button></p>
+        <label class="marcar confirma"><input type="checkbox" data-confirma="unidades"><span>Conferi: estes dados estão corretos.</span></label>
+      </fieldset>
+
+      <fieldset class="cartao bloco" id="bloco-observacao" data-bloco="observacao">
+        <legend class="sr">Observações</legend>
+        <div class="bloco__cabeca"><span class="bloco__num" aria-hidden="true">6</span><h2>Observações</h2></div>
+        <label class="campo"><span>Algo mais que a organização precisa saber? <em>(opcional)</em></span>
+          <textarea name="observacao" maxlength="2000" placeholder="Ex.: nome da marca está errado; o combo tem opção sem lactose; dúvida sobre a sessão de fotos…"></textarea></label>
+      </fieldset>
+
+      <div class="enviar">
+        <div class="faltas oculto" id="pr-faltas" role="alert" tabindex="-1"></div>
+        <button type="submit" class="btn" id="pr-enviar">Enviar para a organização</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<template id="tpl-item">
+  <div class="item">
+    <h3 data-titulo></h3>
+    <label class="campo"><span>Nome</span><input data-k="nome" maxlength="120"></label>
+    <label class="campo"><span>Descrição</span><textarea data-k="descricao" maxlength="600"></textarea></label>
+    <label class="campo"><span>Ingredientes</span><textarea data-k="ingredientes" maxlength="800"></textarea></label>
+  </div>
+</template>
+
+<template id="tpl-unidade">
+  <div class="unidade">
+    <div class="unidade__cabeca"><h3 data-titulo></h3><button type="button" class="btn btn--perigo" data-remover>Esta loja não participa</button></div>
+    <label class="campo"><span>Nome da loja <em>(se tiver mais de uma; ex.: Ponta Negra)</em></span><input data-k="nome_unidade" maxlength="60"></label>
+    <label class="campo"><span>Rua / avenida</span><input data-k="logradouro" maxlength="160" autocomplete="address-line1"></label>
+    <div class="dupla">
+      <label class="campo"><span>Número</span><input data-k="numero" maxlength="20"></label>
+      <label class="campo"><span>Complemento <em>(opcional)</em></span><input data-k="complemento" maxlength="80"></label>
+      <label class="campo"><span>Bairro</span><input data-k="bairro" maxlength="80"></label>
+      <label class="campo"><span>Cidade</span><input data-k="cidade" maxlength="80" autocomplete="address-level2"></label>
+      <label class="campo"><span>CEP</span><input data-k="cep" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="59000-000"></label>
+      <label class="campo"><span>Ponto de referência <em>(opcional)</em></span><input data-k="referencia" maxlength="120"></label>
+    </div>
+    <label class="campo"><span>Horário de funcionamento da loja</span><input data-k="horario_loja" maxlength="200" placeholder="Ex.: ter a dom, 10h às 22h"></label>
+    <label class="campo"><span>Horário em que o combo é vendido no festival</span><input data-k="horario_combo" maxlength="300" placeholder="Ex.: todos os dias, das 14h às 21h"></label>
+    <div class="escolha"><span>Consumo no local?</span><div class="escolha__ops" data-escolha="consumo_local"></div></div>
+    <div class="escolha"><span>Retirada (a pessoa pede e leva)?</span><div class="escolha__ops" data-escolha="retirada"></div></div>
+    <div class="escolha"><span>Delivery do combo?</span><div class="escolha__ops" data-escolha="delivery_combo"></div></div>
+    <label class="campo"><span>WhatsApp da loja para clientes <em>(opcional)</em></span><input data-k="whatsapp" type="tel" inputmode="tel" maxlength="20" placeholder="(84) 99999-9999"></label>
+    <label class="marcar"><input type="checkbox" data-k="whatsapp_autorizado"><span>Pode mostrar este WhatsApp no site da edição.</span></label>
+  </div>
+</template>
+
+<script>
+(function () {
+  'use strict';
+  // Chave PUBLICÁVEL (a mesma do /quero-participar): só alcança as duas funções
+  // abertas, que exigem o código do link. Nunca a chave secreta aqui.
+  var SUPABASE_URL = 'https://dgfmoibynftadsyjcclg.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R';
+  var ITENS = ['Doce', 'Salgado', 'Bebida'];
+  var MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+  var codigo = (location.hash || '').replace(/^#/, '').replace(/^k=/, '').toLowerCase();
+  var form = document.getElementById('pr-form');
+  var estadoEl = document.getElementById('pr-estado');
+  var info = null;          // resposta de preenchimento_ler
+  var unidades = [];        // [{dados, remover}]
+  var chaveRascunho = 'scw_preencher_' + codigo;
+
+  function el(tag, attrs, texto) {
+    var e = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (texto != null) e.textContent = texto;
+    return e;
+  }
+  function txt(v) { return v == null ? '' : String(v); }
+  function dataCurta(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(txt(iso));
+    return m ? Number(m[3]) + ' ' + MESES[Number(m[2]) - 1] : '';
+  }
+  function dinheiro(v) {
+    if (v == null || v === '') return '';
+    var n = Number(v);
+    return isNaN(n) ? txt(v) : n.toFixed(2).replace('.', ',');
+  }
+
+  async function rpc(funcao, corpo) {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + funcao, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(corpo)
+    });
+    var corpoTexto = await r.text();
+    if (!r.ok) throw new Error('http_' + r.status);
+    return corpoTexto ? JSON.parse(corpoTexto) : null;
+  }
+
+  function mostrarEstado(titulo, texto) {
+    estadoEl.classList.remove('carregando');
+    estadoEl.textContent = '';
+    estadoEl.appendChild(el('h1', null, titulo));
+    estadoEl.appendChild(el('p', null, texto));
+    estadoEl.classList.remove('oculto');
+    document.getElementById('pr-conteudo').classList.add('oculto');
+  }
+
+  /* ── Manual curto e agenda: tudo do banco (edicoes + edicao_cronograma) ── */
+  function montarManual(ed) {
+    var lista = document.getElementById('pr-manual');
+    var tema = txt(ed.tema);
+    var temaBonito = tema ? tema.charAt(0) + tema.slice(1).toLowerCase() : '';
+    var periodo = ed.inicio && ed.fim ? 'de ' + dataCurta(ed.inicio) + ' a ' + dataCurta(ed.fim) : '';
+    var linhas = [
+      (temaBonito ? 'A edição ' + temaBonito + ' do Sweet & Coffee Week' : 'A próxima edição do Sweet & Coffee Week') + (periodo ? ' acontece ' + periodo : '') + '. As marcas criam um combo inspirado no tema e o público circula pela cidade para provar.',
+      'O combo tem três itens: um doce, um salgado e uma bebida, inspirados no desenho que a sua marca escolheu.',
+      ed.valor_combo ? 'O valor é o mesmo em todas as marcas: R$ ' + dinheiro(ed.valor_combo) + ', definido pela organização.' : null,
+      ed.vouchers ? 'Cada marca disponibiliza ' + ed.vouchers + ' vouchers do combo.' : null,
+      'O público avalia os combos, e o Sweet Awards reconhece os destaques.',
+      'Estes dados viram a página da sua marca no site, o mapa e os materiais da edição. Por isso precisam estar certos.'
+    ];
+    linhas.forEach(function (l) { if (l) lista.appendChild(el('li', null, l)); });
+    if (temaBonito) document.getElementById('pr-festival').textContent = 'Edição ' + temaBonito + (periodo ? ' · ' + periodo : '');
+    if (ed.valor_combo) document.getElementById('pr-combo-nota').textContent = 'Valor oficial do combo: R$ ' + dinheiro(ed.valor_combo) + '. Você não precisa informar preço.';
+
+    var agenda = document.getElementById('pr-agenda');
+    var prazo = null;
+    (ed.cronograma || []).forEach(function (c) {
+      var quando = c.inicio && c.fim ? dataCurta(c.inicio) + ' a ' + dataCurta(c.fim) : dataCurta(c.fim || c.inicio);
+      var li = el('li', c.chave === 'preenchimento' ? { 'class': 'agenda__destaque' } : null);
+      li.appendChild(el('span', { 'class': 'agenda__data' }, quando));
+      var t = el('span', null, c.titulo);
+      if (c.condicao) { t.appendChild(document.createElement('br')); t.appendChild(el('small', null, c.condicao)); }
+      li.appendChild(t);
+      agenda.appendChild(li);
+      if (c.chave === 'preenchimento') prazo = c.fim;
+    });
+    if (prazo) {
+      var p = document.getElementById('pr-urgente-texto');
+      p.textContent = '';
+      p.appendChild(document.createTextNode('Prazo: '));
+      p.appendChild(el('strong', null, 'até ' + dataCurta(prazo)));
+      p.appendChild(document.createTextNode('. Confira cada bloco, corrija o que estiver errado, complete o que falta e toque em “Enviar” no fim da página. Sem estes dados, a sua marca não entra no site nem nos materiais da edição.'));
+    }
+  }
+
+  /* ── Preencher o formulário ── */
+  function valorCampo(nome, v) {
+    var campos = form.querySelectorAll('[name="' + nome + '"]');
+    if (!campos.length) return;
+    if (campos[0].type === 'radio') {
+      campos.forEach(function (c) { c.checked = v != null && String(v) === c.value; });
+    } else {
+      campos[0].value = nome.indexOf('custo_') > -1 ? dinheiro(v) : txt(v);
+    }
+  }
+
+  function montarItens(itens) {
+    var caixa = document.getElementById('pr-itens');
+    var tpl = document.getElementById('tpl-item');
+    for (var i = 1; i <= 3; i++) {
+      var it = (itens || []).filter(function (x) { return Number(x.posicao) === i; })[0] || {};
+      var no = tpl.content.firstElementChild.cloneNode(true);
+      no.dataset.posicao = i;
+      no.querySelector('[data-titulo]').textContent = ITENS[i - 1];
+      no.querySelectorAll('[data-k]').forEach(function (c) {
+        c.value = txt(it[c.dataset.k]);
+        c.dataset.obrigatorio = ITENS[i - 1] + ' · ' + c.closest('label').firstChild.textContent;
+      });
+      caixa.appendChild(no);
+    }
+  }
+
+  function opcoesSimNao(caixa, nome, valor) {
+    caixa.setAttribute('role', 'radiogroup');
+    caixa.setAttribute('aria-label', caixa.parentNode.firstElementChild.textContent);
+    [['sim', 'Sim'], ['nao', 'Não']].forEach(function (o) {
+      var lab = el('label');
+      var r = el('input', { type: 'radio', name: nome, value: o[0] });
+      r.checked = valor === o[0];
+      lab.appendChild(r);
+      lab.appendChild(document.createTextNode(' ' + o[1]));
+      caixa.appendChild(lab);
+    });
+  }
+
+  var contadorUnidade = 0;
+  function adicionarUnidade(u) {
+    var caixa = document.getElementById('pr-unidades');
+    var no = document.getElementById('tpl-unidade').content.firstElementChild.cloneNode(true);
+    var reg = { id: u && u.id ? u.id : null, no: no, remover: false };
+    contadorUnidade += 1;
+    var sufixo = '-' + contadorUnidade;
+    no.querySelectorAll('[data-k]').forEach(function (c) {
+      if (c.type === 'checkbox') c.checked = !!(u && u[c.dataset.k]);
+      else c.value = txt(u && u[c.dataset.k]);
+    });
+    no.querySelectorAll('[data-escolha]').forEach(function (c) {
+      opcoesSimNao(c, c.dataset.escolha + sufixo, u ? u[c.dataset.escolha] : null);
+    });
+    [['logradouro', 'Rua / avenida'], ['bairro', 'Bairro'], ['cidade', 'Cidade'], ['horario_combo', 'Horário do combo']].forEach(function (p) {
+      no.querySelector('[data-k="' + p[0] + '"]').dataset.obrigatorio = p[1];
+    });
+    no.querySelector('[data-remover]').addEventListener('click', function () {
+      reg.remover = !reg.remover;
+      no.querySelectorAll('input,textarea').forEach(function (c) { c.disabled = reg.remover; });
+      this.textContent = reg.remover ? 'Desfazer: esta loja participa' : 'Esta loja não participa';
+      no.style.opacity = reg.remover ? '.5' : '';
+      reavaliar();
+    });
+    no.addEventListener('change', reavaliar);
+    caixa.appendChild(no);
+    unidades.push(reg);
+    titulosUnidades();
+    return reg;
+  }
+  function titulosUnidades() {
+    unidades.forEach(function (u, i) { u.no.querySelector('[data-titulo]').textContent = 'Loja ' + (i + 1); });
+  }
+
+  function preencher(dados) {
+    var m = dados.marca || {}, c = dados.combo || {};
+    Object.keys(m).forEach(function (k) { valorCampo('marca.' + k, m[k]); });
+    Object.keys(c).forEach(function (k) { valorCampo('combo.' + k, c[k]); });
+    valorCampo('observacao', dados.observacao);
+    montarItens(dados.itens);
+    var lista = (dados.unidades || []).filter(function (u) { return !u.remover; });
+    if (!lista.length) adicionarUnidade(null);
+    else lista.forEach(adicionarUnidade);
+    (dados.confirmados || []).forEach(function (b) {
+      var cx = form.querySelector('[data-confirma="' + b + '"]');
+      if (cx) cx.checked = true;
+    });
+  }
+
+  /* ── Ler o formulário (mesma forma de preenchimento_estado) ── */
+  function coletar() {
+    var d = { marca: {}, combo: {}, itens: [], unidades: [], confirmados: [] };
+    form.querySelectorAll('[name^="marca."]').forEach(function (c) { d.marca[c.name.slice(6)] = c.value.trim(); });
+    ['tema_combo', 'tema_justificativa', 'combo_nome', 'combo_descricao', 'custo_embalagem', 'custo_delivery'].forEach(function (k) {
+      d.combo[k] = form.querySelector('[name="combo.' + k + '"]').value.trim();
+    });
+    var viagem = form.querySelector('[name="combo.combo_para_viagem"]:checked');
+    d.combo.combo_para_viagem = viagem ? viagem.value === 'true' : null;
+    if (!d.combo.combo_para_viagem) d.combo.custo_embalagem = '';
+    if (!temDelivery()) d.combo.custo_delivery = '';
+    document.querySelectorAll('#pr-itens .item').forEach(function (no) {
+      var it = { posicao: Number(no.dataset.posicao) };
+      no.querySelectorAll('[data-k]').forEach(function (c) { it[c.dataset.k] = c.value.trim(); });
+      d.itens.push(it);
+    });
+    unidades.forEach(function (u) {
+      if (u.remover) { if (u.id) d.unidades.push({ id: u.id, remover: true }); return; }
+      var x = { id: u.id };
+      u.no.querySelectorAll('[data-k]').forEach(function (c) { x[c.dataset.k] = c.type === 'checkbox' ? c.checked : c.value.trim(); });
+      u.no.querySelectorAll('[data-escolha]').forEach(function (c) {
+        var r = c.querySelector('input:checked');
+        x[c.dataset.escolha] = r ? r.value : 'nao_informado';
+      });
+      d.unidades.push(x);
+    });
+    form.querySelectorAll('[data-confirma]').forEach(function (c) { if (c.checked) d.confirmados.push(c.dataset.confirma); });
+    d.observacao = form.querySelector('[name="observacao"]').value.trim();
+    return d;
+  }
+
+  function temDelivery() {
+    return unidades.some(function (u) {
+      if (u.remover) return false;
+      var r = u.no.querySelector('[data-escolha="delivery_combo"] input:checked');
+      return r && r.value === 'sim';
+    });
+  }
+
+  // O que falta: a mesma régua de campos_cadastro (sem a logo, que é da organização).
+  function faltas() {
+    var lista = [];
+    form.querySelectorAll('.campo--falta').forEach(function (c) { c.classList.remove('campo--falta'); });
+    function checar(input, bloco) {
+      if (!input || input.disabled || input.closest('.oculto')) return;
+      if (!input.value.trim()) {
+        input.closest('.campo').classList.add('campo--falta');
+        lista.push({ texto: input.dataset.obrigatorio, alvo: input, bloco: bloco });
+      }
+    }
+    form.querySelectorAll('[data-obrigatorio]').forEach(function (c) { checar(c, c.closest('[data-bloco]').dataset.bloco); });
+    if (!form.querySelector('[name="combo.combo_para_viagem"]:checked')) {
+      lista.push({ texto: 'Responder se o combo pode ser para viagem', alvo: form.querySelector('[name="combo.combo_para_viagem"]'), bloco: 'combo' });
+    }
+    var MODOS = { consumo_local: 'consumo no local', retirada: 'retirada', delivery_combo: 'delivery' };
+    unidades.forEach(function (u, i) {
+      if (u.remover) return;
+      u.no.querySelectorAll('[data-escolha]').forEach(function (c) {
+        if (!c.querySelector('input:checked')) {
+          lista.push({ texto: 'Loja ' + (i + 1) + ' · responder ' + MODOS[c.dataset.escolha], alvo: c.querySelector('input'), bloco: 'unidades' });
+        }
+      });
+    });
+    if (!unidades.some(function (u) { return !u.remover; })) {
+      lista.push({ texto: 'Pelo menos uma loja', alvo: document.getElementById('pr-add-unidade'), bloco: 'unidades' });
+    }
+    form.querySelectorAll('[data-confirma]').forEach(function (c) {
+      if (!c.checked) lista.push({ texto: 'Confirmar o bloco “' + c.closest('[data-bloco]').querySelector('h2').textContent + '”', alvo: c, bloco: c.dataset.confirma });
+    });
+    return lista;
+  }
+
+  function reavaliar() {
+    var viagem = form.querySelector('[name="combo.combo_para_viagem"]:checked');
+    document.getElementById('pr-custo-embalagem').classList.toggle('oculto', !(viagem && viagem.value === 'true'));
+    document.getElementById('pr-custo-delivery').classList.toggle('oculto', !temDelivery());
+    form.querySelectorAll('[data-confirma]').forEach(function (c) {
+      c.closest('[data-bloco]').classList.toggle('bloco__ok', c.checked);
+    });
+    guardarRascunho();
+  }
+
+  function guardarRascunho() {
+    try { localStorage.setItem(chaveRascunho, JSON.stringify({ em: Date.now(), dados: coletar() })); } catch (e) { /* sem armazenamento */ }
+  }
+  function lerRascunho() {
+    try {
+      var r = JSON.parse(localStorage.getItem(chaveRascunho) || 'null');
+      return r && r.dados ? r : null;
+    } catch (e) { return null; }
+  }
+
+  function mostrarFaltas(lista) {
+    var caixa = document.getElementById('pr-faltas');
+    caixa.textContent = '';
+    if (!lista.length) { caixa.classList.add('oculto'); return; }
+    caixa.appendChild(el('strong', null, 'Falta ' + (lista.length === 1 ? '1 item' : lista.length + ' itens') + ' para enviar:'));
+    var ul = el('ul');
+    lista.slice(0, 8).forEach(function (f) {
+      var li = el('li');
+      var a = el('a', { href: '#' }, f.texto);
+      a.addEventListener('click', function (ev) { ev.preventDefault(); f.alvo.focus(); f.alvo.scrollIntoView({ block: 'center' }); });
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+    if (lista.length > 8) ul.appendChild(el('li', null, 'e mais ' + (lista.length - 8) + '.'));
+    caixa.appendChild(ul);
+    caixa.classList.remove('oculto');
+    caixa.focus();
+  }
+
+  var ERROS = {
+    link_invalido: 'Este link não vale mais. Peça um novo para a organização.',
+    dados_invalidos: 'Não consegui ler o formulário. Recarregue a página e tente de novo.',
+    limite: 'Este link já recebeu envios demais. Fale com a organização.',
+    aguarde: 'Você acabou de enviar. Espere alguns segundos e tente de novo.'
+  };
+
+  form.addEventListener('input', guardarRascunho);
+  form.addEventListener('change', reavaliar);
+  document.getElementById('pr-add-unidade').addEventListener('click', function () {
+    var reg = adicionarUnidade(null);
+    reg.no.querySelector('[data-k="nome_unidade"]').focus();
+    reavaliar();
+  });
+
+  form.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var lista = faltas();
+    if (lista.length) { mostrarFaltas(lista); return; }
+    mostrarFaltas([]);
+    var botao = document.getElementById('pr-enviar');
+    botao.disabled = true;
+    botao.textContent = 'Enviando…';
+    try {
+      var r = await rpc('preenchimento_enviar', { p_codigo: codigo, p_dados: coletar() });
+      if (!r || !r.ok) throw new Error((r && r.erro) || 'falha');
+      try { localStorage.removeItem(chaveRascunho); } catch (e) { /* sem armazenamento */ }
+      mostrarEstado('Recebemos, obrigado!',
+        'A organização vai conferir os dados da ' + txt(info.marca) + '. Se precisar corrigir algo, abra este mesmo link e envie de novo: vale o envio mais recente.');
+      window.scrollTo(0, 0);
+    } catch (e) {
+      var caixa = document.getElementById('pr-faltas');
+      caixa.textContent = ERROS[e.message] || 'Não foi possível enviar agora. Confira sua internet e tente de novo — nada do que você digitou se perdeu.';
+      caixa.classList.remove('oculto');
+      caixa.focus();
+    } finally {
+      botao.disabled = false;
+      botao.textContent = 'Enviar para a organização';
+    }
+  });
+
+  async function iniciar() {
+    if (!/^[a-f0-9]{32}$/.test(codigo)) {
+      mostrarEstado('Link incompleto', 'Abra o link exatamente como chegou no WhatsApp. Se não funcionar, peça um novo para a organização.');
+      return;
+    }
+    try {
+      info = await rpc('preenchimento_ler', { p_codigo: codigo });
+    } catch (e) {
+      mostrarEstado('Não consegui carregar', 'Confira sua internet e recarregue a página.');
+      return;
+    }
+    if (!info || info.estado !== 'ok') {
+      mostrarEstado(info && info.estado === 'encerrado' ? 'Este link foi encerrado' : 'Link não encontrado',
+        'Peça um novo link para a organização do Sweet & Coffee Week.');
+      return;
+    }
+    document.title = info.marca + ' · Sweet & Coffee Week';
+    document.getElementById('pr-marca').textContent = info.marca;
+    document.getElementById('pr-ola').textContent = info.responsavel ? 'Olá, ' + txt(info.responsavel).split(' ')[0] + '!' : 'Olá!';
+    if (info.logo) {
+      var logo = el('img', { 'class': 'topo__logo', alt: 'Logo ' + info.marca, width: '76', height: '76' });
+      logo.src = info.logo.charAt(0) === '/' ? info.logo
+        : SUPABASE_URL + '/storage/v1/object/public/logos/' + info.logo.split('/').map(encodeURIComponent).join('/');
+      var topo = document.getElementById('pr-topo-in');
+      topo.insertBefore(logo, topo.firstChild);
+    }
+    montarManual(info.edicao || {});
+    if (info.ultimo_envio && info.ultimo_envio.enviado_em) {
+      var quando = new Date(info.ultimo_envio.enviado_em);
+      var aviso = document.getElementById('pr-ja-enviou');
+      aviso.textContent = 'Você já enviou em ' + quando.toLocaleDateString('pt-BR') + ' às ' +
+        quando.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) +
+        (info.ultimo_envio.status === 'aplicado' ? '. A organização já conferiu. Se mudou algo, envie de novo.' : '. Se precisar corrigir, envie de novo: vale o mais recente.');
+      aviso.classList.remove('oculto');
+    }
+    // Prioridade: rascunho deste aparelho > envio aguardando revisão > cadastro atual.
+    var rascunho = lerRascunho();
+    preencher(rascunho ? rascunho.dados : (info.pendente || info.dados || {}));
+    estadoEl.classList.add('oculto');
+    document.getElementById('pr-conteudo').classList.remove('oculto');
+    reavaliar();
+  }
+
+  iniciar();
+})();
+</script>
+</body>
+</html>

@@ -15,6 +15,7 @@ import { confirmar } from '../Confirmar'
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
 import { AbaCadastroMarca, AbaCombo, AbaUnidades, CorrecoesCampo } from './FichaCadastro'
 import { AbaAcesso } from './AcessoMarca'
+import { PreenchimentoMarca } from './Preenchimento'
 import { AbaPublicacao, PreviaPagina, ConferirLocalizacao, RevisarFotos } from './Publicacao'
 import { useFichaGeral, VisaoParticipante } from './FichaVisao'
 
@@ -349,7 +350,12 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
             </MacroSecao>
           </>
         )}
-        {vista === 'gestao' && <AbaAcesso participante={p} pode={pode} onMudou={onMudou} onFechar={onVoltar} />}
+        {vista === 'gestao' && (
+          <div className="ui-pilha">
+            <PreenchimentoMarca participante={p} pode={pode} onMudou={aposSalvar} />
+            <AbaAcesso participante={p} pode={pode} onMudou={onMudou} onFechar={onVoltar} />
+          </div>
+        )}
       </div>
     </div>
   )

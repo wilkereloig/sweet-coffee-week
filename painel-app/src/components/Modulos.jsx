@@ -15,6 +15,7 @@ import { Equipe } from './vistas/Equipe'
 import { ComEdicaoAtual, useEdicoes, AbaConfiguracao, AbaTemas, AbaVendas, AbaRevisao, AbaImportacoes, AbaEdicoes } from './vistas/Edicao'
 import { Carregando, Erro } from './ui'
 import { ListaPublicacao } from './vistas/Publicacao'
+import { ListaPreenchimento } from './vistas/Preenchimento'
 import { ChavesEdicao, Avaliacoes } from './vistas/PublicacaoEdicao'
 
 /*
@@ -63,6 +64,8 @@ export function Participantes(props) {
     { chave: 'vendas', rotulo: 'Vendas', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <AbaVendas edicao={atual} pode={props.pode} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
     // Cartoon 2026.2: o que está no site, casa a casa (filtros por revisão e publicação).
     { chave: 'publicacao', rotulo: 'Publicação', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ListaPublicacao edicao={atual} rota={props.rota} navegar={props.navegar} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
+    // Link de preenchimento (16/10/2026): uma página por marca, sem login; o envio passa por revisão na ficha.
+    { chave: 'preenchimento', rotulo: 'Preenchimento', render: () => <ListaPreenchimento pode={props.pode} irPara={props.irPara} /> },
   ]} />
 }
 

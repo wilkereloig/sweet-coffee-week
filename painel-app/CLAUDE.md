@@ -1040,3 +1040,26 @@ As 26 logos de `10_LOGOS_PARTICIPANTES/PRINCIPAIS` (Dropbox da edição) são as
 questionar. No painel elas entram como logo **do acervo** (`logos_marca.origem = 'acervo'`, caminho `/logos/participants/<slug>.png`,
 registrada por `registrar_logo`), que `urlLogo` (`lib/logos.js`) já serve como arquivo do site. Fluxo para trocar uma logo: ver
 `src/CLAUDE.md` §6.12 (script `scripts/sincronizar-logos-oficiais.py` + `scripts/acervo-logos-para-sql.mjs`).
+
+#### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
+As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
+`/preencher/#<código>` (página estática `public/preencher/index.html`, mesmo padrão do `/quero-participar`):
+manual curto da edição (tudo de `edicoes` + `edicao_cronograma`) e formulário pré-preenchido em 6 blocos
+(contato, tema, combo, 3 itens, lojas, observações), cada um com "Conferi". Migration
+`20261016_link_preenchimento.sql`; lógica pura em `lib/preenchimento.js`; telas em `vistas/Preenchimento.jsx`;
+teste `tests/painel-app-preenchimento.test.mjs`.
+- ⛔ **O envio não grava no cadastro** (decisão do Wilker: "passa por revisão"). Vira `preenchimento_envios`
+  `pendente`; a organização vê a diferença campo a campo na ficha › **Gestão** e aplica ou descarta
+  (`org_preenchimento_decidir`, `cadastro.editar`). Aplicar chama as MESMAS `org_salvar_*` do editor; lojas
+  gravam `unidades` + `participacao_unidades` (espelho `endereco`/`bairro`/`faz_delivery`). Nome da marca fica
+  de fora (é login): a marca avisa em "Observações".
+- O código mora no **fragmento** (`#`), não vai ao servidor nem ao Referer; página `noindex` e `no-referrer`.
+  Tabelas sem policy; anon só alcança `preenchimento_ler`/`preenchimento_enviar`, que exigem o código.
+  Envio novo substitui o pendente; 15 s entre envios; 40 por link; 60 KB.
+- **Participantes › Preenchimento** lista a edição atual: gerar os links que faltam, copiar todas as mensagens,
+  WhatsApp por marca. A mensagem diz "obrigatório e urgente" com o prazo do cronograma (`chave = 'preenchimento'`,
+  24/10/2026). ⛔ Prazo é dado da edição, não constante no front.
+- Trocar o link revoga o anterior (`p_novo`). Link vence em `festival_fim + 15 dias`.
+- ⚠️ Fica de fora do formulário: declarações alimentares/alergênicos, trocas, horário do combo por dia
+  (`unidade_disponibilidade`) e canais de delivery — o horário do combo chega como texto em
+  `participacao_unidades.horarios`; alergias vêm em "Observações".
