@@ -79,10 +79,11 @@ const ASPECTOS = [
 ]
 // Ausente = "sem resposta" — nunca "não contém" (regra da camada de edição).
 const ESTADO_ALIMENTAR = { contem: 'Contém', nao_contem: 'Não contém', pode_conter: 'Pode conter', sim: 'Sim', nao: 'Não', nao_informado: 'Sem resposta' }
-const ROTULOS_TROCA = [['original', 'Troca o quê'], ['alternativa', 'Por o quê'], ['disponibilidade', 'Disponível'], ['acrescimo', 'Custa a mais']]
+// Troca não tem custo: o combo tem valor único (só embalagem e entrega somam).
+const ROTULOS_TROCA = [['original', 'Troca o quê'], ['alternativa', 'Por o quê'], ['disponibilidade', 'Disponível']]
 const DISPONIBILIDADE = { sempre: 'Sempre', sob_consulta: 'Sob consulta', limitada: 'Até acabar' }
 const DIGITOS = new Set(['cep', 'whatsapp', 'telefone', 'cnpj'])
-const DINHEIRO = new Set(['custo_embalagem', 'custo_delivery', 'acrescimo'])
+const DINHEIRO = new Set(['custo_embalagem', 'custo_delivery'])
 const SIM_NAO = { sim: 'Sim', nao: 'Não', nao_informado: '' }
 const SIM_NAO_CAMPOS = { consumo_local: 1, retirada: 1, delivery_combo: 1 }
 
