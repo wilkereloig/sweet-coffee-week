@@ -27,8 +27,8 @@ returns jsonb language sql stable security definer set search_path = public as $
                                 from public.declaracoes_alimentares d where d.item_id = i.id),
                 'outro_alergenico', (select d.observacao from public.declaracoes_alimentares d
                                       where d.item_id = i.id and d.aspecto = 'outro_alergenico'),
-                'tem_troca', case when i.id is null then null
-                                  else exists (select 1 from public.substituicoes s where s.item_id = i.id) end,
+                -- Sem troca cadastrada = não respondido (null), nunca "não tem troca".
+                'tem_troca', case when exists (select 1 from public.substituicoes s where s.item_id = i.id) then true end,
                 'troca', (select jsonb_build_object('original', s.original, 'alternativa', s.alternativa,
                                    'disponibilidade', s.disponibilidade, 'acrescimo', s.acrescimo)
                             from public.substituicoes s where s.item_id = i.id order by s.ordem, s.criado_em limit 1))

@@ -55,7 +55,7 @@ svg{flex:none}
 main{max-width:640px;margin:0 auto;padding:18px var(--trilho) calc(env(safe-area-inset-bottom) + 32px)}
 
 /* Resumo: três fatos com ícone + o prazo. Nada além disso. */
-.resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.resumo{list-style:none;padding:0;margin:0 0 12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .fato{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:12px 6px;border-radius:var(--r);
   background:rgba(255,255,255,.55);border:1px solid var(--scw-filete);font-size:13px;line-height:1.25}
 .fato b{font-size:14px;font-weight:800}
@@ -124,7 +124,8 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
 .marcar{display:flex;gap:10px;align-items:flex-start;padding:14px;border-radius:var(--r);background:var(--scw-bege);font-weight:700;cursor:pointer}
 .marcar input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--scw-choco)}
 .marcar--falta{outline:2px solid var(--scw-laranja)}
-.enviar{position:sticky;bottom:0;background:var(--scw-creme);padding:12px 0 calc(env(safe-area-inset-bottom) + 12px);margin-top:12px}
+.enviar{position:sticky;bottom:0;background:var(--scw-creme);padding:12px 8px calc(env(safe-area-inset-bottom) + 12px);margin:12px -8px 0}
+.faltas ul{max-height:30vh;overflow:auto}
 .enviar .btn{width:100%;font-size:17px}
 .faltas{display:flex;gap:10px;margin:0 0 10px;padding:12px 14px;border-radius:var(--r);background:rgba(255,72,16,.07);border:1.5px solid var(--scw-laranja);font-size:14px}
 .faltas ul{margin:4px 0 0;padding-left:18px}
@@ -437,7 +438,10 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
   /* ── Resumo: tudo do banco (edicoes + edicao_cronograma) ── */
   function montarResumo(ed) {
     var tema = txt(ed.tema);
-    if (ed.inicio && ed.fim) document.getElementById('pr-periodo').textContent = dataCurta(ed.inicio) + ' a ' + dataCurta(ed.fim);
+    if (ed.inicio && ed.fim) {
+      var mesmoMes = txt(ed.inicio).slice(0, 7) === txt(ed.fim).slice(0, 7);
+      document.getElementById('pr-periodo').textContent = (mesmoMes ? Number(txt(ed.inicio).slice(8, 10)) : dataCurta(ed.inicio)) + ' a ' + dataCurta(ed.fim);
+    }
     if (tema) document.getElementById('pr-tema').textContent = 'Edição ' + tema.charAt(0) + tema.slice(1).toLowerCase();
     if (ed.valor_combo) document.getElementById('pr-valor').textContent = 'R$ ' + dinheiro(ed.valor_combo);
     var prazo = (ed.cronograma || []).filter(function (c) { return c.chave === 'preenchimento'; })[0];
@@ -575,7 +579,7 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
   }
   function titulosLojas() {
     lojas.forEach(function (u, i) {
-      var nome = u.no.querySelector('[data-k="nome_unidade"]').value.trim();
+      var nome = u.no.querySelector('[data-k="nome_unidade"]').value.trim() || u.no.querySelector('[data-k="bairro"]').value.trim();
       u.no.querySelector('[data-titulo]').textContent = lojas.length > 1 || nome ? 'Loja ' + (i + 1) + (nome ? ' · ' + nome : '') : 'Endereço';
     });
   }
