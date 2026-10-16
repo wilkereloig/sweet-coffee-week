@@ -100,6 +100,11 @@ fieldset{border:0;padding:0;margin:0}
 .horas label{display:flex;align-items:center;gap:6px;font-weight:700}
 .horas select{min-height:48px;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--scw-borda-campo);border-radius:var(--r);padding:8px 10px}
 .atual{font-size:14px;color:var(--scw-marrom);margin-bottom:6px}
+.faixa{padding:10px 0;border-top:1px dashed var(--scw-borda-campo)}
+.faixa:first-child{border-top:0;padding-top:0}
+.faixa__tirar{margin-top:8px}
+.faixas__mais{margin-top:8px}
+.opcao--off{opacity:.4;cursor:not-allowed}
 .troca{margin-top:4px;padding:4px 14px 14px;border-radius:var(--r);background:rgba(248,228,193,.55)}
 
 details.mais{margin-top:12px}
@@ -630,46 +635,108 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     else { dias = parte.split(',').map(ix); if (dias.some(function (d) { return d < 0; })) return null; }
     return { dias: dias, abre: Number(m[2]) + ':' + (m[3] || '00'), fecha: Number(m[4]) + ':' + (m[5] || '00') };
   }
+  // Várias faixas: "Seg a Sex, 12h às 21h; Sáb, Dom, 10h às 22h". Uma que não lê = null.
+  function lerHorarios(t) {
+    var partes = txt(t).split(';').map(function (x) { return x.trim(); }).filter(Boolean);
+    if (!partes.length) return null;
+    var faixas = partes.map(lerHorario);
+    return faixas.some(function (f) { return !f; }) ? null : faixas;
+  }
+  function textoHorarios(faixas) {
+    return faixas.map(function (f) { return diasTexto(f.dias) + ', ' + horaTexto(f.abre) + ' às ' + horaTexto(f.fecha); }).join('; ');
+  }
   function montarHorario(caixa) {
     if (caixa.dataset.pronto) return;
     caixa.dataset.pronto = '1';
-    contadorGrupo += 1;
     var input = caixa.querySelector('input[type="hidden"]');
-    var original = input.value.trim(), lido = lerHorario(original);
-    if (original && !lido) caixa.insertBefore(el('p', { 'class': 'atual' }, 'Hoje está: ' + original + '. Escolha abaixo para trocar.'), input);
-    var opcoes = el('div', { 'class': 'opcoes' });
-    var todos = el('input', { type: 'checkbox' });
-    var labTodos = el('label', { 'class': 'opcao' }); labTodos.appendChild(todos); labTodos.appendChild(document.createTextNode('Todos os dias'));
-    opcoes.appendChild(labTodos);
-    var caixasDia = DIAS.map(function (d, k) {
-      var c = el('input', { type: 'checkbox', 'data-dia': String(k) });
-      c.checked = !!lido && lido.dias.indexOf(k) > -1;
-      var lab = el('label', { 'class': 'opcao' }); lab.appendChild(c); lab.appendChild(document.createTextNode(d));
-      opcoes.appendChild(lab);
-      return c;
-    });
-    todos.checked = !!lido && lido.dias.length === 7;
-    var horas = el('div', { 'class': 'horas' });
-    function lista(rotulo, valor) {
+    var original = input.value.trim(), lidas = lerHorarios(original);
+    if (original && !lidas) caixa.insertBefore(el('p', { 'class': 'atual' }, 'Hoje está: ' + original + '. Escolha abaixo para trocar.'), input);
+    var lista = el('div', { 'class': 'faixas' });
+    var mais = el('button', { type: 'button', 'class': 'btn btn--mini faixas__mais' }, '+ Outro horário em outros dias');
+    caixa.insertBefore(lista, input);
+    caixa.insertBefore(mais, input);
+    var faixas = [];
+
+    function seletor(rotulo, valor, onde) {
       var lab = el('label', null, rotulo + ' ');
-      var sel = el('select');
+      var sel = el('select', { 'aria-label': rotulo === 'Das' ? 'Abre às' : 'Fecha às' });
       sel.appendChild(el('option', { value: '' }, '—'));
       HORAS.forEach(function (h) { var o = el('option', { value: h }, horaTexto(h)); if (h === valor) o.selected = true; sel.appendChild(o); });
-      lab.appendChild(sel); horas.appendChild(lab);
+      lab.appendChild(sel); onde.appendChild(lab);
       return sel;
     }
-    var abre = lista('Das', lido && lido.abre), fecha = lista('às', lido && lido.fecha);
-    caixa.insertBefore(opcoes, input);
-    caixa.insertBefore(horas, input);
-    function compor() {
-      var dias = caixasDia.filter(function (c) { return c.checked; }).map(function (c) { return Number(c.dataset.dia); });
-      if (!dias.length && !abre.value && !fecha.value) input.value = original;
-      else input.value = dias.length && abre.value && fecha.value ? diasTexto(dias) + ', ' + horaTexto(abre.value) + ' às ' + horaTexto(fecha.value) : '';
+    // Dia já usado em outra faixa fica apagado aqui: um dia, um horário.
+    function usadosFora(f) {
+      var u = {};
+      faixas.forEach(function (g) { if (g !== f) g.dias.forEach(function (c) { if (c.checked) u[c.dataset.dia] = 1; }); });
+      return u;
     }
-    todos.addEventListener('change', function () { caixasDia.forEach(function (c) { c.checked = todos.checked; }); compor(); });
-    caixasDia.forEach(function (c) { c.addEventListener('change', function () { todos.checked = caixasDia.every(function (x) { return x.checked; }); compor(); }); });
-    abre.addEventListener('change', compor);
-    fecha.addEventListener('change', compor);
+    function atualizar() {
+      faixas.forEach(function (f) {
+        var u = usadosFora(f);
+        f.dias.forEach(function (c) { c.disabled = !!u[c.dataset.dia] && !c.checked; c.parentNode.classList.toggle('opcao--off', c.disabled); });
+        f.todos.checked = f.dias.every(function (c) { return c.checked; });
+        f.todos.disabled = Object.keys(u).length > 0;
+        f.todos.parentNode.classList.toggle('opcao--off', f.todos.disabled);
+        f.tirar.classList.toggle('oculto', faixas.length < 2);
+      });
+      var livres = DIAS.length - Object.keys(usadosFora(null)).length;
+      mais.classList.toggle('oculto', livres === 0 || faixas.some(function (f) { return !completa(f); }));
+      compor();
+    }
+    function completa(f) { return f.dias.some(function (c) { return c.checked; }) && f.abre.value && f.fecha.value; }
+    function vazia(f) { return !f.dias.some(function (c) { return c.checked; }) && !f.abre.value && !f.fecha.value; }
+    function compor() {
+      if (faixas.every(vazia)) { input.value = original; return; }
+      if (!faixas.every(completa)) { input.value = ''; return; }
+      input.value = textoHorarios(faixas.map(function (f) {
+        return { dias: f.dias.filter(function (c) { return c.checked; }).map(function (c) { return Number(c.dataset.dia); }), abre: f.abre.value, fecha: f.fecha.value };
+      }));
+    }
+    function novaFaixa(dados) {
+      contadorGrupo += 1;
+      var f = { no: el('div', { 'class': 'faixa' }) };
+      var opcoes = el('div', { 'class': 'opcoes' });
+      f.todos = el('input', { type: 'checkbox' });
+      var labTodos = el('label', { 'class': 'opcao' }); labTodos.appendChild(f.todos); labTodos.appendChild(document.createTextNode('Todos os dias'));
+      opcoes.appendChild(labTodos);
+      f.dias = DIAS.map(function (d, k) {
+        var c = el('input', { type: 'checkbox', 'data-dia': String(k) });
+        c.checked = !!dados && dados.dias.indexOf(k) > -1;
+        var lab = el('label', { 'class': 'opcao' }); lab.appendChild(c); lab.appendChild(document.createTextNode(d));
+        opcoes.appendChild(lab);
+        return c;
+      });
+      var horas = el('div', { 'class': 'horas' });
+      f.abre = seletor('Das', dados && dados.abre, horas);
+      f.fecha = seletor('às', dados && dados.fecha, horas);
+      f.tirar = el('button', { type: 'button', 'class': 'btn btn--mini faixa__tirar' }, 'Tirar este horário');
+      f.no.appendChild(opcoes); f.no.appendChild(horas); f.no.appendChild(f.tirar);
+      f.todos.addEventListener('change', function () {
+        f.dias.forEach(function (c) { if (!c.disabled) c.checked = f.todos.checked; });
+        atualizar();
+      });
+      f.dias.forEach(function (c) { c.addEventListener('change', atualizar); });
+      f.abre.addEventListener('change', atualizar);
+      f.fecha.addEventListener('change', atualizar);
+      f.tirar.addEventListener('click', function () {
+        faixas.splice(faixas.indexOf(f), 1);
+        f.no.remove();
+        atualizar();
+        caixa.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      lista.appendChild(f.no);
+      faixas.push(f);
+      return f;
+    }
+    (lidas || [null]).forEach(novaFaixa);
+    mais.addEventListener('click', function () {
+      var f = novaFaixa(null);
+      atualizar();
+      var livre = f.dias.filter(function (c) { return !c.disabled; })[0];
+      if (livre) livre.focus();
+    });
+    atualizar();
   }
   function prepararSelecoes(raiz) {
     raiz.querySelectorAll('.valores').forEach(montarValores);

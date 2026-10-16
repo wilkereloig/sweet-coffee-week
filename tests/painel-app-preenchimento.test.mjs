@@ -136,7 +136,7 @@ test('página: horário por seleção vira texto e volta igual', () => {
   const js = SCRIPTS[0]
   const trecho = js.slice(js.indexOf('var DIAS'), js.indexOf('function montarHorario'))
   const ctx = { txt: (v) => (v == null ? '' : String(v)) }
-  vm.runInNewContext(trecho + ';this.diasTexto=diasTexto;this.horaTexto=horaTexto;this.lerHorario=lerHorario;', ctx)
+  vm.runInNewContext(trecho + ';this.diasTexto=diasTexto;this.horaTexto=horaTexto;this.lerHorario=lerHorario;this.lerHorarios=lerHorarios;this.textoHorarios=textoHorarios;', ctx)
   assert.equal(ctx.diasTexto([0, 1, 2, 3, 4, 5, 6]), 'Todos os dias')
   assert.equal(ctx.diasTexto([1, 2, 3, 4, 5, 6]), 'Ter a Dom')
   assert.equal(ctx.diasTexto([0, 2, 4]), 'Seg, Qua, Sex')
@@ -147,6 +147,12 @@ test('página: horário por seleção vira texto e volta igual', () => {
     assert.equal(ctx.diasTexto(l.dias) + ', ' + ctx.horaTexto(l.abre) + ' às ' + ctx.horaTexto(l.fecha), t)
   }
   assert.equal(ctx.lerHorario('de terça a domingo, a partir das 14'), null, 'texto livre antigo fica como "Hoje está"')
+  // Horário diferente por dia: faixas separadas por ";".
+  const multi = 'Seg a Sex, 12h às 21h; Sáb, Dom, 10h às 22h30'
+  const faixas = ctx.lerHorarios(multi)
+  assert.equal(faixas.length, 2)
+  assert.equal(ctx.textoHorarios(faixas), multi)
+  assert.equal(ctx.lerHorarios('Seg a Sex, 12h às 21h; qualquer coisa'), null)
 })
 
 test('página: alergênicos e características da página são os do banco', () => {
