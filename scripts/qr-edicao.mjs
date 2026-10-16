@@ -14,9 +14,12 @@
  * Uso:
  *   node scripts/qr-edicao.mjs                 → edição 2026.2, domínio oficial
  *   node scripts/qr-edicao.mjs --saida <pasta> --base <url> --edicao <codigo>
+ *   node scripts/qr-edicao.mjs --lista <arquivo.json>   → antes da publicação (slug já gravado)
  *
- * Nunca gerar QR antes de a casa estar publicada: o slug só congela na
- * publicação, e um QR impresso com slug provisório apontaria para o nada.
+ * Nunca gerar QR sem slug_publico gravado: ele congela na publicação (ou quando a
+ * organização grava antes — 16/10/2026, os 25 da Cartoon), e um QR impresso com slug
+ * provisório apontaria para o nada. Slug gravado e ainda não publicado pode ser trocado
+ * no painel SEM alias — trocar depois de imprimir quebra o QR.
  */
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -38,7 +41,21 @@ const config = await fs.readFile(new URL('../src/lib/supabaseConfig.js', import.
 const URL_BASE = process.env.VITE_SUPABASE_URL || /SUPABASE_URL = .*?'([^']+)'/.exec(config)[1]
 const CHAVE = process.env.VITE_SUPABASE_KEY || /SUPABASE_KEY =\s*\n?\s*.*?'([^']+)'/s.exec(config)[1]
 
+// --lista <arquivo.json> ([{ "casa": "...", "slug": "..." }]): QR antes da publicação, com
+// slug_publico já gravado no banco (a publicação mantém slug existente — cartoon_02 §v_slug).
+async function casasDaLista (arquivo) {
+  const lista = JSON.parse(await fs.readFile(arquivo, 'utf8'))
+  return lista.map(({ casa, slug }) => ({ slug, casa: { nome: casa } }))
+}
+
 async function main () {
+  const LISTA = arg('lista', null)
+  const casas = LISTA ? await casasDaLista(path.resolve(LISTA)) : await casasDaProjecao()
+  if (!casas) return
+  await gerar(casas)
+}
+
+async function casasDaProjecao () {
   const r = await fetch(`${URL_BASE}/rest/v1/rpc/edicao_publica`, {
     method: 'POST',
     headers: { apikey: CHAVE, Authorization: `Bearer ${CHAVE}`, 'Content-Type': 'application/json' },
@@ -49,7 +66,10 @@ async function main () {
   if (!dados?.participantes_publicos) { console.error('✗ participantes ainda não publicados (interruptor 3 desligado). Nada a gerar.'); process.exitCode = 1; return }
   const casas = (dados.participantes || []).filter((p) => p.slug)
   if (!casas.length) { console.error('✗ nenhuma casa publicada.'); process.exitCode = 1; return }
+  return casas
+}
 
+async function gerar (casas) {
   await fs.mkdir(SAIDA, { recursive: true })
   const csv = [['casa', 'slug', 'url', 'arquivo']]
   const opcoes = { errorCorrectionLevel: 'H', type: 'png', width: 1200, margin: 2, color: { dark: '#050505', light: '#FFFFFF' } }
