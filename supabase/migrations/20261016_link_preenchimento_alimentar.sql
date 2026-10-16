@@ -168,13 +168,12 @@ begin
           delete from public.substituicoes where item_id = v_atual.id;
         elsif jsonb_typeof(it -> 'troca') = 'object'
               and public.preenchimento_texto(it -> 'troca', 'alternativa', 200) is not null then
-          v_num := regexp_replace(replace(coalesce(it -> 'troca' ->> 'acrescimo', ''), ',', '.'), '[^0-9.]', '', 'g');
           update public.substituicoes set
             original = coalesce(public.preenchimento_texto(it -> 'troca', 'original', 80), left(v_atual.nome, 80), 'Item'),
             alternativa = public.preenchimento_texto(it -> 'troca', 'alternativa', 200),
             disponibilidade = case when it -> 'troca' ->> 'disponibilidade' in ('sempre', 'sob_consulta', 'limitada')
                                    then it -> 'troca' ->> 'disponibilidade' else 'sempre' end,
-            acrescimo = case when v_num ~ '^\d{1,4}(\.\d{1,2})?$' then v_num::numeric else null end
+            acrescimo = 0  -- troca nunca muda o valor do combo (decisão do Wilker, 16/10)
            where id = (select id from public.substituicoes where item_id = v_atual.id order by ordem, criado_em limit 1);
           if not found then
             insert into public.substituicoes (item_id, original, alternativa, disponibilidade, acrescimo, modalidades, unidades, ordem)
@@ -183,7 +182,7 @@ begin
                     public.preenchimento_texto(it -> 'troca', 'alternativa', 200),
                     case when it -> 'troca' ->> 'disponibilidade' in ('sempre', 'sob_consulta', 'limitada')
                          then it -> 'troca' ->> 'disponibilidade' else 'sempre' end,
-                    case when v_num ~ '^\d{1,4}(\.\d{1,2})?$' then v_num::numeric else null end,
+                    0,  -- sem custo: o combo tem valor único
                     '{}', '{}', 1);
           end if;
         end if;
@@ -265,4 +264,44 @@ begin
   insert into public.auditoria (acao, alvo_tabela, alvo_id, participante_id, participacao_id, detalhe)
   values ('preenchimento.aplicado', 'preenchimento_envios', p_envio::text, v_pa.participante_id, v_pa.id,
           jsonb_build_object('observacao', d -> 'observacao'));
+end $$;
+
+-- Aviso no painel: primeiro envio e reenvio (alteração) com títulos diferentes.
+-- O aviso entra no sino da organização e vira push (gatilho disparar_push).
+create or replace function public.preenchimento_enviar(p_codigo text, p_dados jsonb)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_l public.preenchimento_links; v_pa public.participacoes; v_marca text; v_id uuid; v_em timestamptz;
+  v_antes int; v_lojas int;
+begin
+  v_l := public.preenchimento_link_valido(p_codigo);
+  if v_l.id is null then return jsonb_build_object('ok', false, 'erro', 'link_invalido'); end if;
+  if p_dados is null or jsonb_typeof(p_dados) <> 'object' or octet_length(p_dados::text) > 60000 then
+    return jsonb_build_object('ok', false, 'erro', 'dados_invalidos');
+  end if;
+  select count(*) into v_antes from public.preenchimento_envios where link_id = v_l.id;
+  if v_antes >= 40 then return jsonb_build_object('ok', false, 'erro', 'limite'); end if;
+  if exists (select 1 from public.preenchimento_envios
+              where link_id = v_l.id and enviado_em > now() - interval '15 seconds') then
+    return jsonb_build_object('ok', false, 'erro', 'aguarde');
+  end if;
+  select * into v_pa from public.participacoes where id = v_l.participacao_id;
+  select nome_marca into v_marca from public.participantes where id = v_pa.participante_id;
+  update public.preenchimento_envios set status = 'substituido'
+   where link_id = v_l.id and status = 'pendente';
+  insert into public.preenchimento_envios (link_id, participacao_id, dados)
+  values (v_l.id, v_pa.id, p_dados) returning id, enviado_em into v_id, v_em;
+  update public.preenchimento_links set enviado_em = v_em where id = v_l.id;
+  insert into public.auditoria (acao, alvo_tabela, alvo_id, participante_id, participacao_id, ator_rotulo, detalhe)
+  values (case when v_antes = 0 then 'preenchimento.recebido' else 'preenchimento.alterado' end,
+          'preenchimento_envios', v_id::text, v_pa.participante_id, v_pa.id,
+          'Marca (link de preenchimento)', jsonb_build_object('confirmados', p_dados -> 'confirmados', 'envio', v_antes + 1));
+  v_lojas := case when jsonb_typeof(p_dados -> 'unidades') = 'array' then jsonb_array_length(p_dados -> 'unidades') else 0 end;
+  perform public.notificar('organizacao', null, 'cadastro',
+    v_marca || case when v_antes = 0 then ' enviou o formulário de dados' else ' enviou alterações nos dados' end,
+    'Envio ' || (v_antes + 1) || ' · ' || v_lojas || case when v_lojas = 1 then ' loja' else ' lojas' end
+      || case when nullif(btrim(p_dados ->> 'observacao'), '') is not null then ' · com observação' else '' end
+      || '. Revise e aplique na ficha (Gestão).',
+    'marcas/' || v_pa.participante_id || '/gestao');
+  return jsonb_build_object('ok', true, 'enviado_em', v_em);
 end $$;

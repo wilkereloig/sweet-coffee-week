@@ -165,7 +165,7 @@ test('página: alergênicos e características da página são os do banco', () 
 
 test('diferença: alimentar e troca, com ausente = sem resposta', () => {
   const atual = { itens: [{ posicao: 1, nome: 'Bolo', alimentar: { gluten: 'contem' }, tem_troca: false, troca: null }] }
-  const enviado = { itens: [{ posicao: 1, nome: 'Bolo', alimentar: { gluten: 'contem', leite: 'nao_contem', vegano: 'sim' }, tem_troca: true, troca: { original: 'Bolo', alternativa: 'Bolo sem glúten', disponibilidade: 'sob_consulta', acrescimo: '3,00' } }] }
+  const enviado = { itens: [{ posicao: 1, nome: 'Bolo', alimentar: { gluten: 'contem', leite: 'nao_contem', vegano: 'sim' }, tem_troca: true, troca: { original: 'Bolo', alternativa: 'Bolo sem glúten', disponibilidade: 'sob_consulta' } }] }
   const d = diferencasEnvio(atual, enviado).map((x) => x.grupo + ' · ' + x.campo + ': ' + x.de + ' → ' + x.para)
   assert.deepEqual(d, [
     'Doce · Leite: Sem resposta → Não contém',
@@ -174,7 +174,6 @@ test('diferença: alimentar e troca, com ausente = sem resposta', () => {
     'Doce · troca · Troca o quê:  → Bolo',
     'Doce · troca · Por o quê:  → Bolo sem glúten',
     'Doce · troca · Disponível:  → Sob consulta',
-    'Doce · troca · Custa a mais:  → R$ 3,00',
   ])
 })
 
@@ -185,6 +184,11 @@ test('banco: tabelas fechadas, só as funções abertas para anon', () => {
   for (const f of ['preenchimento_estado', 'preenchimento_link_valido', 'preenchimento_novo_link', 'preenchimento_texto', 'preenchimento_edicao']) {
     assert.match(SQL, new RegExp('revoke all on function public\\.' + f + '\\([^)]*\\) from public, anon, authenticated'), f + ' não pode ser chamada de fora')
   }
+})
+
+test('troca não tem custo: a página não pergunta e o banco grava 0', () => {
+  assert.doesNotMatch(PAGINA, /acrescimo/)
+  assert.match(SQL_V2, /acrescimo = 0/)
 })
 
 test('banco: envio não grava cadastro; aplicar exige cadastro.editar', () => {
