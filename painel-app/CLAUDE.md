@@ -1034,3 +1034,9 @@ Comunicação · Histórico · Gestão. ⛔ Não recriar aba por assunto nem o "
   à organização (`montar_publico` só devolve o autorizado); pagamento aparece na visão só para
   `pagamento.gerir`, mas `get_ficha_360` entrega `pagamento_status` a qualquer `dado.ler`
   (restringir é migration). Voltar do navegador com editor sujo não pergunta (só os botões).
+
+#### Logos oficiais da Cartoon — 15/10/2026
+As 26 logos de `10_LOGOS_PARTICIPANTES/PRINCIPAIS` (Dropbox da edição) são as oficiais, conferidas pelo Wilker; não recriar nem
+questionar. No painel elas entram como logo **do acervo** (`logos_marca.origem = 'acervo'`, caminho `/logos/participants/<slug>.png`,
+registrada por `registrar_logo`), que `urlLogo` (`lib/logos.js`) já serve como arquivo do site. Fluxo para trocar uma logo: ver
+`src/CLAUDE.md` §6.12 (script `scripts/sincronizar-logos-oficiais.py` + `scripts/acervo-logos-para-sql.mjs`).

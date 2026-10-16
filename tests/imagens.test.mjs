@@ -8,6 +8,7 @@ import {
 } from '../src/data/imageLibrary.js'
 import { EDITION_GALLERY } from '../src/data/editionGallery.js'
 import { PARTICIPANTS } from '../src/data/participants.js'
+import { LOGOS_ACERVO_EXTRAS } from '../src/data/logosAcervoExtras.js'
 
 /*
  * Guarda do acervo fotográfico. Imagem quebrada não aparece no build nem no
@@ -66,6 +67,16 @@ test('todo participante da edição atual tem foto de combo e logo', () => {
     assert.ok(comboPhotos(p.slug).length > 0, `${p.slug} sem foto de combo`)
     assert.ok(noDisco(`/logos/participants/${p.slug}.png`), `${p.slug} sem logo`)
   }
+})
+
+test('logos oficiais da Cartoon fora do registro Lovers existem no disco e não repetem slug', () => {
+  const slugs = new Set(PARTICIPANTS.map((p) => p.slug))
+  for (const p of LOGOS_ACERVO_EXTRAS) {
+    assert.ok(noDisco(p.logo), `${p.slug} sem logo (rodar scripts/sincronizar-logos-oficiais.py)`)
+    assert.ok(!slugs.has(p.slug), `${p.slug} já está em PARTICIPANTS`)
+    slugs.add(p.slug)
+  }
+  assert.equal(LOGOS_ACERVO_EXTRAS.length, 9)
 })
 
 test('toda foto de herói existe e nenhuma se repete entre rotas', () => {

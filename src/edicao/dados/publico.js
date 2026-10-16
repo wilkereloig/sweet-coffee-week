@@ -11,7 +11,7 @@
  * ?demo=1, e o bloco some do build de produção.
  */
 import { SUPABASE_URL, SUPABASE_KEY } from '../../lib/supabaseConfig'
-import { urlPublica } from './modelo.js'
+import { urlDaImagem } from './modelo.js'
 
 const VALIDADE = 5 * 60 * 1000
 const memoria = new Map()
@@ -106,8 +106,7 @@ export async function carregarResultados (codigo) {
 
 /** URL pública de uma imagem do banco ({bucket, path} ou só path do bucket da edição). */
 export function imagemPublica (foto, bucket = 'edicao-publico') {
-  if (!foto) return ''
-  return urlPublica(SUPABASE_URL, foto.bucket || bucket, foto.path)
+  return urlDaImagem(SUPABASE_URL, foto, bucket)
 }
 
 export function limparCacheEdicao (codigo) {

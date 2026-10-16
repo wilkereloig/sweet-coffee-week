@@ -756,6 +756,16 @@ alerta ao varrer acervo: nome de arquivo tipo "Imagem N gerada", texto ilegível
 derretido em rótulos, logo com forma inconsistente. **Na dúvida, ampliar e ler o texto da
 peça antes de usar.**
 
+**Logos oficiais da Cartoon (15/10/2026, decisão do Wilker):** a fonte única é a pasta
+`10_LOGOS_PARTICIPANTES/PRINCIPAIS` da edição no Dropbox (26 PNGs em alta resolução, conferidos por ele).
+O site carrega `public/logos/participants/<slug>.png` em até 800 px, gerado por
+`python scripts/sincronizar-logos-oficiais.py` — **trocar logo = trocar o arquivo na pasta e rodar o script**, nunca
+editar o PNG do repositório. Marca que só existe na Cartoon (fora do registro Lovers) entra em
+`src/data/logosAcervoExtras.js`, não em `PARTICIPANTS` (que alimenta as páginas históricas). O banco guarda o
+caminho em `acervo_logos` (`node scripts/acervo-logos-para-sql.mjs`) e a logo de cada marca em `logos_marca`
+(`origem = 'acervo'`). A página pública da edição usa `urlDaImagem` (`src/edicao/dados/modelo.js`): caminho que
+começa com `/` é arquivo do site, não do Storage.
+
 **Padrão de nome de arquivo** — o nome explica o conteúdo, **sem** parêntese, espaço,
 acento, `final`, `novo`, `cópia` ou número de versão solto:
 
@@ -764,7 +774,7 @@ acento, `final`, `novo`, `cópia` ou número de versão solto:
 | Foto de edição | `edicoes/<code>/NN.webp` |
 | Marca de edição | `marcas-edicoes/<code>/logo.png` |
 | Combo de participante | `combos/<slug>/main.jpg` |
-| Logo de participante | `logos/participants/<slug>.png` |
+| Logo de participante | `logos/participants/<slug>.png` — **gerado** por `scripts/sincronizar-logos-oficiais.py` a partir da pasta oficial (abaixo); não editar à mão |
 | Foto de acervo numerada | `<pasta>/NN.jpg` |
 | Peça de campanha | `<assunto>-<variante>.png` |
 
