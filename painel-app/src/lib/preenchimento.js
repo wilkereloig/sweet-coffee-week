@@ -72,8 +72,17 @@ const ROTULOS_UNIDADE = [
   ['consumo_local', 'Consumo no local'], ['retirada', 'Retirada'], ['delivery_combo', 'Delivery do combo'],
   ['whatsapp', 'WhatsApp da loja'], ['whatsapp_autorizado', 'WhatsApp no site'],
 ]
+const ASPECTOS = [
+  ['gluten', 'Glúten'], ['leite', 'Leite'], ['ovo', 'Ovo'], ['amendoim', 'Amendoim'], ['castanhas', 'Castanhas'],
+  ['soja', 'Soja'], ['peixe', 'Peixe'], ['crustaceos', 'Crustáceos'],
+  ['lactose', 'Lactose'], ['vegano', 'Vegano'], ['vegetariano', 'Vegetariano'], ['acucar_adicionado', 'Açúcar adicionado'],
+]
+// Ausente = "sem resposta" — nunca "não contém" (regra da camada de edição).
+const ESTADO_ALIMENTAR = { contem: 'Contém', nao_contem: 'Não contém', pode_conter: 'Pode conter', sim: 'Sim', nao: 'Não', nao_informado: 'Sem resposta' }
+const ROTULOS_TROCA = [['original', 'Troca o quê'], ['alternativa', 'Por o quê'], ['disponibilidade', 'Disponível'], ['acrescimo', 'Custa a mais']]
+const DISPONIBILIDADE = { sempre: 'Sempre', sob_consulta: 'Sob consulta', limitada: 'Até acabar' }
 const DIGITOS = new Set(['cep', 'whatsapp', 'telefone', 'cnpj'])
-const DINHEIRO = new Set(['custo_embalagem', 'custo_delivery'])
+const DINHEIRO = new Set(['custo_embalagem', 'custo_delivery', 'acrescimo'])
 const SIM_NAO = { sim: 'Sim', nao: 'Não', nao_informado: '' }
 const SIM_NAO_CAMPOS = { consumo_local: 1, retirada: 1, delivery_combo: 1 }
 
@@ -86,6 +95,8 @@ function normal(campo, v) {
     return texto(v) === '' || Number.isNaN(n) ? texto(v) : 'R$ ' + n.toFixed(2).replace('.', ',')
   }
   if (campo in SIM_NAO_CAMPOS) return SIM_NAO[texto(v)] ?? texto(v)
+  if (campo.startsWith('alimentar.')) return ESTADO_ALIMENTAR[texto(v)] ?? texto(v)
+  if (campo === 'disponibilidade') return DISPONIBILIDADE[texto(v)] ?? texto(v)
   return texto(v).replace(/\s+/g, ' ')
 }
 function igual(campo, a, b) {
@@ -118,7 +129,20 @@ export function diferencasEnvio(atual = {}, enviado = {}) {
     const pos = Number(it && it.posicao)
     if (!(pos >= 1 && pos <= 3)) continue
     const antes = (atual.itens || []).find((x) => Number(x.posicao) === pos) || {}
-    comparar(ITENS[pos - 1], ROTULOS_ITEM, antes, it, lista)
+    const grupo = ITENS[pos - 1]
+    comparar(grupo, ROTULOS_ITEM, antes, it, lista)
+    // Declarações: só os aspectos que o envio traz; ausente no banco = sem resposta.
+    const alAntes = antes.alimentar || {}, alNovo = it.alimentar || {}
+    for (const [a, r] of ASPECTOS) {
+      if (!(a in alNovo)) continue
+      const de = alAntes[a] || 'nao_informado'
+      if (de !== alNovo[a]) lista.push({ grupo, campo: r, de: normal('alimentar.' + a, de), para: normal('alimentar.' + a, alNovo[a]) })
+    }
+    comparar(grupo, [['outro_alergenico', 'Outro alergênico']], antes, it, lista)
+    if (typeof it.tem_troca === 'boolean') {
+      if (it.tem_troca !== !!antes.tem_troca) lista.push({ grupo, campo: 'Tem troca', de: antes.tem_troca == null ? '' : (antes.tem_troca ? 'Sim' : 'Não'), para: it.tem_troca ? 'Sim' : 'Não' })
+      if (it.tem_troca && it.troca) comparar(grupo + ' · troca', ROTULOS_TROCA, antes.troca || {}, it.troca, lista)
+    }
   }
   const unidadesAtuais = atual.unidades || []
   let nova = 0

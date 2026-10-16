@@ -11,7 +11,9 @@ import {
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const PAGINA = ler('public/preencher/index.html')
-const SQL = ler('supabase/migrations/20261016_link_preenchimento.sql')
+const SQL_BASE = ler('supabase/migrations/20261016_link_preenchimento.sql')
+const SQL_V2 = ler('supabase/migrations/20261016_link_preenchimento_alimentar.sql')
+const SQL = SQL_BASE + '\n' + SQL_V2
 const CODIGO = '0123456789abcdef0123456789abcdef'
 
 test('link leva o código no fragmento, nunca na busca', () => {
@@ -127,6 +129,47 @@ test('página: campos que o envio manda são os que o banco aplica', () => {
   for (const k of nomes) assert.ok(SQL.includes("'" + k + "'"), 'campo do formulário sem par no banco: ' + k)
   const unidade = [...PAGINA.matchAll(/data-k="([a-z_]+)"/g)].map((m) => m[1])
   for (const k of unidade) assert.ok(SQL.includes("'" + k + "'"), 'campo de item/loja sem par no banco: ' + k)
+})
+
+test('página: horário por seleção vira texto e volta igual', () => {
+  // Roda o próprio código da página (do DIAS até antes do montarHorario) num contexto isolado.
+  const js = SCRIPTS[0]
+  const trecho = js.slice(js.indexOf('var DIAS'), js.indexOf('function montarHorario'))
+  const ctx = { txt: (v) => (v == null ? '' : String(v)) }
+  vm.runInNewContext(trecho + ';this.diasTexto=diasTexto;this.horaTexto=horaTexto;this.lerHorario=lerHorario;', ctx)
+  assert.equal(ctx.diasTexto([0, 1, 2, 3, 4, 5, 6]), 'Todos os dias')
+  assert.equal(ctx.diasTexto([1, 2, 3, 4, 5, 6]), 'Ter a Dom')
+  assert.equal(ctx.diasTexto([0, 2, 4]), 'Seg, Qua, Sex')
+  assert.equal(ctx.horaTexto('14:30') + ' · ' + ctx.horaTexto('9:00'), '14h30 · 9h')
+  for (const t of ['Todos os dias, 14h às 21h', 'Ter a Dom, 10h às 22h30', 'Seg, Qua, Sex, 9h às 18h', 'Sáb, Dom, 8h às 0h']) {
+    const l = ctx.lerHorario(t)
+    assert.ok(l, 'não leu: ' + t)
+    assert.equal(ctx.diasTexto(l.dias) + ', ' + ctx.horaTexto(l.abre) + ' às ' + ctx.horaTexto(l.fecha), t)
+  }
+  assert.equal(ctx.lerHorario('de terça a domingo, a partir das 14'), null, 'texto livre antigo fica como "Hoje está"')
+})
+
+test('página: alergênicos e características da página são os do banco', () => {
+  const aspectos = [...PAGINA.matchAll(/data-(?:alergenico|traco|carac)="([a-z_]+)"/g)].map((m) => m[1])
+  for (const a of new Set(aspectos)) assert.ok(SQL_V2.includes("'" + a + "'"), 'aspecto sem par no banco: ' + a)
+  assert.equal(new Set([...PAGINA.matchAll(/data-alergenico="([a-z_]+)"/g)].map((m) => m[1])).size, 8)
+  // Selos marcam só o valor positivo; desmarcar não vira "não" sozinho.
+  assert.match(SCRIPTS[0], /c\.dataset\.antes === c\.dataset\.valor\) it\.alimentar\[c\.dataset\.carac\] = 'nao_informado'/)
+})
+
+test('diferença: alimentar e troca, com ausente = sem resposta', () => {
+  const atual = { itens: [{ posicao: 1, nome: 'Bolo', alimentar: { gluten: 'contem' }, tem_troca: false, troca: null }] }
+  const enviado = { itens: [{ posicao: 1, nome: 'Bolo', alimentar: { gluten: 'contem', leite: 'nao_contem', vegano: 'sim' }, tem_troca: true, troca: { original: 'Bolo', alternativa: 'Bolo sem glúten', disponibilidade: 'sob_consulta', acrescimo: '3,00' } }] }
+  const d = diferencasEnvio(atual, enviado).map((x) => x.grupo + ' · ' + x.campo + ': ' + x.de + ' → ' + x.para)
+  assert.deepEqual(d, [
+    'Doce · Leite: Sem resposta → Não contém',
+    'Doce · Vegano: Sem resposta → Sim',
+    'Doce · Tem troca: Não → Sim',
+    'Doce · troca · Troca o quê:  → Bolo',
+    'Doce · troca · Por o quê:  → Bolo sem glúten',
+    'Doce · troca · Disponível:  → Sob consulta',
+    'Doce · troca · Custa a mais:  → R$ 3,00',
+  ])
 })
 
 /* ── Contrato do banco ────────────────────────────────────────────────────── */
