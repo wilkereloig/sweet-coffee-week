@@ -1672,6 +1672,22 @@ p.fg-vazio{margin:0}
   .ui-confirma__acoes .og-btn{flex:1 1 0}
 }
 
+/* Link de preenchimento (16/10/2026): link da marca, diferença do envio e lista da edição. */
+.pr-link{margin:12px 0 0;font:400 14px/1.4 var(--f-texto);overflow-wrap:anywhere}
+.pr-dif{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pr-dif__linha{display:grid;grid-template-columns:minmax(150px,1fr) 1.2fr 1.2fr;gap:4px 12px;padding:10px 12px;background:var(--sup-2);border-radius:var(--r-2);font:400 14px/1.4 var(--f-texto)}
+.pr-dif__campo{font:700 14px/1.3 var(--f-ui)}
+.pr-dif__de{color:var(--scw-marrom)}
+.pr-dif__de s{text-decoration-color:rgba(106,44,21,.5)}
+.pr-dif__para{font-weight:700}
+.pr-dif__de,.pr-dif__para{overflow-wrap:anywhere;white-space:pre-line}
+.pr-dif__rot{display:block;font:700 11.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
+@media (max-width:700px){.pr-dif__linha{grid-template-columns:1fr}}
+.pr-lista{list-style:none;margin:12px 0 0;padding:0}
+.pr-lista__linha{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:56px;padding:6px 0;border-top:1px solid var(--scw-filete)}
+.pr-lista__nome{flex:1 1 200px;text-align:left;font:700 15px/1.3 var(--f-ui)}
+.pr-lista__acoes{display:flex;align-items:center;gap:6px;margin-left:auto}
+
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do
    `prefers-reduced-motion` sem ninguém notar. */
