@@ -12,6 +12,7 @@
 import { SUPABASE_URL, SUPABASE_KEY } from './rpc.js'
 import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess.js'
 import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
+import { comEnvio } from './pendencias.js'
 
 export async function auth(caminho, corpo, metodo = 'POST', token, fetchImpl = fetch) {
   const cab = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }
@@ -215,11 +216,11 @@ export async function subirLogo(caminho, arquivo, tipo, fetchImpl = fetch) {
   const viva = await renovarCompartilhado(atual, fetchImpl)
   if (!viva) sessaoMorta()
   if (viva !== atual) salvarSessao(viva)
-  const r = await fetchImpl(SUPABASE_URL + '/storage/v1/object/logos/' + caminho, {
+  const r = await comEnvio('Envio da logo', () => fetchImpl(SUPABASE_URL + '/storage/v1/object/logos/' + caminho, {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + viva.access_token, 'Content-Type': tipo, 'x-upsert': 'false' },
     body: arquivo,
-  })
+  }))
   if (r.status === 401) sessaoMorta()
   if (!r.ok) {
     let dados = null
@@ -275,5 +276,8 @@ export function pushMarca(participanteId) {
     },
     remover: (endpoint) => api(linha(endpoint), { metodo: 'DELETE' }),
     conferir: async (endpoint) => ((await api(linha(endpoint).replace('?', '?select=id&'))) || []).length > 0,
+    // Estado e preferência DESTE aparelho no servidor (aviso de versão nova).
+    estado: (endpoint) => api('rpc/push_aparelho', { metodo: 'POST', corpo: { p_secret: null, p_endpoint: endpoint } }),
+    preferir: (endpoint, ligado) => api('rpc/push_aparelho', { metodo: 'POST', corpo: { p_secret: null, p_endpoint: endpoint, p_avisar_versao: ligado } }),
   }
 }

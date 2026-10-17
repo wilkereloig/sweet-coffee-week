@@ -1,0 +1,2 @@
+# Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
+Aviso de atualização no próprio painel e convite para instalar o app e ativar as notificações.

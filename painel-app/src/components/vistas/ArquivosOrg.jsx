@@ -10,6 +10,7 @@ import { FolhaNovoArquivo } from './Producao'
 import { Carregando, Vazio, Erro, traduzirErro, BotaoIcone, Escolha } from '../ui'
 import { Icone } from '../Icone'
 import { confirmar } from '../Confirmar'
+import { comEnvio } from '../../lib/pendencias'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -65,7 +66,7 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
       const path = caminhoSubstituto(a.path, nomeSeguro(file.name))
       // Os bytes vão direto ao Storage (a função só assina) — mesma regra de publicar.
       const assinatura = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'arquivos', path })
-      const envio = await fetch(assinatura.url, { method: 'PUT', body: file })
+      const envio = await comEnvio('Envio de “' + file.name + '”', () => fetch(assinatura.url, { method: 'PUT', body: file }))
       if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')')
       await rpc('substituir_arquivo', { p_secret: lerSenha(), p_id: a.id, p_path: path, p_mime: file.type || null, p_tamanho: file.size, p_versao: null })
       await carregar()

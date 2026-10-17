@@ -10,9 +10,10 @@ import { useResumoMarca } from './vistas-marca/useResumoMarca'
 import { lerRota, montarRota } from '../lib/rota'
 import { ContaMarca } from './ContaMarca'
 import { Tour, useTour } from './Tour'
-import { InstalarApp } from './AppNoAparelho'
-import { AvisosAparelho } from './AvisosAparelho'
+import { InstalarApp, ConviteAparelho } from './AppNoAparelho'
+import { PontoVersao } from './Conexao'
 import { pushMarca } from '../lib/marcaApi'
+import { AvisosAparelho } from './AvisosAparelho'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (celular), avisos
@@ -186,6 +187,8 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
 
   // Progresso do tour pela marca; espera o id chegar. Aberto por aviso ou push, não se impõe.
   const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial })
+  const idParticipante = (dadosMarca && dadosMarca.participante && dadosMarca.participante.id) || null
+  const pushDaMarca = React.useMemo(() => pushMarca(idParticipante), [idParticipante])
 
   const Vista = vistas[vista]
   // Números das abas = pendências daquela seção (+ mensagens não lidas no Início).
@@ -217,6 +220,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
         ))}
         <button className="pn-rail__sair" type="button" aria-label="Sua conta" data-tour="conta" onClick={() => setContaAberta(true)}>
           <Icone nome="conta" tamanho={24} />
+          <PontoVersao />
           <span className="pn-rail__rotulo">Conta</span>
         </button>
       </nav>
@@ -268,6 +272,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
               desktop, no pé da rail. */}
           <button type="button" className="pn-cabeca__btn" id="btn-sair" aria-label="Sua conta" data-tour="conta" onClick={() => setContaAberta(true)}>
             <Icone nome="conta" tamanho={20} />
+            <PontoVersao />
           </button>
         </div>
       </header>
@@ -314,6 +319,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
           explicacao="Ligue para saber na hora quando a organização escrever, pedir algo ou marcar as fotos."
           {...pushMarca(dadosMarca.participante.id)} />}</>} />}
       <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={onSair} />
+      <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto} />
     </div>
   )
 }

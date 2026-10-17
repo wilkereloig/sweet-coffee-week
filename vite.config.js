@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import crypto from 'node:crypto'
 
 // Plugin DEV-only: grava src/design/visualOverrides.json a partir do Visual
 // Refinement Mode. configureServer só roda no dev server → nada disso entra no
@@ -103,8 +104,66 @@ function paginasEstaticasDev() {
   }
 }
 
+/*
+ * Identidade da publicação do painel (18/10/2026). Depois de gravar o build:
+ * id = sha256 do HTML final do painel + TODOS os arquivos que ele carrega
+ * (chunks, inclusive os sob demanda, CSS e assets) + sw.js e manifesto. Muda
+ * se qualquer um muda (CSS sozinho também); build igual dá id igual (rollback
+ * volta a um id conhecido — a tela compara IGUALDADE, nunca "maior").
+ * Grava `painel/versao.json` (o que o painel publicado consulta) e a MESMA id
+ * numa <meta name="scw-versao"> do HTML (o que a aba aberta é). Os dois saem
+ * no mesmo deploy, então o arquivo de versão nunca aponta para recurso que
+ * ainda não existe.
+ */
+function versaoDoPainel() {
+  return {
+    name: 'versao-do-painel',
+    apply: 'build',
+    writeBundle(opts, bundle) {
+      const out = opts.dir
+      const arqHtml = path.join(out, 'painel-app', 'index.html')
+      if (!fs.existsSync(arqHtml)) return
+      const html = fs.readFileSync(arqHtml, 'utf8')
+      const entrada = Object.values(bundle).find((c) => c.type === 'chunk' && c.isEntry && /painel-app[\\/]index\.html$/.test(c.facadeModuleId || ''))
+      if (!entrada) throw new Error('versao-do-painel: não achei a entrada do painel no bundle')
+      const usados = new Set()
+      const pilha = [entrada.fileName]
+      while (pilha.length) {
+        const f = pilha.pop()
+        if (usados.has(f)) continue
+        usados.add(f)
+        const c = bundle[f]
+        if (!c || c.type !== 'chunk') continue
+        const meta = c.viteMetadata || { importedCss: new Set(), importedAssets: new Set() }
+        pilha.push(...c.imports, ...c.dynamicImports, ...meta.importedCss, ...meta.importedAssets)
+      }
+      const h = crypto.createHash('sha256').update(html)
+      for (const f of [...usados].sort()) h.update('\n' + f)
+      for (const f of ['painel/sw.js', 'painel/app.webmanifest']) {
+        const p = path.join(out, f)
+        if (fs.existsSync(p)) h.update(fs.readFileSync(p))
+      }
+      const id = h.digest('hex').slice(0, 16)
+      const ambiente = process.env.VERCEL_ENV || 'local'
+      let novidades = null
+      try {
+        novidades = fs.readFileSync(path.resolve(__dirname, 'painel-app/NOVIDADES.txt'), 'utf8')
+          .split('\n').map((l) => l.trim()).find((l) => l && !l.startsWith('#')) || null
+      } catch { /* opcional */ }
+      const versao = {
+        app: 'painel-scw', id, publicado_em: new Date().toISOString(), ambiente,
+        commit: (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || null,
+        novidades: novidades ? novidades.slice(0, 160) : null,
+      }
+      fs.mkdirSync(path.join(out, 'painel'), { recursive: true })
+      fs.writeFileSync(path.join(out, 'painel', 'versao.json'), JSON.stringify(versao) + '\n')
+      fs.writeFileSync(arqHtml, html.replace('</head>', '  <meta name="scw-versao" content="' + id + '" data-ambiente="' + ambiente + '" />\n  </head>'))
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev()],
+  plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev(), versaoDoPainel()],
   build: {
     rollupOptions: {
       input: {

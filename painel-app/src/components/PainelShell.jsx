@@ -3,7 +3,8 @@ import { Central } from './Central'
 import { Icone } from './Icone'
 import { AbasCelular } from './AbasCelular'
 import { Tour, useTour } from './Tour'
-import { InstalarApp, PUSH_ORGANIZACAO } from './AppNoAparelho'
+import { InstalarApp, PUSH_ORGANIZACAO, ConviteAparelho } from './AppNoAparelho'
+import { PontoVersao } from './Conexao'
 import { AvisosAparelho } from './AvisosAparelho'
 import { rpc } from '../lib/rpc'
 import { lerRota, montarRota, rotaDoLink, linkDeAlvo, ABA_INICIAL, migrarRota } from '../lib/rota'
@@ -277,6 +278,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
               aria-label={'Meu perfil: ' + (eu ? eu.nome || quem.nome : quem.nome)}
               title="Quem está usando o painel — é este nome que aparece no histórico">
               <Avatar id={eu ? eu.user_id : null} rotulo={eu ? eu.nome || quem.nome : 'Acesso compartilhado'} tamanho={36} />
+              <PontoVersao />
               <span className="pn-cabeca__quem-texto">
                 <span className="pn-cabeca__quem-nome">{eu ? eu.nome || quem.nome : quem.nome}</span>
                 <span className="pn-cabeca__quem-funcao">{eu ? eu.funcao_rotulo || quem.funcao : quem.funcao}</span>
@@ -335,6 +337,8 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
           explicacao="Receba os avisos da organização no celular ou no computador, mesmo com o painel fechado."
           {...PUSH_ORGANIZACAO} /></>} />}
       <MeuPerfil aberto={perfilAberto} onFechar={() => setPerfilAberto(false)} onSair={onSair} />
+      {/* Depois do login, com a conta carregada e sem o tour na frente: instalar, depois notificações. */}
+      <ConviteAparelho papel="organizacao" conta={eu ? eu.user_id : quem ? 'compartilhada' : null} push={PUSH_ORGANIZACAO} liberado={!tour.aberto} />
     </div>
     </EquipeContexto.Provider>
   )

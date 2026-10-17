@@ -10,6 +10,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
+import { comEnvio } from '../../lib/pendencias'
 
 /*
  * Vista Produção — porta fiel de public/painel/index.html: agenda de fotos
@@ -281,7 +282,7 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
       // direto para o Storage. Um PDF de 20 MB atravessando o isolate
       // esbarraria em limite de corpo, de memória e de tempo.
       const assinatura = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'arquivos', path })
-      const envio = await fetch(assinatura.url, { method: 'PUT', body: file })
+      const envio = await comEnvio('Envio de “' + file.name + '”', () => fetch(assinatura.url, { method: 'PUT', body: file }))
       if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')')
       // Só DEPOIS do arquivo estar lá é que a linha nasce. Ao contrário, a
       // marca veria um download que dá 404.

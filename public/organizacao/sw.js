@@ -44,7 +44,9 @@ self.addEventListener('activate', function (e) {
   e.waitUntil(
     caches.keys()
       .then(function (ks) {
-        return Promise.all(ks.filter(function (k) { return k !== VERSAO; })
+        /* Só os caches DESTE painel antigo (prefixo próprio): o do /painel/ e o
+           do site não são dele — até 17/10/2026 este filtro apagava todos. */
+        return Promise.all(ks.filter(function (k) { return k.indexOf('scw-org-') === 0 && k !== VERSAO; })
                              .map(function (k) { return caches.delete(k); }));
       })
       .then(function () { return self.clients.claim(); })

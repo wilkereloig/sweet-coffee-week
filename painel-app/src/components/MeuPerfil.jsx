@@ -3,8 +3,8 @@ import { Folha } from './Folha'
 import { Avatar } from './Avatar'
 import { Botao, Secao } from './ui'
 import { avisar, confirmar } from './Confirmar'
-import { AvisosAparelho } from './AvisosAparelho'
-import { PUSH_ORGANIZACAO } from './AppNoAparelho'
+import { PUSH_ORGANIZACAO, AplicativoENotificacoes } from './AppNoAparelho'
+import { usePendencia, comEnvio } from '../lib/pendencias'
 import { rpc } from '../lib/rpc'
 import { useEquipe, abrirFoto, gerarFoto, enviarFoto, removerFoto, areaRecorte } from '../lib/equipe'
 
@@ -37,6 +37,7 @@ export function EditorFoto({ alvo, nome, proprio = false, temFoto = false, onMud
   const canvas = React.useRef(null)
   const input = React.useRef(null)
   const ids = React.useId()
+  usePendencia(!!bitmap && !ocupado, { rotulo: 'Foto de perfil enquadrada, ainda não salva' })
 
   React.useEffect(() => () => { if (bitmap && bitmap.close) bitmap.close() }, [bitmap])
   React.useEffect(() => {
@@ -63,7 +64,7 @@ export function EditorFoto({ alvo, nome, proprio = false, temFoto = false, onMud
     setErro(null)
     try {
       const blob = await gerarFoto(bitmap, enq)
-      await enviarFoto(alvo, blob, { proprio })
+      await comEnvio('Envio da foto de perfil', () => enviarFoto(alvo, blob, { proprio }))
       setBitmap(null)
       if (onMudou) await onMudou()
     } catch (er) { setErro(traduzir(er.message)) } finally { setOcupado(false) }
@@ -125,16 +126,20 @@ export function MeuPerfil({ aberto, onFechar, onSair }) {
   const idNome = React.useId()
   const idEu = eu ? eu.user_id : null
   React.useEffect(() => { if (aberto && eu) { setNome(eu.nome || ''); setErro(null) } }, [aberto, idEu]) // eslint-disable-line react-hooks/exhaustive-deps
+  usePendencia(!!(aberto && eu && nome.trim() !== (eu.nome || '')), { rotulo: 'Meu perfil: nome de exibição não salvo', salvar: () => gravarNome() })
 
-  async function salvarNome(e) {
-    e.preventDefault()
+  async function gravarNome() {
     setSalvando(true)
     setErro(null)
     try {
       await rpc('meu_nome_definir', { p_nome: nome })
       await recarregar()
-      avisar('Nome salvo. Os registros antigos continuam com o nome da época.')
-    } catch (er) { setErro(traduzir(er.message)) } finally { setSalvando(false) }
+      return true
+    } catch (er) { setErro(traduzir(er.message)); return false } finally { setSalvando(false) }
+  }
+  async function salvarNome(e) {
+    e.preventDefault()
+    if (await gravarNome()) avisar('Nome salvo. Os registros antigos continuam com o nome da época.')
   }
 
   return (
@@ -167,11 +172,9 @@ export function MeuPerfil({ aberto, onFechar, onSair }) {
             </dl>
             <p className="ui-nota">Função, ativação e permissões são definidas por quem administra a equipe (Administração › Equipe).</p>
           </Secao>
-          <Secao titulo="Avisos neste aparelho">
-            <AvisosAparelho compacto explicacao="Receba os avisos das postagens e do painel mesmo com ele fechado." {...PUSH_ORGANIZACAO} />
-          </Secao>
         </div>
       )}
+      <AplicativoENotificacoes push={PUSH_ORGANIZACAO} explicacao="Receba os avisos das postagens, das tarefas e do painel mesmo com ele fechado." />
       {/* No celular o "Sair" do topo cede lugar ao avatar: ele mora aqui. */}
       {onSair && <div className="ui-acoes pf-sair"><Botao variante="secundario" icone="sair" onClick={onSair}>Sair do painel</Botao></div>}
     </Folha>

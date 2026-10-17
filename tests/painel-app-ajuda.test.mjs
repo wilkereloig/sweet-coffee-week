@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { TOUR, etapasDoTour, tourVisto, marcarTour } from '../painel-app/src/lib/ajuda.js'
 import { rotaDoLink } from '../painel-app/src/lib/rota.js'
 import { interpretarLinkMarca } from '../painel-app/src/lib/guia.js'
-import { estadoInstalacao, conviteDispensado, dispensarConvite } from '../painel-app/src/lib/instalar.js'
+import { estadoInstalacao, conviteAdiado, adiarConvite } from '../painel-app/src/lib/instalar.js'
 
 // As listas de telas saem do próprio código das cascas (JSX não roda no node).
 const COMP = new URL('../painel-app/src/components/', import.meta.url)
@@ -92,6 +92,6 @@ test('estado da instalação', () => {
 })
 
 test('"agora não" sem localStorage não quebra (aba privada, node)', () => {
-  assert.equal(conviteDispensado('marca'), false)
-  assert.doesNotThrow(() => dispensarConvite('marca'))
+  assert.equal(conviteAdiado('marca', 'p-1'), false)
+  assert.doesNotThrow(() => adiarConvite('marca', 'p-1'))
 })

@@ -2,6 +2,7 @@ import React from 'react'
 import { Icone } from '../Icone'
 import { LogoEditor } from '../LogoEditor'
 import { api, registrarPendente, subirLogo, seFaltar } from '../../lib/marcaApi'
+import { registrarPendencia } from '../../lib/pendencias'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { camposObrigatorios, progressoCampos, vistaDoBloco } from '../../lib/guia'
 import { Carregando, Erro, Vazio } from '../ui'
@@ -559,6 +560,11 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       return vooRef.current ? vooRef.current.fim : Promise.resolve()
     }
     const tirar = registrarPendente(descarregar)
+    // Declarado também para o painel todo (lib/pendencias): "Atualizar agora" salva antes.
+    const tirarGeral = registrarPendencia('cadastro-marca', {
+      rotulo: 'Seu cadastro: alterações ainda sendo salvas', ativo: () => !!pendenteRef.current || !!vooRef.current,
+      salvar: async () => (await descarregar()) !== false,
+    })
     function avisar(ev) { if (pendenteRef.current) { ev.preventDefault(); ev.returnValue = '' } }
     // No celular o beforeunload não dispara: trocar de app ou bloquear a tela
     // esconde a página, e é aí que o rascunho precisa ir para o servidor.
@@ -567,6 +573,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     document.addEventListener('visibilitychange', aoEsconder)
     return () => {
       tirar()
+      tirarGeral()
       window.removeEventListener('beforeunload', avisar)
       document.removeEventListener('visibilitychange', aoEsconder)
       descarregar()

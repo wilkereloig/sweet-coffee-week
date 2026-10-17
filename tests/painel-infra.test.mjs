@@ -82,7 +82,9 @@ const CADASTRO_JSX = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
 // (agora Downloads) para o botão Conta.
 // A tela da conta da marca + o adaptador de push dela (pushMarca, em
 // marcaApi.js desde 01/10/2026: era repetido no Início e na Conta).
-const ARQUIVOS_JSX = ler('painel-app/src/components/ContaMarca.jsx') + ler('painel-app/src/lib/marcaApi.js')
+// Desde 18/10/2026 o bloco de avisos mora em <AplicativoENotificacoes> (AppNoAparelho), usado pelas duas contas.
+const APARELHO_JSX = ler('painel-app/src/components/AppNoAparelho.jsx')
+const ARQUIVOS_JSX = ler('painel-app/src/components/ContaMarca.jsx').replace(/<AplicativoENotificacoes/g, () => APARELHO_JSX) + ler('painel-app/src/lib/marcaApi.js')
 const MARCA_API_JS = ler('painel-app/src/lib/marcaApi.js')
 const PAINEL_SHELL_JSX = ler('painel-app/src/components/PainelShell.jsx')
 const PAINEL_MARCA_SHELL_JSX = ler('painel-app/src/components/PainelMarcaShell.jsx')

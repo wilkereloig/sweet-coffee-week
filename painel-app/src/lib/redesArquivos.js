@@ -9,6 +9,7 @@
  *    se uma falhar ao carregar, pedem assinatura nova uma vez.
  */
 import React from 'react'
+import { comEnvio } from './pendencias.js'
 import { rpc, chamarFuncao, SUPABASE_URL } from './rpc.js'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess.js'
 import { validarArquivo, caminhoArquivo } from './redes.js'
@@ -201,7 +202,9 @@ export function enviarPut(url, corpo, aoProgredir) {
  * Falha em qualquer passo = nada registrado; tentar de novo recomeça com
  * caminhos novos (objeto órfão no bucket privado não aparece em lugar nenhum).
  */
-export async function enviarArquivo(postId, file, prep, { substitui = null, aoProgredir, biblioteca = null } = {}) {
+// Envio em andamento fica declarado (lib/pendencias): atualizar o painel no meio interromperia.
+export const enviarArquivo = (postId, file, prep, opcoes) => comEnvio('Envio de “' + ((file && file.name) || 'arquivo') + '”', () => enviarArquivoAgora(postId, file, prep, opcoes))
+async function enviarArquivoAgora(postId, file, prep, { substitui = null, aoProgredir, biblioteca = null } = {}) {
   // Biblioteca (designer): a "pasta" é um lote novo; o registro é outro.
   if (biblioteca) postId = crypto.randomUUID()
   const path = caminhoArquivo(postId, crypto.randomUUID(), prep.ext)

@@ -42,31 +42,18 @@ test('nenhum host de banco em texto nos arquivos novos', () => {
   }
 })
 
-// Versão nova pela publicação (02/10/2026): o sw.js não muda entre deploys,
-// então o aviso de versão compara o arquivo de entrada do HTML publicado.
-import { entradaDoHtml, entradaAtual, podeRecarregarSozinho } from '../painel-app/src/lib/versao.js'
-
-test('versão: lê o arquivo de entrada do HTML publicado', () => {
-  const html = '<script src="https://use.typekit.net/ngx4uek.js"></script><script type="module" crossorigin src="/assets/painel-AH0SDHQz.js"></script>'
-  assert.equal(entradaDoHtml(html), '/assets/painel-AH0SDHQz.js')
-  assert.equal(entradaDoHtml('<html></html>'), null)
-  assert.equal(entradaDoHtml(null), null)
-})
-
-test('versão: sem arquivo com hash (dev) não compara nada', () => {
-  assert.equal(entradaAtual({ querySelector: () => null }), null)
-  assert.equal(entradaAtual({ querySelector: () => ({ getAttribute: () => '/assets/painel-X.js' }) }), '/assets/painel-X.js')
-})
-
-test('versão: só recarrega sozinho sem janela aberta nem campo em uso', () => {
-  const doc = (aberto, tag) => ({ querySelector: () => (aberto ? {} : null), activeElement: tag ? { tagName: tag } : null })
-  assert.equal(podeRecarregarSozinho(doc(false, 'BODY')), true)
-  assert.equal(podeRecarregarSozinho(doc(true, 'BODY')), false)
-  assert.equal(podeRecarregarSozinho(doc(false, 'TEXTAREA')), false)
-})
-
-test('versão: a checagem foge do cache do service worker', () => {
+// Versão nova (18/10/2026): a identidade é do build inteiro (meta + /painel/versao.json);
+// a transição em si é testada em tests/painel-app-versao.test.mjs.
+test('versão: a aba conhece a própria versão pela meta do build, e o build grava o arquivo publicado', () => {
+  const v = readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8')
+  assert.match(v, /function versaoDoPainel\(\)/)
+  assert.match(v, /'painel', 'versao\.json'/)
+  assert.match(v, /<meta name="scw-versao"/)
   const c = readFileSync(new URL('../painel-app/src/components/Conexao.jsx', import.meta.url), 'utf8')
-  assert.match(c, /fetch\('\/painel\/\?v=' \+ Date\.now\(\)/)
-  assert.match(c, /sessionStorage\.getItem\(CHAVE_RECARGA\)/, 'recarga automática sem trava de uma vez por versão')
+  // location.reload() só existe dentro de recarregar(), chamado pelo fluxo do botão.
+  assert.equal(c.match(/location\.reload\(\)/g).length, 1, 'nunca recarrega sozinho ao voltar ao app')
+  assert.match(c, /function recarregar\(forcarId\)/)
+  assert.match(c, /Atualização disponível/)
+  assert.match(c, /Uma nova versão do Painel SCW está pronta\./)
+  assert.match(c, /Depois/)
 })

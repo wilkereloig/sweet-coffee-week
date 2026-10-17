@@ -10,6 +10,7 @@ import { urlLogo } from '../../lib/logos'
 import { baixarArquivo } from '../../lib/redesArquivos'
 import * as R from '../../lib/redes'
 import { traduzirRedes } from './RedesFicha'
+import { usePendencia } from '../../lib/pendencias'
 
 /*
  * Social media › Participantes (17/10/2026): a ficha EDITORIAL de cada casa —
@@ -96,12 +97,7 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
 
   const mudou = editando && lido && form ? mudancasEditoriais(lido, form) : {}
   const sujo = Object.keys(mudou).length > 0
-  React.useEffect(() => {
-    if (!sujo) return undefined
-    const a = (e) => { e.preventDefault(); e.returnValue = '' }
-    window.addEventListener('beforeunload', a)
-    return () => window.removeEventListener('beforeunload', a)
-  }, [sujo])
+  usePendencia(sujo, { rotulo: 'Combo de “' + ((f && f.marca) || 'participante') + '”: edição não salva', salvar: () => salvar() })
 
   function editar() {
     setLido(f.editavel)
@@ -116,11 +112,13 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
       setF(r); setEditando(false); setConflito(null); setLido(null)
       setAviso('Salvo. A versão do site não mudou — a curadoria foi avisada para revisar.')
       onMudou()
+      return true
     } catch (e) {
       if (/versao_desatualizada/.test(e.message)) {
         const r = await carregar()
         if (r) setConflito({ atual: r.editavel })
       } else setErroAcao(traduzir(e.message))
+      return false
     } finally { setSalvando(false) }
   }
   // Toda saída da ficha (X, Esc, criar postagem, ficha completa, abrir postagem) pergunta se há texto não salvo.

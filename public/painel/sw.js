@@ -24,7 +24,17 @@
  * mais fácil de um cache de PII nascer é alguém acrescentar o host "só para o
  * offline funcionar". Sem o nome escrito aqui, não há o que copiar e colar.
  */
-const VERSAO = 'scw-painel-v2';
+/* Dois caches, ambos com o prefixo do painel (a limpeza NUNCA toca em cache
+   que não seja dele — o site e os painéis antigos usam outros nomes):
+     CASCA  — o HTML de reserva e a marca/fontes; troca de nome quando a lista muda;
+     ASSETS — os arquivos com hash (/assets/…), que são imutáveis. NÃO é apagado
+              a cada versão: uma aba ainda aberta na versão anterior pode pedir
+              um pedaço dela depois da troca. Só é podado pelo tamanho. */
+const PREFIXO = 'scw-painel-';
+const CASCA_NOME = 'scw-painel-casca-v3';
+const ASSETS_NOME = 'scw-painel-assets';
+const ANTIGO = 'scw-painel-v2'; // um cache só, até 17/10/2026: os /assets/ dele migram
+const MAX_ASSETS = 400;
 
 /* Só a casca. O HTML entra só como reserva de rede caída (ver abaixo). */
 const CASCA = [
@@ -38,24 +48,41 @@ const CASCA = [
 
 self.addEventListener('install', function (e) {
   /* `addAll` é tudo-ou-nada: um arquivo que falhe reprova a instalação inteira
-     e o SW nem chega a existir. É o comportamento certo aqui — casca pela
-     metade seria pior que nenhuma. */
-  e.waitUntil(
-    caches.open(VERSAO)
-      .then(function (c) { return c.addAll(CASCA); })
-      .then(function () { return self.skipWaiting(); })
-  );
+     e o SW nem chega a existir — o anterior segue valendo. Casca pela metade
+     seria pior que nenhuma.
+     ⚠️ SEM skipWaiting aqui (até 17/10/2026 havia): o worker novo ESPERA. Quem
+     o ativa é o painel, por mensagem ('ativar'), no fluxo "Atualizar agora" ou
+     ao abrir uma aba nova sem nada pela metade. Na primeira instalação não há
+     anterior e ele assume direto, como sempre. */
+  e.waitUntil(caches.open(CASCA_NOME).then(function (c) { return c.addAll(CASCA); }));
 });
 
+self.addEventListener('message', function (e) {
+  if (e.data && e.data.tipo === 'ativar') self.skipWaiting();
+});
+
+async function migrarEPodar() {
+  const nomes = await caches.keys();
+  const assets = await caches.open(ASSETS_NOME);
+  if (nomes.indexOf(ANTIGO) !== -1) {
+    const velho = await caches.open(ANTIGO);
+    for (const req of await velho.keys()) {
+      if (new URL(req.url).pathname.indexOf('/assets/') === 0) {
+        const r = await velho.match(req);
+        if (r) await assets.put(req, r);
+      }
+    }
+  }
+  await Promise.all(nomes.filter(function (k) {
+    return k.indexOf(PREFIXO) === 0 && k !== CASCA_NOME && k !== ASSETS_NOME;
+  }).map(function (k) { return caches.delete(k); }));
+  // Poda pelo tamanho: as entradas mais antigas primeiro (a ordem é a de inserção).
+  const chaves = await assets.keys();
+  for (let i = 0; i < chaves.length - MAX_ASSETS; i++) await assets.delete(chaves[i]);
+}
+
 self.addEventListener('activate', function (e) {
-  e.waitUntil(
-    caches.keys()
-      .then(function (ks) {
-        return Promise.all(ks.filter(function (k) { return k !== VERSAO; })
-                             .map(function (k) { return caches.delete(k); }));
-      })
-      .then(function () { return self.clients.claim(); })
-  );
+  e.waitUntil(migrarEPodar().catch(function () {}).then(function () { return self.clients.claim(); }));
 });
 
 self.addEventListener('fetch', function (e) {
@@ -68,6 +95,11 @@ self.addEventListener('fetch', function (e) {
   if (url.origin !== self.location.origin) return;
   if (e.request.method !== 'GET') return;
 
+  /* A versão publicada e a conferência do HTML novo ("Atualizar agora")
+     vêm SEMPRE da rede: devolver cópia velha aqui esconderia a atualização. */
+  if (url.pathname === '/painel/versao.json') return;
+  if (url.pathname === '/painel/' && e.request.mode !== 'navigate') return;
+
   /* O HTML é SEMPRE da rede. Cachear o HTML congelaria o painel numa versão
      antiga — e uma correção só chegaria quando a pessoa limpasse o
      navegador. O cache aqui é socorro de rede caída, não estratégia. A cópia
@@ -77,25 +109,25 @@ self.addEventListener('fetch', function (e) {
       fetch(e.request).then(function (r) {
         if (r.ok && url.pathname === '/painel/') {
           const copia = r.clone();
-          caches.open(VERSAO).then(function (c) { c.put('/painel/', copia); });
+          caches.open(CASCA_NOME).then(function (c) { c.put('/painel/', copia); });
         }
         return r;
-      }).catch(function () { return caches.match('/painel/'); })
+      }).catch(function () { return caches.match('/painel/', { cacheName: CASCA_NOME }); })
     );
     return;
   }
 
   /* Arquivos com hash no nome (/assets/…) são imutáveis: o nome muda a cada
-     build. Guardar na primeira visita é o que deixa a casca abrir offline. */
+     build. Guardar na primeira visita é o que deixa a casca abrir offline — e
+     o que mantém de pé a aba que ainda está na versão anterior. */
   if (url.pathname.indexOf('/assets/') === 0) {
     e.respondWith(
-      caches.match(e.request).then(function (r) {
-        return r || fetch(e.request).then(function (resp) {
-          if (resp.ok) {
-            const copia = resp.clone();
-            caches.open(VERSAO).then(function (c) { c.put(e.request, copia); });
-          }
-          return resp;
+      caches.open(ASSETS_NOME).then(function (c) {
+        return c.match(e.request).then(function (r) {
+          return r || fetch(e.request).then(function (resp) {
+            if (resp.ok) c.put(e.request, resp.clone());
+            return resp;
+          });
         });
       })
     );
@@ -105,7 +137,7 @@ self.addEventListener('fetch', function (e) {
   /* Assets da casca: cache primeiro, rede como reserva. São imutáveis na
      prática (fonte e marca), então servir do cache não esconde correção. */
   e.respondWith(
-    caches.match(e.request).then(function (r) { return r || fetch(e.request); })
+    caches.match(e.request, { cacheName: CASCA_NOME }).then(function (r) { return r || fetch(e.request); })
   );
 });
 
@@ -134,13 +166,14 @@ self.addEventListener('push', function (e) {
        o MESMO aviso reenviado substitui em vez de duplicar. */
     tag: typeof dados.tag === 'string' ? dados.tag : 'scw-painel',
     renotify: true,
-    data: { url: destinoSeguro(dados.url) },
+    data: { url: destinoSeguro(dados.url), versao: dados.tipo === 'versao' },
   }));
 });
 
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
   const destino = destinoSeguro(e.notification.data && e.notification.data.url);
+  const versao = !!(e.notification.data && e.notification.data.versao);
 
   /* Painel já aberto numa aba: foca e manda a aba ir até o item (mensagem,
      não recarga — recarregar perderia o que estiver sendo digitado). Sem aba,
@@ -150,7 +183,9 @@ self.addEventListener('notificationclick', function (e) {
       .then(function (abas) {
         for (let i = 0; i < abas.length; i++) {
           if (abas[i].url.indexOf('/painel/') !== -1 && 'focus' in abas[i]) {
-            abas[i].postMessage({ tipo: 'abrir', url: destino });
+            /* "Painel SCW atualizado": a aba aberta só VERIFICA e mostra o aviso
+               (nunca recarrega pelo clique — o texto digitado continua lá). */
+            abas[i].postMessage(versao ? { tipo: 'verificar-versao' } : { tipo: 'abrir', url: destino });
             return abas[i].focus();
           }
         }

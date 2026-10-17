@@ -1,12 +1,11 @@
 import React from 'react'
 import { Icone, MODULO_ICONE } from '../Icone'
 import { urlLogo } from '../../lib/logos'
-import { api, pushMarca } from '../../lib/marcaApi'
+import { api } from '../../lib/marcaApi'
 import { chaveDia } from '../../lib/hoje'
 import { tempoRelativo } from '../../lib/central'
 import { nivelDoAviso, NIVEIS } from '../../lib/guia'
 import { VistaCabeca } from '../VistaCabeca'
-import { ConviteApp } from '../AppNoAparelho'
 import { Carregando, Erro, Secao, Selo, Modulo, MacroSecao, GradeModulos, Botao, LogoMarca } from '../ui'
 import { VouchersMarca } from './VouchersMarca'
 import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo } from '../../lib/operacao'
@@ -275,7 +274,6 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
                 </button>
               ))}
             </div>
-            <ConviteApp papel="marca" {...pushMarca(participante && participante.id)} />
           </MacroSecao>
 
           {momento !== 'antes' && (

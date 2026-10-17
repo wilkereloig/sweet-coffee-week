@@ -12,6 +12,7 @@ import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Chips,
 import { LogoEditor } from '../LogoEditor'
 import { MODULO_ICONE } from '../Icone'
 import { confirmar } from '../Confirmar'
+import { comEnvio } from '../../lib/pendencias'
 
 /*
  * Ficha da marca, abas de conteúdo — reconstrução visual 29/09/2026.
@@ -343,7 +344,7 @@ export function adaptadorLogoOrg(participanteId) {
     carregar: () => rpc('get_logo_marca', { p_secret: lerSenha(), p_participante: participanteId }),
     subir: async (path, blob) => {
       const a = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'logos', path })
-      const r = await fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': blob.type } })
+      const r = await comEnvio('Envio da logo', () => fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': blob.type } }))
       if (!r.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + r.status + ')')
     },
     definir: (dados) => rpc('definir_logo', { p_secret: lerSenha(), p_participante: participanteId, p_dados: dados }),

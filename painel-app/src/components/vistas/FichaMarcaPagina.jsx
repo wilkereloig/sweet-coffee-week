@@ -1,4 +1,5 @@
 import React from 'react'
+import { registrarPendencia } from '../../lib/pendencias'
 import { rpc } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { linkWhatsApp, mascaraWhatsApp } from '../../lib/participantes'
@@ -160,20 +161,20 @@ function EdicaoNaSecao({ titulo, onConcluir, sujoRef, children }) {
     const marcar = (e) => { const f = e.target && e.target.closest && e.target.closest('form'); if (f) sujos.add(f) }
     const limpar = (e) => { sujos.delete(e.target) }
     const temSujo = () => [...sujos].some((f) => f.isConnected)
-    const antes = (e) => { if (temSujo()) { e.preventDefault(); e.returnValue = '' } }
+    // Declarado (lib/pendencias): fechar a aba e "Atualizar agora" perguntam antes.
+    const tirar = registrarPendencia('ficha-' + titulo, { rotulo: titulo + ': digitação ainda não salva', ativo: temSujo })
     el.addEventListener('input', marcar, true)
     el.addEventListener('change', marcar, true)
     el.addEventListener('submit', limpar, true)
-    window.addEventListener('beforeunload', antes)
     sujoRef.current = temSujo
     return () => {
       el.removeEventListener('input', marcar, true)
       el.removeEventListener('change', marcar, true)
       el.removeEventListener('submit', limpar, true)
-      window.removeEventListener('beforeunload', antes)
+      tirar()
       sujoRef.current = () => false
     }
-  }, [sujoRef])
+  }, [sujoRef, titulo])
   return (
     <div className="fg-editor" ref={ref} role="group" aria-label={titulo}>
       <div className="fg-editor__barra">

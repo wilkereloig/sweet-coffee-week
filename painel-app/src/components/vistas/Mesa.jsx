@@ -8,7 +8,6 @@ import { ETAPAS, colunasMesa } from '../../lib/mesa'
 import { notificacoesOrg } from '../../lib/notificacoes'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Atividade } from '../Atividade'
-import { ConviteApp, PUSH_ORGANIZACAO } from '../AppNoAparelho'
 import { Carregando, Erro, Secao, Selo, LogoMarca } from '../ui'
 import { urlLogo } from '../../lib/logos'
 import { ResumoRedes } from './Redes'
@@ -204,7 +203,6 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, pode, avisos = []
                   ))}
                 </ul>
               )}
-            <ConviteApp papel="organizacao" {...PUSH_ORGANIZACAO} />
           </Secao>
 
           {pode && <ResumoRedes navegar={navegar} pode={pode} className="ui-area-redes" />}

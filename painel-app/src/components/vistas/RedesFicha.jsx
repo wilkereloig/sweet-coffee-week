@@ -12,6 +12,7 @@ import { tamanhoLegivel } from '../../lib/arquivos'
 import { Autor } from '../Avatar'
 import { SeletorBiblioteca, ROTULO_ORIGEM } from './SocialBiblioteca'
 import { quemAprova } from '../../lib/socialGuia'
+import { usePendencia } from '../../lib/pendencias'
 
 /*
  * Ficha de uma publicação (Social media, 16–17/10/2026; reorganizada em
@@ -396,12 +397,10 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       else sessionStorage.removeItem(chaveRascunho)
     } catch { /* modo privado */ }
   }, [base, campos, novo, chaveRascunho, anterior])
-  React.useEffect(() => {
-    if (!sujo) return undefined
-    const avisar = (e) => { e.preventDefault(); e.returnValue = '' }
-    window.addEventListener('beforeunload', avisar)
-    return () => window.removeEventListener('beforeunload', avisar)
-  }, [sujo])
+  // Trabalho pela metade, declarado (fechar a aba e "Atualizar agora" perguntam antes).
+  const nomePost = (campos && String(campos.titulo || '').trim()) || (novo ? 'nova postagem' : 'postagem')
+  usePendencia(sujo, { rotulo: (novo ? 'Nova postagem “' : 'Postagem “') + nomePost + '”: alterações não salvas', salvar: () => salvar(), guardaRascunho: true })
+  usePendencia(!!comentario.trim(), { rotulo: 'Comentário digitado em “' + nomePost + '”, ainda não enviado' })
   React.useEffect(() => { if (!aviso) return undefined; const t = setTimeout(() => setAviso(''), 4000); return () => clearTimeout(t) }, [aviso])
   React.useEffect(() => { if (!copiado) return undefined; const t = setTimeout(() => setCopiado(false), 2500); return () => clearTimeout(t) }, [copiado])
   // Foco depois de abrir um bloco (Editar, pendência): o campo certo, sem pular a tela.

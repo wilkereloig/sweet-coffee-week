@@ -12,6 +12,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Botao, Escolha, traduzirErro } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import '../../styles/edicao-org.css'
+import { comEnvio } from '../../lib/pendencias'
 
 /*
  * Publicação da edição — lado da organização (Cartoon 2026.2, plano em
@@ -450,7 +451,7 @@ function NovaFoto({ pub, participacaoId, edicao, onFechar, onSalvo }) {
       const { blob, largura, altura } = await paraWebp(arquivo)
       const path = caminhoMidia(edicao, participacaoId, crypto.randomUUID())
       const a = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: BUCKET_EDICAO, path })
-      const r = await fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': 'image/webp' } })
+      const r = await comEnvio('Envio da foto', () => fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': 'image/webp' } }))
       if (!r.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + r.status + ')')
       await rpc('org_salvar_midia', { p_secret: lerSenha(), p_dados: {
         participacao_id: participacaoId, papel, item_id: papel === 'item' ? itemId : null,

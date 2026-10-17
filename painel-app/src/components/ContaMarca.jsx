@@ -2,8 +2,7 @@ import React from 'react'
 import { api, auth, tokenVivo, recadoSenha, pushMarca } from '../lib/marcaApi'
 import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess'
 import { Folha } from './Folha'
-import { AvisosAparelho } from './AvisosAparelho'
-import { InstalarApp } from './AppNoAparelho'
+import { AplicativoENotificacoes } from './AppNoAparelho'
 import { Secao } from './ui'
 
 /*
@@ -61,18 +60,14 @@ export function ContaMarca({ aberto, onFechar, onSair }) {
       .then((l) => setMarca((l && l[0]) || null)).catch(() => setMarca(null))
   }, [aberto]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const push = pushMarca(marca && marca.id)
+  const idMarca = marca && marca.id
+  const push = React.useMemo(() => pushMarca(idMarca), [idMarca])
 
   return (
     <Folha aberto={aberto} titulo="Sua conta" sub={marca ? marca.nome_marca : 'Painel SCW · Participante'} onFechar={onFechar}>
       <div className="ui-pilha">
-        <Secao titulo="Este aparelho" nota="Instalar e avisos valem por aparelho: faça em cada celular ou computador que você usa.">
-          <InstalarApp />
-          {marca && <AvisosAparelho
-            explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer um pedido, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado."
-            {...push}
-          />}
-        </Secao>
+        <AplicativoENotificacoes push={marca ? push : null}
+          explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer um pedido, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado." />
         <Secao titulo="Alterar minha senha" nota="Mínimo 10 caracteres.">
           <AlterarSenha />
         </Secao>

@@ -47,12 +47,45 @@ export async function pedirInstalacao() {
   return r.outcome === 'accepted'
 }
 
-// "Agora não" do convite: por aparelho e por papel. localStorage pode falhar
-// (aba privada, dados bloqueados); aí o convite só volta a aparecer.
-const chave = (papel) => 'scw_convite_app_' + papel
-export function conviteDispensado(papel) {
-  try { return localStorage.getItem(chave(papel)) === '1' } catch { return false }
+/*
+ * Convite após o login (18/10/2026): "Agora não" adia 7 dias, por CONTA e por
+ * aparelho (a dispensa de uma pessoa não esconde o convite de outra no mesmo
+ * celular). Guarda só a data — nada de credencial. localStorage pode falhar
+ * (aba privada): aí o convite só volta a aparecer.
+ */
+export const ADIAMENTO = 7 * 24 * 60 * 60 * 1000
+const chaveConvite = (papel, conta) => 'scw_convite_aparelho_' + papel + '_' + (conta || 'sem-conta')
+export function conviteAdiado(papel, conta, agora = Date.now()) {
+  try { const t = Number(localStorage.getItem(chaveConvite(papel, conta))); return !!t && agora - t < ADIAMENTO } catch { return false }
 }
-export function dispensarConvite(papel) {
-  try { localStorage.setItem(chave(papel), '1') } catch { /* segue sem lembrar */ }
+export function adiarConvite(papel, conta, agora = Date.now()) {
+  try { localStorage.setItem(chaveConvite(papel, conta), String(agora)) } catch { /* segue sem lembrar */ }
+}
+
+/** Que aparelho é este (só o que muda a instrução). */
+export function plataforma(ua = typeof navigator === 'undefined' ? '' : navigator.userAgent, toque = typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints) {
+  const ios = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && toque > 1)
+  return {
+    ios,
+    // No iPhone só o Safari adiciona à Tela de Início com o painel como app.
+    safari: ios && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua),
+    android: /Android/.test(ua),
+    movel: ios || /Android|Mobile/.test(ua),
+  }
+}
+
+/**
+ * Qual etapa o convite mostra (ou nenhuma):
+ *   fora do modo app  → 'instalar' (se o navegador oferece, ou no celular, com instruções);
+ *                       no computador sem oferta, pula para as notificações;
+ *   aberto como app   → 'notificacoes' se este aparelho ainda não está registrado.
+ * Bloqueado no navegador também vai para 'notificacoes' (a etapa explica como liberar).
+ */
+export function etapaDoConvite({ standalone, instalacao, movel, avisos }) {
+  const faltaAvisos = !!avisos && avisos.suportado && !avisos.registrado
+  if (!standalone) {
+    if (instalacao === 'pronto' || movel) return 'instalar'
+    return faltaAvisos ? 'notificacoes' : null
+  }
+  return faltaAvisos ? 'notificacoes' : null
 }
