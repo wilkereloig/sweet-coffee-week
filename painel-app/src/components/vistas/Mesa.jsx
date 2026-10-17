@@ -11,6 +11,7 @@ import { Atividade } from '../Atividade'
 import { ConviteApp, PUSH_ORGANIZACAO } from '../AppNoAparelho'
 import { Carregando, Erro, Secao, Selo, LogoMarca } from '../ui'
 import { urlLogo } from '../../lib/logos'
+import { ResumoRedes } from './Redes'
 
 /*
  * A mesa — o painel inicial da organização. Responde "o que precisa de mim
@@ -25,7 +26,7 @@ const ROTULO_COMBO = ['doce', 'salgado', 'bebida']
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
-export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
+export function Mesa({ registrarAtualizar, abrirLink, navegar, pode, avisos = [] }) {
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
   const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [] })
@@ -205,6 +206,8 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, avisos = [] }) {
               )}
             <ConviteApp papel="organizacao" {...PUSH_ORGANIZACAO} />
           </Secao>
+
+          {pode && <ResumoRedes navegar={navegar} pode={pode} className="ui-area-redes" />}
 
           <Secao titulo="Atividade recente" nota="Quem fez o quê, por último" className="ui-area-atividade">
             {extra.atividade === null && <Carregando linhas={3} />}

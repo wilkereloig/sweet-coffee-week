@@ -204,6 +204,15 @@ export const STATUS = {
     em_andamento: s('Em andamento', 'ok'),
     encerrada: s('Encerrada', 'encerrado'),
   },
+  // redes_posts.situacao (Social media, 16–17/10/2026). "Atrasada" não
+  // é situação: é calculada (lib/redes.js `atrasada`).
+  post_redes: {
+    rascunho: s('Rascunho', 'neutro'),
+    preparacao: s('Em preparação', 'andamento'),
+    pronto: s('Pronto para publicar', 'atencao'),
+    publicado: s('Publicado', 'ok'),
+    cancelado: s('Cancelado', 'encerrado'),
+  },
   importacao_linha: {
     pendente: s('Pendente', 'atencao'),
     importado: s('Importado', 'ok'),

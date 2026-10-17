@@ -48,7 +48,7 @@ export const USUARIO_VALIDO = /^[a-z0-9]+([._-][a-z0-9]+)*$/
  * conta, nunca no login (lá o usuário é só validado). Trocar a função depois
  * não troca o login: login é fixo.
  */
-export const SIGLA_FUNCAO = { administrador: 'adm', curadoria: 'cur', producao: 'prod', comercial: 'com', consulta: 'cons' }
+export const SIGLA_FUNCAO = { administrador: 'adm', curadoria: 'cur', producao: 'prod', comercial: 'com', consulta: 'cons', social: 'social' }
 
 export function usuarioDaEquipe(nome, funcao) {
   const base = String(nome == null ? '' : nome).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')

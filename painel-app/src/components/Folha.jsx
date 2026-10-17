@@ -15,6 +15,7 @@ const SAIDA = 260 // espelha .og-detalhe.is-fechando (260ms) em painel.css
 
 export const FOCAVEIS = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
+// `larga`: true = 920px; "ampla" = 1220px (ficha com prévia ao lado: Social media).
 export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }) {
   const [montada, setMontada] = React.useState(aberto)
   const [fechando, setFechando] = React.useState(false)
@@ -74,7 +75,7 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
       <div className="og-fundo" hidden={!aberto} aria-hidden="true" onClick={onFechar} />
       <aside
         ref={caixaRef}
-        className={'og-detalhe' + (larga ? ' og-detalhe--larga' : '') + (fechando ? ' is-fechando' : '')}
+        className={'og-detalhe' + (larga ? ' og-detalhe--larga' : '') + (larga === 'ampla' ? ' og-detalhe--ampla' : '') + (fechando ? ' is-fechando' : '')}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}

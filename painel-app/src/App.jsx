@@ -113,6 +113,9 @@ export function App() {
   // então zera no logout pra não vazar pra uma sessão diferente na mesma aba.
   const [acoesPermitidas, setAcoesPermitidas] = React.useState(null)
   const [funcaoRotulo, setFuncaoRotulo] = React.useState(null)
+  // Código da função (não o rótulo): decide a entrada do painel — a Social
+  // media abre direto no planejamento quando não há link específico.
+  const [funcaoCodigo, setFuncaoCodigo] = React.useState(null)
   // O destino do aviso vale para UMA entrada: sair e entrar de novo na mesma
   // aba não reabre a mesma ficha.
   const [destino, setDestino] = React.useState(tirarDestino)
@@ -178,6 +181,7 @@ export function App() {
       if (linhas[0].ativo === false) { setMotivoBloqueio('suspenso'); setEstado('bloqueado-org'); return }
       setAcoesPermitidas(linhas[0].acoes || [])
       setFuncaoRotulo(linhas[0].rotulo || linhas[0].funcao || null)
+      setFuncaoCodigo(linhas[0].funcao || null)
       setEstado(linhas[0].deve_trocar_senha ? 'definir-senha-org' : 'painel-org')
     }).catch((e) => {
       if (cancelado) return
@@ -204,6 +208,7 @@ export function App() {
         if (!linhas || !linhas.length) return
         setAcoesPermitidas(linhas[0].acoes || [])
         setFuncaoRotulo(linhas[0].rotulo || linhas[0].funcao || null)
+        setFuncaoCodigo(linhas[0].funcao || null)
         setPermissoesFalharam(false)
       }).catch(() => { /* tenta de novo no próximo ciclo */ })
     }, 20000)
@@ -352,7 +357,8 @@ export function App() {
         vistas={MODULOS_ORG}
         onSair={() => sairOrg()}
         permissoes={acoesPermitidas}
-        rotaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : 'visao'}
+        rotaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : funcaoCodigo === 'social' ? 'social/planejamento' : 'visao'}
+        nominal={!!lerGuardada(CHAVE_SESSAO_ORG_CONTA)}
         linkInicial={destino}
         quem={quemOrg(funcaoRotulo)}
       />

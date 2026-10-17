@@ -9,6 +9,9 @@ import { Atividade } from '../Atividade'
 import { AvisosAparelho } from '../AvisosAparelho'
 import { Carregando, Vazio, Erro, Secao, traduzirErro, Selo, Botao } from '../ui'
 import { confirmar } from '../Confirmar'
+import { Avatar } from '../Avatar'
+import { EditorFoto } from '../MeuPerfil'
+import { useEquipe } from '../../lib/equipe'
 
 /*
  * Vista Equipe — "Configurações → Usuários da equipe": quem entra no painel da
@@ -96,6 +99,7 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
           <li><b>Produção</b>: pedidos, arquivos, fotos, triagem e mensagens.</li>
           <li><b>Comercial</b>: contatos, Press Kit, vouchers e mensagens.</li>
           <li><b>Consulta</b>: só lê.</li>
+          <li><b>Social media</b>: planejamento do Instagram, biblioteca e textos do combo (nome, descrição, componentes). Não vê cadastro, contatos nem financeiro.</li>
         </ul>
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
         {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} />}
@@ -106,6 +110,7 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
 }
 
 function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico }) {
+  const equipe = useEquipe()
   // Guarda a última conta não-nula: a folha ainda precisa de conteúdo para
   // animar a saída depois que `conta` vira null.
   const [c, setC] = React.useState(conta)
@@ -145,6 +150,7 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
     acao('salvar', async () => {
       if ((nome || '') !== (c.nome || '')) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: c.user_id, p_nome: nome })
       if (funcao && funcao !== (c.funcao || '')) await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: funcao })
+      equipe.recarregar()
     }, 'Salvo.')
   }
   const alternar = async () => {
@@ -168,6 +174,10 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
             <div className="ui-dado"><dt>Criada em</dt><dd>{dataCurta(c.criado_em)}</dd></div>
             <div className="ui-dado"><dt>Último acesso</dt><dd>{c.ultimo_acesso ? tempoRelativo(c.ultimo_acesso) : 'nunca entrou'}</dd></div>
           </dl>
+          <Secao titulo="Foto de perfil" nota="Aparece ao lado do nome nas atividades, avisos e comentários. Sem foto, iniciais.">
+            <EditorFoto alvo={c.user_id} nome={c.nome || loginDaConta(c.email)}
+              temFoto={!!(equipe.pessoas[c.user_id] || {}).avatar_path} onMudou={equipe.recarregar} />
+          </Secao>
           <form className="ui-form" onSubmit={salvar}>
             <label className="og-campo"><span>Nome (aparece no histórico)</span>
               <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={80} />
@@ -328,8 +338,8 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
             <ul className="og-lista og-lista--tabela">
               {lista.map((c) => (
                 <li key={c.user_id}>
-                  <button type="button" className="og-item" onClick={() => setFolha({ tipo: 'conta', conta: c })}>
-                    <span className="og-item__cor" data-tom={c.ativo ? 'ok' : 'alerta'} aria-hidden="true" />
+                  <button type="button" className="og-item og-item--avatar" onClick={() => setFolha({ tipo: 'conta', conta: c })}>
+                    <Avatar id={c.user_id} rotulo={c.nome || loginDaConta(c.email)} tamanho={36} />
                     <span className="og-item__nome">{c.nome || loginDaConta(c.email)}</span>
                     <span className="og-item__meta">{(c.nome ? loginDaConta(c.email) + ' · ' : '') + (c.rotulo || c.funcao || 'sem função')}{c.deve_trocar_senha ? ' · ainda não trocou a senha' : ''}</span>
                     <span className="og-item__dir">

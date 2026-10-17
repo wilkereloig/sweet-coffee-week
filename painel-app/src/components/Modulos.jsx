@@ -17,6 +17,9 @@ import { Carregando, Erro } from './ui'
 import { ListaPublicacao } from './vistas/Publicacao'
 import { ListaPreenchimento } from './vistas/Preenchimento'
 import { ChavesEdicao, Avaliacoes } from './vistas/PublicacaoEdicao'
+import { Redes, ResumoRedes } from './vistas/Redes'
+import { SocialBiblioteca } from './vistas/SocialBiblioteca'
+import { SocialParticipantes } from './vistas/SocialParticipantes'
 
 /*
  * Os sete módulos da organização (reestruturação 29/09/2026 — spec em
@@ -52,7 +55,8 @@ function Modulo({ id, rota, navegar, abas, nota }) {
 
 export function Visao(props) {
   return <Modulo id="visao" {...props} nota="O que precisa de atenção, e onde cada marca está" abas={[
-    { chave: '', rotulo: 'Visão geral', render: () => <Mesa {...props} /> },
+    // Quem só trabalha com redes (função Social media, sem dado.ler) vê só o resumo das redes.
+    { chave: '', rotulo: 'Visão geral', render: () => (props.pode('dado.ler') ? <Mesa {...props} /> : <ResumoRedes navegar={props.navegar} pode={props.pode} />) },
   ]} />
 }
 
@@ -80,9 +84,23 @@ export function ModContatos(props) {
 
 export function Operacao(props) {
   return <Modulo id="operacao" {...props} abas={[
-    { chave: 'pedidos', rotulo: 'Pedidos', render: () => <Producao {...props} secao="pedidos" /> },
-    { chave: 'fotos', rotulo: 'Fotos', render: () => <Producao {...props} secao="fotos" /> },
-    { chave: 'materiais', rotulo: 'Materiais', render: () => <MateriaisEdicao {...props} /> },
+    { chave: 'pedidos', rotulo: 'Pedidos', mostrar: props.pode('dado.ler'), render: () => <Producao {...props} secao="pedidos" /> },
+    { chave: 'fotos', rotulo: 'Fotos', mostrar: props.pode('dado.ler'), render: () => <Producao {...props} secao="fotos" /> },
+    { chave: 'materiais', rotulo: 'Materiais', mostrar: props.pode('dado.ler'), render: () => <MateriaisEdicao {...props} /> },
+  ]} />
+}
+
+/*
+ * Social media (17/10/2026): planejamento do Instagram, biblioteca de artes e
+ * participantes para a equipe de conteúdo. Era Operação › Redes sociais — o
+ * endereço antigo (#operacao/redes) cai aqui (lib/rota.js migrarRota).
+ * Não é "Publicação no site" (Edição): aqui é a agenda da equipe.
+ */
+export function ModSocial(props) {
+  return <Modulo id="social" {...props} nota="Planejamento do Instagram — o painel registra, não publica" abas={[
+    { chave: 'planejamento', rotulo: 'Planejamento', render: () => <Redes {...props} /> },
+    { chave: 'biblioteca', rotulo: 'Biblioteca', render: () => <SocialBiblioteca {...props} /> },
+    { chave: 'participantes', rotulo: 'Participantes', mostrar: props.pode('editorial.ler'), render: () => <SocialParticipantes {...props} /> },
   ]} />
 }
 
@@ -134,5 +152,5 @@ export function Admin(props) {
 // Mapa para o PainelShell (a ordem do menu é DESTINOS, lá).
 export const MODULOS_ORG = {
   visao: Visao, participantes: Participantes, contatos: ModContatos, operacao: Operacao,
-  arquivos: ModArquivos, edicao: ModEdicao, admin: Admin,
+  social: ModSocial, arquivos: ModArquivos, edicao: ModEdicao, admin: Admin,
 }

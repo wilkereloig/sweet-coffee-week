@@ -3,6 +3,7 @@ import { Icone } from './Icone'
 import { Folha } from './Folha'
 import { Carregando, Erro, Vazio } from './ui'
 import { tempoRelativo, contarNaoLidas } from '../lib/central'
+import { Autor } from './Avatar'
 
 /*
  * Central de avisos — o sino do cabeçalho e a lista, IGUAL nos dois painéis.
@@ -15,7 +16,7 @@ import { tempoRelativo, contarNaoLidas } from '../lib/central'
  * sob RLS). Este componente só desenha e avisa o clique.
  */
 // Ícones por tipo e por nível: nomes do registro único (components/Icone.jsx).
-const ICONE_TIPO = { mensagem: 'mensagem', pedido: 'pedido', arquivo: 'arquivo', fotos: 'fotos', cadastro: 'ok-circulo', formulario: 'formulario' }
+const ICONE_TIPO = { mensagem: 'mensagem', pedido: 'pedido', arquivo: 'arquivo', fotos: 'fotos', cadastro: 'ok-circulo', formulario: 'formulario', redes: 'compartilhar', combo: 'combo' }
 const ICONE_NIVEL = { informacao: 'informacao', atencao: 'atencao-circulo', pendencia: 'pedido', alteracao: 'alteracao', aprovado: 'ok-circulo', arquivo: 'arquivo' }
 
 // `niveis` (opcional): { nivelDe(aviso) → chave, NIVEIS[chave] → { rotulo, acao } }.
@@ -66,9 +67,11 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
                       {info && <span className="ui-aviso__nivel" data-nivel={nivel}>{info.rotulo}</span>}
                       <span className="ui-aviso__titulo">{n.titulo}</span>
                       {n.texto && <span className="ui-aviso__texto">{n.texto}</span>}
+                      {/* Quem fez (avatar + nome gravado no aviso) e quando. Aviso agrupado
+                          (várias gravações seguidas da mesma pessoa) mostra a última hora e quantas. */}
                       <span className="ui-aviso__meta">
-                        {tempoRelativo(n.criada_em)}
-                        {n.ator_rotulo && n.ator_rotulo !== 'Acesso compartilhado' && !n.ator_rotulo.startsWith('Marca ·') ? ' · por ' + n.ator_rotulo : ''}
+                        {n.ator_rotulo && <Autor id={n.ator_user_id} rotulo={n.ator_rotulo} tamanho={20} />}
+                        <span>{tempoRelativo(n.atualizada_em || n.criada_em)}{n.n_agrupadas > 1 ? ' · ' + n.n_agrupadas + ' alterações' : ''}</span>
                       </span>
                       {info && n.link && <span className="ui-aviso__acao">{info.acao}<Icone nome="seta-direita" tamanho={16} /></span>}
                     </span>

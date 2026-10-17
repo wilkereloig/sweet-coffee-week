@@ -48,7 +48,17 @@ export function mesmaRota(a, b) { return montarRota(a) === montarRota(b) }
 // Módulos da organização (§3 da spec) e a aba inicial de cada um.
 export const ABA_INICIAL = {
   visao: '', participantes: 'lista', contatos: 'pessoas', operacao: 'pedidos',
-  arquivos: 'gerais', edicao: 'configuracao', admin: 'equipe',
+  social: 'planejamento', arquivos: 'gerais', edicao: 'configuracao', admin: 'equipe',
+}
+
+/*
+ * Social media (17/10/2026) saiu de Operação e virou módulo: o endereço antigo
+ * (#operacao/redes?…, de favorito ou link copiado) cai no mesmo lugar, com os
+ * mesmos filtros. Um calendário só — nunca duas entradas para ele.
+ */
+export function migrarRota(r) {
+  if (r && r.vista === 'operacao' && r.aba === 'redes') return { ...r, vista: 'social', aba: 'planejamento' }
+  return r
 }
 
 // Respostas: de onde veio decide o módulo.
@@ -95,6 +105,8 @@ function rotaCrua(link) {
       return { vista: 'participantes', aba: 'lista', filtros: { item: a, sub: b } }
     case 'respostas': return rotaResposta(a, b)
     case 'producao': case 'operacao': {
+      // Avisos e links antigos do calendário (operacao/redes/<id>) → Social media.
+      if (seg === 'operacao' && a === 'redes') return { vista: 'social', aba: 'planejamento', filtros: b ? { item: b } : {} }
       // hasOwn: `constructor`/`__proto__` num link forjado vinham do protótipo e
       // derrubavam o painel na desestruturação.
       const [vista, aba] = (Object.hasOwn(PRODUCAO_ABA, a) && PRODUCAO_ABA[a]) || ['operacao', a || 'pedidos']
