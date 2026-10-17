@@ -156,13 +156,25 @@ async function cifrar(carga: string, p256dh: string, authChave: string): Promise
 // ── Envio para as assinaturas de um destino ─────────────────────────────────
 // deno-lint-ignore no-explicit-any
 async function enviarPara(admin: any, alvo: string, participanteId: string | null, carga: string,
-                          vapid: { publica: Uint8Array, privadaD: string, sub: string }) {
-  let consulta = admin.from('push_subscriptions')
-    .select('id, endpoint, p256dh, auth_chave')
-    .eq('papel', alvo).eq('ativo', true)
-  if (alvo === 'marca') consulta = consulta.eq('participante_id', participanteId)
-
-  const { data: assinaturas, error: lerErr } = await consulta
+                          vapid: { publica: Uint8Array, privadaD: string, sub: string },
+                          notificacaoId: string | null = null) {
+  // Aviso do banco: os destinos saem de `push_destinos` (17/10/2026) — aviso
+  // pessoal só nos aparelhos do destinatário; geral, só em quem pode ler o
+  // tipo. Sem a migration ainda aplicada, a função não existe e vale a regra
+  // antiga (todos os aparelhos do papel) — nenhum aviso pessoal existe então.
+  // deno-lint-ignore no-explicit-any
+  let assinaturas: any[] | null = null, lerErr: any = null
+  if (notificacaoId) {
+    ;({ data: assinaturas, error: lerErr } = await admin.rpc('push_destinos', { p_notificacao: notificacaoId }))
+    if (lerErr && (lerErr.code === 'PGRST202' || lerErr.code === '42883')) { assinaturas = null; lerErr = null; notificacaoId = null }
+  }
+  if (!notificacaoId) {
+    let consulta = admin.from('push_subscriptions')
+      .select('id, endpoint, p256dh, auth_chave')
+      .eq('papel', alvo).eq('ativo', true)
+    if (alvo === 'marca') consulta = consulta.eq('participante_id', participanteId)
+    ;({ data: assinaturas, error: lerErr } = await consulta)
+  }
   if (lerErr) throw new Error(lerErr.message)
   if (!assinaturas || assinaturas.length === 0) return { enviados: 0, falharam: 0, removidos: 0 }
 
@@ -253,7 +265,7 @@ Deno.serve(async (req) => {
       tag: 'scw-' + id,
     })
     try {
-      const r = await enviarPara(admin, n.para, n.participante_id, carga, vapid)
+      const r = await enviarPara(admin, n.para, n.participante_id, carga, vapid, id)
       return json({ ok: true, ...r })
     } catch {
       // Nada saiu: solta a trava, senão a notificação fica marcada como

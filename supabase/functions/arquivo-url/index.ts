@@ -25,6 +25,8 @@
 // ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
 // Saída subir:  { ok, url, path }   → o navegador faz PUT nessa url com o arquivo
 // Saída baixar: { ok, url }         → link de vida curta, para abrir
+//   (bucket `redes`: `download` opcional = nome com que o navegador salva)
+// baixar_varios (`redes` e `equipe`): { paths: [...até 60] } → { ok, urls: [{path, url}], validade }
 // =============================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -43,7 +45,18 @@ const CORS = {
 // mostra. Bucket público, mas o caminho é <edição>/<participação>/<uuid>.webp —
 // impossível de adivinhar — e só a projeção pública (foto APROVADA) entrega o
 // caminho. Subir exige `producao.gerir`; nunca por cima (cada foto é um uuid).
-const BUCKETS = ['arquivos', 'combos', 'logos', 'edicao-publico']
+// `redes` (16/10/2026): artes do calendário do Instagram (Operação › Redes
+// sociais). Bucket PRIVADO e sem policy nenhuma: só esta função assina. Caminho
+// <uuid da publicação>/<uuid>.<ext>; subir exige `redes.arquivos`, baixar
+// `redes.ver` — a função Redes sociais não tem dado.ler nem producao.gerir.
+// Nunca por cima: cada versão de arte é um objeto novo, e uma publicação já
+// feita continua apontando para o arquivo que foi ao ar.
+// `equipe` (17/10/2026): foto de perfil das contas da organização. PRIVADO e
+// sem policy. Caminho <user_id>/<uuid>.(webp|jpg): a pessoa só assina subida
+// na PRÓPRIA pasta (o id vem do JWT, não do corpo); outra pasta exige
+// `acesso.gerir`. Baixar: qualquer conta que trabalha no painel (dado.ler ou
+// redes.ver) — é o que mostra quem fez cada coisa. Nunca por cima.
+const BUCKETS = ['arquivos', 'combos', 'logos', 'edicao-publico', 'redes', 'equipe']
 
 // Uma pasta e um arquivo, nada mais. A pasta é `geral` ou um UUID de
 // participação; o arquivo é o que sobra depois de tirar tudo que não seja letra,
@@ -52,6 +65,20 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const EDICAO = /^\d{4}(\.\d)?$/
 const UUID_WEBP = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.webp$/i
+
+const REDES = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp|mp4|mov)$/
+
+/** Artes de redes: exatamente <uuid da publicação>/<uuid>.<ext> (mesma regra do CHECK da tabela). */
+export function caminhoRedesValido(path: string): boolean {
+  return REDES.test(path)
+}
+
+const EQUIPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(webp|jpg)$/
+
+/** Foto de perfil: exatamente <user_id>/<uuid>.(webp|jpg) (mesma regra do CHECK de perfis). */
+export function caminhoEquipeValido(path: string): boolean {
+  return EQUIPE.test(path)
+}
 
 /** Fotos da edição: exatamente <edição>/<uuid da participação>/<uuid>.webp. */
 function caminhoEdicaoValido(path: string): boolean {
@@ -78,7 +105,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   if (req.method !== 'POST') return json({ erro: 'method_not_allowed' }, 405)
 
-  let payload: { secret?: string; acao?: string; bucket?: string; path?: string }
+  let payload: { secret?: string; acao?: string; bucket?: string; path?: string; paths?: string[]; download?: string }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
   const secret = (payload.secret || '').trim()
@@ -86,9 +113,16 @@ Deno.serve(async (req) => {
   const bucket = (payload.bucket || 'arquivos').trim()
   const path = (payload.path || '').trim()
 
-  if (acao !== 'subir' && acao !== 'baixar') return json({ erro: 'acao_invalida' }, 400)
+  // `baixar_varios` (redes, equipe): as miniaturas e as fotos de perfil numa chamada só.
+  const paths = Array.isArray(payload.paths) ? payload.paths.map((x) => String(x || '').trim()) : []
+  if (acao !== 'subir' && acao !== 'baixar' && acao !== 'baixar_varios') return json({ erro: 'acao_invalida' }, 400)
   if (!BUCKETS.includes(bucket)) return json({ erro: 'bucket_invalido' }, 400)
-  if (bucket === 'edicao-publico' ? !caminhoEdicaoValido(path) : !caminhoValido(path)) return json({ erro: 'caminho_invalido' }, 422)
+  const validar = bucket === 'redes' ? caminhoRedesValido
+    : bucket === 'equipe' ? caminhoEquipeValido
+    : bucket === 'edicao-publico' ? caminhoEdicaoValido : caminhoValido
+  if (acao === 'baixar_varios') {
+    if ((bucket !== 'redes' && bucket !== 'equipe') || !paths.length || paths.length > 60 || !paths.every(validar)) return json({ erro: 'caminho_invalido' }, 422)
+  } else if (!validar(path)) return json({ erro: 'caminho_invalido' }, 422)
   if (bucket === 'logos' && path.startsWith('geral/')) return json({ erro: 'caminho_invalido' }, 422)
 
   const admin = createClient(
@@ -103,12 +137,23 @@ Deno.serve(async (req) => {
   // Duas portas (Fase 4, 28/08/2026): com `secret`, a senha única; sem, o
   // JWT nominal no cabeçalho, resolvido por `pode_por_user` — mesma ação,
   // mesma tabela perfis/permissões que `pode()` já usa pra sessão nominal.
-  const acaoNecessaria = acao === 'subir' ? (bucket === 'logos' ? 'cadastro.editar' : 'producao.gerir') : 'dado.ler'
+  // Basta UMA das ações da lista.
+  //   · `arquivos` em `geral/`: a Social media (redes.ver) baixa os materiais
+  //     da campanha pela biblioteca — os da pasta de uma marca, não.
+  //   · `equipe`, subir: a própria pasta (conta ativa) ou acesso.gerir.
+  const acoes = bucket === 'redes' ? [acao === 'subir' ? 'redes.arquivos' : 'redes.ver']
+    : bucket === 'equipe' ? (acao === 'subir' ? ['acesso.gerir'] : ['dado.ler', 'redes.ver'])
+    : acao === 'subir' ? [bucket === 'logos' ? 'cadastro.editar' : 'producao.gerir']
+    : bucket === 'arquivos' && path.startsWith('geral/') ? ['dado.ler', 'redes.ver']
+    : ['dado.ler']
   let autorizado = false
+  let porAcao = ''
   if (secret) {
-    const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: acaoNecessaria })
-    if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
-    autorizado = data === true
+    for (const acaoNecessaria of acoes) {
+      const { data, error: authErr } = await admin.rpc('pode', { p_secret: secret, p_acao: acaoNecessaria })
+      if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+      if (data === true) { autorizado = true; porAcao = acaoNecessaria; break }
+    }
   } else {
     const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim()
     const { data: userRes, error: jwtErr } = jwt ? await admin.auth.getUser(jwt) : { data: null, error: null }
@@ -118,20 +163,41 @@ Deno.serve(async (req) => {
     if (jwtErr && jwtErr.name === 'AuthRetryableFetchError') {
       return json({ erro: 'auth_indisponivel', detalhe: jwtErr.message }, 503)
     }
-    if (userRes?.user) {
-      const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: acaoNecessaria })
-      if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
-      autorizado = data === true
+    const uid = userRes?.user?.id
+    if (uid && bucket === 'equipe' && acao === 'subir' && path.split('/')[0] === uid) {
+      // A própria foto: basta a conta da organização estar ativa.
+      const { data: pf, error: pfErr } = await admin.from('perfis').select('user_id')
+        .eq('user_id', uid).eq('papel', 'organizacao').eq('ativo', true).is('bloqueado_em', null)
+        .eq('deve_trocar_senha', false).maybeSingle()
+      if (pfErr) return json({ erro: 'db_error', detalhe: pfErr.message }, 500)
+      autorizado = !!pf
+    } else if (userRes?.user) {
+      for (const acaoNecessaria of acoes) {
+        const { data, error: authErr } = await admin.rpc('pode_por_user', { p_user: userRes.user.id, p_acao: acaoNecessaria })
+        if (authErr) return json({ erro: 'db_error', detalhe: authErr.message }, 500)
+        if (data === true) { autorizado = true; porAcao = acaoNecessaria; break }
+      }
     }
   }
   if (autorizado !== true) return json({ erro: 'nao_autorizado' }, 401)
+
+  // Só com redes.ver (Social media), `arquivos/geral/` vale apenas para o que a
+  // Biblioteca lista: material de campanha PUBLICADO (identidade, combo, guia).
+  // Contrato, regulamento e rascunho continuam de dado.ler, mesmo com o caminho na mão.
+  if (bucket === 'arquivos' && porAcao === 'redes.ver') {
+    const { data: ar, error: arErr } = await admin.from('arquivos').select('id')
+      .eq('path', path).eq('escopo', 'geral').eq('arquivado', false).not('publicado_em', 'is', null)
+      .in('categoria', ['identidade', 'combo', 'guia']).limit(1).maybeSingle()
+    if (arErr) return json({ erro: 'db_error', detalhe: arErr.message }, 500)
+    if (!ar) return json({ erro: 'nao_autorizado' }, 401)
+  }
 
   if (acao === 'subir') {
     // `upsert: true` de propósito: publicar a versão 2 de um regulamento é
     // escrever por cima do mesmo caminho. Quem versiona é `arquivos.versao`,
     // que é dado — não o nome do arquivo em disco.
     const { data, error } = await admin.storage.from(bucket)
-      .createSignedUploadUrl(path, { upsert: bucket !== 'logos' && bucket !== 'edicao-publico' })
+      .createSignedUploadUrl(path, { upsert: bucket === 'arquivos' || bucket === 'combos' })
     if (error) return json({ erro: 'assinatura_falhou', detalhe: error.message }, 500)
     return json({ ok: true, url: data.signedUrl, path })
   }
@@ -139,7 +205,14 @@ Deno.serve(async (req) => {
   // 300 s: o link vai para o histórico do navegador e para qualquer captura de
   // tela. Curto o bastante para não virar acesso permanente, longo o bastante
   // para um download começar.
-  const { data, error } = await admin.storage.from(bucket).createSignedUrl(path, 300)
+  if (acao === 'baixar_varios') {
+    const { data, error } = await admin.storage.from(bucket).createSignedUrls(paths, 300)
+    if (error) return json({ erro: 'assinatura_falhou', detalhe: error.message }, 500)
+    return json({ ok: true, urls: (data || []).map((d) => ({ path: d.path, url: d.signedUrl || null })), validade: 300 })
+  }
+  // `download` (redes): o navegador salva com o nome original em vez de abrir.
+  const nomeDownload = bucket === 'redes' ? String(payload.download || '').replace(/[^\p{L}\p{N}._ -]/gu, '').slice(0, 120) : ''
+  const { data, error } = await admin.storage.from(bucket).createSignedUrl(path, 300, nomeDownload ? { download: nomeDownload } : undefined)
   if (error) return json({ erro: 'assinatura_falhou', detalhe: error.message }, 404)
   return json({ ok: true, url: data.signedUrl })
 })
