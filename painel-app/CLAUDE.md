@@ -1073,3 +1073,111 @@ teste `tests/painel-app-preenchimento.test.mjs`.
   Migration `20261016_link_preenchimento_alimentar.sql`: o retrato e o "Aplicar" passam a cobrir
   `declaracoes_alimentares` e `substituicoes`. ⛔ Desmarcar selo não grava "não": vira `nao_informado`
   só se antes estava marcado; alergênico só vira `nao_contem` quando a pessoa respondeu a pergunta.
+
+#### Social media — planejamento, biblioteca e participantes — 16–17/10/2026 (`#social/…`)
+Módulo próprio (era Operação › Redes sociais; `#operacao/redes…` e avisos antigos `operacao/redes/<id>` caem aqui —
+`migrarRota`/`rotaDoLink` em `lib/rota.js`, e a barra de endereço é corrigida). **Um calendário só.** Abas:
+**Planejamento** (`vistas/Redes.jsx` + `RedesFicha.jsx`) · **Biblioteca** (`SocialBiblioteca.jsx`) · **Participantes**
+(`SocialParticipantes.jsx`, só com `editorial.ler`). A função `social` ("Social media") entra direto em
+`#social/planejamento` (App.jsx, pela função; link direto e aviso têm prioridade) e só vê Visão geral + Social media
+(`PODE_MODULO` no PainelShell: sem `dado.ler` os módulos de cadastro nem aparecem). ⛔ O painel **não publica** no
+Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com Edição › Publicação no site.
+- ⚠️ **Banco: duas migrations, escritas e validadas num Postgres local (PGlite), NÃO aplicadas**, nesta ordem:
+  `20261017_equipe_perfis_avisos.sql` (foto, diretório, Meu perfil, avisos por pessoa) e
+  `20261017_social_media.sql` (consolida a de redes de 16/10, que nunca foi aplicada e foi renomeada). Edge Functions
+  `arquivo-url` (bucket `equipe`, materiais gerais para `redes.ver`) e `enviar-push` (`push_destinos`) estão **no repo,
+  não publicadas**. Ordem segura: publicar as duas Edge Functions → aplicar as migrations → só então
+  `update admin_config set push_pessoal = true` (antes disso o aviso pessoal fica só no sino: a `enviar-push` antiga
+  mandaria o aviso de uma pessoa para todos os aparelhos).
+- **Planejamento:** abre na SEMANA, **segunda a domingo** (`inicioSemana`; título "Seg, 12 a dom, 18 de out"). Desktop:
+  sete colunas com até 4 cartões (miniatura, hora, avatar do responsável, situação, pendências) e "Ver todos"; clicar no
+  dia abre a agenda completa embaixo (`?dia=AAAA-MM-DD`; "Adicionar postagem neste dia" traz a data e pede a hora;
+  "Fechar o dia"). Celular (≤700px, `useEstreito`): sete LINHAS com tira de miniaturas, e o dia abre ali mesmo — sem
+  colunas espremidas, sem rolagem lateral. Mês, Dia, Lista e Fila continuam. Atalhos: hoje, 7 dias, atrasadas, minhas,
+  sem responsável, **sem arte**, **sem legenda** (vêm de `redes_pendencias`; Story não conta legenda); filtro por
+  **participante** (`part`).
+- **Ficha da postagem:** "Última alteração: <avatar> nome · quando" e "criada por"; versão de cada arte (substituir sobe
+  1, a anterior fica em "Versões anteriores"); origem (enviada aqui × da biblioteca); quem confirmou com avatar;
+  comentário com **pedido de ajuste** (selo "Ajuste pedido" até a próxima alteração; avisa responsável e autor);
+  "Ver participante e combo". ⛔ Arte enviada por OUTRA pessoa (o designer) só `redes.gerir` substitui ou remove — a
+  Social media envia, associa, ordena e pede ajuste (`redes_exigir_dono`).
+- **Biblioteca** (`social_biblioteca`): uma lista só, por REFERÊNCIA (nada copiado) — arte final (`redes_arquivos`,
+  inclusive da biblioteca com `post_id` nulo, enviada por `redes.gerir`), foto do combo/loja (`midias_participacao`,
+  bucket público `edicao-publico`), logo (`logos_marca`, "oficial" × "anterior"), material geral da campanha
+  (`arquivos` de escopo geral). Filtros: tipo, edição, participante, situação (padrão "disponível"), busca. Associar a
+  uma postagem (`redes_arquivo_associar`) grava bucket + caminho resolvidos NO SERVIDOR pelo id de origem: trocar a foto
+  depois não muda a postagem. PDF e SVG ficam "só download". Privado continua privado: `redes` e `equipe` por
+  `baixar_varios`, `arquivos` por `baixar` (só `geral/` para `redes.ver`), renovados (`lib/redesArquivos.js`; fonte =
+  `{ bucket, path }`).
+- **Participantes** (`editorial_*`): ficha EDITORIAL do mesmo registro, lida por `montar_publico` (a lista fechada de
+  campos públicos — sem telefone, e-mail, CNPJ, custos, pagamento) + versão publicada (`publicacoes` vigente) + fotos,
+  unidades, postagens ligadas e histórico com autor. "Criar postagem com a descrição" COPIA o texto na hora
+  (sessionStorage `scw_social_nova_postagem`): a legenda nasce independente do combo.
+- **Matriz de campos do combo** (Social media, `editorial.editar`, `editorial_salvar`):
+
+  | Campo | Social media | Observação |
+  |---|---|---|
+  | `combo_nome` (≤80) | edita | aprovado → `alterado_apos_aprovacao`; o site não muda |
+  | `combo_descricao` (≤400) | edita | idem |
+  | `combo_proposta` (≤2000) | edita | não é pública |
+  | componente `nome` (≤80) / `descricao` (≤400) | edita | só da mesma participação |
+  | `combo_condicoes`, preço (`edicoes.valor_combo`), custos | ⛔ | comercial/edição |
+  | tema, ingredientes, declarações alimentares, trocas | ⛔ | da marca e da curadoria |
+  | status, revisão, publicação no site | ⛔ | `curadoria.decidir` |
+
+  Trava: manda os valores LIDOS (`p_esperado`); se mudou no banco (a marca salvou) → `versao_desatualizada`, nada
+  sobrescrito, e a tela compara e deixa decidir. Auditoria `combo.editorial` campo a campo (de/para, autor da sessão).
+  A curadoria (`curadoria.decidir`) recebe "Combo editado", agrupado.
+- **Matriz de permissões:**
+
+  | Ação | Administrador | Social media | Outras funções |
+  |---|---|---|---|
+  | `redes.ver` — planejamento, fichas, biblioteca, baixar | ✓ | ✓ | — |
+  | `redes.editar` — criar, editar, legenda, horário, responsável, duplicar, comentar, pedir ajuste, marcar pronto | ✓ | ✓ | — |
+  | `redes.arquivos` — enviar à postagem, ordenar, texto alternativo, associar; substituir/remover o PRÓPRIO | ✓ | ✓ | — |
+  | `redes.publicar` — confirmar a publicação | ✓ | ✓ | — |
+  | `redes.gerir` — cancelar, reabrir, desfazer/corrigir execução, arte da biblioteca, mexer em arte alheia | ✓ | — | — |
+  | `editorial.ler` / `editorial.editar` | ✓ | ✓ | — |
+  | `dado.ler`, `acesso.gerir`, `cadastro.editar`, `curadoria.decidir`, `pagamento.gerir`, `relatorio.ler`, `edicao.gerir` | ✓ | — | conforme a função |
+
+- Situação gravada: rascunho · preparacao · pronto · publicado · cancelado; **atrasada é calculada**; só
+  `redes_confirmar` publica (data e hora reais, link opcional, Story sem link, uma confirmação para a sequência).
+  "Pronto" exige as pendências do formato (`redes_pendencias` = `pendencias()` em `lib/redes.js`); perder um requisito
+  devolve para preparação, com registro. `redes_salvar` recebe a `versao` lida e só as chaves mudadas; o não salvo
+  fica em `sessionStorage` (`scw_redes_rascunho_<id>`). "Salvo às…" só depois da resposta. Fuso America/Fortaleza fixo
+  (teste com TZ de Tóquio e Los Angeles). Conflito de horário = mesmo perfil a < 30 min: avisa, não bloqueia.
+- **Avisos** (`redes_avisar` → `avisar_pessoa`): por PESSOA — responsável e quem criou, nunca quem fez; "atribuído" vai
+  só ao novo responsável. Eventos: atribuído · arte adicionada/substituída · legenda · horário · pedido de ajuste ·
+  comentário · pronto · cancelado · publicado · combo editado (curadoria). Link `social/planejamento/<id>`. Agrupa: mesmo
+  autor, mesmo assunto, não lido, 30 min → atualiza o aviso (`n_agrupadas`, "3 alterações"). Gravado na MESMA transação
+  da mudança (se a gravação falha, não há aviso). Push: ver a ordem segura acima; `push_destinos` manda o pessoal só aos
+  aparelhos do destinatário e o geral só a quem pode ler o tipo; a trava `push_enviado_em` e a tag por aviso evitam
+  duplicar; falha de push não desfaz nada. ⛔ Lembrete com o painel fechado NÃO existe (não há agendador).
+- 🐛 Esc numa folha que pergunta antes de fechar: a pergunta aberta DURANTE a tecla era cancelada pelo próprio Esc.
+  `fechar()` espera a tecla terminar (ficha da postagem e ficha editorial). Outras folhas podem ter o mesmo defeito.
+- 🐛 Campo envolvendo `<textarea>` no `<label>`: o texto digitado entra no nome acessível. Rótulo por `htmlFor`.
+- 🐛 Endereço traduzido (link antigo, módulo sem permissão) mostrava a tela nova com o endereço velho na barra: o
+  `hashchange` do PainelShell agora corrige com `replaceState`.
+- Testes: `tests/painel-app-redes.test.mjs` e `tests/painel-app-equipe.test.mjs` (em `test:organizacao`).
+
+#### Equipe: foto de perfil, Meu perfil e autoria — 17/10/2026
+- `perfis.avatar_path` → bucket PRIVADO `equipe` (2 MB, webp/jpg), caminho `<user_id>/<uuid>.(webp|jpg)`. A
+  `arquivo-url` só assina subida na pasta do PRÓPRIO JWT (conta ativa) ou com `acesso.gerir`; baixar = `dado.ler` ou
+  `redes.ver`. `perfil_foto_definir` confere o objeto (pasta, tamanho, tipo) antes de apontar; remover só tira a
+  referência — nada se apaga. O painel recorta um QUADRADO (zoom + posição, prévia no canvas; nada esticado) e gera
+  512 px em webp (`lib/equipe.js`, `areaRecorte`/`gerarFoto`).
+- **Meu perfil** (`components/MeuPerfil.jsx`, botão com avatar + nome no topo): dados, foto, nome de exibição
+  (`meu_nome_definir`, 2–60, auditado) e avisos do aparelho. Login, função, ativação e permissões NÃO mudam ali. No
+  celular o "Sair" do topo mora aqui (o avatar ocupa o lugar dele). Acesso compartilhado: explica que não é uma pessoa.
+  Administração › Equipe: avatar na lista e o mesmo `EditorFoto` para trocar a foto de outra conta.
+- **Autoria:** o registro guarda o id da SESSÃO (`auth.uid()`) + o rótulo do momento; o painel só desenha
+  (`Avatar`/`Autor` em `components/Avatar.jsx`; diretório `equipe_diretorio` no `EquipeContexto` do PainelShell; fotos
+  assinadas numa chamada só). Nome mostrado = o gravado (renomear não reescreve). Sem id: "Acesso compartilhado" (ícone
+  de chave) ou "Sistema" — nunca atribuído a uma pessoa. Conta desativada continua no diretório. Foto removida →
+  iniciais. Avatar da equipe é redondo; logo de participante (`LogoMarca`) é outra peça.
+- Onde aparece: Atividade, sino (avatar + nome + quando + agrupamento), comentários, histórico da postagem, responsável,
+  confirmação de publicação, histórico editorial do combo, lista da Equipe.
+- Avisos: `notificacoes` ganhou `ator_user_id` (default da sessão), `para_user_id`, `chave_grupo`, `atualizada_em`,
+  `n_agrupadas`; `get_notificacoes_org` (tipo de retorno novo) e `ler_notificacoes_org`/`registrar_push_organizacao`
+  aceitam qualquer porta de leitura (`membro_org`) — antes a Social media via o aviso e não conseguia marcá-lo como
+  lido nem ligar o push.
