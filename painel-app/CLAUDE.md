@@ -1082,17 +1082,38 @@ Módulo próprio (era Operação › Redes sociais; `#operacao/redes…` e aviso
 `#social/planejamento` (App.jsx, pela função; link direto e aviso têm prioridade) e só vê Visão geral + Social media
 (`PODE_MODULO` no PainelShell: sem `dado.ler` os módulos de cadastro nem aparecem). ⛔ O painel **não publica** no
 Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com Edição › Publicação no site.
-- ⚠️ **Banco: duas migrations, escritas e validadas num Postgres local (PGlite), NÃO aplicadas**, nesta ordem:
-  `20261017_equipe_perfis_avisos.sql` (foto, diretório, Meu perfil, avisos por pessoa) e
-  `20261017_social_media.sql` (consolida a de redes de 16/10, que nunca foi aplicada e foi renomeada). Edge Functions
-  `arquivo-url` (bucket `equipe`, materiais gerais para `redes.ver`) e `enviar-push` (`push_destinos`) estão **no repo,
-  não publicadas**. Ordem segura: publicar as duas Edge Functions → aplicar as migrations → só então
-  `update admin_config set push_pessoal = true` (antes disso o aviso pessoal fica só no sino: a `enviar-push` antiga
-  mandaria o aviso de uma pessoa para todos os aparelhos).
+- **Banco, nesta ordem:** `20261017_equipe_perfis_avisos.sql` (foto, diretório, Meu perfil, avisos por pessoa) →
+  `20261017_social_media.sql` → `20261017_social_media_ajustes.sql` (`search_path` + `push_pessoal = true`, que só vale
+  com a `enviar-push` com `push_destinos` publicada — senão o aviso de uma pessoa iria a todos os aparelhos) →
+  `20261018_social_aprovacao.sql` (aprovação, abaixo). Edge Functions `arquivo-url` (bucket `equipe`, materiais gerais
+  para `redes.ver`) e `enviar-push` (`push_destinos`) publicadas em 17/10/2026.
+- ✅ **Aprovação da Eline — 18/10/2026** (pedido do Wilker). Etapas: **Rascunho → Aguardando aprovação → Aprovado →
+  Publicado** (gravado: `rascunho` · `aprovacao` · `pronto` · `publicado`; `preparacao` é legado, fica no CHECK e no
+  rótulo, o banco não grava mais). "Enviar para aprovação" (`redes.editar`) exige as pendências do formato; "Aprovar" é
+  `redes.aprovar` (só Administrador). O aviso "Aguardando sua aprovação" vai a `admin_config.redes_aprovadores` (Eline);
+  vazio → todos com `redes.aprovar`. **Pedir ajuste** (comentário de ajuste) devolve para rascunho — ⚠️ sem tocar em
+  `atualizado_em`, senão o selo "Ajuste pedido" some na hora. Mudou legenda, menções, formato ou arte de um APROVADO e
+  quem mudou não aprova → volta para "Aguardando aprovação" e a Eline é avisada (`redes_rever_etapa`); horário e
+  responsável não desfazem a aprovação. Confirmar publicação continua exigindo `pronto`. **Quem criou cancela a própria
+  postagem** enquanto ela não foi aprovada (antes a Social media ficava sem saída); depois disso, só `redes.gerir`.
+- **Guia passo a passo** (`vistas/SocialGuia.jsx`, texto em `lib/socialGuia.js`): seis passos no alto do Planejamento,
+  com o nome de quem aprova; "Esconder o guia" vale para o aparelho (`localStorage`, só preferência).
+- **Atalhos com número certo:** a conta vem de `redes_resumo` (TODAS as abertas), não do mês aberto na tela — antes
+  dezembro mostrava "0 atrasadas" com atraso em outubro. À vista ficam só os que têm algo (`atalhosEmDestaque`: 5 no
+  desktop, 3 no celular, mais "De hoje"); o resto é "Atalho" dentro de "Filtros e outros atalhos", fechado por padrão.
+- **Nova postagem mais curta:** responsável = quem cria; "Criar postagem" do participante já põe o @ da casa nas menções
+  (`arrobaDe`); escolher a arte na postagem nova cria o rascunho e sobe a arte em seguida (`ENVIOS_PENDENTES`).
+  "Copiar texto completo" = legenda + menções (`textoCompleto`); a legenda avisa acima de 2.200 caracteres. Cada
+  pendência é botão que leva ao campo.
+- **Cor do módulo: verde** (`--scw-verde #22B573`, 10ª cor, SÓ do painel — pedido do Wilker, 18/10/2026; chocolate sobre
+  ele 6,1:1). Antes repetia o laranja de Operação. ⛔ Não usar no site.
+- **Barra do celular escolhida pela pessoa** (`lib/atalhosBarra.js`): Mais › "Escolher os atalhos da barra" marca até 4
+  áreas; fica no aparelho, por conta (`scw_barra_<user_id>`). Padrão: Visão geral, Participantes, Social media, Operação
+  (Contatos foi para "Mais"). Área que a pessoa deixou de ver sai sozinha da escolha. O painel da marca segue fixo.
 - **Planejamento:** abre na SEMANA, **segunda a domingo** (`inicioSemana`; título "Seg, 12 a dom, 18 de out"). Desktop:
   sete colunas com até 4 cartões (miniatura, hora, avatar do responsável, situação, pendências) e "Ver todos"; clicar no
   dia abre a agenda completa embaixo (`?dia=AAAA-MM-DD`; "Adicionar postagem neste dia" traz a data e pede a hora;
-  "Fechar o dia"). Celular (≤700px, `useEstreito`): sete LINHAS com tira de miniaturas, e o dia abre ali mesmo — sem
+  "Fechar o dia"). Celular (≤900px, `useEstreito`, a mesma quebra da casca): sete LINHAS com tira de miniaturas, e o dia abre ali mesmo — sem
   colunas espremidas, sem rolagem lateral. Mês, Dia, Lista e Fila continuam. Atalhos: hoje, 7 dias, atrasadas, minhas,
   sem responsável, **sem arte**, **sem legenda** (vêm de `redes_pendencias`; Story não conta legenda); filtro por
   **participante** (`part`).
@@ -1133,17 +1154,18 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   | Ação | Administrador | Social media | Outras funções |
   |---|---|---|---|
   | `redes.ver` — planejamento, fichas, biblioteca, baixar | ✓ | ✓ | — |
-  | `redes.editar` — criar, editar, legenda, horário, responsável, duplicar, comentar, pedir ajuste, marcar pronto | ✓ | ✓ | — |
+  | `redes.editar` — criar, editar, legenda, horário, responsável, duplicar, comentar, pedir ajuste, enviar para aprovação, cancelar a PRÓPRIA antes de aprovada | ✓ | ✓ | — |
+  | `redes.aprovar` — aprovar (e pedir ajuste do que aguarda aprovação) | ✓ | — | — |
   | `redes.arquivos` — enviar à postagem, ordenar, texto alternativo, associar; substituir/remover o PRÓPRIO | ✓ | ✓ | — |
   | `redes.publicar` — confirmar a publicação | ✓ | ✓ | — |
   | `redes.gerir` — cancelar, reabrir, desfazer/corrigir execução, arte da biblioteca, mexer em arte alheia | ✓ | — | — |
   | `editorial.ler` / `editorial.editar` | ✓ | ✓ | — |
   | `dado.ler`, `acesso.gerir`, `cadastro.editar`, `curadoria.decidir`, `pagamento.gerir`, `relatorio.ler`, `edicao.gerir` | ✓ | — | conforme a função |
 
-- Situação gravada: rascunho · preparacao · pronto · publicado · cancelado; **atrasada é calculada**; só
-  `redes_confirmar` publica (data e hora reais, link opcional, Story sem link, uma confirmação para a sequência).
-  "Pronto" exige as pendências do formato (`redes_pendencias` = `pendencias()` em `lib/redes.js`); perder um requisito
-  devolve para preparação, com registro. `redes_salvar` recebe a `versao` lida e só as chaves mudadas; o não salvo
+- Situação gravada: rascunho · aprovacao · pronto (= Aprovado) · publicado · cancelado (+ `preparacao` legado);
+  **atrasada é calculada**; só `redes_confirmar` publica (data e hora reais, link opcional, Story sem link, uma
+  confirmação para a sequência). Enviar para aprovação e aprovar exigem as pendências do formato (`redes_pendencias` =
+  `pendencias()` em `lib/redes.js`); perder um requisito devolve para rascunho, com registro. `redes_salvar` recebe a `versao` lida e só as chaves mudadas; o não salvo
   fica em `sessionStorage` (`scw_redes_rascunho_<id>`). "Salvo às…" só depois da resposta. Fuso America/Fortaleza fixo
   (teste com TZ de Tóquio e Los Angeles). Conflito de horário = mesmo perfil a < 30 min: avisa, não bloqueia.
 - **Avisos** (`redes_avisar` → `avisar_pessoa`): por PESSOA — responsável e quem criou, nunca quem fez; "atribuído" vai

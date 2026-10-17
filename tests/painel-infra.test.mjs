@@ -279,12 +279,13 @@ test('a barra do celular tem no máximo 4 atalhos + Mais, e todo destino fica al
     const todos = /const ATALHOS = DESTINOS$/m.test(txt)
     // Organização (17/10/2026): ATALHOS é a ORDEM de preferência; a barra pega
     // os 4 primeiros VISÍVEIS (a Social media vê Visão geral + Social media).
-    const corta = /ATALHOS\.filter\(\(d\) => visiveis\.includes\(d\)\)\.slice\(0, 4\)/.test(txt)
+    // 18/10/2026: a ORDEM vira o padrão de lib/atalhosBarra.js, que a pessoa troca.
+    const corta = /ATALHOS\.filter\(\(d\) => visiveis\.includes\(d\)\)\.slice\(0, 4\)|atalhosDaBarra\(barraSalva, visiveis, ATALHOS\)/.test(txt)
     const atalhos = todos ? destinos : lerAtalhos(txt)
     assert.ok(atalhos.length > 0 && atalhos.length <= (todos ? 5 : corta ? DESTINOS_ORG : 4), nome + ': ATALHOS precisa ter de 1 a 4 destinos (ou os 5, sem Mais)')
     for (const a of atalhos) assert.ok(destinos.includes(a), nome + ': atalho ' + a + ' não é destino')
     // O que não é atalho vai para "Mais" — a casca passa os dois grupos.
-    assert.match(semComentarios(txt), /mais=\{[^}]*!ATALHOS[^}]*\.includes\(d\)/, nome + ': o resto dos destinos não vai para "Mais"')
+    assert.match(semComentarios(txt), /mais=\{[^}]*!(ATALHOS[^}]*|barra)\.includes\(d\)/, nome + ': o resto dos destinos não vai para "Mais"')
     assert.match(txt, /<AbasCelular/, nome + ' não usa a barra comum do celular')
   }
   // 4 atalhos + Mais = 5 células de fallback; a quantidade real vem do componente.
@@ -303,7 +304,8 @@ test("Equipe e Histórico (Administração) só aparecem pra quem tem acesso.ger
   assert.match(modulos, /chave: 'historico', rotulo: 'Histórico', mostrar: pode\('acesso\.gerir'\)/)
   const semC = semComentarios(PAINEL_SHELL_JSX)
   // A barra do celular recebe só o que é visível — atalhos e "Mais".
-  assert.match(semC, /atalhos=\{ATALHOS\.filter\(\(d\) => visiveis\.includes\(d\)\)(\.slice\(0, 4\))?\}/)
+  assert.match(semC, /atalhos=\{(ATALHOS\.filter\(\(d\) => visiveis\.includes\(d\)\)(\.slice\(0, 4\))?|barra)\}/)
+  assert.match(semC, /const barra = atalhosDaBarra\(barraSalva, visiveis, ATALHOS\)/)
   assert.match(semC, /mais=\{visiveis\.filter/)
 })
 

@@ -8,6 +8,7 @@ import { useUrlsAssinadas } from '../../lib/redesArquivos'
 import { RedesFicha, traduzirRedes, Miniatura } from './RedesFicha'
 import { Avatar } from '../Avatar'
 import { CHAVE_NOVA_POSTAGEM } from './SocialParticipantes'
+import { SocialGuia } from './SocialGuia'
 
 /*
  * Social media › Planejamento (16–17/10/2026): calendário das publicações do
@@ -25,7 +26,8 @@ const lerSenha = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || ''
 const ALVO = { vista: 'social', aba: 'planejamento' }
 
 function useEstreito() {
-  const q = '(max-width: 700px)'
+  // Mesma quebra da casca (900px): abaixo disso o painel já é de celular.
+  const q = '(max-width: 900px)'
   const [e, setE] = React.useState(() => typeof matchMedia === 'function' && matchMedia(q).matches)
   React.useEffect(() => {
     if (typeof matchMedia !== 'function') return undefined
@@ -352,7 +354,9 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
 
   const [dados, setDados] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const [opcoes, setOpcoes] = React.useState({ equipe: [], participantes: [], edicoes: [], perfis: [] })
+  const [opcoes, setOpcoes] = React.useState({ equipe: [], participantes: [], edicoes: [], perfis: [], aprovadores: [] })
+  const [erroOpcoes, setErroOpcoes] = React.useState(null)
+  const [resumo, setResumo] = React.useState(null)
   const [busca, setBusca] = React.useState(f.q || '')
 
   // Uma leitura por mês (ou pela janela do atalho): mudar de modo dentro do mês não relê.
@@ -364,11 +368,14 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
       setDados(r)
       setErro(null)
     } catch (e) { setErro(e.message) }
+    // Números dos atalhos: de TODAS as abertas (o mês na tela não muda a conta).
+    rpc('redes_resumo', { p_secret: lerSenha() }).then(setResumo).catch(() => setResumo(null))
   }, [chaveLeitura]) // eslint-disable-line react-hooks/exhaustive-deps
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   React.useEffect(() => {
-    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setOpcoes(o)).catch(() => {})
+    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => { if (o) { setOpcoes({ ...o, carregadas: true }); setErroOpcoes(null) } })
+      .catch((e) => setErroOpcoes(e.message))
   }, [])
 
   const mudar = React.useCallback((patch) => {
@@ -420,7 +427,10 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
   const posts = dados ? dados.posts || [] : []
   const filtrados = R.filtrar(posts, { resp: f.resp, sit: f.sit, fmt: f.fmt, ed: f.ed, part: f.part, q: f.q, atalho }, { eu, agora })
   const conflitosMapa = R.conflitos(posts)
-  const contagem = R.contarAtalhos(posts, { eu, agora })
+  const contagem = R.contagemAtalhos(resumo, posts, { eu, agora })
+  const aprova = pode('redes.aprovar')
+  const destaque = R.atalhosEmDestaque(contagem, { eu, aprova, max: estreito ? 3 : 5 })
+  if (atalho && !destaque.includes(atalho)) destaque.push(atalho)
   const comData = filtrados.filter((p) => p.programado_para)
   const semData = filtrados.filter((p) => !p.programado_para)
   const dias = R.porDia(comData)
@@ -437,14 +447,16 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
   const temFiltro = ['resp', 'sit', 'fmt', 'ed', 'part', 'q', 'atalho'].some((k) => f[k])
   const podeCriar = pode('redes.editar')
   const opResp = [['', 'Todos'], ...(eu ? [['eu', 'Eu']] : []), ['ninguem', 'Sem responsável'], ...(opcoes.equipe || []).map((e) => [e.user_id, e.nome])]
-  const opSit = [['', 'Todas'], ['abertas', 'Em aberto'], ...R.SITUACOES.map((s) => [s.chave, s.rotulo]), ['atrasada', 'Atrasadas']]
+  const opSit = [['', 'Todas'], ['abertas', 'Em aberto'], ...R.ETAPAS.map((s) => [s.chave, s.rotulo]), ['atrasada', 'Atrasadas']]
+  const opAtalho = [['', 'Nenhum'], ...Object.entries(R.ATALHOS).filter(([k]) => k !== 'minhas' || eu).map(([k, r]) => [k, r + ' (' + (contagem[k] || 0) + ')'])]
   const opFmt = [['', 'Todos'], ...R.FORMATOS.map((x) => [x.chave, x.rotulo])]
   const opEd = [['', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]
   const titulo = atalho ? R.ATALHOS[atalho] : R.tituloPeriodo(modo, data)
 
   return (
     <div className="rd">
-      <p className="rd-aviso-limite"><Icone nome="informacao" tamanho={16} /><span>Calendário interno da equipe. O painel <b>não publica</b> no Instagram: a publicação é manual e a confirmação, aqui, é explícita.</span></p>
+      {dados && <SocialGuia aprovadores={opcoes.aprovadores || []} aprova={aprova} podeCriar={podeCriar && !posts.length} temPosts={posts.length > 0} onNova={() => abrir('novo')} />}
+      {erroOpcoes && <Erro titulo="Não carreguei a equipe e os participantes" texto={traduzirRedes(erroOpcoes)} />}
 
       <div className="rd-barra">
         <div className="rd-periodo">
@@ -455,34 +467,35 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
             <span className="ui-oculto">Ir para a data</span>
             <input type="date" value={data} onChange={(e) => { if (e.target.value) mudar({ data: e.target.value, atalho: undefined }) }} />
           </label>
-          <h2 className="rd-periodo__titulo" aria-live="polite">{titulo}{!atalho && modo === 'semana' && <span className="rd-periodo__nota"> · semana de segunda a domingo</span>}</h2>
+          <h2 className="rd-periodo__titulo" aria-live="polite">{titulo}</h2>
         </div>
-        <div className="rd-modos" role="group" aria-label="Visualização">
+        <div className="og-agenda__modos rd-modos" role="group" aria-label="Visualização">
           {R.MODOS.map((m) => (
-            <button key={m} type="button" className="rd-modo" aria-pressed={modo === m && !atalho}
+            <button key={m} type="button" className={modo === m && !atalho ? 'is-ativo' : undefined} aria-pressed={modo === m && !atalho}
               onClick={() => mudar({ modo: m, atalho: undefined })}>
-              {m === 'fila' ? <>Fila<span className="rd-so-largo"> sem data</span></> : R.ROTULO_MODO[m]}{m === 'fila' && contagem.sem_data > 0 && <span className="rd-modo__n">{contagem.sem_data}</span>}
+              {m === 'fila' ? <>Fila<span className="rd-so-largo"> sem data</span></> : R.ROTULO_MODO[m]}{m === 'fila' && contagem.sem_data > 0 && <span className="og-aba__n">{contagem.sem_data}</span>}
             </button>
           ))}
         </div>
         {podeCriar && <Botao icone="mais" variante="destaque" onClick={() => abrir('novo')}>Nova postagem</Botao>}
       </div>
 
-      <ul className="rd-avisos" aria-label="Avisos do calendário">
-        {Object.entries(R.ATALHOS).filter(([k]) => k !== 'minhas' || eu).map(([k, r]) => (
+      <ul className="rd-avisos" aria-label="O que precisa de atenção">
+        {destaque.map((k) => (
           <li key={k}>
             <button type="button" className="rd-aviso" aria-pressed={atalho === k}
-              data-tom={(k === 'atrasadas' || k === 'sem_resp') && contagem[k] > 0 ? 'atencao' : undefined}
+              data-tom={(['atrasadas', 'sem_resp', 'ajuste'].includes(k) || (k === 'aprovacao' && aprova)) && contagem[k] > 0 ? 'atencao' : undefined}
               onClick={() => mudar({ atalho: atalho === k ? undefined : k, modo: atalho === k ? undefined : 'lista' })}>
-              <b>{contagem[k]}</b> {r.toLowerCase()}
+              <b>{contagem[k]}</b> {R.ATALHOS[k].toLowerCase()}
             </button>
           </li>
         ))}
       </ul>
 
-      <details className="rd-filtros" open={!estreito || temFiltro || undefined}>
-        <summary>Filtros{temFiltro ? ' (ativos)' : ''}</summary>
+      <details className="rd-filtros" open={temFiltro || undefined}>
+        <summary>Filtros e outros atalhos{temFiltro ? ' (ativos)' : ''}</summary>
         <div className="rd-filtros__campos">
+          <Escolha rotulo="Atalho" valor={atalho} opcoes={opAtalho} onMudar={(v) => mudar({ atalho: v || undefined, modo: v ? 'lista' : undefined })} />
           <Escolha rotulo="Responsável" valor={f.resp || ''} opcoes={opResp} onMudar={(v) => mudar({ resp: v })} />
           <Escolha rotulo="Situação" valor={f.sit || ''} opcoes={opSit} onMudar={(v) => mudar({ sit: v })} />
           <Escolha rotulo="Formato" valor={f.fmt || ''} opcoes={opFmt} onMudar={(v) => mudar({ fmt: v })} />
@@ -535,17 +548,18 @@ export function ResumoRedes({ navegar, pode, className = '' }) {
   if (!ver || !r) return null
   const ir = (filtros) => () => navegar({ ...ALVO, filtros })
   const itens = [
+    ...(Number(r.aprovacao) > 0 ? [['aprovacao', 'aguardando aprovação']] : []), ...(Number(r.ajuste) > 0 ? [['ajuste', 'com ajuste pedido']] : []),
     ['hoje', 'de hoje'], ['proximas', 'nos próximos 7 dias'], ['atrasadas', 'atrasadas'],
     ...(r.minhas == null ? [] : [['minhas', 'comigo']]), ['sem_resp', 'sem responsável'],
   ]
   const n = (k) => Number(k === 'sem_resp' ? r.sem_responsavel : r[k]) || 0
   return (
-    <Secao titulo="Social media" nota="Planejamento do Instagram — o painel registra, não publica." className={className}
+    <Secao titulo="Social media" nota="Planejamento do Instagram." className={className}
       acoes={<Botao variante="secundario" icone="calendario" onClick={ir({})}>Abrir planejamento</Botao>}>
       <ul className="rd-resumo">
         {itens.map(([k, rot]) => (
           <li key={k}>
-            <button type="button" className="rd-aviso" data-tom={(k === 'atrasadas' || k === 'sem_resp') && n(k) > 0 ? 'atencao' : undefined}
+            <button type="button" className="rd-aviso" data-tom={['atrasadas', 'sem_resp', 'aprovacao', 'ajuste'].includes(k) && n(k) > 0 ? 'atencao' : undefined}
               onClick={ir({ atalho: k, modo: 'lista' })}>
               <b>{n(k)}</b> {rot}
             </button>

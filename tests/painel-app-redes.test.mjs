@@ -13,6 +13,8 @@ import { rotaDoLink, lerRota, montarRota, migrarRota } from '../painel-app/src/l
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const SQL = ler('supabase/migrations/20261017_social_media.sql')
+// Aprovação (18/10/2026): a situação e as etapas passaram a valer por esta.
+const APROV = ler('supabase/migrations/20261018_social_aprovacao.sql')
 const EQUIPE_SQL = ler('supabase/migrations/20261017_equipe_perfis_avisos.sql')
 const BIB = ler('painel-app/src/components/vistas/SocialBiblioteca.jsx')
 const PART = ler('painel-app/src/components/vistas/SocialParticipantes.jsx')
@@ -136,7 +138,7 @@ test('filtros, atalhos e ordem sobre a mesma lista', () => {
   assert.deepEqual(ids({ atalho: 'minhas' }), ['1'])
   assert.deepEqual(ids({ atalho: 'sem_resp' }), ['2'])
   const c = R.contarAtalhos(lista, { eu: 'eu', agora: AGORA })
-  assert.deepEqual(c, { hoje: 1, proximas: 1, atrasadas: 1, minhas: 1, sem_resp: 1, sem_arte: 0, sem_legenda: 0, sem_data: 1 })
+  assert.deepEqual(c, { hoje: 1, proximas: 1, atrasadas: 1, minhas: 1, aprovacao: 0, ajuste: 0, aprovadas: 0, sem_resp: 1, sem_arte: 0, sem_legenda: 0, sem_data: 1 })
   assert.deepEqual(R.ordenar(lista, 'data').map((p) => p.id), ['3', '1', '2', '4'])
   assert.deepEqual(R.ordenar(lista, '-titulo').map((p) => p.id), ['4', '1', '2', '3'])
   assert.deepEqual(Object.keys(R.porDia(lista)), ['2026-10-15', '2026-10-16', '2026-10-18'])
@@ -221,7 +223,9 @@ test('banco: tabelas fechadas, função Social media sem dado.ler, toda RPC exig
 })
 
 test('banco: situação e formato batem com o painel; atrasada não é situação', () => {
-  assert.deepEqual(checkDe('situacao'), R.SITUACOES.map((s) => s.chave))
+  const situacoesAprov = [...APROV.match(/check \(situacao in \(([^)]*)\)\)/)[1].matchAll(/'([^']+)'/g)].map((m) => m[1])
+  assert.deepEqual(situacoesAprov, R.SITUACOES.map((s) => s.chave))
+  assert.ok(checkDe('situacao').every((x) => situacoesAprov.includes(x)), 'a aprovação só acrescenta etapa')
   assert.deepEqual(Object.keys(STATUS.post_redes), R.SITUACOES.map((s) => s.chave))
   assert.deepEqual(checkDe('formato'), R.FORMATOS.map((f) => f.chave))
   assert.ok(!checkDe('situacao').includes('atrasada'))
@@ -297,4 +301,88 @@ test('editorial: só os campos da matriz; publicada intacta; legenda copiada é 
   // Criar postagem com a descrição: o texto vai COPIADO no momento (sessionStorage), sem vínculo.
   assert.match(PART, /const legenda = comDescricao \? \[f\.editavel\.combo_nome, f\.editavel\.combo_descricao\]/)
   assert.doesNotMatch(SQL, /legenda = .*combo_descricao/)
+})
+
+// ── Aprovação, atalhos certos, guia e barra (18/10/2026) ─────────────────────
+import { atalhosDaBarra } from '../painel-app/src/lib/atalhosBarra.js'
+import { passosDoGuia, quemAprova } from '../painel-app/src/lib/socialGuia.js'
+
+test('aprovação (18/10/2026): Social media envia, quem aprova aprova; ajuste devolve; publicar só aprovado', () => {
+  const corpo = (f) => APROV.slice(APROV.indexOf('function public.' + f + '('), APROV.indexOf('end $$;', APROV.indexOf('function public.' + f + '(')))
+  assert.match(APROV, /\('administrador', 'redes\.aprovar'\)/)
+  assert.doesNotMatch(APROV, /\('social', 'redes\.aprovar'\)/)
+  const sit = corpo('redes_situacao')
+  assert.match(sit, /case when p_situacao = 'pronto' then 'redes\.aprovar' else 'redes\.editar' end/)
+  assert.match(sit, /if p_situacao not in \('rascunho', 'aprovacao', 'pronto', 'cancelado'\)/, '"preparacao" saiu do fluxo')
+  assert.match(sit, /redes_avisar_aprovadores/)
+  // Cancelar: redes.gerir, ou quem criou enquanto não aprovado.
+  assert.match(sit, /p\.criado_por_id is not distinct from auth\.uid\(\)/)
+  assert.match(corpo('redes_comentar'), /set situacao = 'rascunho'/)
+  assert.doesNotMatch(corpo('redes_comentar'), /atualizado_em = now\(\)/, 'o selo de ajuste compara com atualizado_em')
+  assert.match(corpo('redes_rever_etapa'), /not public\.pode_por_user\(auth\.uid\(\), 'redes\.aprovar'\)/)
+  // A confirmação segue exigindo 'pronto' (= aprovado): a migration não mexe nela.
+  assert.doesNotMatch(APROV, /function public\.redes_confirmar/)
+  assert.match(SQL, /elsif p\.situacao <> 'pronto' then raise exception 'post_nao_pronto'/)
+  for (const k of ['sem_arte', 'sem_legenda', 'aprovacao', 'aprovadas', 'ajuste']) assert.match(corpo('redes_resumo'), new RegExp("'" + k + "'"), k)
+  assert.equal(STATUS.post_redes.pronto.rotulo, 'Aprovado')
+  assert.equal(STATUS.post_redes.aprovacao.rotulo, 'Aguardando aprovação')
+  assert.ok(!R.ETAPAS.some((e) => e.chave === 'preparacao'))
+})
+
+test('atalhos: contam pelo resumo do banco (não pelo mês aberto); à vista só o que tem algo', () => {
+  const posts = [{ id: 'a', situacao: 'aprovacao', pendencias: [] }]
+  const c = R.contagemAtalhos({ atrasadas: '3', aprovacao: 5, sem_responsavel: 2, hoje: 0 }, posts, { eu: 'eu', agora: 0 })
+  assert.equal(c.atrasadas, 3)
+  assert.equal(c.aprovacao, 5, 'o número é o do servidor, não o do mês na tela (1)')
+  assert.equal(c.sem_resp, 2)
+  assert.equal(R.contagemAtalhos(null, posts, { agora: 0 }).aprovacao, 1, 'sem resumo, conta o que carregou')
+  assert.deepEqual(R.atalhosEmDestaque({ aprovacao: 2, atrasadas: 1, hoje: 0, ajuste: 0 }, { eu: 'x', aprova: true }), ['aprovacao', 'atrasadas', 'hoje'])
+  assert.deepEqual(R.atalhosEmDestaque({ ajuste: 1, aprovacao: 2, aprovadas: 1, atrasadas: 1 }, { aprova: false, max: 3 }), ['ajuste', 'aprovadas', 'atrasadas'], 'quem publica vê o que já pode ir ao ar')
+  assert.ok(R.atalhosEmDestaque({ minhas: 3 }, { eu: null }).every((k) => k !== 'minhas'))
+  const lista = [{ id: '1', situacao: 'aprovacao' }, { id: '2', situacao: 'pronto' }, { id: '3', situacao: 'rascunho', ajuste_aberto: true }]
+  assert.deepEqual(R.filtrar(lista, { atalho: 'aprovacao' }).map((p) => p.id), ['1'])
+  assert.deepEqual(R.filtrar(lista, { atalho: 'aprovadas' }).map((p) => p.id), ['2'])
+  assert.deepEqual(R.filtrar(lista, { atalho: 'ajuste' }).map((p) => p.id), ['3'])
+})
+
+test('texto completo e @ da casa', () => {
+  assert.equal(R.textoCompleto('  Vem aí! #scw ', ' @jolie.cafe '), 'Vem aí! #scw\n\n@jolie.cafe')
+  assert.equal(R.textoCompleto('', '@x'), '@x')
+  assert.equal(R.textoCompleto('', ''), '')
+  assert.equal(R.arrobaDe('https://www.instagram.com/jolie.cafe/'), '@jolie.cafe')
+  assert.equal(R.arrobaDe('@jolie.cafe'), '@jolie.cafe')
+  assert.equal(R.arrobaDe('jolie.cafe'), '@jolie.cafe')
+  assert.equal(R.arrobaDe('Jolie Café (Natal)'), '')
+  assert.equal(R.arrobaDe(null), '')
+  assert.equal(R.LIMITE_LEGENDA_INSTAGRAM, 2200)
+})
+
+test('guia passo a passo: seis passos, de planejar a confirmar; diz quem aprova', () => {
+  const p = passosDoGuia({ aprovador: 'Eline' })
+  assert.equal(p.length, 6)
+  assert.match(p[2].texto, /com Eline/)
+  assert.match(p[5].texto, /Confirmar publicação/)
+  assert.match(passosDoGuia({ aprova: true })[3].titulo, /Aprove/)
+  assert.match(VISTA, /<SocialGuia /)
+  assert.equal(quemAprova([{ nome: 'Eline Eulalia' }]), 'Eline')
+  assert.equal(quemAprova([]), 'quem aprova')
+})
+
+test('barra do celular: escolha da pessoa, só o que ela vê, até 4; sem escolha vale o padrão', () => {
+  const vis = ['visao', 'participantes', 'contatos', 'operacao', 'social', 'arquivos']
+  const PADRAO = ['visao', 'participantes', 'social', 'operacao', 'contatos']
+  assert.deepEqual(atalhosDaBarra(null, vis, PADRAO), ['visao', 'participantes', 'social', 'operacao'])
+  assert.deepEqual(atalhosDaBarra(['social', 'arquivos', 'social'], vis, PADRAO), ['social', 'arquivos'])
+  assert.deepEqual(atalhosDaBarra(['admin', 'edicao'], vis, PADRAO), ['visao', 'participantes', 'social', 'operacao'], 'nada visível na escolha → padrão')
+  assert.deepEqual(atalhosDaBarra(['a', 'b', 'c', 'd', 'e'].map((_, i) => vis[i]), vis, PADRAO), vis.slice(0, 4))
+  assert.deepEqual(atalhosDaBarra(null, ['visao', 'social'], PADRAO), ['visao', 'social'], 'a Social media vê as duas')
+  const SHELL = ler('painel-app/src/components/PainelShell.jsx')
+  assert.match(SHELL, /social: 'verde'/)
+  assert.match(SHELL, /export const ATALHOS = \['visao', 'participantes', 'social'/)
+  const CSS = ler('painel-app/src/styles/painel.css')
+  assert.match(CSS, /--scw-verde:#22B573/)
+  assert.match(CSS, /\[data-acento="verde"\] \.pn-acento-disco/)
+  // Cada acento uma vez só (§6.3).
+  const cores = Object.values(Function('return ' + SHELL.match(/export const ACENTO_VISTA = (\{[^}]+\})/)[1])())
+  assert.equal(new Set(cores).size, cores.length)
 })

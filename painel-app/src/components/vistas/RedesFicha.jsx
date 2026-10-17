@@ -10,6 +10,7 @@ import { useUrlsAssinadas, baixarArquivo, prepararArquivo, enviarArquivo, fonteD
 import { tamanhoLegivel } from '../../lib/arquivos'
 import { Autor } from '../Avatar'
 import { SeletorBiblioteca, ROTULO_ORIGEM } from './SocialBiblioteca'
+import { quemAprova } from '../../lib/socialGuia'
 
 /*
  * Ficha de uma publicação (Social media, 16–17/10/2026). Folha larga: no desktop a
@@ -35,9 +36,10 @@ const fonteArq = (a) => ({ bucket: a.bucket || 'redes', path: a.path })
 const miniDe = (a) => (a.miniatura_path ? { bucket: 'redes', path: a.miniatura_path } : eImagem(a) ? fonteArq(a) : null)
 
 const ERROS_REDES = {
-  requisitos_pendentes: 'Ainda faltam requisitos para marcar como pronto (veja as pendências).',
+  requisitos_pendentes: 'Ainda falta algo para enviar para aprovação (veja a lista acima).',
   post_fechado: 'Esta publicação já foi publicada ou cancelada: o registro não muda mais por aqui.',
-  post_nao_pronto: 'Marque como "Pronto para publicar" antes de confirmar.',
+  post_nao_pronto: 'A postagem precisa estar aprovada antes de confirmar a publicação.',
+  situacao_invalida: 'Essa etapa não existe mais. Atualize a página.',
   post_nao_publicado: 'Esta publicação não está marcada como publicada.',
   data_no_futuro: 'A data de publicação não pode estar no futuro.',
   data_obrigatoria: 'Informe a data e a hora em que foi publicado.',
@@ -53,17 +55,17 @@ const ERROS_REDES = {
   ordem_invalida: 'A lista de arquivos mudou. Atualize e tente de novo.',
   post_inexistente: 'Esta publicação não existe mais.',
   intervalo_invalido: 'Período inválido.',
-  bucket_invalido: 'O servidor ainda não aceita artes de redes: falta publicar a função arquivo-url atualizada.',
+  bucket_invalido: 'O servidor ainda não aceita artes aqui. Avise a administração.',
   caminho_invalido: 'O servidor recusou o caminho do arquivo.',
   texto_vazio: 'Escreva algo antes de enviar.',
   formato_nao_suportado: 'Esse material não é imagem nem vídeo (PDF, SVG…): baixe pela biblioteca, mas ele não entra como arte da postagem.',
   tipo_invalido: 'Tipo de material desconhecido.',
-  nao_autorizado: 'Sua função não permite isso. Arte enviada por outra pessoa só a administração substitui ou remove.',
+  nao_autorizado: 'Sua função não permite isso. (Aprovar é de quem aprova; arte enviada por outra pessoa só a administração troca ou remove.)',
 }
 export function traduzirRedes(msg) {
   const m = String(msg || '')
   if (/function public\.(redes|social|editorial|equipe)_|(redes|social|editorial)_[a-z_]+\(.*\) does not exist|schema cache/i.test(m)) {
-    return 'Esta área depende das migrations de Social media, que ainda não foram aplicadas no banco.'
+    return 'Esta parte do painel ainda não está pronta no servidor. Avise a administração.'
   }
   for (const [k, frase] of Object.entries(ERROS_REDES)) if (m.includes(k)) return frase
   return traduzirErro(m)
@@ -152,15 +154,16 @@ function Previa({ arquivos, urls, renovar, formato }) {
 // Rótulo por `htmlFor` (não envolvendo o campo: dentro do <label>, o texto já
 // digitado num textarea entra no nome acessível). A nota é descrição
 // (aria-describedby), não parte do nome.
-function Campo({ rotulo, nota, largo, children }) {
-  const id = React.useId()
+function Campo({ rotulo, nota, largo, id: idCampo, children }) {
+  const auto = React.useId()
+  const id = idCampo || auto
   const campo = React.isValidElement(children)
-    ? React.cloneElement(children, { id: id + '-c', ...(nota ? { 'aria-describedby': id + '-n' } : {}) })
+    ? React.cloneElement(children, { id: idCampo ? idCampo : id + '-c', ...(nota ? { 'aria-describedby': id + '-n' } : {}) })
     : children
   return (
     <div className={'rd-campo' + (largo ? ' rd-campo--largo' : '')}>
       <div className="og-campo">
-        <span><label htmlFor={id + '-c'}>{rotulo}</label></span>
+        <span><label htmlFor={idCampo ? idCampo : id + '-c'}>{rotulo}</label></span>
         {campo}
       </div>
       {nota && <small className="rd-campo__nota" id={id + '-n'}>{nota}</small>}
@@ -168,7 +171,7 @@ function Campo({ rotulo, nota, largo, children }) {
   )
 }
 
-const ROTULO_CAMPO = { titulo: 'Título interno', perfil: 'Perfil', edicao_codigo: 'Edição', participante_id: 'Participante', formato: 'Formato', legenda: 'Legenda', mencoes: 'Perfis a mencionar', observacoes: 'Observações de execução', referencias: 'Referências', programado_para: 'Data e horário', responsavel_id: 'Responsável' }
+const ROTULO_CAMPO = { titulo: 'Título interno', perfil: 'Perfil', edicao_codigo: 'Edição', participante_id: 'Participante', formato: 'Formato', legenda: 'Legenda', mencoes: 'Perfis a mencionar', observacoes: 'Observações para quem publica', referencias: 'Referências', programado_para: 'Data e horário', responsavel_id: 'Responsável' }
 
 function valorLegivel(k, v, opcoes) {
   if (v == null || v === '') return '(vazio)'
@@ -190,13 +193,14 @@ function textoHistorico(h, opcoes) {
     case 'programacao': return 'Reprogramou: ' + (d.de ? R.quandoTexto(d.de) : 'sem data') + ' → ' + (d.para ? R.quandoTexto(d.para) : 'sem data')
     case 'responsavel': return 'Responsável: ' + (d.de || 'ninguém') + ' → ' + (d.para || 'ninguém')
     case 'situacao': return 'Situação: ' + ((R.SITUACAO[d.de] || {}).rotulo || d.de) + ' → ' + ((R.SITUACAO[d.para] || {}).rotulo || d.para) +
-      (d.motivo === 'requisitos' || d.motivo === 'arquivos' ? ' (deixou de cumprir um requisito)' : d.motivo ? ' — ' + d.motivo : '')
+      (d.motivo === 'requisitos' ? ' (deixou de cumprir um requisito)' : d.motivo === 'arquivos' || d.motivo === 'conteudo' ? ' (mudou depois de aprovada)'
+        : d.motivo === 'ajuste' ? ' (ajuste pedido)' : d.motivo ? ' — ' + d.motivo : '')
     case 'arquivo': return d.acao === 'reordenado' ? 'Reordenou os arquivos' : d.acao === 'substituido' ? 'Substituiu “' + d.anterior + '” por “' + d.nome + '”' + (d.versao ? ' (versão ' + d.versao + ')' : '')
       : d.acao === 'removido' ? 'Removeu “' + d.nome + '” (guardado no histórico)'
       : d.acao === 'associado' ? 'Associou “' + d.nome + '” da biblioteca (' + (ROTULO_ORIGEM[d.origem] || 'material') + ')' : 'Enviou “' + d.nome + '”'
     case 'ajuste': return 'Pediu ajuste: “' + (d.texto || '') + '”'
     case 'publicado': return 'Confirmou a publicação: ' + R.quandoTexto(d.publicado_em) + (d.link ? ' · com link' : ' · sem link') + (d.vale_para ? ' · vale para a sequência inteira' : '')
-    case 'execucao': return 'Corrigiu a execução: ' + R.quandoTexto(d.publicado_em) + (d.link ? ' · com link' : '')
+    case 'execucao': return 'Corrigiu os dados da publicação: ' + R.quandoTexto(d.publicado_em) + (d.link ? ' · com link' : '')
     case 'publicacao_desfeita': return 'Desfez a confirmação de publicação — ' + (d.motivo || '')
     case 'cancelado': return 'Cancelou' + (d.motivo ? ' — ' + d.motivo : '')
     case 'reaberto': return 'Reabriu a postagem'
@@ -204,15 +208,23 @@ function textoHistorico(h, opcoes) {
   }
 }
 
+// Arte escolhida ANTES de existir a postagem: o rascunho é criado na hora e a
+// ficha nova (outro id, outra montagem) pega os arquivos daqui e envia.
+const ENVIOS_PENDENTES = new Map()
+
+// Pendência → campo onde se resolve (a lista vira atalho).
+const CAMPO_DA_PENDENCIA = { sem_arte: 'arte', arte_incompativel: 'arte', sem_responsavel: 'resp', sem_legenda: 'legenda', sem_horario: 'data' }
+
 export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inicial = null, onVerParticipante = null }) {
   const novo = id === 'novo'
+  const idCampo = (k) => 'rd-f-' + k + '-' + id
   const [carga, setCarga] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [base, setBase] = React.useState(null)
   const baseRef = React.useRef(null)
   // Nova postagem: "Adicionar neste dia" traz a data; "Criar postagem" do participante, o participante.
   const [campos, setCampos] = React.useState(() => novo
-    ? { ...camposDe(null), perfil: R.PERFIL_PADRAO, formato: 'feed', edicao_codigo: opcoes.edicao_atual || '', ...((inicial && inicial.campos) || {}) } : null)
+    ? { ...camposDe(null), perfil: R.PERFIL_PADRAO, formato: 'feed', edicao_codigo: opcoes.edicao_atual || '', responsavel_id: opcoes.eu || '', ...((inicial && inicial.campos) || {}) } : null)
   // data/hora digitadas pela metade ("Adicionar neste dia" chega com a data, falta a hora)
   const [dhLocal, setDhLocal] = React.useState(() => (novo && inicial && inicial.data ? { data: inicial.data, hora: '' } : null))
   const [salvando, setSalvando] = React.useState(false)
@@ -233,6 +245,11 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const chaveRascunho = 'scw_redes_rascunho_' + id
 
   const definirBase = (p) => { baseRef.current = p; setBase(p) }
+  // Opções chegam depois de abrir "Nova postagem" pelo endereço: o responsável vira "eu" se ninguém escolheu.
+  const escolheuResp = React.useRef(false)
+  React.useEffect(() => {
+    if (novo && opcoes.eu && !escolheuResp.current) setCampos((c) => (c && !c.responsavel_id ? { ...c, responsavel_id: opcoes.eu } : c))
+  }, [novo, opcoes.eu])
 
   const recarregar = React.useCallback(async () => {
     if (novo) return null
@@ -355,14 +372,15 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     try { sessionStorage.removeItem(chaveRascunho) } catch { /* modo privado */ }
   }
 
-  async function criar() {
-    if (!String(campos.titulo || '').trim()) { setErroAcao('Dê um título interno à postagem.'); return null }
+  async function criar(arquivosEscolhidos = null) {
+    if (!String(campos.titulo || '').trim()) { setErroAcao('Dê um título à postagem antes de enviar a arte.'); document.getElementById(idCampo('titulo'))?.focus(); return null }
     if (dhLocal) { setErroAcao('Informe data E hora — ou apague as duas para deixar sem data.'); return null }
     const d = {}
     for (const k of R.CAMPOS) if (norm(campos[k]) !== '') d[k] = campos[k]
     setSalvando(true); setErroAcao(null)
     try {
       const p = await rpc('redes_criar', { p_secret: lerSenha(), p_dados: d })
+      if (arquivosEscolhidos && arquivosEscolhidos.length) ENVIOS_PENDENTES.set(p.id, arquivosEscolhidos)
       onMudou()
       onAbrir(p.id)
       return p
@@ -392,7 +410,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   }
 
   async function copiar(texto, rotulo) {
-    try { await navigator.clipboard.writeText(texto); setAviso(rotulo + ' copiada. Copiar não marca como publicado.') }
+    try { await navigator.clipboard.writeText(texto); setAviso(rotulo + ' copiado. Cole no Instagram.') }
     catch { setAviso('Não consegui copiar. Selecione o texto e copie à mão.') }
   }
 
@@ -415,6 +433,13 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     } catch (e) { atualizarEnvio(it.chave, { estado: 'erro', erro: traduzirRedes(e.message) }) }
   }
   function tentarDeNovo(it) { fila.current = fila.current.then(() => enviar(it)) }
+  // Arte escolhida na postagem nova: entra assim que a ficha recém-criada carrega.
+  React.useEffect(() => {
+    if (novo || !carga || !ENVIOS_PENDENTES.has(id)) return
+    const lista = ENVIOS_PENDENTES.get(id)
+    ENVIOS_PENDENTES.delete(id)
+    adicionarEnvios(lista)
+  }, [carga, id, novo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function moverArquivo(i, delta) {
     const ids = ativos.map((a) => a.id)
@@ -439,7 +464,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     setOcupado('associar'); setErroAcao(null)
     try {
       await rpc('redes_arquivo_associar', { p_secret: lerSenha(), p_post: id, p_tipo: item.tipo, p_id: item.id })
-      await recarregar(); onMudou(); setAviso('“' + item.nome + '” entrou na postagem (referência — o arquivo não foi copiado).')
+      await recarregar(); onMudou(); setAviso('“' + item.nome + '” entrou na postagem.')
       return true
     } catch (e) { setErroAcao(e.message); return false } finally { setOcupado('') }
   }
@@ -473,6 +498,24 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const respFora = campos.responsavel_id && !equipe.some((e) => e.user_id === campos.responsavel_id)
   const story = campos.formato === 'story'
   const idPend = 'rd-pend-' + id
+  const aprova = pode('redes.aprovar')
+  const nomesAprovadores = quemAprova(opcoes.aprovadores || [])
+  const eAutora = !!eu && post.criado_por_id === eu
+  const podeCancelar = !fechada && (pode('redes.gerir') || (eAutora && ['rascunho', 'preparacao', 'aprovacao'].includes(post.situacao)))
+  const irPara = (pendencia) => {
+    const el = document.getElementById(idCampo(CAMPO_DA_PENDENCIA[pendencia] || 'titulo'))
+    if (el) { el.scrollIntoView({ block: 'center' }); el.focus({ preventScroll: true }) }
+    else setAviso(CAMPO_DA_PENDENCIA[pendencia] === 'arte' ? 'A arte é enviada por quem tem acesso aos arquivos.' : 'Esse campo não está liberado para a sua função.')
+  }
+  const texto = R.textoCompleto(campos.legenda, campos.mencoes)
+  const ultimoAjuste = [...comentarios].reverse().find((c) => c.ajuste) || null
+  async function pedirAjuste() {
+    const t = await pedirTexto('O que precisa mudar em “' + post.titulo + '”? A postagem volta para quem cuida dela, com este comentário.', { rotulo: 'O que mudar' }, { acao: 'Pedir ajuste' })
+    if (!t || !t.trim()) return
+    if (await acao('ajuste', () => rpc('redes_comentar', { p_secret: lerSenha(), p_post: id, p_corpo: t, p_ajuste: true }))) {
+      setAviso('Ajuste pedido. Quem cuida da postagem foi avisado.')
+    }
+  }
 
   return (
     <Folha aberto titulo={titulo} sub={sub} onFechar={fechar} larga="ampla">
@@ -524,10 +567,20 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                   <span className="ui-autor__nota"> · {R.quandoTexto(post.atualizado_em)}</span></Autor>
                 {post.criado_por_rotulo && <> · criada por <Autor id={post.criado_por_id} rotulo={post.criado_por_rotulo} tamanho={20} /></>}
               </p>
+              {post.ajuste_aberto && ultimoAjuste && (
+                <div className="rd-ajuste" role="note">
+                  <p className="rd-ajuste__quem"><Autor id={ultimoAjuste.autor_id} rotulo={ultimoAjuste.autor_rotulo} tamanho={20}>
+                    <span className="ui-autor__nota"> pediu ajuste · {R.quandoTexto(ultimoAjuste.criado_em)}</span></Autor></p>
+                  <p className="rd-ajuste__texto">{ultimoAjuste.corpo}</p>
+                </div>
+              )}
               {!fechada && bloqueios.length > 0 && (
                 <div id={idPend} className="rd-pendencias">
-                  <p>Para marcar como pronto falta:</p>
-                  <ul>{bloqueios.map((p) => <li key={p}><Icone nome="atencao" tamanho={16} />{R.PENDENCIAS[p]}</li>)}</ul>
+                  <p>Para enviar para aprovação falta:</p>
+                  <ul>{bloqueios.map((p) => (
+                    <li key={p}><button type="button" className="rd-pendencia" onClick={() => irPara(p)}>
+                      <Icone nome="atencao" tamanho={16} />{R.PENDENCIAS[p]}<span className="ui-oculto"> — ir ao campo</span></button></li>
+                  ))}</ul>
                 </div>
               )}
               {conflitos.length > 0 && (
@@ -540,19 +593,27 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
               <div className="ui-acoes">
                 {(post.situacao === 'rascunho' || post.situacao === 'preparacao') && pode('redes.editar') && (
                   <>
-                    <Botao icone="sucesso" variante="destaque" disabled={bloqueios.length > 0 || !!ocupado} aria-describedby={bloqueios.length ? idPend : undefined}
-                      onClick={() => situacao('pronto')}>Marcar como pronto</Botao>
-                    {post.situacao === 'rascunho'
-                      ? <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('preparacao')}>Passar para “Em preparação”</Botao>
-                      : <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Voltar para rascunho</Botao>}
+                    <Botao icone="enviar" variante="destaque" disabled={bloqueios.length > 0 || !!ocupado} aria-describedby={bloqueios.length ? idPend : undefined}
+                      onClick={() => situacao('aprovacao')}>Enviar para aprovação</Botao>
+                    {aprova && <Botao icone="sucesso" variante="secundario" disabled={bloqueios.length > 0 || !!ocupado} onClick={() => situacao('pronto')}>Aprovar direto</Botao>}
+                  </>
+                )}
+                {post.situacao === 'aprovacao' && (
+                  <>
+                    {aprova && <Botao icone="sucesso" variante="destaque" disabled={!!ocupado} onClick={() => situacao('pronto')}>Aprovar</Botao>}
+                    {aprova && <Botao icone="editar" variante="secundario" disabled={!!ocupado} onClick={pedirAjuste}>Pedir ajuste</Botao>}
+                    {!aprova && <p className="rd-etapa">Enviada. Aguardando aprovação de {nomesAprovadores} — você recebe um aviso.</p>}
+                    {!aprova && pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Retirar da aprovação</Botao>}
                   </>
                 )}
                 {post.situacao === 'pronto' && (
                   <>
-                    {!story && <Botao icone="copiar" onClick={() => copiar(campos.legenda, 'Legenda')} disabled={!campos.legenda}>Copiar legenda</Botao>}
+                    <p className="rd-etapa">Aprovada. Publique pelo Instagram e depois confirme aqui.</p>
+                    {texto && <Botao icone="copiar" variante="secundario" onClick={() => copiar(texto, 'Texto completo')}>Copiar texto completo</Botao>}
                     <Botao icone="baixar" variante="secundario" onClick={baixarTodos} disabled={!ativos.length}>{ativos.length > 1 ? 'Baixar as ' + ativos.length + ' artes' : 'Baixar arte'}</Botao>
                     {pode('redes.publicar') && !confirma && <Botao icone="feito" variante="destaque" onClick={() => setConfirma({ modo: 'agora', data: R.hoje(), hora: '', link: '', obs: '', sequencia: false })}>Confirmar publicação…</Botao>}
-                    {pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('preparacao')}>Voltar para preparação</Botao>}
+                    {aprova && <Botao icone="editar" variante="secundario" disabled={!!ocupado} onClick={pedirAjuste}>Pedir ajuste</Botao>}
+                    {!aprova && pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Voltar para rascunho</Botao>}
                   </>
                 )}
                 {post.situacao === 'cancelado' && pode('redes.gerir') && <Botao icone="restaurar" onClick={() => situacao('rascunho')}>Reabrir como rascunho</Botao>}
@@ -561,10 +622,11 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                     setOcupado('duplicar')
                     try { const d = await rpc('redes_duplicar', { p_secret: lerSenha(), p_id: id }); onMudou(); onAbrir(d.id) } catch (e) { setErroAcao(e.message) } finally { setOcupado('') }
                   } },
-                  !fechada && pode('redes.gerir') && { rotulo: 'Cancelar publicação', icone: 'excluir', perigo: true, onClick: async () => {
-                    const motivo = await pedirTexto('Cancelar “' + post.titulo + '”? Ela sai do calendário; arquivos e histórico ficam guardados.', { rotulo: 'Motivo (opcional)' }, { acao: 'Cancelar publicação' })
+                  podeCancelar && { rotulo: 'Cancelar postagem', icone: 'excluir', perigo: true, onClick: async () => {
+                    const motivo = await pedirTexto('Cancelar “' + post.titulo + '”? Ela sai do calendário; arquivos e histórico ficam guardados.', { rotulo: 'Motivo (opcional)' }, { acao: 'Cancelar postagem' })
                     if (motivo !== null) situacao('cancelado', motivo)
                   } },
+                  !fechada && aprova && post.situacao === 'rascunho' && { rotulo: 'Pedir ajuste', icone: 'editar', onClick: pedirAjuste },
                 ]} />
               </div>
               {post.situacao === 'cancelado' && <p className="rd-campo__nota">Cancelada {post.cancelado_em ? 'em ' + R.quandoTexto(post.cancelado_em) : ''}{post.motivo_cancelamento ? ' — ' + post.motivo_cancelamento : ''}.</p>}
@@ -579,8 +641,8 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
               const ok = await acao('confirmar', (b) => rpc('redes_confirmar', { p_secret: lerSenha(), p_id: id, p_versao: b.versao, p_publicado_em: quando, p_link: confirma.link.trim() || null, p_obs: confirma.obs.trim() || null }))
               if (ok) { setConfirma(null); setAviso(post.situacao === 'publicado' ? 'Execução corrigida.' : 'Publicação confirmada.') }
             }}>
-              <h3>{post.situacao === 'publicado' ? 'Corrigir execução' : 'Confirmar publicação'}</h3>
-              <p className="rd-campo__nota">Só confirme depois de publicar pelo Instagram. O painel não publica nada.</p>
+              <h3>{post.situacao === 'publicado' ? 'Corrigir dados da publicação' : 'Confirmar publicação'}</h3>
+              <p className="rd-campo__nota">Só confirme depois de publicar pelo Instagram.</p>
               <fieldset className="rd-opcoes">
                 <legend>Quando foi publicado</legend>
                 <label><input type="radio" name={'q-' + id} checked={confirma.modo === 'agora'} onChange={() => setConfirma({ ...confirma, modo: 'agora' })} /> Publicado agora</label>
@@ -609,7 +671,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
           )}
 
           {post.situacao === 'publicado' && (
-            <Secao titulo="Execução">
+            <Secao titulo="Publicação">
               <dl className="rd-dados">
                 <div><dt>Publicado em</dt><dd>{R.quandoTexto(post.publicado_em)}</dd></div>
                 <div><dt>Quem confirmou</dt><dd><Autor id={post.publicado_por_id} rotulo={post.publicado_por_rotulo} tamanho={24}>
@@ -623,9 +685,9 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                   {!confirma && <Botao variante="secundario" icone="editar" onClick={() => {
                     const p2 = R.partes(post.publicado_em) || { data: R.hoje(), hora: '' }
                     setConfirma({ modo: 'outro', data: p2.data, hora: p2.hora, link: post.link_publicado || '', obs: post.obs_execucao || '', sequencia: true })
-                  }}>Corrigir execução</Botao>}
+                  }}>Corrigir dados</Botao>}
                   <Botao variante="secundario" icone="restaurar" onClick={async () => {
-                    const motivo = await pedirTexto('Desfazer a confirmação de publicação? Volta para "Pronto para publicar"; o registro fica no histórico.', { rotulo: 'Motivo (obrigatório)' }, { acao: 'Desfazer confirmação' })
+                    const motivo = await pedirTexto('Desfazer a confirmação de publicação? Volta para "Aprovado"; o registro fica no histórico.', { rotulo: 'Motivo (obrigatório)' }, { acao: 'Desfazer confirmação' })
                     if (motivo && motivo.trim()) acao('desfazer', (b) => rpc('redes_desfazer_publicacao', { p_secret: lerSenha(), p_id: id, p_versao: b.versao, p_motivo: motivo }))
                   }}>Desfazer confirmação</Botao>
                 </div>
@@ -643,7 +705,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
 
           <Secao titulo="Identificação">
             <div className="rd-grade">
-              <Campo rotulo="Título interno" largo><input type="text" maxLength={120} required value={campos.titulo} disabled={!novo && !podeEditar} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
+              <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required value={campos.titulo} disabled={!novo && !podeEditar} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
               <Campo rotulo="Perfil de destino">
                 <input type="text" maxLength={60} list={'rd-perfis-' + id} value={campos.perfil} disabled={!novo && !podeEditar} onChange={(e) => setCampo('perfil', e.target.value)} />
               </Campo>
@@ -675,10 +737,10 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
 
           <Secao titulo="Programação" nota="Horário de Fortaleza. Sem data, a postagem fica na fila.">
             <div className="rd-grade">
-              <Campo rotulo="Data"><input type="date" value={dataIn} disabled={!novo && !podeEditar} onChange={(e) => mudarDH('data', e.target.value)} /></Campo>
+              <Campo rotulo="Data" id={idCampo('data')}><input type="date" value={dataIn} disabled={!novo && !podeEditar} onChange={(e) => mudarDH('data', e.target.value)} /></Campo>
               <Campo rotulo="Horário previsto"><input type="time" step={300} value={horaIn} disabled={!novo && !podeEditar} onChange={(e) => mudarDH('hora', e.target.value)} /></Campo>
-              <Campo rotulo="Responsável pela publicação">
-                <select value={campos.responsavel_id} disabled={!novo && !podeEditar} onChange={(e) => setCampo('responsavel_id', e.target.value)}>
+              <Campo rotulo="Responsável pela publicação" id={idCampo('resp')}>
+                <select value={campos.responsavel_id} disabled={!novo && !podeEditar} onChange={(e) => { escolheuResp.current = true; setCampo('responsavel_id', e.target.value) }}>
                   <option value="">Sem responsável</option>
                   {respFora && <option value={campos.responsavel_id}>{post.responsavel_nome || 'Conta atual'} (sem acesso a redes)</option>}
                   {equipe.map((e) => <option key={e.user_id} value={e.user_id}>{e.nome}</option>)}
@@ -694,19 +756,20 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
               )}
             </div>
             {dhLocal && <p className="rd-campo__nota rd-campo__nota--erro" role="alert">Falta {dhLocal.data ? 'o horário' : 'a data'}.</p>}
-            {!equipe.length && <p className="rd-campo__nota">Ninguém da equipe tem acesso a redes ainda. Em Administração › Equipe, dê a função “Social media” (ou Administrador) a quem vai publicar.</p>}
+            {opcoes.carregadas && !equipe.length && <p className="rd-campo__nota">Ninguém da equipe tem acesso a redes ainda. Em Administração › Equipe, dê a função “Social media” (ou Administrador) a quem vai publicar.</p>}
           </Secao>
 
           <Secao titulo="Conteúdo">
-            <Campo rotulo={story ? 'Legenda (opcional no Story)' : 'Legenda'} largo nota={campos.legenda.length + ' caracteres · hashtags podem ir aqui mesmo'}>
+            <Campo rotulo={story ? 'Legenda (opcional no Story)' : 'Legenda'} largo id={idCampo('legenda')}
+              nota={campos.legenda.length > R.LIMITE_LEGENDA_INSTAGRAM ? campos.legenda.length + ' caracteres — o Instagram aceita até ' + R.LIMITE_LEGENDA_INSTAGRAM + '. Encurte.'
+                : campos.legenda.length + ' de ' + R.LIMITE_LEGENDA_INSTAGRAM + ' caracteres · hashtags podem ir aqui mesmo'}>
               <textarea rows={7} maxLength={5000} value={campos.legenda} disabled={!novo && !podeEditar} onChange={(e) => setCampo('legenda', e.target.value)} />
             </Campo>
-            {!novo && campos.legenda && <div className="ui-acoes"><Botao variante="secundario" icone="copiar" onClick={() => copiar(campos.legenda, 'Legenda')}>Copiar legenda</Botao></div>}
-            <Campo rotulo="Perfis a mencionar" largo nota="Ex.: @jolie.cafe @outraconta">
+            <Campo rotulo="Perfis a mencionar" largo nota="Ex.: @jolie.cafe @outraconta — entram no fim do texto copiado.">
               <input type="text" maxLength={500} value={campos.mencoes} disabled={!novo && !podeEditar} onChange={(e) => setCampo('mencoes', e.target.value)} />
             </Campo>
-            {!novo && campos.mencoes && <div className="ui-acoes"><Botao variante="secundario" icone="copiar" onClick={() => copiar(campos.mencoes, 'Lista de menções')}>Copiar menções</Botao></div>}
-            <Campo rotulo="Observações de execução" largo nota="Ex.: marcar a localização, música do Reel, horário que a marca pediu.">
+            {!novo && texto && <div className="ui-acoes"><Botao variante="secundario" icone="copiar" onClick={() => copiar(texto, 'Texto completo')}>Copiar texto completo</Botao></div>}
+            <Campo rotulo="Observações para quem publica" largo nota="Ex.: marcar a localização, música do Reel, horário que a marca pediu.">
               <textarea rows={3} maxLength={2000} value={campos.observacoes} disabled={!novo && !podeEditar} onChange={(e) => setCampo('observacoes', e.target.value)} />
             </Campo>
             <Campo rotulo="Referências ou briefing" largo>
@@ -716,7 +779,15 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
 
           <Secao titulo="Arquivos" nota={story ? 'Stories da sequência, na ordem.' : campos.formato === 'carrossel' ? 'Ordem do carrossel: o primeiro é a capa.' : 'JPG, PNG, WEBP, MP4 ou MOV, até 50 MB.'}
             acoes={ativos.length > 1 ? <Botao variante="secundario" icone="baixar" onClick={baixarTodos}>Baixar todos</Botao> : null}>
-            {novo && <p className="ui-nota">Crie o rascunho primeiro; depois envie as artes aqui.</p>}
+            {novo && pode('redes.arquivos') && (
+              <label className="rd-soltar">
+                <Icone nome="mais" tamanho={20} />
+                <span>Escolher a arte</span>
+                <span className="rd-campo__nota">A postagem é criada como rascunho e a arte sobe em seguida.</span>
+                <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')}
+                  onChange={(e) => { const l = [...e.target.files]; e.target.value = ''; if (l.length) criar(l) }} />
+              </label>
+            )}
             {ativos.length > 0 && (
               <ol className="rd-arquivos">
                 {ativos.map((a, i) => (
@@ -803,7 +874,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                 <Icone nome="mais" tamanho={20} />
                 <span>{ativos.length ? 'Enviar mais arquivos' : 'Enviar a arte'}</span>
                 <span className="rd-campo__nota">Pode escolher vários de uma vez; entram na ordem escolhida.</span>
-                <input type="file" multiple accept={R.ACEITE} className="ui-oculto" onChange={(e) => { if (e.target.files.length) adicionarEnvios(e.target.files); e.target.value = '' }} />
+                <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')} onChange={(e) => { if (e.target.files.length) adicionarEnvios(e.target.files); e.target.value = '' }} />
               </label>
             )}
             {antigos.length > 0 && (
@@ -822,7 +893,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
           </Secao>
 
           {!novo && (
-            <Secao titulo="Comentários" nota="Orientações e pedidos de ajuste da equipe. Pedido de ajuste avisa o responsável e quem criou a postagem.">
+            <Secao titulo="Comentários" nota="Pedido de ajuste avisa quem cuida da postagem e a devolve para rascunho.">
               {comentarios.length ? (
                 <ul className="rd-comentarios">
                   {comentarios.map((c) => (
@@ -869,10 +940,10 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
           {erroAcao ? <span className="rd-campo__nota--erro">{traduzirRedes(erroAcao)}</span>
             : aviso ? aviso
             : salvando ? 'Salvando…'
-            : conflito ? 'Conflito de versão: decida acima.'
+            : conflito ? 'Outra pessoa salvou antes: escolha acima qual versão fica.'
             : sujo ? 'Alterações não salvas'
             : salvoEm ? 'Salvo às ' + R.horaCurta(R.partes(salvoEm).hora)
-            : novo ? '' : fechada ? 'Registro fechado' : 'Tudo salvo'}
+            : novo ? '' : post.situacao === 'publicado' ? 'Publicada — não muda mais' : post.situacao === 'cancelado' ? 'Cancelada' : 'Tudo salvo'}
         </p>
         <div className="ui-acoes">
           {!novo && sujo && <Botao variante="secundario" onClick={descartar} disabled={salvando}>Descartar alterações</Botao>}

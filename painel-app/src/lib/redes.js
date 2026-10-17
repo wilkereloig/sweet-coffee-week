@@ -15,13 +15,19 @@
 export const FUSO = 'America/Fortaleza'
 export const PERFIL_PADRAO = '@sweetcoffeeweek'
 
+// Mesma ordem do CHECK (20261018_social_aprovacao.sql). Fluxo do painel:
+// Rascunho → Aguardando aprovação → Aprovado → Publicado. "Em preparação" é
+// legado (nenhuma postagem usa; o banco não grava mais): fica só para rótulo.
 export const SITUACOES = [
   { chave: 'rascunho', rotulo: 'Rascunho', tom: 'neutro' },
-  { chave: 'preparacao', rotulo: 'Em preparação', tom: 'andamento' },
-  { chave: 'pronto', rotulo: 'Pronto para publicar', tom: 'atencao' },
+  { chave: 'preparacao', rotulo: 'Em preparação', tom: 'neutro', legado: true },
+  { chave: 'aprovacao', rotulo: 'Aguardando aprovação', tom: 'atencao' },
+  { chave: 'pronto', rotulo: 'Aprovado', tom: 'andamento' },
   { chave: 'publicado', rotulo: 'Publicado', tom: 'ok' },
   { chave: 'cancelado', rotulo: 'Cancelado', tom: 'encerrado' },
 ]
+/** As etapas que a pessoa vê (o guia e o filtro de situação). */
+export const ETAPAS = SITUACOES.filter((s) => !s.legado)
 export const FORMATOS = [
   { chave: 'feed', rotulo: 'Imagem no feed', curto: 'Feed', icone: 'imagem' },
   { chave: 'carrossel', rotulo: 'Carrossel', curto: 'Carrossel', icone: 'pasta' },
@@ -188,7 +194,7 @@ export function pendencias(post, arquivos, agora = Date.now()) {
   if (atrasada(post, agora)) r.push('atrasada')
   return r
 }
-/** O que impede "Pronto para publicar" (atraso não impede). */
+/** O que impede enviar para aprovação ou aprovar (atraso não impede). */
 export const bloqueiosPronto = (post, arquivos, agora) => pendencias(post, arquivos, agora).filter((p) => p !== 'atrasada')
 
 /** O que o formato pede, em uma frase. */
@@ -219,8 +225,31 @@ export function conflitos(posts) {
 const semAcento = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 export const ATALHOS = {
-  hoje: 'De hoje', proximas: 'Próximos 7 dias', atrasadas: 'Atrasadas', minhas: 'Minhas', sem_resp: 'Sem responsável',
-  sem_arte: 'Sem arte', sem_legenda: 'Sem legenda',
+  hoje: 'De hoje', proximas: 'Próximos 7 dias', atrasadas: 'Atrasadas', minhas: 'Minhas',
+  aprovacao: 'Aguardando aprovação', ajuste: 'Ajuste pedido', aprovadas: 'Aprovadas, a publicar',
+  sem_resp: 'Sem responsável', sem_arte: 'Sem arte', sem_legenda: 'Sem legenda',
+}
+// Chave do atalho → chave da contagem em redes_resumo (o banco conta TODAS as
+// abertas, não só o mês aberto na tela).
+const CHAVE_RESUMO = { sem_resp: 'sem_responsavel' }
+/** Contagem dos atalhos: do servidor quando há; senão, das postagens carregadas. */
+export function contagemAtalhos(resumo, posts, ctx = {}) {
+  const local = contarAtalhos(posts, ctx)
+  if (!resumo) return local
+  const o = {}
+  for (const k of [...Object.keys(ATALHOS), 'sem_data']) {
+    const v = resumo[CHAVE_RESUMO[k] || k]
+    o[k] = v == null ? local[k] : Number(v) || 0
+  }
+  return o
+}
+/** Atalhos à vista: os que têm algo, na ordem de urgência, mais "De hoje". O resto fica em Filtros. */
+export function atalhosEmDestaque(contagem, { eu = null, aprova = false, max = 4 } = {}) {
+  // Quem aprova: o que espera por ela. Quem publica: ajuste e o que já pode ir ao ar (esperar aprovação não é tarefa dela).
+  const ordem = aprova
+    ? ['aprovacao', 'atrasadas', 'ajuste', 'hoje', 'aprovadas', 'minhas', 'sem_resp', 'sem_arte', 'sem_legenda', 'proximas']
+    : ['ajuste', 'aprovadas', 'atrasadas', 'hoje', 'minhas', 'aprovacao', 'sem_resp', 'sem_arte', 'sem_legenda', 'proximas']
+  return ordem.filter((k) => (k !== 'minhas' || eu) && (k === 'hoje' || (contagem[k] || 0) > 0)).slice(0, max)
 }
 function noAtalho(p, atalho, { eu, agora }) {
   if (!atalho) return true
@@ -230,6 +259,9 @@ function noAtalho(p, atalho, { eu, agora }) {
   if (atalho === 'proximas') return aberta && t != null && t >= agora && t < agora + 7 * 864e5
   if (atalho === 'atrasadas') return atrasada(p, agora)
   if (atalho === 'minhas') return aberta && !!eu && p.responsavel_id === eu
+  if (atalho === 'aprovacao') return p.situacao === 'aprovacao'
+  if (atalho === 'aprovadas') return p.situacao === 'pronto'
+  if (atalho === 'ajuste') return aberta && !!p.ajuste_aberto
   // Pendências vêm do servidor (redes_pendencias): Story não conta "sem legenda".
   if (atalho === 'sem_arte') return aberta && (p.pendencias || []).includes('sem_arte')
   if (atalho === 'sem_legenda') return aberta && (p.pendencias || []).includes('sem_legenda')
@@ -286,6 +318,19 @@ export function porDia(posts) {
   const m = {}
   for (const p of ordenar((posts || []).filter((x) => x.programado_para), 'data')) (m[chaveDia(p.programado_para)] ||= []).push(p)
   return m
+}
+
+/** Legenda + menções, do jeito que vai para o Instagram (um toque para copiar). */
+export function textoCompleto(legenda, mencoes) {
+  return [String(legenda || '').trim(), String(mencoes || '').trim()].filter(Boolean).join('\n\n')
+}
+export const LIMITE_LEGENDA_INSTAGRAM = 2200
+
+/** "@jolie.cafe" a partir do que a casa cadastrou (link, @ ou só o nome). Vazio se não der. */
+export function arrobaDe(instagram) {
+  const s = String(instagram || '').trim()
+  const m = /instagram\.com\/([A-Za-z0-9._]{1,30})/i.exec(s) || /^@?([A-Za-z0-9._]{1,30})$/.exec(s)
+  return m ? '@' + m[1] : ''
 }
 
 /** Filtros que moram no endereço (#operacao/redes?modo=…). */

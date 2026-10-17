@@ -208,8 +208,9 @@ export const STATUS = {
   // é situação: é calculada (lib/redes.js `atrasada`).
   post_redes: {
     rascunho: s('Rascunho', 'neutro'),
-    preparacao: s('Em preparação', 'andamento'),
-    pronto: s('Pronto para publicar', 'atencao'),
+    preparacao: s('Em preparação', 'neutro'),
+    aprovacao: s('Aguardando aprovação', 'atencao'),
+    pronto: s('Aprovado', 'andamento'),
     publicado: s('Publicado', 'ok'),
     cancelado: s('Cancelado', 'encerrado'),
   },

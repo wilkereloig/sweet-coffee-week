@@ -37,7 +37,7 @@ const fonteItem = (x) => ({ bucket: x.bucket, path: x.path })
 const miniItem = (x) => (x.miniatura_path ? { bucket: 'redes', path: x.miniatura_path } : String(x.mime || '').startsWith('image/') ? fonteItem(x) : null)
 const formatoDe = (x) => (String(x.mime || '').startsWith('video/') ? 'reels' : 'feed')
 
-function CartaoMaterial({ x, urls, renovar, acao }) {
+function CartaoMaterial({ x, urls, renovar, acao, onFalha }) {
   const t = TIPO[x.tipo] || {}
   const [sit, tom] = SITUACAO_BIB[x.situacao] || [x.situacao, 'neutro']
   return (
@@ -57,7 +57,7 @@ function CartaoMaterial({ x, urls, renovar, acao }) {
         {x.credito && <p className="rd-campo__nota">Crédito: {x.credito}</p>}
       </div>
       <div className="sb-item__acoes">
-        <BotaoIcone icone="baixar" rotulo="Baixar" alvo={x.nome} onClick={() => baixarArquivo(fonteItem(x), x.nome).catch(() => {})} />
+        <BotaoIcone icone="baixar" rotulo="Baixar" alvo={x.nome} onClick={() => baixarArquivo(fonteItem(x), x.nome).catch(() => onFalha && onFalha(x.nome))} />
         {acao}
       </div>
     </li>
@@ -112,11 +112,15 @@ export function SocialBiblioteca({ rota, navegar, pode, registrarAtualizar }) {
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [opcoes, setOpcoes] = React.useState({ participantes: [], edicoes: [] })
+  const [erroOpcoes, setErroOpcoes] = React.useState(null)
+  const [aviso, setAviso] = React.useState('')
   const [busca, setBusca] = React.useState(f.q || '')
   const [envios, setEnvios] = React.useState([])
   const [destino, setDestino] = React.useState({ edicao_codigo: '', participante_id: '' })
 
-  const filtros = { tipo: f.tipo || '', edicao: f.ed || '', participante: f.part || '', situacao: sit, q: f.q || '' }
+  // Abre na edição atual (o que a equipe usa agora); "Todas" é escolha explícita (ed=todas).
+  const edAtual = f.ed === 'todas' ? '' : f.ed || opcoes.edicao_atual || ''
+  const filtros = { tipo: f.tipo || '', edicao: edAtual, participante: f.part || '', situacao: sit, q: f.q || '' }
   const chave = JSON.stringify(filtros)
   const carregar = React.useCallback(async () => {
     try { setLista(await rpc('social_biblioteca', { p_secret: lerSenha(), p_filtros: JSON.parse(chave) })); setErro(null) }
@@ -125,7 +129,8 @@ export function SocialBiblioteca({ rota, navegar, pode, registrarAtualizar }) {
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   React.useEffect(() => {
-    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => { if (o) { setOpcoes(o); setDestino((d) => ({ ...d, edicao_codigo: d.edicao_codigo || o.edicao_atual || '' })) } }).catch(() => {})
+    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => { if (o) { setOpcoes(o); setDestino((d) => ({ ...d, edicao_codigo: d.edicao_codigo || o.edicao_atual || '' })) } })
+      .catch((e) => setErroOpcoes(e.message))
   }, [])
   const mudar = (patch) => {
     const n = { ...f, ...patch }
@@ -161,11 +166,13 @@ export function SocialBiblioteca({ rota, navegar, pode, registrarAtualizar }) {
   const contagem = (k) => itens.filter((x) => x.tipo === k).length
   return (
     <div className="sb">
-      <p className="rd-aviso-limite"><Icone nome="informacao" tamanho={16} /><span>Tudo o que a equipe usa nas postagens, sem cópia: artes finais, fotos dos combos e das lojas, logos e materiais da campanha. Baixar não é publicar.</span></p>
+      <p className="rd-aviso-limite"><Icone nome="informacao" tamanho={16} /><span>Artes finais, fotos dos combos e das lojas, logos e materiais da campanha.</span></p>
+      {erroOpcoes && <Erro titulo="Não carreguei as edições e os participantes" texto={traduzirRedes(erroOpcoes)} />}
+      {aviso && <p className="og-aviso" role="status">{aviso}</p>}
 
       <div className="sb-filtros">
         <Escolha rotulo="Tipo de material" valor={f.tipo || ''} opcoes={[['', 'Todos'], ...TIPOS_BIB.map(([k, r]) => [k, r])]} onMudar={(v) => mudar({ tipo: v })} />
-        <Escolha rotulo="Edição" valor={f.ed || ''} opcoes={[['', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]} onMudar={(v) => mudar({ ed: v })} />
+        <Escolha rotulo="Edição" valor={f.ed === 'todas' ? 'todas' : edAtual} opcoes={[['todas', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]} onMudar={(v) => mudar({ ed: v })} />
         <Escolha rotulo="Participante" valor={f.part || ''} opcoes={[['', 'Todos'], ...(opcoes.participantes || []).map((p) => [p.id, p.nome])]} onMudar={(v) => mudar({ part: v })} />
         <Escolha rotulo="Situação" valor={f.sit || 'disponivel'} opcoes={[['disponivel', 'Disponível para usar'], ['todas', 'Tudo, inclusive versões anteriores'],
           ['aprovada', 'Fotos aprovadas'], ['enviada', 'Fotos sem aprovação'], ['oficial', 'Logos oficiais'], ['substituida', 'Versões anteriores de arte']]}
@@ -218,7 +225,7 @@ export function SocialBiblioteca({ rota, navegar, pode, registrarAtualizar }) {
           </p>
           {itens.length ? (
             <ul className="sb-grade">
-              {itens.map((x) => <CartaoMaterial key={x.tipo + x.id} x={x} urls={urls} renovar={renovar}
+              {itens.map((x) => <CartaoMaterial key={x.tipo + x.id} x={x} urls={urls} renovar={renovar} onFalha={(nome) => setAviso('Não consegui baixar “' + nome + '”. Tente de novo.')}
                 acao={x.post_id ? <Botao variante="secundario" onClick={() => navegar({ vista: 'social', aba: 'planejamento', filtros: { item: x.post_id } })}>Ver postagem</Botao> : null} />)}
             </ul>
           ) : <Vazio titulo="Nada com estes filtros" icone="busca">Mude o tipo, a edição ou a situação.</Vazio>}

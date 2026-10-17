@@ -124,7 +124,9 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   function criarPostagem(comDescricao) {
     // Texto copiado AGORA: a legenda nasce independente do combo.
     const legenda = comDescricao ? [f.editavel.combo_nome, f.editavel.combo_descricao].filter(Boolean).join('\n\n') : ''
-    try { sessionStorage.setItem(CHAVE_NOVA_POSTAGEM, JSON.stringify({ participante_id: f.participante_id, edicao_codigo: f.edicao_codigo, legenda, titulo: f.marca })) } catch { /* modo privado */ }
+    // O @ da casa já entra nas menções (a pessoa só confere).
+    const mencoes = R.arrobaDe(f.atual && f.atual.casa && f.atual.casa.instagram)
+    try { sessionStorage.setItem(CHAVE_NOVA_POSTAGEM, JSON.stringify({ participante_id: f.participante_id, edicao_codigo: f.edicao_codigo, legenda, mencoes, titulo: f.marca })) } catch { /* modo privado */ }
     navegar({ vista: 'social', aba: 'planejamento', filtros: { item: 'novo' } })
   }
 
@@ -139,20 +141,26 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   const difere = pub && (n(pub.nome) !== n(combo.nome) || n(pub.descricao) !== n(combo.descricao))
   const unidades = (f.atual && f.atual.unidades) || []
   const podeEditar = pode('editorial.editar')
+  // Rótulo por htmlFor (o texto digitado num textarea dentro do <label> entraria no nome acessível).
+  const idDe = (k) => 'sp-' + participacaoId + '-' + k
   const campoCombo = (k, linhas) => (
-    <label className="og-campo sp-campo" key={k}>
-      <span>{ROTULO[k]}</span>
-      {linhas ? <textarea rows={linhas} maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
-        : <input maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />}
+    <div className="og-campo sp-campo" key={k}>
+      <span><label htmlFor={idDe(k)}>{ROTULO[k]}</label></span>
+      {linhas ? <textarea id={idDe(k)} rows={linhas} maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
+        : <input id={idDe(k)} maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />}
       <small className="rd-campo__nota">{n(form[k]).length}/{LIMITES[k]}</small>
-    </label>
+    </div>
   )
 
   return (
     <Folha aberto titulo={f.marca} sub={[f.tema ? 'Tema: ' + f.tema : 'Sem tema definido', f.edicao_codigo].filter(Boolean).join(' · ')} onFechar={fechar} larga="ampla">
       <div className="sp-ficha">
         <header className="sp-cabeca">
-          <LogoMarca url={casa.logo ? urlLogo(casa.logo.path) : null} nome={f.marca} tamanho={72} />
+          <div className="sp-logo">
+            <LogoMarca url={casa.logo ? urlLogo(casa.logo.path) : null} nome={f.marca} tamanho={72} />
+            {casa.logo && casa.logo.path && <BotaoIcone icone="baixar" rotulo="Baixar a logo" alvo={f.marca}
+              onClick={() => baixarArquivo({ bucket: 'logos', path: casa.logo.path }, (f.marca + '-logo.' + (casa.logo.path.split('.').pop() || 'png')).replace(/\s+/g, '-').toLowerCase()).catch(() => setAviso('Não consegui baixar a logo. Tente de novo.'))} />}
+          </div>
           <div>
             <p className="sp-cabeca__selos">
               <Selo dominio="combo" valor={f.combo_status} />
@@ -201,10 +209,10 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
                 {(form.itens || []).map((it, i) => (
                   <div className="sp-item-form" key={it.id}>
                     <p className="sp-item-form__tipo">{TIPO_ITEM[it.tipo] || 'Componente'} {it.posicao}</p>
-                    <label className="og-campo"><span>Nome</span>
-                      <input maxLength={LIMITES.item_nome} value={n(it.nome)} onChange={(e) => setForm({ ...form, itens: form.itens.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)) })} /></label>
-                    <label className="og-campo"><span>Descrição</span>
-                      <textarea rows={2} maxLength={LIMITES.item_descricao} value={n(it.descricao)} onChange={(e) => setForm({ ...form, itens: form.itens.map((x, j) => (j === i ? { ...x, descricao: e.target.value } : x)) })} /></label>
+                    <div className="og-campo"><span><label htmlFor={idDe('item-nome-' + i)}>Nome</label></span>
+                      <input id={idDe('item-nome-' + i)} maxLength={LIMITES.item_nome} value={n(it.nome)} onChange={(e) => setForm({ ...form, itens: form.itens.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)) })} /></div>
+                    <div className="og-campo"><span><label htmlFor={idDe('item-desc-' + i)}>Descrição</label></span>
+                      <textarea id={idDe('item-desc-' + i)} rows={2} maxLength={LIMITES.item_descricao} value={n(it.descricao)} onChange={(e) => setForm({ ...form, itens: form.itens.map((x, j) => (j === i ? { ...x, descricao: e.target.value } : x)) })} /></div>
                   </div>
                 ))}
               </fieldset>
@@ -314,7 +322,8 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
   }, [f.ed])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
-  React.useEffect(() => { rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setEdicoes(o.edicoes || [])).catch(() => {}) }, [])
+  const [erroOpcoes, setErroOpcoes] = React.useState(null)
+  React.useEffect(() => { rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setEdicoes(o.edicoes || [])).catch((e) => setErroOpcoes(e.message)) }, [])
   const mudar = (patch, opc) => {
     const x = { ...f, ...patch }
     for (const k of Object.keys(x)) if (x[k] === undefined || x[k] === '') delete x[k]
@@ -328,7 +337,12 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
 
   const lista = dados ? dados.participantes || [] : []
   const q = (f.q || '').toLowerCase()
-  const visiveis = q ? lista.filter((p) => [p.marca, p.tema, p.combo_nome].some((x) => String(x || '').toLowerCase().includes(q))) : lista
+  const porBusca = q ? lista.filter((p) => [p.marca, p.tema, p.combo_nome].some((x) => String(x || '').toLowerCase().includes(q))) : lista
+  // Cobertura: "sem postagem" mostra quem ainda não apareceu; "menos postagens" ordena por quem precisa.
+  const visiveis = f.cob === 'sem' ? porBusca.filter((p) => !Number(p.n_posts))
+    : f.cob === 'menos' ? [...porBusca].sort((a, b) => Number(a.n_posts) - Number(b.n_posts) || String(a.marca).localeCompare(String(b.marca)))
+    : porBusca
+  const semPost = lista.filter((p) => !Number(p.n_posts)).length
   // `item` = participante (o mesmo id dos links da postagem); a ficha lê a participação da edição.
   const aberta = f.item ? lista.find((p) => p.participante_id === f.item || p.participacao_id === f.item) : null
 
@@ -336,11 +350,14 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
     <div className="sp">
       <div className="sb-filtros">
         <Escolha rotulo="Edição" valor={f.ed || (dados && dados.edicao) || ''} opcoes={edicoes.map((e) => [e.codigo, e.codigo + ' · ' + e.nome])} onMudar={(v) => mudar({ ed: v }, { substituir: true })} />
+        <Escolha rotulo="Mostrar" valor={f.cob || ''} opcoes={[['', 'Todos, em ordem alfabética'], ['menos', 'Quem tem menos postagens primeiro'], ['sem', 'Só quem ainda não tem postagem (' + semPost + ')']]}
+          onMudar={(v) => mudar({ cob: v || undefined }, { substituir: true })} />
         <label className="og-campo rd-busca">
           <span>Buscar</span>
           <input type="search" value={busca} placeholder="Marca, tema ou combo" onChange={(e) => setBusca(e.target.value)} />
         </label>
       </div>
+      {erroOpcoes && <Erro titulo="Não carreguei a lista de edições" texto={traduzir(erroOpcoes)} />}
       {erro && <Erro texto={traduzir(erro)} onTentar={carregar} />}
       {!erro && !dados && <Carregando linhas={5} />}
       {dados && (visiveis.length ? (
@@ -357,7 +374,8 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
                     <Selo dominio="combo" valor={p.combo_status} />
                     {p.alterado_apos_aprovacao && <Selo tom="atencao">Alterado</Selo>}
                     {p.no_site && <Selo tom="ok">No site</Selo>}
-                    <span className="rd-campo__nota"><Icone nome="calendario" tamanho={16} /> {p.n_posts}</span>
+                    {Number(p.n_posts) ? <span className="rd-campo__nota"><Icone nome="calendario" tamanho={16} /> {p.n_posts} {Number(p.n_posts) === 1 ? 'postagem' : 'postagens'}</span>
+                      : <Selo tom="atencao">Sem postagem</Selo>}
                   </span>
                 </span>
               </button>

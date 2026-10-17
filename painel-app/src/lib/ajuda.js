@@ -23,19 +23,19 @@ export const TOUR = {
       texto: 'Cada botão é um assunto: operação do dia, relacionamento, conteúdo e administração. Neste tour, cada um aparece no lugar onde fica.' },
     { id: 'visao', alvos: ['menu-visao'], link: 'visao', titulo: 'Visão geral',
       texto: 'Comece por aqui. Candidaturas por etapa, o que precisa de atenção hoje e o que a equipe fez por último. Tocar num número abre a lista já filtrada.' },
-    { id: 'participantes', alvos: ['menu-participantes'], link: 'participantes/lista', titulo: 'Participantes',
+    { id: 'participantes', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', titulo: 'Participantes',
       texto: (pode) => 'Marcas, candidaturas, temas e vendas. Na ficha de cada marca: cadastro, combo, unidades, operação, mensagens, acesso e histórico.'
         + bloqueado(pode, 'triagem.editar', 'Sua função vê as candidaturas, mas não muda a triagem.') },
-    { id: 'acoes', alvos: ['menu-participantes'], link: 'participantes/lista', titulo: 'Ver, revisar, aprovar, corrigir, editar',
+    { id: 'acoes', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', titulo: 'Ver, revisar, aprovar, corrigir, editar',
       texto: (pode) => 'Visualizar não muda nada. Revisar é triar a candidatura. Aprovar aceita o combo ou o tema. Solicitar correção devolve um campo à marca com o motivo, e ela corrige. Editar é a organização mudar o dado da marca, com antes e depois no histórico.'
         + (pode('curadoria.decidir') ? '' : ' Sua função não aprova nem pede correção.')
         + (pode('cadastro.editar') ? '' : ' Editar o cadastro é só do Administrador.') },
-    { id: 'conversa', alvos: ['menu-participantes'], link: 'participantes/lista', exige: 'mensagem.enviar', titulo: 'Conversa com a marca',
+    { id: 'conversa', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', exige: 'mensagem.enviar', titulo: 'Conversa com a marca',
       texto: 'Abra a ficha da marca e vá em Mensagens. A marca recebe aviso a cada mensagem, e a resposta dela chega no sino.' },
-    { id: 'contatos', alvos: ['menu-contatos'], link: 'contatos/pessoas', titulo: 'Contatos',
+    { id: 'contatos', alvos: ['menu-contatos', 'menu-mais'], link: 'contatos/pessoas', titulo: 'Contatos',
       texto: (pode) => 'Pessoas, Press Kit, vouchers e o que chegou pelos formulários do site.'
         + bloqueado(pode, 'relacionamento.gerir', 'Sua função consulta, mas não altera contatos.') },
-    { id: 'operacao', alvos: ['menu-operacao'], link: 'operacao/pedidos', titulo: 'Operação',
+    { id: 'operacao', alvos: ['menu-operacao', 'menu-mais'], link: 'operacao/pedidos', titulo: 'Operação',
       texto: (pode) => 'Pedidos às marcas com prazo, a agenda de fotos e os materiais. A marca só reserva foto depois de liberada, na ficha › Operação.'
         + bloqueado(pode, 'producao.gerir', 'Sua função acompanha, mas não abre vaga nem marca sessão.') },
     { id: 'arquivos', tela: 'arquivos', alvos: ['menu-arquivos', 'menu-mais'], link: 'arquivos/gerais', titulo: 'Arquivos',

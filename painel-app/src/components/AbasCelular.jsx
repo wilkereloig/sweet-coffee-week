@@ -12,8 +12,45 @@ import { Folha } from './Folha'
  */
 const ICONE_MAIS = <Icone nome="mais-acoes" tamanho={24} />
 
-export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, icone, acento, contadores = {}, onIr }) {
+/*
+ * Escolher os atalhos (18/10/2026): com `todos` + `onEscolher`, a folha "Mais"
+ * ganha "Escolher os atalhos da barra" — marca até `max` áreas, na ordem do
+ * menu. Sem esses props (painel da marca), a barra continua fixa.
+ */
+function EscolherAtalhos({ todos, atuais, max, titulo, icone, acento, onSalvar, onPadrao, onVoltar }) {
+  const [marcados, setMarcados] = React.useState(atuais)
+  const cheio = marcados.length >= max
+  const alternar = (d) => setMarcados((m) => (m.includes(d) ? m.filter((x) => x !== d) : m.length >= max ? m : [...m, d]))
+  return (
+    <form className="ui-escolher-atalhos" onSubmit={(e) => { e.preventDefault(); onSalvar(todos.filter((d) => marcados.includes(d))) }}>
+      <p className="ui-nota" aria-live="polite">Marque até {max} áreas para ficarem na barra. As outras continuam em “Mais”. {marcados.length} de {max} escolhidas.</p>
+      <ul className="ui-mais">
+        {todos.map((d) => {
+          const on = marcados.includes(d)
+          return (
+            <li key={d}>
+              <label className="ui-mais__item ui-mais__item--escolha" data-acento={acento(d)}>
+                <input type="checkbox" checked={on} disabled={!on && cheio} onChange={() => alternar(d)} />
+                <span className="pn-acento-disco" aria-hidden="true">{icone(d)}</span>
+                <span className="ui-mais__texto"><span className="ui-mais__nome">{titulo(d)}</span></span>
+              </label>
+            </li>
+          )
+        })}
+      </ul>
+      <div className="ui-acoes">
+        <button type="submit" className="og-btn og-btn--amarelo" disabled={!marcados.length}>Salvar a barra</button>
+        <button type="button" className="og-btn og-btn--vazado" onClick={onPadrao}>Usar o padrão</button>
+        <button type="button" className="og-btn og-btn--vazado" onClick={onVoltar}>Cancelar</button>
+      </div>
+    </form>
+  )
+}
+
+export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, icone, acento, contadores = {}, onIr, todos = null, onEscolher = null, max = 4 }) {
   const [aberta, setAberta] = React.useState(false)
+  const [escolhendo, setEscolhendo] = React.useState(false)
+  const podeEscolher = !!(todos && onEscolher && todos.length > 1)
   const naMais = mais.includes(vista)
   const celulas = atalhos.length + (mais.length ? 1 : 0)
   const posicao = naMais ? atalhos.length : atalhos.indexOf(vista)
@@ -63,7 +100,14 @@ export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, i
         </div>
       </nav>
 
-      <Folha aberto={aberta} titulo="Mais áreas" sub="As outras partes do painel." onFechar={() => setAberta(false)}>
+      <Folha aberto={aberta} titulo={escolhendo ? 'Atalhos da barra' : 'Mais áreas'}
+        sub={escolhendo ? 'Escolha o que fica a um toque, embaixo.' : 'As outras partes do painel.'}
+        onFechar={() => { setAberta(false); setEscolhendo(false) }}>
+        {escolhendo ? (
+          <EscolherAtalhos todos={todos} atuais={atalhos} max={max} titulo={titulo} icone={icone} acento={acento}
+            onSalvar={(l) => { onEscolher(l); setEscolhendo(false) }} onPadrao={() => { onEscolher(null); setEscolhendo(false) }}
+            onVoltar={() => setEscolhendo(false)} />
+        ) : (<>
         <ul className="ui-mais">
           {mais.map((d) => (
             <li key={d}>
@@ -87,6 +131,14 @@ export function AbasCelular({ atalhos, mais, vista, rotulo, titulo, descricao, i
             </li>
           ))}
         </ul>
+        {podeEscolher && (
+          <div className="ui-acoes ui-mais__editar">
+            <button type="button" className="og-btn og-btn--vazado" onClick={() => setEscolhendo(true)}>
+              <Icone nome="editar" tamanho={16} />Escolher os atalhos da barra
+            </button>
+          </div>
+        )}
+        </>)}
       </Folha>
     </>
   )

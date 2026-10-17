@@ -11,15 +11,17 @@ import { EquipeContexto, useCarregarEquipe } from '../lib/equipe'
 import { Avatar } from './Avatar'
 import { MeuPerfil } from './MeuPerfil'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
+import { atalhosDaBarra, lerAtalhos, gravarAtalhos, MAX_ATALHOS } from '../lib/atalhosBarra'
 
 // Oito módulos (reestruturação 29/09/2026, docs/superpowers/specs/
 // 2026-09-29-painel-reestruturacao-design.md; Social media em 17/10/2026).
 // Cada um junta um assunto; as abas de dentro moram em components/Modulos.jsx.
 export const DESTINOS = ['visao', 'participantes', 'contatos', 'operacao', 'social', 'arquivos', 'edicao', 'admin']
-// Os quatro primeiros VISÍVEIS desta ordem viram atalho na barra do celular;
-// o resto fica em "Mais". Administração vê os mesmos de sempre; a Social media,
-// Visão geral + Social media.
-export const ATALHOS = ['visao', 'participantes', 'contatos', 'operacao', 'social']
+// PADRÃO da barra do celular: os quatro primeiros VISÍVEIS desta ordem; o resto
+// fica em "Mais". Cada pessoa pode trocar (Mais › Escolher os atalhos da barra,
+// lib/atalhosBarra.js). Social media entrou no padrão em 18/10/2026 (pedido do
+// Wilker); Contatos foi para "Mais". A Social media vê Visão geral + Social media.
+export const ATALHOS = ['visao', 'participantes', 'social', 'operacao', 'contatos']
 
 // Quem vê cada módulo (conveniência — a RPC decide de novo). Sem dado.ler, os
 // módulos de cadastro só mostrariam "não autorizado": nem aparecem.
@@ -43,10 +45,10 @@ export const TITULOS = {
 // Rótulo da barra de abas do celular (célula de ~80px).
 const ROTULO_CURTO = { visao: 'visão', participantes: 'participantes', contatos: 'contatos', operacao: 'operação', social: 'social', arquivos: 'arquivos', edicao: 'edição', admin: 'admin' }
 
-// Uma cor da paleta fechada por módulo (CLAUDE.md §6.3). A paleta tem sete
-// acentos para oito módulos: Social media nasceu dentro de Operação e
-// herda o laranja dela — repetição de família, não de assunto.
-export const ACENTO_VISTA = { visao: 'amarelo', participantes: 'roxo', contatos: 'cyan', operacao: 'laranja', social: 'laranja', arquivos: 'magenta', edicao: 'choco', admin: 'marrom' }
+// Uma cor por módulo (CLAUDE.md §6.3), nunca repetida. Social media ganhou o
+// verde, cor só do painel (--scw-verde, 18/10/2026, pedido do Wilker) — antes
+// repetia o laranja de Operação.
+export const ACENTO_VISTA = { visao: 'amarelo', participantes: 'roxo', contatos: 'cyan', operacao: 'laranja', social: 'verde', arquivos: 'magenta', edicao: 'choco', admin: 'marrom' }
 
 // Ícone de cada módulo: nome no registro único (components/Icone.jsx) —
 // a mesma peça na rail, na barra do celular e no topo do módulo.
@@ -83,6 +85,12 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
   const equipe = useCarregarEquipe(nominal)
   const [perfilAberto, setPerfilAberto] = React.useState(false)
   const chaveVisiveis = visiveis.join()
+  // Barra do celular: escolha da pessoa neste aparelho, ou o padrão.
+  const conta = equipe.eu ? equipe.eu.user_id : quem ? quem.nome : null
+  const [barraSalva, setBarraSalva] = React.useState(() => lerAtalhos(conta))
+  React.useEffect(() => { setBarraSalva(lerAtalhos(conta)) }, [conta])
+  const barra = atalhosDaBarra(barraSalva, visiveis, ATALHOS)
+  const escolherBarra = (lista) => { gravarAtalhos(conta, lista); setBarraSalva(lista) }
 
   // A vista mora no ENDEREÇO (#participantes/lista?item=…): recarregar volta
   // ao mesmo lugar, o Voltar do navegador funciona e um contador abre uma
@@ -307,10 +315,13 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
           : null}
       </main>
 
-      {/* Barra de abas do celular (≤900px): quatro atalhos + "Mais". */}
+      {/* Barra de abas do celular (≤900px): até quatro atalhos (escolhidos pela pessoa) + "Mais". */}
       <AbasCelular
-        atalhos={ATALHOS.filter((d) => visiveis.includes(d)).slice(0, 4)}
-        mais={visiveis.filter((d) => !ATALHOS.filter((x) => visiveis.includes(x)).slice(0, 4).includes(d))}
+        atalhos={barra}
+        mais={visiveis.filter((d) => !barra.includes(d))}
+        todos={visiveis}
+        max={MAX_ATALHOS}
+        onEscolher={escolherBarra}
         vista={vista}
         rotulo={(d) => ROTULO_CURTO[d] || TITULOS[d][0].toLowerCase()}
         titulo={(d) => TITULOS[d][0]}
