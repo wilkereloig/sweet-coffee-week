@@ -860,13 +860,8 @@ confirmações; nenhuma regra de negócio mudou.
   navegação (`Abas`, `.og-abas`) seguem como controle segmentado.
 - Cartão da esteira mostra a **logo da marca** (`get_logos`, leitura à parte:
   falhou, ficam as iniciais).
-- **Versão nova chega ao app instalado** (02/10/2026): o `sw.js` não muda entre
-  publicações, então o aviso pelo service worker nunca disparava e o celular
-  seguia dias na versão antiga. `Conexao.jsx` compara o arquivo de entrada da
-  aba com o do HTML publicado (`lib/versao.js`, `fetch('/painel/?v=…')` — o
-  `?v=` foge do cache do SW): ao abrir, ao voltar ao app e a cada 10 min. Voltando
-  ao app sem janela aberta nem campo em uso, recarrega sozinho (uma vez por
-  versão); senão, a faixa "Atualizar agora".
+- **Versão nova chega ao app instalado** (02/10/2026; refeito em 18/10/2026 — ver "Atualização do painel" abaixo).
+  Até 17/10 comparava só o arquivo JS de entrada e recarregava sozinho ao voltar ao app; hoje nunca recarrega sozinho.
 - **Desfoque do iOS 26 no topo do app instalado** (02/10/2026): o sistema desenha um
   "Liquid Glass" ~40pt além da barra de status, e nenhum CSS ou meta o desliga.
   ⛔ Cabeçalho `sticky` com fundo sólido **foi testado no iPhone e não resolveu**.
@@ -1261,3 +1256,59 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   `n_agrupadas`; `get_notificacoes_org` (tipo de retorno novo) e `ler_notificacoes_org`/`registrar_push_organizacao`
   aceitam qualquer porta de leitura (`membro_org`) — antes a Social media via o aviso e não conseguia marcá-lo como
   lido nem ligar o push.
+
+#### Atualização do painel e convite do aparelho — 18/10/2026 (pedido do Wilker)
+- **Identidade da versão = o build inteiro.** `vite.config.js › versaoDoPainel` (depois de gravar o build): sha256 do HTML
+  final do painel + todos os arquivos que ele carrega (chunks, inclusive sob demanda, CSS, assets) + `sw.js` e manifesto
+  → id de 16 hex. Sai em `<meta name="scw-versao">` (a versão da aba) e em `/painel/versao.json` (`app`, `id`,
+  `publicado_em`, `ambiente` = `VERCEL_ENV`, `commit`, `novidades` = 1ª linha de `painel-app/NOVIDADES.txt`). Mesmo
+  deploy, então o arquivo nunca aponta para recurso ausente. Compara IGUALDADE (rollback também é "outra versão").
+  ⛔ Não voltar a comparar só o arquivo de entrada nem o conteúdo do `sw.js`.
+- **Um monitor só** (`lib/versao.js › criarMonitor`, instância em `Conexao.jsx › monitorDoPainel`): ao abrir (3 s), ao
+  voltar ao app, ao voltar a internet, a cada 15 min com a aba visível, quando um chunk não carrega (`vite:preloadError`)
+  e no push de versão. Uma consulta por vez; no máximo uma por minuto entre as abas (`scw_versao_vista` no localStorage);
+  o resultado vai às outras abas por `BroadcastChannel('scw-painel-versao')`. Resposta HTML, JSON alheio, 404 e
+  ambiente diferente (produção × preview) são recusados.
+- **Aviso:** "Atualização disponível / Uma nova versão do Painel SCW está pronta." com "Atualizar agora" e "Depois".
+  "Depois" recolhe para um ponto no botão do perfil/conta (`PontoVersao`), até a aba fechar. Com folha ou diálogo aberto
+  o aviso não flutua por cima (recolhe e volta quando fecha); dentro de Meu perfil/Sua conta a mesma caixa aparece
+  embutida (`CaixaAtualizacao`), ao lado de "Verificar atualização" — diferente do botão "Atualizar" do topo, que só relê
+  os dados.
+- **"Atualizar agora"** (`atualizarAgora`): conexão → trabalho pendente → versão ainda no servidor → HTML novo com a MESMA
+  id e os arquivos que ele abre respondendo → worker novo em espera ativado por mensagem (`ativar`) e esperado →
+  recarga única. Ao abrir, `resultadoDaAtualizacao` confere se a id esperada entrou: "Painel atualizado." ou "não
+  entrou" com uma 2ª tentativa por endereço novo (`?atualizar=`); depois disso, para (sem laço).
+- **Trabalho pendente declarado** (`lib/pendencias.js`): `usePendencia(ativo, { rotulo, salvar?, guardaRascunho? })`,
+  `registrarPendencia` (com `ativo()` perguntado na hora) e `comEnvio` (todo upload). Ligados: ficha da postagem
+  (alterações e comentário digitado), edição editorial, editor de seção da ficha do participante, cadastro da marca,
+  Meu perfil (nome e foto) e TODOS os envios de arquivo. Um `beforeunload` só, para o painel inteiro. Com pendência, o
+  aviso lista o que falta e oferece "Voltar para salvar", "Salvar e atualizar" (quando todos sabem salvar) e
+  "Atualizar sem salvar" (confirmação explícita). Envio em andamento nunca é interrompido.
+- **Service worker:** sem `skipWaiting` na instalação (o novo ESPERA); ativa pela mensagem `ativar` (fluxo do botão, ou
+  aba recém-aberta sem nada pela metade: ao abrir, o painel chama `update()` e o worker que terminar de instalar no
+  1º minuto assume — a troca não apaga nada que outra aba use). Caches `scw-painel-casca-v3` e `scw-painel-assets` (este NÃO é apagado por versão:
+  aba antiga ainda pede chunk dela; poda pelos 400 mais antigos). Limpeza só com prefixo `scw-painel-`; o `scw-painel-v2`
+  antigo migra os `/assets/` e sai. `/painel/versao.json` e o `/painel/` não-navegação vêm sempre da rede. Os workers de
+  `/organizacao/` e `/marca/` passaram a limpar só o próprio prefixo (antes apagavam tudo da origem).
+  ⚠️ **Transição:** instalações com o painel até `6ea52e3` detectam a versão pelo código ANTIGO (arquivo de entrada) e
+  recarregam/avisam como antes; ao abrir a versão nova, o worker novo instala e assume (sem nada pela metade) e o
+  cache antigo migra. A partir dela, vale o fluxo novo.
+- **Cabeçalhos** (`vercel.json`): `versao.json` e `sw.js` `no-store`; `/painel/` `no-cache`; `/assets/*` imutável.
+- **Push de versão — servidor, não navegador.** Migration `20261020_painel_versao.sql`: pg_cron `scw-painel-versao`
+  (10 min) → `painel_versao_ciclo()` lê por pg_net o `versao.json` DO DOMÍNIO DE PRODUÇÃO; id novo com
+  `ambiente = production` vira linha em `painel_versoes` e chama a `enviar-push` com `{ versao_id }` (modo 3). Texto fixo
+  "Painel SCW atualizado / Há melhorias disponíveis. Toque para abrir e atualizar.", tag `scw-versao`, url
+  `/painel/?verificar=1`. Uma vez por aparelho e versão (`push_versao_envios`), 404/410 desativa, falha tenta de novo
+  (até 3, no 1º dia). Preferência por aparelho: `push_subscriptions.avisar_versao` (`push_aparelho`). Toque com aba
+  aberta: o worker manda `verificar-versao` (nunca recarrega); sem aba, abre `?verificar=1`. "ok" no registro = o serviço
+  de push ACEITOU, não prova que apareceu na tela.
+- **Convite do aparelho** (`AppNoAparelho.jsx › ConviteAparelho`, substituiu o cartão da Mesa/Início): depois do login,
+  conta carregada, sem tour, sem folha/diálogo, sem pendência e sem aviso de atualização na frente. Fora do modo app:
+  "Tenha o Painel SCW no seu celular" (Instalar painel só com `beforeinstallprompt`; senão "Ver como instalar", com os
+  passos do Safari no iPhone e "abrir no Safari" no Chrome do iPhone). Aberto pelo ícone (ou computador sem oferta): "Ative
+  as notificações do painel"; sucesso só depois de o servidor confirmar a inscrição desta conta (`push_aparelho`);
+  bloqueado = como liberar, sem pedir de novo. "Agora não"/fechar adia 7 dias POR CONTA e aparelho
+  (`scw_convite_aparelho_<papel>_<conta>`, só a data). Uma vez por sessão. Meu perfil / Sua conta › "Aplicativo e
+  notificações" reabre, mostra o estado deste aparelho e a preferência de aviso de versão.
+- Testes: `tests/painel-app-versao.test.mjs` (transição com dependências falsas); navegador com builds reais A→B no
+  harness local (fora do repositório).
