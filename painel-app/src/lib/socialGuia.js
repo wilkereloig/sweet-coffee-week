@@ -8,11 +8,17 @@ export function passosDoGuia({ aprovador = 'quem aprova', aprova = false } = {})
     { titulo: 'Prepare', texto: 'Envie a arte e escreva a legenda. Os @ vão em “Perfis a mencionar” (já entram no texto copiado). Fotos e logos dos participantes estão na Biblioteca.' },
     { titulo: 'Envie para aprovação', texto: 'Quando não faltar nada, toque em “Enviar para aprovação”. ' + (aprova ? 'Quem aprova recebe um aviso.' : 'A aprovação fica com ' + aprovador + ', que recebe um aviso.') },
     { titulo: aprova ? 'Aprove ou peça ajuste' : 'Aguarde a aprovação', texto: aprova
-      ? 'Abra o atalho “Aguardando aprovação”. Aprove, ou peça ajuste dizendo o que mudar: a postagem volta para quem cuida dela.'
-      : 'Aprovada, ela aparece em “Aprovadas, a publicar”. Se pedirem ajuste, ela volta para você com o comentário.' },
-    { titulo: 'Publique no Instagram', texto: 'Na hora marcada, abra a postagem aprovada: “Copiar texto completo” e “Baixar arte”. Publique pelo Instagram.' },
+      ? 'Toque no alerta “para aprovar”, no alto do Planejamento. Aprove, ou peça ajuste dizendo o que mudar: a postagem volta para quem cuida dela.'
+      : 'Aprovada, ela aparece no alerta “a publicar”. Se pedirem ajuste, ela volta para você com o comentário.' },
+    { titulo: 'Publique no Instagram', texto: 'Na hora marcada, abra a postagem aprovada: “Copiar legenda” e “Baixar arte” (ou “Salvar ou compartilhar”, no celular). Publique pelo Instagram.' },
     { titulo: 'Confirme aqui', texto: 'Volte e toque em “Confirmar publicação”. Só assim ela fica como Publicada — o painel não publica sozinho.' },
   ]
+}
+
+/** A orientação curta da primeira visita: o caminho inteiro numa frase (aprovação e publicação manual incluídas). */
+export function etapasResumo({ aprovador = 'quem aprova', aprova = false } = {}) {
+  return 'Rascunho → Aguardando aprovação (' + (aprova ? 'você ou quem aprova' : aprovador) + ' aprova) → Aprovado → '
+    + 'publicação manual no Instagram → “Confirmar publicação” aqui. O painel não publica sozinho.'
 }
 
 /** "Eline" · "Eline ou Wilker" · "quem aprova" — primeiro nome, sem artigo (não se deduz pelo nome). */

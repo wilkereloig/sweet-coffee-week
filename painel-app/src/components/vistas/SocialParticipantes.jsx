@@ -3,7 +3,7 @@ import { rpc, SUPABASE_URL } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Icone } from '../Icone'
-import { Carregando, Erro, Vazio, Selo, Botao, BotaoIcone, Escolha, Secao, LogoMarca } from '../ui'
+import { Carregando, Erro, Vazio, Selo, Botao, Secao, LogoMarca } from '../ui'
 import { confirmar } from '../Confirmar'
 import { Autor } from '../Avatar'
 import { urlLogo } from '../../lib/logos'
@@ -60,11 +60,16 @@ export function mudancasEditoriais(lido, form) {
 }
 
 function TextoCopiavel({ texto, rotulo, onCopiado }) {
+  const [ok, setOk] = React.useState(false)
+  React.useEffect(() => { if (!ok) return undefined; const t = setTimeout(() => setOk(false), 2500); return () => clearTimeout(t) }, [ok])
   if (!texto) return <p className="ui-nota">Sem {rotulo.toLowerCase()} cadastrada.</p>
   return (
     <div className="sp-texto">
       <p>{texto}</p>
-      <BotaoIcone icone="copiar" rotulo={'Copiar ' + rotulo.toLowerCase()} onClick={() => navigator.clipboard.writeText(texto).then(() => onCopiado(rotulo + ' copiada.'), () => onCopiado('Não consegui copiar.'))} />
+      <Botao variante="secundario" icone={ok ? 'feito' : 'copiar'}
+        onClick={() => navigator.clipboard.writeText(texto).then(() => { setOk(true); onCopiado(rotulo + ' copiada.') }, () => onCopiado('Não consegui copiar. Selecione o texto e copie à mão.'))}>
+        {ok ? 'Copiada' : 'Copiar ' + rotulo.toLowerCase()}
+      </Botao>
     </div>
   )
 }
@@ -79,6 +84,8 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   const [salvando, setSalvando] = React.useState(false)
   const [aviso, setAviso] = React.useState('')
   const [erroAcao, setErroAcao] = React.useState(null)
+  const [falhaBaixa, setFalhaBaixa] = React.useState(null) // { fonte, nome } que não baixou
+  const baixar = (fonte, nome) => { setFalhaBaixa(null); baixarArquivo(fonte, nome).catch(() => setFalhaBaixa({ fonte, nome })) }
 
   const carregar = React.useCallback(async () => {
     try { const r = await rpc('editorial_ficha', { p_secret: lerSenha(), p_participacao: participacaoId }); setF(r); setErro(null); return r }
@@ -116,22 +123,24 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
       } else setErroAcao(traduzir(e.message))
     } finally { setSalvando(false) }
   }
-  async function fechar() {
+  // Toda saída da ficha (X, Esc, criar postagem, ficha completa, abrir postagem) pergunta se há texto não salvo.
+  async function sair(fn) {
     if (sujo) await new Promise((ok) => setTimeout(ok, 30))
-    if (sujo && !(await confirmar('Fechar sem salvar? O texto que você digitou no combo se perde.', { acao: 'Fechar sem salvar' }))) return
-    onFechar()
+    if (sujo && !(await confirmar('Sair sem salvar? O texto que você digitou no combo se perde.', { acao: 'Sair sem salvar' }))) return
+    fn()
   }
+  const fechar = () => sair(onFechar)
   function criarPostagem(comDescricao) {
     // Texto copiado AGORA: a legenda nasce independente do combo.
     const legenda = comDescricao ? [f.editavel.combo_nome, f.editavel.combo_descricao].filter(Boolean).join('\n\n') : ''
     // O @ da casa já entra nas menções (a pessoa só confere).
     const mencoes = R.arrobaDe(f.atual && f.atual.casa && f.atual.casa.instagram)
     try { sessionStorage.setItem(CHAVE_NOVA_POSTAGEM, JSON.stringify({ participante_id: f.participante_id, edicao_codigo: f.edicao_codigo, legenda, mencoes, titulo: f.marca })) } catch { /* modo privado */ }
-    navegar({ vista: 'social', aba: 'planejamento', filtros: { item: 'novo' } })
+    sair(() => navegar({ vista: 'social', aba: 'planejamento', filtros: { item: 'novo', volta: 'part:' + f.participante_id + ':' + (f.edicao_codigo || '') } }))
   }
 
   if (!f) {
-    return <Folha aberto titulo="Participante" sub="Carregando…" onFechar={onFechar} larga="ampla">
+    return <Folha aberto titulo="Participante" sub="Carregando…" onFechar={onFechar} larga="ampla" cheia>
       {erro ? <Erro texto={traduzir(erro)} onTentar={carregar} /> : <Carregando linhas={6} />}
     </Folha>
   }
@@ -153,30 +162,38 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   )
 
   return (
-    <Folha aberto titulo={f.marca} sub={[f.tema ? 'Tema: ' + f.tema : 'Sem tema definido', f.edicao_codigo].filter(Boolean).join(' · ')} onFechar={fechar} larga="ampla">
+    <Folha aberto titulo={f.marca} sub={[f.tema ? 'Tema: ' + f.tema : 'Sem tema definido', f.edicao_codigo].filter(Boolean).join(' · ')} onFechar={fechar} larga="ampla" cheia>
       <div className="sp-ficha">
         <header className="sp-cabeca">
           <div className="sp-logo">
             <LogoMarca url={casa.logo ? urlLogo(casa.logo.path) : null} nome={f.marca} tamanho={72} />
-            {casa.logo && casa.logo.path && <BotaoIcone icone="baixar" rotulo="Baixar a logo" alvo={f.marca}
-              onClick={() => baixarArquivo({ bucket: 'logos', path: casa.logo.path }, (f.marca + '-logo.' + (casa.logo.path.split('.').pop() || 'png')).replace(/\s+/g, '-').toLowerCase()).catch(() => setAviso('Não consegui baixar a logo. Tente de novo.'))} />}
+            {casa.logo && casa.logo.path && <Botao variante="secundario" icone="baixar" aria-label={'Baixar a logo de ' + f.marca}
+              onClick={() => baixar({ bucket: 'logos', path: casa.logo.path }, (f.marca + '-logo.' + (casa.logo.path.split('.').pop() || 'png')).replace(/\s+/g, '-').toLowerCase())}>Baixar logo</Botao>}
           </div>
           <div>
             <p className="sp-cabeca__selos">
               <Selo dominio="combo" valor={f.combo_status} />
-              {f.alterado_apos_aprovacao && <Selo tom="atencao">Alterado depois da aprovação</Selo>}
-              {f.publicado ? <Selo tom="ok">No site (versão {f.publicado.versao})</Selo> : <Selo tom="neutro">Ainda não está no site</Selo>}
+              {f.alterado_apos_aprovacao ? <Selo tom="atencao">Alterado depois da aprovação</Selo>
+                : f.publicado ? <Selo tom="ok">No site (versão {f.publicado.versao})</Selo> : <Selo tom="neutro">Ainda não está no site</Selo>}
             </p>
-            {f.tema_edicao && <p className="ui-nota">Tema geral da edição: {f.tema_edicao}</p>}
-            {casa.instagram && <p className="ui-nota">Instagram da casa: {casa.instagram}</p>}
+            <p className="sp-cabeca__info">{[f.tema_edicao && 'Tema da edição: ' + f.tema_edicao, casa.instagram && 'Instagram: ' + (R.arrobaDe(casa.instagram) || casa.instagram)].filter(Boolean).join(' · ')}</p>
           </div>
           <div className="ui-acoes">
             {pode('redes.editar') && <Botao icone="mais" variante="destaque" onClick={() => criarPostagem(false)}>Criar postagem</Botao>}
             {pode('redes.editar') && f.editavel.combo_descricao && <Botao variante="secundario" icone="copiar" onClick={() => criarPostagem(true)}>Criar postagem com a descrição</Botao>}
-            {pode('dado.ler') && <Botao variante="secundario" icone="ficha" onClick={() => navegar({ vista: 'participantes', aba: 'lista', filtros: { item: f.participante_id } })}>Ficha completa</Botao>}
+            {pode('dado.ler') && <Botao variante="secundario" icone="ficha" onClick={() => sair(() => navegar({ vista: 'participantes', aba: 'lista', filtros: { item: f.participante_id } }))}>Ficha completa</Botao>}
           </div>
         </header>
         {aviso && <p className="og-aviso" role="status">{aviso}</p>}
+        {falhaBaixa && (
+          <div className="og-aviso rd-falha" role="alert">
+            <p>Não consegui baixar “{falhaBaixa.nome}”. Confira a conexão.</p>
+            <div className="ui-acoes">
+              <Botao icone="atualizar" onClick={() => baixar(falhaBaixa.fonte, falhaBaixa.nome)}>Tentar de novo</Botao>
+              <Botao variante="secundario" onClick={() => setFalhaBaixa(null)}>Fechar</Botao>
+            </div>
+          </div>
+        )}
 
         {conflito && (
           <div className="og-aviso rd-conflito" role="alert">
@@ -253,14 +270,17 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
                     <img src={fotoUrl(x.path)} alt={x.alt || PAPEL_FOTO[x.papel]} loading="lazy" />
                   </span>
                   <span className="rd-campo__nota">{PAPEL_FOTO[x.papel]} · {x.estado === 'aprovada' ? 'aprovada' : 'sem aprovação'}{x.credito ? ' · ' + x.credito : ''}</span>
-                  <BotaoIcone icone="baixar" rotulo="Baixar foto" alvo={PAPEL_FOTO[x.papel]} onClick={() => baixarArquivo({ bucket: 'edicao-publico', path: x.path }, (f.marca + ' ' + PAPEL_FOTO[x.papel]).replace(/\s+/g, '-').toLowerCase() + '.webp')} />
+                  <Botao variante="secundario" icone="baixar" aria-label={'Baixar foto: ' + PAPEL_FOTO[x.papel]} onClick={() => baixar({ bucket: 'edicao-publico', path: x.path }, (f.marca + ' ' + PAPEL_FOTO[x.papel]).replace(/\s+/g, '-').toLowerCase() + '.webp')}>Baixar</Botao>
                 </li>
               ))}
             </ul>
           ) : <p className="ui-nota">Foto pendente.</p>}
         </Secao>
 
-        <Secao titulo="Unidades e serviço" nota="Só o que o site pode mostrar.">
+        <details className="rd-gaveta">
+          <summary>Unidades e serviço ({unidades.length})</summary>
+          <div className="rd-gaveta__corpo">
+          <p className="rd-campo__nota">Só o que o site pode mostrar.</p>
           {unidades.length ? (
             <ul className="sp-unidades">
               {unidades.map((u, i) => {
@@ -279,22 +299,28 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
               })}
             </ul>
           ) : <p className="ui-nota">Nenhuma unidade publicada ainda.</p>}
-        </Secao>
+          </div>
+        </details>
 
-        <Secao titulo="Postagens deste participante">
+        <details className="rd-gaveta">
+          <summary>Postagens deste participante ({(f.posts || []).length})</summary>
+          <div className="rd-gaveta__corpo">
           {(f.posts || []).length ? (
             <ul className="sp-posts">
               {f.posts.map((p) => (
                 <li key={p.id}>
-                  <button type="button" className="rd-link" onClick={() => navegar({ vista: 'social', aba: 'planejamento', filtros: { item: p.id } })}>{p.titulo}</button>
+                  <button type="button" className="rd-link" onClick={() => sair(() => navegar({ vista: 'social', aba: 'planejamento', filtros: { item: p.id } }))}>{p.titulo}</button>
                   <span className="rd-campo__nota"> · {p.programado_para ? R.quandoTexto(p.programado_para) : 'sem data'}</span> <Selo dominio="post_redes" valor={p.situacao} />
                 </li>
               ))}
             </ul>
           ) : <p className="ui-nota">Nenhuma postagem ainda.</p>}
-        </Secao>
+          </div>
+        </details>
 
-        <Secao titulo="Histórico editorial">
+        <details className="rd-gaveta">
+          <summary>Histórico editorial ({(f.historico || []).length})</summary>
+          <div className="rd-gaveta__corpo">
           {(f.historico || []).length ? (
             <ol className="rd-historico">
               {f.historico.map((h) => {
@@ -304,7 +330,8 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
               })}
             </ol>
           ) : <p className="ui-nota">Nenhuma edição registrada.</p>}
-        </Secao>
+          </div>
+        </details>
       </div>
     </Folha>
   )
@@ -316,14 +343,20 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
   const [erro, setErro] = React.useState(null)
   const [edicoes, setEdicoes] = React.useState([])
   const [busca, setBusca] = React.useState(f.q || '')
+  const pedido = React.useRef(0)
   const carregar = React.useCallback(async () => {
-    try { setDados(await rpc('editorial_participantes', { p_secret: lerSenha(), p_edicao: f.ed || null })); setErro(null) }
-    catch (e) { setErro(e.message) }
+    const meu = ++pedido.current // trocou de edição antes da resposta: a velha não sobrescreve a nova
+    try { const r = await rpc('editorial_participantes', { p_secret: lerSenha(), p_edicao: f.ed || null }); if (meu === pedido.current) { setDados(r); setErro(null) } }
+    catch (e) { if (meu === pedido.current) setErro(e.message) }
   }, [f.ed])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
   const [erroOpcoes, setErroOpcoes] = React.useState(null)
-  React.useEffect(() => { rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setEdicoes(o.edicoes || [])).catch((e) => setErroOpcoes(e.message)) }, [])
+  const carregarOpcoes = React.useCallback(() => {
+    setErroOpcoes(null)
+    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setEdicoes(o.edicoes || [])).catch((e) => setErroOpcoes(e.message))
+  }, [])
+  React.useEffect(() => { carregarOpcoes() }, [carregarOpcoes])
   const mudar = (patch, opc) => {
     const x = { ...f, ...patch }
     for (const k of Object.keys(x)) if (x[k] === undefined || x[k] === '') delete x[k]
@@ -348,16 +381,28 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
 
   return (
     <div className="sp">
-      <div className="sb-filtros">
-        <Escolha rotulo="Edição" valor={f.ed || (dados && dados.edicao) || ''} opcoes={edicoes.map((e) => [e.codigo, e.codigo + ' · ' + e.nome])} onMudar={(v) => mudar({ ed: v }, { substituir: true })} />
-        <Escolha rotulo="Mostrar" valor={f.cob || ''} opcoes={[['', 'Todos, em ordem alfabética'], ['menos', 'Quem tem menos postagens primeiro'], ['sem', 'Só quem ainda não tem postagem (' + semPost + ')']]}
-          onMudar={(v) => mudar({ cob: v || undefined }, { substituir: true })} />
+      <div className="sb-ferramentas">
         <label className="og-campo rd-busca">
-          <span>Buscar</span>
-          <input type="search" value={busca} placeholder="Marca, tema ou combo" onChange={(e) => setBusca(e.target.value)} />
+          <span className="ui-oculto">Buscar participante</span>
+          <input type="search" value={busca} placeholder="Buscar marca, tema ou combo" enterKeyHint="search" onChange={(e) => setBusca(e.target.value)} />
+        </label>
+        <label className="rd-ver">
+          <span className="ui-oculto">Edição</span>
+          <select value={f.ed || (dados && dados.edicao) || ''} onChange={(e) => mudar({ ed: e.target.value }, { substituir: true })}>
+            {!(f.ed || (dados && dados.edicao)) && <option value="">Edição…</option>}
+            {edicoes.map((e) => <option key={e.codigo} value={e.codigo}>{e.codigo} · {e.nome}</option>)}
+          </select>
+        </label>
+        <label className="rd-ver">
+          <span className="ui-oculto">Mostrar</span>
+          <select value={f.cob || ''} onChange={(e) => mudar({ cob: e.target.value || undefined }, { substituir: true })}>
+            <option value="">Todos, A–Z</option>
+            <option value="menos">Menos postagens primeiro</option>
+            <option value="sem">Sem postagem ({semPost})</option>
+          </select>
         </label>
       </div>
-      {erroOpcoes && <Erro titulo="Não carreguei a lista de edições" texto={traduzir(erroOpcoes)} />}
+      {erroOpcoes && <Erro titulo="Não carreguei a lista de edições" texto={traduzir(erroOpcoes)} onTentar={carregarOpcoes} />}
       {erro && <Erro texto={traduzir(erro)} onTentar={carregar} />}
       {!erro && !dados && <Carregando linhas={5} />}
       {dados && (visiveis.length ? (

@@ -1096,28 +1096,59 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   quem mudou não aprova → volta para "Aguardando aprovação" e a Eline é avisada (`redes_rever_etapa`); horário e
   responsável não desfazem a aprovação. Confirmar publicação continua exigindo `pronto`. **Quem criou cancela a própria
   postagem** enquanto ela não foi aprovada (antes a Social media ficava sem saída); depois disso, só `redes.gerir`.
-- **Guia passo a passo** (`vistas/SocialGuia.jsx`, texto em `lib/socialGuia.js`): seis passos no alto do Planejamento,
-  com o nome de quem aprova; "Esconder o guia" vale para o aparelho (`localStorage`, só preferência).
-- **Atalhos com número certo:** a conta vem de `redes_resumo` (TODAS as abertas), não do mês aberto na tela — antes
-  dezembro mostrava "0 atrasadas" com atraso em outubro. À vista ficam só os que têm algo (`atalhosEmDestaque`: 5 no
-  desktop, 3 no celular, mais "De hoje"); o resto é "Atalho" dentro de "Filtros e outros atalhos", fechado por padrão.
-- **Nova postagem mais curta:** responsável = quem cria; "Criar postagem" do participante já põe o @ da casa nas menções
-  (`arrobaDe`); escolher a arte na postagem nova cria o rascunho e sobe a arte em seguida (`ENVIOS_PENDENTES`).
-  "Copiar texto completo" = legenda + menções (`textoCompleto`); a legenda avisa acima de 2.200 caracteres. Cada
-  pendência é botão que leva ao campo.
+- **Guia** (`vistas/SocialGuia.jsx`, texto em `lib/socialGuia.js`; refeito em 17/10/2026 para não empurrar o
+  calendário): na primeira visita deste aparelho, UMA linha (`GuiaPrimeiraVez`, `etapasResumo`: o caminho inteiro,
+  com quem aprova e a publicação manual) + "Ver o passo a passo" / "Entendi" (`scw_social_guia_visto`; quem escondeu o
+  guia antigo — `scw_social_guia_recolhido` — não vê de novo). Os seis passos moram numa FOLHA aberta por "Como
+  funciona" no cabeçalho (`SocialGuia`).
+- **Alertas e atalhos:** a conta vem de `redes_resumo` (TODAS as abertas), não do mês aberto na tela — antes
+  dezembro mostrava "0 atrasadas" com atraso em outubro. À vista só os ALERTAS do perfil e só com algo
+  (`alertasDoPerfil`: quem aprova vê para aprovar · atrasadas · com ajuste; quem publica vê com ajuste · a publicar ·
+  atrasadas). ⛔ Contador zerado não vira bloco. Os outros atalhos são "Lista rápida (todas as datas)" dentro de
+  Filtros. Atalho ligado troca o período por uma faixa que DIZ o escopo (`escopoAtalho`: "de qualquer data… Não é a
+  semana escolhida") com "Voltar ao calendário".
+- **Nova postagem enxuta:** título (único obrigatório), formato, responsável (= quem cria), data, horário e legenda;
+  o resto em "Mais detalhes (opcional)". No celular, os campos vêm antes da arte. "Criar postagem" do participante põe o
+  @ da casa nas menções (`arrobaDe`) e leva `volta=part:<id>` no endereço: fechar (ou fechar a postagem criada) volta à
+  ficha do participante. Escolher a arte na postagem nova cria o rascunho e sobe a arte em seguida
+  (`ENVIOS_PENDENTES`). A postagem nova NÃO criada fica guardada neste aparelho (`scw_redes_rascunho_novo`, só o que a
+  pessoa mudou); vindo do participante com uma guardada, a tela pergunta ("Continuar a de antes" / "Seguir com a do
+  participante") — nunca troca em silêncio. Valor automático (responsável, edição atual) não conta como alteração.
 - **Cor do módulo: verde** (`--scw-verde #22B573`, 10ª cor, SÓ do painel — pedido do Wilker, 18/10/2026; chocolate sobre
   ele 6,1:1). Antes repetia o laranja de Operação. ⛔ Não usar no site.
 - **Barra do celular escolhida pela pessoa** (`lib/atalhosBarra.js`): Mais › "Escolher os atalhos da barra" marca até 4
   áreas; fica no aparelho, por conta (`scw_barra_<user_id>`). Padrão: Visão geral, Participantes, Social media, Operação
   (Contatos foi para "Mais"). Área que a pessoa deixou de ver sai sozinha da escolha. O painel da marca segue fixo.
-- **Planejamento:** abre na SEMANA, **segunda a domingo** (`inicioSemana`; título "Seg, 12 a dom, 18 de out"). Desktop:
-  sete colunas com até 4 cartões (miniatura, hora, avatar do responsável, situação, pendências) e "Ver todos"; clicar no
-  dia abre a agenda completa embaixo (`?dia=AAAA-MM-DD`; "Adicionar postagem neste dia" traz a data e pede a hora;
-  "Fechar o dia"). Celular (≤900px, `useEstreito`, a mesma quebra da casca): sete LINHAS com tira de miniaturas, e o dia abre ali mesmo — sem
-  colunas espremidas, sem rolagem lateral. Mês, Dia, Lista e Fila continuam. Atalhos: hoje, 7 dias, atrasadas, minhas,
-  sem responsável, **sem arte**, **sem legenda** (vêm de `redes_pendencias`; Story não conta legenda); filtro por
-  **participante** (`part`).
-- **Ficha da postagem:** "Última alteração: <avatar> nome · quando" e "criada por"; versão de cada arte (substituir sobe
+- **Planejamento** (refinado em 17/10/2026 — percurso: ver a semana → escolher o dia → abrir o post → conferir arte e
+  legenda → próxima ação). Topo em TRÊS níveis: cabeçalho ("Planejamento" — no estreito só para o leitor de tela, a aba
+  já é o título —, "Nova postagem", "Como funciona"); período (anterior · intervalo que abre o calendário do aparelho
+  por `showPicker` · próximo · Hoje; rótulo curto no celular, `tituloCurto`); ferramentas (Semana/Mês/Dia/Lista —
+  segmentado no largo, caixa de seleção no estreito —, "Sem data" com contador, busca, "Filtros" com quantos estão
+  ligados e "Limpar filtros"). Tudo no endereço, como antes.
+  Abre na SEMANA, **segunda a domingo**. ⚠️ O arranjo segue a LARGURA DO CONTEÚDO, não a do aparelho
+  (`useLargura` + `ResizeObserver` → `R.layoutSemana`): **colunas** (≥1040 px de conteúdo: sete colunas de cartões
+  curtos, dia clicado abre embaixo), **agenda** (600–1039: dias em linhas, postagens ao lado) e **linhas** (<600: dia,
+  data, quantos e alerta; o dia escolhido abre ali mesmo, sem repetir data nem contagem). 1024 px de tela com o menu
+  lateral cai em agenda — sete colunas ali ficavam ilegíveis. Nenhuma rolagem automática; hoje destacado.
+  ⚠️ **`container-type` contém posição fixa:** o container (`.rd-c`) envolve só o calendário; a ficha e o guia
+  (folhas `position:fixed`) ficam FORA dele — dentro, a folha ficaria presa na caixa do calendário. Mesma regra em
+  `.sb` (Biblioteca, sem folha) e nunca em `.sp` (Participantes abre folha).
+  **Cartão** (`CartaoPost`): miniatura · título (até 2 linhas, sem hifenizar) · hora e formato · situação · responsável
+  quando cabe; UM alerta, o mais urgente (`alertaDoCartao`: atrasada > ajuste > mesmo horário > pendências). O cartão
+  inteiro é o botão. Mês, Dia, Lista e Sem data continuam; filtro por **participante** (`part`).
+- **Ficha da postagem — leitura antes de formulário** (17/10/2026): arte → legenda → programação → "Próximo passo" →
+  gavetas recolhidas (detalhes · arquivos e versões · comentários · histórico; nenhuma dentro da outra). Cada bloco
+  edita NO LUGAR (`R.SECOES`: legenda sozinha — "Salvar" logo embaixo do campo, ao alcance com o teclado aberto —,
+  menções e observações, programação, detalhes); bloco com alteração não salva fica aberto. Pendência leva ao bloco e
+  ao campo (`ONDE_PENDENCIA`). A ÚNICA ação em destaque mora no rodapé (`R.proximaAcao`): criar · salvar (com
+  alteração não salva é sempre salvar — nenhuma etapa anda com a versão antiga) · enviar para aprovação · aprovar (só
+  `redes.aprovar`) · confirmar publicação. O raro fica em "Mais ações". Prévia: arte inteira (contain), altura
+  controlada, posição "2 de 7", anterior/próximo e miniaturas (nada depende de gesto), "Ampliar", "Baixar arte"/"Baixar
+  as N" com texto; falha de download aparece com "Tentar de novo" (nunca `.catch(() => {})`).
+  `Folha` ganhou duas props OPCIONAIS, só o Social media usa: `rodape` (barra fora da rolagem — sem sticky nem margem
+  negativa; substituiu o `.rd-rodape` preso com `bottom:-40px`) e `cheia` (tela inteira no celular). As outras folhas
+  não mudam.
+  Também: "Última alteração: <avatar> nome · quando" e "criada por"; versão de cada arte (substituir sobe
   1, a anterior fica em "Versões anteriores"); origem (enviada aqui × da biblioteca); quem confirmou com avatar;
   comentário com **pedido de ajuste** (selo "Ajuste pedido" até a próxima alteração; avisa responsável e autor);
   "Ver participante e combo". ⛔ Arte enviada por OUTRA pessoa (o designer) só `redes.gerir` substitui ou remove — a
@@ -1130,6 +1161,29 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   depois não muda a postagem. PDF e SVG ficam "só download". Privado continua privado: `redes` e `equipe` por
   `baixar_varios`, `arquivos` por `baixar` (só `geral/` para `redes.ver`), renovados (`lib/redesArquivos.js`; fonte =
   `{ bucket, path }`).
+- **Biblioteca com PASTAS** (17/10/2026, `SocialBiblioteca.jsx` + `lib/pastas.js`). ⚠️ Depende de
+  `20261019_social_pastas.sql` — **escrita, NÃO aplicada**. Sem ela o painel mostra a biblioteca sem pastas e um aviso
+  ("Pastas ainda não ativadas no servidor"); nada quebra. Pastas VIRTUAIS: `social_pastas` (hierarquia por `pai_id`,
+  vínculo opcional a edição/participante, arquivar — nunca apagar) + `social_biblioteca_pasta_item` (`tipo`, `item_id`
+  → pasta; sem linha = "Sem pasta") + `social_biblioteca_registro` (auditoria). Mover ou renomear NÃO toca no Storage,
+  no caminho, nas versões nem nas postagens; a origem (foto, logo, material) fica intacta. O banco impede ciclo, nome
+  vazio/com "/"/repetido no mesmo nível (índice único), pasta arquivada como destino e vínculo quebrado
+  (`social_item_existe`). Arquivar pasta com conteúdo exige `p_confirmar` e sobe tudo para a pasta-mãe (ou "Sem pasta").
+  Organizar = `redes.gerir`; a Social media navega, baixa e associa. Abre com as pastas primeiro, arquivos embaixo;
+  atalhos Biblioteca · Sem pasta · Recentes; caminho + "Voltar" (= voltar do histórico: a casca troca "ir para a URL
+  anterior" por `history.back()`); busca em tudo; ordem nome/atualização; seleção explícita ("Selecionar") com barra
+  presa embaixo; "Mover para…" mostra a árvore sem a própria pasta nem as de dentro. Envio dentro da pasta aberta
+  (`social_biblioteca_registrar` com `pasta_id`), "Enviado e registrado" só depois do banco. O seletor da postagem é o
+  MESMO navegador (`NavegadorBiblioteca modo="seletor"`). Pasta, filtros e prévia (`ver=tipo:id`) no endereço.
+- **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
+  ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
+  na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram
+  `redes` abriam aba nova). Vários = UM ZIP sem compressão (`zipArmazenado`, CRC lido em pedaços), nunca downloads
+  soltos; limites em `LIMITES` (ZIP 60 arquivos / 300 MB, 100 MB no celular). "Salvar ou compartilhar" só aparece com
+  `navigator.canShare({ files })`: compartilha o ARQUIVO (nunca URL privada), até 10 / 60 MB; toque expirado →
+  "Abrir opções para salvar" (um toque novo); cancelar = "Cancelado. Nada foi baixado." (sem download automático).
+  ⛔ A tela nunca diz "salvo no aparelho" nem que foi para Fotos: diz "download iniciado" / "opções usadas".
+  Carrossel sai numerado na ordem da postagem (`01-…`). Sem Web Share no celular: "Baixar" + orientação curta.
 - **Participantes** (`editorial_*`): ficha EDITORIAL do mesmo registro, lida por `montar_publico` (a lista fechada de
   campos públicos — sem telefone, e-mail, CNPJ, custos, pagamento) + versão publicada (`publicacoes` vigente) + fotos,
   unidades, postagens ligadas e histórico com autor. "Criar postagem com a descrição" COPIA o texto na hora

@@ -19,12 +19,13 @@ export const PERFIL_PADRAO = '@sweetcoffeeweek'
 // Rascunho → Aguardando aprovação → Aprovado → Publicado. "Em preparação" é
 // legado (nenhuma postagem usa; o banco não grava mais): fica só para rótulo.
 export const SITUACOES = [
-  { chave: 'rascunho', rotulo: 'Rascunho', tom: 'neutro' },
-  { chave: 'preparacao', rotulo: 'Em preparação', tom: 'neutro', legado: true },
-  { chave: 'aprovacao', rotulo: 'Aguardando aprovação', tom: 'atencao' },
-  { chave: 'pronto', rotulo: 'Aprovado', tom: 'andamento' },
-  { chave: 'publicado', rotulo: 'Publicado', tom: 'ok' },
-  { chave: 'cancelado', rotulo: 'Cancelado', tom: 'encerrado' },
+  // `curto`: o cartão estreito da semana (coluna de ~140 px); a ficha e o selo usam o rótulo inteiro.
+  { chave: 'rascunho', rotulo: 'Rascunho', curto: 'Rascunho', tom: 'neutro' },
+  { chave: 'preparacao', rotulo: 'Em preparação', curto: 'Em preparação', tom: 'neutro', legado: true },
+  { chave: 'aprovacao', rotulo: 'Aguardando aprovação', curto: 'Em aprovação', tom: 'atencao' },
+  { chave: 'pronto', rotulo: 'Aprovado', curto: 'Aprovado', tom: 'andamento' },
+  { chave: 'publicado', rotulo: 'Publicado', curto: 'Publicado', tom: 'ok' },
+  { chave: 'cancelado', rotulo: 'Cancelado', curto: 'Cancelado', tom: 'encerrado' },
 ]
 /** As etapas que a pessoa vê (o guia e o filtro de situação). */
 export const ETAPAS = SITUACOES.filter((s) => !s.legado)
@@ -156,6 +157,22 @@ function tituloCru(modo, chave) {
   return MESES[+chave.slice(5, 7) - 1] + ' de ' + chave.slice(0, 4)
 }
 
+/** Rótulo curto do período (celular): "12 a 18 de out" · "28 de set a 4 de out" · "Sex, 16 de out" · "Outubro de 2026". */
+export function tituloCurto(modo, chave) {
+  if (modo === 'semana') {
+    const [a, b] = [inicioSemana(chave), somarDias(inicioSemana(chave), 6)]
+    const x = dm(a), y = dm(b)
+    return x.m === y.m ? x.d + ' a ' + y.d + ' de ' + MES_CURTO[y.m - 1] : x.d + ' de ' + MES_CURTO[x.m - 1] + ' a ' + y.d + ' de ' + MES_CURTO[y.m - 1]
+  }
+  if (modo === 'dia') { const { d, m } = dm(chave); return DIAS_CURTOS[diaDaSemana(chave)] + ', ' + d + ' de ' + MES_CURTO[m - 1] }
+  return tituloPeriodo(modo, chave)
+}
+/** Nome dos botões de período: "Semana anterior" · "Próximo mês"… */
+export function rotuloMover(modo, delta) {
+  const [ant, prox] = { dia: ['Dia anterior', 'Próximo dia'], semana: ['Semana anterior', 'Próxima semana'] }[modo] || ['Mês anterior', 'Próximo mês']
+  return delta < 0 ? ant : prox
+}
+
 /** "14:30" → "14h30"; "09:00" → "9h". */
 export function horaCurta(hhmm) {
   if (!hhmm) return ''
@@ -243,13 +260,110 @@ export function contagemAtalhos(resumo, posts, ctx = {}) {
   }
   return o
 }
-/** Atalhos à vista: os que têm algo, na ordem de urgência, mais "De hoje". O resto fica em Filtros. */
-export function atalhosEmDestaque(contagem, { eu = null, aprova = false, max = 4 } = {}) {
-  // Quem aprova: o que espera por ela. Quem publica: ajuste e o que já pode ir ao ar (esperar aprovação não é tarefa dela).
-  const ordem = aprova
-    ? ['aprovacao', 'atrasadas', 'ajuste', 'hoje', 'aprovadas', 'minhas', 'sem_resp', 'sem_arte', 'sem_legenda', 'proximas']
-    : ['ajuste', 'aprovadas', 'atrasadas', 'hoje', 'minhas', 'aprovacao', 'sem_resp', 'sem_arte', 'sem_legenda', 'proximas']
-  return ordem.filter((k) => (k !== 'minhas' || eu) && (k === 'hoje' || (contagem[k] || 0) > 0)).slice(0, max)
+/**
+ * Alertas à vista no alto do Planejamento: só o que é trabalho DESTE perfil e
+ * só com algo (nunca contador zerado). Quem aprova: o que espera por ela, o
+ * atraso e o ajuste. Quem publica: o ajuste pedido, o que já pode ir ao ar e o
+ * atraso (esperar aprovação não é tarefa dela). Os outros atalhos ficam em Filtros.
+ */
+export function alertasDoPerfil(contagem, { aprova = false } = {}) {
+  const ordem = aprova ? ['aprovacao', 'atrasadas', 'ajuste'] : ['ajuste', 'aprovadas', 'atrasadas']
+  return ordem.filter((k) => Number(contagem[k]) > 0)
+}
+/** Rótulo curto do alerta (cabe três numa linha de celular); o escopo vai no rótulo acessível. */
+export function rotuloAlerta(k, n) {
+  const um = Number(n) === 1
+  return {
+    aprovacao: 'para aprovar',
+    atrasadas: um ? 'atrasada' : 'atrasadas',
+    ajuste: 'com ajuste',
+    aprovadas: 'a publicar',
+  }[k] || (ATALHOS[k] || k).toLowerCase()
+}
+/**
+ * Escopo de um atalho, em uma frase: atalho NÃO é a semana na tela. Diz de
+ * onde vêm as postagens, para ninguém achar que ainda vê só o período escolhido.
+ */
+export function escopoAtalho(atalho) {
+  return {
+    hoje: 'as postagens em aberto programadas para hoje',
+    proximas: 'as postagens em aberto dos próximos 7 dias',
+    atrasadas: 'todas as postagens em aberto com horário vencido, de qualquer data',
+    minhas: 'todas as postagens em aberto com você como responsável, de qualquer data',
+    aprovacao: 'todas as postagens aguardando aprovação, de qualquer data',
+    ajuste: 'todas as postagens com ajuste pedido, de qualquer data',
+    aprovadas: 'todas as postagens aprovadas que ainda não foram publicadas, de qualquer data',
+    sem_resp: 'todas as postagens em aberto sem responsável, de qualquer data',
+    sem_arte: 'todas as postagens em aberto sem arte, de qualquer data',
+    sem_legenda: 'todas as postagens em aberto sem legenda, de qualquer data',
+  }[atalho] || ''
+}
+/** Quantos filtros (não período nem visualização) estão ligados. */
+export const FILTROS = ['resp', 'sit', 'fmt', 'ed', 'part', 'q']
+export const filtrosAtivos = (f = {}) => FILTROS.filter((k) => f[k]).length
+
+/**
+ * Como a semana cabe na LARGURA DO CONTEÚDO (não na do aparelho: o menu
+ * lateral come espaço). Sete colunas só quando cada uma fica legível (~140 px);
+ * no meio, agenda (dias em linhas, postagens ao lado); estreito, linhas que abrem.
+ */
+export const LARGURA_COLUNAS = 1040
+export const LARGURA_AGENDA = 600
+export function layoutSemana(largura) {
+  if (!largura || largura >= LARGURA_COLUNAS) return 'colunas'
+  return largura >= LARGURA_AGENDA ? 'agenda' : 'linhas'
+}
+
+/**
+ * O alerta que o cartão mostra (um só, o mais urgente); o resto vai no rótulo
+ * acessível e na ficha. Postagem fechada não tem alerta.
+ */
+export function alertaDoCartao(p, { agora = Date.now(), conflito = false } = {}) {
+  if (FECHADAS.includes(p.situacao)) return null
+  if (atrasada(p, agora)) return { tom: 'atencao', texto: 'Atrasada' }
+  if (p.ajuste_aberto) return { tom: 'atencao', texto: 'Ajuste pedido' }
+  if (conflito) return { tom: 'atencao', texto: 'Mesmo horário' }
+  const n = (p.pendencias || []).filter((x) => x !== 'atrasada').length
+  if (n) return { tom: 'neutro', texto: n === 1 ? PENDENCIAS[(p.pendencias || []).find((x) => x !== 'atrasada')] || '1 pendência' : n + ' pendências' }
+  return null
+}
+
+// ── Ficha: seções editáveis e próxima ação ─────────────────────────────────
+/**
+ * Cada seção da ficha edita no lugar estes campos. A legenda edita SOZINHA:
+ * "Salvar" fica logo embaixo do campo (com o teclado do celular aberto, ao
+ * alcance); menções e observações têm a própria edição, menor.
+ */
+export const SECOES = {
+  legenda: ['legenda'],
+  extras: ['mencoes', 'observacoes'],
+  programacao: ['programado_para', 'responsavel_id'],
+  detalhes: ['titulo', 'perfil', 'formato', 'edicao_codigo', 'participante_id', 'referencias'],
+}
+/** Seções com alteração não salva (ficam abertas até salvar ou desfazer). */
+export const secoesSujas = (mudancas) => Object.keys(SECOES).filter((s) => SECOES[s].some((k) => k in mudancas))
+/** Pendência → onde se resolve: a seção e o campo. */
+export const ONDE_PENDENCIA = {
+  sem_arte: { secao: 'arquivos', campo: 'arte' }, arte_incompativel: { secao: 'arquivos', campo: 'arte' },
+  sem_responsavel: { secao: 'programacao', campo: 'resp' }, sem_horario: { secao: 'programacao', campo: 'data' },
+  sem_legenda: { secao: 'legenda', campo: 'legenda' },
+}
+
+/**
+ * A ÚNICA ação em destaque da ficha (o rodapé). Salvar, enviar para aprovação,
+ * aprovar e confirmar são ações diferentes: com alteração não salva, a ação é
+ * salvar — nenhuma etapa anda com a versão antiga. `null` = nada a destacar.
+ */
+export function proximaAcao({ novo = false, sujo = false, situacao = 'rascunho', bloqueios = 0, pode = () => false, confirmando = false } = {}) {
+  if (novo) return { chave: 'criar', rotulo: 'Criar rascunho', icone: 'feito' }
+  if (FECHADAS.includes(situacao) && sujo) return null
+  if (sujo) return pode('redes.editar') ? { chave: 'salvar', rotulo: 'Salvar alterações', icone: 'feito' } : null
+  if ((situacao === 'rascunho' || situacao === 'preparacao') && pode('redes.editar')) {
+    return { chave: 'enviar', rotulo: 'Enviar para aprovação', icone: 'enviar', bloqueada: bloqueios > 0 }
+  }
+  if (situacao === 'aprovacao' && pode('redes.aprovar')) return { chave: 'aprovar', rotulo: 'Aprovar', icone: 'sucesso' }
+  if (situacao === 'pronto' && pode('redes.publicar') && !confirmando) return { chave: 'confirmar', rotulo: 'Confirmar publicação…', icone: 'feito' }
+  return null
 }
 function noAtalho(p, atalho, { eu, agora }) {
   if (!atalho) return true
@@ -334,7 +448,8 @@ export function arrobaDe(instagram) {
 }
 
 /** Filtros que moram no endereço (#operacao/redes?modo=…). */
-export const CHAVES_FILTRO = ['modo', 'data', 'dia', 'resp', 'sit', 'fmt', 'ed', 'part', 'q', 'ord', 'atalho']
+// `volta`: de onde a postagem nova veio (part:<id> = ficha do participante) — fechar volta para lá.
+export const CHAVES_FILTRO = ['modo', 'data', 'dia', 'resp', 'sit', 'fmt', 'ed', 'part', 'q', 'ord', 'atalho', 'volta']
 
 // ── Arquivos ────────────────────────────────────────────────────────────────
 export const LIMITE_BYTES = 50 * 1024 * 1024 // teto de upload do projeto, não regra do Instagram

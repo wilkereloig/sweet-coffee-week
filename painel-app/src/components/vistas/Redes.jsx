@@ -8,35 +8,43 @@ import { useUrlsAssinadas } from '../../lib/redesArquivos'
 import { RedesFicha, traduzirRedes, Miniatura } from './RedesFicha'
 import { Avatar } from '../Avatar'
 import { CHAVE_NOVA_POSTAGEM } from './SocialParticipantes'
-import { SocialGuia } from './SocialGuia'
+import { SocialGuia, GuiaPrimeiraVez } from './SocialGuia'
 
 /*
- * Social media › Planejamento (16–17/10/2026): calendário das publicações do
- * Instagram. Abre na SEMANA (segunda a domingo); Mês · Dia · Lista · Fila sem
- * data vêm da MESMA leitura (`redes_listar`). Período, visualização, dia
- * aberto e filtros moram no endereço (#social/planejamento?data=…&dia=…), então
- * abrir uma postagem e voltar devolve a tela como estava. O endereço antigo
- * (#operacao/redes) é traduzido em lib/rota.js.
+ * Social media › Planejamento (16–17/10/2026; refinado 17/10/2026): calendário
+ * das publicações do Instagram. O percurso que a tela favorece:
+ *   ver a semana → escolher um dia → abrir o post → conferir arte e legenda →
+ *   executar a próxima ação.
+ * Topo em três níveis — cabeçalho (título, "Nova postagem", ajuda), período
+ * (anterior · intervalo · próximo · hoje) e ferramentas (visualização, sem
+ * data, busca, filtros). Alertas: só os do perfil e só com algo.
+ * A semana se arruma pela LARGURA DO CONTEÚDO (R.layoutSemana), não pela do
+ * aparelho: sete colunas, agenda ou linhas que abrem no lugar.
+ * Período, visualização, dia aberto e filtros moram no endereço
+ * (#social/planejamento?data=…&dia=…): abrir uma postagem e voltar devolve a
+ * tela como estava. O endereço antigo (#operacao/redes) é traduzido em lib/rota.js.
  *
  * ⛔ O painel não publica no Instagram. "Programado" = no calendário interno.
- * Não confundir com Edição › Publicação no site (páginas dos participantes).
  */
 
 const lerSenha = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || '' } catch { return '' } }
 const ALVO = { vista: 'social', aba: 'planejamento' }
+const MODOS_VISTA = ['semana', 'mes', 'dia', 'lista']
 
-function useEstreito() {
-  // Mesma quebra da casca (900px): abaixo disso o painel já é de celular.
-  const q = '(max-width: 900px)'
-  const [e, setE] = React.useState(() => typeof matchMedia === 'function' && matchMedia(q).matches)
-  React.useEffect(() => {
-    if (typeof matchMedia !== 'function') return undefined
-    const m = matchMedia(q)
-    const ouvir = () => setE(m.matches)
-    m.addEventListener('change', ouvir)
-    return () => m.removeEventListener('change', ouvir)
-  }, [])
-  return e
+// Largura útil do conteúdo (o menu lateral já descontado). Medida antes de
+// pintar, então a primeira tela já sai no arranjo certo.
+function useLargura(ref) {
+  const [w, setW] = React.useState(0)
+  React.useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    setW(el.clientWidth)
+    if (typeof ResizeObserver !== 'function') return undefined
+    const ro = new ResizeObserver(([e]) => setW(Math.round(e.contentRect.width)))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ref])
+  return w
 }
 
 function descricao(p, agora, conflito) {
@@ -48,31 +56,36 @@ function descricao(p, agora, conflito) {
     pend ? pend + (pend === 1 ? ' pendência' : ' pendências') : ''].filter(Boolean).join(', ')
 }
 
+/*
+ * Cartão da postagem — a mesma hierarquia em todo lugar: miniatura, título,
+ * horário e formato, situação, responsável (quando cabe). Um estado e, se
+ * houver, UM alerta (o mais urgente); o resto vai no rótulo acessível e na
+ * ficha. O cartão inteiro é o botão — nada clicável dentro dele.
+ */
 export function CartaoPost({ p, agora, conflito, urls, renovar, onAbrir, compacto = false }) {
   const fmt = R.FORMATO[p.formato] || {}
-  const at = R.atrasada(p, agora)
-  const pend = (p.pendencias || []).filter((x) => x !== 'atrasada')
+  const sit = R.SITUACAO[p.situacao] || {}
+  const alerta = R.alertaDoCartao(p, { agora, conflito })
   const hora = p.programado_para ? R.horaCurta(R.partes(p.programado_para).hora) : 'Sem data'
+  const seq = p.formato === 'story' && Number(p.n_arquivos) > 1 ? ' ×' + p.n_arquivos : ''
   return (
     <button type="button" className={'rd-cartao' + (compacto ? ' rd-cartao--compacto' : '')} data-situacao={p.situacao}
-      data-atrasada={at ? '1' : undefined} onClick={() => onAbrir(p.id)} aria-label={descricao(p, agora, conflito)}>
+      data-atrasada={R.atrasada(p, agora) ? '1' : undefined} onClick={() => onAbrir(p.id)} aria-label={descricao(p, agora, conflito)}>
       <Miniatura path={p.miniatura} formato={p.formato} urls={urls} renovar={renovar} />
       <span className="rd-cartao__corpo" aria-hidden="true">
         <span className="rd-cartao__titulo">{p.titulo}</span>
-        <span className="rd-cartao__meta">
-          <span><Icone nome="horario" tamanho={16} />{hora}</span>
-          <span><Icone nome={fmt.icone || 'imagem'} tamanho={16} />{fmt.curto}{p.formato === 'story' && Number(p.n_arquivos) > 1 ? ' ×' + p.n_arquivos : ''}</span>
-          {compacto
-            ? (p.responsavel_id ? <Avatar id={p.responsavel_id} rotulo={p.responsavel_nome} tamanho={20} /> : <span className="rd-falta">sem resp.</span>)
-            : <span>{p.responsavel_id ? <Avatar id={p.responsavel_id} rotulo={p.responsavel_nome} tamanho={20} /> : <Icone nome="conta" tamanho={16} />}{p.responsavel_nome || 'Sem responsável'}</span>}
+        <span className="rd-cartao__meta">{hora} · {fmt.curto}{seq}</span>
+        <span className="rd-cartao__estado">
+          {compacto ? <span className="rd-cartao__sit">{sit.curto || sit.rotulo}</span> : <Selo dominio="post_redes" valor={p.situacao} />}
+          {alerta && (compacto
+            ? <span className="rd-cartao__alerta" data-tom={alerta.tom}><Icone nome="atencao" tamanho={16} />{alerta.texto}</span>
+            : <Selo tom={alerta.tom}>{alerta.texto}</Selo>)}
         </span>
-        <span className="rd-cartao__selos">
-          <Selo dominio="post_redes" valor={p.situacao} />
-          {at && <Selo tom="atencao">Atrasada</Selo>}
-          {conflito && <Selo tom="atencao">Mesmo horário</Selo>}
-          {p.ajuste_aberto && !R.FECHADAS.includes(p.situacao) && <Selo tom="atencao">Ajuste</Selo>}
-          {pend.length > 0 && !R.FECHADAS.includes(p.situacao) && <span className="rd-cartao__pend">{pend.length} {pend.length === 1 ? 'pendência' : 'pendências'}</span>}
-        </span>
+        {!compacto && (
+          <span className="rd-cartao__resp">
+            {p.responsavel_id ? <><Avatar id={p.responsavel_id} rotulo={p.responsavel_nome} tamanho={20} />{p.responsavel_nome}</> : 'Sem responsável'}
+          </span>
+        )}
       </span>
     </button>
   )
@@ -137,94 +150,118 @@ const MAX_COLUNA = 4
 function resumoDia(itens, agora) {
   return {
     atrasadas: itens.filter((p) => R.atrasada(p, agora)).length,
-    pendentes: itens.filter((p) => !R.FECHADAS.includes(p.situacao) && (p.pendencias || []).some((x) => x !== 'atrasada')).length,
+    pendentes: itens.filter((p) => !R.FECHADAS.includes(p.situacao) && ((p.pendencias || []).some((x) => x !== 'atrasada') || p.ajuste_aberto)).length,
   }
 }
+const nPosts = (n) => (n ? n + (n === 1 ? ' post' : ' posts') : 'Nada')
+const nomeDia = (d) => R.DIAS_LONGOS[R.diaDaSemana(d)] + ', ' + Number(d.slice(8)) + ' de ' + R.tituloPeriodo('mes', d).toLowerCase().replace(/ de \d{4}$/, '')
 
-// Cabeça do dia: o botão que abre a agenda. Dia, data, quantos posts, alerta e
-// (no celular) a tira de miniaturas — o resto vai no rótulo acessível.
+// Cabeça do dia (colunas e linhas): botão que abre o dia. Dia, data, quantos
+// posts e um alerta quando há — só isso; o resto vai no rótulo acessível.
 function CabecaDia({ d, itens, hojeK, aberto, onAlternar, alvo, ctx }) {
   const n = itens.length
   const { atrasadas, pendentes } = resumoDia(itens, ctx.agora)
-  const nome = R.DIAS_LONGOS[R.diaDaSemana(d)]
-  const dataTxt = d.slice(8) + '/' + d.slice(5, 7)
-  const rotulo = [nome + ', ' + Number(d.slice(8)) + ' de ' + R.tituloPeriodo('mes', d).toLowerCase().replace(/ de \d{4}$/, ''),
-    d === hojeK ? 'hoje' : '', n ? n + (n === 1 ? ' publicação' : ' publicações') : 'nada programado',
+  const alerta = atrasadas || pendentes
+  const rotulo = [nomeDia(d), d === hojeK ? 'hoje' : '', n ? n + (n === 1 ? ' publicação' : ' publicações') : 'nada programado',
     atrasadas ? atrasadas + (atrasadas === 1 ? ' atrasada' : ' atrasadas') : '', pendentes ? pendentes + ' com pendência' : '',
-    aberto ? 'agenda aberta' : 'abrir a agenda do dia'].filter(Boolean).join(', ')
+    aberto ? 'dia aberto' : 'abrir o dia'].filter(Boolean).join(', ')
   return (
     <button type="button" className="rd-sem__cabeca" aria-expanded={aberto} aria-controls={alvo} onClick={onAlternar} aria-label={rotulo}>
       <span className="rd-sem__quando" aria-hidden="true">
         <span className="rd-sem__dia">{R.DIAS_CURTOS[R.diaDaSemana(d)]}</span>
-        <span className="rd-sem__data">{dataTxt}</span>
+        <span className="rd-sem__data">{d.slice(8) + '/' + d.slice(5, 7)}</span>
         {d === hojeK && <span className="rd-sem__hoje">hoje</span>}
       </span>
-      <span className="rd-sem__n" aria-hidden="true">{n ? n + (n === 1 ? ' post' : ' posts') : 'nada'}</span>
-      {(atrasadas > 0 || pendentes > 0) && (
-        <span className="rd-sem__alerta" aria-hidden="true"><Icone nome="atencao" tamanho={16} />{atrasadas || pendentes}</span>
-      )}
-      {n > 0 && (
-        <span className="rd-sem__minis" aria-hidden="true">
-          {itens.slice(0, 4).map((p) => <Miniatura key={p.id} path={p.miniatura} formato={p.formato} urls={ctx.urls} renovar={ctx.renovar} />)}
-          {n > 4 && <span className="rd-sem__mais">+{n - 4}</span>}
-        </span>
+      <span className="rd-sem__n" aria-hidden="true">{nPosts(n)}</span>
+      {alerta > 0 && (
+        <span className="rd-sem__alerta" aria-hidden="true"><Icone nome="atencao" tamanho={16} />
+          {atrasadas ? atrasadas + (atrasadas === 1 ? ' atrasada' : ' atrasadas') : pendentes + (pendentes === 1 ? ' pendente' : ' pendentes')}</span>
       )}
       <Icone nome={aberto ? 'recolher' : 'seta-direita'} tamanho={16} className="rd-sem__seta" />
     </button>
   )
 }
 
-// Agenda do dia aberto: TODOS os posts em ordem de horário + adicionar.
-function AgendaDia({ d, itens, ctx, podeCriar, onNova, onFechar, id }) {
-  const n = itens.length
+// Postagens de um dia em ordem de horário (o cartão já diz a hora: nada de coluna de hora repetida).
+function ListaDoDia({ itens, ctx }) {
   return (
-    <section id={id} className="rd-agenda" aria-labelledby={id + '-t'}>
-      <header className="rd-agenda__cabeca">
-        <h3 id={id + '-t'}>{R.tituloPeriodo('dia', d)} <span className="rd-agenda__n">· {n ? n + (n === 1 ? ' postagem' : ' postagens') : 'nada programado'}</span></h3>
-        <div className="ui-acoes">
-          {podeCriar && <Botao icone="mais" variante="destaque" onClick={() => onNova(d)}>Adicionar postagem neste dia</Botao>}
-          <Botao variante="secundario" icone="recolher" onClick={onFechar}>Fechar o dia</Botao>
-        </div>
-      </header>
-      {n ? (
-        <ol className="rd-dia__lista">
-          {itens.map((p) => (
-            <li key={p.id} className="rd-dia__linha">
-              <time className="rd-dia__hora" dateTime={p.programado_para}>{R.horaCurta(R.partes(p.programado_para).hora)}</time>
-              <CartaoPost p={p} {...ctx} conflito={!!ctx.conflitos[p.id]} />
-            </li>
-          ))}
-        </ol>
-      ) : <p className="ui-nota">Nada programado. {podeCriar ? 'Adicione uma postagem ou programe uma da fila sem data.' : ''}</p>}
-    </section>
+    <ol className="rd-dia__lista">
+      {itens.map((p) => <li key={p.id}><CartaoPost p={p} {...ctx} conflito={!!ctx.conflitos[p.id]} /></li>)}
+    </ol>
   )
 }
 
 /*
- * Semana (segunda a domingo) — a abertura do planejamento.
- * Desktop: sete colunas com os posts do dia (miniatura, horário, responsável,
- * situação, pendências); clicar no dia abre a agenda completa embaixo.
- * Celular: sete linhas legíveis (sem colunas espremidas, sem rolagem lateral);
- * o dia aberto expande ali mesmo.
+ * Semana (segunda a domingo).
+ *  colunas — sete colunas de cartões curtos; o dia clicado abre embaixo.
+ *  agenda  — dias em linhas, as postagens ao lado (largura intermediária).
+ *  linhas  — celular: sete linhas (dia, data, quantos, alerta); o dia
+ *            escolhido abre ali mesmo, sem repetir data nem contagem.
+ * Dia vazio continua na tela, com "Adicionar". Nenhuma rolagem automática.
  */
-function VistaSemana({ data, dias, hojeK, ctx, diaAberto, onAlternar, onNova, podeCriar, estreito }) {
+function VistaSemana({ data, dias, hojeK, ctx, diaAberto, onAlternar, onNova, podeCriar, layout }) {
   const lista = R.diasDaSemana(data)
   const aberto = lista.includes(diaAberto) ? diaAberto : ''
-  const idAgenda = (d) => 'rd-agenda-' + d
-  const agenda = (d) => <AgendaDia d={d} itens={dias[d] || []} ctx={ctx} podeCriar={podeCriar} onNova={onNova} onFechar={() => onAlternar('')} id={idAgenda(d)} />
-  if (estreito) {
+  const idDia = (d) => 'rd-dia-' + d
+  const adicionar = (d, texto = 'Adicionar postagem') => podeCriar && (
+    <Botao variante="secundario" icone="mais" onClick={() => onNova(d)} aria-label={texto + ' em ' + nomeDia(d)}>{texto}</Botao>
+  )
+
+  if (layout === 'linhas') {
     return (
-      <ol className="rd-sem rd-sem--lista" aria-label="Dias da semana">
-        {lista.map((d) => (
-          <li key={d} className={'rd-sem__linha' + (d === hojeK ? ' is-hoje' : '') + (d === aberto ? ' is-aberto' : '')}>
-            <CabecaDia d={d} itens={dias[d] || []} hojeK={hojeK} aberto={d === aberto} alvo={idAgenda(d)} ctx={ctx}
-              onAlternar={() => onAlternar(d === aberto ? '' : d)} />
-            {d === aberto && agenda(d)}
-          </li>
-        ))}
+      <ol className="rd-sem rd-sem--linhas" aria-label="Dias da semana">
+        {lista.map((d) => {
+          const itens = dias[d] || []
+          return (
+            <li key={d} className={'rd-sem__linha' + (d === hojeK ? ' is-hoje' : '') + (d === aberto ? ' is-aberto' : '')}>
+              <CabecaDia d={d} itens={itens} hojeK={hojeK} aberto={d === aberto} alvo={idDia(d)} ctx={ctx}
+                onAlternar={() => onAlternar(d === aberto ? '' : d)} />
+              {d === aberto && (
+                <div id={idDia(d)} className="rd-sem__aberto">
+                  {itens.length ? <ListaDoDia itens={itens} ctx={ctx} /> : <p className="ui-nota">Nada programado neste dia.</p>}
+                  <div className="ui-acoes">
+                    {adicionar(d)}
+                    <Botao variante="secundario" icone="recolher" onClick={() => onAlternar('')}>Recolher</Botao>
+                  </div>
+                </div>
+              )}
+            </li>
+          )
+        })}
       </ol>
     )
   }
+
+  if (layout === 'agenda') {
+    return (
+      <ol className="rd-sem rd-sem--agenda" aria-label="Dias da semana">
+        {lista.map((d) => {
+          const itens = dias[d] || []
+          return (
+            <li key={d} className={'rd-sem__linha' + (d === hojeK ? ' is-hoje' : '')}>
+              <h3 className="rd-sem__rotulo">
+                <span className="rd-sem__dia">{R.DIAS_CURTOS[R.diaDaSemana(d)]}</span>
+                <span className="rd-sem__data">{d.slice(8) + '/' + d.slice(5, 7)}</span>
+                {d === hojeK && <span className="rd-sem__hoje">hoje</span>}
+                <span className="ui-oculto">{', ' + nomeDia(d)}</span>
+              </h3>
+              <div className="rd-sem__posts">
+                <ol className="rd-dia__lista">
+                  {itens.map((p) => <li key={p.id}><CartaoPost p={p} {...ctx} conflito={!!ctx.conflitos[p.id]} /></li>)}
+                  {!itens.length && <li className="rd-sem__nada ui-nota">Nada programado.</li>}
+                  {podeCriar && (
+                    <li><button type="button" className="rd-sem__vazio" onClick={() => onNova(d)} aria-label={'Adicionar postagem em ' + nomeDia(d)}>
+                      <Icone nome="mais" tamanho={16} /> Adicionar</button></li>
+                  )}
+                </ol>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    )
+  }
+
   return (
     <>
       <ol className="rd-sem rd-sem--colunas" aria-label="Dias da semana">
@@ -232,7 +269,7 @@ function VistaSemana({ data, dias, hojeK, ctx, diaAberto, onAlternar, onNova, po
           const itens = dias[d] || []
           return (
             <li key={d} className={'rd-sem__coluna' + (d === hojeK ? ' is-hoje' : '') + (d === aberto ? ' is-aberto' : '')}>
-              <CabecaDia d={d} itens={itens} hojeK={hojeK} aberto={d === aberto} alvo={idAgenda(d)} ctx={ctx}
+              <CabecaDia d={d} itens={itens} hojeK={hojeK} aberto={d === aberto} alvo={idDia(d)} ctx={ctx}
                 onAlternar={() => onAlternar(d === aberto ? '' : d)} />
               {itens.length > 0 && (
                 <ul className="rd-sem__itens">
@@ -243,7 +280,7 @@ function VistaSemana({ data, dias, hojeK, ctx, diaAberto, onAlternar, onNova, po
                 <button type="button" className="rd-mes__mais" onClick={() => onAlternar(d)}>Ver todos ({itens.length})</button>
               )}
               {podeCriar && !itens.length && (
-                <button type="button" className="rd-sem__vazio" onClick={() => onNova(d)} aria-label={'Adicionar postagem em ' + R.tituloPeriodo('dia', d)}>
+                <button type="button" className="rd-sem__vazio" onClick={() => onNova(d)} aria-label={'Adicionar postagem em ' + nomeDia(d)}>
                   <Icone nome="mais" tamanho={16} /> Adicionar
                 </button>
               )}
@@ -251,29 +288,36 @@ function VistaSemana({ data, dias, hojeK, ctx, diaAberto, onAlternar, onNova, po
           )
         })}
       </ol>
-      {aberto && agenda(aberto)}
+      {aberto && (
+        <section id={idDia(aberto)} className="rd-agenda" aria-labelledby={idDia(aberto) + '-t'}>
+          <header className="rd-agenda__cabeca">
+            <h3 id={idDia(aberto) + '-t'}>{R.tituloPeriodo('dia', aberto)}</h3>
+            <div className="ui-acoes">
+              {adicionar(aberto)}
+              <Botao variante="secundario" icone="recolher" onClick={() => onAlternar('')}>Fechar o dia</Botao>
+            </div>
+          </header>
+          {(dias[aberto] || []).length ? <ListaDoDia itens={dias[aberto]} ctx={ctx} /> : <p className="ui-nota">Nada programado neste dia.</p>}
+        </section>
+      )}
     </>
   )
 }
 
-function VistaDia({ itens, ctx }) {
+function VistaDia({ itens, ctx, podeCriar, onNova }) {
   const abertos = itens.filter((p) => !R.FECHADAS.includes(p.situacao))
   const feitos = itens.filter((p) => R.FECHADAS.includes(p.situacao))
-  const linha = (p) => (
-    <li key={p.id} className="rd-dia__linha">
-      <time className="rd-dia__hora" dateTime={p.programado_para}>{R.horaCurta(R.partes(p.programado_para).hora)}</time>
-      <CartaoPost p={p} {...ctx} conflito={!!ctx.conflitos[p.id]} />
-    </li>
-  )
-  if (!itens.length) return <Vazio titulo="Nada programado neste dia" icone="calendario">Use as setas para outro dia, ou a Fila sem data.</Vazio>
+  if (!itens.length) {
+    return <Vazio titulo="Nada programado neste dia" icone="calendario" acao={podeCriar ? <Botao icone="mais" onClick={onNova}>Adicionar postagem</Botao> : null}>Use as setas para outro dia, ou veja as postagens sem data.</Vazio>
+  }
   return (
     <div className="rd-dia">
-      <Secao titulo={'Ainda a publicar (' + abertos.length + ')'} nota="Em ordem de horário (Fortaleza).">
-        {abertos.length ? <ol className="rd-dia__lista">{abertos.map(linha)}</ol> : <p className="ui-nota">Tudo deste dia já foi publicado ou cancelado.</p>}
+      <Secao titulo={'A publicar (' + abertos.length + ')'} acoes={podeCriar ? <Botao variante="secundario" icone="mais" onClick={onNova}>Adicionar postagem</Botao> : null}>
+        {abertos.length ? <ListaDoDia itens={abertos} ctx={ctx} /> : <p className="ui-nota">Tudo deste dia já foi publicado ou cancelado.</p>}
       </Secao>
       {feitos.length > 0 && (
         <Secao titulo={'Publicados e cancelados (' + feitos.length + ')'}>
-          <ol className="rd-dia__lista rd-dia__lista--feitos">{feitos.map(linha)}</ol>
+          <ListaDoDia itens={feitos} ctx={ctx} />
         </Secao>
       )}
     </div>
@@ -303,6 +347,7 @@ function VistaLista({ itens, ord, onOrdenar, ctx }) {
       <tbody>
         {itens.map((p) => {
           const fmt = R.FORMATO[p.formato] || {}
+          const alerta = R.alertaDoCartao(p, { agora: ctx.agora, conflito: !!ctx.conflitos[p.id] })
           return (
             <tr key={p.id} data-atrasada={R.atrasada(p, ctx.agora) ? '1' : undefined}>
               <td className="rd-tabela__mini"><Miniatura path={p.miniatura} formato={p.formato} urls={ctx.urls} renovar={ctx.renovar} /></td>
@@ -315,8 +360,7 @@ function VistaLista({ itens, ord, onOrdenar, ctx }) {
               <td>{p.responsavel_nome || <span className="rd-falta">Sem responsável</span>}</td>
               <td className="rd-tabela__selos">
                 <Selo dominio="post_redes" valor={p.situacao} />
-                {R.atrasada(p, ctx.agora) && <Selo tom="atencao">Atrasada</Selo>}
-                {ctx.conflitos[p.id] && <Selo tom="atencao">Mesmo horário</Selo>}
+                {alerta && <Selo tom={alerta.tom}>{alerta.texto}</Selo>}
               </td>
             </tr>
           )
@@ -329,8 +373,8 @@ function VistaLista({ itens, ord, onOrdenar, ctx }) {
 function VistaFila({ itens, ctx, podeCriar, onNova }) {
   if (!itens.length) {
     return (
-      <Vazio titulo="Fila vazia" icone="calendario" acao={podeCriar ? <Botao icone="mais" onClick={onNova}>Nova postagem</Botao> : null}>
-        Postagem criada sem data cai aqui até alguém programar.
+      <Vazio titulo="Nenhuma postagem sem data" icone="calendario" acao={podeCriar ? <Botao icone="mais" onClick={onNova}>Nova postagem</Botao> : null}>
+        Postagem criada sem data fica aqui até alguém programar.
       </Vazio>
     )
   }
@@ -342,9 +386,42 @@ function VistaFila({ itens, ctx, podeCriar, onNova }) {
   )
 }
 
+// Período: anterior · intervalo (abre o calendário do aparelho) · próximo · hoje.
+function Periodo({ modo, data, onMudar }) {
+  const ref = React.useRef(null)
+  const [campo, setCampo] = React.useState(false) // reserva: navegador sem showPicker mostra o campo
+  function escolherData() {
+    const el = ref.current
+    if (el && typeof el.showPicker === 'function') { try { el.showPicker(); return } catch { /* cai no campo */ } }
+    setCampo(true)
+    setTimeout(() => ref.current && ref.current.focus(), 0)
+  }
+  const passo = modo === 'fila' || modo === 'lista' ? 'mes' : modo
+  return (
+    <div className="rd-periodo" role="group" aria-label="Período">
+      <BotaoIcone icone="seta-esquerda" rotulo={R.rotuloMover(passo, -1)} onClick={() => onMudar({ data: R.mover(passo, data, -1) })} />
+      <button type="button" className="rd-periodo__intervalo" onClick={escolherData}
+        aria-label={R.tituloPeriodo(passo, data) + '. Escolher outra data'}>
+        <span className="rd-periodo__longo" aria-hidden="true">{R.tituloPeriodo(passo, data)}</span>
+        <span className="rd-periodo__curto" aria-hidden="true">{R.tituloCurto(passo, data)}</span>
+        <Icone nome="calendario" tamanho={16} />
+      </button>
+      <input ref={ref} type="date" className={campo ? 'rd-periodo__campo' : 'rd-periodo__campo ui-oculto'} tabIndex={campo ? 0 : -1}
+        aria-label="Ir para a data" value={data}
+        onChange={(e) => { if (e.target.value) { onMudar({ data: e.target.value }); setCampo(false) } }}
+        onBlur={() => setCampo(false)} />
+      <BotaoIcone icone="seta-direita" rotulo={R.rotuloMover(passo, 1)} onClick={() => onMudar({ data: R.mover(passo, data, 1) })} />
+      <Botao variante="secundario" onClick={() => onMudar({ data: R.hoje() })}>Hoje</Botao>
+    </div>
+  )
+}
+
 export function Redes({ rota, navegar, pode, registrarAtualizar }) {
   const f = rota.filtros || {}
-  const estreito = useEstreito()
+  const raiz = React.useRef(null)
+  const largura = useLargura(raiz)
+  const layout = R.layoutSemana(largura)
+  const compacto = largura > 0 && largura < 760 // ferramentas numa linha só: visualização vira caixa de seleção
   // A semana é a abertura, no desktop e no celular.
   const modo = R.MODOS.includes(f.modo) ? f.modo : 'semana'
   const data = /^\d{4}-\d{2}-\d{2}$/.test(f.data || '') ? f.data : R.hoje()
@@ -358,28 +435,37 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
   const [erroOpcoes, setErroOpcoes] = React.useState(null)
   const [resumo, setResumo] = React.useState(null)
   const [busca, setBusca] = React.useState(f.q || '')
+  const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
+  const [guia, setGuia] = React.useState(false)
 
   // Uma leitura por mês (ou pela janela do atalho): mudar de modo dentro do mês não relê.
   const chaveLeitura = atalho ? 'atalho' : R.inicioMes(data)
+  const pedido = React.useRef(0)
   const carregar = React.useCallback(async () => {
     const { de, ate } = R.intervaloConsulta(data, atalho)
+    const meu = ++pedido.current // resposta velha (mês anterior) não sobrescreve a nova
     try {
       const r = await rpc('redes_listar', { p_secret: lerSenha(), p_de: de, p_ate: ate })
+      if (meu !== pedido.current) return
       setDados(r)
       setErro(null)
-    } catch (e) { setErro(e.message) }
-    // Números dos atalhos: de TODAS as abertas (o mês na tela não muda a conta).
+    } catch (e) { if (meu === pedido.current) setErro(e.message) }
+    // Números dos alertas: de TODAS as abertas (o mês na tela não muda a conta).
     rpc('redes_resumo', { p_secret: lerSenha() }).then(setResumo).catch(() => setResumo(null))
   }, [chaveLeitura]) // eslint-disable-line react-hooks/exhaustive-deps
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
-  React.useEffect(() => {
-    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => { if (o) { setOpcoes({ ...o, carregadas: true }); setErroOpcoes(null) } })
+  const carregarOpcoes = React.useCallback(() => {
+    setErroOpcoes(null)
+    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => { if (o) setOpcoes({ ...o, carregadas: true }) })
       .catch((e) => setErroOpcoes(e.message))
   }, [])
+  React.useEffect(() => { carregarOpcoes() }, [carregarOpcoes])
 
+  const fAtual = React.useRef(f)
+  fAtual.current = f
   const mudar = React.useCallback((patch) => {
-    const filtros = { ...f, ...patch }
+    const filtros = { ...fAtual.current, ...patch }
     for (const k of Object.keys(filtros)) if (filtros[k] === undefined || filtros[k] === '') delete filtros[k]
     navegar({ ...ALVO, filtros }, { substituir: true })
   }, [f, navegar])
@@ -411,11 +497,16 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
     let doParticipante = null
     try { doParticipante = JSON.parse(sessionStorage.getItem(CHAVE_NOVA_POSTAGEM) || 'null') } catch { /* modo privado */ }
     const campos = doParticipante ? Object.fromEntries(Object.entries(doParticipante).filter(([, v]) => v)) : {}
-    return { campos, data: /^\d{4}-\d{2}-\d{2}$/.test(f.nd || '') ? f.nd : null }
+    return { campos, data: /^\d{4}-\d{2}-\d{2}$/.test(f.nd || '') ? f.nd : null, doParticipante: !!doParticipante }
   }, [item]) // eslint-disable-line react-hooks/exhaustive-deps
   // Lido uma vez: saiu da postagem nova, o pacote do participante some.
   React.useEffect(() => { if (item !== 'novo') { try { sessionStorage.removeItem(CHAVE_NOVA_POSTAGEM) } catch { /* modo privado */ } } }, [item])
   const fechar = React.useCallback(() => {
+    // Veio da ficha do participante: volta para ela (o caminho de retorno).
+    if (/^part:/.test(f.volta || '')) {
+      const [, pid, ved] = f.volta.split(':')
+      navegar({ vista: 'social', aba: 'participantes', filtros: { item: pid, ed: ved || undefined } }); return
+    }
     const filtros = { ...f }
     delete filtros.item
     delete filtros.nd
@@ -429,8 +520,7 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
   const conflitosMapa = R.conflitos(posts)
   const contagem = R.contagemAtalhos(resumo, posts, { eu, agora })
   const aprova = pode('redes.aprovar')
-  const destaque = R.atalhosEmDestaque(contagem, { eu, aprova, max: estreito ? 3 : 5 })
-  if (atalho && !destaque.includes(atalho)) destaque.push(atalho)
+  const alertas = R.alertasDoPerfil(contagem, { aprova })
   const comData = filtrados.filter((p) => p.programado_para)
   const semData = filtrados.filter((p) => !p.programado_para)
   const dias = R.porDia(comData)
@@ -444,70 +534,116 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
   const { urls, renovar } = useUrlsAssinadas(visiveis.map((p) => p.miniatura))
   const ctx = { agora, urls, renovar, onAbrir: abrir, conflitos: conflitosMapa }
 
-  const temFiltro = ['resp', 'sit', 'fmt', 'ed', 'part', 'q', 'atalho'].some((k) => f[k])
+  const nFiltros = R.filtrosAtivos(f)
   const podeCriar = pode('redes.editar')
+  const limparFiltros = () => { setBusca(''); mudar({ resp: undefined, sit: undefined, fmt: undefined, ed: undefined, part: undefined, q: undefined }) }
   const opResp = [['', 'Todos'], ...(eu ? [['eu', 'Eu']] : []), ['ninguem', 'Sem responsável'], ...(opcoes.equipe || []).map((e) => [e.user_id, e.nome])]
   const opSit = [['', 'Todas'], ['abertas', 'Em aberto'], ...R.ETAPAS.map((s) => [s.chave, s.rotulo]), ['atrasada', 'Atrasadas']]
-  const opAtalho = [['', 'Nenhum'], ...Object.entries(R.ATALHOS).filter(([k]) => k !== 'minhas' || eu).map(([k, r]) => [k, r + ' (' + (contagem[k] || 0) + ')'])]
+  const opAtalho = [['', 'Nenhuma'], ...Object.entries(R.ATALHOS).filter(([k]) => k !== 'minhas' || eu).map(([k, r]) => [k, r + ' (' + (contagem[k] || 0) + ')'])]
   const opFmt = [['', 'Todos'], ...R.FORMATOS.map((x) => [x.chave, x.rotulo])]
   const opEd = [['', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]
-  const titulo = atalho ? R.ATALHOS[atalho] : R.tituloPeriodo(modo, data)
+  const opPart = [['', 'Todos'], ...(opcoes.participantes || []).map((x) => [x.id, x.nome])]
+  const rotuloDe = (ops, v) => ((ops.find(([k]) => k === v) || [])[1] || v)
+  const resumoFiltros = [f.resp && rotuloDe(opResp, f.resp), f.sit && rotuloDe(opSit, f.sit), f.fmt && rotuloDe(opFmt, f.fmt),
+    f.ed && f.ed, f.part && rotuloDe(opPart, f.part), f.q && '“' + f.q + '”'].filter(Boolean)
+  const nSemData = Number(contagem.sem_data) || 0
+  const campoBusca = (
+    <label className="og-campo rd-busca">
+      <span className={compacto ? undefined : 'ui-oculto'}>Buscar</span>
+      <input type="search" value={busca} placeholder="Buscar título ou participante" enterKeyHint="search" onChange={(e) => setBusca(e.target.value)} />
+    </label>
+  )
 
   return (
     <div className="rd">
-      {dados && <SocialGuia aprovadores={opcoes.aprovadores || []} aprova={aprova} podeCriar={podeCriar && !posts.length} temPosts={posts.length > 0} onNova={() => abrir('novo')} />}
-      {erroOpcoes && <Erro titulo="Não carreguei a equipe e os participantes" texto={traduzirRedes(erroOpcoes)} />}
+      {/* O container de largura NÃO envolve as folhas: container-type contém posição fixa. */}
+      <div className="rd-c" ref={raiz} data-layout={layout}>
+      <header className="rd-cabeca">
+        <h2 className="rd-cabeca__titulo">Planejamento</h2>
+        <div className="rd-cabeca__acoes">
+          <button type="button" className="rd-ajuda" onClick={() => setGuia(true)} aria-haspopup="dialog">
+            <Icone nome="informacao" tamanho={20} /><span>Como funciona</span>
+          </button>
+          {podeCriar && <Botao icone="mais" variante="destaque" onClick={() => abrir('novo')}>Nova postagem</Botao>}
+        </div>
+      </header>
+      {dados && <GuiaPrimeiraVez aprovadores={opcoes.aprovadores || []} aprova={aprova} onAbrirPassos={() => setGuia(true)} />}
+      {erroOpcoes && <Erro titulo="Não carreguei a equipe e os participantes" texto={traduzirRedes(erroOpcoes)} onTentar={carregarOpcoes} />}
 
-      <div className="rd-barra">
-        <div className="rd-periodo">
-          <Botao variante="secundario" onClick={() => mudar({ data: R.hoje(), atalho: undefined })}>Hoje</Botao>
-          <BotaoIcone icone="seta-esquerda" rotulo="Período anterior" disabled={modo === 'fila' || !!atalho} onClick={() => mudar({ data: R.mover(modo, data, -1) })} />
-          <BotaoIcone icone="seta-direita" rotulo="Próximo período" disabled={modo === 'fila' || !!atalho} onClick={() => mudar({ data: R.mover(modo, data, 1) })} />
-          <label className="rd-data">
-            <span className="ui-oculto">Ir para a data</span>
-            <input type="date" value={data} onChange={(e) => { if (e.target.value) mudar({ data: e.target.value, atalho: undefined }) }} />
-          </label>
-          <h2 className="rd-periodo__titulo" aria-live="polite">{titulo}</h2>
+      <div className="rd-faixa">
+      {atalho ? (
+        <div className="rd-escopo" role="status">
+          <p><b>{R.ATALHOS[atalho]} ({visiveis.length})</b> — {R.escopoAtalho(atalho)}. Não é a semana escolhida.</p>
+          <Botao variante="secundario" icone="calendario" onClick={() => mudar({ atalho: undefined, modo: undefined })}>Voltar ao calendário</Botao>
         </div>
-        <div className="og-agenda__modos rd-modos" role="group" aria-label="Visualização">
-          {R.MODOS.map((m) => (
-            <button key={m} type="button" className={modo === m && !atalho ? 'is-ativo' : undefined} aria-pressed={modo === m && !atalho}
-              onClick={() => mudar({ modo: m, atalho: undefined })}>
-              {m === 'fila' ? <>Fila<span className="rd-so-largo"> sem data</span></> : R.ROTULO_MODO[m]}{m === 'fila' && contagem.sem_data > 0 && <span className="og-aba__n">{contagem.sem_data}</span>}
-            </button>
+      ) : modo !== 'fila' && (
+        <Periodo modo={modo} data={data} onMudar={(p) => mudar({ ...p, atalho: undefined })} />
+      )}
+      {!atalho && alertas.length > 0 && (
+        <ul className="rd-alertas" aria-label="Pedem atenção (todas as datas)">
+          {alertas.map((k) => (
+            <li key={k}>
+              <button type="button" className="rd-alerta" data-tom={k === 'aprovadas' ? undefined : 'atencao'} onClick={() => { setFiltrosAbertos(false); mudar({ atalho: k, modo: 'lista' }) }}
+                aria-label={contagem[k] + ' ' + R.ATALHOS[k].toLowerCase() + ' — ' + R.escopoAtalho(k)}>
+                <Icone nome={k === 'aprovadas' ? 'sucesso' : 'atencao'} tamanho={16} /><b>{contagem[k]}</b> {R.rotuloAlerta(k, contagem[k])}
+              </button>
+            </li>
           ))}
-        </div>
-        {podeCriar && <Botao icone="mais" variante="destaque" onClick={() => abrir('novo')}>Nova postagem</Botao>}
+        </ul>
+      )}
       </div>
 
-      <ul className="rd-avisos" aria-label="O que precisa de atenção">
-        {destaque.map((k) => (
-          <li key={k}>
-            <button type="button" className="rd-aviso" aria-pressed={atalho === k}
-              data-tom={(['atrasadas', 'sem_resp', 'ajuste'].includes(k) || (k === 'aprovacao' && aprova)) && contagem[k] > 0 ? 'atencao' : undefined}
-              onClick={() => mudar({ atalho: atalho === k ? undefined : k, modo: atalho === k ? undefined : 'lista' })}>
-              <b>{contagem[k]}</b> {R.ATALHOS[k].toLowerCase()}
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <details className="rd-filtros" open={temFiltro || undefined}>
-        <summary>Filtros e outros atalhos{temFiltro ? ' (ativos)' : ''}</summary>
-        <div className="rd-filtros__campos">
-          <Escolha rotulo="Atalho" valor={atalho} opcoes={opAtalho} onMudar={(v) => mudar({ atalho: v || undefined, modo: v ? 'lista' : undefined })} />
-          <Escolha rotulo="Responsável" valor={f.resp || ''} opcoes={opResp} onMudar={(v) => mudar({ resp: v })} />
-          <Escolha rotulo="Situação" valor={f.sit || ''} opcoes={opSit} onMudar={(v) => mudar({ sit: v })} />
-          <Escolha rotulo="Formato" valor={f.fmt || ''} opcoes={opFmt} onMudar={(v) => mudar({ fmt: v })} />
-          <Escolha rotulo="Edição" valor={f.ed || ''} opcoes={opEd} onMudar={(v) => mudar({ ed: v })} />
-          <Escolha rotulo="Participante" valor={f.part || ''} opcoes={[['', 'Todos'], ...(opcoes.participantes || []).map((x) => [x.id, x.nome])]} onMudar={(v) => mudar({ part: v })} />
-          <label className="og-campo rd-busca">
-            <span>Buscar</span>
-            <input type="search" value={busca} placeholder="Título ou participante" onChange={(e) => setBusca(e.target.value)} />
+      <div className="rd-ferramentas">
+        {!atalho && (compacto ? (
+          <label className="rd-ver">
+            <span className="ui-oculto">Visualização</span>
+            <select value={modo === 'fila' ? 'fila' : modo} onChange={(e) => mudar({ modo: e.target.value === 'semana' ? undefined : e.target.value })}>
+              {MODOS_VISTA.map((m) => <option key={m} value={m}>{R.ROTULO_MODO[m]}</option>)}
+              {modo === 'fila' && <option value="fila">Sem data</option>}
+            </select>
           </label>
-          {temFiltro && <Botao variante="secundario" onClick={() => { setBusca(''); mudar({ resp: undefined, sit: undefined, fmt: undefined, ed: undefined, part: undefined, q: undefined, atalho: undefined }) }}>Limpar filtros</Botao>}
+        ) : (
+          <div className="og-agenda__modos rd-modos" role="group" aria-label="Visualização">
+            {MODOS_VISTA.map((m) => (
+              <button key={m} type="button" className={modo === m ? 'is-ativo' : undefined} aria-pressed={modo === m}
+                onClick={() => mudar({ modo: m === 'semana' ? undefined : m })}>{R.ROTULO_MODO[m]}</button>
+            ))}
+          </div>
+        ))}
+        {!atalho && (
+          <button type="button" className="rd-semdata" aria-pressed={modo === 'fila'} onClick={() => mudar({ modo: modo === 'fila' ? undefined : 'fila' })}>
+            Sem data{nSemData > 0 && <><span className="og-aba__n" aria-hidden="true">{nSemData}</span><span className="ui-oculto"> ({nSemData})</span></>}
+          </button>
+        )}
+        {!compacto && campoBusca}
+        <button type="button" className="rd-filtros-btn" aria-expanded={filtrosAbertos} aria-controls="rd-filtros" onClick={() => setFiltrosAbertos((x) => !x)}>
+          Filtros{nFiltros > 0 && <><span className="og-aba__n" aria-hidden="true">{nFiltros}</span><span className="ui-oculto"> ({nFiltros} {nFiltros === 1 ? 'ativo' : 'ativos'})</span></>}
+        </button>
+      </div>
+
+      {filtrosAbertos && (
+        <div id="rd-filtros" className="rd-filtros" role="region" aria-label="Filtros">
+          <div className="rd-filtros__campos">
+            {compacto && campoBusca}
+            <Escolha rotulo="Responsável" valor={f.resp || ''} opcoes={opResp} onMudar={(v) => mudar({ resp: v })} />
+            <Escolha rotulo="Situação" valor={f.sit || ''} opcoes={opSit} onMudar={(v) => mudar({ sit: v })} />
+            <Escolha rotulo="Formato" valor={f.fmt || ''} opcoes={opFmt} onMudar={(v) => mudar({ fmt: v })} />
+            <Escolha rotulo="Edição" valor={f.ed || ''} opcoes={opEd} onMudar={(v) => mudar({ ed: v })} />
+            <Escolha rotulo="Participante" valor={f.part || ''} opcoes={opPart} onMudar={(v) => mudar({ part: v })} />
+            <Escolha rotulo="Lista rápida (todas as datas)" valor={atalho} opcoes={opAtalho} onMudar={(v) => { if (v) setFiltrosAbertos(false); mudar({ atalho: v || undefined, modo: v ? 'lista' : undefined }) }} />
+          </div>
+          <div className="ui-acoes">
+            {nFiltros > 0 && <Botao variante="secundario" icone="fechar" onClick={limparFiltros}>Limpar filtros</Botao>}
+            <Botao variante="secundario" onClick={() => setFiltrosAbertos(false)}>Fechar filtros</Botao>
+          </div>
         </div>
-      </details>
+      )}
+      {!filtrosAbertos && nFiltros > 0 && (
+        <p className="rd-filtrando" role="status">
+          <span>Filtrando: {resumoFiltros.join(' · ')}</span>
+          <button type="button" className="rd-link" onClick={limparFiltros}>Limpar filtros</button>
+        </p>
+      )}
 
       {erro && <Erro texto={traduzirRedes(erro)} onTentar={carregar} />}
       {!erro && !dados && <Carregando linhas={5} />}
@@ -515,17 +651,22 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
         <div className="rd-corpo" data-modo={atalho ? 'lista' : modo}>
           {atalho ? <VistaLista itens={visiveis} ord={ord} onOrdenar={(o) => mudar({ ord: o })} ctx={ctx} />
             : modo === 'mes' ? <VistaMes data={data} dias={dias} hojeK={R.hoje(agora)} ctx={ctx} irDia={(d) => mudar({ modo: 'dia', data: d })} />
-            : modo === 'semana' ? <VistaSemana data={data} dias={dias} hojeK={R.hoje(agora)} ctx={ctx} estreito={estreito}
+            : modo === 'semana' ? <VistaSemana data={data} dias={dias} hojeK={R.hoje(agora)} ctx={ctx} layout={layout}
                 diaAberto={f.dia || ''} onAlternar={(d) => mudar({ dia: d || undefined, data: d || data })} onNova={novaNoDia} podeCriar={podeCriar} />
-            : modo === 'dia' ? <VistaDia itens={visiveis} ctx={ctx} />
+            : modo === 'dia' ? <VistaDia itens={visiveis} ctx={ctx} podeCriar={podeCriar} onNova={() => novaNoDia(data)} />
             : modo === 'lista' ? <VistaLista itens={visiveis} ord={ord} onOrdenar={(o) => mudar({ ord: o })} ctx={ctx} />
             : <VistaFila itens={visiveis} ctx={ctx} podeCriar={podeCriar} onNova={() => abrir('novo')} />}
         </div>
       )}
+      </div>
+
+      <SocialGuia aberto={guia} onFechar={() => setGuia(false)} aprovadores={opcoes.aprovadores || []} aprova={aprova}
+        podeCriar={podeCriar} onNova={() => abrir('novo')} />
 
       {item && (
         <RedesFicha key={item} id={item} pode={pode} opcoes={opcoes} posts={posts} inicial={inicialNovo}
           onFechar={fechar} onMudou={carregar}
+          voltaParticipante={/^part:/.test(f.volta || '')}
           onVerParticipante={(pid, ed) => navegar({ vista: 'social', aba: 'participantes', filtros: { item: pid, ed: ed || undefined } })}
           onAbrir={(id) => { const x = { ...f, item: id }; delete x.nd; navegar({ ...ALVO, filtros: x }, { substituir: true }) }} />
       )}
@@ -536,16 +677,26 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
 /*
  * Resumo discreto para a Visão geral: hoje, próximos 7 dias, atrasadas,
  * minhas e sem responsável — cada número abre o calendário já filtrado.
- * Leitura à parte: sem a migration ou sem redes.ver, simplesmente não aparece.
+ * Leitura à parte: sem redes.ver não aparece; carregando e falha aparecem
+ * (para a Social media é o único bloco da Visão geral).
  */
 export function ResumoRedes({ navegar, pode, className = '' }) {
   const [r, setR] = React.useState(null)
+  const [erro, setErro] = React.useState(null)
   const ver = pode('redes.ver')
-  React.useEffect(() => {
-    if (!ver) return
-    rpc('redes_resumo', { p_secret: lerSenha() }).then(setR).catch(() => setR(null))
-  }, [ver])
-  if (!ver || !r) return null
+  const carregar = React.useCallback(() => {
+    setErro(null)
+    rpc('redes_resumo', { p_secret: lerSenha() }).then(setR).catch((e) => setErro(e.message))
+  }, [])
+  React.useEffect(() => { if (ver) carregar() }, [ver, carregar])
+  if (!ver) return null
+  if (!r) {
+    return (
+      <Secao titulo="Social media" nota="Planejamento do Instagram." className={className}>
+        {erro ? <Erro titulo="Não carreguei o resumo do planejamento" texto={traduzirRedes(erro)} onTentar={carregar} /> : <Carregando linhas={2} />}
+      </Secao>
+    )
+  }
   const ir = (filtros) => () => navegar({ ...ALVO, filtros })
   const itens = [
     ...(Number(r.aprovacao) > 0 ? [['aprovacao', 'aguardando aprovação']] : []), ...(Number(r.ajuste) > 0 ? [['ajuste', 'com ajuste pedido']] : []),

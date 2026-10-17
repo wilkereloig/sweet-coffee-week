@@ -3,25 +3,32 @@ import { rpc } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Icone } from '../Icone'
-import { Carregando, Erro, Selo, Botao, BotaoIcone, Secao, MaisAcoes, traduzirErro } from '../ui'
+import { Carregando, Erro, Selo, Botao, BotaoIcone, MaisAcoes, traduzirErro } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import * as R from '../../lib/redes'
-import { useUrlsAssinadas, baixarArquivo, prepararArquivo, enviarArquivo, fonteDe, chaveFonte, urlDe } from '../../lib/redesArquivos'
+import { useUrlsAssinadas, prepararArquivo, enviarArquivo, fonteDe, chaveFonte, urlDe } from '../../lib/redesArquivos'
+import { useEntrega, EstadoEntrega, BotoesEntrega } from './BaixarArquivo'
 import { tamanhoLegivel } from '../../lib/arquivos'
 import { Autor } from '../Avatar'
 import { SeletorBiblioteca, ROTULO_ORIGEM } from './SocialBiblioteca'
 import { quemAprova } from '../../lib/socialGuia'
 
 /*
- * Ficha de uma publicação (Social media, 16–17/10/2026). Folha larga: no desktop a
- * arte fica ao lado dos dados; no celular, em cima. A arte nunca é esticada
- * nem recortada (contida na proporção do próprio arquivo).
+ * Ficha de uma publicação (Social media, 16–17/10/2026; reorganizada em
+ * 17/10/2026: LEITURA antes de formulário). Ordem: arte → legenda →
+ * programação → próxima ação → o resto (detalhes, arquivos, comentários,
+ * histórico), recolhido. Cada bloco edita no lugar ("Editar" → campos →
+ * "Salvar"/"Cancelar"); bloco com alteração não salva fica aberto. Postagem
+ * nova é um formulário curto: só o título é obrigatório.
+ * No desktop a arte fica ao lado; no celular, em cima, com altura controlada,
+ * numa tela cheia de rolagem única. A ação em destaque mora no rodapé da
+ * folha, FORA da rolagem (Folha `rodape`): nada fica coberto por ela.
  *
  * Salvar: só o que mudou vai ao banco, com a versão lida. "Salvo" aparece
  * depois da resposta do servidor, nunca antes. Versão desatualizada não
  * sobrescreve ninguém: o texto digitado fica, e a tela mostra o que a outra
  * pessoa mudou para decidir. O que não foi salvo fica guardado neste aparelho
- * (sessionStorage) e volta ao reabrir a ficha.
+ * (sessionStorage) e volta ao reabrir a ficha — inclusive a postagem nova.
  *
  * ⛔ Copiar legenda e baixar arte NÃO marcam publicação. Publicado = o botão
  *    "Confirmar publicação", com data e hora reais.
@@ -33,10 +40,14 @@ const camposDe = (p) => Object.fromEntries(R.CAMPOS.map((k) => [k, norm(p ? p[k]
 const eImagem = (a) => String(a.mime || '').startsWith('image/')
 // Fonte = { bucket, path }: a arte enviada aqui (redes) ou o material referenciado da biblioteca.
 const fonteArq = (a) => ({ bucket: a.bucket || 'redes', path: a.path })
+// O que a entrega precisa (o ORIGINAL: bucket + caminho do arquivo, nunca a miniatura).
+const itemDe = (a) => ({ bucket: a.bucket || 'redes', path: a.path, nome: a.nome, mime: a.mime, tamanho: a.tamanho })
 const miniDe = (a) => (a.miniatura_path ? { bucket: 'redes', path: a.miniatura_path } : eImagem(a) ? fonteArq(a) : null)
+// Postagem nova ainda não criada: guardada neste aparelho até virar rascunho.
+const CHAVE_NOVO = 'scw_redes_rascunho_novo'
 
 const ERROS_REDES = {
-  requisitos_pendentes: 'Ainda falta algo para enviar para aprovação (veja a lista acima).',
+  requisitos_pendentes: 'Ainda falta algo para enviar para aprovação (veja a lista em “Próximo passo”).',
   post_fechado: 'Esta publicação já foi publicada ou cancelada: o registro não muda mais por aqui.',
   post_nao_pronto: 'A postagem precisa estar aprovada antes de confirmar a publicação.',
   situacao_invalida: 'Essa etapa não existe mais. Atualize a página.',
@@ -92,7 +103,13 @@ export function Miniatura({ path, formato, urls, renovar, grande = false }) {
   )
 }
 
-function Previa({ arquivos, urls, renovar, formato }) {
+/*
+ * Prévia: a arte inteira (contain, na proporção do arquivo), altura controlada.
+ * Sequência e carrossel: posição ("2 de 7"), anterior/próximo e miniaturas —
+ * trocar de arquivo nunca depende de gesto. Ações essenciais ao lado: Ampliar
+ * e Baixar, com texto. `vazio`: o que mostrar sem arte (o envio, quando pode).
+ */
+function Previa({ arquivos, urls, erroUrls = null, renovar, formato, entrega, nomeConjunto = 'artes', vazio = null }) {
   const [i, setI] = React.useState(0)
   const dialogo = React.useRef(null)
   const renovados = React.useRef(new Set())
@@ -103,6 +120,7 @@ function Previa({ arquivos, urls, renovar, formato }) {
       <div className="rd-previa rd-previa--vazia">
         <Icone nome={(R.FORMATO[formato] || {}).icone || 'imagem'} tamanho={32} />
         <p>Sem arte ainda</p>
+        {vazio}
       </div>
     )
   }
@@ -114,19 +132,22 @@ function Previa({ arquivos, urls, renovar, formato }) {
   const midia = (grande) => video
     ? <video src={url} controls preload="metadata" playsInline aria-label={'Vídeo: ' + a.nome} />
     : <img src={url} alt={a.alt || 'Arte: ' + a.nome} onError={() => { if (!renovados.current.has(a.id)) { renovados.current.add(a.id); renovar(fonteArq(a)) } }} className={grande ? 'rd-ampliar__img' : undefined} />
+  const nomeSeq = formato === 'story' ? 'stories' : 'artes'
   return (
     <div className="rd-previa">
       <div className="rd-previa__palco" style={razao ? { '--razao': razao } : undefined}>
-        {url ? midia(false) : <span className="rd-previa__espera">Carregando a arte…</span>}
+        {url ? midia(false)
+          : erroUrls ? <span className="rd-previa__espera">Não consegui abrir a arte. <Botao variante="secundario" icone="atualizar" onClick={() => renovar(fonteArq(a))}>Tentar de novo</Botao></span>
+          : <span className="rd-previa__espera">Carregando a arte…</span>}
       </div>
-      <div className="rd-previa__barra">
-        {n > 1 && <BotaoIcone icone="seta-esquerda" rotulo="Arquivo anterior" disabled={i === 0} onClick={() => setI(i - 1)} />}
-        <span className="rd-previa__conta">{n > 1 ? (i + 1) + ' de ' + n + (formato === 'story' ? ' stories' : '') : a.nome}
-          {a.versao > 1 ? ' · versão ' + a.versao : ''}</span>
-        {n > 1 && <BotaoIcone icone="seta-direita" rotulo="Próximo arquivo" disabled={i === n - 1} onClick={() => setI(i + 1)} />}
-        <BotaoIcone icone="busca" rotulo="Ampliar" disabled={!url} onClick={() => dialogo.current && dialogo.current.showModal()} />
-        <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} onClick={() => baixarArquivo(fonteArq(a), a.nome).catch(() => {})} />
-      </div>
+      {n > 1 && (
+        <div className="rd-previa__nav" role="group" aria-label="Trocar de arquivo">
+          <BotaoIcone icone="seta-esquerda" rotulo="Arquivo anterior" disabled={i === 0} onClick={() => setI(i - 1)} />
+          <span className="rd-previa__conta" aria-live="polite">{(i + 1) + ' de ' + n + ' ' + nomeSeq}{a.versao > 1 ? ' · versão ' + a.versao : ''}</span>
+          <BotaoIcone icone="seta-direita" rotulo="Próximo arquivo" disabled={i === n - 1} onClick={() => setI(i + 1)} />
+        </div>
+      )}
+      {n === 1 && <p className="rd-previa__nome">{a.nome}{a.versao > 1 ? ' · versão ' + a.versao : ''}</p>}
       {n > 1 && (
         <ol className="rd-previa__tira" aria-label="Ordem dos arquivos">
           {arquivos.map((x, k) => (
@@ -139,6 +160,13 @@ function Previa({ arquivos, urls, renovar, formato }) {
           ))}
         </ol>
       )}
+      {/* Entregar: esta arte (original) e, em sequência, todas na ordem da postagem (nomes numerados). */}
+      <div className="rd-previa__acoes">
+        <Botao variante="secundario" icone="busca" disabled={!url} onClick={() => dialogo.current && dialogo.current.showModal()}>Ampliar</Botao>
+        <BotoesEntrega entrega={entrega} itens={[itemDe(a)]} rotuloBaixar={n > 1 ? 'Baixar esta' : 'Baixar arte'} />
+        {n > 1 && <BotoesEntrega entrega={entrega} itens={arquivos.map(itemDe)} numerar nomeZip={nomeConjunto} rotuloBaixar={'Baixar as ' + n + ' (ZIP)'} />}
+      </div>
+      <EstadoEntrega entrega={entrega} />
       {/* Ampliar: <dialog> nativo (Esc e foco de graça). As teclas param aqui para a folha não fechar junto. */}
       <dialog ref={dialogo} className="rd-ampliar" aria-label={'Arte ampliada: ' + a.nome}
         onKeyDown={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) e.currentTarget.close() }}>
@@ -154,7 +182,7 @@ function Previa({ arquivos, urls, renovar, formato }) {
 // Rótulo por `htmlFor` (não envolvendo o campo: dentro do <label>, o texto já
 // digitado num textarea entra no nome acessível). A nota é descrição
 // (aria-describedby), não parte do nome.
-function Campo({ rotulo, nota, largo, id: idCampo, children }) {
+function Campo({ rotulo, nota, largo, id: idCampo, erro = false, rotuloOculto = false, children }) {
   const auto = React.useId()
   const id = idCampo || auto
   const campo = React.isValidElement(children)
@@ -163,11 +191,50 @@ function Campo({ rotulo, nota, largo, id: idCampo, children }) {
   return (
     <div className={'rd-campo' + (largo ? ' rd-campo--largo' : '')}>
       <div className="og-campo">
-        <span><label htmlFor={idCampo ? idCampo : id + '-c'}>{rotulo}</label></span>
+        <span className={rotuloOculto ? 'ui-oculto' : undefined}><label htmlFor={idCampo ? idCampo : id + '-c'}>{rotulo}</label></span>
         {campo}
       </div>
-      {nota && <small className="rd-campo__nota" id={id + '-n'}>{nota}</small>}
+      {nota && <small className={'rd-campo__nota' + (erro ? ' rd-campo__nota--erro' : '')} id={id + '-n'}>{nota}</small>}
     </div>
+  )
+}
+
+/*
+ * Bloco da ficha: título + ação ("Editar") à direita, conteúdo embaixo. Em
+ * edição, os campos e "Salvar"/"Cancelar" ficam JUNTO deles — com o teclado
+ * do celular aberto, salvar continua ao alcance.
+ */
+function Bloco({ titulo, acoes, children, className = '', id }) {
+  return (
+    <section className={'rd-bloco ' + className} id={id}>
+      <header className="rd-bloco__cabeca">
+        <h3>{titulo}</h3>
+        {acoes && <div className="rd-bloco__acoes">{acoes}</div>}
+      </header>
+      {children}
+    </section>
+  )
+}
+function AcoesEdicao({ salvando, onSalvar, onCancelar, podeSalvar = true }) {
+  return (
+    <div className="ui-acoes rd-bloco__salvar">
+      <Botao variante="destaque" icone="feito" disabled={salvando || !podeSalvar} onClick={onSalvar}>{salvando ? 'Salvando…' : 'Salvar'}</Botao>
+      <Botao variante="secundario" disabled={salvando} onClick={onCancelar}>Cancelar</Botao>
+    </div>
+  )
+}
+
+// Recolhido por padrão; `aberto` controlado (uma pendência abre o bloco certo).
+function Gaveta({ titulo, aberto, onAlternar, children, id, travada = false }) {
+  return (
+    <details className="rd-gaveta" id={id} open={aberto} onToggle={(e) => {
+      // Com campos em edição dentro, a gaveta não fecha (eles sumiriam com "Alterações não salvas").
+      if (travada && !e.currentTarget.open) { e.currentTarget.open = true; return }
+      if (e.currentTarget.open !== aberto) onAlternar(e.currentTarget.open)
+    }}>
+      <summary>{titulo}</summary>
+      <div className="rd-gaveta__corpo">{children}</div>
+    </details>
   )
 }
 
@@ -183,7 +250,7 @@ function valorLegivel(k, v, opcoes) {
   return s.length > 280 ? s.slice(0, 280) + '…' : s
 }
 
-function textoHistorico(h, opcoes) {
+function textoHistorico(h) {
   const d = h.detalhe || {}
   switch (h.tipo) {
     case 'criado': return 'Criou a postagem'
@@ -212,26 +279,37 @@ function textoHistorico(h, opcoes) {
 // ficha nova (outro id, outra montagem) pega os arquivos daqui e envia.
 const ENVIOS_PENDENTES = new Map()
 
-// Pendência → campo onde se resolve (a lista vira atalho).
-const CAMPO_DA_PENDENCIA = { sem_arte: 'arte', arte_incompativel: 'arte', sem_responsavel: 'resp', sem_legenda: 'legenda', sem_horario: 'data' }
+function lerNovoGuardado() {
+  try { const g = JSON.parse(sessionStorage.getItem(CHAVE_NOVO) || 'null'); return g && (g.titulo || g.legenda) ? g : null } catch { return null }
+}
 
-export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inicial = null, onVerParticipante = null }) {
+export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inicial = null, onVerParticipante = null, voltaParticipante = false }) {
   const novo = id === 'novo'
   const idCampo = (k) => 'rd-f-' + k + '-' + id
+  const padraoNovo = () => ({ ...camposDe(null), perfil: R.PERFIL_PADRAO, formato: 'feed', edicao_codigo: opcoes.edicao_atual || '', responsavel_id: opcoes.eu || '', ...((inicial && inicial.campos) || {}) })
   const [carga, setCarga] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [base, setBase] = React.useState(null)
   const baseRef = React.useRef(null)
-  // Nova postagem: "Adicionar neste dia" traz a data; "Criar postagem" do participante, o participante.
-  const [campos, setCampos] = React.useState(() => novo
-    ? { ...camposDe(null), perfil: R.PERFIL_PADRAO, formato: 'feed', edicao_codigo: opcoes.edicao_atual || '', responsavel_id: opcoes.eu || '', ...((inicial && inicial.campos) || {}) } : null)
+  // Postagem nova guardada de antes: volta sozinha — a não ser que esta venha
+  // de um participante; aí pergunta, nada é trocado em silêncio.
+  const [anterior, setAnterior] = React.useState(() => (novo && inicial && inicial.doParticipante ? lerNovoGuardado() : null))
+  const [campos, setCampos] = React.useState(() => {
+    if (!novo) return null
+    const g = inicial && inicial.doParticipante ? null : lerNovoGuardado()
+    return g ? { ...padraoNovo(), ...Object.fromEntries(Object.entries(g).filter(([k]) => R.CAMPOS.includes(k))) } : padraoNovo()
+  })
+  // Postagem nova: "suja" = diferente de como abriu (o que veio do participante, do
+  // rascunho guardado ou os valores automáticos não contam como alteração — fechar
+  // sem mexer não pergunta nada).
+  const inicioNovo = React.useRef(novo ? campos : null)
   // data/hora digitadas pela metade ("Adicionar neste dia" chega com a data, falta a hora)
   const [dhLocal, setDhLocal] = React.useState(() => (novo && inicial && inicial.data ? { data: inicial.data, hora: '' } : null))
   const [salvando, setSalvando] = React.useState(false)
   const [salvoEm, setSalvoEm] = React.useState(null)
   const [erroAcao, setErroAcao] = React.useState(null)
   const [conflito, setConflito] = React.useState(null)
-  const [recuperado, setRecuperado] = React.useState(false)
+  const [recuperado, setRecuperado] = React.useState(() => novo && !(inicial && inicial.doParticipante) && !!lerNovoGuardado())
   const [ocupado, setOcupado] = React.useState('')
   const [aviso, setAviso] = React.useState('')
   const [envios, setEnvios] = React.useState([])
@@ -240,57 +318,84 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const [confirma, setConfirma] = React.useState(null) // formulário de confirmação aberto
   const [ajuste, setAjuste] = React.useState(false)
   const [biblioteca, setBiblioteca] = React.useState(false)
+  const [editando, setEditando] = React.useState(() => new Set()) // blocos abertos em edição
+  const [gavetas, setGavetas] = React.useState(() => new Set()) // detalhes · arquivos · comentarios · historico
+  const entrega = useEntrega() // baixar / salvar ou compartilhar, com preparo, erro e "Tentar de novo"
+  const entregaGaveta = useEntrega() // o "Baixar" de cada arquivo na gaveta: o estado aparece ali, não lá na prévia
+  const [copiado, setCopiado] = React.useState(false)
+  const [verAntigos, setVerAntigos] = React.useState(false)
   const fila = React.useRef(Promise.resolve())
   const primeira = React.useRef(true)
+  const focoDepois = React.useRef(null)
   const chaveRascunho = 'scw_redes_rascunho_' + id
 
   const definirBase = (p) => { baseRef.current = p; setBase(p) }
-  // Opções chegam depois de abrir "Nova postagem" pelo endereço: o responsável vira "eu" se ninguém escolheu.
+  const artesDoNovo = React.useRef(null) // artes escolhidas antes do título: não se perdem
+  // Opções chegam depois de abrir "Nova postagem" pelo endereço: responsável = eu (se
+  // ninguém escolheu) e a edição atual. Valor automático, não alteração da pessoa.
   const escolheuResp = React.useRef(false)
   React.useEffect(() => {
-    if (novo && opcoes.eu && !escolheuResp.current) setCampos((c) => (c && !c.responsavel_id ? { ...c, responsavel_id: opcoes.eu } : c))
-  }, [novo, opcoes.eu])
+    if (!novo) return
+    const auto = {}
+    if (opcoes.eu && !escolheuResp.current) auto.responsavel_id = opcoes.eu
+    if (opcoes.edicao_atual) auto.edicao_codigo = opcoes.edicao_atual
+    if (!Object.keys(auto).length) return
+    const aplicar = (c) => { const n = { ...c }; for (const [k, v] of Object.entries(auto)) if (!c[k]) n[k] = v; return n }
+    inicioNovo.current = aplicar(inicioNovo.current)
+    setCampos((c) => (c ? aplicar(c) : c))
+  }, [novo, opcoes.eu, opcoes.edicao_atual])
 
+  const pedidoCarga = React.useRef(0)
   const recarregar = React.useCallback(async () => {
     if (novo) return null
+    const meu = ++pedidoCarga.current // duas releituras seguidas: só a última vale (a velha voltaria a versão antiga)
     try {
       const r = await rpc('redes_post', { p_secret: lerSenha(), p_id: id })
+      if (meu !== pedidoCarga.current) return r
       const velha = baseRef.current
+      let g = null
+      if (primeira.current) {
+        primeira.current = false
+        try { g = JSON.parse(sessionStorage.getItem(chaveRascunho) || 'null') } catch { /* rascunho ilegível: ignora */ }
+        if (!(g && g.campos && Object.keys(g.campos).length)) g = null
+      }
       setCampos((atual) => {
         const n = camposDe(r.post)
         if (atual && velha) for (const k of Object.keys(R.diferencas(velha, atual))) n[k] = atual[k]
-        if (primeira.current) {
-          primeira.current = false
-          try {
-            const g = JSON.parse(sessionStorage.getItem(chaveRascunho) || 'null')
-            if (g && g.campos && Object.keys(g.campos).length) {
-              for (const [k, v] of Object.entries(g.campos)) if (R.CAMPOS.includes(k)) n[k] = norm(v)
-              setRecuperado(true)
-            }
-          } catch { /* rascunho ilegível: ignora */ }
-        }
+        if (g) for (const [k, v] of Object.entries(g.campos)) if (R.CAMPOS.includes(k)) n[k] = norm(v)
         return n
       })
+      // Rascunho feito sobre uma versão que outra pessoa já mudou: avisa, não salva sozinho.
+      if (g) setRecuperado(g.versao != null && g.versao !== r.post.versao ? 'antiga' : true)
       definirBase(r.post)
       setCarga(r)
       setErro(null)
       return r
-    } catch (e) { setErro(e.message); return null }
+    } catch (e) { if (meu === pedidoCarga.current) setErro(e.message); return null }
   }, [id, novo, chaveRascunho])
   React.useEffect(() => { recarregar() }, [recarregar])
 
   const mudancas = base && campos ? R.diferencas(base, campos) : {}
-  const sujo = novo ? !!(campos && (campos.titulo || campos.legenda)) : Object.keys(mudancas).length > 0 || !!dhLocal
+  const sujo = novo ? !!campos && (R.CAMPOS.some((k) => norm(campos[k]) !== norm(inicioNovo.current[k])) || !!(dhLocal && dhLocal.hora))
+    : Object.keys(mudancas).length > 0 || !!dhLocal
 
   // Guarda o que não foi salvo neste aparelho (volta ao reabrir a ficha).
   React.useEffect(() => {
-    if (novo || !base || !campos) return
+    if (!campos) return
     try {
+      if (novo) {
+        if (anterior) return // decidir antes: a guardada não é sobrescrita
+        const mudou = R.CAMPOS.some((k) => norm(campos[k]) !== norm(inicioNovo.current[k]))
+        if (mudou && (campos.titulo || campos.legenda)) sessionStorage.setItem(CHAVE_NOVO, JSON.stringify(Object.fromEntries(R.CAMPOS.map((k) => [k, campos[k]]))))
+        else if (mudou) sessionStorage.removeItem(CHAVE_NOVO)
+        return
+      }
+      if (!base) return
       const d = R.diferencas(base, campos)
       if (Object.keys(d).length) sessionStorage.setItem(chaveRascunho, JSON.stringify({ versao: base.versao, campos: d }))
       else sessionStorage.removeItem(chaveRascunho)
     } catch { /* modo privado */ }
-  }, [base, campos, novo, chaveRascunho])
+  }, [base, campos, novo, chaveRascunho, anterior])
   React.useEffect(() => {
     if (!sujo) return undefined
     const avisar = (e) => { e.preventDefault(); e.returnValue = '' }
@@ -298,6 +403,15 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     return () => window.removeEventListener('beforeunload', avisar)
   }, [sujo])
   React.useEffect(() => { if (!aviso) return undefined; const t = setTimeout(() => setAviso(''), 4000); return () => clearTimeout(t) }, [aviso])
+  React.useEffect(() => { if (!copiado) return undefined; const t = setTimeout(() => setCopiado(false), 2500); return () => clearTimeout(t) }, [copiado])
+  // Foco depois de abrir um bloco (Editar, pendência): o campo certo, sem pular a tela.
+  React.useEffect(() => {
+    const alvo = focoDepois.current
+    if (!alvo) return
+    focoDepois.current = null
+    const el = document.getElementById(alvo)
+    if (el) { el.scrollIntoView({ block: 'center' }); el.focus({ preventScroll: true }) }
+  })
 
   const post = base || {}
   const fechada = R.FECHADAS.includes(post.situacao)
@@ -306,7 +420,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const arquivos = carga ? carga.arquivos || [] : []
   const ativos = arquivos.filter((a) => !a.removido_em).sort((a, b) => a.ordem - b.ordem)
   const antigos = arquivos.filter((a) => a.removido_em)
-  const { urls, renovar } = useUrlsAssinadas([...ativos.map(fonteArq), ...ativos.map(miniDe)])
+  const { urls, erro: erroUrls, renovar } = useUrlsAssinadas([...ativos.map(fonteArq), ...ativos.map(miniDe)])
   const eu = carga ? carga.eu : null
   // Substituir/remover arte de OUTRA pessoa: só redes.gerir (o banco confere de novo).
   const podeMexer = (a) => podeArquivos && (pode('redes.gerir') || (!!eu && a.criado_por_id === eu))
@@ -322,6 +436,22 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     else setDhLocal(n)
   }
 
+  // ── Blocos em edição ──
+  const sujas = novo ? [] : R.secoesSujas(mudancas)
+  const emEdicao = (s) => !novo && (editando.has(s) || sujas.includes(s) || (s === 'programacao' && !!dhLocal))
+  function editar(s, foco) {
+    setEditando((x) => new Set(x).add(s))
+    if (s === 'detalhes') setGavetas((x) => new Set(x).add('detalhes'))
+    focoDepois.current = foco || null
+  }
+  function cancelarBloco(s) {
+    const lidos = camposDe(base)
+    setCampos((c) => ({ ...c, ...Object.fromEntries(R.SECOES[s].map((k) => [k, lidos[k]])) }))
+    if (s === 'programacao') setDhLocal(null)
+    setEditando((x) => { const n = new Set(x); n.delete(s); return n })
+  }
+  const alternarGaveta = (g, v) => setGavetas((x) => { const n = new Set(x); if (v) n.add(g); else n.delete(g); return n })
+
   async function gravar(baseLida, dados, enviados) {
     const p = await rpc('redes_salvar', { p_secret: lerSenha(), p_id: id, p_versao: baseLida.versao, p_dados: dados })
     definirBase(p)
@@ -333,6 +463,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     setSalvoEm(p.atualizado_em)
     setConflito(null)
     setRecuperado(false)
+    setEditando(new Set())
     onMudou()
     recarregar()
     return p
@@ -342,23 +473,24 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     if (novo) return criar()
     if (dhLocal) { setErroAcao('Informe data E hora — ou apague as duas para deixar sem data.'); return null }
     const d = R.diferencas(base, campos)
-    if (!Object.keys(d).length) return base
+    if (!Object.keys(d).length) { setEditando(new Set()); return base }
     setSalvando(true); setErroAcao(null)
     try { return await gravar(base, d, { ...campos }) }
-    catch (e) {
-      if (/versao_desatualizada/.test(e.message)) {
-        const r = await rpc('redes_post', { p_secret: lerSenha(), p_id: id }).catch(() => null)
-        if (r) { setCarga(r); setConflito({ salvo: r.post, lida: base, meus: d, campos: R.camposEmConflito(base, r.post, d) }) }
-        else setErroAcao(e.message)
-      } else setErroAcao(e.message)
-      return null
-    } finally { setSalvando(false) }
+    catch (e) { await tratarConflito(e, base, d); return null }
+    finally { setSalvando(false) }
+  }
+  // Outra pessoa salvou antes: mostra as duas versões para decidir (nunca sobrescreve calado).
+  async function tratarConflito(e, lida, meus) {
+    if (!/versao_desatualizada/.test(e.message)) { setErroAcao(e.message); return }
+    const r = await rpc('redes_post', { p_secret: lerSenha(), p_id: id }).catch(() => null)
+    if (r) { setCarga(r); setConflito({ salvo: r.post, lida, meus, campos: R.camposEmConflito(lida, r.post, meus) }) }
+    else setErroAcao(e.message)
   }
 
   async function manterMinhas() {
     setSalvando(true); setErroAcao(null)
     try { await gravar(conflito.salvo, conflito.meus, { ...campos }) }
-    catch (e) { setErroAcao(e.message) }
+    catch (e) { await tratarConflito(e, conflito.salvo, conflito.meus) } // salvaram de novo no meio: compara outra vez
     finally { setSalvando(false) }
   }
   function usarSalva() {
@@ -366,21 +498,36 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     setCampos(camposDe(conflito.salvo))
     setDhLocal(null)
     setConflito(null)
+    setEditando(new Set())
   }
   function descartar() {
-    setCampos(camposDe(base)); setDhLocal(null); setRecuperado(false)
+    if (novo) {
+      const c = padraoNovo(); inicioNovo.current = c
+      setCampos(c); setDhLocal(null); setRecuperado(false)
+      try { sessionStorage.removeItem(CHAVE_NOVO) } catch { /* modo privado */ }
+      return
+    }
+    setCampos(camposDe(base)); setDhLocal(null); setRecuperado(false); setEditando(new Set())
     try { sessionStorage.removeItem(chaveRascunho) } catch { /* modo privado */ }
   }
 
-  async function criar(arquivosEscolhidos = null) {
-    if (!String(campos.titulo || '').trim()) { setErroAcao('Dê um título à postagem antes de enviar a arte.'); document.getElementById(idCampo('titulo'))?.focus(); return null }
+  async function criar(escolhidosAgora = null) {
+    if (escolhidosAgora && escolhidosAgora.length) artesDoNovo.current = escolhidosAgora
+    const arquivosEscolhidos = artesDoNovo.current
+    if (!String(campos.titulo || '').trim()) {
+      const n = arquivosEscolhidos ? arquivosEscolhidos.length : 0
+      setErroAcao('Dê um título à postagem — é o único campo obrigatório.' + (n ? ' ' + (n > 1 ? 'As ' + n + ' artes escolhidas ficam guardadas' : 'A arte escolhida fica guardada') + ' e sobem ao criar.' : ''))
+      document.getElementById(idCampo('titulo'))?.focus(); return null
+    }
     if (dhLocal) { setErroAcao('Informe data E hora — ou apague as duas para deixar sem data.'); return null }
     const d = {}
     for (const k of R.CAMPOS) if (norm(campos[k]) !== '') d[k] = campos[k]
     setSalvando(true); setErroAcao(null)
     try {
       const p = await rpc('redes_criar', { p_secret: lerSenha(), p_dados: d })
+      try { sessionStorage.removeItem(CHAVE_NOVO) } catch { /* modo privado */ }
       if (arquivosEscolhidos && arquivosEscolhidos.length) ENVIOS_PENDENTES.set(p.id, arquivosEscolhidos)
+      artesDoNovo.current = null
       onMudou()
       onAbrir(p.id)
       return p
@@ -409,8 +556,11 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     onFechar()
   }
 
+  // Baixar (o original, direto; vários → ZIP): estado, erro e "Tentar de novo" em BaixarArquivo.jsx.
+  const baixar = (lista) => entrega.baixar(lista.map(itemDe), { numerar: lista.length > 1, nomeZip: post.titulo || 'postagem' })
+
   async function copiar(texto, rotulo) {
-    try { await navigator.clipboard.writeText(texto); setAviso(rotulo + ' copiado. Cole no Instagram.') }
+    try { await navigator.clipboard.writeText(texto); setCopiado(true); setAviso(rotulo + ' copiada. Cole no Instagram.') }
     catch { setAviso('Não consegui copiar. Selecione o texto e copie à mão.') }
   }
 
@@ -473,16 +623,12 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     try { await rpc('redes_arquivo_remover', { p_secret: lerSenha(), p_arquivo: a.id }); await recarregar(); onMudou() }
     catch (e) { setErroAcao(e.message) }
   }
-  async function baixarTodos() {
-    for (const a of ativos) { await baixarArquivo(fonteArq(a), a.nome).catch((e) => setErroAcao(e.message)); await new Promise((ok) => setTimeout(ok, 400)) }
-  }
 
   // ── Render ──
   const titulo = novo ? 'Nova postagem' : (post.titulo || 'Postagem')
-  const sub = novo ? 'Rascunho — ainda não salvo' : [(R.SITUACAO[post.situacao] || {}).rotulo, post.programado_para ? R.quandoTexto(post.programado_para) : 'sem data', post.perfil].filter(Boolean).join(' · ')
   if (!novo && !carga) {
     return (
-      <Folha aberto titulo={titulo} sub="Carregando…" onFechar={onFechar} larga="ampla">
+      <Folha aberto titulo={titulo} sub="Carregando…" onFechar={onFechar} larga="ampla" cheia>
         {erro ? <Erro texto={traduzirRedes(erro)} onTentar={recarregar} /> : <Carregando linhas={6} />}
       </Folha>
     )
@@ -496,19 +642,31 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const comentarios = carga ? carga.comentarios || [] : []
   const equipe = opcoes.equipe || []
   const respFora = campos.responsavel_id && !equipe.some((e) => e.user_id === campos.responsavel_id)
+  const nomeResp = campos.responsavel_id ? ((equipe.find((e) => e.user_id === campos.responsavel_id) || {}).nome || post.responsavel_nome || 'Conta atual') : ''
   const story = campos.formato === 'story'
   const idPend = 'rd-pend-' + id
+  const idEtapa = 'rd-etapa-' + id
   const aprova = pode('redes.aprovar')
   const nomesAprovadores = quemAprova(opcoes.aprovadores || [])
   const eAutora = !!eu && post.criado_por_id === eu
   const podeCancelar = !fechada && (pode('redes.gerir') || (eAutora && ['rascunho', 'preparacao', 'aprovacao'].includes(post.situacao)))
-  const irPara = (pendencia) => {
-    const el = document.getElementById(idCampo(CAMPO_DA_PENDENCIA[pendencia] || 'titulo'))
-    if (el) { el.scrollIntoView({ block: 'center' }); el.focus({ preventScroll: true }) }
-    else setAviso(CAMPO_DA_PENDENCIA[pendencia] === 'arte' ? 'A arte é enviada por quem tem acesso aos arquivos.' : 'Esse campo não está liberado para a sua função.')
-  }
   const texto = R.textoCompleto(campos.legenda, campos.mencoes)
   const ultimoAjuste = [...comentarios].reverse().find((c) => c.ajuste) || null
+  const participante = campos.participante_id ? ((opcoes.participantes || []).find((p) => p.id === campos.participante_id) || {}).nome || post.participante_nome || 'Participante' : ''
+  const nLegenda = campos.legenda.length
+
+  function irPara(pendencia) {
+    const o = R.ONDE_PENDENCIA[pendencia] || { secao: 'detalhes', campo: 'titulo' }
+    if (o.secao === 'arquivos') {
+      if (!podeArquivos) { setAviso('A arte é enviada por quem tem acesso aos arquivos.'); return }
+      if (ativos.length) alternarGaveta('arquivos', true)
+      focoDepois.current = idCampo('arte')
+      setAviso(ativos.length ? 'Envie ou troque a arte em “Arquivos”.' : 'Envie a arte no quadro da prévia.')
+      return
+    }
+    if (!podeEditar) { setAviso('Esse campo não está liberado para a sua função.'); return }
+    editar(o.secao, idCampo(o.campo))
+  }
   async function pedirAjuste() {
     const t = await pedirTexto('O que precisa mudar em “' + post.titulo + '”? A postagem volta para quem cuida dela, com este comentário.', { rotulo: 'O que mudar' }, { acao: 'Pedir ajuste' })
     if (!t || !t.trim()) return
@@ -516,442 +674,618 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       setAviso('Ajuste pedido. Quem cuida da postagem foi avisado.')
     }
   }
+  function abrirConfirmacao() {
+    setConfirma({ modo: 'agora', data: R.hoje(), hora: '', link: '', obs: '', sequencia: false })
+    focoDepois.current = idEtapa + '-confirmar'
+  }
+
+  // A ÚNICA ação em destaque (rodapé). Com alteração não salva, é salvar.
+  const principal = (fechada && !sujo) || (novo && !pode('redes.editar')) ? null : R.proximaAcao({ novo, sujo: !novo && sujo, situacao: post.situacao || 'rascunho', bloqueios: bloqueios.length, pode, confirmando: !!confirma })
+  function executarPrincipal() {
+    if (!principal) return
+    if (principal.chave === 'criar' || principal.chave === 'salvar') return salvar()
+    if (principal.chave === 'enviar') {
+      if (principal.bloqueada) { setAviso('Resolva o que falta (em “Próximo passo”) antes de enviar.'); focoDepois.current = idPend; return }
+      return situacao('aprovacao')
+    }
+    if (principal.chave === 'aprovar') return situacao('pronto')
+    if (principal.chave === 'confirmar') return abrirConfirmacao()
+  }
+
+  // Erro e alteração não salva vêm antes de qualquer aviso passageiro ("Legenda copiada").
+  const estado = erroAcao ? <span className="rd-campo__nota--erro">{traduzirRedes(erroAcao)}</span>
+    : salvando ? 'Salvando…'
+    : conflito ? 'Outra pessoa salvou antes: escolha acima qual versão fica.'
+    : !novo && sujo ? 'Alterações não salvas'
+    : aviso ? aviso
+    : novo ? 'Só o título é obrigatório. O resto pode ser completado depois.'
+    : principal && principal.bloqueada ? 'Falta ' + bloqueios.length + (bloqueios.length === 1 ? ' item' : ' itens') + ' para enviar'
+    : salvoEm ? 'Salvo às ' + R.horaCurta(R.partes(salvoEm).hora)
+    : post.situacao === 'publicado' ? 'Publicada — o registro não muda mais'
+    : post.situacao === 'cancelado' ? 'Cancelada' : 'Tudo salvo'
+  const rodape = (
+    <div className="rd-rodape">
+      <p className="rd-rodape__estado" aria-live="polite">{estado}</p>
+      {/* Uma ação só. Desfazer mora junto de cada bloco ("Cancelar") e no aviso de rascunho recuperado. */}
+      <div className="ui-acoes">
+        {principal && !(principal.chave === 'salvar' && (editando.size > 0 || sujas.length > 0 || !!dhLocal)) && (
+          <Botao variante="destaque" icone={principal.icone} disabled={salvando || !!ocupado || (!!conflito && principal.chave === 'salvar')}
+            aria-describedby={principal.bloqueada ? idPend : undefined} onClick={executarPrincipal}>
+            {principal.chave === 'criar' && salvando ? 'Criando…' : principal.chave === 'salvar' && salvando ? 'Salvando…' : principal.rotulo}
+          </Botao>
+        )}
+      </div>
+    </div>
+  )
+
+  const sub = novo ? (voltaParticipante ? 'Ainda não criada · ao fechar, volta para o participante' : 'Ainda não criada')
+    : <span className="rd-sub">
+      <span>{(R.SITUACAO[post.situacao] || {}).rotulo}</span>
+      <span>{post.programado_para ? R.quandoTexto(post.programado_para) : 'Sem data'}</span>
+      <span>{post.responsavel_nome ? 'Resp.: ' + post.responsavel_nome : 'Sem responsável'}</span>
+    </span>
+
+  const selectResp = (
+    <select value={campos.responsavel_id} onChange={(e) => { escolheuResp.current = true; setCampo('responsavel_id', e.target.value) }}>
+      <option value="">Sem responsável</option>
+      {respFora && <option value={campos.responsavel_id}>{post.responsavel_nome || 'Conta atual'} (sem acesso a redes)</option>}
+      {equipe.map((e) => <option key={e.user_id} value={e.user_id}>{e.nome}</option>)}
+    </select>
+  )
+  const camposData = (
+    <>
+      <Campo rotulo="Data" id={idCampo('data')}><input type="date" value={dataIn} onChange={(e) => mudarDH('data', e.target.value)} /></Campo>
+      <Campo rotulo="Horário (Fortaleza)" id={idCampo('hora')}><input type="time" step={300} value={horaIn} onChange={(e) => mudarDH('hora', e.target.value)} /></Campo>
+    </>
+  )
+  // No bloco "Legenda" o título do bloco já nomeia o campo: o rótulo fica só para o leitor de tela.
+  const campoLegenda = (
+    <Campo rotulo={story ? 'Legenda (opcional no Story)' : 'Legenda'} largo id={idCampo('legenda')} erro={nLegenda > R.LIMITE_LEGENDA_INSTAGRAM} rotuloOculto={!novo}
+      nota={nLegenda > R.LIMITE_LEGENDA_INSTAGRAM ? nLegenda + ' caracteres — o Instagram aceita até ' + R.LIMITE_LEGENDA_INSTAGRAM + '. Encurte.'
+        : nLegenda + ' de ' + R.LIMITE_LEGENDA_INSTAGRAM + ' caracteres · hashtags podem ir aqui mesmo'}>
+      <textarea rows={8} maxLength={5000} value={campos.legenda} onChange={(e) => setCampo('legenda', e.target.value)} />
+    </Campo>
+  )
+  const campoMencoes = (
+    <Campo rotulo="Perfis a mencionar" largo nota="Ex.: @jolie.cafe @outraconta — entram no fim da legenda copiada." id={idCampo('mencoes')}>
+      <input type="text" maxLength={500} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={campos.mencoes} onChange={(e) => setCampo('mencoes', e.target.value)} />
+    </Campo>
+  )
+  const campoObs = (
+    <Campo rotulo="Observações para quem publica" largo nota="Ex.: marcar a localização, música do Reel, horário que a marca pediu.">
+      <textarea rows={3} maxLength={2000} value={campos.observacoes} onChange={(e) => setCampo('observacoes', e.target.value)} />
+    </Campo>
+  )
+  const camposDetalhes = (
+    <div className="rd-grade">
+      <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
+      <Campo rotulo="Formato" nota={R.requisitoFormato(campos.formato)}>
+        <select value={campos.formato} onChange={(e) => setCampo('formato', e.target.value)}>
+          {R.FORMATOS.map((x) => <option key={x.chave} value={x.chave}>{x.rotulo}</option>)}
+        </select>
+      </Campo>
+      <Campo rotulo="Perfil de destino">
+        <input type="text" maxLength={60} autoCapitalize="none" list={'rd-perfis-' + id} value={campos.perfil} onChange={(e) => setCampo('perfil', e.target.value)} />
+      </Campo>
+      <datalist id={'rd-perfis-' + id}>{[...new Set([R.PERFIL_PADRAO, ...(opcoes.perfis || [])])].map((p) => <option key={p} value={p} />)}</datalist>
+      <Campo rotulo="Edição ou campanha">
+        <select value={campos.edicao_codigo} onChange={(e) => setCampo('edicao_codigo', e.target.value)}>
+          <option value="">Institucional (sem edição)</option>
+          {(opcoes.edicoes || []).map((e) => <option key={e.codigo} value={e.codigo}>{e.codigo} · {e.nome}</option>)}
+        </select>
+      </Campo>
+      <Campo rotulo="Participante associado">
+        <select value={campos.participante_id} onChange={(e) => setCampo('participante_id', e.target.value)}>
+          <option value="">Nenhum</option>
+          {(opcoes.participantes || []).map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+        </select>
+      </Campo>
+      <Campo rotulo="Referências ou briefing" largo>
+        <textarea rows={3} maxLength={2000} value={campos.referencias} onChange={(e) => setCampo('referencias', e.target.value)} />
+      </Campo>
+    </div>
+  )
+  const envioLista = envios.length > 0 && (
+    <ul className="rd-envios" aria-live="polite">
+      {envios.map((it) => (
+        <li key={it.chave} className="rd-envio" data-estado={it.estado}>
+          <span className="rd-envio__nome">{it.substitui ? 'Substituindo por ' : ''}{it.nome}</span>
+          {it.estado === 'erro' ? (
+            <>
+              <span className="rd-campo__nota rd-campo__nota--erro" role="alert">{it.erro}</span>
+              <span className="ui-acoes">
+                <Botao onClick={() => tentarDeNovo(it)}>Tentar de novo</Botao>
+                <Botao variante="secundario" onClick={() => setEnvios((l) => l.filter((x) => x.chave !== it.chave))}>Descartar</Botao>
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="rd-envio__estado">{it.estado === 'na_fila' ? 'Na fila' : it.estado === 'conferindo' ? 'Conferindo o arquivo…' : 'Enviando ' + Math.round(it.progresso * 100) + '%'}</span>
+              <span className="rd-envio__trilho" role="progressbar" aria-label={'Envio de ' + it.nome} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(it.progresso * 100)}><span style={{ width: it.progresso * 100 + '%' }} /></span>
+              {it.nota && <span className="rd-campo__nota">{it.nota}</span>}
+            </>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+  // Sem arte: o envio mora no quadro da prévia (um lugar só para o mesmo campo).
+  const envioNoQuadro = novo
+    ? pode('redes.arquivos') && (
+      <label className="rd-soltar">
+        <Icone nome="mais" tamanho={20} />
+        <span>Escolher a arte</span>
+        <span className="rd-campo__nota">Cria o rascunho e envia a arte em seguida.</span>
+        <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')}
+          onChange={(e) => { const l = [...e.target.files]; e.target.value = ''; if (l.length) criar(l) }} />
+      </label>
+    )
+    : podeArquivos && !ativos.length && (
+      <>
+        <label className="rd-soltar">
+          <Icone nome="mais" tamanho={20} />
+          <span>Enviar a arte</span>
+          <span className="rd-campo__nota">JPG, PNG, WEBP, MP4 ou MOV, até 50 MB. Pode escolher vários.</span>
+          <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')} onChange={(e) => { if (e.target.files.length) adicionarEnvios(e.target.files); e.target.value = '' }} />
+        </label>
+        <Botao variante="secundario" icone="pasta" onClick={() => { setBiblioteca(true); alternarGaveta('arquivos', true) }}>Escolher da biblioteca</Botao>
+      </>
+    )
 
   return (
-    <Folha aberto titulo={titulo} sub={sub} onFechar={fechar} larga="ampla">
-      <div className="rd-ficha">
-        <div className="rd-ficha__previa">
-          <Previa arquivos={ativos} urls={urls} renovar={renovar} formato={campos.formato} />
-          {story && ativos.length > 1 && <p className="rd-campo__nota">Sequência de {ativos.length} stories no mesmo registro: a confirmação vale para a sequência inteira.</p>}
-        </div>
+    <Folha aberto titulo={titulo} sub={sub} onFechar={fechar} larga="ampla" cheia rodape={rodape}>
+      <div className="rd-ficha-c">
+        <div className={'rd-ficha' + (novo ? ' rd-ficha--novo' : '')}>
+          <div className="rd-ficha__previa">
+            <Previa arquivos={ativos} urls={urls} erroUrls={erroUrls} renovar={renovar} formato={campos.formato} entrega={entrega} nomeConjunto={post.titulo || 'postagem'} vazio={envioNoQuadro} />
+            {envioLista}
+            {story && ativos.length > 1 && <p className="rd-campo__nota">Sequência de {ativos.length} stories no mesmo registro: a confirmação vale para a sequência inteira.</p>}
+          </div>
 
-        <div className="rd-ficha__dados">
-          {recuperado && (
-            <div className="og-aviso" role="status">
-              <p>Recuperei alterações que não tinham sido salvas neste aparelho.</p>
-              <div className="ui-acoes"><Botao onClick={salvar}>Salvar agora</Botao><Botao variante="secundario" onClick={descartar}>Descartar</Botao></div>
-            </div>
-          )}
-
-          {conflito && (
-            <div className="og-aviso rd-conflito" role="alert">
-              <p><b>{conflito.salvo.atualizado_por_rotulo || 'Outra pessoa'}</b> salvou esta postagem {conflito.salvo.atualizado_em ? 'às ' + R.horaCurta(R.partes(conflito.salvo.atualizado_em).hora) : ''} enquanto você editava. Nada seu foi perdido: o que você digitou continua aqui.</p>
-              {conflito.campos.length > 0 ? (
-                <dl className="rd-conflito__lista">
-                  {conflito.campos.map((k) => (
-                    <div key={k}>
-                      <dt>{ROTULO_CAMPO[k]}</dt>
-                      <dd><span>Versão salva:</span> {valorLegivel(k, conflito.salvo[k], opcoes)}</dd>
-                      <dd><span>A sua:</span> {valorLegivel(k, conflito.meus[k], opcoes)}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : <p>A outra pessoa mexeu em outros campos; os seus podem ir sem apagar nada dela.</p>}
-              <div className="ui-acoes">
-                <Botao onClick={manterMinhas} disabled={salvando}>{conflito.campos.length ? 'Salvar as minhas por cima' : 'Salvar as minhas'}</Botao>
-                <Botao variante="secundario" onClick={usarSalva}>Ficar com a versão salva</Botao>
+          <div className="rd-ficha__dados">
+            {recuperado && (
+              <div className="og-aviso" role="status">
+                <p>{novo ? 'Recuperei a postagem nova que não tinha sido criada neste aparelho.'
+                  : recuperado === 'antiga' ? 'Recuperei alterações que não tinham sido salvas neste aparelho — mas a postagem foi salva por outra pessoa depois. Confira antes de salvar: salvar põe as suas por cima nesses campos.'
+                  : 'Recuperei alterações que não tinham sido salvas neste aparelho.'}</p>
+                <div className="ui-acoes">{!novo && <Botao onClick={salvar}>Salvar agora</Botao>}<Botao variante="secundario" onClick={descartar}>Descartar</Botao></div>
               </div>
-            </div>
-          )}
-
-          {!novo && (
-            <section className="rd-situacao" aria-label="Situação e próximos passos">
-              <div className="rd-situacao__selos">
-                <Selo dominio="post_redes" valor={post.situacao} />
-                {pend.includes('atrasada') && <Selo tom="atencao">Atrasada</Selo>}
-                {conflitos.length > 0 && <Selo tom="atencao">Mesmo horário e perfil</Selo>}
-                {post.ajuste_aberto && <Selo tom="atencao">Ajuste pedido</Selo>}
-              </div>
-              <p className="rd-ultima">
-                Última alteração: <Autor id={post.atualizado_por_id} rotulo={post.atualizado_por_rotulo} tamanho={20}>
-                  <span className="ui-autor__nota"> · {R.quandoTexto(post.atualizado_em)}</span></Autor>
-                {post.criado_por_rotulo && <> · criada por <Autor id={post.criado_por_id} rotulo={post.criado_por_rotulo} tamanho={20} /></>}
-              </p>
-              {post.ajuste_aberto && ultimoAjuste && (
-                <div className="rd-ajuste" role="note">
-                  <p className="rd-ajuste__quem"><Autor id={ultimoAjuste.autor_id} rotulo={ultimoAjuste.autor_rotulo} tamanho={20}>
-                    <span className="ui-autor__nota"> pediu ajuste · {R.quandoTexto(ultimoAjuste.criado_em)}</span></Autor></p>
-                  <p className="rd-ajuste__texto">{ultimoAjuste.corpo}</p>
-                </div>
-              )}
-              {!fechada && bloqueios.length > 0 && (
-                <div id={idPend} className="rd-pendencias">
-                  <p>Para enviar para aprovação falta:</p>
-                  <ul>{bloqueios.map((p) => (
-                    <li key={p}><button type="button" className="rd-pendencia" onClick={() => irPara(p)}>
-                      <Icone nome="atencao" tamanho={16} />{R.PENDENCIAS[p]}<span className="ui-oculto"> — ir ao campo</span></button></li>
-                  ))}</ul>
-                </div>
-              )}
-              {conflitos.length > 0 && (
-                <p className="rd-campo__nota">
-                  No mesmo perfil, a menos de {R.JANELA_CONFLITO_MIN} min: {conflitos.map((c, i) => (
-                    <React.Fragment key={c.id}>{i > 0 && ', '}<button type="button" className="rd-link" onClick={() => onAbrir(c.id)}>{c.titulo} ({R.quandoTexto(c.programado_para)})</button></React.Fragment>
-                  ))}. Não bloqueia — confira se é intencional.
-                </p>
-              )}
-              <div className="ui-acoes">
-                {(post.situacao === 'rascunho' || post.situacao === 'preparacao') && pode('redes.editar') && (
-                  <>
-                    <Botao icone="enviar" variante="destaque" disabled={bloqueios.length > 0 || !!ocupado} aria-describedby={bloqueios.length ? idPend : undefined}
-                      onClick={() => situacao('aprovacao')}>Enviar para aprovação</Botao>
-                    {aprova && <Botao icone="sucesso" variante="secundario" disabled={bloqueios.length > 0 || !!ocupado} onClick={() => situacao('pronto')}>Aprovar direto</Botao>}
-                  </>
-                )}
-                {post.situacao === 'aprovacao' && (
-                  <>
-                    {aprova && <Botao icone="sucesso" variante="destaque" disabled={!!ocupado} onClick={() => situacao('pronto')}>Aprovar</Botao>}
-                    {aprova && <Botao icone="editar" variante="secundario" disabled={!!ocupado} onClick={pedirAjuste}>Pedir ajuste</Botao>}
-                    {!aprova && <p className="rd-etapa">Enviada. Aguardando aprovação de {nomesAprovadores} — você recebe um aviso.</p>}
-                    {!aprova && pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Retirar da aprovação</Botao>}
-                  </>
-                )}
-                {post.situacao === 'pronto' && (
-                  <>
-                    <p className="rd-etapa">Aprovada. Publique pelo Instagram e depois confirme aqui.</p>
-                    {texto && <Botao icone="copiar" variante="secundario" onClick={() => copiar(texto, 'Texto completo')}>Copiar texto completo</Botao>}
-                    <Botao icone="baixar" variante="secundario" onClick={baixarTodos} disabled={!ativos.length}>{ativos.length > 1 ? 'Baixar as ' + ativos.length + ' artes' : 'Baixar arte'}</Botao>
-                    {pode('redes.publicar') && !confirma && <Botao icone="feito" variante="destaque" onClick={() => setConfirma({ modo: 'agora', data: R.hoje(), hora: '', link: '', obs: '', sequencia: false })}>Confirmar publicação…</Botao>}
-                    {aprova && <Botao icone="editar" variante="secundario" disabled={!!ocupado} onClick={pedirAjuste}>Pedir ajuste</Botao>}
-                    {!aprova && pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Voltar para rascunho</Botao>}
-                  </>
-                )}
-                {post.situacao === 'cancelado' && pode('redes.gerir') && <Botao icone="restaurar" onClick={() => situacao('rascunho')}>Reabrir como rascunho</Botao>}
-                <MaisAcoes itens={[
-                  pode('redes.editar') && { rotulo: 'Duplicar como rascunho', icone: 'copiar', onClick: async () => {
-                    setOcupado('duplicar')
-                    try { const d = await rpc('redes_duplicar', { p_secret: lerSenha(), p_id: id }); onMudou(); onAbrir(d.id) } catch (e) { setErroAcao(e.message) } finally { setOcupado('') }
-                  } },
-                  podeCancelar && { rotulo: 'Cancelar postagem', icone: 'excluir', perigo: true, onClick: async () => {
-                    const motivo = await pedirTexto('Cancelar “' + post.titulo + '”? Ela sai do calendário; arquivos e histórico ficam guardados.', { rotulo: 'Motivo (opcional)' }, { acao: 'Cancelar postagem' })
-                    if (motivo !== null) situacao('cancelado', motivo)
-                  } },
-                  !fechada && aprova && post.situacao === 'rascunho' && { rotulo: 'Pedir ajuste', icone: 'editar', onClick: pedirAjuste },
-                ]} />
-              </div>
-              {post.situacao === 'cancelado' && <p className="rd-campo__nota">Cancelada {post.cancelado_em ? 'em ' + R.quandoTexto(post.cancelado_em) : ''}{post.motivo_cancelamento ? ' — ' + post.motivo_cancelamento : ''}.</p>}
-            </section>
-          )}
-
-          {confirma && post.situacao !== 'cancelado' && (
-            <form className="rd-confirmar" aria-label="Confirmar publicação" onSubmit={async (e) => {
-              e.preventDefault()
-              const quando = confirma.modo === 'agora' ? new Date().toISOString() : R.instanteDe(confirma.data, confirma.hora)
-              if (!quando) { setErroAcao('Informe a data e a hora em que foi publicado.'); return }
-              const ok = await acao('confirmar', (b) => rpc('redes_confirmar', { p_secret: lerSenha(), p_id: id, p_versao: b.versao, p_publicado_em: quando, p_link: confirma.link.trim() || null, p_obs: confirma.obs.trim() || null }))
-              if (ok) { setConfirma(null); setAviso(post.situacao === 'publicado' ? 'Execução corrigida.' : 'Publicação confirmada.') }
-            }}>
-              <h3>{post.situacao === 'publicado' ? 'Corrigir dados da publicação' : 'Confirmar publicação'}</h3>
-              <p className="rd-campo__nota">Só confirme depois de publicar pelo Instagram.</p>
-              <fieldset className="rd-opcoes">
-                <legend>Quando foi publicado</legend>
-                <label><input type="radio" name={'q-' + id} checked={confirma.modo === 'agora'} onChange={() => setConfirma({ ...confirma, modo: 'agora' })} /> Publicado agora</label>
-                <label><input type="radio" name={'q-' + id} checked={confirma.modo === 'outro'} onChange={() => setConfirma({ ...confirma, modo: 'outro' })} /> Informar data e hora</label>
-              </fieldset>
-              {confirma.modo === 'outro' && (
-                <div className="rd-linha">
-                  <Campo rotulo="Data"><input type="date" required value={confirma.data} max={R.hoje()} onChange={(e) => setConfirma({ ...confirma, data: e.target.value })} /></Campo>
-                  <Campo rotulo="Hora (Fortaleza)"><input type="time" required value={confirma.hora} onChange={(e) => setConfirma({ ...confirma, hora: e.target.value })} /></Campo>
-                </div>
-              )}
-              <Campo rotulo="Link da publicação (opcional)" nota={story ? 'Story pode não ter endereço durável: confirme sem link.' : 'Cole o endereço do post, se tiver.'}>
-                <input type="url" inputMode="url" placeholder="https://www.instagram.com/p/…" value={confirma.link} onChange={(e) => setConfirma({ ...confirma, link: e.target.value })} />
-              </Campo>
-              <Campo rotulo="Observação (problema ou alteração na hora)">
-                <textarea rows={2} maxLength={1000} value={confirma.obs} onChange={(e) => setConfirma({ ...confirma, obs: e.target.value })} />
-              </Campo>
-              {story && ativos.length > 1 && (
-                <label className="rd-check"><input type="checkbox" required checked={confirma.sequencia} onChange={(e) => setConfirma({ ...confirma, sequencia: e.target.checked })} /> A sequência inteira ({ativos.length} stories) foi publicada.</label>
-              )}
-              <div className="ui-acoes">
-                <Botao type="submit" icone="feito" variante="destaque" disabled={!!ocupado}>{ocupado === 'confirmar' ? 'Confirmando…' : post.situacao === 'publicado' ? 'Salvar correção' : 'Confirmar publicação'}</Botao>
-                <Botao variante="secundario" onClick={() => setConfirma(null)}>Voltar</Botao>
-              </div>
-            </form>
-          )}
-
-          {post.situacao === 'publicado' && (
-            <Secao titulo="Publicação">
-              <dl className="rd-dados">
-                <div><dt>Publicado em</dt><dd>{R.quandoTexto(post.publicado_em)}</dd></div>
-                <div><dt>Quem confirmou</dt><dd><Autor id={post.publicado_por_id} rotulo={post.publicado_por_rotulo} tamanho={24}>
-                  {post.confirmado_em ? <span className="ui-autor__nota"> · {R.quandoTexto(post.confirmado_em)}</span> : null}</Autor></dd></div>
-                <div><dt>Link</dt><dd>{post.link_publicado ? <a href={post.link_publicado} target="_blank" rel="noopener noreferrer">{post.link_publicado}</a> : 'Sem link'}</dd></div>
-                {post.obs_execucao && <div><dt>Observação</dt><dd>{post.obs_execucao}</dd></div>}
-                {post.formato === 'story' && <div><dt>Vale para</dt><dd>A sequência inteira ({(post.publicado_snapshot && post.publicado_snapshot.arquivos || []).length} stories)</dd></div>}
-              </dl>
-              {pode('redes.gerir') && (
-                <div className="ui-acoes">
-                  {!confirma && <Botao variante="secundario" icone="editar" onClick={() => {
-                    const p2 = R.partes(post.publicado_em) || { data: R.hoje(), hora: '' }
-                    setConfirma({ modo: 'outro', data: p2.data, hora: p2.hora, link: post.link_publicado || '', obs: post.obs_execucao || '', sequencia: true })
-                  }}>Corrigir dados</Botao>}
-                  <Botao variante="secundario" icone="restaurar" onClick={async () => {
-                    const motivo = await pedirTexto('Desfazer a confirmação de publicação? Volta para "Aprovado"; o registro fica no histórico.', { rotulo: 'Motivo (obrigatório)' }, { acao: 'Desfazer confirmação' })
-                    if (motivo && motivo.trim()) acao('desfazer', (b) => rpc('redes_desfazer_publicacao', { p_secret: lerSenha(), p_id: id, p_versao: b.versao, p_motivo: motivo }))
-                  }}>Desfazer confirmação</Botao>
-                </div>
-              )}
-              {post.publicado_snapshot && (
-                <details className="rd-retrato">
-                  <summary>O que foi ao ar (registro fixo)</summary>
-                  <p className="rd-retrato__legenda">{post.publicado_snapshot.legenda || '(sem legenda)'}</p>
-                  {post.publicado_snapshot.mencoes && <p>Menções: {post.publicado_snapshot.mencoes}</p>}
-                  <ol>{(post.publicado_snapshot.arquivos || []).map((a) => <li key={a.id}>{a.nome}{a.versao > 1 ? ' (versão ' + a.versao + ')' : ''}{a.alt ? ' — alt: ' + a.alt : ''}</li>)}</ol>
-                </details>
-              )}
-            </Secao>
-          )}
-
-          <Secao titulo="Identificação">
-            <div className="rd-grade">
-              <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required value={campos.titulo} disabled={!novo && !podeEditar} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
-              <Campo rotulo="Perfil de destino">
-                <input type="text" maxLength={60} list={'rd-perfis-' + id} value={campos.perfil} disabled={!novo && !podeEditar} onChange={(e) => setCampo('perfil', e.target.value)} />
-              </Campo>
-              <datalist id={'rd-perfis-' + id}>{[...new Set([R.PERFIL_PADRAO, ...(opcoes.perfis || [])])].map((p) => <option key={p} value={p} />)}</datalist>
-              <Campo rotulo="Formato" nota={R.requisitoFormato(campos.formato)}>
-                <select value={campos.formato} disabled={!novo && !podeEditar} onChange={(e) => setCampo('formato', e.target.value)}>
-                  {R.FORMATOS.map((x) => <option key={x.chave} value={x.chave}>{x.rotulo}</option>)}
-                </select>
-              </Campo>
-              <Campo rotulo="Edição ou campanha">
-                <select value={campos.edicao_codigo} disabled={!novo && !podeEditar} onChange={(e) => setCampo('edicao_codigo', e.target.value)}>
-                  <option value="">Institucional (sem edição)</option>
-                  {(opcoes.edicoes || []).map((e) => <option key={e.codigo} value={e.codigo}>{e.codigo} · {e.nome}</option>)}
-                </select>
-              </Campo>
-              <Campo rotulo="Participante associado">
-                <select value={campos.participante_id} disabled={!novo && !podeEditar} onChange={(e) => setCampo('participante_id', e.target.value)}>
-                  <option value="">Nenhum</option>
-                  {(opcoes.participantes || []).map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
-                </select>
-              </Campo>
-              {campos.participante_id && onVerParticipante && pode('editorial.ler') && (
-                <div className="rd-campo rd-campo--acao">
-                  <Botao variante="secundario" icone="ficha" onClick={() => onVerParticipante(campos.participante_id, campos.edicao_codigo)}>Ver participante e combo</Botao>
-                </div>
-              )}
-            </div>
-          </Secao>
-
-          <Secao titulo="Programação" nota="Horário de Fortaleza. Sem data, a postagem fica na fila.">
-            <div className="rd-grade">
-              <Campo rotulo="Data" id={idCampo('data')}><input type="date" value={dataIn} disabled={!novo && !podeEditar} onChange={(e) => mudarDH('data', e.target.value)} /></Campo>
-              <Campo rotulo="Horário previsto"><input type="time" step={300} value={horaIn} disabled={!novo && !podeEditar} onChange={(e) => mudarDH('hora', e.target.value)} /></Campo>
-              <Campo rotulo="Responsável pela publicação" id={idCampo('resp')}>
-                <select value={campos.responsavel_id} disabled={!novo && !podeEditar} onChange={(e) => { escolheuResp.current = true; setCampo('responsavel_id', e.target.value) }}>
-                  <option value="">Sem responsável</option>
-                  {respFora && <option value={campos.responsavel_id}>{post.responsavel_nome || 'Conta atual'} (sem acesso a redes)</option>}
-                  {equipe.map((e) => <option key={e.user_id} value={e.user_id}>{e.nome}</option>)}
-                </select>
-              </Campo>
-              {campos.responsavel_id && (
-                <div className="rd-campo rd-campo--acao"><Autor id={campos.responsavel_id}
-                  rotulo={(equipe.find((e) => e.user_id === campos.responsavel_id) || {}).nome || post.responsavel_nome} tamanho={28}>
-                  <span className="ui-autor__nota"> · responsável</span></Autor></div>
-              )}
-              {(campos.programado_para || dhLocal) && (novo || podeEditar) && (
-                <div className="rd-campo rd-campo--acao"><Botao variante="secundario" onClick={() => { setCampo('programado_para', ''); setDhLocal(null) }}>Tirar a data (mandar para a fila)</Botao></div>
-              )}
-            </div>
-            {dhLocal && <p className="rd-campo__nota rd-campo__nota--erro" role="alert">Falta {dhLocal.data ? 'o horário' : 'a data'}.</p>}
-            {opcoes.carregadas && !equipe.length && <p className="rd-campo__nota">Ninguém da equipe tem acesso a redes ainda. Em Administração › Equipe, dê a função “Social media” (ou Administrador) a quem vai publicar.</p>}
-          </Secao>
-
-          <Secao titulo="Conteúdo">
-            <Campo rotulo={story ? 'Legenda (opcional no Story)' : 'Legenda'} largo id={idCampo('legenda')}
-              nota={campos.legenda.length > R.LIMITE_LEGENDA_INSTAGRAM ? campos.legenda.length + ' caracteres — o Instagram aceita até ' + R.LIMITE_LEGENDA_INSTAGRAM + '. Encurte.'
-                : campos.legenda.length + ' de ' + R.LIMITE_LEGENDA_INSTAGRAM + ' caracteres · hashtags podem ir aqui mesmo'}>
-              <textarea rows={7} maxLength={5000} value={campos.legenda} disabled={!novo && !podeEditar} onChange={(e) => setCampo('legenda', e.target.value)} />
-            </Campo>
-            <Campo rotulo="Perfis a mencionar" largo nota="Ex.: @jolie.cafe @outraconta — entram no fim do texto copiado.">
-              <input type="text" maxLength={500} value={campos.mencoes} disabled={!novo && !podeEditar} onChange={(e) => setCampo('mencoes', e.target.value)} />
-            </Campo>
-            {!novo && texto && <div className="ui-acoes"><Botao variante="secundario" icone="copiar" onClick={() => copiar(texto, 'Texto completo')}>Copiar texto completo</Botao></div>}
-            <Campo rotulo="Observações para quem publica" largo nota="Ex.: marcar a localização, música do Reel, horário que a marca pediu.">
-              <textarea rows={3} maxLength={2000} value={campos.observacoes} disabled={!novo && !podeEditar} onChange={(e) => setCampo('observacoes', e.target.value)} />
-            </Campo>
-            <Campo rotulo="Referências ou briefing" largo>
-              <textarea rows={3} maxLength={2000} value={campos.referencias} disabled={!novo && !podeEditar} onChange={(e) => setCampo('referencias', e.target.value)} />
-            </Campo>
-          </Secao>
-
-          <Secao titulo="Arquivos" nota={story ? 'Stories da sequência, na ordem.' : campos.formato === 'carrossel' ? 'Ordem do carrossel: o primeiro é a capa.' : 'JPG, PNG, WEBP, MP4 ou MOV, até 50 MB.'}
-            acoes={ativos.length > 1 ? <Botao variante="secundario" icone="baixar" onClick={baixarTodos}>Baixar todos</Botao> : null}>
-            {novo && pode('redes.arquivos') && (
-              <label className="rd-soltar">
-                <Icone nome="mais" tamanho={20} />
-                <span>Escolher a arte</span>
-                <span className="rd-campo__nota">A postagem é criada como rascunho e a arte sobe em seguida.</span>
-                <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')}
-                  onChange={(e) => { const l = [...e.target.files]; e.target.value = ''; if (l.length) criar(l) }} />
-              </label>
             )}
-            {ativos.length > 0 && (
-              <ol className="rd-arquivos">
-                {ativos.map((a, i) => (
-                  <li key={a.id} className="rd-arquivo">
-                    <Miniatura path={miniDe(a)} formato={campos.formato} urls={urls} renovar={renovar} grande />
-                    <div className="rd-arquivo__info">
-                      <p className="rd-arquivo__nome"><span className="rd-arquivo__pos">{i + 1}.</span> {a.nome}</p>
-                      <p className="rd-campo__nota">
-                        {[R.TIPOS[a.mime] && R.TIPOS[a.mime].toUpperCase(), a.largura && a.altura ? a.largura + '×' + a.altura : null,
-                          a.duracao != null ? String(a.duracao).replace('.', ',') + ' s' : null, tamanhoLegivel(a.tamanho)].filter(Boolean).join(' · ')}
-                      </p>
-                      <p className="rd-campo__nota rd-arquivo__origem">
-                        {a.versao > 1 && <Selo tom="andamento">Versão {a.versao}</Selo>}
-                        {a.origem && a.origem !== 'envio' && <Selo tom="neutro">{ROTULO_ORIGEM[a.origem] || 'Biblioteca'}</Selo>}
-                        <Autor id={a.criado_por_id} rotulo={a.criado_por_rotulo} tamanho={20}>
-                          <span className="ui-autor__nota"> · {a.origem && a.origem !== 'envio' ? 'associou' : 'enviou'} {R.quandoTexto(a.criado_em)}</span></Autor>
-                      </p>
-                      {eImagem(a) && (
-                        <div className="og-campo">
-                          <span><label htmlFor={'rd-alt-' + a.id}>Texto alternativo</label></span>
-                          <textarea id={'rd-alt-' + a.id} rows={2} maxLength={1000} value={alts[a.id] ?? a.alt} disabled={!podeArquivos}
-                            placeholder="Descreva a imagem para quem usa leitor de tela"
-                            onChange={(e) => setAlts((x) => ({ ...x, [a.id]: e.target.value }))} onBlur={() => salvarAlt(a)} />
+            {anterior && (
+              <div className="og-aviso" role="status">
+                <p>Há uma postagem nova não criada, de antes: <b>“{anterior.titulo || 'sem título'}”</b>. Esta foi preenchida com os dados do participante.</p>
+                <div className="ui-acoes">
+                  <Botao variante="secundario" onClick={() => { const c = { ...padraoNovo(), ...Object.fromEntries(Object.entries(anterior).filter(([k]) => R.CAMPOS.includes(k))) }; inicioNovo.current = c; setCampos(c); setAnterior(null) }}>Continuar a de antes</Botao>
+                  <Botao variante="secundario" onClick={() => setAnterior(null)}>Seguir com a do participante</Botao>
+                </div>
+              </div>
+            )}
+
+            {conflito && (
+              <div className="og-aviso rd-conflito" role="alert">
+                <p><b>{conflito.salvo.atualizado_por_rotulo || 'Outra pessoa'}</b> salvou esta postagem {conflito.salvo.atualizado_em ? 'às ' + R.horaCurta(R.partes(conflito.salvo.atualizado_em).hora) : ''} enquanto você editava. Nada seu foi perdido: o que você digitou continua aqui.</p>
+                {conflito.campos.length > 0 ? (
+                  <dl className="rd-conflito__lista">
+                    {conflito.campos.map((k) => (
+                      <div key={k}>
+                        <dt>{ROTULO_CAMPO[k]}</dt>
+                        <dd><span>Versão salva:</span> {valorLegivel(k, conflito.salvo[k], opcoes)}</dd>
+                        <dd><span>A sua:</span> {valorLegivel(k, conflito.meus[k], opcoes)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : <p>A outra pessoa mexeu em outros campos; os seus podem ir sem apagar nada dela.</p>}
+                <div className="ui-acoes">
+                  <Botao onClick={manterMinhas} disabled={salvando}>{conflito.campos.length ? 'Salvar as minhas por cima' : 'Salvar as minhas'}</Botao>
+                  <Botao variante="secundario" onClick={usarSalva}>Ficar com a versão salva</Botao>
+                </div>
+              </div>
+            )}
+
+            {novo ? (
+              <section className="rd-novo" aria-label="Dados essenciais">
+                {inicial && inicial.doParticipante && participante && (() => {
+                  const veio = [inicial.campos.legenda && 'a legenda', inicial.campos.mencoes && 'o @ da casa (em “Mais detalhes”)'].filter(Boolean)
+                  return <p className="rd-campo__nota">Vinculada a <b>{participante}</b>{veio.length ? ': ' + veio.join(' e ') + (veio.length > 1 ? ' já vieram preenchidos.' : ' já veio preenchido.') : '.'}</p>
+                })()}
+                <div className="rd-grade">
+                  <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required enterKeyHint="next" value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
+                  <Campo rotulo="Formato" nota={R.requisitoFormato(campos.formato)}>
+                    <select value={campos.formato} onChange={(e) => setCampo('formato', e.target.value)}>
+                      {R.FORMATOS.map((x) => <option key={x.chave} value={x.chave}>{x.rotulo}</option>)}
+                    </select>
+                  </Campo>
+                  <Campo rotulo="Responsável" id={idCampo('resp')}>{selectResp}</Campo>
+                  {camposData}
+                </div>
+                {dhLocal && <p className="rd-campo__nota rd-campo__nota--erro" role="alert">Falta {dhLocal.data ? 'o horário' : 'a data'} — ou apague os dois para ficar sem data.</p>}
+                {campoLegenda}
+                <details className="rd-gaveta">
+                  <summary>Mais detalhes (opcional)</summary>
+                  <div className="rd-gaveta__corpo">
+                    {campoMencoes}
+                    {campoObs}
+                    <div className="rd-grade">
+                      <Campo rotulo="Perfil de destino">
+                        <input type="text" maxLength={60} autoCapitalize="none" list={'rd-perfis-' + id} value={campos.perfil} onChange={(e) => setCampo('perfil', e.target.value)} />
+                      </Campo>
+                      <datalist id={'rd-perfis-' + id}>{[...new Set([R.PERFIL_PADRAO, ...(opcoes.perfis || [])])].map((p) => <option key={p} value={p} />)}</datalist>
+                      <Campo rotulo="Edição ou campanha">
+                        <select value={campos.edicao_codigo} onChange={(e) => setCampo('edicao_codigo', e.target.value)}>
+                          <option value="">Institucional (sem edição)</option>
+                          {(opcoes.edicoes || []).map((e) => <option key={e.codigo} value={e.codigo}>{e.codigo} · {e.nome}</option>)}
+                        </select>
+                      </Campo>
+                      <Campo rotulo="Participante associado">
+                        <select value={campos.participante_id} onChange={(e) => setCampo('participante_id', e.target.value)}>
+                          <option value="">Nenhum</option>
+                          {(opcoes.participantes || []).map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                        </select>
+                      </Campo>
+                      <Campo rotulo="Referências ou briefing" largo>
+                        <textarea rows={3} maxLength={2000} value={campos.referencias} onChange={(e) => setCampo('referencias', e.target.value)} />
+                      </Campo>
+                    </div>
+                  </div>
+                </details>
+              </section>
+            ) : (
+              <>
+                {/* Legenda: leitura confortável; editar no lugar. */}
+                <Bloco titulo={story ? 'Legenda (opcional no Story)' : 'Legenda'} className="rd-legenda"
+                  acoes={!emEdicao('legenda') && <>
+                    {texto && <Botao variante="secundario" icone={copiado ? 'feito' : 'copiar'} onClick={() => copiar(texto, 'Legenda')}>{copiado ? 'Copiada' : 'Copiar legenda'}</Botao>}
+                    {podeEditar && <Botao variante="secundario" icone="editar" onClick={() => editar('legenda', idCampo('legenda'))}>Editar</Botao>}
+                  </>}>
+                  {emEdicao('legenda') ? (
+                    <div className="rd-bloco__form">
+                      {campoLegenda}
+                      <AcoesEdicao salvando={salvando} onSalvar={salvar} onCancelar={() => cancelarBloco('legenda')} podeSalvar={!conflito} />
+                    </div>
+                  ) : (
+                    <>
+                      {campos.legenda.trim() ? <div className="rd-legenda__texto">{campos.legenda}</div> : <p className="rd-falta">{story ? 'Sem legenda (o Story não exige).' : 'Sem legenda ainda.'}</p>}
+                      {texto && (
+                        <p className={'rd-legenda__conta' + (nLegenda > R.LIMITE_LEGENDA_INSTAGRAM ? ' rd-campo__nota--erro' : '')}>
+                          {nLegenda} de {R.LIMITE_LEGENDA_INSTAGRAM} caracteres{campos.mencoes ? ' · “Copiar legenda” leva as menções junto' : ''}
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {/* Menções e observações: menor destaque, edição própria. */}
+                  {emEdicao('extras') ? (
+                    <div className="rd-bloco__form">
+                      {campoMencoes}
+                      {campoObs}
+                      <AcoesEdicao salvando={salvando} onSalvar={salvar} onCancelar={() => cancelarBloco('extras')} podeSalvar={!conflito} />
+                    </div>
+                  ) : (campos.mencoes || campos.observacoes || podeEditar) && (
+                    <div className="rd-legenda__extras">
+                      {campos.mencoes && <p className="rd-legenda__extra"><span>Menções</span> {campos.mencoes}</p>}
+                      {campos.observacoes && <p className="rd-legenda__extra"><span>Para quem publica</span> {campos.observacoes}</p>}
+                      {podeEditar && (
+                        <button type="button" className="rd-link rd-legenda__editar" onClick={() => editar('extras', idCampo('mencoes'))}>
+                          {campos.mencoes || campos.observacoes ? 'Editar menções e observações' : 'Adicionar menções ou observações para quem publica'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </Bloco>
+
+                {/* Programação: data, horário e responsável à vista. */}
+                <Bloco titulo="Programação" className="rd-prog-bloco"
+                  acoes={!emEdicao('programacao') && podeEditar && <Botao variante="secundario" icone="editar" onClick={() => editar('programacao', idCampo('data'))}>Editar</Botao>}>
+                  {emEdicao('programacao') ? (
+                    <div className="rd-bloco__form">
+                      <div className="rd-grade">
+                        {camposData}
+                        <Campo rotulo="Responsável pela publicação" id={idCampo('resp')}>{selectResp}</Campo>
+                      </div>
+                      {dhLocal && <p className="rd-campo__nota rd-campo__nota--erro" role="alert">Falta {dhLocal.data ? 'o horário' : 'a data'}.</p>}
+                      {opcoes.carregadas && !equipe.length && <p className="rd-campo__nota">Ninguém da equipe tem acesso a redes ainda. Em Administração › Equipe, dê a função “Social media” (ou Administrador) a quem vai publicar.</p>}
+                      <div className="ui-acoes">
+                        {(campos.programado_para || dhLocal) && <Botao variante="secundario" onClick={() => { setCampo('programado_para', ''); setDhLocal(null) }}>Tirar a data (vai para “Sem data”)</Botao>}
+                      </div>
+                      <AcoesEdicao salvando={salvando} onSalvar={salvar} onCancelar={() => cancelarBloco('programacao')} podeSalvar={!conflito} />
+                    </div>
+                  ) : (
+                    <dl className="rd-prog">
+                      <div><dt>Quando</dt><dd>{campos.programado_para ? R.quandoTexto(campos.programado_para) + ' (Fortaleza)' : <span className="rd-falta">Sem data — fica em “Sem data”</span>}</dd></div>
+                      <div><dt>Responsável</dt><dd>{campos.responsavel_id ? <Autor id={campos.responsavel_id} rotulo={nomeResp} tamanho={24} /> : <span className="rd-falta">Sem responsável</span>}</dd></div>
+                      <div><dt>Perfil</dt><dd>{campos.perfil || R.PERFIL_PADRAO} · {(R.FORMATO[campos.formato] || {}).rotulo}</dd></div>
+                    </dl>
+                  )}
+                </Bloco>
+
+                {/* Próximo passo: o que a etapa pede, e quem faz. A ação principal está no rodapé. */}
+                <section className="rd-etapa-bloco" id={idEtapa} aria-labelledby={idEtapa + '-t'} data-situacao={post.situacao}>
+                  <h3 id={idEtapa + '-t'}>{post.situacao === 'publicado' ? 'Publicação' : post.situacao === 'cancelado' ? 'Situação' : 'Próximo passo'}</h3>
+                  {post.ajuste_aberto && ultimoAjuste && (
+                    <div className="rd-ajuste" role="note">
+                      <p className="rd-ajuste__quem"><Autor id={ultimoAjuste.autor_id} rotulo={ultimoAjuste.autor_rotulo} tamanho={20}>
+                        <span className="ui-autor__nota"> pediu ajuste · {R.quandoTexto(ultimoAjuste.criado_em)}</span></Autor></p>
+                      <p className="rd-ajuste__texto">{ultimoAjuste.corpo}</p>
+                    </div>
+                  )}
+                  {(post.situacao === 'rascunho' || post.situacao === 'preparacao') && (
+                    bloqueios.length > 0 ? (
+                      <div id={idPend} className="rd-pendencias" tabIndex={-1}>
+                        <p>Para enviar para aprovação, falta:</p>
+                        <ul>{bloqueios.map((p) => (
+                          <li key={p}><button type="button" className="rd-pendencia" onClick={() => irPara(p)}>
+                            <Icone nome="atencao" tamanho={16} />{R.PENDENCIAS[p]}<span className="ui-oculto"> — ir ao campo</span></button></li>
+                        ))}</ul>
+                      </div>
+                    ) : <p className="rd-etapa">{sujo ? 'Salve as alterações; depois, envie para aprovação.'
+                      : post.ajuste_aberto ? 'Faça o ajuste pedido acima e envie de novo para aprovação.'
+                      : 'Tudo pronto: envie para aprovação' + (aprova ? '.' : ' de ' + nomesAprovadores + '.')}</p>
+                  )}
+                  {post.situacao === 'aprovacao' && (
+                    <p className="rd-etapa">{aprova ? 'Confira a arte e a legenda. Aprove — ou peça ajuste dizendo o que mudar.' : 'Enviada. Aguardando aprovação de ' + nomesAprovadores + ' — você recebe um aviso.'}</p>
+                  )}
+                  {post.situacao === 'pronto' && !confirma && (
+                    <p className="rd-etapa">Aprovada. Baixe a arte e copie a legenda, publique pelo Instagram e depois confirme aqui.</p>
+                  )}
+                  {post.situacao === 'cancelado' && (
+                    <p className="rd-etapa">Cancelada{post.cancelado_em ? ' em ' + R.quandoTexto(post.cancelado_em) : ''}{post.motivo_cancelamento ? ' — ' + post.motivo_cancelamento : ''}. O histórico fica guardado.</p>
+                  )}
+                  {pend.includes('atrasada') && <p className="rd-campo__nota"><Icone nome="atencao" tamanho={16} /> Atrasada: o horário previsto já passou.</p>}
+                  {conflitos.length > 0 && (
+                    <p className="rd-campo__nota">
+                      No mesmo perfil, a menos de {R.JANELA_CONFLITO_MIN} min: {conflitos.map((c, i) => (
+                        <React.Fragment key={c.id}>{i > 0 && ', '}<button type="button" className="rd-link" onClick={() => onAbrir(c.id)}>{c.titulo} ({R.quandoTexto(c.programado_para)})</button></React.Fragment>
+                      ))}. Não bloqueia — confira se é intencional.
+                    </p>
+                  )}
+
+                  {post.situacao === 'publicado' && (
+                    <>
+                      <dl className="rd-dados">
+                        <div><dt>Publicado em</dt><dd>{R.quandoTexto(post.publicado_em)}</dd></div>
+                        <div><dt>Quem confirmou</dt><dd><Autor id={post.publicado_por_id} rotulo={post.publicado_por_rotulo} tamanho={24}>
+                          {post.confirmado_em ? <span className="ui-autor__nota"> · {R.quandoTexto(post.confirmado_em)}</span> : null}</Autor></dd></div>
+                        <div><dt>Link</dt><dd>{post.link_publicado
+                          ? <a className="rd-link" href={post.link_publicado} target="_blank" rel="noopener noreferrer">Abrir no Instagram<span className="ui-oculto"> (abre em outra aba)</span></a> : 'Sem link'}</dd></div>
+                        {post.obs_execucao && <div><dt>Observação</dt><dd>{post.obs_execucao}</dd></div>}
+                        {post.formato === 'story' && <div><dt>Vale para</dt><dd>A sequência inteira ({(post.publicado_snapshot && post.publicado_snapshot.arquivos || []).length} stories)</dd></div>}
+                      </dl>
+                      {post.publicado_snapshot && (
+                        <details className="rd-retrato">
+                          <summary>O que foi ao ar (registro fixo)</summary>
+                          <p className="rd-retrato__legenda">{post.publicado_snapshot.legenda || '(sem legenda)'}</p>
+                          {post.publicado_snapshot.mencoes && <p>Menções: {post.publicado_snapshot.mencoes}</p>}
+                          <ol>{(post.publicado_snapshot.arquivos || []).map((a) => <li key={a.id}>{a.nome}{a.versao > 1 ? ' (versão ' + a.versao + ')' : ''}{a.alt ? ' — alt: ' + a.alt : ''}</li>)}</ol>
+                        </details>
+                      )}
+                    </>
+                  )}
+
+                  {confirma && post.situacao !== 'cancelado' && (
+                    <form className="rd-confirmar" aria-label="Confirmar publicação" onSubmit={async (e) => {
+                      e.preventDefault()
+                      const quando = confirma.modo === 'agora' ? new Date().toISOString() : R.instanteDe(confirma.data, confirma.hora)
+                      if (!quando) { setErroAcao('Informe a data e a hora em que foi publicado.'); return }
+                      const ok = await acao('confirmar', (b) => rpc('redes_confirmar', { p_secret: lerSenha(), p_id: id, p_versao: b.versao, p_publicado_em: quando, p_link: confirma.link.trim() || null, p_obs: confirma.obs.trim() || null }))
+                      if (ok) { setConfirma(null); setAviso(post.situacao === 'publicado' ? 'Execução corrigida.' : 'Publicação confirmada.') }
+                    }}>
+                      <h4 id={idEtapa + '-confirmar'} tabIndex={-1}>{post.situacao === 'publicado' ? 'Corrigir dados da publicação' : 'Confirmar publicação'}</h4>
+                      <p className="rd-campo__nota">Só confirme depois de publicar pelo Instagram.</p>
+                      <fieldset className="rd-opcoes">
+                        <legend>Quando foi publicado</legend>
+                        <label><input type="radio" name={'q-' + id} checked={confirma.modo === 'agora'} onChange={() => setConfirma({ ...confirma, modo: 'agora' })} /> Publicado agora</label>
+                        <label><input type="radio" name={'q-' + id} checked={confirma.modo === 'outro'} onChange={() => setConfirma({ ...confirma, modo: 'outro' })} /> Informar data e hora</label>
+                      </fieldset>
+                      {confirma.modo === 'outro' && (
+                        <div className="rd-linha">
+                          <Campo rotulo="Data"><input type="date" required value={confirma.data} max={R.hoje()} onChange={(e) => setConfirma({ ...confirma, data: e.target.value })} /></Campo>
+                          <Campo rotulo="Hora (Fortaleza)"><input type="time" required value={confirma.hora} onChange={(e) => setConfirma({ ...confirma, hora: e.target.value })} /></Campo>
                         </div>
                       )}
+                      <Campo rotulo="Link da publicação (opcional)" nota={story ? 'Story pode não ter endereço durável: confirme sem link.' : 'Cole o endereço do post, se tiver.'}>
+                        <input type="url" inputMode="url" autoCapitalize="none" placeholder="https://www.instagram.com/p/…" value={confirma.link} onChange={(e) => setConfirma({ ...confirma, link: e.target.value })} />
+                      </Campo>
+                      <Campo rotulo="Observação (problema ou alteração na hora)">
+                        <textarea rows={2} maxLength={1000} value={confirma.obs} onChange={(e) => setConfirma({ ...confirma, obs: e.target.value })} />
+                      </Campo>
+                      {story && ativos.length > 1 && (
+                        <label className="rd-check"><input type="checkbox" required checked={confirma.sequencia} onChange={(e) => setConfirma({ ...confirma, sequencia: e.target.checked })} /> A sequência inteira ({ativos.length} stories) foi publicada.</label>
+                      )}
+                      <div className="ui-acoes">
+                        <Botao type="submit" icone="feito" variante="destaque" disabled={!!ocupado}>{ocupado === 'confirmar' ? 'Confirmando…' : post.situacao === 'publicado' ? 'Salvar correção' : 'Confirmar publicação'}</Botao>
+                        <Botao variante="secundario" onClick={() => setConfirma(null)}>Voltar</Botao>
+                      </div>
+                    </form>
+                  )}
+
+                  <div className="ui-acoes rd-etapa__acoes">
+                    {(post.situacao === 'rascunho' || post.situacao === 'preparacao') && aprova && pode('redes.editar') && (
+                      <Botao icone="sucesso" variante="secundario" disabled={bloqueios.length > 0 || !!ocupado} onClick={() => situacao('pronto')}>Aprovar direto</Botao>
+                    )}
+                    {post.situacao === 'aprovacao' && aprova && <Botao icone="editar" variante="secundario" disabled={!!ocupado} onClick={pedirAjuste}>Pedir ajuste</Botao>}
+                    {post.situacao === 'aprovacao' && !aprova && pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Retirar da aprovação</Botao>}
+                    {post.situacao === 'pronto' && aprova && <Botao icone="editar" variante="secundario" disabled={!!ocupado} onClick={pedirAjuste}>Pedir ajuste</Botao>}
+                    {post.situacao === 'pronto' && !aprova && pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Voltar para rascunho</Botao>}
+                    {post.situacao === 'cancelado' && pode('redes.gerir') && <Botao icone="restaurar" variante="secundario" onClick={() => situacao('rascunho')}>Reabrir como rascunho</Botao>}
+                    <MaisAcoes itens={[
+                      pode('redes.editar') && { rotulo: 'Duplicar como rascunho', icone: 'copiar', onClick: async () => {
+                        setOcupado('duplicar')
+                        try { const d = await rpc('redes_duplicar', { p_secret: lerSenha(), p_id: id }); onMudou(); onAbrir(d.id) } catch (e) { setErroAcao(e.message) } finally { setOcupado('') }
+                      } },
+                      !fechada && aprova && post.situacao === 'rascunho' && { rotulo: 'Pedir ajuste', icone: 'editar', onClick: pedirAjuste },
+                      post.situacao === 'publicado' && pode('redes.gerir') && !confirma && { rotulo: 'Corrigir dados da publicação', icone: 'editar', onClick: () => {
+                        const p2 = R.partes(post.publicado_em) || { data: R.hoje(), hora: '' }
+                        setConfirma({ modo: 'outro', data: p2.data, hora: p2.hora, link: post.link_publicado || '', obs: post.obs_execucao || '', sequencia: true })
+                        focoDepois.current = idEtapa + '-confirmar'
+                      } },
+                      post.situacao === 'publicado' && pode('redes.gerir') && { rotulo: 'Desfazer confirmação de publicação', icone: 'restaurar', perigo: true, onClick: async () => {
+                        const motivo = await pedirTexto('Desfazer a confirmação de publicação? Volta para "Aprovado"; o registro fica no histórico.', { rotulo: 'Motivo (obrigatório)' }, { acao: 'Desfazer confirmação' })
+                        if (motivo && motivo.trim()) acao('desfazer', (b) => rpc('redes_desfazer_publicacao', { p_secret: lerSenha(), p_id: id, p_versao: b.versao, p_motivo: motivo }))
+                      } },
+                      podeCancelar && { rotulo: 'Cancelar postagem', icone: 'excluir', perigo: true, onClick: async () => {
+                        const motivo = await pedirTexto('Cancelar “' + post.titulo + '”? Ela sai do calendário; arquivos e histórico ficam guardados.', { rotulo: 'Motivo (opcional)' }, { acao: 'Cancelar postagem' })
+                        if (motivo !== null) situacao('cancelado', motivo)
+                      } },
+                    ]} />
+                  </div>
+                </section>
+
+                <p className="rd-ultima">
+                  Última alteração: <Autor id={post.atualizado_por_id} rotulo={post.atualizado_por_rotulo} tamanho={20}>
+                    <span className="ui-autor__nota"> · {R.quandoTexto(post.atualizado_em)}</span></Autor>
+                  {post.criado_por_rotulo && <> · criada por <Autor id={post.criado_por_id} rotulo={post.criado_por_rotulo} tamanho={20} /></>}
+                </p>
+
+                {/* O resto, recolhido: abre quando precisa. */}
+                <Gaveta titulo="Detalhes: título interno, formato, edição e participante" aberto={gavetas.has('detalhes') || emEdicao('detalhes')} travada={emEdicao('detalhes')} onAlternar={(v) => alternarGaveta('detalhes', v)}>
+                  {emEdicao('detalhes') ? (
+                    <div className="rd-bloco__form">
+                      {camposDetalhes}
+                      <AcoesEdicao salvando={salvando} onSalvar={salvar} onCancelar={() => cancelarBloco('detalhes')} podeSalvar={!conflito} />
                     </div>
-                    <div className="rd-arquivo__acoes">
-                      {podeArquivos && ativos.length > 1 && <BotaoIcone icone="seta-esquerda" rotulo="Mover para antes" alvo={a.nome} disabled={i === 0 || !!ocupado} onClick={() => moverArquivo(i, -1)} />}
-                      {podeArquivos && ativos.length > 1 && <BotaoIcone icone="seta-direita" rotulo="Mover para depois" alvo={a.nome} disabled={i === ativos.length - 1 || !!ocupado} onClick={() => moverArquivo(i, 1)} />}
-                      <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} onClick={() => baixarArquivo(fonteArq(a), a.nome).catch((e) => setErroAcao(e.message))} />
-                      {podeMexer(a) && (a.origem || 'envio') === 'envio' && (
-                        <label className="ui-icone-btn rd-arquivo__trocar" data-rotulo="Substituir">
-                          <Icone nome="atualizar" tamanho={20} />
-                          <span className="ui-oculto">Substituir {a.nome}</span>
-                          <input type="file" accept={R.ACEITE} className="ui-oculto" onChange={(e) => { if (e.target.files[0]) adicionarEnvios([e.target.files[0]], a.id); e.target.value = '' }} />
+                  ) : (
+                    <>
+                      <dl className="rd-dados">
+                        <div><dt>Título interno</dt><dd>{campos.titulo}</dd></div>
+                        <div><dt>Formato</dt><dd>{(R.FORMATO[campos.formato] || {}).rotulo} — <span className="rd-campo__nota">{R.requisitoFormato(campos.formato)}</span></dd></div>
+                        <div><dt>Perfil</dt><dd>{campos.perfil || R.PERFIL_PADRAO}</dd></div>
+                        <div><dt>Edição</dt><dd>{campos.edicao_codigo || 'Institucional (sem edição)'}</dd></div>
+                        <div><dt>Participante</dt><dd>{participante || 'Nenhum'}</dd></div>
+                        {campos.referencias && <div><dt>Referências</dt><dd className="rd-pre">{campos.referencias}</dd></div>}
+                      </dl>
+                      <div className="ui-acoes">
+                        {podeEditar && <Botao variante="secundario" icone="editar" onClick={() => editar('detalhes', idCampo('titulo'))}>Editar detalhes</Botao>}
+                        {campos.participante_id && onVerParticipante && pode('editorial.ler') && (
+                          <Botao variante="secundario" icone="ficha" onClick={() => onVerParticipante(campos.participante_id, campos.edicao_codigo)}>Ver participante e combo</Botao>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </Gaveta>
+
+                <Gaveta titulo={'Arquivos e versões (' + ativos.length + ')'} aberto={gavetas.has('arquivos')} onAlternar={(v) => alternarGaveta('arquivos', v)}>
+                  <p className="rd-campo__nota">{story ? 'Stories da sequência, na ordem.' : campos.formato === 'carrossel' ? 'Ordem do carrossel: o primeiro é a capa.' : 'JPG, PNG, WEBP, MP4 ou MOV, até 50 MB.'}</p>
+                  {ativos.length > 0 && (
+                    <ol className="rd-arquivos">
+                      {ativos.map((a, i) => (
+                        <li key={a.id} className="rd-arquivo">
+                          <Miniatura path={miniDe(a)} formato={campos.formato} urls={urls} renovar={renovar} grande />
+                          <div className="rd-arquivo__info">
+                            <p className="rd-arquivo__nome"><span className="rd-arquivo__pos">{i + 1}.</span> {a.nome}</p>
+                            <p className="rd-campo__nota">
+                              {[R.TIPOS[a.mime] && R.TIPOS[a.mime].toUpperCase(), a.largura && a.altura ? a.largura + '×' + a.altura : null,
+                                a.duracao != null ? String(a.duracao).replace('.', ',') + ' s' : null, tamanhoLegivel(a.tamanho), a.versao > 1 ? 'versão ' + a.versao : null,
+                                a.origem && a.origem !== 'envio' ? (ROTULO_ORIGEM[a.origem] || 'Biblioteca') : null].filter(Boolean).join(' · ')}
+                            </p>
+                            <p className="rd-campo__nota rd-arquivo__origem">
+                              <Autor id={a.criado_por_id} rotulo={a.criado_por_rotulo} tamanho={20}>
+                                <span className="ui-autor__nota"> · {a.origem && a.origem !== 'envio' ? 'associou' : 'enviou'} {R.quandoTexto(a.criado_em)}</span></Autor>
+                            </p>
+                            {eImagem(a) && (
+                              <div className="og-campo">
+                                <span><label htmlFor={'rd-alt-' + a.id}>Texto alternativo</label></span>
+                                <textarea id={'rd-alt-' + a.id} rows={2} maxLength={1000} value={alts[a.id] ?? a.alt} disabled={!podeArquivos}
+                                  placeholder="Descreva a imagem para quem usa leitor de tela"
+                                  onChange={(e) => setAlts((x) => ({ ...x, [a.id]: e.target.value }))} onBlur={() => salvarAlt(a)} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="rd-arquivo__acoes">
+                            {podeArquivos && ativos.length > 1 && <BotaoIcone icone="seta-esquerda" rotulo="Mover para antes" alvo={a.nome} disabled={i === 0 || !!ocupado} onClick={() => moverArquivo(i, -1)} />}
+                            {podeArquivos && ativos.length > 1 && <BotaoIcone icone="seta-direita" rotulo="Mover para depois" alvo={a.nome} disabled={i === ativos.length - 1 || !!ocupado} onClick={() => moverArquivo(i, 1)} />}
+                            <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} disabled={entregaGaveta.ocupado} onClick={() => entregaGaveta.baixar([itemDe(a)])} />
+                            {podeMexer(a) && (a.origem || 'envio') === 'envio' && (
+                              <label className="ui-icone-btn rd-arquivo__trocar" data-rotulo="Substituir">
+                                <Icone nome="atualizar" tamanho={20} />
+                                <span className="ui-oculto">Substituir {a.nome}</span>
+                                <input type="file" accept={R.ACEITE} className="ui-oculto" onChange={(e) => { if (e.target.files[0]) adicionarEnvios([e.target.files[0]], a.id); e.target.value = '' }} />
+                              </label>
+                            )}
+                            {podeMexer(a) && <BotaoIcone icone="excluir" rotulo="Remover" alvo={a.nome} perigo onClick={() => removerArquivo(a)} />}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {podeArquivos && ativos.some((a) => !podeMexer(a)) && (
+                    <p className="rd-campo__nota">Arte enviada por outra pessoa (o designer) só a administração substitui ou remove. Precisa de ajuste? Use “Pedir ajuste” nos comentários.</p>
+                  )}
+                  {podeArquivos && (
+                    <div className="ui-acoes">
+                      {ativos.length > 0 && (
+                        <label className="og-btn og-btn--mini og-btn--vazado rd-enviar-mais">
+                          <Icone nome="mais" tamanho={16} />Enviar mais arquivos
+                          <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')} onChange={(e) => { if (e.target.files.length) adicionarEnvios(e.target.files); e.target.value = '' }} />
                         </label>
                       )}
-                      {podeMexer(a) && <BotaoIcone icone="excluir" rotulo="Remover" alvo={a.nome} perigo onClick={() => removerArquivo(a)} />}
+                      <Botao variante="secundario" icone="pasta" aria-expanded={biblioteca} onClick={() => setBiblioteca((x) => !x)}>
+                        {biblioteca ? 'Fechar a biblioteca' : 'Escolher da biblioteca'}
+                      </Botao>
                     </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-            {envios.length > 0 && (
-              <ul className="rd-envios" aria-live="polite">
-                {envios.map((it) => (
-                  <li key={it.chave} className="rd-envio" data-estado={it.estado}>
-                    <span className="rd-envio__nome">{it.substitui ? 'Substituindo por ' : ''}{it.nome}</span>
-                    {it.estado === 'erro' ? (
-                      <>
-                        <span className="rd-campo__nota rd-campo__nota--erro" role="alert">{it.erro}</span>
-                        <span className="ui-acoes">
-                          <Botao onClick={() => tentarDeNovo(it)}>Tentar de novo</Botao>
-                          <Botao variante="secundario" onClick={() => setEnvios((l) => l.filter((x) => x.chave !== it.chave))}>Descartar</Botao>
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="rd-envio__estado">{it.estado === 'na_fila' ? 'Na fila' : it.estado === 'conferindo' ? 'Conferindo o arquivo…' : 'Enviando ' + Math.round(it.progresso * 100) + '%'}</span>
-                        <span className="rd-envio__trilho" role="progressbar" aria-label={'Envio de ' + it.nome} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(it.progresso * 100)}><span style={{ width: it.progresso * 100 + '%' }} /></span>
-                        {it.nota && <span className="rd-campo__nota">{it.nota}</span>}
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {podeArquivos && ativos.some((a) => !podeMexer(a)) && (
-              <p className="rd-campo__nota">Arte enviada por outra pessoa (o designer) só a administração substitui ou remove. Precisa de ajuste? Use “Pedir ajuste” nos comentários.</p>
-            )}
-            {podeArquivos && (
-              <div className="ui-acoes">
-                <Botao variante="secundario" icone="pasta" aria-expanded={biblioteca} onClick={() => setBiblioteca((x) => !x)}>
-                  {biblioteca ? 'Fechar a biblioteca' : 'Escolher da biblioteca'}
-                </Botao>
-              </div>
-            )}
-            {podeArquivos && biblioteca && (
-              <SeletorBiblioteca participanteId={campos.participante_id || null} jaUsados={ativos.map((a) => chaveFonte(fonteArq(a)))}
-                ocupado={ocupado === 'associar'} onEscolher={associar} />
-            )}
-            {podeArquivos && (
-              <label className="rd-soltar">
-                <Icone nome="mais" tamanho={20} />
-                <span>{ativos.length ? 'Enviar mais arquivos' : 'Enviar a arte'}</span>
-                <span className="rd-campo__nota">Pode escolher vários de uma vez; entram na ordem escolhida.</span>
-                <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')} onChange={(e) => { if (e.target.files.length) adicionarEnvios(e.target.files); e.target.value = '' }} />
-              </label>
-            )}
-            {antigos.length > 0 && (
-              <details className="rd-antigos">
-                <summary>Versões anteriores e removidos ({antigos.length})</summary>
-                <ul>
-                  {antigos.map((a) => (
-                    <li key={a.id}>
-                      <span>{a.nome}{a.versao ? ' (versão ' + a.versao + ')' : ''} — {a.substituido_por ? 'substituído' : 'removido'} por {a.removido_por_rotulo || '—'} em {R.quandoTexto(a.removido_em)}</span>
-                      <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} onClick={() => baixarArquivo(fonteArq(a), a.nome).catch((e) => setErroAcao(e.message))} />
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </Secao>
+                  )}
+                  {podeArquivos && biblioteca && (
+                    <SeletorBiblioteca participanteId={campos.participante_id || null} jaUsados={ativos.map((a) => chaveFonte(fonteArq(a)))}
+                      ocupado={ocupado === 'associar'} onEscolher={associar} onFechar={() => setBiblioteca(false)} />
+                  )}
+                  {antigos.length > 0 && (
+                    <div className="rd-antigos">
+                      <Botao variante="secundario" aria-expanded={verAntigos} onClick={() => setVerAntigos((x) => !x)}>
+                        {verAntigos ? 'Esconder versões anteriores' : 'Mostrar versões anteriores e removidos (' + antigos.length + ')'}
+                      </Botao>
+                      {verAntigos && (
+                        <ul>
+                          {antigos.map((a) => (
+                            <li key={a.id}>
+                              <span>{a.nome}{a.versao ? ' (versão ' + a.versao + ')' : ''} — {a.substituido_por ? 'substituído' : 'removido'} por {a.removido_por_rotulo || '—'} em {R.quandoTexto(a.removido_em)}</span>
+                              <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} disabled={entregaGaveta.ocupado} onClick={() => entregaGaveta.baixar([itemDe(a)])} />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                  <EstadoEntrega entrega={entregaGaveta} />
+                </Gaveta>
 
-          {!novo && (
-            <Secao titulo="Comentários" nota="Pedido de ajuste avisa quem cuida da postagem e a devolve para rascunho.">
-              {comentarios.length ? (
-                <ul className="rd-comentarios">
-                  {comentarios.map((c) => (
-                    <li key={c.id} data-ajuste={c.ajuste ? '1' : undefined}>
-                      <p className="rd-comentarios__quem">
-                        <Autor id={c.autor_id} rotulo={c.autor_rotulo} tamanho={24}><span className="ui-autor__nota"> · {R.quandoTexto(c.criado_em)}</span></Autor>
-                        {c.ajuste && <Selo tom="atencao">Pedido de ajuste</Selo>}
-                      </p>
-                      <p>{c.corpo}</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : <p className="ui-nota">Nenhum comentário.</p>}
-              {pode('redes.editar') && (
-                <form className="rd-comentar" onSubmit={async (e) => {
-                  e.preventDefault()
-                  if (!comentario.trim()) return
-                  setOcupado('comentar')
-                  try { await rpc('redes_comentar', { p_secret: lerSenha(), p_post: id, p_corpo: comentario, p_ajuste: ajuste }); setComentario(''); setAjuste(false); await recarregar(); onMudou() }
-                  catch (err) { setErroAcao(err.message) } finally { setOcupado('') }
-                }}>
-                  <Campo rotulo="Novo comentário" largo><textarea rows={2} maxLength={2000} value={comentario} onChange={(e) => setComentario(e.target.value)} /></Campo>
-                  <label className="rd-check"><input type="checkbox" checked={ajuste} onChange={(e) => setAjuste(e.target.checked)} /> É um pedido de ajuste (na arte, na legenda…)</label>
-                  <div className="ui-acoes"><Botao type="submit" icone="enviar" disabled={!comentario.trim() || ocupado === 'comentar'}>{ajuste ? 'Pedir ajuste' : 'Enviar comentário'}</Botao></div>
-                </form>
-              )}
-            </Secao>
-          )}
+                <Gaveta titulo={'Comentários (' + comentarios.length + ')'} aberto={gavetas.has('comentarios')} onAlternar={(v) => alternarGaveta('comentarios', v)}>
+                  <p className="rd-campo__nota">Pedido de ajuste avisa quem cuida da postagem e a devolve para rascunho.</p>
+                  {comentarios.length ? (
+                    <ul className="rd-comentarios">
+                      {comentarios.map((c) => (
+                        <li key={c.id} data-ajuste={c.ajuste ? '1' : undefined}>
+                          <p className="rd-comentarios__quem">
+                            <Autor id={c.autor_id} rotulo={c.autor_rotulo} tamanho={24}><span className="ui-autor__nota"> · {R.quandoTexto(c.criado_em)}</span></Autor>
+                            {c.ajuste && <Selo tom="atencao">Pedido de ajuste</Selo>}
+                          </p>
+                          <p>{c.corpo}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="ui-nota">Nenhum comentário.</p>}
+                  {pode('redes.editar') && (
+                    <form className="rd-comentar" onSubmit={async (e) => {
+                      e.preventDefault()
+                      if (!comentario.trim()) return
+                      setOcupado('comentar')
+                      try { await rpc('redes_comentar', { p_secret: lerSenha(), p_post: id, p_corpo: comentario, p_ajuste: ajuste }); setComentario(''); setAjuste(false); await recarregar(); onMudou() }
+                      catch (err) { setErroAcao(err.message) } finally { setOcupado('') }
+                    }}>
+                      <Campo rotulo="Novo comentário" largo><textarea rows={2} maxLength={2000} value={comentario} onChange={(e) => setComentario(e.target.value)} /></Campo>
+                      <label className="rd-check"><input type="checkbox" checked={ajuste} onChange={(e) => setAjuste(e.target.checked)} /> É um pedido de ajuste (na arte, na legenda…)</label>
+                      <div className="ui-acoes"><Botao type="submit" icone="enviar" disabled={!comentario.trim() || ocupado === 'comentar'}>{ajuste ? 'Pedir ajuste' : 'Enviar comentário'}</Botao></div>
+                    </form>
+                  )}
+                </Gaveta>
 
-          {!novo && (
-            <Secao titulo="Histórico">
-              <ol className="rd-historico">
-                {historia.map((h) => (
-                  <li key={h.id}><span className="rd-historico__quando">{R.quandoTexto(h.em)}</span> <Autor id={h.ator_id} rotulo={h.ator_rotulo} tamanho={20} /> — {textoHistorico(h, opcoes)}</li>
-                ))}
-              </ol>
-            </Secao>
-          )}
-        </div>
-      </div>
-
-      <div className="rd-rodape">
-        <p className="rd-rodape__estado" aria-live="polite">
-          {erroAcao ? <span className="rd-campo__nota--erro">{traduzirRedes(erroAcao)}</span>
-            : aviso ? aviso
-            : salvando ? 'Salvando…'
-            : conflito ? 'Outra pessoa salvou antes: escolha acima qual versão fica.'
-            : sujo ? 'Alterações não salvas'
-            : salvoEm ? 'Salvo às ' + R.horaCurta(R.partes(salvoEm).hora)
-            : novo ? '' : post.situacao === 'publicado' ? 'Publicada — não muda mais' : post.situacao === 'cancelado' ? 'Cancelada' : 'Tudo salvo'}
-        </p>
-        <div className="ui-acoes">
-          {!novo && sujo && <Botao variante="secundario" onClick={descartar} disabled={salvando}>Descartar alterações</Botao>}
-          {(novo || podeEditar) && (
-            <Botao variante="destaque" icone="feito" onClick={salvar} disabled={salvando || (!novo && !sujo) || !!conflito}>
-              {novo ? (salvando ? 'Criando…' : 'Criar rascunho') : salvando ? 'Salvando…' : 'Salvar alterações'}
-            </Botao>
-          )}
+                <Gaveta titulo={'Histórico (' + historia.length + ')'} aberto={gavetas.has('historico')} onAlternar={(v) => alternarGaveta('historico', v)}>
+                  <ol className="rd-historico">
+                    {historia.map((h) => (
+                      <li key={h.id}><span className="rd-historico__quando">{R.quandoTexto(h.em)}</span> <Autor id={h.ator_id} rotulo={h.ator_rotulo} tamanho={20} /> — {textoHistorico(h)}</li>
+                    ))}
+                  </ol>
+                </Gaveta>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </Folha>

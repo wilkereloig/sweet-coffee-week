@@ -2,20 +2,27 @@ import React from 'react'
 import { rpc } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Icone } from '../Icone'
-import { Carregando, Erro, Vazio, Selo, Botao, BotaoIcone, Escolha } from '../ui'
+import { Folha } from '../Folha'
+import { Carregando, Erro, Vazio, Selo, Botao, Escolha, MaisAcoes } from '../ui'
+import { confirmar, pedirTexto } from '../Confirmar'
 import { Autor } from '../Avatar'
 import * as R from '../../lib/redes'
-import { useUrlsAssinadas, baixarArquivo, prepararArquivo, enviarArquivo, chaveFonte } from '../../lib/redesArquivos'
+import * as P from '../../lib/pastas'
+import { useUrlsAssinadas, prepararArquivo, enviarArquivo, chaveFonte, urlDe } from '../../lib/redesArquivos'
 import { Miniatura, traduzirRedes } from './RedesFicha'
+import { useEntrega, EstadoEntrega, BotoesEntrega } from './BaixarArquivo'
 
 /*
- * Social media › Biblioteca (17/10/2026). Uma lista só, por REFERÊNCIA ao que
- * já existe — nada é copiado (social_biblioteca):
- *   arte final de postagem (enviada aqui) · foto do combo · foto da loja ·
- *   logo do participante · material geral da campanha.
- * Arquivo privado continua privado: `redes` e `arquivos` por link assinado de
- * vida curta, renovado; `logos` e `edicao-publico` já são públicos.
- * Enviar arte direto para a biblioteca é do designer/administração (redes.gerir).
+ * Social media › Biblioteca (17/10/2026; PASTAS em 17/10/2026). Uma lista só,
+ * por REFERÊNCIA ao que já existe — nada é copiado (social_biblioteca):
+ *   arte final (enviada aqui) · foto do combo · foto da loja · logo · material geral.
+ * Pastas VIRTUAIS (20261019_social_pastas.sql): organizam essas referências;
+ * mover ou renomear não mexe no Storage nem nas postagens. Sem pasta = "Sem
+ * pasta". Organizar = redes.gerir (administração/designer); a Social media
+ * navega, consulta, baixa e associa. O MESMO navegador serve a página e o
+ * seletor dentro da postagem (uma organização só).
+ * Sem a migration no servidor, a biblioteca segue sem pastas (aviso discreto).
+ * Arquivo privado continua privado: assinatura de vida curta, renovada.
  */
 
 const lerSenha = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || '' } catch { return '' } }
@@ -32,205 +39,595 @@ const SITUACAO_BIB = {
   enviada: ['Enviada, sem aprovação', 'andamento'], aprovada: ['Aprovada', 'ok'], recusada: ['Recusada', 'encerrado'],
   oficial: ['Logo oficial', 'ok'], anterior: ['Logo anterior', 'neutro'], publicado: ['Publicado às marcas', 'ok'], nao_publicado: ['Não publicado', 'neutro'],
 }
+// Situação que vale mostrar: o "normal" de cada tipo não ganha selo.
+const SITUACAO_NORMAL = new Set(['disponivel', 'aprovada', 'oficial', 'publicado'])
 const ACEITA_POST = new Set(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'])
 const fonteItem = (x) => ({ bucket: x.bucket, path: x.path })
 const miniItem = (x) => (x.miniatura_path ? { bucket: 'redes', path: x.miniatura_path } : String(x.mime || '').startsWith('image/') ? fonteItem(x) : null)
 const formatoDe = (x) => (String(x.mime || '').startsWith('video/') ? 'reels' : 'feed')
+const itemEntrega = (x) => ({ bucket: x.bucket, path: x.path, nome: x.nome, mime: x.mime, tamanho: x.tamanho })
 
-function CartaoMaterial({ x, urls, renovar, acao, onFalha }) {
+const ERROS_PASTA = {
+  ciclo: 'Uma pasta não pode ir para dentro dela mesma nem de uma pasta que está dentro dela.',
+  nome_repetido_no_destino: 'No destino já existe uma pasta com o mesmo nome. Renomeie uma delas antes.',
+  nome_repetido: 'Já existe uma pasta com esse nome neste nível.',
+  nome_vazio: 'Dê um nome à pasta.', nome_longo: 'Use até 80 caracteres.', nome_invalido: 'O nome não pode ter “/”.',
+  pasta_arquivada: 'Essa pasta foi arquivada. Atualize a biblioteca.', pasta_inexistente: 'Essa pasta não existe mais. Atualize a biblioteca.',
+  pasta_com_conteudo: 'A pasta tem conteúdo: confirme para onde ele vai.', nada_selecionado: 'Nada selecionado.',
+  selecao_grande: 'Mova até 500 materiais de cada vez.',
+}
+const traduzir = (m) => { for (const [k, v] of Object.entries(ERROS_PASTA)) if (String(m).includes(k)) return v; return traduzirRedes(m) }
+const LIMITE_LISTA = 300 // o mesmo `limit` de social_biblioteca (os mais recentes)
+const semPastasNoServidor = (m) => /social_pastas|schema cache|does not exist|ainda não está pronta/i.test(String(m))
+
+/*
+ * Material: miniatura em destaque, nome (até 2 linhas; inteiro no rótulo e na
+ * prévia), participante; tipo em linha discreta; situação só quando informa.
+ * O cartão abre a prévia; "Baixar" fica à vista. Nada clicável aninhado.
+ */
+function CartaoMaterial({ x, urls, renovar, onAbrir, selecionando, marcado, onMarcar, acao, ondeEsta }) {
   const t = TIPO[x.tipo] || {}
   const [sit, tom] = SITUACAO_BIB[x.situacao] || [x.situacao, 'neutro']
+  const detalhes = [t.rotulo || x.tipo, x.vinculo !== 'Biblioteca' ? x.vinculo : null, x.largura && x.altura ? x.largura + '×' + x.altura : null].filter(Boolean).join(' · ')
   return (
-    <li className="sb-item" data-tipo={x.tipo}>
-      <Miniatura path={miniItem(x)} formato={formatoDe(x)} urls={urls} renovar={renovar} grande />
-      <div className="sb-item__corpo">
-        <p className="sb-item__tipo"><Icone nome={t.icone || 'imagem'} tamanho={16} />{t.rotulo || x.tipo}</p>
-        <p className="sb-item__nome">{x.nome}</p>
-        <p className="rd-campo__nota">
-          {[x.participante_nome, x.vinculo, x.versao ? 'versão ' + x.versao : null, x.largura && x.altura ? x.largura + '×' + x.altura : null].filter(Boolean).join(' · ')}
-        </p>
-        <p className="sb-item__selos">
-          <Selo tom={tom}>{sit}</Selo>
-          {!ACEITA_POST.has(x.mime) && <Selo tom="neutro">Só download</Selo>}
-        </p>
-        {x.criado_por_id && <Autor id={x.criado_por_id} rotulo={x.criado_por_rotulo} tamanho={20} />}
-        {x.credito && <p className="rd-campo__nota">Crédito: {x.credito}</p>}
-      </div>
-      <div className="sb-item__acoes">
-        <BotaoIcone icone="baixar" rotulo="Baixar" alvo={x.nome} onClick={() => baixarArquivo(fonteItem(x), x.nome).catch(() => onFalha && onFalha(x.nome))} />
-        {acao}
-      </div>
+    <li className="bb-arq" data-tipo={x.tipo} data-marcado={marcado ? '1' : undefined}>
+      {selecionando && (
+        <label className="bb-arq__marca">
+          <input type="checkbox" checked={marcado} onChange={() => onMarcar(x)} />
+          <span className="ui-oculto">Selecionar {x.nome}</span>
+        </label>
+      )}
+      <button type="button" className="bb-arq__abrir" onClick={() => (selecionando ? onMarcar(x) : onAbrir(x))}
+        aria-label={(selecionando ? (marcado ? 'Desmarcar ' : 'Marcar ') : 'Abrir ') + x.nome + (x.participante_nome ? ', ' + x.participante_nome : '')} title={x.nome}>
+        <Miniatura path={miniItem(x)} formato={formatoDe(x)} urls={urls} renovar={renovar} grande />
+        <span className="bb-arq__corpo" aria-hidden="true">
+          <span className="bb-arq__nome">{x.nome}</span>
+          {x.participante_nome && <span className="bb-arq__part">{x.participante_nome}</span>}
+          <span className="bb-arq__tipo"><Icone nome={t.icone || 'imagem'} tamanho={16} />{detalhes}</span>
+          {ondeEsta && <span className="bb-arq__onde"><Icone nome="pasta" tamanho={16} />{ondeEsta}</span>}
+          {(!SITUACAO_NORMAL.has(x.situacao) || !ACEITA_POST.has(x.mime)) && (
+            <span className="bb-arq__selos">
+              {!SITUACAO_NORMAL.has(x.situacao) && <Selo tom={tom}>{sit}</Selo>}
+              {!ACEITA_POST.has(x.mime) && <Selo tom="neutro">Só download</Selo>}
+            </span>
+          )}
+        </span>
+      </button>
+      {!selecionando && acao && <div className="bb-arq__acoes">{acao}</div>}
     </li>
   )
 }
 
-/** Escolher material da biblioteca para uma postagem (dentro da ficha). Associa por referência. */
-export function SeletorBiblioteca({ participanteId, jaUsados = [], ocupado, onEscolher }) {
-  const [soDele, setSoDele] = React.useState(!!participanteId)
-  const [tipo, setTipo] = React.useState('')
+/** "Mover para…": a árvore inteira; ao mover uma PASTA, ela e as de dentro ficam fora (ciclo). */
+function MoverPara({ aberto, titulo, pastas, moverPasta = null, atual = null, onEscolher, onFechar }) {
+  const destinos = P.arvoreDestinos(pastas, { moverPasta })
+  return (
+    <Folha aberto={aberto} titulo={titulo} sub="Só a organização muda: o arquivo, o endereço e as postagens que o usam ficam iguais." onFechar={onFechar}>
+      <ul className="bb-destinos">
+        <li>
+          <button type="button" className="bb-destino" disabled={atual === null} onClick={() => onEscolher(null)}>
+            <Icone nome="inicio" tamanho={16} />{moverPasta ? 'Biblioteca (primeiro nível)' : 'Sem pasta'}{atual === null && <span className="bb-destino__nota"> · onde está</span>}
+          </button>
+        </li>
+        {destinos.map((d) => (
+          <li key={d.id}>
+            <button type="button" className="bb-destino" style={{ '--nivel': d.nivel }} disabled={d.proibida || d.id === atual} onClick={() => onEscolher(d.id)}>
+              <Icone nome="pasta" tamanho={16} />{d.nome}
+              {d.id === atual && <span className="bb-destino__nota"> · onde está</span>}
+              {d.proibida && <span className="bb-destino__nota"> · é a pasta que está sendo movida (ou está dentro dela)</span>}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Folha>
+  )
+}
+
+/** Prévia completa (sem recorte) com as ações que cabem. */
+function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, onMover, onVerPostagem, onFechar }) {
+  const { urls, erro: erroUrl, renovar } = useUrlsAssinadas(x ? [fonteItem(x)] : [])
+  const [falhou, setFalhou] = React.useState(false)
+  const tentou = React.useRef(false) // renova UMA vez: arquivo quebrado não vira laço de pedidos
+  if (!x) return null
+  const url = urlDe(urls, fonteItem(x))
+  const video = String(x.mime || '').startsWith('video/')
+  const imagem = String(x.mime || '').startsWith('image/')
+  const t = TIPO[x.tipo] || {}
+  const [sit] = SITUACAO_BIB[x.situacao] || [x.situacao]
+  const razao = x.largura && x.altura ? x.largura / x.altura : null
+  return (
+    <Folha aberto titulo={x.nome} sub={[t.rotulo, x.participante_nome].filter(Boolean).join(' · ')} onFechar={onFechar} larga cheia>
+      <div className="bb-previa">
+        <div className="bb-previa__palco" style={razao ? { '--razao': razao } : undefined}>
+          {!url && erroUrl ? <span className="rd-previa__espera">Não consegui abrir a prévia. <Botao variante="secundario" icone="atualizar" onClick={() => renovar(fonteItem(x))}>Tentar de novo</Botao></span>
+            : !url ? <span className="rd-previa__espera">Carregando…</span>
+            : video ? <video src={url} controls preload="metadata" playsInline aria-label={'Vídeo: ' + x.nome} />
+            : imagem && !falhou ? <img src={url} alt={x.nome} onError={() => { setFalhou(true); if (!tentou.current) { tentou.current = true; renovar(fonteItem(x)).then(() => setFalhou(false)) } }} />
+            : imagem ? <span className="rd-previa__espera"><Icone nome="documento" tamanho={24} /> A prévia não abriu — use Baixar para conferir o arquivo.</span>
+            : <span className="rd-previa__espera"><Icone nome="documento" tamanho={24} /> Sem prévia para este formato — use Baixar.</span>}
+        </div>
+        <div className="bb-previa__acoes">
+          <BotoesEntrega entrega={entrega} itens={[itemEntrega(x)]} />
+          {podeOrganizar && <Botao variante="secundario" icone="pasta" onClick={onMover}>Mover para…</Botao>}
+          {x.post_id && <Botao variante="secundario" icone="seta-direita" onClick={onVerPostagem}>Ver postagem</Botao>}
+        </div>
+        <EstadoEntrega entrega={entrega} />
+        <dl className="rd-dados">
+          <div><dt>Pasta</dt><dd>{x.pasta_id ? P.textoCaminho(pastasIdx.porId, x.pasta_id) : 'Sem pasta'}</dd></div>
+          <div><dt>Tipo</dt><dd>{t.rotulo}{x.vinculo ? ' · ' + x.vinculo : ''}</dd></div>
+          {x.participante_nome && <div><dt>Participante</dt><dd>{x.participante_nome}</dd></div>}
+          {x.largura && x.altura && <div><dt>Tamanho</dt><dd>{x.largura}×{x.altura}{x.tamanho ? ' · ' + Math.max(1, Math.round(x.tamanho / 1024)) + ' KB' : ''}</dd></div>}
+          <div><dt>Situação</dt><dd>{sit}{x.versao > 1 ? ' · versão ' + x.versao : ''}</dd></div>
+          {x.credito && <div><dt>Crédito</dt><dd>{x.credito}</dd></div>}
+          {x.criado_por_rotulo && <div><dt>Enviado por</dt><dd><Autor id={x.criado_por_id} rotulo={x.criado_por_rotulo} tamanho={20} /> · {R.quandoTexto(x.criado_em)}</dd></div>}
+        </dl>
+      </div>
+    </Folha>
+  )
+}
+
+/** Envio para a biblioteca (designer): vários de uma vez, com miniatura, progresso, falha e nova tentativa. */
+function useEnvios(destino, aoTerminar, para) {
+  const [envios, setEnvios] = React.useState([])
+  const fila = React.useRef(Promise.resolve())
+  const previas = React.useRef([])
+  // O envio termina depois de a pessoa ter mudado de pasta: relê a pasta ABERTA AGORA, não a do clique.
+  const fim = React.useRef(aoTerminar)
+  fim.current = aoTerminar
+  const soltar = (lista) => lista.forEach((e) => { if (e.previa) { URL.revokeObjectURL(e.previa); previas.current = previas.current.filter((u) => u !== e.previa) } })
+  const atualizar = (chave, patch) => setEnvios((l) => l.map((e) => (e.chave === chave ? { ...e, ...patch } : e)))
+  React.useEffect(() => () => previas.current.forEach((u) => URL.revokeObjectURL(u)), [])
+  async function enviar(it) {
+    atualizar(it.chave, { estado: 'conferindo', erro: null, progresso: 0 })
+    try {
+      const prep = await prepararArquivo(it.file)
+      atualizar(it.chave, { estado: 'enviando' })
+      await enviarArquivo(null, it.file, prep, { biblioteca: it.destino, aoProgredir: (x) => atualizar(it.chave, { progresso: x }) })
+      // Só depois de o banco registrar: "enviado".
+      atualizar(it.chave, { estado: 'feito', progresso: 1 })
+      fim.current()
+    } catch (e) { atualizar(it.chave, { estado: 'erro', erro: traduzir(e.message) }) }
+  }
+  function adicionar(files) {
+    const novos = [...files].map((file) => {
+      const previa = String(file.type).startsWith('image/') ? URL.createObjectURL(file) : null
+      if (previa) previas.current.push(previa)
+      return { chave: crypto.randomUUID(), file, nome: file.name, tipo: file.type || 'arquivo', estado: 'na_fila', progresso: 0, previa, destino: { ...destino }, para }
+    })
+    setEnvios((l) => [...l, ...novos])
+    for (const it of novos) fila.current = fila.current.then(() => enviar(it))
+  }
+  const tentar = (it) => { fila.current = fila.current.then(() => enviar(it)) }
+  const limpar = () => setEnvios((l) => { soltar(l.filter((e) => e.estado === 'feito')); return l.filter((e) => e.estado !== 'feito') })
+  const descartar = (it) => setEnvios((l) => { soltar(l.filter((e) => e.chave === it.chave)); return l.filter((e) => e.chave !== it.chave) })
+  return { envios, adicionar, tentar, limpar, descartar }
+}
+
+function VincularPasta({ pasta, opcoes, onSalvar, onFechar }) {
+  const [ed, setEd] = React.useState(pasta.edicao_codigo || '')
+  const [part, setPart] = React.useState(pasta.participante_id || '')
+  return (
+    <Folha aberto titulo={'Vincular “' + pasta.nome + '”'} sub="Opcional: ajuda a achar a pasta. Os arquivos não mudam." onFechar={onFechar}>
+      <div className="sb-filtros">
+        <Escolha rotulo="Edição" valor={ed} opcoes={[['', 'Nenhuma'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]} onMudar={setEd} />
+        <Escolha rotulo="Participante" valor={part} opcoes={[['', 'Nenhum'], ...(opcoes.participantes || []).map((p) => [p.id, p.nome])]} onMudar={setPart} />
+      </div>
+      <div className="ui-acoes bb-vincular__acoes">
+        <Botao variante="destaque" icone="feito" onClick={() => onSalvar({ edicao_codigo: ed, participante_id: part })}>Salvar vínculo</Botao>
+        <Botao variante="secundario" onClick={onFechar}>Cancelar</Botao>
+      </div>
+    </Folha>
+  )
+}
+
+/*
+ * O navegador da biblioteca: caminho, Biblioteca · Sem pasta · Recentes,
+ * busca, ordem, filtros; pastas primeiro, arquivos embaixo; seleção explícita.
+ * `estado`: { pasta: '' | 'sem' | 'recentes' | uuid, q, tipo, ord, ed, part, sit, ver }.
+ */
+function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode, navegar, registrarAtualizar = null, participanteId = null, jaUsados = [], ocupado = false, onEscolher = null }) {
+  const seletor = modo === 'seletor'
+  const [pastasR, setPastasR] = React.useState(null) // { pastas, pode_organizar } | { indisponivel }
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const carregar = React.useCallback(() => {
-    setLista(null)
-    rpc('social_biblioteca', { p_secret: lerSenha(), p_filtros: { situacao: 'disponivel', tipo, participante: soDele && participanteId ? participanteId : '' } })
-      .then((l) => { setLista(l || []); setErro(null) }).catch((e) => setErro(e.message))
-  }, [tipo, soDele, participanteId])
+  const [opcoes, setOpcoes] = React.useState({ participantes: [], edicoes: [] })
+  const [busca, setBusca] = React.useState(estado.q || '')
+  const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
+  const [selecionando, setSelecionando] = React.useState(false)
+  const [marcados, setMarcados] = React.useState(() => new Map())
+  const [mover, setMover] = React.useState(null) // { itens } | { pasta }
+  const [vincular, setVincular] = React.useState(null)
+  const [aviso, setAviso] = React.useState('')
+  const [soDele, setSoDele] = React.useState(!!participanteId)
+  const entrega = useEntrega()
+  const pedidoPastas = React.useRef(0)
+  const pedidoLista = React.useRef(0)
+
+  const carregarPastas = React.useCallback(async () => {
+    const meu = ++pedidoPastas.current
+    try { const r = await rpc('social_pastas_listar', { p_secret: lerSenha() }); if (meu === pedidoPastas.current) setPastasR(r) }
+    catch (e) { if (meu === pedidoPastas.current) setPastasR(semPastasNoServidor(e.message) ? { indisponivel: true, pastas: [] } : { erro: e.message, pastas: [] }) }
+  }, [])
+  React.useEffect(() => { carregarPastas() }, [carregarPastas])
+  React.useEffect(() => { rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setOpcoes(o)).catch(() => {}) }, [])
+
+  const comPastas = !!pastasR && !pastasR.indisponivel && !pastasR.erro
+  const podeOrganizar = comPastas && !!pastasR.pode_organizar && !seletor
+  const pastas = React.useMemo(() => (pastasR && pastasR.pastas) || [], [pastasR])
+  const idx = React.useMemo(() => P.indexar(pastas), [pastas])
+  const local = estado.pasta || ''
+  const pastaAtual = local && local !== 'sem' && local !== 'recentes' ? idx.porId.get(local) || null : null
+  const pastaPerdida = comPastas && !!local && local !== 'sem' && local !== 'recentes' && !pastaAtual
+  const buscando = !!(estado.q || '').trim()
+  const ord = estado.ord || (local === 'recentes' ? 'recente' : 'nome')
+  const soDoParticipante = seletor && soDele && !!participanteId
+
+  // O que pedir ao banco: a pasta aberta (ou "sem pasta" na raiz), recentes ou a busca em tudo.
+  const filtros = {
+    tipo: estado.tipo || '', edicao: estado.ed || '', participante: (soDoParticipante && participanteId) || estado.part || '',
+    situacao: seletor ? 'disponivel' : estado.sit === 'todas' ? '' : estado.sit || 'disponivel', q: estado.q || '', ordem: ord,
+    ...(local === 'recentes' ? { recentes: true } : {}),
+    ...(comPastas && !buscando && !soDoParticipante && local !== 'recentes' ? { pasta: pastaAtual ? pastaAtual.id : 'sem' } : {}),
+  }
+  const chave = pastasR ? JSON.stringify(filtros) : ''
+  const carregar = React.useCallback(async () => {
+    if (!chave) return
+    const meu = ++pedidoLista.current // resposta velha não sobrescreve a nova
+    setErro(null)
+    try { const r = await rpc('social_biblioteca', { p_secret: lerSenha(), p_filtros: JSON.parse(chave) }); if (meu === pedidoLista.current) setLista(r || []) }
+    catch (e) { if (meu === pedidoLista.current) setErro(e.message) }
+  }, [chave])
   React.useEffect(() => { carregar() }, [carregar])
-  const itens = (lista || []).filter((x) => ACEITA_POST.has(x.mime))
+  const recarregarTudo = React.useCallback(() => { carregarPastas(); carregar() }, [carregarPastas, carregar])
+  // O "atualizar" do topo do painel relê pastas e arquivos.
+  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(recarregarTudo) }, [registrarAtualizar, recarregarTudo])
+  React.useEffect(() => { setMarcados(new Map()); setSelecionando(false) }, [local])
+  React.useEffect(() => { if (!aviso) return undefined; const t = setTimeout(() => setAviso(''), 5000); return () => clearTimeout(t) }, [aviso])
+  React.useEffect(() => { setBusca(estado.q || '') }, [estado.q])
+  React.useEffect(() => {
+    if ((estado.q || '') === busca) return undefined
+    const t = setTimeout(() => mudar({ q: busca || undefined }), 300)
+    return () => clearTimeout(t)
+  }, [busca]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const itens = (lista || []).filter((x) => !seletor || ACEITA_POST.has(x.mime))
   const { urls, renovar } = useUrlsAssinadas(itens.map(miniItem))
+  const subpastas = !comPastas || local === 'sem' || local === 'recentes' || soDoParticipante ? []
+    : buscando ? P.buscarPastas(pastas, estado.q) : P.ordenarPastas(idx.filhos.get(pastaAtual ? pastaAtual.id : null) || [], ord)
+  const trilha = pastaAtual ? P.caminho(idx.porId, pastaAtual.id) : []
   const usados = new Set(jaUsados)
+  const envio = useEnvios({ pasta_id: pastaAtual ? pastaAtual.id : '', edicao_codigo: (pastaAtual && pastaAtual.edicao_codigo) || '', participante_id: (pastaAtual && pastaAtual.participante_id) || '' },
+    () => { carregar(); carregarPastas() }, pastaAtual ? pastaAtual.nome : 'Sem pasta')
+  const marcadosLista = [...marcados.values()]
+  const nFiltros = [estado.ed, estado.part, estado.sit].filter(Boolean).length
+  const vendo = estado.ver ? itens.find((x) => P.chaveItem(x) === estado.ver) || null : null
+
+  const marcar = (x) => setMarcados((m) => { const n = new Map(m); if (n.has(P.chaveItem(x))) n.delete(P.chaveItem(x)); else n.set(P.chaveItem(x), x); return n })
+  const irPara = (p) => { setBusca(''); abrirPasta(p) }
+  const voltar = () => irPara(trilha.length > 1 ? trilha[trilha.length - 2].id : '')
+
+  // ── Organizar (redes.gerir; o banco confere de novo) ──
+  async function novaPasta() {
+    const irmas = idx.filhos.get(pastaAtual ? pastaAtual.id : null) || []
+    const nome = await pedirTexto('Nova pasta' + (pastaAtual ? ' dentro de “' + pastaAtual.nome + '”' : ' na Biblioteca') + '?', { rotulo: 'Nome da pasta' }, { acao: 'Criar pasta' })
+    if (nome == null) return
+    const v = P.validarNome(nome, irmas)
+    if (!v.ok) { setAviso(v.erro); return }
+    try { await rpc('social_pasta_criar', { p_secret: lerSenha(), p_dados: { nome: v.nome, pai_id: pastaAtual ? pastaAtual.id : null } }); setAviso('Pasta “' + v.nome + '” criada.'); carregarPastas() }
+    catch (e) { setAviso(traduzir(e.message)) }
+  }
+  async function renomear(p) {
+    const nome = await pedirTexto('Renomear “' + p.nome + '”?', { rotulo: 'Nome da pasta', valor: p.nome }, { acao: 'Renomear' })
+    if (nome == null) return
+    const v = P.validarNome(nome, idx.filhos.get(p.pai_id || null) || [], p.id)
+    if (!v.ok) { setAviso(v.erro); return }
+    if (v.nome === p.nome) return
+    try { await rpc('social_pasta_editar', { p_secret: lerSenha(), p_id: p.id, p_dados: { nome: v.nome } }); setAviso('Renomeada para “' + v.nome + '”.'); carregarPastas() }
+    catch (e) { setAviso(traduzir(e.message)) }
+  }
+  async function arquivar(p) {
+    const destino = p.pai_id ? '“' + (idx.porId.get(p.pai_id) || {}).nome + '”' : 'o primeiro nível da Biblioteca (os arquivos, para “Sem pasta”)'
+    const cheia = Number(p.n_itens) > 0 || Number(p.n_pastas) > 0
+    const texto = cheia
+      ? 'Arquivar “' + p.nome + '”? ' + Number(p.n_pastas) + ' subpasta(s) e ' + Number(p.n_itens) + ' arquivo(s) vão para ' + destino + '. Nenhum arquivo é apagado.'
+      : 'Arquivar “' + p.nome + '”? Ela está vazia. Nenhum arquivo é apagado.'
+    if (!(await confirmar(texto, { acao: 'Arquivar pasta' }))) return
+    try {
+      await rpc('social_pasta_arquivar', { p_secret: lerSenha(), p_id: p.id, p_confirmar: cheia })
+      setAviso('Pasta arquivada.' + (cheia ? ' O conteúdo foi para ' + destino + '.' : ''))
+      if (pastaAtual && pastaAtual.id === p.id) irPara(p.pai_id || '')
+      recarregarTudo()
+    } catch (e) { setAviso(traduzir(e.message)) }
+  }
+  async function moverPara(destinoId) {
+    const m = mover
+    setMover(null)
+    try {
+      if (m.pasta) {
+        await rpc('social_pasta_mover', { p_secret: lerSenha(), p_id: m.pasta.id, p_destino: destinoId })
+        setAviso('“' + m.pasta.nome + '” agora está em ' + P.textoCaminho(idx.porId, destinoId) + '.')
+      } else {
+        await rpc('social_biblioteca_mover', { p_secret: lerSenha(), p_itens: m.itens.map(P.refItem), p_pasta: destinoId })
+        setAviso(m.itens.length + (m.itens.length === 1 ? ' arquivo movido' : ' arquivos movidos') + ' para ' + (destinoId ? '“' + idx.porId.get(destinoId).nome + '”' : '“Sem pasta”') + '.')
+        setMarcados(new Map()); setSelecionando(false)
+        if (estado.ver) mudar({ ver: undefined })
+      }
+      recarregarTudo()
+    } catch (e) { setAviso(traduzir(e.message)) }
+  }
+  async function salvarVinculo(p, dados) {
+    setVincular(null)
+    try { await rpc('social_pasta_editar', { p_secret: lerSenha(), p_id: p.id, p_dados: dados }); setAviso('Vínculo da pasta salvo.'); carregarPastas() }
+    catch (e) { setAviso(traduzir(e.message)) }
+  }
+
+  const acoesPasta = (p) => [
+    { rotulo: 'Renomear', icone: 'editar', onClick: () => renomear(p) },
+    { rotulo: 'Vincular a edição ou participante', icone: 'ficha', onClick: () => setVincular(p) },
+    { rotulo: 'Mover para…', icone: 'pasta', onClick: () => setMover({ pasta: p }) },
+    { rotulo: 'Arquivar', icone: 'arquivar', perigo: true, onClick: () => arquivar(p) },
+  ]
+  const tituloLocal = buscando ? 'Busca em toda a biblioteca' : soDoParticipante ? 'Deste participante' : local === 'sem' ? 'Sem pasta' : local === 'recentes' ? 'Recentes' : pastaAtual ? pastaAtual.nome : 'Biblioteca'
+  const nomeArq = itens.length === 1 ? 'arquivo' : 'arquivos'
+
   return (
-    <div className="sb-seletor" role="region" aria-label="Escolher da biblioteca">
-      <div className="sb-filtros">
-        <Escolha rotulo="Tipo" valor={tipo} opcoes={[['', 'Todos'], ...TIPOS_BIB.map(([k, r]) => [k, r])]} onMudar={setTipo} />
-        {participanteId && (
-          <label className="rd-check"><input type="checkbox" checked={soDele} onChange={(e) => setSoDele(e.target.checked)} /> Só do participante desta postagem</label>
+    <div className={'bb' + (seletor ? ' bb--seletor' : '')}>
+      {/* Onde estou: voltar + caminho; atalhos fixos. */}
+      <div className="bb-topo">
+        {comPastas && !buscando && pastaAtual && (
+          <Botao variante="secundario" icone="seta-esquerda" onClick={voltar} aria-label={'Voltar para ' + (trilha.length > 1 ? trilha[trilha.length - 2].nome : 'Biblioteca')}>Voltar</Botao>
+        )}
+        {(local || buscando) && <nav className="bb-caminho" aria-label="Caminho da pasta">
+          <ol>
+            <li>{local || buscando ? <button type="button" className="rd-link" onClick={() => irPara('')}>Biblioteca</button> : <span aria-current="page">Biblioteca</span>}</li>
+            {!buscando && local === 'sem' && <li><span aria-current="page">Sem pasta</span></li>}
+            {!buscando && local === 'recentes' && <li><span aria-current="page">Recentes</span></li>}
+            {!buscando && trilha.map((p, i) => (
+              <li key={p.id}>{i === trilha.length - 1 ? <span aria-current="page">{p.nome}</span> : <button type="button" className="rd-link" onClick={() => irPara(p.id)}>{p.nome}</button>}</li>
+            ))}
+            {buscando && <li><span aria-current="page">Busca</span></li>}
+          </ol>
+        </nav>}
+      </div>
+      {comPastas && (
+        <div className="bb-atalhos" role="group" aria-label="Acesso rápido">
+          {[['', 'Biblioteca', 'inicio'], ['sem', 'Sem pasta', 'pasta'], ['recentes', 'Recentes', 'horario']].map(([k, r, i]) => (
+            <button key={r} type="button" className="bb-atalho" aria-pressed={!buscando && !soDoParticipante && local === k} onClick={() => irPara(k)}><Icone nome={i} tamanho={16} />{r}</button>
+          ))}
+        </div>
+      )}
+      {pastasR && pastasR.indisponivel && !seletor && (
+        <p className="ui-nota bb-aviso-servidor"><Icone nome="informacao" tamanho={16} /> Pastas ainda não ativadas no servidor (falta aplicar a atualização do banco). A biblioteca segue funcionando, sem pastas.</p>
+      )}
+      {pastasR && pastasR.erro && <Erro texto={'Não consegui carregar as pastas: ' + traduzir(pastasR.erro) + ' Os arquivos abaixo estão sem a separação por pasta.'} onTentar={carregarPastas} />}
+      {pastaPerdida && (
+        <p className="og-aviso" role="status">Esta pasta não existe mais (foi arquivada ou o link é antigo). <Botao variante="secundario" onClick={() => irPara('')}>Ir para a Biblioteca</Botao></p>
+      )}
+
+      <div className="sb-ferramentas">
+        <label className="og-campo rd-busca">
+          <span className="ui-oculto">Buscar na biblioteca</span>
+          <input type="search" value={busca} placeholder="Buscar arquivo, pasta ou participante" enterKeyHint="search" onChange={(e) => setBusca(e.target.value)} />
+        </label>
+        <label className="rd-ver">
+          <span className="ui-oculto">Ordenar</span>
+          <select value={ord} onChange={(e) => mudar({ ord: e.target.value })}>
+            <option value="nome">Nome (A–Z)</option>
+            <option value="recente">Atualização</option>
+          </select>
+        </label>
+        <label className="rd-ver">
+          <span className="ui-oculto">Tipo de material</span>
+          <select value={estado.tipo || ''} onChange={(e) => mudar({ tipo: e.target.value || undefined })}>
+            <option value="">Todos os tipos</option>
+            {TIPOS_BIB.map(([k, r]) => <option key={k} value={k}>{r}</option>)}
+          </select>
+        </label>
+        {!seletor && (
+          <button type="button" className="rd-filtros-btn" aria-expanded={filtrosAbertos} onClick={() => setFiltrosAbertos((x) => !x)}>
+            Filtros{nFiltros > 0 && <><span className="og-aba__n" aria-hidden="true">{nFiltros}</span><span className="ui-oculto"> ({nFiltros} {nFiltros === 1 ? 'ativo' : 'ativos'})</span></>}
+          </button>
+        )}
+        {seletor && participanteId && (
+          <label className="rd-check"><input type="checkbox" checked={soDele} onChange={(e) => setSoDele(e.target.checked)} /> Só deste participante (todas as pastas)</label>
         )}
       </div>
-      {erro && <Erro texto={traduzirRedes(erro)} onTentar={carregar} />}
-      {!erro && !lista && <Carregando linhas={2} />}
-      {lista && !itens.length && <p className="ui-nota">Nada disponível com estes filtros. PDF, SVG e outros formatos ficam na aba Biblioteca, só para baixar.</p>}
-      {itens.length > 0 && (
-        <ul className="sb-grade sb-grade--compacta">
-          {itens.map((x) => {
-            const usado = usados.has(chaveFonte(fonteItem(x)))
-            return (
-              <CartaoMaterial key={x.tipo + x.id} x={x} urls={urls} renovar={renovar}
-                acao={<Botao variante={usado ? 'secundario' : 'destaque'} disabled={usado || ocupado} onClick={() => onEscolher(x)}>
-                  {usado ? 'Já na postagem' : 'Usar nesta postagem'}</Botao>} />
-            )
-          })}
-        </ul>
+      {filtrosAbertos && !seletor && (
+        <div className="rd-filtros" role="region" aria-label="Filtros da biblioteca">
+          <div className="rd-filtros__campos">
+            <Escolha rotulo="Edição" valor={estado.ed || ''} opcoes={[['', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]} onMudar={(v) => mudar({ ed: v || undefined })} />
+            <Escolha rotulo="Participante" valor={estado.part || ''} opcoes={[['', 'Todos'], ...(opcoes.participantes || []).map((p) => [p.id, p.nome])]} onMudar={(v) => mudar({ part: v || undefined })} />
+            <Escolha rotulo="Situação" valor={estado.sit || 'disponivel'} opcoes={[['disponivel', 'Disponível para usar'], ['todas', 'Tudo, inclusive versões anteriores'],
+              ['aprovada', 'Fotos aprovadas'], ['enviada', 'Fotos sem aprovação'], ['oficial', 'Logos oficiais'], ['substituida', 'Versões anteriores de arte']]}
+              onMudar={(v) => mudar({ sit: v === 'disponivel' ? undefined : v })} />
+          </div>
+          <div className="ui-acoes">
+            {nFiltros > 0 && <Botao variante="secundario" icone="fechar" onClick={() => mudar({ ed: undefined, part: undefined, sit: undefined })}>Limpar filtros</Botao>}
+            <Botao variante="secundario" onClick={() => setFiltrosAbertos(false)}>Fechar filtros</Botao>
+          </div>
+        </div>
       )}
+
+      {/* A pasta aberta: nome, vínculo e o que dá para fazer com ela. */}
+      <div className="bb-cabeca">
+        <div className="bb-cabeca__titulos">
+          <h2 className="bb-cabeca__titulo">{tituloLocal}</h2>
+          {pastaAtual && (pastaAtual.edicao_codigo || pastaAtual.participante_nome) && (
+            <p className="bb-cabeca__vinculo">{[pastaAtual.edicao_codigo && 'Edição ' + pastaAtual.edicao_codigo, pastaAtual.participante_nome].filter(Boolean).join(' · ')}</p>
+          )}
+        </div>
+        <div className="bb-cabeca__acoes">
+          {podeOrganizar && !buscando && !pastaPerdida && local !== 'sem' && local !== 'recentes' && <Botao variante="secundario" icone="mais" onClick={novaPasta}>Nova pasta</Botao>}
+          {!seletor && pode('redes.gerir') && !buscando && local !== 'recentes' && !pastaPerdida && (
+            <label className="og-btn og-btn--mini og-btn--amarelo bb-enviar">
+              <Icone nome="mais" tamanho={16} />Enviar arquivos
+              <input type="file" multiple accept={R.ACEITE} className="ui-oculto" onChange={(e) => { if (e.target.files.length) envio.adicionar(e.target.files); e.target.value = '' }} />
+            </label>
+          )}
+          {podeOrganizar && pastaAtual && <MaisAcoes itens={acoesPasta(pastaAtual)} rotulo={<>Pasta<span className="ui-oculto"> {pastaAtual.nome}: opções</span></>} />}
+        </div>
+      </div>
+
+      {aviso && <p className="og-aviso" role="status">{aviso}</p>}
+      {envio.envios.length > 0 && (
+        <div className="bb-envios">
+          <p className="bb-envios__titulo">Envios</p>
+          <ul className="rd-envios" aria-live="polite">
+            {envio.envios.map((it) => (
+              <li key={it.chave} className="rd-envio bb-envio" data-estado={it.estado}>
+                <span className="bb-envio__mini" aria-hidden="true">{it.previa ? <img src={it.previa} alt="" /> : <Icone nome="play" tamanho={20} />}</span>
+                <span className="bb-envio__info">
+                  <span className="rd-envio__nome">{it.nome}</span>
+                  <span className="rd-campo__nota">{String(R.TIPOS[it.tipo] || it.tipo).toUpperCase()} · {Math.max(1, Math.round(it.file.size / 1024))} KB · para “{it.para}”</span>
+                  {it.estado === 'erro' ? <span className="rd-campo__nota rd-campo__nota--erro" role="alert">{it.erro}</span>
+                    : it.estado === 'feito' ? <span className="rd-envio__estado">Enviado e registrado</span>
+                    : <>
+                      <span className="rd-envio__estado">{it.estado === 'na_fila' ? 'Na fila' : it.estado === 'conferindo' ? 'Conferindo o arquivo…' : 'Enviando ' + Math.round(it.progresso * 100) + '%'}</span>
+                      <span className="rd-envio__trilho" role="progressbar" aria-label={'Envio de ' + it.nome} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(it.progresso * 100)}><span style={{ width: it.progresso * 100 + '%' }} /></span>
+                    </>}
+                </span>
+                {it.estado === 'erro' && (
+                  <span className="ui-acoes bb-envio__acoes"><Botao onClick={() => envio.tentar(it)}>Tentar de novo</Botao><Botao variante="secundario" onClick={() => envio.descartar(it)}>Descartar</Botao></span>
+                )}
+              </li>
+            ))}
+          </ul>
+          {envio.envios.some((e) => e.estado === 'feito') && <Botao variante="secundario" onClick={envio.limpar}>Limpar enviados</Botao>}
+        </div>
+      )}
+
+      {/* Pastas primeiro. */}
+      {subpastas.length > 0 && (
+        <section className="bb-secao" aria-labelledby={'bb-pastas-' + modo}>
+          <h3 id={'bb-pastas-' + modo} className="bb-secao__titulo">{buscando ? 'Pastas encontradas' : 'Pastas'} ({subpastas.length})</h3>
+          <ul className="bb-pastas">
+            {subpastas.map((p) => (
+              <li key={p.id} className="bb-pasta">
+                <button type="button" className="bb-pasta__abrir" onClick={() => irPara(p.id)}>
+                  <span className="bb-pasta__icone" aria-hidden="true"><Icone nome="pasta" tamanho={20} /></span>
+                  <span className="bb-pasta__corpo">
+                    <span className="bb-pasta__nome">{p.nome}</span>
+                    <span className="bb-pasta__meta">
+                      {buscando ? 'Em ' + P.textoCaminho(idx.porId, p.pai_id) : [Number(p.n_pastas) ? p.n_pastas + (Number(p.n_pastas) === 1 ? ' pasta' : ' pastas') : null,
+                        Number(p.n_itens) + (Number(p.n_itens) === 1 ? ' arquivo' : ' arquivos'), p.edicao_codigo, p.participante_nome].filter(Boolean).join(' · ')}
+                    </span>
+                  </span>
+                </button>
+                {podeOrganizar && <MaisAcoes itens={acoesPasta(p)} rotulo={<span className="ui-oculto">Opções da pasta {p.nome}</span>} />}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Arquivos embaixo. */}
+      <section className="bb-secao" aria-labelledby={'bb-arqs-' + modo}>
+        <div className="bb-secao__cabeca">
+          <h3 id={'bb-arqs-' + modo} className="bb-secao__titulo">{lista ? itens.length + ' ' + nomeArq : 'Arquivos'}{!buscando && !soDoParticipante && local === '' && comPastas ? ' sem pasta' : ''}</h3>
+          {!seletor && itens.length > 0 && (
+            <Botao variante="secundario" icone={selecionando ? 'fechar' : 'feito'} aria-pressed={selecionando} onClick={() => { setSelecionando((x) => !x); setMarcados(new Map()) }}>
+              {selecionando ? 'Cancelar seleção' : 'Selecionar'}
+            </Botao>
+          )}
+        </div>
+        {erro && <Erro texto={traduzir(erro)} onTentar={carregar} />}
+        {!erro && !lista && <Carregando linhas={3} />}
+        {lista && lista.length >= LIMITE_LISTA && <p className="ui-nota">Mostrando os {LIMITE_LISTA} mais recentes. Use a busca, o tipo ou os filtros para achar os outros.</p>}
+        {lista && !itens.length && !subpastas.length && (
+          <Vazio titulo={buscando ? 'Nada encontrado' : pastaAtual ? 'Pasta vazia' : local === 'sem' ? 'Tudo organizado' : 'Nada aqui'} icone={buscando ? 'busca' : 'pasta'}>
+            {buscando ? 'Mude a busca ou o tipo.' : pastaAtual ? (podeOrganizar ? 'Envie arquivos aqui ou mova arquivos de “Sem pasta”.' : 'Ainda não há arquivos nesta pasta.') : local === 'sem' ? 'Todos os arquivos já estão em alguma pasta.' : 'Mude o tipo ou os filtros.'}
+          </Vazio>
+        )}
+        {itens.length > 0 && (
+          <ul className={'bb-arqs' + (seletor ? ' bb-arqs--lista' : '')}>
+            {itens.map((x) => {
+              const usado = usados.has(chaveFonte(fonteItem(x)))
+              return (
+                <CartaoMaterial key={P.chaveItem(x)} x={x} urls={urls} renovar={renovar}
+                  ondeEsta={(buscando || local === 'recentes' || soDoParticipante) && comPastas ? (x.pasta_id ? P.textoCaminho(idx.porId, x.pasta_id) : 'Sem pasta') : null}
+                  selecionando={selecionando} marcado={marcados.has(P.chaveItem(x))} onMarcar={marcar}
+                  onAbrir={(it) => { if (!seletor) mudar({ ver: P.chaveItem(it) }, { empilhar: true }) }}
+                  acao={seletor
+                    ? <Botao variante={usado ? 'secundario' : 'destaque'} icone={usado ? 'feito' : 'mais'} disabled={usado || ocupado} onClick={() => onEscolher(x)}>{usado ? 'Já na postagem' : 'Usar nesta postagem'}</Botao>
+                    : <Botao variante="secundario" icone="baixar" disabled={entrega.ocupado} aria-label={'Baixar ' + x.nome} onClick={() => entrega.baixar([itemEntrega(x)])}>Baixar</Botao>} />
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* Seleção e estado do download: presos embaixo, sem cobrir de vez (a lista tem folga embaixo). */}
+      {!seletor && (selecionando || (entrega.estado && !vendo)) && (
+        <div className="bb-barra" role="region" aria-label={selecionando ? 'Seleção' : 'Download'}>
+          {selecionando && (
+            <div className="bb-barra__sel">
+              <p className="bb-barra__n" aria-live="polite">
+                {marcadosLista.length} {marcadosLista.length === 1 ? 'selecionado' : 'selecionados'}
+                <button type="button" className="rd-link bb-barra__todos" onClick={() => setMarcados(marcadosLista.length === itens.length ? new Map() : new Map(itens.map((x) => [P.chaveItem(x), x])))}>
+                  {marcadosLista.length === itens.length ? 'Desmarcar todos' : 'Marcar todos'}
+                </button>
+              </p>
+              {marcadosLista.length > 0 && (
+                <div className="bb-barra__acoes">
+                  <BotoesEntrega entrega={entrega} itens={marcadosLista.map(itemEntrega)} nomeZip={tituloLocal} compacto />
+                  {podeOrganizar && <Botao variante="secundario" icone="pasta" onClick={() => setMover({ itens: marcadosLista })}>Mover…</Botao>}
+                </div>
+              )}
+            </div>
+          )}
+          {!vendo && <EstadoEntrega entrega={entrega} />}
+        </div>
+      )}
+
+      {!seletor && vendo && (
+        <PreviaMaterial x={vendo} pastasIdx={idx} entrega={entrega} podeOrganizar={podeOrganizar}
+          onMover={() => setMover({ itens: [vendo] })} onFechar={() => mudar({ ver: undefined })}
+          onVerPostagem={() => navegar({ vista: 'social', aba: 'planejamento', filtros: { item: vendo.post_id } })} />
+      )}
+      {!seletor && estado.ver && lista && !vendo && <p className="og-aviso" role="status">Este arquivo não está nesta pasta (ou mudou de lugar). <button type="button" className="rd-link" onClick={() => mudar({ ver: undefined })}>Fechar</button></p>}
+      {comPastas && !seletor && (
+        <MoverPara aberto={!!mover} pastas={pastas} moverPasta={mover && mover.pasta ? mover.pasta.id : null}
+          atual={mover ? (mover.pasta ? mover.pasta.pai_id || null : mover.itens.length === 1 ? mover.itens[0].pasta_id || null : undefined) : undefined}
+          titulo={mover ? (mover.pasta ? 'Mover a pasta “' + mover.pasta.nome + '” para…' : 'Mover ' + mover.itens.length + (mover.itens.length === 1 ? ' arquivo' : ' arquivos') + ' para…') : 'Mover para…'}
+          onEscolher={moverPara} onFechar={() => setMover(null)} />
+      )}
+      {vincular && <VincularPasta pasta={vincular} opcoes={opcoes} onSalvar={(d) => salvarVinculo(vincular, d)} onFechar={() => setVincular(null)} />}
+    </div>
+  )
+}
+
+/** Escolher material para uma postagem (dentro da ficha, no lugar): as MESMAS pastas, sem organizar. */
+export function SeletorBiblioteca({ participanteId, jaUsados = [], ocupado, onEscolher, onFechar }) {
+  const [estado, setEstado] = React.useState({ pasta: '' })
+  const mudar = (patch) => setEstado((e) => { const n = { ...e, ...patch }; for (const k of Object.keys(n)) if (n[k] === undefined) delete n[k]; return n })
+  return (
+    <div className="sb-seletor" role="region" aria-label="Escolher da biblioteca">
+      <div className="sb-seletor__cabeca">
+        <p className="sb-seletor__titulo">Escolher da biblioteca</p>
+        {onFechar && <Botao variante="secundario" icone="fechar" onClick={onFechar}>Fechar</Botao>}
+      </div>
+      <NavegadorBiblioteca modo="seletor" estado={estado} mudar={mudar} abrirPasta={(p) => mudar({ pasta: p || undefined, q: undefined })} pode={() => false}
+        participanteId={participanteId} jaUsados={jaUsados} ocupado={ocupado} onEscolher={onEscolher} />
     </div>
   )
 }
 
 export function SocialBiblioteca({ rota, navegar, pode, registrarAtualizar }) {
   const f = rota.filtros || {}
-  const sit = f.sit === undefined ? 'disponivel' : f.sit === 'todas' ? '' : f.sit
-  const [lista, setLista] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
-  const [opcoes, setOpcoes] = React.useState({ participantes: [], edicoes: [] })
-  const [erroOpcoes, setErroOpcoes] = React.useState(null)
-  const [aviso, setAviso] = React.useState('')
-  const [busca, setBusca] = React.useState(f.q || '')
-  const [envios, setEnvios] = React.useState([])
-  const [destino, setDestino] = React.useState({ edicao_codigo: '', participante_id: '' })
-
-  // Abre na edição atual (o que a equipe usa agora); "Todas" é escolha explícita (ed=todas).
-  const edAtual = f.ed === 'todas' ? '' : f.ed || opcoes.edicao_atual || ''
-  const filtros = { tipo: f.tipo || '', edicao: edAtual, participante: f.part || '', situacao: sit, q: f.q || '' }
-  const chave = JSON.stringify(filtros)
-  const carregar = React.useCallback(async () => {
-    try { setLista(await rpc('social_biblioteca', { p_secret: lerSenha(), p_filtros: JSON.parse(chave) })); setErro(null) }
-    catch (e) { setErro(e.message) }
-  }, [chave])
-  React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
-  React.useEffect(() => {
-    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => { if (o) { setOpcoes(o); setDestino((d) => ({ ...d, edicao_codigo: d.edicao_codigo || o.edicao_atual || '' })) } })
-      .catch((e) => setErroOpcoes(e.message))
-  }, [])
-  const mudar = (patch) => {
-    const n = { ...f, ...patch }
+  const fAtual = React.useRef(f)
+  fAtual.current = f
+  // Filtros e prévia moram no endereço: abrir um arquivo e voltar devolve a pasta, os filtros e a posição.
+  const mudar = React.useCallback((patch, opc = {}) => {
+    const n = { ...fAtual.current, ...patch }
     for (const k of Object.keys(n)) if (n[k] === undefined || n[k] === '') delete n[k]
-    navegar({ ...ALVO, filtros: n }, { substituir: true })
-  }
-  React.useEffect(() => {
-    if ((f.q || '') === busca) return undefined
-    const t = setTimeout(() => mudar({ q: busca || undefined }), 300)
-    return () => clearTimeout(t)
-  }, [busca]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const itens = lista || []
-  const { urls, renovar } = useUrlsAssinadas(itens.map(miniItem))
-  const podeEnviar = pode('redes.gerir')
-
-  async function enviar(files) {
-    for (const file of files) {
-      const chaveE = crypto.randomUUID()
-      setEnvios((l) => [...l, { chave: chaveE, nome: file.name, estado: 'enviando', progresso: 0 }])
-      try {
-        const prep = await prepararArquivo(file)
-        await enviarArquivo(null, file, prep, { biblioteca: { edicao_codigo: destino.edicao_codigo, participante_id: destino.participante_id },
-          aoProgredir: (x) => setEnvios((l) => l.map((e) => (e.chave === chaveE ? { ...e, progresso: x } : e))) })
-        setEnvios((l) => l.filter((e) => e.chave !== chaveE))
-        carregar()
-      } catch (e) {
-        setEnvios((l) => l.map((x) => (x.chave === chaveE ? { ...x, estado: 'erro', erro: traduzirRedes(e.message) } : x)))
-      }
-    }
-  }
-
-  const contagem = (k) => itens.filter((x) => x.tipo === k).length
-  return (
-    <div className="sb">
-      <p className="rd-aviso-limite"><Icone nome="informacao" tamanho={16} /><span>Artes finais, fotos dos combos e das lojas, logos e materiais da campanha.</span></p>
-      {erroOpcoes && <Erro titulo="Não carreguei as edições e os participantes" texto={traduzirRedes(erroOpcoes)} />}
-      {aviso && <p className="og-aviso" role="status">{aviso}</p>}
-
-      <div className="sb-filtros">
-        <Escolha rotulo="Tipo de material" valor={f.tipo || ''} opcoes={[['', 'Todos'], ...TIPOS_BIB.map(([k, r]) => [k, r])]} onMudar={(v) => mudar({ tipo: v })} />
-        <Escolha rotulo="Edição" valor={f.ed === 'todas' ? 'todas' : edAtual} opcoes={[['todas', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]} onMudar={(v) => mudar({ ed: v })} />
-        <Escolha rotulo="Participante" valor={f.part || ''} opcoes={[['', 'Todos'], ...(opcoes.participantes || []).map((p) => [p.id, p.nome])]} onMudar={(v) => mudar({ part: v })} />
-        <Escolha rotulo="Situação" valor={f.sit || 'disponivel'} opcoes={[['disponivel', 'Disponível para usar'], ['todas', 'Tudo, inclusive versões anteriores'],
-          ['aprovada', 'Fotos aprovadas'], ['enviada', 'Fotos sem aprovação'], ['oficial', 'Logos oficiais'], ['substituida', 'Versões anteriores de arte']]}
-          onMudar={(v) => mudar({ sit: v === 'disponivel' ? undefined : v })} />
-        <label className="og-campo rd-busca">
-          <span>Buscar</span>
-          <input type="search" value={busca} placeholder="Nome, vínculo ou participante" onChange={(e) => setBusca(e.target.value)} />
-        </label>
-      </div>
-
-      {podeEnviar && (
-        <details className="sb-enviar">
-          <summary>Enviar arte final para a biblioteca</summary>
-          <p className="ui-nota">Para o designer: a arte fica disponível para qualquer postagem. Para mandar direto a uma postagem, use a ficha dela.</p>
-          <div className="sb-filtros">
-            <Escolha rotulo="Edição" valor={destino.edicao_codigo} opcoes={[['', 'Institucional'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]}
-              onMudar={(v) => setDestino((d) => ({ ...d, edicao_codigo: v }))} />
-            <Escolha rotulo="Participante" valor={destino.participante_id} opcoes={[['', 'Nenhum'], ...(opcoes.participantes || []).map((p) => [p.id, p.nome])]}
-              onMudar={(v) => setDestino((d) => ({ ...d, participante_id: v }))} />
-          </div>
-          <label className="rd-soltar">
-            <Icone nome="mais" tamanho={20} />
-            <span>Escolher artes</span>
-            <span className="rd-campo__nota">JPG, PNG, WEBP, MP4 ou MOV, até 50 MB. Conferidas antes de subir.</span>
-            <input type="file" multiple accept={R.ACEITE} className="ui-oculto" onChange={(e) => { if (e.target.files.length) enviar([...e.target.files]); e.target.value = '' }} />
-          </label>
-          {envios.length > 0 && (
-            <ul className="rd-envios" aria-live="polite">
-              {envios.map((it) => (
-                <li key={it.chave} className="rd-envio" data-estado={it.estado}>
-                  <span className="rd-envio__nome">{it.nome}</span>
-                  {it.estado === 'erro'
-                    ? <span className="rd-campo__nota rd-campo__nota--erro" role="alert">{it.erro}</span>
-                    : <span className="rd-envio__estado">Enviando {Math.round(it.progresso * 100)}%</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </details>
-      )}
-
-      {erro && <Erro texto={traduzirRedes(erro)} onTentar={carregar} />}
-      {!erro && !lista && <Carregando linhas={4} />}
-      {lista && (
-        <>
-          <p className="ui-nota" aria-live="polite">
-            {itens.length} {itens.length === 1 ? 'material' : 'materiais'}
-            {!f.tipo && itens.length > 0 ? ' — ' + TIPOS_BIB.map(([k, r]) => contagem(k) ? contagem(k) + ' ' + r.toLowerCase() : null).filter(Boolean).join(', ') : ''}
-            {itens.length >= 300 ? ' (mostrando os 300 mais recentes; filtre para achar o resto)' : ''}
-          </p>
-          {itens.length ? (
-            <ul className="sb-grade">
-              {itens.map((x) => <CartaoMaterial key={x.tipo + x.id} x={x} urls={urls} renovar={renovar} onFalha={(nome) => setAviso('Não consegui baixar “' + nome + '”. Tente de novo.')}
-                acao={x.post_id ? <Botao variante="secundario" onClick={() => navegar({ vista: 'social', aba: 'planejamento', filtros: { item: x.post_id } })}>Ver postagem</Botao> : null} />)}
-            </ul>
-          ) : <Vazio titulo="Nada com estes filtros" icone="busca">Mude o tipo, a edição ou a situação.</Vazio>}
-        </>
-      )}
-    </div>
-  )
+    navegar({ ...ALVO, filtros: n }, { substituir: !opc.empilhar })
+  }, [navegar])
+  // Entrar numa pasta é um passo (o Voltar do navegador volta à anterior); a busca e a prévia saem.
+  const abrirPasta = React.useCallback((p) => {
+    const n = { ...fAtual.current, pasta: p || undefined }
+    delete n.q; delete n.ver
+    for (const k of Object.keys(n)) if (n[k] === undefined || n[k] === '') delete n[k]
+    navegar({ ...ALVO, filtros: n })
+  }, [navegar])
+  return <NavegadorBiblioteca modo="pagina" estado={f} mudar={mudar} abrirPasta={abrirPasta} pode={pode} navegar={navegar} registrarAtualizar={registrarAtualizar} />
 }

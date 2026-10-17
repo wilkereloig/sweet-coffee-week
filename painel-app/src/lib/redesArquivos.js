@@ -12,6 +12,7 @@ import React from 'react'
 import { rpc, chamarFuncao, SUPABASE_URL } from './rpc.js'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess.js'
 import { validarArquivo, caminhoArquivo } from './redes.js'
+import { entregar, nomeArquivo } from './entrega.js'
 
 const lerSenha = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || '' } catch { return '' } }
 const LOTE = 60
@@ -82,27 +83,44 @@ export function useUrlsAssinadas(lista, bucket = 'redes') {
     return () => { vivo = false; clearInterval(t) }
   }, [chave])
   const renovar = React.useCallback((x) => urlsAssinadas([fonteDe(x, bucket)], { forcar: true })
-    .then((u) => setUrls((y) => ({ ...y, ...u }))).catch(() => {}), [bucket])
+    .then((u) => { setUrls((y) => ({ ...y, ...u })); setErro(null) }).catch((e) => setErro(e.message)), [bucket])
   return React.useMemo(() => ({ urls, erro, renovar }), [urls, erro, renovar])
 }
 
-/**
- * Baixa com o nome original. `redes` assina com `download`; os outros buckets
- * abrem o endereço (público ou assinado) numa aba. Não é publicação.
+/*
+ * Download do ORIGINAL (17/10/2026): nunca a miniatura, com nome, formato,
+ * resolução e transparência intactos (os bytes vêm como estão no Storage).
+ * Privado: assinatura NOVA a cada pedido (arquivo-url confere a permissão de
+ * novo); se a URL vencer ou for recusada no caminho, uma assinatura nova, uma
+ * vez. Público (logos, fotos da edição): endereço direto. Antes, buckets que não
+ * eram `redes` abriam numa aba nova; agora o arquivo vem para a página e é
+ * entregue por download direto (lib/entrega.js) — sem aba, sem tornar nada público.
  */
-export async function baixarArquivo(x, nome) {
+async function urlOriginal(f) {
+  if (PUBLICOS.has(f.bucket) || f.path.startsWith('/')) return urlDireta(f)
+  const r = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: f.bucket, path: f.path })
+  if (!r || !r.url) throw new Error('url_indisponivel')
+  return r.url
+}
+export async function obterArquivo(x, nome, { mime = '', sinal } = {}) {
   const f = fonteDe(x)
-  let href
-  if (PUBLICOS.has(f.bucket)) href = urlDireta(f) + (f.path.startsWith('/') ? '' : '?download=' + encodeURIComponent(nome || ''))
-  else href = (await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: f.bucket, path: f.path, download: nome || '' })).url
-  const a = document.createElement('a')
-  a.href = href
-  a.rel = 'noopener'
-  a.target = f.bucket === 'redes' ? '' : '_blank'
-  a.download = nome || ''
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
+  const buscar = async () => {
+    const url = await urlOriginal(f) // permissão/servidor: o erro segue como veio (não é "conexão")
+    try { return await fetch(url, { signal: sinal, cache: 'no-store' }) }
+    catch (e) { if (e && e.name === 'AbortError') throw e; throw new Error('rede') } // fetch só rejeita por rede
+  }
+  let r = await buscar()
+  if (!r.ok && !PUBLICOS.has(f.bucket) && [400, 401, 403].includes(r.status)) r = await buscar() // URL vencida: renova uma vez
+  if (!r.ok) throw new Error('download_' + r.status)
+  const blob = await r.blob()
+  const tipo = (blob.type && blob.type !== 'application/octet-stream' ? blob.type : '') || mime || 'application/octet-stream'
+  return new File([blob], nomeArquivo(nome, tipo, f.path), { type: tipo })
+}
+/** Baixa um arquivo (original) direto, na mesma aba. Não é publicação. Devolve o File entregue. */
+export async function baixarArquivo(x, nome, opcoes = {}) {
+  const arq = await obterArquivo(x, nome, opcoes)
+  entregar(arq)
+  return arq
 }
 
 function esperar(el, evento, ms) {

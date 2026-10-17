@@ -219,7 +219,10 @@ test('banco: tabelas fechadas, função Social media sem dado.ler, toda RPC exig
   }
   // O painel só chama funções que a migration publica.
   const chamadas = new Set([...(VISTA + FICHA + ARQ + BIB + PART).matchAll(/rpc\('((?:redes|social|editorial)_[a-z_]+)'/g)].map((m) => m[1]))
-  for (const c of chamadas) assert.ok(nomes.includes(c), 'RPC chamada e não publicada: ' + c)
+  const PASTAS_SQL = ler('supabase/migrations/20261019_social_pastas.sql')
+  const nomesPastas = [...PASTAS_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
+  const todas = [...nomes, ...[...nomesPastas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1])]
+  for (const c of chamadas) assert.ok(todas.includes(c), 'RPC chamada e não publicada: ' + c)
 })
 
 test('banco: situação e formato batem com o painel; atrasada não é situação', () => {
@@ -336,9 +339,9 @@ test('atalhos: contam pelo resumo do banco (não pelo mês aberto); à vista só
   assert.equal(c.aprovacao, 5, 'o número é o do servidor, não o do mês na tela (1)')
   assert.equal(c.sem_resp, 2)
   assert.equal(R.contagemAtalhos(null, posts, { agora: 0 }).aprovacao, 1, 'sem resumo, conta o que carregou')
-  assert.deepEqual(R.atalhosEmDestaque({ aprovacao: 2, atrasadas: 1, hoje: 0, ajuste: 0 }, { eu: 'x', aprova: true }), ['aprovacao', 'atrasadas', 'hoje'])
-  assert.deepEqual(R.atalhosEmDestaque({ ajuste: 1, aprovacao: 2, aprovadas: 1, atrasadas: 1 }, { aprova: false, max: 3 }), ['ajuste', 'aprovadas', 'atrasadas'], 'quem publica vê o que já pode ir ao ar')
-  assert.ok(R.atalhosEmDestaque({ minhas: 3 }, { eu: null }).every((k) => k !== 'minhas'))
+  assert.deepEqual(R.alertasDoPerfil({ aprovacao: 2, atrasadas: 1, hoje: 0, ajuste: 0 }, { aprova: true }), ['aprovacao', 'atrasadas'], 'contador zerado não vira alerta')
+  assert.deepEqual(R.alertasDoPerfil({ ajuste: 1, aprovacao: 2, aprovadas: 1, atrasadas: 1 }, { aprova: false }), ['ajuste', 'aprovadas', 'atrasadas'], 'quem publica vê o que já pode ir ao ar, não a fila de aprovação')
+  assert.deepEqual(R.alertasDoPerfil({ hoje: 4, minhas: 3, sem_resp: 2, aprovacao: '0' }, { aprova: true }), [], 'atalho que não é alerta fica em Filtros')
   const lista = [{ id: '1', situacao: 'aprovacao' }, { id: '2', situacao: 'pronto' }, { id: '3', situacao: 'rascunho', ajuste_aberto: true }]
   assert.deepEqual(R.filtrar(lista, { atalho: 'aprovacao' }).map((p) => p.id), ['1'])
   assert.deepEqual(R.filtrar(lista, { atalho: 'aprovadas' }).map((p) => p.id), ['2'])
@@ -385,4 +388,335 @@ test('barra do celular: escolha da pessoa, só o que ela vê, até 4; sem escolh
   // Cada acento uma vez só (§6.3).
   const cores = Object.values(Function('return ' + SHELL.match(/export const ACENTO_VISTA = (\{[^}]+\})/)[1])())
   assert.equal(new Set(cores).size, cores.length)
+})
+
+// ── Refinamento visual e mobile (17/10/2026) ─────────────────────────────────
+import { etapasResumo } from '../painel-app/src/lib/socialGuia.js'
+const GUIA = ler('painel-app/src/components/vistas/SocialGuia.jsx')
+const FOLHA = ler('painel-app/src/components/Folha.jsx')
+const CSS_PAINEL = ler('painel-app/src/styles/painel.css')
+
+test('escopo do atalho: diz de onde vêm as postagens (não é a semana na tela)', () => {
+  for (const k of Object.keys(R.ATALHOS)) assert.ok(R.escopoAtalho(k), 'atalho sem escopo: ' + k)
+  for (const k of ['atrasadas', 'aprovacao', 'ajuste', 'aprovadas', 'minhas']) assert.match(R.escopoAtalho(k), /de qualquer data/, k)
+  assert.match(VISTA, /R\.escopoAtalho\(atalho\)/)
+  assert.match(VISTA, /Não é a semana escolhida/)
+  assert.match(VISTA, /Voltar ao calendário/)
+  assert.equal(R.rotuloAlerta('atrasadas', 1), 'atrasada')
+  assert.equal(R.rotuloAlerta('ajuste', 3), 'com ajuste')
+  assert.match(VISTA, /aria-label=\{contagem\[k\] \+ ' ' \+ R\.ATALHOS\[k\]\.toLowerCase\(\) \+ ' — ' \+ R\.escopoAtalho\(k\)\}/, 'o rótulo acessível do alerta diz o escopo')
+})
+
+test('filtros: só os filtros contam (período, visualização e item não)', () => {
+  assert.equal(R.filtrosAtivos({}), 0)
+  assert.equal(R.filtrosAtivos({ modo: 'mes', data: '2026-10-01', dia: '2026-10-02', item: 'x', atalho: 'hoje' }), 0)
+  assert.equal(R.filtrosAtivos({ resp: 'eu', fmt: 'story', q: 'jolie' }), 3)
+  // Período, visualização e filtros moram no endereço; `volta` também (caminho de retorno).
+  for (const k of ['modo', 'data', 'dia', 'resp', 'sit', 'fmt', 'ed', 'part', 'q', 'atalho', 'volta']) assert.ok(R.CHAVES_FILTRO.includes(k), k)
+})
+
+test('semana pela largura do CONTEÚDO: sete colunas só quando cabem; agenda no meio; linhas no estreito', () => {
+  assert.equal(R.layoutSemana(1280), 'colunas')
+  assert.equal(R.layoutSemana(R.LARGURA_COLUNAS), 'colunas')
+  assert.equal(R.layoutSemana(R.LARGURA_COLUNAS - 1), 'agenda', '1024 de tela com menu lateral não força sete colunas')
+  assert.equal(R.layoutSemana(700), 'agenda')
+  assert.equal(R.layoutSemana(R.LARGURA_AGENDA - 1), 'linhas')
+  assert.equal(R.layoutSemana(328), 'linhas')
+  assert.equal(R.layoutSemana(0), 'colunas', 'antes de medir: o arranjo largo (a medida chega antes de pintar)')
+  assert.match(VISTA, /new ResizeObserver/)
+  assert.match(VISTA, /useLayoutEffect/)
+  assert.ok(R.LARGURA_COLUNAS / 7 >= 140, 'coluna legível')
+})
+
+test('cartão: um estado e no máximo UM alerta, o mais urgente; fechada não alerta', () => {
+  const agora = new Date('2026-10-17T15:00:00Z').getTime()
+  const base = { situacao: 'rascunho', programado_para: '2026-10-18T22:00:00Z', pendencias: ['sem_arte', 'sem_legenda'] }
+  assert.deepEqual(R.alertaDoCartao(base, { agora }), { tom: 'neutro', texto: '2 pendências' })
+  assert.equal(R.alertaDoCartao({ ...base, pendencias: ['sem_legenda'] }, { agora }).texto, 'Sem legenda')
+  assert.equal(R.alertaDoCartao({ ...base, ajuste_aberto: true }, { agora }).texto, 'Ajuste pedido')
+  assert.equal(R.alertaDoCartao({ ...base, ajuste_aberto: true }, { agora, conflito: true }).texto, 'Ajuste pedido')
+  assert.equal(R.alertaDoCartao({ ...base, pendencias: [] }, { agora, conflito: true }).texto, 'Mesmo horário')
+  assert.equal(R.alertaDoCartao({ ...base, programado_para: '2026-10-16T22:00:00Z', ajuste_aberto: true }, { agora }).texto, 'Atrasada')
+  assert.equal(R.alertaDoCartao({ ...base, situacao: 'publicado', ajuste_aberto: true }, { agora }), null)
+  assert.equal(R.alertaDoCartao({ ...base, pendencias: [] }, { agora }), null)
+  for (const s of R.SITUACOES) assert.ok(s.curto && s.curto.length <= 14, 'rótulo curto: ' + s.chave)
+  // O cartão inteiro é o botão: nada clicável dentro dele.
+  const cartao = VISTA.slice(VISTA.indexOf('export function CartaoPost'), VISTA.indexOf('// Item curto do mês'))
+  assert.equal((cartao.match(/<button/g) || []).length, 1)
+  assert.doesNotMatch(cartao, /<a |onClick=\{[^}]*\}[^>]*>\s*<\/span>/)
+  assert.match(cartao, /R\.alertaDoCartao/)
+})
+
+test('ficha: a ação em destaque é UMA; com alteração não salva é salvar — nenhuma etapa anda com a versão antiga', () => {
+  const tudo = () => true
+  const so = (...a) => (x) => a.includes(x)
+  assert.equal(R.proximaAcao({ novo: true }).chave, 'criar')
+  assert.equal(R.proximaAcao({ sujo: true, situacao: 'rascunho', pode: tudo }).chave, 'salvar')
+  assert.equal(R.proximaAcao({ sujo: true, situacao: 'aprovacao', pode: tudo }).chave, 'salvar', 'aprovar com texto não salvo, não')
+  assert.equal(R.proximaAcao({ sujo: true, situacao: 'pronto', pode: tudo }).chave, 'salvar', 'confirmar com texto não salvo, não')
+  const env = R.proximaAcao({ situacao: 'rascunho', bloqueios: 2, pode: so('redes.editar') })
+  assert.equal(env.chave, 'enviar')
+  assert.equal(env.bloqueada, true)
+  assert.equal(R.proximaAcao({ situacao: 'rascunho', pode: so('redes.editar') }).bloqueada, false)
+  assert.equal(R.proximaAcao({ situacao: 'aprovacao', pode: so('redes.editar') }), null, 'quem não aprova não ganha botão de aprovar')
+  assert.equal(R.proximaAcao({ situacao: 'aprovacao', pode: so('redes.aprovar') }).chave, 'aprovar')
+  assert.equal(R.proximaAcao({ situacao: 'pronto', pode: so('redes.publicar') }).chave, 'confirmar')
+  assert.equal(R.proximaAcao({ situacao: 'pronto', pode: so('redes.publicar'), confirmando: true }), null)
+  assert.equal(R.proximaAcao({ situacao: 'pronto', pode: so('redes.editar') }), null)
+  assert.equal(R.proximaAcao({ situacao: 'publicado', pode: tudo }), null)
+  assert.equal(R.proximaAcao({ situacao: 'cancelado', pode: tudo }), null)
+  // As ações do fluxo continuam as do servidor (nenhuma regra nova no front).
+  assert.match(FICHA, /principal\.chave === 'enviar'[\s\S]{0,300}situacao\('aprovacao'\)/)
+  assert.match(FICHA, /principal\.chave === 'aprovar'\) return situacao\('pronto'\)/)
+  assert.match(FICHA, /async function acao\(nome, fn\) \{\n\s+if \(sujo\) \{ const ok = await salvar\(\)/, 'o fluxo seguro (salvar antes) segue valendo')
+})
+
+test('ficha: edição no lugar por bloco; pendência abre o bloco e o campo certos', () => {
+  for (const k of R.CAMPOS) assert.equal(Object.values(R.SECOES).flat().filter((x) => x === k).length, 1, 'campo em um bloco só: ' + k)
+  for (const p of Object.keys(R.PENDENCIAS).filter((x) => x !== 'atrasada')) assert.ok(R.ONDE_PENDENCIA[p], 'pendência sem destino: ' + p)
+  assert.deepEqual(R.secoesSujas({ legenda: 'x', responsavel_id: null }), ['legenda', 'programacao'])
+  assert.deepEqual(R.secoesSujas({ mencoes: '@a' }), ['extras'])
+  assert.deepEqual(R.SECOES.legenda, ['legenda'], 'a legenda edita sozinha: Salvar logo embaixo do campo')
+  assert.deepEqual(R.secoesSujas({}), [])
+  // Leitura antes de formulário: a legenda aparece como texto (parágrafos preservados).
+  assert.match(FICHA, /className="rd-legenda__texto"/)
+  assert.match(CSS_PAINEL, /\.rd-legenda__texto\{[^}]*white-space:pre-wrap/)
+  assert.match(FICHA, /Copiar legenda/)
+  assert.match(FICHA, /'Baixar arte'/)
+  // Postagem nova: só o título é obrigatório; o resto pode vir depois (e o rascunho não criado fica guardado).
+  assert.match(FICHA, /Só o título é obrigatório/)
+  assert.match(FICHA, /Mais detalhes \(opcional\)/)
+  assert.match(FICHA, /CHAVE_NOVO = 'scw_redes_rascunho_novo'/)
+  assert.match(FICHA, /Continuar a de antes/, 'a postagem nova de antes não é trocada em silêncio')
+})
+
+test('download nunca falha em silêncio: erro aparece com "Tentar de novo"', () => {
+  const ENT = ler('painel-app/src/components/vistas/BaixarArquivo.jsx')
+  for (const [nome, f] of [['RedesFicha', FICHA], ['SocialBiblioteca', BIB], ['SocialParticipantes', PART]]) {
+    assert.doesNotMatch(f, /baixarArquivo\([^)]*\)[^;\n]*\.catch\(\(\) => \{\}\)/, nome + ' engole a falha')
+  }
+  // Biblioteca e ficha: o MESMO estado de entrega (preparando · erro + "Tentar de novo" · pronto).
+  for (const [nome, f] of [['RedesFicha', FICHA], ['SocialBiblioteca', BIB]]) assert.match(f, /<EstadoEntrega /, nome)
+  assert.match(ENT, /Tentar de novo/)
+  assert.match(ENT, /Não consegui baixar/)
+  assert.match(PART, /Não consegui baixar/)
+})
+
+test('folha: rodapé fora da rolagem e tela cheia são variantes LOCAIS (as outras folhas não mudam)', () => {
+  assert.match(FOLHA, /rodape = null, cheia = false/)
+  assert.ok(FOLHA.indexOf('og-detalhe__rolo') < FOLHA.indexOf('og-detalhe__rodape'), 'o rodapé vem depois da rolagem')
+  assert.match(FICHA, /larga="ampla" cheia rodape=\{rodape\}/)
+  assert.doesNotMatch(CSS_PAINEL, /\.rd-rodape\{[^}]*(sticky|calc\(-)/, 'sem sticky nem margem negativa')
+  assert.match(CSS_PAINEL, /\.og-detalhe__rodape\{/)
+  assert.match(CSS_PAINEL, /\.og-detalhe--cheia\{top:0;max-height:none/)
+  // Quem usa a casca de container: o invólucro, nunca o que contém folha (container-type prende posição fixa).
+  assert.match(CSS_PAINEL, /\.rd-c\{container:rd \/ inline-size\}/)
+  assert.doesNotMatch(CSS_PAINEL, /\.rd\{[^}]*container/)
+  assert.doesNotMatch(CSS_PAINEL, /\.sp\{[^}]*container/)
+  assert.match(VISTA, /<div className="rd-c" ref=\{raiz\}/)
+  assert.ok(VISTA.indexOf('<RedesFicha') > VISTA.indexOf('      </div>\n\n      <SocialGuia'), 'a ficha fica fora do container')
+})
+
+test('celular: campos com 16 px, toque de 44 px, nada que dependa de passar o mouse', () => {
+  assert.match(CSS_PAINEL, /\.og-campo input,\.og-campo select,\.og-campo textarea[^{]*\{[^}]*font:400 16px/)
+  const social = CSS_PAINEL.slice(CSS_PAINEL.indexOf('/* ── Social media › Planejamento'), CSS_PAINEL.indexOf('/* ── Equipe: avatar e autoria'))
+  for (const m of social.matchAll(/:hover\{/g)) {
+    const antes = social.slice(Math.max(0, m.index - 200), m.index)
+    assert.match(antes, /@media \(hover:hover\)\{[^}]*$/, 'hover fora de @media (hover:hover)')
+  }
+  for (const sel of ['.rd-ajuda', '.rd-periodo__intervalo', '.rd-semdata', '.rd-alerta', '.rd-pendencia', '.rd-sem__vazio']) {
+    assert.match(social, new RegExp(sel.replace('.', '\\.') + '[,.a-z_-]*\\{[^}]*min-height:(44|48)px'), sel)
+  }
+})
+
+test('guia: orientação curta na primeira vez; passo a passo por "Como funciona"; aprovação e publicação manual ditas', () => {
+  const t = etapasResumo({ aprovador: 'Eline' })
+  assert.match(t, /Aguardando aprovação \(Eline aprova\)/)
+  assert.match(t, /publicação manual no Instagram/)
+  assert.match(t, /não publica sozinho/)
+  assert.match(VISTA, /<GuiaPrimeiraVez /)
+  assert.match(VISTA, /Como funciona/)
+  assert.match(GUIA, /<Folha aberto=\{aberto\} titulo="Como funciona, passo a passo"/, 'montada sempre: fechar devolve o foco')
+  assert.match(GUIA, /scw_social_guia_recolhido/, 'quem já escondeu o guia antigo não vê a orientação de novo')
+})
+
+test('participante → postagem nova: vínculo, dados iniciais e caminho de volta', () => {
+  assert.match(PART, /filtros: \{ item: 'novo', volta: 'part:' \+ f\.participante_id \+ ':' \+ \(f\.edicao_codigo \|\| ''\) \}/)
+  assert.match(VISTA, /const \[, pid, ved\] = f\.volta\.split\(':'\)/)
+  assert.match(VISTA, /filtros: \{ item: pid, ed: ved \|\| undefined \}/, 'volta na edição em que a ficha estava')
+  // Sair da ficha com texto do combo não salvo pergunta (não só no X).
+  assert.match(PART, /async function sair\(fn\)/)
+  assert.match(PART, /participante_id: f\.participante_id, edicao_codigo: f\.edicao_codigo, legenda, mencoes/)
+})
+
+test('período: rótulo curto no celular e nome dos botões pelo modo', () => {
+  assert.equal(R.tituloCurto('semana', '2026-10-16'), '12 a 18 de out')
+  assert.equal(R.tituloCurto('semana', '2026-10-01'), '28 de set a 4 de out')
+  assert.equal(R.tituloCurto('dia', '2026-10-16'), 'Sex, 16 de out')
+  assert.equal(R.tituloCurto('mes', '2026-10-16'), 'Outubro de 2026')
+  assert.equal(R.rotuloMover('semana', -1), 'Semana anterior')
+  assert.equal(R.rotuloMover('semana', 1), 'Próxima semana')
+  assert.equal(R.rotuloMover('mes', 1), 'Próximo mês')
+  assert.match(VISTA, /showPicker/, 'o intervalo abre o calendário do aparelho')
+})
+
+// ── Biblioteca com pastas e entrega de arquivos (17/10/2026) ─────────────────
+import * as PA_ from '../painel-app/src/lib/pastas.js'
+import * as EN from '../painel-app/src/lib/entrega.js'
+import { writeFileSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
+const ARV = [
+  { id: 'a', pai_id: null, nome: 'Campanha', atualizada_em: '2026-10-10' },
+  { id: 'b', pai_id: 'a', nome: 'Carrosséis', atualizada_em: '2026-10-12' },
+  { id: 'c', pai_id: 'b', nome: 'Nostalgia', atualizada_em: '2026-10-11' },
+  { id: 'd', pai_id: null, nome: 'arquivo morto', atualizada_em: '2026-10-01' },
+]
+
+test('pastas: caminho, descendentes (sem ciclo), nome válido e único no nível', () => {
+  const { porId, filhos } = PA_.indexar(ARV)
+  assert.deepEqual(PA_.caminho(porId, 'c').map((p) => p.id), ['a', 'b', 'c'])
+  assert.equal(PA_.textoCaminho(porId, 'c'), 'Biblioteca › Campanha › Carrosséis › Nostalgia')
+  assert.equal(PA_.textoCaminho(porId, null), 'Biblioteca')
+  assert.deepEqual([...PA_.descendentes(filhos, 'a')].sort(), ['a', 'b', 'c'])
+  const destinos = PA_.arvoreDestinos(ARV, { moverPasta: 'b' })
+  assert.deepEqual(destinos.filter((d) => d.proibida).map((d) => d.id), ['b'], 'a própria fica marcada; as de dentro nem aparecem')
+  assert.ok(!destinos.some((d) => d.id === 'c'), 'descendente não é destino')
+  assert.equal(PA_.validarNome('   ', []).ok, false)
+  assert.equal(PA_.validarNome('a/b', []).ok, false)
+  assert.equal(PA_.validarNome('x'.repeat(81), []).ok, false)
+  assert.equal(PA_.validarNome('  campanha ', filhos.get(null)).ok, false, 'repetido no mesmo nível (maiúsculas não contam)')
+  assert.equal(PA_.validarNome('Campanha', filhos.get(null), 'a').ok, true, 'renomear para o mesmo nome')
+  assert.equal(PA_.validarNome('Campanha  Cartoon', []).nome, 'Campanha Cartoon')
+  // Laço no dado não trava o caminho.
+  const laco = PA_.indexar([{ id: 'x', pai_id: 'y', nome: 'X' }, { id: 'y', pai_id: 'x', nome: 'Y' }])
+  assert.ok(PA_.caminho(laco.porId, 'x').length <= 2)
+})
+
+test('pastas: ordem por nome (sem acento) e por atualização; busca em qualquer nível', () => {
+  assert.deepEqual(PA_.ordenarPastas(ARV.filter((p) => !p.pai_id)).map((p) => p.nome), ['arquivo morto', 'Campanha'])
+  assert.deepEqual(PA_.ordenarPastas(ARV, 'recente').map((p) => p.id), ['b', 'c', 'a', 'd'])
+  assert.deepEqual(PA_.buscarPastas(ARV, 'carrosseis').map((p) => p.id), ['b'])
+  assert.deepEqual(PA_.buscarPastas(ARV, ''), [])
+  assert.deepEqual(PA_.refItem({ tipo: 'logo', id: '1', nome: 'x' }), { tipo: 'logo', id: '1' })
+})
+
+test('entrega: nome original com extensão do tipo real; carrossel numerado; nomes repetidos', () => {
+  assert.equal(EN.nomeArquivo('capa.png', 'image/png'), 'capa.png')
+  assert.equal(EN.nomeArquivo('Foto principal do combo', 'image/webp'), 'Foto principal do combo.webp')
+  assert.equal(EN.nomeArquivo('a/b:c', 'image/jpeg'), 'a-b-c.jpg')
+  assert.equal(EN.nomeArquivo('', 'video/mp4', 'x/abc.mp4'), 'abc.mp4')
+  assert.equal(EN.nomeArquivo('foto.jpeg', 'image/jpeg'), 'foto.jpeg')
+  assert.equal(EN.nomeNumerado(0, 7, 'capa.webp'), '01-capa.webp')
+  assert.equal(EN.nomeNumerado(9, 120, 'x.png'), '010-x.png')
+  assert.deepEqual(EN.nomesUnicos(['a.png', 'A.png', 'b.png', 'a.png']), ['a.png', 'A (2).png', 'b.png', 'a (3).png'])
+})
+
+test('entrega: limites — nada de dezenas de downloads soltos nem pasta de vídeos na memória do celular', () => {
+  const mb = 1048576
+  assert.equal(EN.planejarLote([], {}).ok, false)
+  assert.equal(EN.planejarLote(Array(11).fill({ tamanho: 1 }), { modo: 'compartilhar' }).ok, false)
+  assert.equal(EN.planejarLote([{ tamanho: 61 * mb }], { modo: 'compartilhar' }).ok, false)
+  assert.equal(EN.planejarLote(Array(7).fill({ tamanho: 2 * mb }), { modo: 'compartilhar' }).ok, true)
+  assert.equal(EN.planejarLote(Array(3).fill({ tamanho: 45 * mb }), { modo: 'zip', movel: true }).ok, false, 'três vídeos de 45 MB no celular')
+  assert.equal(EN.planejarLote(Array(3).fill({ tamanho: 45 * mb }), { modo: 'zip', movel: false }).ok, true)
+  assert.equal(EN.planejarLote(Array(61).fill({ tamanho: 1 }), { modo: 'zip' }).ok, false)
+})
+
+test('entrega: ZIP sem compressão é válido (conferido pelo zipfile do Python), na ordem e com bytes intactos', async () => {
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 1, 2, 3, 255])
+  const grande = new Uint8Array(300000).map((_, i) => (i * 31) & 255)
+  const arquivos = [new File([png], '01-capa transparente.png', { type: 'image/png' }), new File([grande], '02-vídeo.mp4', { type: 'video/mp4' })]
+  assert.equal(EN.crc32(new TextEncoder().encode('123456789')), 0xcbf43926, 'CRC-32 de referência')
+  assert.equal(EN.crc32(new Uint8Array([4, 5, 6]), EN.crc32(new Uint8Array([1, 2, 3]))), EN.crc32(new Uint8Array([1, 2, 3, 4, 5, 6])), 'encadeável')
+  const zip = await EN.zipArmazenado(arquivos, new Date('2026-10-17T10:00:00'))
+  assert.equal(zip.type, 'application/zip')
+  const dir = mkdtempSync(join(tmpdir(), 'scw-zip-'))
+  const caminho = join(dir, 'teste.zip')
+  writeFileSync(caminho, Buffer.from(await zip.arrayBuffer()))
+  const py = `import zipfile,sys,json\nz=zipfile.ZipFile(sys.argv[1])\nprint(json.dumps({'erro':z.testzip(),'nomes':z.namelist(),'tam':[i.file_size for i in z.infolist()],'png':list(z.read(z.namelist()[0]))}))`
+  const r = JSON.parse(execFileSync('python', ['-c', py, caminho], { encoding: 'utf8' }))
+  assert.equal(r.erro, null, 'CRC confere')
+  assert.deepEqual(r.nomes, ['01-capa transparente.png', '02-vídeo.mp4'], 'ordem e nomes UTF-8')
+  assert.deepEqual(r.tam, [png.length, grande.length])
+  assert.deepEqual(r.png, [...png], 'bytes intactos (PNG com transparência não é reprocessado)')
+})
+
+test('entrega: compartilhar — cancelar não é erro, toque expirado pede um toque novo, sem suporte cai no download', async () => {
+  const antes = globalThis.navigator
+  const def = (nav) => Object.defineProperty(globalThis, 'navigator', { value: nav, configurable: true, writable: true })
+  const arq = [new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })]
+  try {
+    def({})
+    assert.equal(await EN.compartilhar(arq), 'indisponivel')
+    assert.equal(EN.suportaCompartilhar('image/png'), false)
+    const erro = (name) => { const e = new Error(name); e.name = name; return e }
+    for (const [nome, esperado] of [['AbortError', 'cancelado'], ['NotAllowedError', 'sem_gesto'], ['TypeError', 'indisponivel'], ['DataError', 'falhou']]) {
+      def({ canShare: () => true, share: async () => { throw erro(nome) } })
+      assert.equal(await EN.compartilhar(arq), esperado, nome)
+    }
+    let recebido = null
+    def({ canShare: ({ files }) => files.every((f) => f instanceof File), share: async (d) => { recebido = d } })
+    assert.equal(await EN.compartilhar(arq), 'ok')
+    assert.ok(recebido.files[0] instanceof File && !recebido.url, 'compartilha o ARQUIVO, nunca uma URL privada')
+    assert.equal(EN.suportaCompartilhar('image/png'), true)
+    def({ canShare: () => false, share: async () => {} })
+    assert.equal(await EN.compartilhar(arq), 'indisponivel')
+    def({ userActivation: { isActive: false } })
+    assert.equal(EN.temGestoAtivo(), false)
+    def({})
+    assert.equal(EN.temGestoAtivo(), true, 'sem a API: tenta (e o NotAllowedError vira um botão)')
+  } finally { def(antes) }
+})
+
+test('entrega: download do ORIGINAL, sem aba nova; tela não promete "salvo" nem "nas Fotos"', () => {
+  const ENT = ler('painel-app/src/components/vistas/BaixarArquivo.jsx')
+  const baixar = ARQ.slice(ARQ.indexOf('async function urlOriginal'), ARQ.indexOf('function esperar'))
+  assert.doesNotMatch(baixar, /_blank|miniatura_path/, 'nem aba nova nem miniatura')
+  assert.match(baixar, /\[400, 401, 403\]\.includes\(r\.status\)\) r = await buscar\(\)/, 'URL vencida: assina de novo, uma vez')
+  assert.doesNotMatch(ENT + BIB + FICHA, /[Ss]alvo no aparelho|foi para (a galeria|as Fotos)|está nas Fotos/)
+  assert.match(ENT, /Abrir opções para salvar/)
+  assert.match(ENT, /Cancelado\. Nada foi baixado\./)
+  assert.match(ENT, /arquivo compactado \(ZIP\)/)
+  const ent = ler('painel-app/src/lib/entrega.js')
+  assert.doesNotMatch(ent, /window\.open|target\s*=\s*['"]_blank/)
+})
+
+test('pastas: a biblioteca usa as RPCs das pastas, sem mexer no Storage; seletor = as mesmas pastas', () => {
+  const SQLP = ler('supabase/migrations/20261019_social_pastas.sql')
+  assert.doesNotMatch(SQLP, /storage\.objects\s+set|update\s+public\.(redes_arquivos|midias_participacao|logos_marca|arquivos)\b|delete from storage/i, 'nada no Storage nem na origem muda')
+  for (const f of ['social_pasta_criar', 'social_pasta_editar', 'social_pasta_mover', 'social_pasta_arquivar', 'social_biblioteca_mover']) {
+    const corpo = SQLP.slice(SQLP.indexOf('function public.' + f + '('), SQLP.indexOf('end $$;', SQLP.indexOf('function public.' + f + '(')))
+    assert.match(corpo, /redes_exigir\(p_secret, 'redes\.gerir'\)/, f + ': organizar é redes.gerir')
+  }
+  assert.match(SQLP, /raise exception 'ciclo'/)
+  assert.match(SQLP, /social_pastas_nome_nivel/)
+  assert.match(BIB, /export function SeletorBiblioteca[\s\S]*<NavegadorBiblioteca modo="seletor"/)
+  assert.match(BIB, /semPastasNoServidor/, 'sem a migration, a biblioteca segue (sem pastas)')
+})
+
+test('revisão da entrega: nada falha calado, resposta velha não sobrescreve, pasta herdada na versão nova', () => {
+  const SQLP = ler('supabase/migrations/20261019_social_pastas.sql')
+  // Organizar em série (sem ciclo nem destino arquivado em corrida); corte da lista pelos mais recentes.
+  for (const f of ['social_pasta_criar', 'social_pasta_mover', 'social_pasta_arquivar', 'social_biblioteca_mover']) {
+    const corpo = SQLP.slice(SQLP.indexOf('function public.' + f + '('), SQLP.indexOf('end $$;', SQLP.indexOf('function public.' + f + '(')))
+    assert.match(corpo, /pg_advisory_xact_lock/, f + ': trava')
+  }
+  assert.match(SQLP, /from com_pasta order by y->>'criado_em' desc limit v_limite/)
+  assert.match(SQLP, /after update of substituido_por on public\.redes_arquivos/, 'arte substituída herda a pasta')
+  assert.match(SQLP, /p_itens is null or/)
+  // Envio termina depois de trocar de pasta: relê a pasta aberta agora.
+  assert.match(BIB, /fim\.current = aoTerminar[\s\S]*fim\.current\(\)/)
+  assert.match(BIB, /pastasR\.erro && <Erro[^>]*onTentar=\{carregarPastas\}/, 'erro das pastas aparece')
+  assert.match(BIB, /tentou\.current/, 'prévia renova uma vez só')
+  assert.match(PART, /meu === pedido\.current/, 'participantes: resposta velha descartada')
+  assert.match(FICHA, /meu !== pedidoCarga\.current/, 'ficha: releitura velha descartada')
+  assert.match(FICHA, /catch \(e\) \{ await tratarConflito\(e, conflito\.salvo, conflito\.meus\) \}/, 'segundo conflito compara de novo')
+  assert.match(FICHA, /recuperado === 'antiga'/, 'rascunho de versão antiga avisa')
+  assert.match(VISTA, /onTentar=\{carregarOpcoes\}/)
+  assert.match(VISTA, /Não carreguei o resumo do planejamento/)
+  assert.doesNotMatch(ARQ, /\.catch\(\(\) => \{\}\), \[bucket\]\)/, 'renovar não engole o erro')
+  const FOLHA = ler('painel-app/src/components/Folha.jsx')
+  assert.match(FOLHA, /React\.useEffect\(\(\) => \(\) => \{\s*const o = origemRef\.current/, 'folha desmontada devolve o foco')
 })

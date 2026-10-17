@@ -16,7 +16,11 @@ const SAIDA = 260 // espelha .og-detalhe.is-fechando (260ms) em painel.css
 export const FOCAVEIS = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 // `larga`: true = 920px; "ampla" = 1220px (ficha com prévia ao lado: Social media).
-export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }) {
+// `rodape` (opcional): barra de ações FORA da rolagem — fica embaixo sem sticky
+// nem margem negativa, e o conteúdo rola até acima dela (nada fica coberto).
+// `cheia` (opcional): no celular ocupa a tela inteira em vez de folha que sobe.
+// Os dois só existem para quem os pede; as outras folhas não mudam.
+export function Folha({ aberto, titulo, sub, onFechar, children, larga = false, rodape = null, cheia = false }) {
   const [montada, setMontada] = React.useState(aberto)
   const [fechando, setFechando] = React.useState(false)
   const tituloId = React.useId()
@@ -49,6 +53,16 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
 
+  // Folha desmontada aberta (o pai usa `<Folha aberto>` e some com ela): o foco
+  // volta a quem abriu depois que ela sai — só se ele ficou sem dono.
+  React.useEffect(() => () => {
+    const o = origemRef.current
+    window.setTimeout(() => {
+      const ativo = document.activeElement
+      if ((!ativo || ativo === document.body) && o && typeof o.focus === 'function' && document.contains(o)) o.focus()
+    }, 0)
+  }, [])
+
   // Foco para dentro ao abrir: o título (tabIndex -1) — não o primeiro campo,
   // para o teclado do celular não subir sozinho por cima do conteúdo.
   React.useEffect(() => {
@@ -75,7 +89,7 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
       <div className="og-fundo" hidden={!aberto} aria-hidden="true" onClick={onFechar} />
       <aside
         ref={caixaRef}
-        className={'og-detalhe' + (larga ? ' og-detalhe--larga' : '') + (larga === 'ampla' ? ' og-detalhe--ampla' : '') + (fechando ? ' is-fechando' : '')}
+        className={'og-detalhe' + (larga ? ' og-detalhe--larga' : '') + (larga === 'ampla' ? ' og-detalhe--ampla' : '') + (cheia ? ' og-detalhe--cheia' : '') + (fechando ? ' is-fechando' : '')}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
@@ -93,9 +107,10 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false }
             <Icone nome="fechar" tamanho={20} />
           </button>
         </div>
-        <div className="og-detalhe__rolo">
+        <div className={'og-detalhe__rolo' + (rodape ? ' og-detalhe__rolo--com-rodape' : '')}>
           <NivelTitulo.Provider value={3}>{children}</NivelTitulo.Provider>
         </div>
+        {rodape && <div className="og-detalhe__rodape">{rodape}</div>}
       </aside>
     </>
   )
