@@ -1161,9 +1161,13 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   depois não muda a postagem. PDF e SVG ficam "só download". Privado continua privado: `redes` e `equipe` por
   `baixar_varios`, `arquivos` por `baixar` (só `geral/` para `redes.ver`), renovados (`lib/redesArquivos.js`; fonte =
   `{ bucket, path }`).
-- **Biblioteca com PASTAS** (17/10/2026, `SocialBiblioteca.jsx` + `lib/pastas.js`). ⚠️ Depende de
-  `20261019_social_pastas.sql` — **escrita, NÃO aplicada**. Sem ela o painel mostra a biblioteca sem pastas e um aviso
-  ("Pastas ainda não ativadas no servidor"); nada quebra. Pastas VIRTUAIS: `social_pastas` (hierarquia por `pai_id`,
+- **Biblioteca com PASTAS** (17/10/2026, `SocialBiblioteca.jsx` + `lib/pastas.js`). Migration
+  `20261019_social_pastas.sql` ✅ **aplicada em 17/10/2026** pelo arquivo do commit `1086da5` (pg_net + sha256
+  `1e16229e…` conferido), registrada como `20261019_social_pastas`; cópia das duas funções substituídas e o roteiro de
+  reversão em `sweet-coffee-week-dados/backups-supabase/scw-2026-10-17-antes-pastas/`. Sem ela o painel mostraria a
+  biblioteca sem pastas e um aviso; nada quebra. Organizar é serializado (`pg_advisory_xact_lock`) e a lista corta
+  sempre pelos 300 MAIS RECENTES (a ordem por nome vem depois; a tela avisa quando bate no teto). Arte substituída
+  numa postagem herda a pasta da versão anterior (gatilho `social_pasta_herdar_versao`). Pastas VIRTUAIS: `social_pastas` (hierarquia por `pai_id`,
   vínculo opcional a edição/participante, arquivar — nunca apagar) + `social_biblioteca_pasta_item` (`tipo`, `item_id`
   → pasta; sem linha = "Sem pasta") + `social_biblioteca_registro` (auditoria). Mover ou renomear NÃO toca no Storage,
   no caminho, nas versões nem nas postagens; a origem (foto, logo, material) fica intacta. O banco impede ciclo, nome
