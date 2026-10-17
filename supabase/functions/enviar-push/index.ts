@@ -35,6 +35,10 @@
 //   2. MANUAL (botão "Enviar um teste") —
 //      { secret, alvo: 'organizacao' | 'marca', participante_id?, titulo, corpo, url? }
 //      — ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
+//   3. VERSÃO (18/10/2026) — { versao_id }, chamado pelo pg_cron
+//      (`painel_versao_ciclo`) quando o /painel/versao.json de produção muda.
+//      Texto fixo; trava, destinos e registro por aparelho no banco
+//      (push_versao_travar / push_versao_concluir).
 // Saída: { ok, enviados, falharam, removidos }
 // =============================================================================
 
@@ -153,6 +157,34 @@ async function cifrar(carga: string, p256dh: string, authChave: string): Promise
   return juntar(salt, rs, new Uint8Array([asPublica.length]), asPublica, cifrado)
 }
 
+// ── Um aparelho: 'ok' (o serviço de push aceitou — NÃO é prova de que apareceu
+// na tela), 'morta' (404/410: desinstalou ou revogou) ou 'falhou' (tenta depois).
+// deno-lint-ignore no-explicit-any
+async function enviarUm(a: any, carga: string, vapid: { publica: Uint8Array, privadaD: string, sub: string }) {
+  try {
+    const corpoCifrado = await cifrar(carga, a.p256dh, a.auth_chave)
+    const r = await fetch(a.endpoint, {
+      method: 'POST',
+      headers: {
+        'TTL': '86400',
+        'Content-Encoding': 'aes128gcm',
+        'Content-Type': 'application/octet-stream',
+        'Authorization': await assinaturaVapid(a.endpoint, vapid.publica, vapid.privadaD, vapid.sub),
+      },
+      body: corpoCifrado,
+      // Um serviço de push pendurado não pode travar o laço inteiro.
+      signal: AbortSignal.timeout(10000),
+    })
+    if (r.ok) return 'ok'
+    // 404/410: o navegador desinstalou ou a pessoa revogou. Não é erro de
+    // envio — é assinatura que deixou de existir, e insistir nela vira ruído
+    // em todo envio futuro.
+    return r.status === 404 || r.status === 410 ? 'morta' : 'falhou'
+  } catch {
+    return 'falhou'
+  }
+}
+
 // ── Envio para as assinaturas de um destino ─────────────────────────────────
 // deno-lint-ignore no-explicit-any
 async function enviarPara(admin: any, alvo: string, participanteId: string | null, carga: string,
@@ -183,29 +215,10 @@ async function enviarPara(admin: any, alvo: string, participanteId: string | nul
   const falhas: string[] = []
 
   for (const a of assinaturas) {
-    try {
-      const corpoCifrado = await cifrar(carga, a.p256dh, a.auth_chave)
-      const r = await fetch(a.endpoint, {
-        method: 'POST',
-        headers: {
-          'TTL': '86400',
-          'Content-Encoding': 'aes128gcm',
-          'Content-Type': 'application/octet-stream',
-          'Authorization': await assinaturaVapid(a.endpoint, vapid.publica, vapid.privadaD, vapid.sub),
-        },
-        body: corpoCifrado,
-        // Um serviço de push pendurado não pode travar o laço inteiro.
-        signal: AbortSignal.timeout(10000),
-      })
-      if (r.ok) { enviados++; continue }
-      // 404/410: o navegador desinstalou ou a pessoa revogou. Não é erro de
-      // envio — é assinatura que deixou de existir, e insistir nela vira ruído
-      // em todo envio futuro.
-      if (r.status === 404 || r.status === 410) mortas.push(a.id)
-      else falhas.push(a.id)
-    } catch {
-      falhas.push(a.id)
-    }
+    const r = await enviarUm(a, carga, vapid)
+    if (r === 'ok') enviados++
+    else if (r === 'morta') mortas.push(a.id)
+    else falhas.push(a.id)
   }
 
   if (mortas.length) {
@@ -231,9 +244,41 @@ Deno.serve(async (req) => {
 
   let payload: {
     secret?: string; alvo?: string; participante_id?: string
-    titulo?: string; corpo?: string; url?: string; notificacao_id?: string
+    titulo?: string; corpo?: string; url?: string; notificacao_id?: string; versao_id?: string
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
+
+  // ── Modo versão (18/10/2026): "Painel SCW atualizado" ─────────────────────
+  // Chamado pelo pg_cron (painel_versao_ciclo) quando o /painel/versao.json DE
+  // PRODUÇÃO traz uma versão nova. Quem chama não escolhe texto nem destino:
+  // a função trava a versão (uma vez; nova tentativa só 10 min depois, até 3),
+  // lê os aparelhos que ainda não receberam e registra o resultado de cada um.
+  if (payload.versao_id) {
+    const id = String(payload.versao_id)
+    if (!/^[0-9a-f]{12,64}$/.test(id)) return json({ erro: 'id_invalido' }, 422)
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    )
+    const vapid = lerVapid()
+    if (!vapid) { console.error('enviar-push: VAPID ausente'); return json({ ok: true, enviados: 0 }) }
+    const { data: trava, error: travaErr } = await admin.rpc('push_versao_travar', { p_versao: id })
+    if (travaErr) return json({ erro: 'db_error' }, 500)
+    if (!trava || !trava.travou) return json({ ok: true, enviados: 0 })
+    const carga = JSON.stringify({
+      titulo: 'Painel SCW atualizado',
+      corpo: 'Há melhorias disponíveis. Toque para abrir e atualizar.',
+      url: '/painel/?verificar=1',
+      tag: 'scw-versao', // versão nova substitui o aviso da anterior, não empilha
+      tipo: 'versao',
+    })
+    const resultados: { id: string, estado: string }[] = []
+    for (const a of trava.alvos || []) resultados.push({ id: a.id, estado: await enviarUm(a, carga, vapid) })
+    const { data: fim, error: fimErr } = await admin.rpc('push_versao_concluir', { p_versao: id, p_resultados: resultados })
+    if (fimErr) return json({ erro: 'db_error' }, 500)
+    return json({ ok: true, ...fim })
+  }
 
   // ── Modo automático: uma notificação do banco ─────────────────────────────
   if (payload.notificacao_id) {
