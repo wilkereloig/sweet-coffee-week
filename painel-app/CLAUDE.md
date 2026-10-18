@@ -869,6 +869,10 @@ confirmações; nenhuma regra de negócio mudou.
   2.5rem só com `-webkit-touch-callout` + `display-mode: standalone` em pé),
   usado no cabeçalho, na faixa de conexão, na folha e no login. Elemento novo
   preso ao topo usa `--topo-app`, nunca `--scw-safe-t` direto.
+- **Folha cortada no app do iPhone** (18/10/2026): `-webkit-overflow-scrolling:touch` na
+  `.og-vista`/`.pn-vista` fazia o iOS recortar a folha (`position:fixed`, nasce dentro da
+  vista) na caixa da vista — cabeçalho e abas cobriam título, X e o pé. Removido;
+  ⛔ não voltar (o `painel-infra` reprova). Chrome e o computador não mostram o defeito.
 - **Login fica até "Sair"** (02/10/2026, pedido do Wilker): a sessão por token
   da marca (`scw_marca`) e da conta da equipe (`scw_org_conta`) mora no
   aparelho (`localStorage`), só por `lib/sessaoGuardada.js`. Revoga a regra

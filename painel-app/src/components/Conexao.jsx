@@ -177,7 +177,7 @@ export function CaixaAtualizacao({ embutido = false, onAdiar = null }) {
       <span className="ui-conexao__acoes">
         {fase === 'pendente' ? (
           <>
-            <button type="button" className="ui-conexao__btn" onClick={() => setFluxo(null)}>Voltar para salvar</button>
+            <button type="button" className="ui-conexao__btn" onClick={() => setFluxo(null)}>{envios.length === itens.length ? 'Voltar' : 'Voltar para salvar'}</button>
             {salvaveis && <button type="button" className="ui-conexao__btn ui-conexao__btn--vazado" onClick={() => salvarEAtualizar(itens)}>Salvar e atualizar</button>}
             {!envios.length && <button type="button" className="ui-conexao__btn ui-conexao__btn--vazado" onClick={() => descartarEAtualizar(itens)}>Atualizar sem salvar</button>}
           </>

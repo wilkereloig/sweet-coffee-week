@@ -311,6 +311,10 @@ test("Equipe e Histórico (Administração) só aparecem pra quem tem acesso.ger
   assert.match(semC, /mais=\{visiveis\.filter/)
 })
 
+test('nenhuma rolagem do painel usa -webkit-overflow-scrolling (no iOS recorta a folha fixed)', () => {
+  assert.ok(!PAINEL_CSS.includes('-webkit-overflow-scrolling'))
+})
+
 test('o bloco de prefers-reduced-motion é o último do CSS do painel', () => {
   const i = PAINEL_CSS.lastIndexOf('@media (prefers-reduced-motion')
   assert.ok(i > 0, 'o painel não respeita prefers-reduced-motion')

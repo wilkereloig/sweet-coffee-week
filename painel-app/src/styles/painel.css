@@ -304,8 +304,11 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
    Quem rola é a vista. Largura: usa a tela até 1760px (organização) e
    1440px (marca, que é mais leitura/formulário) — sem coluna estreita no
    meio de monitor grande. */
+/* ⛔ Sem a rolagem "touch" antiga do WebKit (overflow-scrolling): no iOS ele recorta toda folha `fixed`
+   aberta dentro da vista (cabeçalho e abas cobriam o topo e o pé — 18/10/2026).
+   A rolagem com inércia já é o padrão do iOS desde o 13. */
 .og-vista,.pn-vista{
-  height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  height:100%;overflow-y:auto;overscroll-behavior:contain;
 }
 .og-vista{
   padding:clamp(20px,2.6vw,36px) calc(var(--trilho) + var(--scw-safe-r)) calc(40px + var(--scw-safe-b)) var(--trilho);
