@@ -97,6 +97,10 @@
 
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;height:100%}
+/* Celular: a tela por trás da página (canvas) é chocolate, como o cabeçalho.
+   O desfoque do iOS no topo mistura essa cor com o cabeçalho; creme fazia um
+   degradê creme → marrom atrás da barra de status (18/10/2026). O corpo segue creme. */
+@media (max-width:900px){ html{background:var(--scw-choco)} }
 body{
   background:var(--sup-0);color:var(--scw-choco);
   /* Nexa Text é o padrão: o que não declara família é leitura. Interface
