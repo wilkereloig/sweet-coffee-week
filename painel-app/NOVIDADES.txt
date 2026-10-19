@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-O formulário do combo não pede mais ingredientes: só nome, descrição e os alergênicos de cada item.
+Preenchimento: a mensagem e a página das marcas agora apresentam o Painel SCW, e dá para criar os acessos que faltam.

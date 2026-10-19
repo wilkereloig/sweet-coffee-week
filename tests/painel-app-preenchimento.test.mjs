@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import vm from 'node:vm'
 import {
-  linkPreenchimento, textoPreenchimento, diferencasEnvio, situacaoLink, dataCurtaBR, periodoEdicao,
+  linkPreenchimento, textoPreenchimento, textoPainel, painelDaMarca, diferencasEnvio, situacaoLink, dataCurtaBR, periodoEdicao,
 } from '../painel-app/src/lib/preenchimento.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
@@ -199,4 +199,41 @@ test('banco: envio não grava cadastro; aplicar exige cadastro.editar', () => {
   assert.match(decidir, /pode\(p_secret, 'cadastro\.editar'\)/)
   assert.match(decidir, /envio_ja_revisado/)
   assert.doesNotMatch(decidir, /'nome_marca'/, 'nome da marca é login: o link não muda')
+})
+
+/* ── Painel SCW no fim da mensagem e da página (19/10/2026) ─────────────────── */
+const ORIGEM = 'https://www.sweetcoffeeweek.com.br'
+const MSG = { marca: 'Parma Doces', responsavel: 'Ana Souza', link: ORIGEM + '/preencher/#abc', edicao: { tema: 'CARTOON', prazo: '2026-10-24' } }
+
+test('painel: a mensagem fecha com a explicação, o link e as credenciais que a marca tem', () => {
+  const novo = textoPreenchimento({ ...MSG, painel: painelDaMarca({ origem: ORIGEM, slug: 'parmadoces', acesso: { user_id: 'u', senha_trocada_em: null }, cred: { login: 'parmadoces', senha: 'AbC-123' } }) })
+  assert.ok(novo.includes('centro de comunicação com a organização'))
+  assert.ok(novo.includes('arquivos') && novo.includes('fotos do seu combo') && novo.includes('formulários') && novo.includes('atualiza seus dados'))
+  assert.ok(novo.includes('Acesse: ' + ORIGEM + '/painel/'))
+  assert.ok(novo.includes('Usuário: parmadoces') && novo.includes('Senha temporária: AbC-123'))
+  assert.ok(novo.indexOf('Painel SCW') > novo.indexOf('obrigatório e urgente'), 'o painel vem no final, depois do prazo')
+  // sem painel a mensagem é a de antes
+  assert.ok(!textoPreenchimento(MSG).includes('Painel SCW'))
+})
+
+test('painel: senha só aparece se estiver na mão — nunca inventada nem repetida', () => {
+  const enviada = textoPainel(painelDaMarca({ origem: ORIGEM, slug: 'parmadoces', acesso: { user_id: 'u', senha_trocada_em: null } }))
+  assert.ok(enviada.includes('Usuário: parmadoces') && enviada.includes('a que enviamos na mensagem do seu acesso'))
+  assert.ok(!/Senha temporária: [A-Za-z0-9]{6,}/.test(enviada))
+  const definida = textoPainel(painelDaMarca({ origem: ORIGEM, slug: 'caffebasilicos', acesso: { user_id: 'u', senha_trocada_em: '2026-10-01' } }))
+  assert.ok(definida.includes('a que você criou no primeiro acesso') && !definida.includes('Senha temporária'))
+  const sem = textoPainel(painelDaMarca({ origem: ORIGEM, slug: null, acesso: { user_id: null } }))
+  assert.ok(sem.includes('chegam em seguida') && !sem.includes('Usuário:'))
+  const naoLeu = textoPainel(painelDaMarca({ origem: ORIGEM, slug: 'x', acesso: undefined }))
+  assert.ok(naoLeu.includes('Acesse: ') && !naoLeu.includes('Usuário:'), 'sem ler os acessos, só a explicação e o link')
+  assert.equal(textoPainel(null), '')
+})
+
+test('página pública: aviso do painel no fim, sem usuário nem senha (a página abre só com o código do link)', () => {
+  const secao = PAGINA.slice(PAGINA.indexOf('id="pr-painel"'), PAGINA.indexOf('</main>'))
+  assert.ok(secao.includes('centro de comunicação com a organização') && secao.includes('href="/painel/"'))
+  assert.ok(!/senha\s*[:=]|usuário\s*:/i.test(secao), 'nenhuma credencial na página')
+  assert.ok(PAGINA.indexOf('id="pr-painel"') > PAGINA.indexOf('</form>'), 'fica depois do formulário, também visível após o envio')
+  const html = PAGINA.slice(0, PAGINA.indexOf('<script'))
+  assert.ok(html.indexOf('id="pr-painel"') > html.indexOf('id="pr-conteudo"') && html.indexOf('id="pr-painel"') < html.indexOf('</main>'))
 })

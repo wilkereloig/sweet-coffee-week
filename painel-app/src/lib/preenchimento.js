@@ -34,8 +34,45 @@ export function periodoEdicao(inicio, fim) {
 }
 const temaBonito = (t) => { const s = texto(t); return s ? s.charAt(0) + s.slice(1).toLowerCase() : '' }
 
-/** O recado do WhatsApp. Obrigatório e urgente, com o prazo da edição. */
-export function textoPreenchimento({ marca, responsavel, link, edicao = {} }) {
+/*
+ * Fecho da mensagem: o Painel SCW (19/10/2026, pedido do Wilker). `painel` descreve o acesso da marca:
+ *   { origem, login, senha }     acesso novo, com a senha temporária na mão (só existe na tela que a criou)
+ *   { origem, login, situacao }  situacao: 'temporaria' (a senha foi enviada antes) | 'definida' (a marca já criou a dela)
+ *   { origem, sem_acesso: true } ainda sem conta: o usuário e a senha chegam depois
+ *   { origem }                   só a explicação e o link
+ * A senha temporária não é guardada em lugar nenhum: nunca inventar nem repetir uma que não esteja na mão.
+ */
+export function textoPainel(painel) {
+  if (!painel || !painel.origem) return ''
+  const l = [
+    '📲 Painel SCW',
+    'Você também tem acesso ao painel do Sweet & Coffee Week, nosso centro de comunicação com a organização. Nele você acessa os arquivos e as fotos do seu combo, preenche formulários, atualiza seus dados e confere as informações da sua participação.',
+    '',
+    'Acesse: ' + painel.origem + '/painel/',
+  ]
+  if (painel.sem_acesso) l.push('Seu usuário e sua senha temporária chegam em seguida, em outra mensagem.')
+  else if (painel.login) {
+    l.push('Usuário: ' + painel.login)
+    if (painel.senha) l.push('Senha temporária: ' + painel.senha, 'No primeiro acesso você define a sua senha.')
+    else if (painel.situacao === 'definida') l.push('Senha: a que você criou no primeiro acesso.')
+    else l.push('Senha temporária: a que enviamos na mensagem do seu acesso. No primeiro acesso você define a sua.')
+  }
+  return l.join('\n')
+}
+
+/*
+ * O que a mensagem diz do painel para UMA marca: `acesso` é a linha de `get_acessos_marcas` (sem ela, só a explicação),
+ * `slug` é o usuário (login) e `cred` a credencial recém-criada nesta tela, a única que traz senha.
+ */
+export function painelDaMarca({ origem, slug, acesso, cred }) {
+  if (cred && cred.senha) return { origem, login: cred.login, senha: cred.senha }
+  if (!acesso) return { origem }
+  if (!acesso.user_id) return { origem, sem_acesso: true }
+  return { origem, login: slug, situacao: acesso.senha_trocada_em ? 'definida' : 'temporaria' }
+}
+
+/** O recado do WhatsApp. Obrigatório e urgente, com o prazo da edição; fecha com o painel quando `painel` vem. */
+export function textoPreenchimento({ marca, responsavel, link, edicao = {}, painel = null }) {
   const nome = texto(responsavel).split(/\s+/)[0]
   const tema = temaBonito(edicao.tema)
   const periodo = periodoEdicao(edicao.inicio, edicao.fim)
@@ -50,6 +87,7 @@ export function textoPreenchimento({ marca, responsavel, link, edicao = {} }) {
     '',
     '⚠️ O preenchimento é obrigatório e urgente' + (prazo ? ': precisa ser feito até ' + prazo : '') +
       '. Sem ele, sua marca não entra no site nem nos materiais da edição.',
+    ...(painel ? ['', textoPainel(painel)] : []),
   ].join('\n')
 }
 

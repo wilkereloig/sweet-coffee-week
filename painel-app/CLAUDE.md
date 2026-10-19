@@ -1324,3 +1324,14 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   (migration `20261021_ingredientes_opcional.sql`: `campos_cadastro` e `marca_concluir_cadastro`). A coluna
   `participantes_itens.ingredientes` continua: dado antigo é preservado e ainda aparece na ficha e na página pública.
   ⛔ Não voltar a exigir ingredientes sem mudar as duas pontas (app e banco) juntas.
+
+- **Painel SCW na mensagem e na página de preenchimento** (19/10/2026, pedido do Wilker): a mensagem de WhatsApp fecha com
+  a apresentação do painel (centro de comunicação com a organização: arquivos, fotos do combo, formulários, atualizar e
+  conferir dados), o link `/painel/`, o usuário (`participantes.slug`) e a senha. A página `/preencher/` ganhou o mesmo
+  aviso no fim (`#pr-painel`), **sem usuário nem senha**: a página abre só com o código do link. A senha temporária NÃO é
+  guardada (aparece uma vez, na tela que a cria), então `painelDaMarca` só a escreve se a credencial acabou de ser criada
+  na tela; quem já recebeu a sua leva "a que enviamos na mensagem do seu acesso"; quem já trocou, "a que você criou".
+  Em Participantes › Preenchimento, "Criar N acessos e copiar" (`marca.liberar`) chama `criar-acesso-marca` pelo
+  `emitirCredenciais` e copia as mensagens já com a senha; a credencial fica só em memória da tela.
+  ⛔ Não regerar senha de quem já tem acesso só para pôr na mensagem (invalida a que foi enviada e derruba sessões).
+
