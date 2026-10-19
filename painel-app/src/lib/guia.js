@@ -41,7 +41,7 @@ export const CAMPOS_APONTAVEIS = [
   ['email', 'A marca · E-mail'], ['instagram', 'A marca · Instagram'], ['logo', 'A marca · Logo do estabelecimento'],
   ['apresentacao_publica', 'A marca · Apresentação no site'],
   ['tema_combo', 'Tema · Tema escolhido'], ['tema_justificativa', 'Tema · Justificativa'],
-  ...[1, 2, 3].flatMap((n) => [['item-' + n + '-nome', 'Item ' + n + ' · Nome'], ['item-' + n + '-descricao', 'Item ' + n + ' · Descrição'], ['item-' + n + '-ingredientes', 'Item ' + n + ' · Ingredientes']]),
+  ...[1, 2, 3].flatMap((n) => [['item-' + n + '-nome', 'Item ' + n + ' · Nome'], ['item-' + n + '-descricao', 'Item ' + n + ' · Descrição']]),
   ['combo_nome', 'Combo · Nome do combo'], ['combo_descricao', 'Combo · Descrição'], ['combo_condicoes', 'Combo · Condições'],
   ['custo_embalagem', 'Custos · Embalagem para viagem'], ['custo_delivery', 'Custos · Delivery'],
   ...[1, 2, 3].flatMap((n) => [['item-' + n + '-alimentar', 'Item ' + n + ' · Alergênicos e características'], ['item-' + n + '-trocas', 'Item ' + n + ' · Trocas']]),
@@ -52,13 +52,13 @@ export const CAMPOS_APONTAVEIS = [
 ]
 
 const ROTULO_ITEM = { doce: 'do doce', salgado: 'do salgado', bebida: 'da bebida' }
-const CAMPO_ITEM = { nome: 'Nome', descricao: 'Descrição', ingredientes: 'Ingredientes' }
+const CAMPO_ITEM = { nome: 'Nome', descricao: 'Descrição' }
 const vazio = (v) => !String(v == null ? '' : v).trim()
 
 /*
  * Os campos obrigatórios — a MESMA lista de `campos_cadastro` no banco
  * (migration 20261002_valor_combo_edicao.sql), que dá o % na lista da
- * organização. São 16 fixos + os custos que se aplicam (embalagem se o combo
+ * organização. São 13 fixos + os custos que se aplicam (embalagem se o combo
  * pode ser para viagem, delivery se alguma unidade entrega). O valor do combo
  * saiu: é da organização. Mudou aqui, muda lá.
  */
@@ -75,7 +75,7 @@ export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades
   const ordenados = itensEmOrdem(itens)
   for (let i = 0; i < TIPOS.length; i++) {
     const it = ordenados[i]
-    for (const k of ['nome', 'descricao', 'ingredientes']) {
+    for (const k of ['nome', 'descricao']) {
       lista.push(it
         ? c(2, 'item-' + it.posicao + '-' + k, CAMPO_ITEM[k] + ' ' + (ROTULO_ITEM[it.tipo] || 'do item'), !vazio(it[k]))
         // Item que ainda não existe: só a organização cria (não há campo para abrir).

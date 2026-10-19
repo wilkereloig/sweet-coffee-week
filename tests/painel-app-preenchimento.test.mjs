@@ -56,7 +56,8 @@ test('diferença: só o que muda, com máscara e dinheiro normalizados', () => {
   const enviado = {
     marca: { responsavel: 'Ana', telefone: '+55 (84) 99999-0000', instagram: '@a', email: 'a@b.c' },
     combo: { tema_combo: 'Pica-Pau', combo_para_viagem: true, custo_embalagem: '2,50', combo_nome: 'Combo do Pica' },
-    itens: [{ posicao: 1, nome: 'Bolo', descricao: 'd', ingredientes: 'trigo, ovos' }],
+    // ingredientes mudou de propósito: não é mais pedido, então não aparece na diferença (19/10/2026).
+    itens: [{ posicao: 1, nome: 'Bolo', descricao: 'd novo', ingredientes: 'trigo, ovos' }],
     unidades: [
       { id: 'u1', logradouro: 'Rua A', numero: '10', bairro: 'Tirol', cep: '59000-000', whatsapp: '(84) 99999-0000', whatsapp_autorizado: false, consumo_local: 'sim' },
       { id: null, logradouro: 'Av. B', numero: '5', consumo_local: 'nao' },
@@ -68,7 +69,7 @@ test('diferença: só o que muda, com máscara e dinheiro normalizados', () => {
   assert.deepEqual(campos, [
     'Responsável e contato · E-mail',
     'Tema e combo · Nome do combo',
-    'Doce · Ingredientes',
+    'Doce · Descrição',
     'Loja Tirol · Consumo no local',
     'Loja nova · Rua / avenida', 'Loja nova · Número', 'Loja nova · Consumo no local',
   ])

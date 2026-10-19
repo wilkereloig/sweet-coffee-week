@@ -278,7 +278,8 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     <h3 data-titulo></h3>
     <label class="campo"><span>Nome</span><input data-k="nome" maxlength="120"></label>
     <label class="campo"><span>Descrição</span><textarea data-k="descricao" maxlength="600" rows="2"></textarea></label>
-    <label class="campo"><span>Ingredientes</span><textarea data-k="ingredientes" maxlength="800" rows="2" placeholder="Todos, separados por vírgula"></textarea></label>
+    <!-- Ingredientes não são mais pedidos (19/10/2026): o que importa é o alergênico. O valor já cadastrado só atravessa, intacto. -->
+    <input type="hidden" data-k="ingredientes">
     <div class="pergunta" role="group" data-pergunta="alergenicos">
       <span>Contém algum destes?</span>
       <div class="opcoes">
@@ -482,7 +483,7 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
       no.querySelector('[data-titulo]').textContent = ITENS[i - 1];
       no.querySelectorAll('[data-k]').forEach(function (c) {
         c.value = txt(it[c.dataset.k]);
-        if (c.dataset.k !== 'outro_alergenico') c.dataset.obrigatorio = ITENS[i - 1] + ' · ' + c.closest('label').firstChild.textContent;
+        if (c.dataset.k !== 'outro_alergenico' && c.dataset.k !== 'ingredientes') c.dataset.obrigatorio = ITENS[i - 1] + ' · ' + c.closest('label').firstChild.textContent;
       });
       // Alergênico: marcado = contém; traço = pode conter. "Nenhum" só se algo foi declarado e nada contém.
       var algumDeclarado = false, algumContem = false;

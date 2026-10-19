@@ -131,7 +131,7 @@ atravessa as edições: nome, responsável, contato, Instagram, site, CNPJ.
 | Peça | Onde vive hoje |
 |---|---|
 | tema, justificativa, preço, `status_cadastro` do cadastro | `participacoes` |
-| doce, salgado, bebida (nome, descrição, ingredientes, restrições) | `participantes_itens.participacao_id` |
+| doce, salgado, bebida (nome, descrição, restrições; ingredientes saíram do formulário em 19/10/2026) | `participantes_itens.participacao_id` |
 | endereço, bairro, horário do festival, delivery e canais | `participacao_unidades` |
 | nome da marca, responsável, telefone, e-mail, Instagram, site, CNPJ | `participantes` |
 
@@ -1316,3 +1316,11 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   notificações" reabre, mostra o estado deste aparelho e a preferência de aviso de versão.
 - Testes: `tests/painel-app-versao.test.mjs` (transição com dependências falsas); navegador com builds reais A→B no
   harness local (fora do repositório).
+
+- **Ingredientes não são mais pedidos** (19/10/2026, pedido do Wilker): a organização só precisa de nome, descrição e dos
+  alergênicos/características de cada item. Saíram o campo do formulário `/preencher/` (fica um `<input hidden>` que só deixa o
+  valor antigo atravessar, sem apagar nem gerar diferença), o campo do Cadastro da marca e o da ficha da organização; o total de
+  campos obrigatórios passou de 16 para 13 (`guia.js › camposObrigatorios`, `cadastro.js › itemCompleto`) e o banco acompanha
+  (migration `20261021_ingredientes_opcional.sql`: `campos_cadastro` e `marca_concluir_cadastro`). A coluna
+  `participantes_itens.ingredientes` continua: dado antigo é preservado e ainda aparece na ficha e na página pública.
+  ⛔ Não voltar a exigir ingredientes sem mudar as duas pontas (app e banco) juntas.

@@ -63,7 +63,7 @@ const ROTULOS_COMBO = [
   ['combo_nome', 'Nome do combo'], ['combo_descricao', 'Descrição do combo'],
   ['combo_para_viagem', 'Pode ser para viagem'], ['custo_embalagem', 'Custo da embalagem'], ['custo_delivery', 'Custo do delivery'],
 ]
-const ROTULOS_ITEM = [['nome', 'Nome'], ['descricao', 'Descrição'], ['ingredientes', 'Ingredientes']]
+const ROTULOS_ITEM = [['nome', 'Nome'], ['descricao', 'Descrição']]
 const ITENS = ['Doce', 'Salgado', 'Bebida']
 const ROTULOS_UNIDADE = [
   ['nome_unidade', 'Nome da loja'], ['logradouro', 'Rua / avenida'], ['numero', 'Número'], ['complemento', 'Complemento'],

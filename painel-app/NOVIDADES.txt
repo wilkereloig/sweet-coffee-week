@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-No app do iPhone, o topo fica todo marrom (sem degradê) e as janelas aparecem inteiras.
+O formulário do combo não pede mais ingredientes: só nome, descrição e os alergênicos de cada item.

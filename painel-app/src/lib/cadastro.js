@@ -83,7 +83,7 @@ export function itemDe(tipo, itens) {
 
 export function itemCompleto(i) {
   if (!i) return false
-  return (i.nome || '').trim() !== '' && (i.descricao || '').trim() !== '' && (i.ingredientes || '').trim() !== ''
+  return (i.nome || '').trim() !== '' && (i.descricao || '').trim() !== ''
 }
 
 // Mesma regra de marca_concluir_cadastro: unidade que PARTICIPA, com o
@@ -158,7 +158,7 @@ export function canaisParaArray(obj) {
  * cursor no lugar certo. Sem campo = não há o que a marca preencher sozinha.
  */
 const ROTULO_ITEM = { doce: 'o doce', salgado: 'o salgado', bebida: 'a bebida' }
-const NOME_CAMPO_ITEM = { nome: 'nome', descricao: 'descrição', ingredientes: 'ingredientes' }
+const NOME_CAMPO_ITEM = { nome: 'nome', descricao: 'descrição' }
 
 export function pendenciasCadastro({ marca = {}, tema = {}, itens = [], unidades = [], custos = {} } = {}) {
   const p = []
@@ -172,7 +172,7 @@ export function pendenciasCadastro({ marca = {}, tema = {}, itens = [], unidades
     p.push({ bloco: 2, campo: null, texto: 'O combo ainda não tem os três itens: fale com a organização' })
   }
   for (const i of itens) {
-    const faltam = ['nome', 'descricao', 'ingredientes'].filter((k) => vazio(i[k]))
+    const faltam = ['nome', 'descricao'].filter((k) => vazio(i[k]))
     if (faltam.length) {
       p.push({ bloco: 2, campo: 'item-' + i.posicao + '-' + faltam[0], texto: 'Completar ' + (ROTULO_ITEM[i.tipo] || 'o item') + ': ' + faltam.map((k) => NOME_CAMPO_ITEM[k]).join(', ') })
     }

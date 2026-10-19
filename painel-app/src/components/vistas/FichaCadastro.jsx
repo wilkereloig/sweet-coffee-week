@@ -213,7 +213,6 @@ function camposItem(posicao) {
     ...(posicao === 2 ? [{ chave: 'tipo', rotulo: 'Doce ou salgado', tipo: 'select', opcoes: { doce: 'Doce', salgado: 'Salgado' } }] : []),
     { chave: 'nome', rotulo: 'Nome' },
     { chave: 'descricao', rotulo: 'Descrição', tipo: 'area' },
-    { chave: 'ingredientes', rotulo: 'Ingredientes', tipo: 'area' },
     { chave: 'vegano', rotulo: 'Vegano', tipo: 'check' },
     { chave: 'sem_gluten', rotulo: 'Sem glúten', tipo: 'check' },
     { chave: 'sem_lactose', rotulo: 'Sem lactose', tipo: 'check' },

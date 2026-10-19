@@ -314,7 +314,7 @@ test('sem participação ou cadastro incompleto', () => {
   assert.match(textos, /Tema do combo/)
   // Campos vazios viram UMA pendência por seção, com os nomes: lista curta.
   const combo = l.find((x) => x.chave === 'campos:combo')
-  assert.ok(combo.campos.length >= 9) // 3 itens × 3 campos + tema
+  assert.ok(combo.campos.length >= 6) // 3 itens × 2 campos (ingredientes saíram em 19/10/2026) + tema
   assert.match(combo.texto, /^Faltam \d+ campos: .+ e mais \d+$/)
   assert.equal(l.filter((x) => x.chave.startsWith('campos:')).length, new Set(l.filter((x) => x.chave.startsWith('campos:')).map((x) => x.secao)).size)
 })

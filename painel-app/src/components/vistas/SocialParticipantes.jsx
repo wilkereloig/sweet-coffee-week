@@ -231,7 +231,7 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
                   </div>
                 ))}
               </fieldset>
-              <p className="rd-campo__nota">Preço, tema, ingredientes, alergênicos e trocas não são editados aqui: são da marca e da curadoria.</p>
+              <p className="rd-campo__nota">Preço, tema, alergênicos e trocas não são editados aqui: são da marca e da curadoria.</p>
               {erroAcao && <p className="ui-nota ui-nota--erro" role="alert">{erroAcao}</p>}
               <div className="ui-acoes">
                 <Botao type="submit" variante="destaque" icone="feito" disabled={salvando || !sujo}>{salvando ? 'Salvando…' : 'Salvar textos'}</Botao>

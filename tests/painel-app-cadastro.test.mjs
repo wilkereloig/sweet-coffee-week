@@ -17,9 +17,10 @@ test('precoNumero lê formato brasileiro (milhar por ponto, decimal por vírgula
   assert.equal(precoNumero('1.234'), 1234)
 })
 
-test('itemCompleto exige nome, descrição e ingredientes preenchidos', () => {
-  assert.equal(itemCompleto({ nome: 'Bolo', descricao: 'x', ingredientes: 'y' }), true)
-  assert.equal(itemCompleto({ nome: '  ', descricao: 'x', ingredientes: 'y' }), false)
+test('itemCompleto exige nome e descrição; ingredientes não são mais pedidos (19/10/2026)', () => {
+  assert.equal(itemCompleto({ nome: 'Bolo', descricao: 'x' }), true)
+  assert.equal(itemCompleto({ nome: 'Bolo', descricao: 'x', ingredientes: '' }), true)
+  assert.equal(itemCompleto({ nome: '  ', descricao: 'x' }), false)
   assert.equal(itemCompleto(null), false)
 })
 
@@ -83,7 +84,7 @@ test('pendências campo a campo: cada uma diz o que falta e onde (etapa 7)', asy
   }
   const p = pendenciasCadastro(dados)
   assert.deepEqual(p.map((x) => [x.bloco, x.campo]), [[0, 'responsavel'], [1, 'tema_justificativa'], [2, 'item-2-descricao'], [3, 'custo_embalagem'], [4, 'unidade-endereco']])
-  assert.equal(p[2].texto, 'Completar o salgado: descrição, ingredientes')
+  assert.equal(p[2].texto, 'Completar o salgado: descrição')
   assert.equal(linkDaPendencia(p[2]), 'cadastro/2/item-2-descricao')
   // A regra é a mesma dos blocos: bloco com pendência = bloco pendente.
   assert.equal(new Set(p.map((x) => x.bloco)).size, blocosPendentes(dados).length)
