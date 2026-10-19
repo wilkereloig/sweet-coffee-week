@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Preenchimento: a mensagem das marcas abre com o Painel SCW (link, usuário e senha temporária) e o painel gera as senhas de todas.
+No login do participante, "Perdi meu acesso" abre o WhatsApp da organização com a mensagem pronta.

@@ -99,6 +99,22 @@ export function linkWhatsApp(telefone, texto) {
 }
 
 /*
+ * "Perdi meu acesso" (login do participante): abre o WhatsApp da organização com a mensagem pronta (19/10/2026, pedido do
+ * Wilker). O número é o que o Wilker passou, exatamente como aparece no WhatsApp (8 dígitos depois do DDD, sem 9 extra).
+ * Mudou o contato? É só aqui. Nome da pessoa não vai no código nem na mensagem: a conversa é com a organização.
+ */
+export const WHATSAPP_ORGANIZACAO = '84 9418-2198'
+export function linkPerdiAcesso({ nome } = {}) {
+  const quem = String(nome || '').trim()
+  const texto = [
+    'Olá! Aqui é ' + (quem ? 'da marca ' + quem : 'uma marca participante') + ' do Sweet & Coffee Week.',
+    '',
+    'Perdi meu acesso ao Painel SCW. Pode gerar uma senha temporária nova para mim?',
+  ].join('\n')
+  return linkWhatsApp(WHATSAPP_ORGANIZACAO, texto)
+}
+
+/*
  * WhatsApp = telefone de cadastro (29/09/2026). Máscara brasileira ao digitar,
  * validação de DDD e de dígitos. Grava formatado; a forma de máquina é
  * `participantes.telefone_normalizado`, gerada no banco.

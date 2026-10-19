@@ -3,8 +3,10 @@ import React from 'react'
 import { entrarComoMarca, RECADO } from '../../../src/lib/marcaAccess'
 import { signInComSenha } from '../lib/marcaApi'
 import { Icone } from './Icone'
+import { linkPerdiAcesso } from '../lib/participantes'
 
-const AVISO_ESQUECI = 'A senha não é recuperável por aqui. Fale com a organização e ela gera um acesso novo.'
+// A senha não é recuperável por aqui: o botão abre o WhatsApp da organização com a mensagem pronta (a organização gera um acesso novo).
+const AVISO_ESQUECI = 'Abrimos o WhatsApp da organização com a mensagem pronta. É só enviar: ela gera um acesso novo para você.'
 
 /*
  * Formulário "Sou participante" — porte de public/painel/index.html
@@ -80,9 +82,9 @@ export function LoginMarca({ onEntrar, onVoltar }) {
             {carregando ? 'Conferindo…' : 'Entrar no painel'}
           </button>
           <div className="pn-setor__pe">
-            <button className="pn-link--porta" type="button" onClick={() => setAviso(AVISO_ESQUECI)}>
+            <a className="pn-link--porta" href={linkPerdiAcesso({ nome })} target="_blank" rel="noopener noreferrer" onClick={() => setAviso(AVISO_ESQUECI)}>
               Perdi meu acesso
-            </button>
+            </a>
           </div>
         </form>
       </div>

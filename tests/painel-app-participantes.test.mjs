@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  slugPrevisto, resumoParticipante, montarRecado, linkWhatsApp, soDigitos,
+  slugPrevisto, resumoParticipante, montarRecado, linkWhatsApp, linkPerdiAcesso, WHATSAPP_ORGANIZACAO, soDigitos,
   textoTodosAcessos, mascaraWhatsApp, validarWhatsApp, whatsappNormalizado,
 } from '../painel-app/src/lib/participantes.js'
 
@@ -66,4 +66,17 @@ test('WhatsApp: máscara brasileira, validação de DDD/dígitos e forma normali
   assert.match(validarWhatsApp('84 9999'), /10 ou 11/)
   assert.match(validarWhatsApp('(84) 89999-8888'), /começa com 9/)
   assert.equal(whatsappNormalizado('(84) 99999-8888'), '5584999998888')
+})
+
+test('"Perdi meu acesso" abre o WhatsApp da organização com a mensagem pronta (19/10/2026)', () => {
+  const url = new URL(linkPerdiAcesso({ nome: 'Parma Doces' }))
+  assert.equal(url.origin + url.pathname, 'https://wa.me/558494182198')
+  const texto = url.searchParams.get('text')
+  assert.ok(texto.includes('da marca Parma Doces') && texto.includes('Perdi meu acesso ao Painel SCW'))
+  assert.ok(texto.includes('senha temporária nova'))
+  // sem nome digitado a mensagem continua completa
+  const sem = new URL(linkPerdiAcesso({ nome: '   ' })).searchParams.get('text')
+  assert.ok(sem.includes('uma marca participante') && !sem.includes('da marca '))
+  assert.ok(new URL(linkPerdiAcesso()).searchParams.get('text').includes('Painel SCW'))
+  assert.equal(WHATSAPP_ORGANIZACAO, '84 9418-2198')
 })
