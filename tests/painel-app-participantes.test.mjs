@@ -70,7 +70,7 @@ test('WhatsApp: máscara brasileira, validação de DDD/dígitos e forma normali
 
 test('"Perdi meu acesso" abre o WhatsApp da organização com a mensagem pronta (19/10/2026)', () => {
   const url = new URL(linkPerdiAcesso({ nome: 'Parma Doces' }))
-  assert.equal(url.origin + url.pathname, 'https://wa.me/558494182198')
+  assert.equal(url.origin + url.pathname, 'https://wa.me/5584994182198')
   const texto = url.searchParams.get('text')
   assert.ok(texto.includes('da marca Parma Doces') && texto.includes('Perdi meu acesso ao Painel SCW'))
   assert.ok(texto.includes('senha temporária nova'))
@@ -78,5 +78,5 @@ test('"Perdi meu acesso" abre o WhatsApp da organização com a mensagem pronta 
   const sem = new URL(linkPerdiAcesso({ nome: '   ' })).searchParams.get('text')
   assert.ok(sem.includes('uma marca participante') && !sem.includes('da marca '))
   assert.ok(new URL(linkPerdiAcesso()).searchParams.get('text').includes('Painel SCW'))
-  assert.equal(WHATSAPP_ORGANIZACAO, '84 9418-2198')
+  assert.equal(WHATSAPP_ORGANIZACAO, '84 99418-2198')
 })

@@ -1340,7 +1340,7 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
 
 - **"Perdi meu acesso" do participante abre o WhatsApp** (19/10/2026, pedido do Wilker): `LoginMarca.jsx` troca o aviso por um
   link `wa.me` para a organização com a mensagem pronta (`linkPerdiAcesso` em `lib/participantes.js`, leva o nome digitado no
-  campo). O número (`WHATSAPP_ORGANIZACAO`) mora num lugar só e foi passado pelo Wilker, como aparece no WhatsApp (sem 9
-  extra); nome de pessoa não entra no código nem na mensagem. O login da EQUIPE (`LoginOrganizacao.jsx`) continua com o aviso
+  campo). O número (`WHATSAPP_ORGANIZACAO`) mora num lugar só e foi passado pelo Wilker, com o 9 extra
+  (confirmado por ele); nome de pessoa não entra no código nem na mensagem. O login da EQUIPE (`LoginOrganizacao.jsx`) continua com o aviso
   "fale com um administrador".
 

@@ -100,10 +100,10 @@ export function linkWhatsApp(telefone, texto) {
 
 /*
  * "Perdi meu acesso" (login do participante): abre o WhatsApp da organização com a mensagem pronta (19/10/2026, pedido do
- * Wilker). O número é o que o Wilker passou, exatamente como aparece no WhatsApp (8 dígitos depois do DDD, sem 9 extra).
+ * Wilker). O número é o que o Wilker passou, com o 9 extra (confirmado por ele).
  * Mudou o contato? É só aqui. Nome da pessoa não vai no código nem na mensagem: a conversa é com a organização.
  */
-export const WHATSAPP_ORGANIZACAO = '84 9418-2198'
+export const WHATSAPP_ORGANIZACAO = '84 99418-2198'
 export function linkPerdiAcesso({ nome } = {}) {
   const quem = String(nome || '').trim()
   const texto = [
