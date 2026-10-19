@@ -1409,6 +1409,10 @@ telas depois de salvar. Agora há **uma camada só** (`painel-app/src/lib/sync/`
   `unidades` não vão ao `scw:social`); foto aprovada por outra sessão na Biblioteca do admin; nome de participante na lista de
   postagens. Aba com conflito aberto no Cadastro da marca: trocar de aba grava SEM a coluna em conflito (a versão da marca
   naquele campo se perde; o aviso de fechar a aba já cobre o resto).
+- **Contagens da Visão geral** (`resumoDaEdicao`/`participaDaEdicao` em `lib/mesa.js`): participação `encerrado` (desistiu) NÃO entra
+  no total da edição, em "com acesso", "sem acesso" nem em "cadastros completos"; os filtros com/sem acesso de Marcas e o lote
+  "Gerar senhas" seguem a mesma regra, para o número do cartão abrir uma lista do mesmo tamanho. "Cadastro completo" é o STATUS
+  (a organização confirma), não "todos os campos preenchidos" (`campos_faltando = 0`).
 - **Regressão automática**: `tests/painel-app-sync-sem-polling.test.mjs` reprova `setInterval` fora da camada (exceções: versão
   publicada, URL assinada de imagem, nova tentativa de `minhas_permissoes` quando a leitura falhou).
 - Navegador (backend e Realtime FALSOS, nada vai ao Supabase): `node tests/painel-sincronizacao-navegador.mjs` (15 cenários:

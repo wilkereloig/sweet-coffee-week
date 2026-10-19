@@ -278,6 +278,15 @@ button.pn-sync{cursor:pointer;color:var(--scw-choco)}
   .pn-cabeca__btn{background:rgba(254,240,221,.1)}
   @media (hover:hover){ .pn-cabeca__btn:hover{background:rgba(254,240,221,.2)} }
 }
+/* Celular estreito (19/10/2026): com o ponto de sincronização o título "Visão geral" ficava "Visão g…". Os botões seguem com 44px
+   de toque; o que sai é o respiro entre eles, para o título caber. Vem DEPOIS do bloco de 900px (mesma especificidade). */
+@media (max-width:480px){
+  .pn-cabeca{gap:8px}
+  .pn-cabeca__dir{gap:2px}
+  .pn-cabeca__marca{height:34px}
+  .pn-sync{padding:0 3px}
+}
+@media (max-width:400px){ .pn-cabeca{gap:6px} .pn-cabeca__titulo{font-size:16px} .pn-cabeca__marca{height:26px} }
 
 /* ── Selo de contagem ──────────────────────────────────────────────────── */
 /* Creme sobre magenta: 3,8:1 — passa como elemento gráfico de 11px/700 só com

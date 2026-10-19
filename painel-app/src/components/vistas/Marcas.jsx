@@ -12,6 +12,7 @@ import { urlLogo } from '../../lib/logos'
 import { confirmar, pedirTexto } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { participaDaEdicao } from '../../lib/mesa'
 
 // Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
 const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Mn}/gu, '').replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '')
@@ -203,15 +204,15 @@ export function Marcas({ pode = () => true, rota, navegar }) {
         : status === 'aguardando_aprovacao' ? p.combo_status === 'em_analise'
         : status === 'alteracao' ? p.combo_status === 'correcao_solicitada' || Number(p.correcoes_abertas) > 0
         : status === 'sem_atividade' ? !!p.participacao_id && (!p.ultima_atividade || Date.now() - new Date(p.ultima_atividade) > 7 * 864e5)
-        : status === 'sem_conta' ? !p.user_id
-        : status === 'com_conta' ? !!p.user_id
+        : status === 'sem_conta' ? !p.user_id && participaDaEdicao(p)
+        : status === 'com_conta' ? !!p.user_id && participaDaEdicao(p)
         : status === 'possivel' ? p.historico_status === 'possivel_correspondencia'
         : p.status_cadastro === status))
       .sort(ORDENS[ordem])
   }, [participantes, porMarca, termo, status, ordem, f.edicao])
 
   // Lote: marcas com participação aberta e sem conta (arquivadas ficam de fora).
-  const semAcesso = arquivadas ? [] : (participantes || []).filter((p) => !p.user_id && p.participacao_id)
+  const semAcesso = arquivadas ? [] : (participantes || []).filter((p) => !p.user_id && p.participacao_id && participaDaEdicao(p))
   // Só o que está selecionado E visível: marca escondida por busca ou filtro
   // não entra no lote (nem na contagem que a confirmação mostra).
   const selecionadas = lista.filter((p) => sel.has(p.id))

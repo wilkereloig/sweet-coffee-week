@@ -53,3 +53,22 @@ export function colunasMesa({ candidaturas = [], participantes = [] }) {
 
   return ETAPAS.map((e) => ({ ...e, itens: colunas[e.chave] }))
 }
+
+/*
+ * Os números da Visão geral (19/10/2026). A edição conta só as marcas que PARTICIPAM: participação `encerrado`
+ * (desistiu ou saiu) fica de fora do total, do "com acesso", do "sem acesso" e dos "cadastros completos" — senão a
+ * Visão geral dizia 26 quando a edição tem 24 marcas ativas. É a mesma regra de Marcas (filtros com/sem acesso) e do
+ * lote "Gerar senhas", que também deixam a encerrada de fora.
+ */
+export const participaDaEdicao = (p) => !!p && p.status_cadastro !== 'encerrado'
+
+export function resumoDaEdicao(participantes = [], edicaoCodigo) {
+  const naEdicao = (participantes || []).filter((p) => edicaoCodigo && p.edicao_codigo === edicaoCodigo && participaDaEdicao(p))
+  const comAcesso = naEdicao.filter((p) => p.user_id).length
+  return {
+    naEdicao,
+    comAcesso,
+    semAcesso: naEdicao.length - comAcesso,
+    completos: naEdicao.filter((p) => p.status_cadastro === 'cadastro_completo').length,
+  }
+}

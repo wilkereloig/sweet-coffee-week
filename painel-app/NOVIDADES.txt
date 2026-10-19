@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-O painel agora se atualiza sozinho quando outra pessoa salva algo e mostra se está sincronizado.
+Visão geral conta só as marcas que participam da edição, e o título cabe no celular.

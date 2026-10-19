@@ -4,7 +4,7 @@ import { agruparTemas, textoPrazo, diasAte, dataDoItem } from '../../lib/operaca
 import { chaveDia } from '../../lib/hoje'
 import { rpc } from '../../lib/rpc'
 import { ORIGENS } from '../../lib/respostas'
-import { ETAPAS, colunasMesa } from '../../lib/mesa'
+import { ETAPAS, colunasMesa, resumoDaEdicao } from '../../lib/mesa'
 import { notificacoesOrg } from '../../lib/notificacoes'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Atividade } from '../Atividade'
@@ -112,16 +112,13 @@ export function Mesa({ abrirLink, navegar, pode, avisos = [] }) {
   const prazosProximos = ((extra.edicao && extra.edicao.cronograma) || [])
     .filter((i) => i.tipo === 'prazo' && diasAte(dataDoItem(i), hoje) >= 0 && diasAte(dataDoItem(i), hoje) <= 5)
   const conflitosTema = agruparTemas(extra.temas).filter((g) => g.conflito && !g.aprovado)
-  const naEdicao = participantes.filter((p) => extra.edicao && p.edicao_codigo === extra.edicao.codigo)
+  const { naEdicao, comAcesso, semAcesso, completos } = resumoDaEdicao(participantes, extra.edicao && extra.edicao.codigo)
 
   // Cada número abre a lista JÁ FILTRADA pelo que ele conta (o filtro vai no
   // endereço — reestruturação 29/09/2026).
   const edCodigo = extra.edicao ? extra.edicao.codigo : undefined
   const lista = (filtros) => () => navegar({ vista: 'participantes', aba: 'lista', filtros })
   // A edição em frações do total; o resto só pede atenção quando passa de zero.
-  const comAcesso = naEdicao.filter((p) => p.user_id).length
-  const semAcesso = naEdicao.length - comAcesso
-  const completos = naEdicao.filter((p) => p.status_cadastro === 'cadastro_completo').length
   const progresso = [
     { rotulo: 'com acesso ao painel', n: comAcesso, ir: lista({ edicao: edCodigo, situacao: 'com_conta' }) },
     { rotulo: 'cadastros completos', n: completos, ir: lista({ edicao: edCodigo, situacao: 'cadastro_completo' }) },
