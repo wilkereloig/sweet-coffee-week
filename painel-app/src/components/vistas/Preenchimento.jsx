@@ -3,7 +3,7 @@ import { rpc } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { linkWhatsApp } from '../../lib/participantes'
 import { dataHoraCurta } from '../../lib/painelFormat'
-import { linkPreenchimento, textoPreenchimento, painelDaMarca, diferencasEnvio, situacaoLink, dataCurtaBR } from '../../lib/preenchimento'
+import { linkPreenchimento, textoPreenchimento, painelDaMarca, entraNoLoteDeSenhas, diferencasEnvio, situacaoLink, dataCurtaBR } from '../../lib/preenchimento'
 import { emitirCredenciais, lerAcessos, registrarEnvio } from './AcessoMarca'
 import { Secao, Selo, Botao, BotaoIcone, Carregando, Erro, Vazio, traduzirErro } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
@@ -194,7 +194,12 @@ export function ListaPreenchimento({ pode, irPara }) {
   const origem = window.location.origin
   const painelDe = (m, cred) => painelDaMarca({ origem, slug: slugs[m.participante_id], acesso: acessos && acessos[m.participante_id], cred: cred || creds[m.participante_id] })
   const mensagemDe = (m, cred) => textoPreenchimento({ marca: m.nome, responsavel: m.responsavel, link: linkPreenchimento(origem, m.codigo), edicao: d.edicao || {}, painel: painelDe(m, cred) })
-  const semAcesso = marcas.filter((m) => m.codigo && m.status_cadastro !== 'encerrado' && acessos && acessos[m.participante_id] && !acessos[m.participante_id].user_id)
+  // Quem entra no lote de senhas: marca ativa, com link, e acesso que ainda NÃO tem senha definida pela própria marca
+  // (sem conta → cria; com a temporária ainda valendo → gera outra). Quem já trocou a senha não é mexido, nem acesso pausado.
+  const acessoDe = (m) => (acessos && acessos[m.participante_id]) || null
+  const entraNoLote = (m) => entraNoLoteDeSenhas({ marca: m, acesso: acessoDe(m), cred: creds[m.participante_id] })
+  const paraSenha = marcas.filter(entraNoLote)
+  const jaTrocaram = marcas.filter((m) => m.codigo && m.status_cadastro !== 'encerrado' && acessoDe(m) && acessoDe(m).senha_trocada_em)
   const semLink = marcas.filter((m) => !m.codigo && m.status_cadastro !== 'encerrado').length
   const comLink = marcas.filter((m) => m.codigo)
   const aRevisar = marcas.filter((m) => m.pendentes > 0).length
@@ -204,14 +209,24 @@ export function ListaPreenchimento({ pode, irPara }) {
     setOcupado(true); setAviso(null)
     try { await carregar(true); setAviso('Links gerados.') } finally { setOcupado(false) }
   }
-  // Cria a conta pelo painel (Edge Function criar-acesso-marca) e já copia a mensagem com a senha, que só aparece agora.
-  async function criarAcessos(lista) {
+  // Senha temporária pelo painel (Edge Functions criar-acesso-marca / regerar-senha-conta, com a sua sessão) e já copia as
+  // mensagens com a senha, que só aparece agora. Sem conta → cria; com a temporária ainda valendo → gera outra (a anterior
+  // deixa de valer e as sessões abertas caem).
+  async function gerarSenhas(lista) {
     if (!lista.length) return
-    const quem = lista.length === 1 ? 'o acesso de ' + lista[0].nome : lista.length + ' acessos'
-    if (!await confirmar('Criar ' + quem + ' ao painel?\n\nO usuário é o nome do estabelecimento e a senha temporária aparece UMA VEZ: ela já entra na mensagem copiada. Nada é enviado às marcas.', { acao: 'Criar acesso' })) return
+    const criar = lista.filter((m) => !acessoDe(m).user_id)
+    const trocar = lista.filter((m) => acessoDe(m).user_id)
+    const partes = []
+    if (criar.length) partes.push('criar ' + (criar.length === 1 ? 'o acesso de ' + criar[0].nome : criar.length + ' acessos novos'))
+    if (trocar.length) partes.push('gerar senha temporária NOVA para ' + (trocar.length === 1 ? trocar[0].nome : trocar.length + ' marcas que ainda não trocaram a senha'))
+    const aviso2 = trocar.length ? '\n\nA senha que você já mandou para ' + (trocar.length === 1 ? 'essa marca' : 'essas marcas') + ' deixa de valer e as sessões abertas caem. ' : '\n\n'
+    if (!await confirmar(partes.join(' e ').replace(/^./, (c) => c.toUpperCase()) + '?' + aviso2 + 'A senha aparece UMA VEZ: ela já entra na mensagem copiada. Nada é enviado às marcas.', { acao: 'Gerar senhas', perigo: trocar.length > 0 })) return
     setOcupado(true); setAviso(null); setErro(null)
     try {
-      const feitos = await emitirCredenciais(lista.map((m) => ({ id: m.participante_id, nome_marca: m.nome })), 'gerar')
+      const feitos = []
+      const alvo = (m) => ({ id: m.participante_id, nome_marca: m.nome, slug: slugs[m.participante_id] })
+      if (criar.length) feitos.push(...await emitirCredenciais(criar.map(alvo), 'gerar'))
+      if (trocar.length) feitos.push(...await emitirCredenciais(trocar.map(alvo), 'regerar'))
       const novos = {}
       for (const f of feitos) if (!f.erro) novos[f.p.id] = { login: f.login, senha: f.senha }
       setCreds((c) => ({ ...c, ...novos }))
@@ -220,7 +235,7 @@ export function ListaPreenchimento({ pode, irPara }) {
         const texto = ok.map((m) => '— ' + m.nome + (m.telefone ? ' · ' + m.telefone : '') + '\n\n' + mensagemDe(m, novos[m.participante_id])).join('\n\n\n')
         const copiou = await copiar(texto)
         registrarEnvio(ok.map((m) => m.participante_id), 'copiado').catch(() => {})
-        setAviso(ok.length + (ok.length === 1 ? ' acesso criado. ' : ' acessos criados. ') + (copiou ? 'Mensagens copiadas, já com usuário e senha temporária.' : 'Sem área de transferência: copie a mensagem de cada marca aqui na lista, agora.') + ' A senha não aparece de novo depois que você sair desta tela.')
+        setAviso(ok.length + (ok.length === 1 ? ' senha gerada. ' : ' senhas geradas. ') + (copiou ? 'Mensagens copiadas, já com usuário e senha temporária.' : 'Sem área de transferência: copie a mensagem de cada marca aqui na lista, agora.') + ' A senha não aparece de novo depois que você sair desta tela.')
       }
       const falhas = feitos.filter((f) => f.erro).map((f) => f.p.nome_marca + ': ' + f.erro)
       if (falhas.length) setErro(falhas.join(' · '))
@@ -239,12 +254,12 @@ export function ListaPreenchimento({ pode, irPara }) {
         acoes={(
           <>
             {podeEditar && semLink > 0 && <Botao icone="mais" disabled={ocupado} onClick={gerarFaltantes}>{'Gerar ' + semLink + (semLink === 1 ? ' link' : ' links')}</Botao>}
-            {podeAcesso && semAcesso.length > 0 && <Botao icone="chave" disabled={ocupado} onClick={() => criarAcessos(semAcesso)}>{'Criar ' + semAcesso.length + (semAcesso.length === 1 ? ' acesso' : ' acessos') + ' e copiar'}</Botao>}
+            {podeAcesso && paraSenha.length > 0 && <Botao icone="chave" disabled={ocupado} onClick={() => gerarSenhas(paraSenha)}>{'Gerar senhas de ' + paraSenha.length + (paraSenha.length === 1 ? ' marca' : ' marcas') + ' e copiar'}</Botao>}
             {comLink.length > 0 && <Botao icone="copiar" variante="secundario" onClick={copiarTodas}>Copiar todas as mensagens</Botao>}
           </>
         )}>
         <p className="ui-nota">{comLink.length} com link · {enviados} já enviaram · {aRevisar} para revisar</p>
-        <p className="ui-nota">A mensagem fecha com o Painel SCW: link, usuário e senha temporária. Quem ainda não tem acesso é criado aqui; a senha só existe na hora em que é criada (quem já recebeu a sua continua com ela).</p>
+        <p className="ui-nota">A mensagem fecha com o Painel SCW: link, usuário e senha temporária. "Gerar senhas" cria o acesso de quem não tem e gera senha nova para quem ainda não trocou a sua (a que já foi enviada deixa de valer). A senha só aparece na hora em que é gerada.{jaTrocaram.length > 0 ? ' Não mexe em quem já definiu a própria senha: ' + jaTrocaram.map((m) => m.nome).join(', ') + '.' : ''}</p>
         {aviso && <p className="ui-nota" role="status">{aviso}</p>}
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
         <ul className="pr-lista">
@@ -256,7 +271,7 @@ export function ListaPreenchimento({ pode, irPara }) {
                 <button type="button" className="og-link pr-lista__nome" onClick={() => irPara && irPara('participantes', { vista: 'participantes', id: m.participante_id, sub: 'gestao' })}>{m.nome}</button>
                 <Selo tom={sit.tom}>{sit.texto}</Selo>
                 <span className="pr-lista__acoes">
-                  {podeAcesso && semAcesso.includes(m) && <button className="og-btn og-btn--mini" type="button" disabled={ocupado} onClick={() => criarAcessos([m])}>Criar acesso</button>}
+                  {podeAcesso && entraNoLote(m) && <button className="og-btn og-btn--mini" type="button" disabled={ocupado} onClick={() => gerarSenhas([m])}>{acessoDe(m).user_id ? 'Nova senha' : 'Criar acesso'}</button>}
                   {m.codigo && <BotaoIcone icone="copiar" rotulo="Copiar mensagem de" alvo={m.nome} onClick={async () => setAviso(await copiar(mensagemDe(m)) ? 'Mensagem de ' + m.nome + ' copiada.' : 'Sem área de transferência neste navegador.')} />}
                   {wa && <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noreferrer" aria-label={'Abrir WhatsApp de ' + m.nome}>WhatsApp</a>}
                 </span>

@@ -1331,7 +1331,10 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   aviso no fim (`#pr-painel`), **sem usuário nem senha**: a página abre só com o código do link. A senha temporária NÃO é
   guardada (aparece uma vez, na tela que a cria), então `painelDaMarca` só a escreve se a credencial acabou de ser criada
   na tela; quem já recebeu a sua leva "a que enviamos na mensagem do seu acesso"; quem já trocou, "a que você criou".
-  Em Participantes › Preenchimento, "Criar N acessos e copiar" (`marca.liberar`) chama `criar-acesso-marca` pelo
-  `emitirCredenciais` e copia as mensagens já com a senha; a credencial fica só em memória da tela.
+  Em Participantes › Preenchimento, "Gerar senhas de N marcas e copiar" (`marca.liberar`) cria o acesso de quem não tem
+  (`criar-acesso-marca`) e gera senha temporária NOVA para quem ainda não trocou a sua (`regerar-senha-conta`), pelo
+  `emitirCredenciais`, e copia as mensagens já com a senha; a credencial fica só em memória da tela. Fora do lote
+  (`entraNoLoteDeSenhas`): quem já definiu a própria senha, acesso bloqueado/desativado, marca encerrada, sem link e quem
+  acabou de ganhar senha na tela.
   ⛔ Não regerar senha de quem já tem acesso só para pôr na mensagem (invalida a que foi enviada e derruba sessões).
 

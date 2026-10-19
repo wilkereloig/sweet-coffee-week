@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import vm from 'node:vm'
 import {
-  linkPreenchimento, textoPreenchimento, textoPainel, painelDaMarca, diferencasEnvio, situacaoLink, dataCurtaBR, periodoEdicao,
+  linkPreenchimento, textoPreenchimento, textoPainel, painelDaMarca, entraNoLoteDeSenhas, diferencasEnvio, situacaoLink, dataCurtaBR, periodoEdicao,
 } from '../painel-app/src/lib/preenchimento.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
@@ -236,4 +236,17 @@ test('página pública: aviso do painel no fim, sem usuário nem senha (a págin
   assert.ok(PAGINA.indexOf('id="pr-painel"') > PAGINA.indexOf('</form>'), 'fica depois do formulário, também visível após o envio')
   const html = PAGINA.slice(0, PAGINA.indexOf('<script'))
   assert.ok(html.indexOf('id="pr-painel"') > html.indexOf('id="pr-conteudo"') && html.indexOf('id="pr-painel"') < html.indexOf('</main>'))
+})
+
+test('lote de senhas: só quem ainda tem a temporária (ou não tem conta); nunca quem trocou, pausado, encerrado ou recém-gerado', () => {
+  const m = { codigo: 'c', status_cadastro: 'aguardando_cadastro' }
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: null, status: 'nao_criado' } }), true, 'sem conta: cria')
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null, status: 'aguardando_primeiro_acesso' } }), true, 'temporária ainda valendo: gera outra')
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: '2026-10-01', status: 'ativo' } }), false, 'já definiu a própria senha')
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null, status: 'bloqueado' } }), false)
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null, status: 'desativado' } }), false)
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null }, cred: { senha: 'x' } }), false, 'acabou de ganhar senha: não gerar de novo')
+  assert.equal(entraNoLoteDeSenhas({ marca: { ...m, status_cadastro: 'encerrado' }, acesso: { user_id: null } }), false)
+  assert.equal(entraNoLoteDeSenhas({ marca: { ...m, codigo: null }, acesso: { user_id: null } }), false, 'sem link não há mensagem para levar a senha')
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: null }), false, 'acesso não lido: não mexe em conta nenhuma')
 })

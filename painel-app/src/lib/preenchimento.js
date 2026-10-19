@@ -71,6 +71,18 @@ export function painelDaMarca({ origem, slug, acesso, cred }) {
   return { origem, login: slug, situacao: acesso.senha_trocada_em ? 'definida' : 'temporaria' }
 }
 
+/*
+ * Quem entra no lote "Gerar senhas": marca ativa, com link e com o acesso LIDO, cuja senha ainda é a temporária (ou que
+ * não tem conta). Nunca: quem já definiu a própria senha, acesso bloqueado/desativado, quem acabou de ganhar senha nesta
+ * tela (gerar de novo invalidaria a que acabou de ser copiada) e marca encerrada.
+ */
+export function entraNoLoteDeSenhas({ marca, acesso, cred }) {
+  if (!marca || !marca.codigo || marca.status_cadastro === 'encerrado') return false
+  if (!acesso || cred) return false
+  if (acesso.senha_trocada_em) return false
+  return !/bloque|desativ/i.test(acesso.status || '')
+}
+
 /** O recado do WhatsApp. Obrigatório e urgente, com o prazo da edição; fecha com o painel quando `painel` vem. */
 export function textoPreenchimento({ marca, responsavel, link, edicao = {}, painel = null }) {
   const nome = texto(responsavel).split(/\s+/)[0]
