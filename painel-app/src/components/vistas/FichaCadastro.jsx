@@ -13,6 +13,10 @@ import { LogoEditor } from '../LogoEditor'
 import { MODULO_ICONE } from '../Icone'
 import { confirmar } from '../Confirmar'
 import { comEnvio } from '../../lib/pendencias'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { useRascunhoOrg, avisarSalvo } from '../../lib/rascunhoOrg'
 
 /*
  * Ficha da marca, abas de conteúdo — reconstrução visual 29/09/2026.
@@ -64,33 +68,20 @@ const ehSimNao = (c) => c.tipo === 'check' || c.tipo === 'sim_nao'
  * edita no lugar. `onSalvar(valores)` recebe só os campos do bloco, já no
  * formato do banco. `comStatus`: mostra Preenchido/Pendente. `rotuloEditar`:
  * a ação diz o que faz ("Editar bebida").
+ *
+ * Edição com alteração externa (19/10/2026): enquanto o formulário está aberto,
+ * `valores` pode mudar por fora (outra pessoa salvou, releitura por sinal). O que
+ * a pessoa digitou NUNCA é trocado em silêncio — campo que ela não tocou
+ * acompanha o dado novo; o mesmo campo mudado dos dois lados vira conflito e ela
+ * escolhe (AvisoMudancaExterna). O envio leva todos os campos do bloco, a partir
+ * do estado já resolvido.
  */
 export function Bloco({
   titulo, nota, campos, valores, podeEditar, onSalvar, acoes, children, abertoInicial = false, onCancelar,
   rotuloSalvar = 'Salvar', icone, rotuloEditar, comStatus = false, status, largo, id,
   erroDe = erroLegivel, // quem chama pode trazer o próprio tradutor (ex.: erroContato)
 }) {
-  const inicial = () => {
-    const f = {}
-    campos.forEach((c) => { f[c.chave] = paraCampo(c, valores[c.chave]) })
-    return f
-  }
   const [editando, setEditando] = React.useState(!!abertoInicial)
-  const [form, setForm] = React.useState(() => (abertoInicial ? inicial() : {}))
-  const [salvando, setSalvando] = React.useState(false)
-  const [aviso, setAviso] = React.useState(null)
-
-  function abrir() { setForm(inicial()); setAviso(null); setEditando(true) }
-  async function salvar(ev) {
-    ev.preventDefault()
-    setSalvando(true); setAviso(null)
-    try {
-      const saida = {}
-      campos.forEach((c) => { saida[c.chave] = doCampo(c, form[c.chave]) })
-      await onSalvar(saida)
-      if (!abertoInicial) setEditando(false)
-    } catch (e) { setAviso(erroDe(e)) } finally { setSalvando(false) }
-  }
 
   const textos = campos.filter((c) => !ehSimNao(c)).map((c) => [c, mostrar(c, valores[c.chave])]).filter(([, v]) => v)
   const chips = campos.filter(ehSimNao).map((c) => [c, mostrar(c, valores[c.chave])]).filter(([, v]) => v)
@@ -99,7 +90,7 @@ export function Bloco({
   const selo = status !== undefined ? status
     : comStatus ? (vazio ? <Selo tom="atencao">Pendente</Selo> : <Selo tom="ok">Preenchido</Selo>) : null
   const acaoEditar = podeEditar && !editando && (
-    <Botao icone="editar" variante={vazio ? undefined : 'secundario'} onClick={abrir}>{vazio ? 'Preencher agora' : (rotuloEditar || 'Editar ' + titulo.toLowerCase())}</Botao>
+    <Botao icone="editar" variante={vazio ? undefined : 'secundario'} onClick={() => setEditando(true)}>{vazio ? 'Preencher agora' : (rotuloEditar || 'Editar ' + titulo.toLowerCase())}</Botao>
   )
 
   return (
@@ -117,19 +108,57 @@ export function Bloco({
         </>
       )}
       {editando && (
-        <form className="ui-form ui-form--linha-dupla" onSubmit={salvar}>
-          {campos.map((c) => (
-            <Campo key={c.chave} campo={c} valor={form[c.chave]} onMudar={(v) => setForm((f) => ({ ...f, [c.chave]: v }))} />
-          ))}
-          {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
-          <div className="ui-linha-acoes">
-            <button className="og-btn og-btn--mini" type="submit" disabled={salvando}>{salvando ? 'Salvando…' : rotuloSalvar}</button>
-            <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={salvando} onClick={() => (onCancelar ? onCancelar() : setEditando(false))}>Cancelar</button>
-          </div>
-        </form>
+        <EditorBloco titulo={titulo} campos={campos} valores={valores} rotuloSalvar={rotuloSalvar} erroDe={erroDe} onSalvar={onSalvar}
+          onSalvo={() => { if (!abertoInicial) setEditando(false) }}
+          onCancelar={() => (onCancelar ? onCancelar() : setEditando(false))} />
       )}
       {children}
     </Modulo>
+  )
+}
+
+// O formulário do bloco. Monta ao abrir e desmonta ao fechar: o rascunho de uma abertura nunca vaza para a seguinte.
+function EditorBloco({ titulo, campos, valores, rotuloSalvar, erroDe, onSalvar, onSalvo, onCancelar }) {
+  const lido = {}
+  campos.forEach((c) => { lido[c.chave] = paraCampo(c, valores[c.chave]) })
+  // Identidade estável enquanto o CONTEÚDO não muda (quem chama recria `valores` a cada render).
+  const assinatura = JSON.stringify(lido)
+  const servidor = React.useMemo(() => lido, [assinatura]) // eslint-disable-line react-hooks/exhaustive-deps
+  const r = useRascunhoOrg(servidor, campos.map((c) => c.chave), { rotulo: titulo })
+  const [salvando, setSalvando] = React.useState(false)
+  const [aviso, setAviso] = React.useState(null)
+  const rotulos = React.useMemo(() => Object.fromEntries(campos.map((c) => [c.chave, c.rotulo])), []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function salvar(ev) {
+    ev.preventDefault()
+    const form = ev.currentTarget
+    if (Object.keys(r.conflitos).length) { setAviso('Há campos que mudaram enquanto você editava. Escolha qual versão vale, acima, antes de salvar.'); return }
+    setSalvando(true); setAviso(null)
+    const enviado = r.local
+    try {
+      const saida = {}
+      campos.forEach((c) => { saida[c.chave] = doCampo(c, enviado[c.chave]) })
+      await onSalvar(saida)
+      r.salvou(enviado)
+      avisarSalvo(form)
+      onSalvo()
+    } catch (e) { setAviso(erroDe(e)) } finally { setSalvando(false) }
+  }
+
+  return (
+    <>
+      <AvisoMudancaExterna registro={r} rotulos={rotulos} />
+      <form className="ui-form ui-form--linha-dupla" onSubmit={salvar} data-salva-por-evento="1">
+        {campos.map((c) => (
+          <Campo key={c.chave} campo={c} valor={r.local[c.chave]} onMudar={(v) => r.editar(c.chave, v)} />
+        ))}
+        {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
+        <div className="ui-linha-acoes">
+          <button className="og-btn og-btn--mini" type="submit" disabled={salvando}>{salvando ? 'Salvando…' : rotuloSalvar}</button>
+          <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={salvando} onClick={onCancelar}>Cancelar</button>
+        </div>
+      </form>
+    </>
   )
 }
 
@@ -245,24 +274,42 @@ function valoresParaUnidade(id, v) {
 }
 
 /*
- * A ficha da participação, lida uma vez por aba (get_ficha_participacao).
- * Recarregar a MESMA ficha mantém o conteúdo na tela.
+ * A ficha da participação, lida por aba (get_ficha_participacao).
+ *   · primeira leitura / `carregar()` ("Tentar de novo"): mostra "Carregando…" e o erro;
+ *   · releitura SILENCIOSA (sinal de outra pessoa, reconexão, `depois()` de salvar): mantém o
+ *     conteúdo na tela e, se falhar, o que estava lá continua (a falha vai ao indicador).
+ * Resposta velha, tela desmontada e troca de participação nunca gravam estado (useGuarda), e
+ * o dado de OUTRA participação não aparece sob o nome da atual.
+ * `depois()` = re-leitura do próprio editor depois de uma gravação confirmada; as outras
+ * telas (lista, visão geral) se atualizam pelo domínio, sem callback.
  */
 export function useFichaParticipacao(participante, onMudou) {
-  const [estado, setEstado] = React.useState({ carregando: !!participante.participacao_id, dados: null, erro: null })
-  const carregar = React.useCallback(async () => {
-    if (!participante.participacao_id) return
-    setEstado((s) => ({ ...s, carregando: !s.dados }))
+  const guarda = useGuarda()
+  const pa = participante.participacao_id
+  const [estado, setEstado] = React.useState({ carregando: !!pa, dados: null, erro: null, pedida: pa })
+  // true = leu (ou não havia o que ler); false = falhou.
+  const ler = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!pa) return true
+    if (!silencioso) setEstado((s) => ({ ...s, carregando: !s.dados || s.pedida !== pa, erro: null }))
     try {
-      const f = await rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: participante.participacao_id })
-      setEstado({ carregando: false, dados: f, erro: f ? null : 'Ficha não encontrada.' })
+      const f = await rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: pa })
+      if (!vale()) return true
+      setEstado({ carregando: false, dados: f, erro: f ? null : 'Ficha não encontrada.', pedida: pa })
+      return true
     } catch (e) {
-      setEstado({ carregando: false, dados: null, erro: e.message })
+      if (!vale()) return true
+      if (!silencioso) setEstado({ carregando: false, dados: null, erro: e.message, pedida: pa })
+      return false
     }
-  }, [participante.participacao_id])
-  React.useEffect(() => { carregar() }, [carregar])
-  const depois = React.useCallback(async () => { await carregar(); if (onMudou) onMudou() }, [carregar, onMudou])
-  return { ...estado, carregar, depois }
+  }, [pa, guarda])
+  React.useEffect(() => { ler() }, [ler])
+  useSincronizar(DOMINIOS_VISTAS.fichaParticipacao, async () => { if (!(await ler({ silencioso: true }))) throw new Error('ficha') }, { ativo: !!pa })
+  const carregar = React.useCallback(() => ler(), [ler])
+  const depois = React.useCallback(async () => { await ler({ silencioso: true }); if (onMudou) onMudou() }, [ler, onMudou])
+  const deOutra = !!estado.dados && estado.pedida !== pa
+  const efetivo = deOutra ? { carregando: true, dados: null, erro: null } : estado
+  return { carregando: efetivo.carregando, dados: efetivo.dados, erro: efetivo.erro, carregar, depois }
 }
 
 /*
@@ -271,17 +318,33 @@ export function useFichaParticipacao(participante, onMudou) {
  */
 const ROTULO_CAMPO = Object.fromEntries(CAMPOS_APONTAVEIS)
 export function CorrecoesCampo({ participacaoId, pode, onMudou }) {
+  const guarda = useGuarda()
   const [lista, setLista] = React.useState(null)
+  const [erroLista, setErroLista] = React.useState(null) // a leitura falhou: NUNCA vira "Nenhuma aberta"
   const [campo, setCampo] = React.useState('')
   const [motivo, setMotivo] = React.useState('')
   const [salvando, setSalvando] = React.useState(false)
   const [aviso, setAviso] = React.useState(null)
   const [aberto, setAberto] = React.useState(false)
   const podeDecidir = pode('curadoria.decidir')
-  const carregar = React.useCallback(async () => {
-    try { setLista((await rpc('get_correcoes', { p_secret: lerSenha(), p_participacao: participacaoId })) || []) } catch { setLista([]) }
-  }, [participacaoId])
-  React.useEffect(() => { carregar() }, [carregar])
+  // true = leu; false = falhou. Releitura silenciosa que falha mantém a lista que estava na tela.
+  const ler = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    try {
+      const l = (await rpc('get_correcoes', { p_secret: lerSenha(), p_participacao: participacaoId })) || []
+      if (!vale()) return true
+      setLista(l)
+      setErroLista(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErroLista(e.message)
+      return false
+    }
+  }, [participacaoId, guarda])
+  React.useEffect(() => { setLista(null); setErroLista(null); setAviso(null); ler() }, [ler])
+  useSincronizar(DOMINIOS_VISTAS.correcoesCampo, async () => { if (!(await ler({ silencioso: true }))) throw new Error('correcoes') })
+  const carregar = React.useCallback(() => ler(), [ler])
 
   async function pedir(ev) {
     ev.preventDefault()
@@ -291,17 +354,17 @@ export function CorrecoesCampo({ participacaoId, pode, onMudou }) {
       await rpc('pedir_correcao_campo', { p_secret: lerSenha(), p_participacao: participacaoId, p_bloco: blocoDoCampo(campo), p_campo: campo, p_comentario: motivo.trim() })
       setCampo(''); setMotivo(''); setAberto(false)
       setAviso({ tom: 'ok', texto: 'Pedido enviado. A marca recebe um aviso que abre o campo.' })
-      await carregar(); onMudou && onMudou()
+      await ler({ silencioso: true }); onMudou && onMudou()
     } catch (e) { setAviso({ tom: 'erro', texto: traduzirErro(e.message) }) } finally { setSalvando(false) }
   }
   async function resolver(id) {
     if (!await confirmar('Dar este pedido de alteração por resolvido?')) return
-    try { await rpc('resolver_correcao', { p_secret: lerSenha(), p_id: id }); await carregar(); onMudou && onMudou() } catch (e) { setAviso({ tom: 'erro', texto: traduzirErro(e.message) }) }
+    try { await rpc('resolver_correcao', { p_secret: lerSenha(), p_id: id }); await ler({ silencioso: true }); onMudou && onMudou() } catch (e) { setAviso({ tom: 'erro', texto: traduzirErro(e.message) }) }
   }
   const abertas = (lista || []).filter((c) => c.estado !== 'resolvida')
   return (
     <Modulo icone="alteracao" titulo="Alterações pedidas à marca" sub="Aponte o campo e diga o motivo; a marca corrige e envia de novo."
-      status={abertas.length ? <Selo tom="atencao">{abertas.length === 1 ? '1 aberta' : abertas.length + ' abertas'}</Selo> : <Selo tom="ok">Nenhuma aberta</Selo>}
+      status={lista === null ? (erroLista ? <Selo tom="atencao">Não carregou</Selo> : null) : abertas.length ? <Selo tom="atencao">{abertas.length === 1 ? '1 aberta' : abertas.length + ' abertas'}</Selo> : <Selo tom="ok">Nenhuma aberta</Selo>}
       acoes={podeDecidir && !aberto && <Botao icone="alteracao" variante="secundario" onClick={() => setAberto(true)}>Pedir alteração em um campo</Botao>}>
       {!podeDecidir && <p className="ui-nota">Sua função não pede alteração de cadastro.</p>}
       {aberto && (
@@ -322,6 +385,7 @@ export function CorrecoesCampo({ participacaoId, pode, onMudou }) {
         </form>
       )}
       {aviso && <p className={'ui-nota' + (aviso.tom === 'erro' ? ' ui-nota--erro' : ' ui-nota--ok')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
+      {lista === null && erroLista && <Erro titulo="Não consegui carregar as alterações pedidas" texto={erroLista} onTentar={carregar} />}
       {abertas.length > 0 && (
         <ul className="ui-lista-simples">
           {abertas.map((c) => (
@@ -380,7 +444,7 @@ export function AbaCadastroMarca({ participante, pode, onMudou }) {
               <Vazio titulo="A marca não tem participação na edição atual">Abra a edição em Edição › Configuração para o formulário aparecer.</Vazio>
             </Modulo>
           )}
-          {pa.id && <CorrecoesCampo participacaoId={pa.id} pode={pode} onMudou={() => { f.carregar(); onMudou && onMudou() }} />}
+          {pa.id && <CorrecoesCampo participacaoId={pa.id} pode={pode} />}
         </GradeModulos>
       </MacroSecao>
       <MacroSecao rotulo="Estabelecimento" titulo="Dados da marca" nota="Valem para todas as edições.">

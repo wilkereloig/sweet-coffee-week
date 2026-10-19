@@ -16,6 +16,8 @@ import {
 } from '../../lib/fichaGeral'
 import { Carregando, Erro, Vazio, Selo, Botao } from '../ui'
 import { Icone } from '../Icone'
+import { useSincronizar } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS, mesclarFonte } from '../../lib/syncFichas'
 
 /*
  * Visão do participante (15/10/2026) — a ficha geral: tudo o que a marca
@@ -29,16 +31,33 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
  * As quatro leituras da ficha, cada uma com estado próprio. O estado guarda
  * de qual participação ele é: trocar de marca não mostra, nem por um quadro,
  * o dado da anterior sob o nome da seguinte.
+ *
+ * Sincronização (19/10/2026): a visão relê sozinha, e em silêncio, quando muda
+ * qualquer domínio que as quatro leituras tocam (outra pessoa mexeu na marca,
+ * reconexão, volta ao app). A releitura NÃO volta ao esqueleto: o conteúdo fica na
+ * tela, e se a leitura falhar o que já estava lá continua (a falha vai para o
+ * indicador, não para o lugar do cadastro). `recarregar()` (editor que acabou de
+ * salvar, "Tentar de novo") devolve uma promessa para quem precisa esperar.
  */
 export function useFichaGeral(participacaoId) {
   const id = participacaoId || null
   const [estado, setEstado] = React.useState({ id: undefined, fontes: {} })
   const carregar = React.useMemo(() => criarCarregadorFicha(
     (nome, args) => rpc(nome, { p_secret: lerSenha(), ...args }),
-    (fonte, s, deQuem) => setEstado((x) => ({ id: deQuem, fontes: { ...(x.id === deQuem ? x.fontes : {}), [fonte]: s } })),
+    (fonte, s, deQuem, opcoes) => setEstado((x) => {
+      const antes = x.id === deQuem ? x.fontes : {}
+      return { id: deQuem, fontes: { ...antes, [fonte]: mesclarFonte(antes[fonte], s, opcoes) } }
+    }),
   ), [])
-  React.useEffect(() => carregar(id), [carregar, id])
-  const recarregar = React.useCallback(() => { carregar(id, { manter: true }) }, [carregar, id])
+  // Guarda a leitura mais nova para cancelar na saída: nada é gravado depois de desmontar nem da troca de marca.
+  const ultima = React.useRef(null)
+  const iniciar = React.useCallback((opcoes) => { const c = carregar(id, opcoes); ultima.current = c; return c }, [carregar, id])
+  React.useEffect(() => { iniciar(); return () => { if (ultima.current) ultima.current() } }, [iniciar])
+  const recarregar = React.useCallback(() => iniciar({ manter: true }).pronto, [iniciar])
+  useSincronizar(DOMINIOS_VISTAS.fichaGeral, async () => {
+    const falhas = await iniciar({ manter: true }).pronto
+    if (falhas.length) throw new Error('ficha: ' + falhas.join(', '))
+  })
   const atuais = estado.id === id ? estado.fontes : {}
   const f = (k) => atuais[k] || { estado: id || k === 'edicoes' ? 'carregando' : 'sem_participacao', dados: null, erro: null }
   return { fontes: { nucleo: f('nucleo'), publicacao: f('publicacao'), correcoes: f('correcoes'), edicoes: f('edicoes') }, recarregar }

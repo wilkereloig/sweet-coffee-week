@@ -22,7 +22,10 @@ export function Avatar({ id, rotulo, tamanho = 32, rotuloVisivel = true, classNa
   const url = chave && fotos ? fotos.urls[chave] : null
   const [falhou, setFalhou] = React.useState(false)
   const tentou = React.useRef(false)
-  React.useEffect(() => { setFalhou(false); tentou.current = false }, [chave])
+  // Pessoa/foto nova: recomeça. Endereço novo da MESMA foto (renovação de 4 min): tenta mostrar de novo,
+  // mas `tentou` só zera com a foto — uma foto quebrada pede assinatura nova UMA vez, nunca em laço.
+  React.useEffect(() => { tentou.current = false }, [chave])
+  React.useEffect(() => { setFalhou(false) }, [chave, url])
   const acessivel = rotuloVisivel ? { 'aria-hidden': true } : { role: 'img', 'aria-label': nome }
   const estilo = { '--av-t': tamanho + 'px' }
   const cls = 'ui-avatar ' + className

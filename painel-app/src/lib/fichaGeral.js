@@ -52,24 +52,39 @@ export function lerFalha(e) {
  * Carregador das quatro fontes, com descarte de resposta velha: trocar de
  * participante (ou recarregar) invalida o que ainda estava em voo — nenhum
  * dado da marca anterior aparece sob o nome da seguinte.
- * `chamar(rpc, args)` → Promise; `aoMudar(fonte, estado, participacaoId)`.
- * `manter: true` (recarga depois de salvar) não volta a "carregando": o
- * conteúdo fica na tela até a resposta nova substituí-lo.
- * @returns {(participacaoId: string|null, opcoes?: {manter?: boolean}) => () => void}
+ * `chamar(rpc, args)` → Promise; `aoMudar(fonte, estado, participacaoId, { manter })`.
+ * `manter: true` (recarga depois de salvar, ou releitura por sinal de outra
+ * sessão) não volta a "carregando": o conteúdo fica na tela até a resposta nova
+ * substituí-lo, e quem recebe o estado de ERRO decide manter o que já tinha
+ * (`mesclarFonte`, lib/syncFichas.js) — dado antigo ainda é melhor que um bloco
+ * de erro no lugar do cadastro.
+ * O retorno é o cancelamento (efeito de React) e traz `.pronto`: promessa que
+ * resolve, quando as quatro leituras terminam, com a lista das fontes que
+ * FALHARAM por erro (permissão negada não é falha) — é o que a sincronização usa
+ * para mostrar "falha" no indicador sem reabrir a tela.
+ * @returns {(participacaoId: string|null, opcoes?: {manter?: boolean}) => (() => void) & {pronto: Promise<string[]>}}
  */
 export function criarCarregadorFicha(chamar, aoMudar) {
   let vez = 0
   return function carregar(participacaoId, { manter = false } = {}) {
     const minha = ++vez
+    const feitas = []
     for (const [fonte, def] of Object.entries(FONTES_FICHA)) {
-      if (def.porParticipacao && !participacaoId) { aoMudar(fonte, { estado: 'sem_participacao', dados: null, erro: null }, participacaoId); continue }
-      if (!manter) aoMudar(fonte, { estado: 'carregando', dados: null, erro: null }, participacaoId)
-      Promise.resolve()
+      if (def.porParticipacao && !participacaoId) { aoMudar(fonte, { estado: 'sem_participacao', dados: null, erro: null }, participacaoId, { manter }); continue }
+      if (!manter) aoMudar(fonte, { estado: 'carregando', dados: null, erro: null }, participacaoId, { manter })
+      feitas.push(Promise.resolve()
         .then(() => chamar(def.rpc, def.porParticipacao ? { p_participacao: participacaoId } : {}))
-        .then((d) => { if (minha === vez) aoMudar(fonte, lerResposta(d), participacaoId) },
-          (e) => { if (minha === vez) aoMudar(fonte, lerFalha(e), participacaoId) })
+        .then((d) => { if (minha === vez) aoMudar(fonte, lerResposta(d), participacaoId, { manter }); return null },
+          (e) => {
+            const f = lerFalha(e)
+            if (minha !== vez) return null // superada por uma leitura mais nova: o que ela achar é que vale
+            aoMudar(fonte, f, participacaoId, { manter })
+            return f.estado === 'erro' ? fonte : null
+          }))
     }
-    return () => { if (minha === vez) vez++ }
+    const cancelar = () => { if (minha === vez) vez++ }
+    cancelar.pronto = Promise.all(feitas).then((l) => l.filter(Boolean))
+    return cancelar
   }
 }
 

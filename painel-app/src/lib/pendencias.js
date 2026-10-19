@@ -31,6 +31,30 @@ export const temPendencia = () => pendencias().length > 0
 
 export function ouvirPendencias(f) { ouvintes.add(f); return () => ouvintes.delete(f) }
 
+/*
+ * Alteração EXTERNA num registro em edição (19/10/2026): quando chega mudança de outra
+ * pessoa/sessão enquanto este item está pendente, a tela avisa aqui (além do aviso no
+ * próprio formulário) — o indicador de sincronização e quem decide atualizar a versão
+ * passam a saber que há um registro aberto que mudou por fora. Só um rótulo, nunca conteúdo.
+ */
+export function sinalizarMudancaExterna(chave, detalhe = true) {
+  const it = itens.get(chave)
+  if (!it) return false
+  it.externo = detalhe
+  avisar()
+  return true
+}
+export function limparMudancaExterna(chave) {
+  const it = itens.get(chave)
+  if (!it || !it.externo) return
+  delete it.externo
+  avisar()
+}
+/** Itens pendentes cujo registro mudou por fora: [{ rotulo }]. */
+export function mudancasExternas() {
+  return [...itens.values()].filter((x) => x.externo).map((x) => ({ rotulo: x.rotulo }))
+}
+
 if (typeof window !== 'undefined') {
   // Um "beforeunload" só, para todo o painel: fechar a aba com algo pela metade pergunta.
   window.addEventListener('beforeunload', (e) => { if (temPendencia()) { e.preventDefault(); e.returnValue = '' } })
@@ -48,6 +72,12 @@ export function usePendencia(ativo, { rotulo, tipo = 'edicao', salvar = null, gu
       salvar: salvar ? () => salvarRef.current() : null,
     })
   }, [ativo, rotulo, tipo, guardaRascunho, !!salvar, chave]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Quem quiser sinalizar "este registro mudou por fora" usa o retorno (os demais ignoram).
+  return React.useMemo(() => ({
+    chave,
+    sinalizarExterno: (detalhe) => sinalizarMudancaExterna(chave, detalhe),
+    limparExterno: () => limparMudancaExterna(chave),
+  }), [chave])
 }
 
 /** Envio de arquivo em andamento: registrado enquanto a promessa não termina. */

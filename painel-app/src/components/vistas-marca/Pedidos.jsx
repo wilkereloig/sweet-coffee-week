@@ -6,24 +6,33 @@ import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Vazio, Erro, traduzirErro, Selo } from '../ui'
 import { blocoDoCampo, linkDoCampo } from '../../lib/guia'
 import { Icone } from '../Icone'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { fotoDoPedido, mudancaDoPedido, textoDaMudanca, repartirPedidos, rascunhosSemPedido } from '../../lib/sincMarca'
 
 /*
  * Pedidos (marca) — o que a organização pediu, até quando, e a RESPOSTA da
  * marca. Responder grava pelo banco (`marca_responder_solicitacao`, que só
  * alcança pedidos da própria marca) e avisa a organização. A organização
  * continua podendo dar por respondido um pedido resolvido por telefone.
+ *
+ * O texto da resposta mora em Pedidos, por id do pedido (`rascunhos`), e não no
+ * item: quando a organização dá o pedido como resolvido enquanto a marca escreve,
+ * ele muda de lista e o item é refeito — o que está no campo não pode ir junto.
  */
-function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink }) {
-  const [texto, setTexto] = React.useState('')
+function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink, texto, aoDigitar, aviso, rolados }) {
   const [enviando, setEnviando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
   const ref = React.useRef(null)
   const feito = estado && estado.estado === 'respondido'
   const p = prazoTexto(s.prazo_em)
 
+  // Rola até o pedido ao ABRIR. Se ele só trocou de lista numa releitura (continua aberto), não rola de novo.
   React.useEffect(() => {
-    if (aberto && ref.current) ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [aberto])
+    if (!aberto) { rolados.delete(s.id); return }
+    if (rolados.has(s.id)) return
+    rolados.add(s.id)
+    if (ref.current) ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [aberto]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function responder(ev) {
     ev.preventDefault()
@@ -32,7 +41,7 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink }) {
     setErro(null)
     try {
       await api('rpc/marca_responder_solicitacao', { metodo: 'POST', corpo: { p_solicitacao: s.id, p_resposta: texto.trim() } })
-      setTexto('')
+      aoDigitar('')
       await onRespondido()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
@@ -69,8 +78,9 @@ function Pedido({ s, estado, aberto, onAbrir, onRespondido, abrirLink }) {
             </div>
           )}
           <form className="ui-form" onSubmit={responder}>
+            {aviso && <p className="ui-nota ui-nota--erro" role="status">{aviso}</p>}
             <label className="og-campo"><span>{feito ? 'Complementar a resposta' : 'Sua resposta'}</span>
-              <textarea rows={3} maxLength={4000} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escreva o que foi feito ou o que você precisa." />
+              <textarea rows={3} maxLength={4000} value={texto} onChange={(e) => aoDigitar(e.target.value)} placeholder="Escreva o que foi feito ou o que você precisa." />
             </label>
             <button className="acao" type="submit" disabled={enviando || !texto.trim()}>{enviando ? 'Enviando…' : feito ? 'Enviar complemento' : 'Responder'}</button>
             {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
@@ -88,65 +98,102 @@ export function Pedidos({ alvo, consumirAlvo, abrirLink, recarregarResumo }) {
   const [lista, setLista] = React.useState([])
   const [estados, setEstados] = React.useState({})
   const [aberto, setAberto] = React.useState(null)
+  const [rascunhos, setRascunhos] = React.useState({})   // { [id do pedido]: { texto, visto } } — `visto` = o pedido como estava ao começar a escrever
+  const [rolados] = React.useState(() => new Set())
+  const guarda = useGuarda()
+  const temDados = React.useRef(false)
 
+  // Primeira leitura e releituras silenciosas (pedidos e participantes mudam: uma participação
+  // nova, de outra edição, traz outros pedidos). Releitura que falha MANTÉM a lista na tela e
+  // rejeita — o indicador de sincronização mostra "falha"; o erro em tela só aparece sem dado algum.
   const carregar = React.useCallback(async () => {
-    setErro(null)
+    const vale = guarda()
     try {
       const pas = await api('participacoes?select=*&order=created_at.desc&limit=1')
       const pa = (pas && pas[0]) || null
-      setParticipacao(pa)
+      let s = []
+      let e = []
       if (pa) {
-        const [s, e] = await Promise.all([
+        ;[s, e] = await Promise.all([
           api('solicitacoes?select=*&order=prazo_em.asc.nullslast'),
           api('solicitacao_estado?select=*&participacao_id=eq.' + pa.id),
         ])
-        setLista(s || [])
-        setEstados(Object.fromEntries((e || []).map((x) => [x.solicitacao_id, x])))
       }
+      if (!vale()) return
+      setParticipacao(pa)
+      setLista(s || [])
+      setEstados(Object.fromEntries((e || []).map((x) => [x.solicitacao_id, x])))
+      setErro(null)
+      temDados.current = true
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
-      setErro(e.message)
+      if (!vale()) return
+      if (!temDados.current) setErro(e.message)
+      throw e
     } finally {
-      setCarregando(false)
+      if (vale()) setCarregando(false)
     }
-  }, [])
-  React.useEffect(() => { carregar() }, [carregar])
+  }, [guarda])
+  React.useEffect(() => { carregar().catch(() => {}) }, [carregar])
+  useSincronizar(['pedidos', 'participantes'], carregar)
 
   React.useEffect(() => {
     if (alvo && alvo.id) { setAberto(alvo.id); if (consumirAlvo) consumirAlvo() }
   }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const minhas = React.useMemo(() => minhasSolicitacoes(lista, participacao), [lista, participacao])
-  const pendentes = minhas.filter((s) => !(estados[s.id] && estados[s.id].estado === 'respondido'))
-  const feitos = minhas.filter((s) => estados[s.id] && estados[s.id].estado === 'respondido')
+  const { pendentes, feitos } = React.useMemo(() => repartirPedidos(minhas, estados, rascunhos), [minhas, estados, rascunhos])
+  const semPedido = React.useMemo(() => rascunhosSemPedido(minhas, rascunhos), [minhas, rascunhos])
+
+  function digitar(s, estado, valor) {
+    setRascunhos((r) => {
+      if (!valor) { if (!(s.id in r)) return r; const { [s.id]: _, ...resto } = r; return resto }
+      return { ...r, [s.id]: { texto: valor, visto: (r[s.id] && r[s.id].visto) || fotoDoPedido(s, estado) } }
+    })
+  }
+  const descartar = (id) => setRascunhos((r) => { const { [id]: _, ...resto } = r; return resto })
+  // Depois de responder: o item muda de lista na hora. A releitura que falhar aqui não pode virar "não deu para enviar".
+  const aoResponder = async () => { await carregar().catch(() => {}); if (recarregarResumo) recarregarResumo() }
+
+  const item = (s) => {
+    const r = rascunhos[s.id]
+    const escrevendo = !!r && r.texto.trim() !== ''
+    return (
+      <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)}
+        onRespondido={aoResponder} abrirLink={abrirLink} rolados={rolados}
+        texto={r ? r.texto : ''} aoDigitar={(v) => digitar(s, estados[s.id], v)}
+        aviso={escrevendo ? textoDaMudanca(mudancaDoPedido(r.visto, s, estados[s.id])) : ''} />
+    )
+  }
 
   return (
     <section className="ui-vista-marca">
       <VistaCabeca acento="laranja" icone="pedidos" titulo="Pedidos" nota="O que a organização pediu, até quando, e a sua resposta" />
 
-      {erro && <Erro texto="Não deu para carregar os pedidos agora." onTentar={() => { setCarregando(true); carregar() }} />}
+      {erro && <Erro texto="Não deu para carregar os pedidos agora." onTentar={() => { setErro(null); setCarregando(true); carregar().catch(() => {}) }} />}
       {!erro && carregando && <Carregando linhas={3} />}
       {!erro && !carregando && !participacao && <Vazio titulo="Nenhuma edição aberta para você">Os pedidos aparecem aqui quando a organização abrir a sua participação.</Vazio>}
       {!erro && !carregando && participacao && minhas.length === 0 && <Vazio titulo="Nenhum pedido no momento">Quando a organização pedir algo, chega um aviso e o pedido aparece aqui.</Vazio>}
 
+      {/* Pedido que saiu da lista com resposta por enviar: o texto não se perde. */}
+      {semPedido.map((o) => (
+        <div key={o.id} className="ui-nota ui-nota--erro" role="status">
+          <p>O pedido “{o.titulo}” saiu da sua lista (a organização o retirou ou a edição mudou). O que você tinha escrito:</p>
+          <p className="ui-pedido__texto">{o.texto}</p>
+          <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => descartar(o.id)}>Descartar</button>
+        </div>
+      ))}
+
       {pendentes.length > 0 && (
         <>
           <h2 className="ui-subtitulo">Para responder ({pendentes.length})</h2>
-          <ul className="ui-pedidos">
-            {pendentes.map((s) => (
-              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={async () => { await carregar(); if (recarregarResumo) recarregarResumo() }} abrirLink={abrirLink} />
-            ))}
-          </ul>
+          <ul className="ui-pedidos">{pendentes.map(item)}</ul>
         </>
       )}
       {feitos.length > 0 && (
         <>
           <h2 className="ui-subtitulo">Respondidos ({feitos.length})</h2>
-          <ul className="ui-pedidos">
-            {feitos.map((s) => (
-              <Pedido key={s.id} s={s} estado={estados[s.id]} aberto={aberto === s.id} onAbrir={() => setAberto(aberto === s.id ? null : s.id)} onRespondido={async () => { await carregar(); if (recarregarResumo) recarregarResumo() }} abrirLink={abrirLink} />
-            ))}
-          </ul>
+          <ul className="ui-pedidos">{feitos.map(item)}</ul>
         </>
       )}
     </section>

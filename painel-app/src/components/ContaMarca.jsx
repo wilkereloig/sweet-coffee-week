@@ -4,6 +4,7 @@ import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess'
 import { Folha } from './Folha'
 import { AplicativoENotificacoes } from './AppNoAparelho'
 import { Secao } from './ui'
+import { useSincronizar, useGuarda } from '../lib/sync/react'
 
 /*
  * Conta da marca (reestruturação 29/09/2026, etapa 7): o que é da PESSOA no
@@ -54,11 +55,22 @@ function AlterarSenha() {
 
 export function ContaMarca({ aberto, onFechar, onSair }) {
   const [marca, setMarca] = React.useState(null)
-  React.useEffect(() => {
-    if (!aberto || marca) return
-    api('participantes?select=id,nome_marca&order=created_at.desc&limit=1')
-      .then((l) => setMarca((l && l[0]) || null)).catch(() => setMarca(null))
-  }, [aberto]) // eslint-disable-line react-hooks/exhaustive-deps
+  const guarda = useGuarda()
+  // Nome da marca no cabeçalho da folha. Relê a cada abertura e, com a folha aberta, quando 'participantes'
+  // muda (a organização renomeou a marca). Leitura que falha mantém o nome que já estava (antes zerava `marca`
+  // e o push ficava sem a conta).
+  const carregarMarca = React.useCallback(async () => {
+    const vale = guarda()
+    try {
+      const l = await api('participantes?select=id,nome_marca&order=created_at.desc&limit=1')
+      if (vale()) setMarca((l && l[0]) || null)
+    } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      throw e
+    }
+  }, [guarda])
+  React.useEffect(() => { if (aberto) carregarMarca().catch(() => {}) }, [aberto, carregarMarca])
+  useSincronizar(['participantes'], carregarMarca, { ativo: !!aberto })
 
   const idMarca = marca && marca.id
   const push = React.useMemo(() => pushMarca(idMarca), [idMarca])

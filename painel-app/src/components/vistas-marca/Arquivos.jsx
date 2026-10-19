@@ -5,6 +5,7 @@ import { dataCurta } from '../../lib/respostas'
 import { agruparPorCategoria, tamanhoLegivel, tipoLegivel } from '../../lib/arquivos'
 import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Vazio, Erro, Secao, Selo } from '../ui'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
 
 /*
  * Arquivos (marca) — o que a organização publicou, por categoria, e a
@@ -12,7 +13,9 @@ import { Carregando, Vazio, Erro, Secao, Selo } from '../ui'
  * (categoria combo) aparecem na aba Fotos, pelo mesmo componente (29/09/2026).
  *
  * `arquivos`, `arquivo_leitura` e o id do participante são leituras À PARTE,
- * cada uma com o próprio catch — uma falhar não apaga a outra (§10.4-b).
+ * cada uma com o próprio resultado — uma falhar não apaga a outra (§10.4-b).
+ * Releitura (sinal de arquivos ou de participantes) é silenciosa: troca as listas
+ * de uma vez, sem "Carregando…", e a que falhar deixa a lista anterior na tela.
  */
 // `fotos`: a lista das fotos oficiais (categoria combo), embutida na aba
 // Fotos. Sem ela: a aba Arquivos, com todo o resto.
@@ -26,24 +29,35 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
   const [aviso, setAviso] = React.useState(null)
   const [destaque, setDestaque] = React.useState(null)
 
+  const guarda = useGuarda()
+  const temArquivos = React.useRef(false)
+
   const carregar = React.useCallback(async () => {
-    setErro(null)
-    try {
-      setArquivos((await api('arquivos?select=*&order=publicado_em.desc.nullslast')) || [])
-    } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
-      setErro(e.message)
-    }
-    try {
-      const [pa, l] = await Promise.all([
+    const vale = guarda()
+    const [rArq, rLeit] = await Promise.allSettled([
+      api('arquivos?select=*&order=publicado_em.desc.nullslast'),
+      Promise.all([
         api('participacoes?select=id&order=created_at.desc&limit=1'),
         api('arquivo_leitura?select=arquivo_id,lido_em'),
-      ])
-      setParticipacaoId((pa && pa[0] && pa[0].id) || null)
+      ]),
+    ])
+    if (!vale()) return
+    const morta = (r) => r.status === 'rejected' && r.reason && r.reason.message === 'sessao_expirada'
+    if (morta(rArq) || morta(rLeit)) return                   // o App leva ao login
+    if (rArq.status === 'fulfilled') { setArquivos(rArq.value || []); setErro(null); temArquivos.current = true }
+    else if (!temArquivos.current) setErro(rArq.reason && rArq.reason.message)
+    if (rLeit.status === 'fulfilled') {
+      const [pa, l] = rLeit.value
+      setParticipacaoId((pa && pa[0] && pa[0].id) || null)   // participação nova (outra edição) entra aqui
       setLidos(Object.fromEntries((l || []).map((x) => [x.arquivo_id, x.lido_em])))
-    } catch { /* sem isso só perde a confirmação de leitura; a lista segue */ }
-  }, [])
-  React.useEffect(() => { carregar() }, [carregar])
+    }
+    // Sem a leitura de confirmação a lista segue (só falta o "lido"), mas a falha conta no indicador.
+    const falha = [rArq, rLeit].find((r) => r.status === 'rejected')
+    if (falha) throw falha.reason
+  }, [guarda])
+  React.useEffect(() => { carregar().catch(() => {}) }, [carregar])
+  useSincronizar(['arquivos', 'participantes'], carregar)
+  const tentarDeNovo = () => { setErro(null); carregar().catch(() => {}) }
 
   React.useEffect(() => {
     if (!alvo || !alvo.id || !arquivos) return
@@ -80,6 +94,8 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
         prefer: 'return=minimal,resolution=ignore-duplicates',
         corpo: { arquivo_id: arquivoId, participacao_id: participacaoId },
       })
+      guarda()                      // uma leitura em voo é anterior a esta confirmação: não pode desfazê-la
+      // Hora provisória (relógio deste aparelho): a releitura que o próprio registro dispara troca pela do servidor.
       setLidos((l) => ({ ...l, [arquivoId]: new Date().toISOString() }))
       if (recarregarResumo) recarregarResumo()
     } catch (e) {
@@ -93,7 +109,7 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
   const visiveis = arquivos && arquivos.filter((a) => (fotos ? a.categoria === 'combo' : a.categoria !== 'combo'))
   const lista = (
         <Secao titulo={fotos ? 'Fotos oficiais' : 'Para baixar'}>
-          {erro && <Erro texto="Não deu para carregar os arquivos agora." onTentar={carregar} />}
+          {erro && <Erro texto="Não deu para carregar os arquivos agora." onTentar={tentarDeNovo} />}
           {!erro && arquivos === null && <Carregando linhas={3} />}
           {!erro && visiveis && visiveis.length === 0 && (fotos
             ? <p className="ui-nota">Ainda não disponíveis. Você será avisado quando as fotos forem liberadas.</p>

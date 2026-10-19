@@ -13,6 +13,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from './rpc.js'
 import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess.js'
 import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
 import { comEnvio } from './pendencias.js'
+import { aoApiConfirmada } from './sync/anuncio.js'
 
 export async function auth(caminho, corpo, metodo = 'POST', token, fetchImpl = fetch) {
   const cab = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }
@@ -177,6 +178,10 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
     erro.codigo = (dados && dados.code) || null
     throw erro
   }
+  // PATCH/DELETE com `return=representation` que volta vazio = a RLS não deixou
+  // gravar nada (Cadastro trata como sem_confirmacao): não é alteração confirmada.
+  const vazio = /return=representation/.test(opcoes.prefer || '') && Array.isArray(dados) && dados.length === 0
+  if (!vazio) aoApiConfirmada(caminho, opcoes.metodo || 'GET', dados)
   return dados
 }
 

@@ -11,6 +11,8 @@ import { Bloco } from './FichaCadastro'
 import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro, Escolha, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
 import { Icone } from '../Icone'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 
 /*
  * Contatos › Pessoas (reestruturação 29/09/2026, etapa 5).
@@ -59,7 +61,15 @@ export const erroContato = (m) => {
 // O Bloco entrega o erro inteiro; os recados de contato vêm daqui, não do cadastro da marca.
 const erroBloco = (e) => erroContato(e && e.message)
 
-export function FichaContato({ id, pode, onFechar, onMudou }) {
+/*
+ * A ficha de um contato. Montada em TRÊS lugares (Pessoas, Press Kit, Vouchers): ela mesma se mantém em dia
+ * pelos domínios que lê (contato, vouchers e marcas, edição) e as listas dos três lugares se mantêm pelos
+ * seus — por isso não há callback "avisa a lista" entre os dois. A releitura por sinal é SILENCIOSA: o que
+ * a pessoa digita nos blocos abertos (Bloco) é protegido, e uma leitura que falha deixa a ficha como estava.
+ */
+export function FichaContato({ id, pode, onFechar }) {
+  const guarda = useGuarda()
+  const guardaMarcas = useGuarda() // leitura independente: uma não pode invalidar a outra
   const [cBruto, setC] = React.useState(null)
   // Durante a saída (260 ms) `id` já é null: a ficha continua mostrando o que
   // mostrava. E ao trocar de pessoa, os dados da anterior nunca aparecem.
@@ -72,40 +82,64 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
   const [marcas, setMarcas] = React.useState(null)
   const [destino, setDestino] = React.useState({ participacao: '', quantidade: 1 })
   const podeMudar = pode('relacionamento.gerir')
+  const viva = !!id && id !== 'novo'
 
-  const carregar = React.useCallback(async () => {
-    if (!id || id === 'novo') return
-    setErro(null)
+  // true = leu (ou não havia o que ler). Releitura silenciosa mantém a ficha se falhar; perda de permissão aparece sempre.
+  const ler = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!id || id === 'novo') return true
+    if (!silencioso) setErro(null)
     try {
       const d = await rpc('get_contato', { p_secret: lerSenha(), p_id: id })
       if (!d) throw new Error('nao_autorizado') // null = sem permissão
+      if (!vale()) return true
       setC(d)
-    } catch (e) { setErro(e.message) }
-  }, [id])
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso || /nao_autorizado/.test(e.message)) setErro(e.message)
+      return false
+    }
+  }, [id, guarda])
+  const carregar = React.useCallback(() => ler(), [ler])
   React.useEffect(() => {
     if (!id) return // fechando: mantém o conteúdo durante a animação de saída
-    setErro(null); setAviso(null); setC(null)
-    carregar()
-  }, [id, carregar])
-  // Marcas da edição e quantos vouchers cada uma ainda tem para destinar.
-  React.useEffect(() => {
-    if (!id || id === 'novo' || !podeMudar) return
-    rpc('get_vouchers', { p_secret: lerSenha() }).then((v) => {
+    setErro(null); setAviso(null); setC(null); setDestino({ participacao: '', quantidade: 1 })
+    ler()
+  }, [id, ler])
+  // Marcas da edição e quantos vouchers cada uma ainda tem para destinar. Se a leitura falha, a lista que
+  // estava na tela fica (a primeira vez, o seletor diz que não carregou).
+  const lerMarcas = React.useCallback(async () => {
+    const vale = guardaMarcas()
+    if (!id || id === 'novo' || !podeMudar) return true
+    try {
+      const v = await rpc('get_vouchers', { p_secret: lerSenha() })
+      if (!vale()) return true
       const disp = {}
       for (const x of (v && v.vouchers) || []) if (x.status === 'disponivel') disp[x.participacao_id] = (disp[x.participacao_id] || 0) + 1
       setMarcas(((v && v.marcas) || []).map((m) => ({ ...m, disponiveis: disp[m.participacao_id] || 0 })))
-    }).catch(() => setMarcas([]))
-  }, [id, podeMudar])
+      return true
+    } catch {
+      if (!vale()) return true
+      setMarcas((ant) => ant || [])
+      return false
+    }
+  }, [id, podeMudar, guardaMarcas])
+  React.useEffect(() => { lerMarcas() }, [lerMarcas])
+  useSincronizar(DOMINIOS_VISTAS.fichaContato, async () => {
+    const [a, b] = await Promise.all([ler({ silencioso: true }), lerMarcas()])
+    if (!(a && b)) throw new Error('contato')
+  }, { ativo: viva })
 
   async function salvar(v) {
     await rpc('salvar_contato', { p_secret: lerSenha(), p_dados: { ...v, id: c ? c.id : null } })
-    onMudou()
     if (!c) { onFechar(); return }
-    await carregar()
+    await ler({ silencioso: true })
   }
   async function presskit(status, dados = {}) {
     setAviso(null)
-    try { await rpc('definir_presskit', { p_secret: lerSenha(), p_contato: c.id, p_status: status, p_dados: dados }); await carregar(); onMudou() }
+    try { await rpc('definir_presskit', { p_secret: lerSenha(), p_contato: c.id, p_status: status, p_dados: dados }); await ler({ silencioso: true }) }
     catch (e) { setAviso(erroContato(e.message)); throw e }
   }
   async function destinar(ev) {
@@ -117,13 +151,13 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
       setAviso({ ok: 'Destinado: ' + (cods || []).join(', ') + '. Marque "Enviado" quando a pessoa receber o código.' })
       setDestino({ participacao: '', quantidade: 1 })
       setMarcas((ms) => (ms || []).map((m) => (m.participacao_id === destino.participacao ? { ...m, disponiveis: m.disponiveis - (cods || []).length } : m)))
-      await carregar(); onMudou()
+      await ler({ silencioso: true })
     } catch (e) { setAviso(erroContato(e.message)) }
   }
   async function voucher(v, status) {
     if (status === 'cancelado' && !await confirmar('Cancelar o voucher ' + v.codigo + '? Ele deixa de valer na marca.')) return
     setAviso(null)
-    try { await rpc('atualizar_voucher', { p_secret: lerSenha(), p_voucher: v.id, p_status: status, p_obs: null }); await carregar(); onMudou() }
+    try { await rpc('atualizar_voucher', { p_secret: lerSenha(), p_voucher: v.id, p_status: status, p_obs: null }); await ler({ silencioso: true }) }
     catch (e) { setAviso(erroContato(e.message)) }
   }
 
@@ -212,12 +246,32 @@ export function FichaContato({ id, pode, onFechar, onMudou }) {
 // Press Kit desta edição dentro da ficha: fora da lista → dois botões;
 // na lista → um bloco com a situação e os dados do envio.
 function EnvioDaEdicao({ contato, podeMudar, onSalvar }) {
-  const [edicao, setEdicao] = React.useState(undefined)
-  React.useEffect(() => {
-    rpc('get_edicoes', { p_secret: lerSenha() }).then((l) => setEdicao(((l || []).find((e) => e.atual) || {}).codigo || null)).catch(() => setEdicao(null))
-  }, [])
+  const guarda = useGuarda()
+  const [edicao, setEdicao] = React.useState(undefined) // undefined = lendo · null = nenhuma edição atual
+  const [falhou, setFalhou] = React.useState(false)
+  // A edição atual muda por fora (Edição › Configuração): releitura silenciosa que, se falhar, deixa a que estava.
+  const ler = React.useCallback(async () => {
+    const vale = guarda()
+    try {
+      const l = await rpc('get_edicoes', { p_secret: lerSenha() })
+      if (!vale()) return true
+      setEdicao(((l || []).find((e) => e.atual) || {}).codigo || null)
+      setFalhou(false)
+      return true
+    } catch {
+      if (!vale()) return true
+      setEdicao((ant) => (ant === undefined ? null : ant))
+      setFalhou(true)
+      return false
+    }
+  }, [guarda])
+  React.useEffect(() => { ler() }, [ler])
+  useSincronizar(DOMINIOS_VISTAS.edicaoAtual, async () => { if (!(await ler())) throw new Error('edicao') })
   if (edicao === undefined) return null
-  if (!edicao) return null
+  if (!edicao) {
+    // Falha de leitura é dita: sumir calado deixaria a equipe sem saber por que o Press Kit não aparece.
+    return falhou ? <Secao titulo="Press Kit desta edição"><p className="ui-nota ui-nota--erro" role="alert">Não consegui ler a edição atual, então o Press Kit desta edição não aparece. Feche e abra a pessoa de novo.</p></Secao> : null
+  }
   const atual = (contato.envios || []).find((e) => e.edicao_codigo === edicao)
   const soltar = (p) => p.catch(() => {}) // o aviso de erro já é mostrado pela ficha
   if (!atual) {
@@ -243,9 +297,11 @@ function EnvioDaEdicao({ contato, podeMudar, onSalvar }) {
   )
 }
 
-export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar }) {
+export function Contatos({ pode = () => true, rota, navegar }) {
+  const guarda = useGuarda()
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
+  const [avisoLinha, setAvisoLinha] = React.useState(null)
   const [busca, setBusca] = React.useState('')
   // Filtro e ficha aberta no endereço (reestruturação 29/09/2026).
   const fr = rota.filtros
@@ -254,16 +310,27 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
   const setFiltro = (v) => navegar({ filtros: { ...fr, filtro: v === 'todos' ? '' : v } }, { substituir: true })
   const setAberto = (id) => navegar({ filtros: { ...fr, item: id || '' } })
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  // true = leu. A releitura SILENCIOSA (sinal de outra pessoa, reconexão, depois de uma ação) mantém a lista, a
+  // busca, o filtro e a ficha aberta como estão; se falhar, a lista que estava na tela continua.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     try {
       const l = await rpc('get_contatos', { p_secret: lerSenha() })
       if (l == null) throw new Error('nao_autorizado') // null = sem permissão
+      if (!vale()) return true
       setLista(l)
-    } catch (e) { setErro(e.message) }
-  }, [])
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso || /nao_autorizado/.test(e.message)) setErro(e.message)
+      return false
+    }
+  }, [guarda])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  useSincronizar(DOMINIOS_VISTAS.contatos, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('contatos') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   // Atalho da linha. "Apagar" arquiva (ativo = false), como o resto do painel
   // (decisão do Wilker: excluir = arquivar + restaurar); o histórico de Press
@@ -272,8 +339,10 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
   const mudarAtivo = async (c, ativo) => {
     if (!ativo && !await confirmar('Apagar "' + c.nome + '"? Sai da lista de contatos e vai para "Apagados (arquivo)". O histórico de Press Kit fica, e dá para restaurar.', { acao: 'Apagar', perigo: true })) return
     setOcupado(c.id)
-    try { await rpc('salvar_contato', { p_secret: lerSenha(), p_dados: { id: c.id, nome: c.nome, ativo } }); await carregar() }
-    catch (e) { setErro(e.message) }
+    setAvisoLinha(null)
+    // Uma ação da linha que falha avisa NA linha de cima: nunca troca a lista inteira pela tela de erro.
+    try { await rpc('salvar_contato', { p_secret: lerSenha(), p_dados: { id: c.id, nome: c.nome, ativo } }); await carregar({ silencioso: true }) }
+    catch (e) { setAvisoLinha(erroContato(e.message)) }
     finally { setOcupado(null) }
   }
   const podeMudar = pode('relacionamento.gerir')
@@ -292,7 +361,8 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
       </div>
       <Escolha rotulo="Mostrar" valor={filtro} onMudar={setFiltro}
         opcoes={FILTROS_CONTATO.map(([v, r]) => [v, r + (lista && v !== 'todos' ? ' (' + contar(v) + ')' : '')])} />
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
+      {avisoLinha && <p className="ui-nota ui-nota--erro" role="alert">{avisoLinha}</p>}
       {!erro && !lista && <Carregando />}
       {!erro && lista && lista.length === 0 && <Vazio titulo="Nenhum contato ainda" />}
       {!erro && lista && lista.length > 0 && visiveis.length === 0 && <Vazio titulo="Ninguém com esse filtro" />}
@@ -342,7 +412,7 @@ export function Contatos({ registrarAtualizar, pode = () => true, rota, navegar 
           </ul>
         </>
       )}
-      <FichaContato id={aberto} pode={pode} onFechar={() => setAberto(null)} onMudou={carregar} />
+      <FichaContato id={aberto} pode={pode} onFechar={() => setAberto(null)} />
     </div>
   )
 }

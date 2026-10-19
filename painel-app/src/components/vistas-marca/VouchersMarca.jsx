@@ -1,8 +1,9 @@
 import React from 'react'
-import { api } from '../../lib/marcaApi'
+import { api, seFaltar } from '../../lib/marcaApi'
 import { dataHoraExtensa } from '../../lib/central'
 import { normalizarCodigo } from '../../lib/vouchers'
-import { Secao } from '../ui'
+import { Secao, Erro } from '../ui'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
 
 /*
  * Vouchers na área da marca (reestruturação 29/09/2026, etapa 6).
@@ -20,14 +21,34 @@ const RECADO = {
 
 export function VouchersMarca({ className }) {
   const [dados, setDados] = React.useState(undefined)
+  const [erroLeitura, setErroLeitura] = React.useState(null)
   const [codigo, setCodigo] = React.useState('')
   const [aviso, setAviso] = React.useState(null)
   const [enviando, setEnviando] = React.useState(false)
 
-  const carregar = React.useCallback(() => {
-    api('rpc/marca_meus_vouchers', { metodo: 'POST', corpo: {} }).then(setDados).catch(() => setDados(null))
-  }, [])
-  React.useEffect(() => { carregar() }, [carregar])
+  const guarda = useGuarda()
+  const temDados = React.useRef(false)
+
+  // Releitura silenciosa (sinal de vouchers): a que falha mantém o cartão que já estava na tela e rejeita
+  // (o indicador de sincronização mostra a falha). Antes a falha virava `null` e o cartão sumia, como se
+  // a marca não tivesse vouchers; agora a tela só diz que não carregou quando nunca houve dado.
+  const carregar = React.useCallback(async () => {
+    const vale = guarda()
+    try {
+      const d = await api('rpc/marca_meus_vouchers', { metodo: 'POST', corpo: {} }).catch(seFaltar(null))   // sem a função no banco: sem cartão
+      if (!vale()) return
+      setDados(d)
+      setErroLeitura(null)
+      temDados.current = true
+    } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      if (!vale()) return
+      if (!temDados.current) setErroLeitura(e.message || 'erro')
+      throw e
+    }
+  }, [guarda])
+  React.useEffect(() => { carregar().catch(() => {}) }, [carregar])
+  useSincronizar(['vouchers'], carregar)
 
   async function usar(ev) {
     ev.preventDefault()
@@ -38,7 +59,7 @@ export function VouchersMarca({ className }) {
       await api('rpc/marca_usar_voucher', { metodo: 'POST', corpo: { p_codigo: c } })
       setAviso({ ok: 'Voucher ' + c + ' registrado. Pode entregar o combo.' })
       setCodigo('')
-      carregar()
+      // Sem releitura aqui: marca_usar_voucher anuncia 'vouchers' e a assinatura acima já atualiza a contagem.
     } catch (e) {
       const m = String((e && e.message) || '')
       const chave = Object.keys(RECADO).find((k) => m.includes(k))
@@ -46,6 +67,13 @@ export function VouchersMarca({ className }) {
     } finally { setEnviando(false) }
   }
 
+  if (erroLeitura && dados === undefined) {
+    return (
+      <Secao id="vouchers" titulo="Vouchers do combo" className={className}>
+        <Erro texto="Não deu para carregar os vouchers agora." onTentar={() => { setErroLeitura(null); carregar().catch(() => {}) }} />
+      </Secao>
+    )
+  }
   // Sem vouchers gerados para a marca nesta edição, o cartão não aparece.
   if (!dados || !Number(dados.total)) return null
   const usados = dados.utilizados || []

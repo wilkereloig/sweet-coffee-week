@@ -13,6 +13,8 @@ import { Autor } from '../Avatar'
 import { SeletorBiblioteca, ROTULO_ORIGEM } from './SocialBiblioteca'
 import { quemAprova } from '../../lib/socialGuia'
 import { usePendencia } from '../../lib/pendencias'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 
 /*
  * Ficha de uma publicação (Social media, 16–17/10/2026; reorganizada em
@@ -37,7 +39,7 @@ import { usePendencia } from '../../lib/pendencias'
 
 const lerSenha = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || '' } catch { return '' } }
 const norm = (v) => (v == null ? '' : String(v))
-const camposDe = (p) => Object.fromEntries(R.CAMPOS.map((k) => [k, norm(p ? p[k] : '')]))
+const camposDe = R.camposDoPost
 const eImagem = (a) => String(a.mime || '').startsWith('image/')
 // Fonte = { bucket, path }: a arte enviada aqui (redes) ou o material referenciado da biblioteca.
 const fonteArq = (a) => ({ bucket: a.bucket || 'redes', path: a.path })
@@ -89,8 +91,11 @@ export function Miniatura({ path, formato, urls, renovar, grande = false }) {
   const [falhou, setFalhou] = React.useState(false)
   const tentou = React.useRef(false)
   const chave = chaveFonte(fonteDe(path))
-  React.useEffect(() => { setFalhou(false); tentou.current = false }, [chave])
   const url = urlDe(urls, path)
+  // Arte nova: recomeça. Endereço novo da MESMA arte (renovação): tenta mostrar de novo, mas pede assinatura
+  // nova só UMA vez por arte (`tentou` zera com a arte, não com o endereço) — arquivo quebrado não vira laço.
+  React.useEffect(() => { tentou.current = false }, [chave])
+  React.useEffect(() => { setFalhou(false) }, [chave, url])
   const cls = 'rd-mini' + (grande ? ' rd-mini--grande' : '')
   if (!url || falhou) {
     return <span className={cls + ' rd-mini--vazia'} aria-hidden="true"><Icone nome={(R.FORMATO[formato] || {}).icone || 'imagem'} tamanho={grande ? 24 : 16} /></span>
@@ -309,7 +314,11 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const [salvando, setSalvando] = React.useState(false)
   const [salvoEm, setSalvoEm] = React.useState(null)
   const [erroAcao, setErroAcao] = React.useState(null)
-  const [conflito, setConflito] = React.useState(null)
+  // Campos que outra pessoa mudou enquanto ESTA tela tinha o mesmo campo alterado (guardados até a pessoa escolher;
+  // o que vale é o cruzamento com o que ela ainda tem alterado — ver "conflito", abaixo).
+  const [conflitoChaves, setConflitoChaves] = React.useState([])
+  // Campos que acompanharam o que outra pessoa salvou (a pessoa não tinha tocado neles): avisa, não pergunta.
+  const [externoAdotado, setExternoAdotado] = React.useState({ campos: [], quem: '' })
   const [recuperado, setRecuperado] = React.useState(() => novo && !(inicial && inicial.doParticipante) && !!lerNovoGuardado())
   const [ocupado, setOcupado] = React.useState('')
   const [aviso, setAviso] = React.useState('')
@@ -346,13 +355,21 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     setCampos((c) => (c ? aplicar(c) : c))
   }, [novo, opcoes.eu, opcoes.edicao_atual])
 
-  const pedidoCarga = React.useRef(0)
-  const recarregar = React.useCallback(async () => {
+  // Releitura (primeira carga, depois de uma ação, sinal de outra pessoa, reconexão). Só a MAIS NOVA vale (a velha
+  // voltaria a versão antiga), e nunca depois de fechar a ficha, sair ou trocar de conta. É silenciosa: depois da
+  // primeira carga não troca nada por "Carregando…"; se falhar mantém o que está na tela.
+  // Devolve: a resposta (ok) · null (falhou) · undefined (resposta atrasada, já substituída por outra).
+  const guardaCarga = useGuarda()
+  const camposRef = React.useRef(campos) // o que está digitado AGORA: a releitura mescla com isto, nunca com uma cópia velha
+  camposRef.current = campos
+  const propria = React.useRef(false) // uma ação desta pessoa está em curso: a situação nova é dela, não vira aviso
+  const versaoDoRascunho = React.useRef(null) // versão em que o texto em conflito foi começado (o rascunho guardado precisa dela)
+  const recarregar = React.useCallback(async ({ aposFalha = false } = {}) => {
     if (novo) return null
-    const meu = ++pedidoCarga.current // duas releituras seguidas: só a última vale (a velha voltaria a versão antiga)
+    const vale = guardaCarga()
     try {
       const r = await rpc('redes_post', { p_secret: lerSenha(), p_id: id })
-      if (meu !== pedidoCarga.current) return r
+      if (!vale()) return undefined
       const velha = baseRef.current
       let g = null
       if (primeira.current) {
@@ -360,23 +377,54 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
         try { g = JSON.parse(sessionStorage.getItem(chaveRascunho) || 'null') } catch { /* rascunho ilegível: ignora */ }
         if (!(g && g.campos && Object.keys(g.campos).length)) g = null
       }
-      setCampos((atual) => {
+      if (velha && camposRef.current) {
+        // Versão nova enquanto a pessoa pode ter digitado, em três vias, campo a campo: o que ela não tocou acompanha o
+        // servidor; o que digitou NUNCA é trocado; o mesmo campo mudado dos dois lados vira conflito e ela escolhe.
+        const m = R.mesclarPostExterno(velha, camposRef.current, r.post)
+        setCampos(m.campos)
+        if (m.conflitos.length && !versaoDoRascunho.current) versaoDoRascunho.current = velha.versao
+        setConflitoChaves((ant) => R.conflitosAbertos(ant, m.conflitos, R.diferencas(r.post, m.campos)))
+        const deMim = !!r.eu && r.post.atualizado_por_id === r.eu
+        if (m.mudouFora && m.adotados.length && !deMim) {
+          setExternoAdotado((x) => ({ campos: [...new Set([...x.campos, ...m.adotados])], quem: r.post.atualizado_por_rotulo || '' }))
+        }
+        if (m.mudouFora && velha.situacao !== r.post.situacao && !propria.current) {
+          setAviso('A situação mudou para “' + ((R.SITUACAO[r.post.situacao] || {}).rotulo || r.post.situacao) + '”.')
+        }
+        // O salvamento falhou por versão: se nenhum campo dela conflita, nada a decidir — a base já é a nova.
+        if (aposFalha && !m.conflitos.length) setErroAcao('Outra pessoa salvou esta postagem enquanto você editava. Confira o que mudou e salve de novo.')
+      } else {
         const n = camposDe(r.post)
-        if (atual && velha) for (const k of Object.keys(R.diferencas(velha, atual))) n[k] = atual[k]
         if (g) for (const [k, v] of Object.entries(g.campos)) if (R.CAMPOS.includes(k)) n[k] = norm(v)
-        return n
-      })
+        setCampos(n)
+      }
       // Rascunho feito sobre uma versão que outra pessoa já mudou: avisa, não salva sozinho.
       if (g) setRecuperado(g.versao != null && g.versao !== r.post.versao ? 'antiga' : true)
       definirBase(r.post)
       setCarga(r)
       setErro(null)
       return r
-    } catch (e) { if (meu === pedidoCarga.current) setErro(e.message); return null }
+    } catch (e) {
+      if (!vale()) return undefined
+      setErro(e.message)
+      if (baseRef.current && /post_inexistente/.test(e.message)) setErroAcao(e.message) // apagada por outra pessoa: o que está na tela já não existe
+      return null
+    }
   }, [id, novo, chaveRascunho])
   React.useEffect(() => { recarregar() }, [recarregar])
+  // Outra pessoa (ou outra aba, ou a reconexão) mexeu em postagens: relê ESTA, a não ser que o sinal seja só de outra postagem.
+  useSincronizar(['redes', 'perfis'], async (aviso) => {
+    if (R.avisoDeOutraPostagem(aviso, id)) return
+    if ((await recarregar()) === null) throw new Error('redes_post')
+  }, { ativo: !novo })
 
   const mudancas = base && campos ? R.diferencas(base, campos) : {}
+  // Conflito aberto = campos que outra pessoa mudou E que esta tela também tem alterados, até a pessoa escolher. Enquanto
+  // houver, NADA salva por cima (salvar() recusa): a base já anda para a versão nova, então salvar levaria a versão nova
+  // e passaria por cima do trabalho do outro sem ninguém perceber.
+  const emConflito = conflitoChaves.filter((k) => k in mudancas)
+  const conflito = emConflito.length ? { salvo: base, meus: mudancas, campos: emConflito } : null
+  React.useEffect(() => { setConflitoChaves((ant) => (ant.length === emConflito.length ? ant : emConflito)) }, [emConflito.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
   const sujo = novo ? !!campos && (R.CAMPOS.some((k) => norm(campos[k]) !== norm(inicioNovo.current[k])) || !!(dhLocal && dhLocal.hora))
     : Object.keys(mudancas).length > 0 || !!dhLocal
 
@@ -393,14 +441,19 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       }
       if (!base) return
       const d = R.diferencas(base, campos)
-      if (Object.keys(d).length) sessionStorage.setItem(chaveRascunho, JSON.stringify({ versao: base.versao, campos: d }))
+      // Com conflito aberto o texto foi começado numa versão ANTERIOR à da base: o rascunho guarda essa, para
+      // reabrir avisar ("a postagem foi salva por outra pessoa depois") em vez de parecer um rascunho comum.
+      if (!conflito) versaoDoRascunho.current = null
+      if (Object.keys(d).length) sessionStorage.setItem(chaveRascunho, JSON.stringify({ versao: versaoDoRascunho.current ?? base.versao, campos: d }))
       else sessionStorage.removeItem(chaveRascunho)
     } catch { /* modo privado */ }
-  }, [base, campos, novo, chaveRascunho, anterior])
+  }, [base, campos, novo, chaveRascunho, anterior, !!conflito]) // eslint-disable-line react-hooks/exhaustive-deps
   // Trabalho pela metade, declarado (fechar a aba e "Atualizar agora" perguntam antes).
   const nomePost = (campos && String(campos.titulo || '').trim()) || (novo ? 'nova postagem' : 'postagem')
-  usePendencia(sujo, { rotulo: (novo ? 'Nova postagem “' : 'Postagem “') + nomePost + '”: alterações não salvas', salvar: () => salvar(), guardaRascunho: true })
+  const pendEdicao = usePendencia(sujo, { rotulo: (novo ? 'Nova postagem “' : 'Postagem “') + nomePost + '”: alterações não salvas', salvar: () => salvar(), guardaRascunho: true })
   usePendencia(!!comentario.trim(), { rotulo: 'Comentário digitado em “' + nomePost + '”, ainda não enviado' })
+  // Registro aberto que MUDOU por fora e pede escolha: o indicador de sincronização e o "Atualizar agora" ficam sabendo.
+  React.useEffect(() => { if (conflito) pendEdicao.sinalizarExterno(); else pendEdicao.limparExterno() }, [!!conflito, nomePost]) // eslint-disable-line react-hooks/exhaustive-deps
   React.useEffect(() => { if (!aviso) return undefined; const t = setTimeout(() => setAviso(''), 4000); return () => clearTimeout(t) }, [aviso])
   React.useEffect(() => { if (!copiado) return undefined; const t = setTimeout(() => setCopiado(false), 2500); return () => clearTimeout(t) }, [copiado])
   // Foco depois de abrir um bloco (Editar, pendência): o campo certo, sem pular a tela.
@@ -420,6 +473,11 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const ativos = arquivos.filter((a) => !a.removido_em).sort((a, b) => a.ordem - b.ordem)
   const antigos = arquivos.filter((a) => a.removido_em)
   const { urls, erro: erroUrls, renovar } = useUrlsAssinadas([...ativos.map(fonteArq), ...ativos.map(miniDe)])
+  // Rascunhos que ainda não têm onde ficar guardados: texto alternativo digitado, confirmação de publicação preenchida
+  // e artes que esperam para subir (ou que falharam). Cada um declara a pendência (o envio em andamento já se declara em comEnvio).
+  usePendencia(ativos.some((a) => alts[a.id] && norm(alts[a.id].v) !== norm(a.alt)), { rotulo: 'Texto alternativo digitado em “' + nomePost + '”, ainda não salvo' })
+  usePendencia(!!confirma && !!(confirma.link.trim() || confirma.obs.trim()), { rotulo: 'Confirmação de publicação de “' + nomePost + '” preenchida, ainda não enviada' })
+  usePendencia(envios.some((e) => e.estado === 'na_fila' || e.estado === 'erro'), { rotulo: 'Arte de “' + nomePost + '” que ainda não subiu (na fila ou com falha)', tipo: 'envio' })
   const eu = carga ? carga.eu : null
   // Substituir/remover arte de OUTRA pessoa: só redes.gerir (o banco confere de novo).
   const podeMexer = (a) => podeArquivos && (pode('redes.gerir') || (!!eu && a.criado_por_id === eu))
@@ -460,7 +518,8 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       return n
     })
     setSalvoEm(p.atualizado_em)
-    setConflito(null)
+    setConflitoChaves([])
+    setExternoAdotado({ campos: [], quem: '' })
     setRecuperado(false)
     setEditando(new Set())
     onMudou()
@@ -471,32 +530,35 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   async function salvar() {
     if (novo) return criar()
     if (dhLocal) { setErroAcao('Informe data E hora — ou apague as duas para deixar sem data.'); return null }
+    // Conflito aberto: só a escolha explícita ("Salvar as minhas por cima" / "Ficar com a versão salva") destrava.
+    if (conflito) { setErroAcao('Escolha acima qual versão fica — a de ' + (base.atualizado_por_rotulo || 'outra pessoa') + ' ou a sua — antes de salvar.'); return null }
     const d = R.diferencas(base, campos)
     if (!Object.keys(d).length) { setEditando(new Set()); return base }
     setSalvando(true); setErroAcao(null)
     try { return await gravar(base, d, { ...campos }) }
-    catch (e) { await tratarConflito(e, base, d); return null }
+    catch (e) { await tratarConflito(e); return null }
     finally { setSalvando(false) }
   }
-  // Outra pessoa salvou antes: mostra as duas versões para decidir (nunca sobrescreve calado).
-  async function tratarConflito(e, lida, meus) {
+  // Outra pessoa salvou antes (a versão que esta tela tinha ficou velha): relê e mescla. Campo mudado dos dois lados
+  // vira o aviso com as duas versões (nunca sobrescreve calado); sem campo em conflito, a base já é a nova e é só salvar de novo.
+  async function tratarConflito(e) {
     if (!/versao_desatualizada/.test(e.message)) { setErroAcao(e.message); return }
-    const r = await rpc('redes_post', { p_secret: lerSenha(), p_id: id }).catch(() => null)
-    if (r) { setCarga(r); setConflito({ salvo: r.post, lida, meus, campos: R.camposEmConflito(lida, r.post, meus) }) }
-    else setErroAcao(e.message)
+    const r = await recarregar({ aposFalha: true })
+    if (r === null) setErroAcao(e.message)
   }
 
   async function manterMinhas() {
     setSalvando(true); setErroAcao(null)
     try { await gravar(conflito.salvo, conflito.meus, { ...campos }) }
-    catch (e) { await tratarConflito(e, conflito.salvo, conflito.meus) } // salvaram de novo no meio: compara outra vez
+    catch (e) { await tratarConflito(e) } // salvaram de novo no meio: compara outra vez
     finally { setSalvando(false) }
   }
   function usarSalva() {
     definirBase(conflito.salvo)
     setCampos(camposDe(conflito.salvo))
     setDhLocal(null)
-    setConflito(null)
+    setConflitoChaves([])
+    setExternoAdotado({ campos: [], quem: '' })
     setEditando(new Set())
   }
   function descartar() {
@@ -537,13 +599,14 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   // Ação de fluxo: salva antes o que estiver pendente; versão sempre a recém-lida.
   async function acao(nome, fn) {
     if (sujo) { const ok = await salvar(); if (!ok) return false }
+    propria.current = true // a situação que a releitura trouxer é desta ação: não vira "a situação mudou"
     setOcupado(nome); setErroAcao(null)
     try { await fn(baseRef.current); await recarregar(); onMudou(); return true }
     catch (e) {
       if (/versao_desatualizada/.test(e.message)) { await recarregar(); setErroAcao('A postagem mudou enquanto você olhava. Confira e tente de novo.') }
       else setErroAcao(e.message)
       return false
-    } finally { setOcupado('') }
+    } finally { setOcupado(''); propria.current = false }
   }
   const situacao = (s, motivo) => acao('situacao', (b) => rpc('redes_situacao', { p_secret: lerSenha(), p_id: id, p_versao: b.versao, p_situacao: s, p_motivo: motivo || null }))
 
@@ -599,13 +662,17 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     try { await rpc('redes_arquivos_ordenar', { p_secret: lerSenha(), p_post: id, p_ids: ids }); await recarregar(); onMudou() }
     catch (e) { setErroAcao(e.message) } finally { setOcupado('') }
   }
-  async function salvarAlt(a) {
-    const v = alts[a.id]
-    if (v == null || v === a.alt) return
+  // Rascunho do texto alternativo: { v: o que a pessoa digitou, base: o que o servidor tinha quando ela começou }.
+  // Se outra pessoa mudou este texto no meio, o rascunho NÃO se grava sozinho ao sair do campo: ela escolhe.
+  const descartarAlt = (idArq) => setAlts((x) => { const n = { ...x }; delete n[idArq]; return n })
+  async function salvarAlt(a, forcar = false) {
+    const d = alts[a.id]
+    if (d == null || d.v === a.alt) return
+    if (!forcar && R.altMudouFora(d, a.alt)) return
     try {
-      const novo2 = await rpc('redes_arquivo_alt', { p_secret: lerSenha(), p_arquivo: a.id, p_alt: v })
+      const novo2 = await rpc('redes_arquivo_alt', { p_secret: lerSenha(), p_arquivo: a.id, p_alt: d.v })
       setCarga((c) => ({ ...c, arquivos: c.arquivos.map((x) => (x.id === a.id ? novo2 : x)) }))
-      setAlts((x) => { const n = { ...x }; delete n[a.id]; return n })
+      descartarAlt(a.id)
       setAviso('Texto alternativo salvo.')
     } catch (e) { setErroAcao(e.message) }
   }
@@ -860,6 +927,10 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
               </div>
             )}
 
+            {!conflito && externoAdotado.campos.length > 0 && (
+              <AvisoMudancaExterna quem={externoAdotado.quem || 'outra pessoa'} rotulos={ROTULO_CAMPO}
+                registro={{ conflitos: {}, adotados: externoAdotado.campos, dispensar: () => setExternoAdotado({ campos: [], quem: '' }) }} />
+            )}
             {conflito && (
               <div className="og-aviso rd-conflito" role="alert">
                 <p><b>{conflito.salvo.atualizado_por_rotulo || 'Outra pessoa'}</b> salvou esta postagem {conflito.salvo.atualizado_em ? 'às ' + R.horaCurta(R.partes(conflito.salvo.atualizado_em).hora) : ''} enquanto você editava. Nada seu foi perdido: o que você digitou continua aqui.</p>
@@ -1182,9 +1253,18 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                             {eImagem(a) && (
                               <div className="og-campo">
                                 <span><label htmlFor={'rd-alt-' + a.id}>Texto alternativo</label></span>
-                                <textarea id={'rd-alt-' + a.id} rows={2} maxLength={1000} value={alts[a.id] ?? a.alt} disabled={!podeArquivos}
+                                <textarea id={'rd-alt-' + a.id} rows={2} maxLength={1000} value={(alts[a.id] ? alts[a.id].v : a.alt) ?? ''} disabled={!podeArquivos}
                                   placeholder="Descreva a imagem para quem usa leitor de tela"
-                                  onChange={(e) => setAlts((x) => ({ ...x, [a.id]: e.target.value }))} onBlur={() => salvarAlt(a)} />
+                                  onChange={(e) => { const v = e.target.value; setAlts((x) => ({ ...x, [a.id]: { v, base: x[a.id] ? x[a.id].base : norm(a.alt) } })) }} onBlur={() => salvarAlt(a)} />
+                              </div>
+                            )}
+                            {eImagem(a) && R.altMudouFora(alts[a.id], a.alt) && (
+                              <div className="og-aviso" role="status">
+                                <p>Outra pessoa mudou este texto para “{String(a.alt || '(vazio)').slice(0, 200)}”. O seu continua aqui e não foi salvo.</p>
+                                <div className="ui-acoes">
+                                  <Botao variante="secundario" onClick={() => descartarAlt(a.id)}>Usar o novo</Botao>
+                                  <Botao variante="secundario" onClick={() => salvarAlt(a, true)}>Salvar o meu por cima</Botao>
+                                </div>
                               </div>
                             )}
                           </div>

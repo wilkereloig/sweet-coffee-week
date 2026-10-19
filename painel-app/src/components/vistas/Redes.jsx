@@ -9,6 +9,7 @@ import { RedesFicha, traduzirRedes, Miniatura } from './RedesFicha'
 import { Avatar } from '../Avatar'
 import { CHAVE_NOVA_POSTAGEM } from './SocialParticipantes'
 import { SocialGuia, GuiaPrimeiraVez } from './SocialGuia'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
 
 /*
  * Social media › Planejamento (16–17/10/2026; refinado 17/10/2026): calendário
@@ -416,7 +417,7 @@ function Periodo({ modo, data, onMudar }) {
   )
 }
 
-export function Redes({ rota, navegar, pode, registrarAtualizar }) {
+export function Redes({ rota, navegar, pode }) {
   const f = rota.filtros || {}
   const raiz = React.useRef(null)
   const largura = useLargura(raiz)
@@ -438,29 +439,73 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
   const [guia, setGuia] = React.useState(false)
 
+  // Três leituras, cada uma com a sua guarda: resposta velha (mês anterior, clique + sinal ao mesmo tempo)
+  // nunca sobrescreve a nova, nem depois de sair ou trocar de conta. A releitura por sinal é SILENCIOSA:
+  // não troca nada por "Carregando…", não mexe em filtro, dia aberto nem ficha e, se falhar, MANTÉM o que já
+  // está na tela (devolve false para o indicador de sincronização). Só a primeira leitura e a troca de mês
+  // mostram o erro grande.
+  const guardaLista = useGuarda()
+  const guardaResumo = useGuarda()
+  const guardaOpcoes = useGuarda()
   // Uma leitura por mês (ou pela janela do atalho): mudar de modo dentro do mês não relê.
   const chaveLeitura = atalho ? 'atalho' : R.inicioMes(data)
-  const pedido = React.useRef(0)
-  const carregar = React.useCallback(async () => {
+  const temDados = React.useRef(false)
+  temDados.current = !!dados
+  const carregar = React.useCallback(async (silencioso = false) => {
+    const vale = guardaLista()
     const { de, ate } = R.intervaloConsulta(data, atalho)
-    const meu = ++pedido.current // resposta velha (mês anterior) não sobrescreve a nova
     try {
       const r = await rpc('redes_listar', { p_secret: lerSenha(), p_de: de, p_ate: ate })
-      if (meu !== pedido.current) return
+      if (!vale()) return true
       setDados(r)
       setErro(null)
-    } catch (e) { if (meu === pedido.current) setErro(e.message) }
-    // Números dos alertas: de TODAS as abertas (o mês na tela não muda a conta).
-    rpc('redes_resumo', { p_secret: lerSenha() }).then(setResumo).catch(() => setResumo(null))
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!(silencioso === true && temDados.current)) setErro(e.message)
+      return false
+    }
   }, [chaveLeitura]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Números dos alertas: de TODAS as abertas (o mês na tela não muda a conta), por isso uma leitura à parte.
+  // Falhou? Fica o último resumo; sem nenhum, a contagem sai das postagens carregadas (R.contagemAtalhos).
+  const carregarResumo = React.useCallback(async () => {
+    const vale = guardaResumo()
+    try {
+      const r = await rpc('redes_resumo', { p_secret: lerSenha() })
+      if (!vale()) return true
+      setResumo(r)
+      return true
+    } catch {
+      return !vale()
+    }
+  }, [guardaResumo])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
-  const carregarOpcoes = React.useCallback(() => {
-    setErroOpcoes(null)
-    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => { if (o) setOpcoes({ ...o, carregadas: true }) })
-      .catch((e) => setErroOpcoes(e.message))
-  }, [])
+  React.useEffect(() => { carregarResumo() }, [carregarResumo])
+  // Equipe, participantes, edições, perfis de destino e quem aprova: uma leitura (redes_opcoes).
+  const opcoesCarregadas = React.useRef(false)
+  const carregarOpcoes = React.useCallback(async () => {
+    const vale = guardaOpcoes()
+    try {
+      const o = await rpc('redes_opcoes', { p_secret: lerSenha() })
+      if (!vale()) return true
+      if (o) { setOpcoes({ ...o, carregadas: true }); opcoesCarregadas.current = true }
+      setErroOpcoes(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!opcoesCarregadas.current) setErroOpcoes(e.message) // releitura que falha mantém a equipe e os participantes já carregados
+      return false
+    }
+  }, [guardaOpcoes])
   React.useEffect(() => { carregarOpcoes() }, [carregarOpcoes])
+  // Postagens e números dos alertas mudam com "redes" (o nome do responsável, com "perfis").
+  useSincronizar(['redes', 'perfis'], async () => {
+    const [a, b] = await Promise.all([carregar(true), carregarResumo()])
+    if (!a || !b) throw new Error('redes')
+  })
+  // Opções: participantes (administração) ou editorial (o mesmo cadastro, como a Social media o recebe),
+  // equipe (perfis), quem aprova (configuracao) e edições.
+  useSincronizar(['participantes', 'editorial', 'perfis', 'configuracao', 'edicao'], async () => { if (!(await carregarOpcoes())) throw new Error('redes_opcoes') })
 
   const fAtual = React.useRef(f)
   fAtual.current = f
@@ -645,7 +690,7 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
         </p>
       )}
 
-      {erro && <Erro texto={traduzirRedes(erro)} onTentar={carregar} />}
+      {erro && <Erro texto={traduzirRedes(erro)} onTentar={() => carregar()} />}
       {!erro && !dados && <Carregando linhas={5} />}
       {!erro && dados && (
         <div className="rd-corpo" data-modo={atalho ? 'lista' : modo}>
@@ -665,7 +710,7 @@ export function Redes({ rota, navegar, pode, registrarAtualizar }) {
 
       {item && (
         <RedesFicha key={item} id={item} pode={pode} opcoes={opcoes} posts={posts} inicial={inicialNovo}
-          onFechar={fechar} onMudou={carregar}
+          onFechar={fechar} onMudou={() => carregar(true)}
           voltaParticipante={/^part:/.test(f.volta || '')}
           onVerParticipante={(pid, ed) => navegar({ vista: 'social', aba: 'participantes', filtros: { item: pid, ed: ed || undefined } })}
           onAbrir={(id) => { const x = { ...f, item: id }; delete x.nd; navegar({ ...ALVO, filtros: x }, { substituir: true }) }} />
@@ -684,16 +729,29 @@ export function ResumoRedes({ navegar, pode, className = '' }) {
   const [r, setR] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const ver = pode('redes.ver')
-  const carregar = React.useCallback(() => {
-    setErro(null)
-    rpc('redes_resumo', { p_secret: lerSenha() }).then(setR).catch((e) => setErro(e.message))
-  }, [])
+  const guarda = useGuarda()
+  // Releitura silenciosa: o último resumo fica na tela até chegar o novo; se falhar, fica (e o indicador avisa).
+  const carregar = React.useCallback(async () => {
+    const vale = guarda()
+    try {
+      const x = await rpc('redes_resumo', { p_secret: lerSenha() })
+      if (!vale()) return true
+      setR(x)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      setErro(e.message)
+      return false
+    }
+  }, [guarda])
   React.useEffect(() => { if (ver) carregar() }, [ver, carregar])
+  useSincronizar(['redes'], async () => { if (!(await carregar())) throw new Error('redes_resumo') }, { ativo: ver })
   if (!ver) return null
   if (!r) {
     return (
       <Secao titulo="Social media" nota="Planejamento do Instagram." className={className}>
-        {erro ? <Erro titulo="Não carreguei o resumo do planejamento" texto={traduzirRedes(erro)} onTentar={carregar} /> : <Carregando linhas={2} />}
+        {erro ? <Erro titulo="Não carreguei o resumo do planejamento" texto={traduzirRedes(erro)} onTentar={() => carregar()} /> : <Carregando linhas={2} />}
       </Secao>
     )
   }

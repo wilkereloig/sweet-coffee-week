@@ -13,6 +13,9 @@ import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Botao,
 import { confirmar, pedirTexto } from '../Confirmar'
 import '../../styles/edicao-org.css'
 import { comEnvio } from '../../lib/pendencias'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
+import { soAlterados, aparar, impressaoDoArquivo } from '../../lib/leituraViva'
 
 /*
  * Publicação da edição — lado da organização (Cartoon 2026.2, plano em
@@ -28,6 +31,15 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 const msgErro = (e) => traduzirErro(traduzirErroPublicacao(e && e.message))
 const PreviaPublica = React.lazy(() => import('./edicao/PreviaPublica.jsx'))
 const ROTULO_PAPEL = Object.fromEntries(PAPEIS_MIDIA)
+const CAMPOS_SLUG = ['slug']
+const CAMPOS_COORDENADA = ['lat', 'lng']
+const CAMPOS_FOTO = ['alt', 'credito']
+
+// O pai (a ficha) relê as fontes dele quando algo aqui é gravado. Uma falha DESSA releitura não
+// é falha da gravação que acabou de dar certo: ela aparece no aviso da própria ficha.
+function avisarSalvo(onSalvo) {
+  try { Promise.resolve(onSalvo && onSalvo()).catch(() => { /* a ficha mostra a própria falha */ }) } catch { /* idem */ }
+}
 
 function Aviso({ aviso }) {
   if (!aviso) return null
@@ -37,16 +49,16 @@ function Aviso({ aviso }) {
 }
 
 /* ── Lista: Participantes › Publicação ─────────────────────────────────── */
-export function ListaPublicacao({ edicao, rota, navegar, registrarAtualizar }) {
-  const [linhas, setLinhas] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
+export function ListaPublicacao({ edicao, rota, navegar }) {
   const filtro = (rota && rota.filtros && rota.filtros.situacao) || ''
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setLinhas((await rpc('get_publicacoes_edicao', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || []) } catch (e) { setErro(e.message) }
-  }, [edicao.codigo])
-  React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // Relê sozinha quando muda o que a linha mostra: publicação, a marca (nome, situação do combo),
+  // a edição e as pendências (que saem do cadastro e das unidades). Outra edição = lista nova.
+  const leitura = useLeitura(
+    async () => (await rpc('get_publicacoes_edicao', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || [],
+    ['publicacao', 'participantes', 'edicao', 'cadastro', 'unidades'], { chave: edicao.codigo },
+  )
+  const linhas = leitura.dados === undefined ? null : leitura.dados
+  const erro = leitura.bloqueada ? leitura.erro : null
 
   const lista = filtrarPublicacoes(linhas, filtro)
   const abrir = (l) => navegar({ vista: 'participantes', aba: 'lista', filtros: { item: l.participante_id, sub: 'publicacao' } })
@@ -58,7 +70,8 @@ export function ListaPublicacao({ edicao, rota, navegar, registrarAtualizar }) {
           onMudar={(v) => navegar({ filtros: v ? { situacao: v } : {} }, { substituir: true })} />
       </div>
       <p className="ui-nota">Edição {edicao.codigo}. A versão publicada fica no ar até a organização publicar a próxima, mesmo com alteração em análise.</p>
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={leitura.recarregar} />}
+      {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={leitura.erro} onTentar={leitura.recarregar} />}
       {!erro && linhas === null && <Carregando />}
       {!erro && linhas && linhas.length === 0 && <Vazio titulo="Nenhuma casa nesta edição">As casas aparecem aqui quando têm participação aberta na edição {edicao.codigo}.</Vazio>}
       {!erro && linhas && linhas.length > 0 && lista.length === 0 && <Vazio titulo="Nenhuma casa com esse filtro" />}
@@ -112,23 +125,24 @@ export function PreviaPagina({ conteudo, nome }) {
 /* ── Ficha › Publicação ────────────────────────────────────────────────── */
 export function AbaPublicacao({ participante, pode, onMudou }) {
   const id = participante.participacao_id
-  const [pub, setPub] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [faltando, setFaltando] = React.useState(null)
   const [agindo, setAgindo] = React.useState(false)
   const [previa, setPrevia] = React.useState(false)
 
-  const carregar = React.useCallback(async () => {
-    if (!id) return
-    setErro(null)
-    try { setPub(await rpc('get_publicacao', { p_secret: lerSenha(), p_participacao: id })) } catch (e) { setErro(e.message) }
-  }, [id])
-  React.useEffect(() => { carregar() }, [carregar])
-  const depois = async () => { await carregar(); if (onMudou) onMudou() }
+  // A publicação da casa lê de muita coisa (publicações, cadastro, unidades, logo, marca, preço da
+  // edição); relê sozinha quando qualquer uma muda. Outra participação = leitura nova: a ficha de
+  // uma casa nunca aparece com os dados da anterior.
+  const leitura = useLeitura(
+    () => rpc('get_publicacao', { p_secret: lerSenha(), p_participacao: id }),
+    ['publicacao', 'cadastro', 'unidades', 'participantes', 'logos', 'edicao'], { chave: id, ativo: !!id },
+  )
+  const pub = leitura.dados
+  React.useEffect(() => { setAviso(null); setFaltando(null); setAgindo(false); setPrevia(false) }, [id])
+  const aposGravar = () => avisarSalvo(onMudou)
 
   if (!id) return <Vazio titulo="Sem participação na edição atual">A publicação é por participação: abra uma participação para esta marca primeiro.</Vazio>
-  if (erro) return <Erro texto={traduzirErroPublicacao(erro)} onTentar={carregar} />
+  if (leitura.bloqueada) return <Erro texto={traduzirErroPublicacao(leitura.erro)} onTentar={leitura.recarregar} />
   if (!pub) return <Carregando linhas={4} />
 
   const nome = participante.nome_marca || 'esta casa'
@@ -149,7 +163,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
     try {
       const r = await rpc('publicar_participacao', { p_secret: lerSenha(), p_participacao: id, p_nivel: nivel })
       if (r && r.ok === false) setFaltando(r.faltando || [])
-      else { setAviso({ ok: 'Publicada a versão ' + (r && r.versao) + '. A marca recebe o aviso.' }); await depois() }
+      else { setAviso({ ok: 'Publicada a versão ' + (r && r.versao) + '. A marca recebe o aviso.' }); aposGravar() }
     } catch (e) { setAviso(msgErro(e)) } finally { setAgindo(false) }
   }
 
@@ -162,12 +176,13 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
     setAgindo(true)
     try {
       await rpc('retirar_publicacao', { p_secret: lerSenha(), p_participacao: id, p_motivo: motivo.trim() })
-      setAviso({ ok: 'Retirada do site. A marca recebe o aviso com o motivo.' }); await depois()
+      setAviso({ ok: 'Retirada do site. A marca recebe o aviso com o motivo.' }); aposGravar()
     } catch (e) { setAviso(msgErro(e)) } finally { setAgindo(false) }
   }
 
   return (
     <div className="ui-pilha">
+      {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={traduzirErroPublicacao(leitura.erro)} onTentar={leitura.recarregar} />}
       <MacroSecao rotulo="Publicação no site" titulo={textoPublicacao(pub)}
         nota={v ? 'No ar desde ' + dataHoraCurta(v.publicado_em) + (v.publicado_por ? ', por ' + v.publicado_por : '') + '.'
           : pub.ultima && pub.ultima.retirado_em ? 'Retirada em ' + dataHoraCurta(pub.ultima.retirado_em) + (pub.ultima.retirado_por ? ' por ' + pub.ultima.retirado_por : '') + (pub.ultima.motivo ? '. Motivo: ' + pub.ultima.motivo : '') + '.'
@@ -204,7 +219,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
               ? <ul className="ui-lista-simples">{pendencias.map((c) => <li key={c}><b>{traduzirPendencia(c, ctx)}</b></li>)}</ul>
               : <p className="ui-nota">Tudo que a página pública precisa está preenchido.</p>}
           </Modulo>
-          <Endereco pub={pub} participacaoId={id} pode={pode} onSalvo={depois} />
+          <Endereco key={id} pub={pub} participacaoId={id} pode={pode} onSalvo={aposGravar} />
         </GradeModulos>
       </MacroSecao>
 
@@ -215,11 +230,11 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
       </MacroSecao>
 
       <MacroSecao rotulo="Mapa" titulo="Unidades e localização" nota="Só a organização grava a coordenada; o mapa público só usa a conferida.">
-        <Unidades unidades={pub.unidades} pode={pode} onSalvo={depois} />
+        <Unidades unidades={pub.unidades} pode={pode} onSalvo={aposGravar} />
       </MacroSecao>
 
       <MacroSecao rotulo="Fotos" titulo="Fotos da página" nota="Só foto aprovada vai ao site, e aprovar exige texto alternativo.">
-        <Fotos pub={pub} participacaoId={id} edicao={participante.edicao_codigo} pode={pode} onSalvo={depois} />
+        <Fotos pub={pub} participacaoId={id} edicao={participante.edicao_codigo} pode={pode} onSalvo={aposGravar} />
       </MacroSecao>
     </div>
   )
@@ -247,11 +262,15 @@ function Diferenca({ antes, depois }) {
 
 /* ── Endereço público (slug) ───────────────────────────────────────────── */
 function Endereco({ pub, participacaoId, pode, onSalvo }) {
-  const [slug, setSlug] = React.useState(pub.slug || '')
   const [aviso, setAviso] = React.useState(null)
-  React.useEffect(() => { setSlug(pub.slug || '') }, [pub.slug])
   // Depois da 1ª publicação o endereço congela (QR impresso).
   const editavel = !pub.ultima && pode('cadastro.editar')
+  // O que está digitado nunca é trocado pela releitura: o endereço só acompanha o banco enquanto
+  // a pessoa não mexeu nele; se outra pessoa mudar o mesmo campo, ela escolhe. Formulário escondido
+  // (já publicada) não conta como trabalho pela metade.
+  const servidor = React.useMemo(() => ({ slug: pub.slug || '' }), [pub.slug])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_SLUG, { chave: participacaoId, rotulo: 'Endereço público (não salvo)', pendente: editavel })
+  const slug = reg.local.slug
   const url = urlPublicaParticipante(pub.slug)
 
   async function salvar(ev) {
@@ -260,9 +279,11 @@ function Endereco({ pub, participacaoId, pode, onSalvo }) {
     const s = slug.trim()
     const problema = s && validarSlug(s)
     if (problema) { setAviso(problema); return }
+    const brutos = reg.local
     try {
       await rpc('org_salvar_dados_publicos', { p_secret: lerSenha(), p_participacao: participacaoId, p_dados: { slug_publico: s || null } })
-      setAviso({ ok: s ? 'Endereço salvo.' : 'Endereço limpo: será gerado do nome na 1ª publicação.' }); await onSalvo()
+      reg.confirmarSalvo({ slug: s }, brutos)
+      setAviso({ ok: s ? 'Endereço salvo.' : 'Endereço limpo: será gerado do nome na 1ª publicação.' }); avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
 
@@ -274,8 +295,9 @@ function Endereco({ pub, participacaoId, pode, onSalvo }) {
       {editavel && (
         <form className="ui-form" onSubmit={salvar}>
           <label className="og-campo"><span>Endereço (só antes da 1ª publicação)</span>
-            <input type="text" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} placeholder="ex.: cafe-da-praca" maxLength={80} autoCapitalize="off" spellCheck={false} /></label>
-          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={slug.trim() === (pub.slug || '')}>Salvar endereço</button></div>
+            <input type="text" value={slug} onChange={(e) => reg.editar('slug', e.target.value.toLowerCase())} placeholder="ex.: cafe-da-praca" maxLength={80} autoCapitalize="off" spellCheck={false} /></label>
+          <AvisoMudancaExterna registro={reg} rotulos={{ slug: 'Endereço público' }} />
+          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={reg.conflito || slug.trim() === (pub.slug || '')}>Salvar endereço</button></div>
         </form>
       )}
       <Aviso aviso={aviso} />
@@ -298,8 +320,11 @@ function Unidades({ unidades, pode, onSalvo }) {
 }
 
 function Unidade({ u, pode, onSalvo }) {
-  const [lat, setLat] = React.useState(u.lat == null ? '' : String(u.lat))
-  const [lng, setLng] = React.useState(u.lng == null ? '' : String(u.lng))
+  // Latitude e longitude digitadas resistem à releitura (e acompanham o banco enquanto a pessoa
+  // não mexeu): outra pessoa conferir a mesma unidade não apaga o que está sendo colado aqui.
+  const servidor = React.useMemo(() => ({ lat: u.lat == null ? '' : String(u.lat), lng: u.lng == null ? '' : String(u.lng) }), [u.lat, u.lng])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_COORDENADA, { chave: u.participacao_unidade_id, rotulo: 'Localização da unidade (não salva)', pendente: pode('producao.gerir') && !!u.unidade_id })
+  const { lat, lng } = reg.local
   const [aviso, setAviso] = React.useState(null)
   const podeGravar = pode('producao.gerir') && !!u.unidade_id
   const endereco = [[u.logradouro, u.numero].filter(Boolean).join(', '), u.bairro, u.cidade].filter(Boolean).join(' · ')
@@ -310,10 +335,12 @@ function Unidade({ u, pode, onSalvo }) {
     setAviso(null)
     const c = lerCoordenada(lat, lng)
     if (c.erro) { setAviso(c.erro); return }
+    const brutos = reg.local
     try {
       await rpc('org_verificar_coordenada', { p_secret: lerSenha(), p_unidade: u.unidade_id, p_lat: c.lat, p_lng: c.lng })
-      setLat(String(c.lat)); setLng(String(c.lng))
-      setAviso({ ok: 'Localização conferida.' }); await onSalvo()
+      // O par colado num campo só vira dois números limpos (a menos que a pessoa já tenha digitado mais).
+      reg.confirmarSalvo({ lat: String(c.lat), lng: String(c.lng) }, brutos)
+      setAviso({ ok: 'Localização conferida.' }); avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
 
@@ -328,10 +355,11 @@ function Unidade({ u, pode, onSalvo }) {
         <form className="ui-form" onSubmit={salvar}>
           <p className="ui-nota">No Google Maps, clique com o botão direito no ponto da loja e copie os números. Pode colar o par inteiro no primeiro campo.</p>
           <div className="eo-par">
-            <label className="og-campo"><span>Latitude</span><input type="text" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-5.8123" /></label>
-            <label className="og-campo"><span>Longitude</span><input type="text" inputMode="decimal" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="-35.2012" /></label>
+            <label className="og-campo"><span>Latitude</span><input type="text" inputMode="decimal" value={lat} onChange={(e) => reg.editar('lat', e.target.value)} placeholder="-5.8123" /></label>
+            <label className="og-campo"><span>Longitude</span><input type="text" inputMode="decimal" value={lng} onChange={(e) => reg.editar('lng', e.target.value)} placeholder="-35.2012" /></label>
           </div>
-          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit">Conferir localização</button></div>
+          <AvisoMudancaExterna registro={reg} rotulos={{ lat: 'Latitude', lng: 'Longitude' }} />
+          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={reg.conflito}>Conferir localização</button></div>
         </form>
       )}
       {!pode('producao.gerir') && <p className="ui-nota">Conferir a localização é da produção.</p>}
@@ -357,20 +385,26 @@ function Fotos({ pub, participacaoId, edicao, pode, onSalvo }) {
 }
 
 function Foto({ m, pode, onSalvo }) {
-  const [alt, setAlt] = React.useState(m.alt || '')
-  const [credito, setCredito] = React.useState(m.credito || '')
-  const [aviso, setAviso] = React.useState(null)
-  React.useEffect(() => { setAlt(m.alt || ''); setCredito(m.credito || '') }, [m.alt, m.credito])
-  const mudou = alt !== (m.alt || '') || credito !== (m.credito || '')
   const podeTexto = pode('producao.gerir')
   const podeDecidir = pode('curadoria.decidir')
+  // Texto alternativo e crédito resistem à releitura: o que está digitado nunca é trocado, e o que a
+  // pessoa não tocou acompanha o banco. Outra foto = outro rascunho (a lista é por m.id).
+  const servidor = React.useMemo(() => ({ alt: m.alt || '', credito: m.credito || '' }), [m.alt, m.credito])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_FOTO, { chave: m.id, rotulo: 'Texto da foto (não salvo)', pendente: podeTexto })
+  const { alt, credito } = reg.local
+  const [aviso, setAviso] = React.useState(null)
+  const mudou = reg.sujo
 
   async function salvarTexto(ev) {
     ev.preventDefault()
     setAviso(null)
+    // Só o que mudou: o outro campo pode ter sido alterado por outra pessoa nesse meio-tempo.
+    const brutos = reg.local
+    const alterados = aparar(soAlterados(reg.base, reg.local, CAMPOS_FOTO))
     try {
-      await rpc('org_salvar_midia', { p_secret: lerSenha(), p_dados: { id: m.id, alt, credito } })
-      setAviso({ ok: 'Texto salvo.' }); await onSalvo()
+      await rpc('org_salvar_midia', { p_secret: lerSenha(), p_dados: { id: m.id, ...alterados } })
+      reg.confirmarSalvo(alterados, brutos)
+      setAviso({ ok: 'Texto salvo.' }); avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
   async function decidir(estado) {
@@ -381,7 +415,7 @@ function Foto({ m, pode, onSalvo }) {
     }
     try {
       await rpc('org_decidir_midia', { p_secret: lerSenha(), p_id: m.id, p_estado: estado })
-      await onSalvo()
+      avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
 
@@ -392,10 +426,11 @@ function Foto({ m, pode, onSalvo }) {
         width={m.largura || undefined} height={m.altura || undefined} />
       <form className="ui-form" onSubmit={salvarTexto}>
         <label className="og-campo"><span>Texto alternativo (o que a foto mostra)</span>
-          <input type="text" value={alt} maxLength={ALT_MAXIMO} disabled={!podeTexto} onChange={(e) => setAlt(e.target.value)} placeholder="Ex.: bolo de chocolate com cobertura e xícara de café" /></label>
+          <input type="text" value={alt} maxLength={ALT_MAXIMO} disabled={!podeTexto} onChange={(e) => reg.editar('alt', e.target.value)} placeholder="Ex.: bolo de chocolate com cobertura e xícara de café" /></label>
         <label className="og-campo"><span>Crédito <em>(opcional)</em></span>
-          <input type="text" value={credito} maxLength={CREDITO_MAXIMO} disabled={!podeTexto} onChange={(e) => setCredito(e.target.value)} /></label>
-        {podeTexto && <div className="ui-linha-acoes"><button className="og-btn og-btn--mini og-btn--vazado" type="submit" disabled={!mudou}>Salvar texto</button></div>}
+          <input type="text" value={credito} maxLength={CREDITO_MAXIMO} disabled={!podeTexto} onChange={(e) => reg.editar('credito', e.target.value)} /></label>
+        <AvisoMudancaExterna registro={reg} rotulos={{ alt: 'Texto alternativo', credito: 'Crédito' }} />
+        {podeTexto && <div className="ui-linha-acoes"><button className="og-btn og-btn--mini og-btn--vazado" type="submit" disabled={!mudou || reg.conflito}>Salvar texto</button></div>}
       </form>
       {podeDecidir && (
         <div className="ui-linha-acoes">
@@ -428,17 +463,22 @@ function NovaFoto({ pub, participacaoId, edicao, onFechar, onSalvo }) {
   const [arquivo, setArquivo] = React.useState(null)
   const [alt, setAlt] = React.useState('')
   const [credito, setCredito] = React.useState('')
-  const [itens, setItens] = React.useState(null)
   const [enviando, setEnviando] = React.useState(false)
   const [aviso, setAviso] = React.useState(null)
+  // O que já subiu ao armazenamento mas ainda não foi registrado: tentar de novo com a mesma foto
+  // não sobe outra vez (e não deixa objeto órfão). { path, largura, altura, impressao }
+  const subido = React.useRef(null)
 
-  // get_publicacao não traz o id dos componentes; a ficha do cadastro traz.
-  React.useEffect(() => {
-    if (papel !== 'item' || itens) return
-    rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: participacaoId })
-      .then((f) => setItens((f && f.itens) || []))
-      .catch((e) => { setItens([]); setAviso(msgErro(e)) })
-  }, [papel, itens, participacaoId])
+  // get_publicacao não traz o id dos componentes; a ficha do cadastro traz. Os componentes mudam
+  // se a marca (ou a organização) editar o combo com este formulário aberto: relê sozinha.
+  const lista = useLeitura(
+    async () => { const f = await rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: participacaoId }); return (f && f.itens) || [] },
+    ['cadastro'], { chave: participacaoId, ativo: papel === 'item' },
+  )
+  const itens = lista.dados === undefined ? (lista.erro ? [] : null) : lista.dados
+  const avisoLista = lista.erro && lista.dados === undefined ? msgErro({ message: lista.erro }) : null
+  // O componente escolhido deixou de existir no combo: a escolha some (não vai um id morto).
+  React.useEffect(() => { if (itemId && lista.dados && !lista.dados.some((i) => i.id === itemId)) setItemId('') }, [lista.dados, itemId])
 
   async function enviar(ev) {
     ev.preventDefault()
@@ -447,18 +487,28 @@ function NovaFoto({ pub, participacaoId, edicao, onFechar, onSalvo }) {
     if (papel === 'item' && !itemId) { setAviso('Escolha o componente da foto.'); return }
     if (papel === 'loja' && !unidadeId) { setAviso('Escolha a unidade da foto.'); return }
     setEnviando(true)
+    let registrando = false
     try {
-      const { blob, largura, altura } = await paraWebp(arquivo)
-      const path = caminhoMidia(edicao, participacaoId, crypto.randomUUID())
-      const a = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: BUCKET_EDICAO, path })
-      const r = await comEnvio('Envio da foto', () => fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': 'image/webp' } }))
-      if (!r.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + r.status + ')')
+      let envio = subido.current && subido.current.impressao === impressaoDoArquivo(arquivo) ? subido.current : null
+      if (!envio) {
+        const { blob, largura, altura } = await paraWebp(arquivo)
+        const path = caminhoMidia(edicao, participacaoId, crypto.randomUUID())
+        const a = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: BUCKET_EDICAO, path })
+        const r = await comEnvio('Envio da foto', () => fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': 'image/webp' } }))
+        if (!r.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + r.status + ')')
+        envio = subido.current = { path, largura, altura, impressao: impressaoDoArquivo(arquivo) }
+      }
+      registrando = true
       await rpc('org_salvar_midia', { p_secret: lerSenha(), p_dados: {
         participacao_id: participacaoId, papel, item_id: papel === 'item' ? itemId : null,
-        participacao_unidade_id: papel === 'loja' ? unidadeId : null, path, largura, altura, alt, credito,
+        participacao_unidade_id: papel === 'loja' ? unidadeId : null, path: envio.path, largura: envio.largura, altura: envio.altura, alt, credito,
       } })
-      await onSalvo(); onFechar()
-    } catch (e) { setAviso(msgErro(e)) } finally { setEnviando(false) }
+      subido.current = null
+      avisarSalvo(onSalvo); onFechar()
+    } catch (e) {
+      // A foto já está no armazenamento e só o registro falhou: diz isso (e o reenvio reaproveita o arquivo).
+      setAviso(registrando ? msgErro(e) + ' A foto já foi enviada; ao enviar de novo ela não sobe outra vez.' : msgErro(e))
+    } finally { setEnviando(false) }
   }
 
   const TIPO = { doce: 'Doce', salgado: 'Salgado', bebida: 'Bebida' }
@@ -481,7 +531,7 @@ function NovaFoto({ pub, participacaoId, edicao, onFechar, onSalvo }) {
         <button className="og-btn og-btn--mini" type="submit" disabled={enviando} aria-busy={enviando || undefined}>{enviando ? 'Enviando…' : 'Enviar foto'}</button>
         <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={onFechar} disabled={enviando}>Cancelar</button>
       </div>
-      <Aviso aviso={aviso} />
+      <Aviso aviso={aviso || avisoLista} />
     </form>
   )
 }

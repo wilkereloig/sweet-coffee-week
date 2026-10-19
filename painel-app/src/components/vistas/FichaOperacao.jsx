@@ -10,6 +10,10 @@ import {
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Secao, traduzirErro, Escolha, BotaoIcone, Botao } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { useRascunhoOrg, avisarSalvo } from '../../lib/rascunhoOrg'
 
 /*
  * Ficha 360 — as duas abas novas da ficha da marca (docs/EVOLUCAO-PAINEL-2026-09.md):
@@ -21,47 +25,78 @@ import { confirmar, pedirTexto, avisar } from '../Confirmar'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
+/*
+ * A ficha 360 da participação. Três maneiras de ler, uma só função:
+ *   · primeira leitura / "Tentar de novo": mostra "Carregando…" e o erro;
+ *   · releitura SILENCIOSA (sinal de outra pessoa, reconexão, depois de gravar): nunca
+ *     volta ao esqueleto — o que está na tela fica, e se a leitura falhar continua
+ *     lá (a falha vai ao indicador de sincronização, não ao lugar do conteúdo).
+ * Resposta velha, tela desmontada e troca de marca nunca gravam estado (useGuarda), e
+ * os dados de OUTRA participação nunca aparecem sob o nome da atual.
+ */
 function useFicha(participacaoId) {
+  const guarda = useGuarda()
   const [estado, setEstado] = React.useState({ carregando: true, dados: null, erro: null })
-  const carregar = React.useCallback(async () => {
-    if (!participacaoId) { setEstado({ carregando: false, dados: null, erro: null }); return }
-    // Recarga da MESMA ficha mantém o conteúdo na tela; ficha de outra marca
-    // não — senão os dados da anterior aparecem sob o nome da nova.
-    setEstado((e) => ({ ...e, carregando: !e.dados || e.dados.participacao_id_pedida !== participacaoId, erro: null }))
+  // true = leu (ou não havia o que ler); false = a leitura falhou.
+  const ler = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!participacaoId) { setEstado({ carregando: false, dados: null, erro: null }); return true }
+    if (!silencioso) setEstado((e) => ({ ...e, carregando: !e.dados || e.dados.participacao_id_pedida !== participacaoId, erro: null }))
     try {
       const f = await rpc('get_ficha_360', { p_secret: lerSenha(), p_participacao: participacaoId })
+      if (!vale()) return true
       setEstado({ carregando: false, dados: f && { ...f, participacao_id_pedida: participacaoId }, erro: f ? null : 'Ficha não encontrada.' })
+      return true
     } catch (e) {
-      setEstado({ carregando: false, dados: null, erro: e.message })
+      if (!vale()) return true
+      if (!silencioso) setEstado({ carregando: false, dados: null, erro: e.message })
+      return false
     }
-  }, [participacaoId])
-  React.useEffect(() => { carregar() }, [carregar])
-  return [estado, carregar]
+  }, [participacaoId, guarda])
+  React.useEffect(() => { ler() }, [ler])
+  useSincronizar(DOMINIOS_VISTAS.ficha360, async () => { if (!(await ler({ silencioso: true }))) throw new Error('ficha') }, { ativo: !!participacaoId })
+  // Troca de marca: o render que vem antes do efeito não mostra o dado da anterior.
+  const deOutra = !!estado.dados && estado.dados.participacao_id_pedida !== participacaoId
+  const efetivo = deOutra ? { carregando: true, dados: null, erro: null } : estado
+  const carregar = React.useCallback(() => ler(), [ler])
+  const recarregar = React.useCallback(() => ler({ silencioso: true }), [ler])
+  return [efetivo, carregar, recarregar]
 }
 
 // Um bloco "status + motivo + salvar" — foto, pagamento e combo usam o mesmo.
-function Decisao({ titulo, nota, opcoes, valor, texto, rotuloTexto, exigeTexto, podeMudar, semPermissao, onSalvar }) {
-  const [v, setV] = React.useState(valor)
-  const [t, setT] = React.useState(texto || '')
+// O rascunho (situação e texto) resiste a alteração externa: o dado do servidor que chega
+// por releitura NUNCA troca o que a pessoa escolheu ou digitou (useRascunhoOrg).
+function Decisao({ titulo, nota, opcoes, valor, texto, rotuloTexto, exigeTexto, podeMudar, semPermissao, onSalvar, chave }) {
+  const servidor = React.useMemo(() => ({ situacao: valor ?? null, texto: texto || '' }), [valor, texto])
+  const r = useRascunhoOrg(servidor, ['situacao', 'texto'], { chave, rotulo: titulo })
+  const v = r.local.situacao
+  const t = r.local.texto
   const [salvando, setSalvando] = React.useState(false)
   const [aviso, setAviso] = React.useState(null)
-  React.useEffect(() => { setV(valor); setT(texto || '') }, [valor, texto])
-  const mudou = v !== valor || (t || '') !== (texto || '')
   async function salvar(ev) {
     ev.preventDefault()
+    const form = ev.currentTarget
     if (exigeTexto && exigeTexto(v) && !t.trim()) { setAviso('Escreva o que precisa mudar — a marca recebe esse texto.'); return }
+    if (Object.keys(r.conflitos).length) { setAviso('Este campo mudou enquanto você editava. Escolha qual versão vale, acima, antes de salvar.'); return }
     setSalvando(true); setAviso(null)
-    try { await onSalvar(v, t); setAviso({ ok: 'Salvo.' }) } catch (e) { setAviso(traduzirErro(e.message)) } finally { setSalvando(false) }
+    const enviado = { situacao: v, texto: t }
+    try {
+      await onSalvar(v, t)
+      r.salvou(enviado)
+      avisarSalvo(form)
+      setAviso({ ok: 'Salvo.' })
+    } catch (e) { setAviso(traduzirErro(e.message)) } finally { setSalvando(false) }
   }
   return (
     <Secao titulo={titulo} nota={nota}>
-      <form className="ui-form" onSubmit={salvar}>
-        <Escolha rotulo="Situação" valor={v} onMudar={setV} disabled={!podeMudar} opcoes={Object.entries(opcoes)} />
+      <form className="ui-form" onSubmit={salvar} data-salva-por-evento="1">
+        <AvisoMudancaExterna registro={r} rotulos={{ situacao: 'Situação', texto: rotuloTexto }} />
+        <Escolha rotulo="Situação" valor={v} onMudar={(x) => r.editar('situacao', x)} disabled={!podeMudar} opcoes={Object.entries(opcoes)} />
         <label className="og-campo"><span>{rotuloTexto}</span>
-          <textarea rows={2} value={t} disabled={!podeMudar} onChange={(e) => setT(e.target.value)} maxLength={1000} />
+          <textarea rows={2} value={t} disabled={!podeMudar} onChange={(e) => r.editar('texto', e.target.value)} maxLength={1000} />
         </label>
         {podeMudar
-          ? <button className="og-btn og-btn--mini" type="submit" disabled={salvando || !mudou}>{salvando ? 'Salvando…' : 'Salvar'}</button>
+          ? <button className="og-btn og-btn--mini" type="submit" disabled={salvando || !r.sujo}>{salvando ? 'Salvando…' : 'Salvar'}</button>
           : <p className="ui-nota">{semPermissao}</p>}
         {aviso && (aviso.ok
           ? <p className="ui-nota ui-nota--ok" role="status">{aviso.ok}</p>
@@ -73,7 +108,7 @@ function Decisao({ titulo, nota, opcoes, valor, texto, rotuloTexto, exigeTexto, 
 
 /* ── Operação ────────────────────────────────────────────────────────────── */
 export function AbaOperacao({ participante, pode }) {
-  const [estado, carregar] = useFicha(participante.participacao_id)
+  const [estado, carregar, recarregar] = useFicha(participante.participacao_id)
   if (!participante.participacao_id) return <Vazio titulo="Sem participação na edição atual" />
   if (estado.carregando) return <Carregando linhas={4} />
   if (estado.erro) return <Erro texto={estado.erro} onTentar={carregar} />
@@ -90,7 +125,7 @@ export function AbaOperacao({ participante, pode }) {
     if (status === 'recusado' && !obs) return
     try {
       await rpc('decidir_tema', { p_secret: lerSenha(), p_proposta: temaAtivo.id, p_status: status, p_obs: obs || null })
-      await carregar()
+      await recarregar()
     } catch (e) { avisar(e.message.includes('tema_ja_aprovado') ? 'Este tema já foi aprovado para outra marca nesta edição.' : traduzirErro(e.message)) }
   }
 
@@ -105,21 +140,21 @@ export function AbaOperacao({ participante, pode }) {
       )}
 
       <div className="ui-grade-duas">
-        <Decisao
+        <Decisao chave={pa.id}
           titulo="Liberação para foto"
           nota={pa.foto_liberacao_motivo || 'A regra de liberação é da organização.'}
           opcoes={ROTULO_FOTO} valor={pa.foto_liberacao} texto={pa.foto_liberacao_motivo}
           rotuloTexto="Motivo (fica no histórico)"
           podeMudar={pode('pagamento.gerir')} semPermissao="Só o administrador muda a liberação."
-          onSalvar={async (v, t) => { await rpc('definir_liberacao_foto', { p_secret: lerSenha(), p_participacao: pa.id, p_status: v, p_motivo: t }); await carregar() }}
+          onSalvar={async (v, t) => { await rpc('definir_liberacao_foto', { p_secret: lerSenha(), p_participacao: pa.id, p_status: v, p_motivo: t }) }}
         />
-        <Decisao
+        <Decisao chave={pa.id}
           titulo="Pagamento da taxa"
           nota="Separado da liberação: um não muda o outro sozinho."
           opcoes={ROTULO_PAGAMENTO} valor={pa.pagamento_status} texto={pa.pagamento_obs}
           rotuloTexto="Observação"
           podeMudar={pode('pagamento.gerir')} semPermissao="Só o administrador registra pagamento."
-          onSalvar={async (v, t) => { await rpc('definir_pagamento', { p_secret: lerSenha(), p_participacao: pa.id, p_status: v, p_obs: t }); await carregar() }}
+          onSalvar={async (v, t) => { await rpc('definir_pagamento', { p_secret: lerSenha(), p_participacao: pa.id, p_status: v, p_obs: t }) }}
         />
       </div>
 
@@ -138,7 +173,7 @@ export function AbaOperacao({ participante, pode }) {
         ) : null}
       </Secao>
 
-      <Decisao
+      <Decisao chave={pa.id}
         titulo="Combo"
         nota={ROTULO_COMBO[pa.combo_status] || ''}
         opcoes={{ em_analise: 'Em análise', correcao_solicitada: 'Pedir ajuste', aprovado: 'Aprovar' }}
@@ -147,10 +182,10 @@ export function AbaOperacao({ participante, pode }) {
         exigeTexto={(v) => v === 'correcao_solicitada'}
         podeMudar={pode('curadoria.decidir') && pa.combo_status !== 'rascunho'}
         semPermissao={pa.combo_status === 'rascunho' ? 'O combo ainda está sendo preenchido pela marca.' : 'Sua função não revisa combo.'}
-        onSalvar={async (v, t) => { await rpc('revisar_combo', { p_secret: lerSenha(), p_participacao: pa.id, p_status: v, p_nota: t }); await carregar() }}
+        onSalvar={async (v, t) => { await rpc('revisar_combo', { p_secret: lerSenha(), p_participacao: pa.id, p_status: v, p_nota: t }) }}
       />
 
-      <Materiais participacao={pa.id} unidades={f.unidades || []} itens={materiais} pode={pode} onMudou={carregar} />
+      <Materiais participacao={pa.id} unidades={f.unidades || []} itens={materiais} pode={pode} onMudou={recarregar} />
 
       <Secao titulo="Sessões de fotos">
         {sessoes.length
@@ -176,7 +211,8 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
   }
   async function adicionar(ev) {
     ev.preventDefault()
-    if (await salvar(novo)) setNovo(vazio)
+    const form = ev.currentTarget
+    if (await salvar(novo)) { setNovo(vazio); avisarSalvo(form) }
   }
   return (
     <Secao titulo="Materiais" nota="Materiais desta edição.">
@@ -201,7 +237,7 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
         ))}</ul>
       )}
       {podeMudar ? (
-        <form className="ui-form ui-form--linha-dupla" onSubmit={adicionar}>
+        <form className="ui-form ui-form--linha-dupla" onSubmit={adicionar} data-salva-por-evento="1">
           <label className="og-campo"><span>Material</span>
             <select value={novo.item} onChange={(e) => setNovo({ ...novo, item: e.target.value })}>
               {Object.entries(ROTULO_MATERIAL).map(([k, r]) => <option key={k} value={k}>{r}</option>)}
@@ -230,7 +266,8 @@ function Materiais({ participacao, unidades, itens, pode, onMudou }) {
 }
 
 /* ── Trajetória ──────────────────────────────────────────────────────────── */
-export function AbaTrajetoria({ participante, pode, onMudou }) {
+export function AbaTrajetoria({ participante, pode }) {
+  const guarda = useGuarda()
   const [h, setH] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [busca, setBusca] = React.useState('')
@@ -238,30 +275,41 @@ export function AbaTrajetoria({ participante, pode, onMudou }) {
   const [aviso, setAviso] = React.useState(null)
   const podeDecidir = pode('curadoria.decidir')
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  // true = leu; false = falhou. Releitura silenciosa (sinal de outra pessoa, depois de decidir) mantém a
+  // trajetória na tela se falhar; perda de permissão aparece sempre.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     try {
       const d = await rpc('get_historia', { p_secret: lerSenha(), p_participante: participante.id })
       if (!d) throw new Error('nao_autorizado') // null = sem permissão; sem isto o esqueleto nunca sai
+      if (!vale()) return true
       setH(d)
-    } catch (e) { setErro(e.message) }
-  }, [participante.id])
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso || /nao_autorizado/.test(e.message)) setErro(e.message)
+      return false
+    }
+  }, [participante.id, guarda])
   // Outra marca: zera a trajetória e a busca da anterior.
   React.useEffect(() => { setH(null); setBusca(''); setAchados([]); setAviso(null) }, [participante.id])
   React.useEffect(() => { carregar() }, [carregar])
+  useSincronizar(DOMINIOS_VISTAS.trajetoria, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('trajetoria') })
 
   async function decidir(chave, status) {
     setAviso(null)
     // Sem pedir motivo (pedido do Wilker, 12/10/2026): o clique decide; quem e quando ficam na auditoria.
     try {
       await rpc('decidir_vinculo', { p_secret: lerSenha(), p_participante: participante.id, p_chave: chave, p_status: status, p_motivo: null })
-      await carregar(); onMudou && onMudou()
+      await carregar({ silencioso: true })
     } catch (e) { setAviso(e.message.includes('duplicate') ? 'Essa marca do acervo já está ligada a outro estabelecimento.' : traduzirErro(e.message)) }
   }
   async function marcarNovo() {
     const motivo = await pedirTexto('Confirmar que esta é a PRIMEIRA participação da marca? Diga como foi confirmado.', {})
     if (!motivo) return
-    try { await rpc('marcar_participante_novo', { p_secret: lerSenha(), p_participante: participante.id, p_motivo: motivo }); await carregar(); onMudou && onMudou() }
+    try { await rpc('marcar_participante_novo', { p_secret: lerSenha(), p_participante: participante.id, p_motivo: motivo }); await carregar({ silencioso: true }) }
     catch (e) { setAviso(e.message.includes('ja_tem_historico') ? 'Há vínculo confirmado com o acervo: desfaça antes.' : traduzirErro(e.message)) }
   }
   async function procurar(ev) {

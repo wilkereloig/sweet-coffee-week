@@ -11,6 +11,7 @@ import * as P from '../../lib/pastas'
 import { useUrlsAssinadas, prepararArquivo, enviarArquivo, chaveFonte, urlDe } from '../../lib/redesArquivos'
 import { Miniatura, traduzirRedes } from './RedesFicha'
 import { useEntrega, EstadoEntrega, BotoesEntrega } from './BaixarArquivo'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
 
 /*
  * Social media › Biblioteca (17/10/2026; PASTAS em 17/10/2026). Uma lista só,
@@ -128,6 +129,9 @@ function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, onMover, onVerPo
   const { urls, erro: erroUrl, renovar } = useUrlsAssinadas(x ? [fonteItem(x)] : [])
   const [falhou, setFalhou] = React.useState(false)
   const tentou = React.useRef(false) // renova UMA vez: arquivo quebrado não vira laço de pedidos
+  const chaveArq = x ? chaveFonte(fonteItem(x)) : ''
+  React.useEffect(() => { tentou.current = false }, [chaveArq])
+  React.useEffect(() => { setFalhou(false) }, [chaveArq, urls[chaveArq]])
   if (!x) return null
   const url = urlDe(urls, fonteItem(x))
   const video = String(x.mime || '').startsWith('video/')
@@ -225,7 +229,7 @@ function VincularPasta({ pasta, opcoes, onSalvar, onFechar }) {
  * busca, ordem, filtros; pastas primeiro, arquivos embaixo; seleção explícita.
  * `estado`: { pasta: '' | 'sem' | 'recentes' | uuid, q, tipo, ord, ed, part, sit, ver }.
  */
-function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode, navegar, registrarAtualizar = null, participanteId = null, jaUsados = [], ocupado = false, onEscolher = null }) {
+function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode, navegar, participanteId = null, jaUsados = [], ocupado = false, onEscolher = null }) {
   const seletor = modo === 'seletor'
   const [pastasR, setPastasR] = React.useState(null) // { pastas, pode_organizar } | { indisponivel }
   const [lista, setLista] = React.useState(null)
@@ -240,16 +244,44 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
   const [aviso, setAviso] = React.useState('')
   const [soDele, setSoDele] = React.useState(!!participanteId)
   const entrega = useEntrega()
-  const pedidoPastas = React.useRef(0)
-  const pedidoLista = React.useRef(0)
+  // Três leituras com guarda própria: resposta velha nunca sobrescreve a nova, nem depois de sair, trocar de conta
+  // ou de fechar a tela. A releitura por sinal é SILENCIOSA (não troca nada por "Carregando…", mantém pasta aberta,
+  // busca, filtros e seleção) e, se falhar, MANTÉM o que está na tela — devolve false para o indicador de sincronização.
+  const guardaPastas = useGuarda()
+  const guardaLista = useGuarda()
+  const guardaOpcoes = useGuarda()
+  const temPastas = React.useRef(false)
+  const temLista = React.useRef(false)
 
-  const carregarPastas = React.useCallback(async () => {
-    const meu = ++pedidoPastas.current
-    try { const r = await rpc('social_pastas_listar', { p_secret: lerSenha() }); if (meu === pedidoPastas.current) setPastasR(r) }
-    catch (e) { if (meu === pedidoPastas.current) setPastasR(semPastasNoServidor(e.message) ? { indisponivel: true, pastas: [] } : { erro: e.message, pastas: [] }) }
-  }, [])
+  const carregarPastas = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guardaPastas()
+    try {
+      const r = await rpc('social_pastas_listar', { p_secret: lerSenha() })
+      if (!vale()) return true
+      temPastas.current = true
+      setPastasR(r)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      // Releitura que falha não troca as pastas boas por "indisponível"/erro (as pastas somem e o arquivo parece perdido).
+      // Servidor sem a migration das pastas não é falha de sincronização: é a resposta (a biblioteca segue sem pastas).
+      const semPastas = semPastasNoServidor(e.message)
+      if (!(silencioso && temPastas.current)) setPastasR(semPastas ? { indisponivel: true, pastas: [] } : { erro: e.message, pastas: [] })
+      return semPastas
+    }
+  }, [guardaPastas])
   React.useEffect(() => { carregarPastas() }, [carregarPastas])
-  React.useEffect(() => { rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setOpcoes(o)).catch(() => {}) }, [])
+  // Edições e participantes dos filtros (o seletor dentro da postagem não tem filtros: não precisa).
+  const carregarOpcoes = React.useCallback(async () => {
+    const vale = guardaOpcoes()
+    try {
+      const o = await rpc('redes_opcoes', { p_secret: lerSenha() })
+      if (vale() && o) setOpcoes(o)
+      return true
+    } catch { return !vale() }
+  }, [guardaOpcoes])
+  React.useEffect(() => { if (!seletor) carregarOpcoes() }, [carregarOpcoes, seletor])
+  useSincronizar(['participantes', 'editorial', 'edicao'], async () => { if (!(await carregarOpcoes())) throw new Error('redes_opcoes') }, { ativo: !seletor })
 
   const comPastas = !!pastasR && !pastasR.indisponivel && !pastasR.erro
   const podeOrganizar = comPastas && !!pastasR.pode_organizar && !seletor
@@ -270,18 +302,34 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
     ...(comPastas && !buscando && !soDoParticipante && local !== 'recentes' ? { pasta: pastaAtual ? pastaAtual.id : 'sem' } : {}),
   }
   const chave = pastasR ? JSON.stringify(filtros) : ''
-  const carregar = React.useCallback(async () => {
-    if (!chave) return
-    const meu = ++pedidoLista.current // resposta velha não sobrescreve a nova
-    setErro(null)
-    try { const r = await rpc('social_biblioteca', { p_secret: lerSenha(), p_filtros: JSON.parse(chave) }); if (meu === pedidoLista.current) setLista(r || []) }
-    catch (e) { if (meu === pedidoLista.current) setErro(e.message) }
-  }, [chave])
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    if (!chave) return true
+    const vale = guardaLista()
+    if (!silencioso) setErro(null)
+    try {
+      const r = await rpc('social_biblioteca', { p_secret: lerSenha(), p_filtros: JSON.parse(chave) })
+      if (!vale()) return true
+      temLista.current = true
+      setLista(r || [])
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!(silencioso && temLista.current)) setErro(e.message)
+      return false
+    }
+  }, [chave, guardaLista])
   React.useEffect(() => { carregar() }, [carregar])
   const recarregarTudo = React.useCallback(() => { carregarPastas(); carregar() }, [carregarPastas, carregar])
-  // O "atualizar" do topo do painel relê pastas e arquivos.
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(recarregarTudo) }, [registrarAtualizar, recarregarTudo])
+  // A lista mostra arte final (redes/biblioteca), fotos e logos (editorial = o que a Social media recebe do cadastro; logos = acervo).
+  // Os dois instrumentos — a página e o seletor dentro da postagem — se inscrevem do mesmo jeito.
+  useSincronizar(['biblioteca', 'redes', 'editorial', 'logos'], async () => {
+    const [a, b] = await Promise.all([carregarPastas({ silencioso: true }), carregar({ silencioso: true })])
+    if (!a || !b) throw new Error('biblioteca')
+  })
   React.useEffect(() => { setMarcados(new Map()); setSelecionando(false) }, [local])
+  // A seleção sobrevive à releitura: ficam os que ainda existem (já com o objeto novo); quem sumiu sai.
+  React.useEffect(() => { if (lista) setMarcados((m) => R.podarSelecao(m, lista, P.chaveItem)) }, [lista])
   React.useEffect(() => { if (!aviso) return undefined; const t = setTimeout(() => setAviso(''), 5000); return () => clearTimeout(t) }, [aviso])
   React.useEffect(() => { setBusca(estado.q || '') }, [estado.q])
   React.useEffect(() => {
@@ -612,7 +660,7 @@ export function SeletorBiblioteca({ participanteId, jaUsados = [], ocupado, onEs
   )
 }
 
-export function SocialBiblioteca({ rota, navegar, pode, registrarAtualizar }) {
+export function SocialBiblioteca({ rota, navegar, pode }) {
   const f = rota.filtros || {}
   const fAtual = React.useRef(f)
   fAtual.current = f
@@ -629,5 +677,5 @@ export function SocialBiblioteca({ rota, navegar, pode, registrarAtualizar }) {
     for (const k of Object.keys(n)) if (n[k] === undefined || n[k] === '') delete n[k]
     navegar({ ...ALVO, filtros: n })
   }, [navegar])
-  return <NavegadorBiblioteca modo="pagina" estado={f} mudar={mudar} abrirPasta={abrirPasta} pode={pode} navegar={navegar} registrarAtualizar={registrarAtualizar} />
+  return <NavegadorBiblioteca modo="pagina" estado={f} mudar={mudar} abrirPasta={abrirPasta} pode={pode} navegar={navegar} />
 }

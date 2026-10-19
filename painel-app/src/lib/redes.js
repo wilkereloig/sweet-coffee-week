@@ -12,6 +12,8 @@
  * calendário viajam como "AAAA-MM-DD" e a conta é feita em UTC, sem hora local.
  */
 
+import { iniciarRegistro, reduzirRegistro } from './sync/mesclar.js'
+
 export const FUSO = 'America/Fortaleza'
 export const PERFIL_PADRAO = '@sweetcoffeeweek'
 
@@ -503,4 +505,114 @@ export function diferencas(base, campos) {
  */
 export function camposEmConflito(baseLida, salvo, meus) {
   return Object.keys(meus).filter((k) => norm(salvo[k]) !== norm(baseLida[k]) && norm(salvo[k]) !== norm(meus[k]))
+}
+
+// ── Sincronização: o que chegou de fora enquanto a pessoa digitava (19/10/2026) ──
+/** Os campos de conteúdo de uma postagem, como texto (o que os formulários editam). */
+export const camposDoPost = (p) => Object.fromEntries(CAMPOS.map((k) => [k, norm(p ? p[k] : '')]))
+
+/**
+ * Chegou uma versão nova da postagem (sinal de outra pessoa, reconexão, depois de uma ação)
+ * enquanto a ficha pode ter texto digitado. Mescla campo a campo em três vias:
+ *   velha    = a última versão que ESTA tela viu confirmada (a base);
+ *   atuais   = o que está digitado agora;
+ *   servidor = a postagem como ela está agora.
+ *   · campo que a pessoa não tocou           → acompanha o servidor;
+ *   · campo que ela mudou e o servidor não   → fica o dela;
+ *   · campo que ela mudou e o servidor mudou para OUTRO valor → CONFLITO: fica o dela e a tela
+ *     NÃO deixa salvar até ela escolher (a base anda para a versão nova; sem esse bloqueio, o
+ *     salvamento seguinte levaria a versão nova e passaria por cima do outro sem ninguém perceber).
+ * Devolve: campos (o que a tela mostra), meus (o que ELA mudou, no formato de redes_salvar),
+ * conflitos (chaves), adotados (campos que acompanharam o servidor sem ela ter tocado) e
+ * mudouFora (a versão andou).
+ */
+export function mesclarPostExterno(velha, atuais, servidor) {
+  const v = velha || {}
+  const meus = diferencas(v, atuais || {})
+  const conflitos = camposEmConflito(v, servidor, meus)
+  const adotados = CAMPOS.filter((k) => !(k in meus) && norm(servidor[k]) !== norm(v[k]))
+  const campos = camposDoPost(servidor)
+  for (const k of Object.keys(meus)) campos[k] = atuais[k]
+  return { campos, meus, conflitos, adotados, mudouFora: servidor.versao !== v.versao }
+}
+/**
+ * Conflitos que seguem valendo: os já avisados mais os novos, só dos campos que a pessoa AINDA tem
+ * alterados. A base anda para a versão nova, então um conflito avisado numa releitura precisa
+ * sobreviver à seguinte — senão a segunda releitura "esquece" e libera o salvar por cima.
+ */
+export function conflitosAbertos(anteriores, novos, mudancas) {
+  const m = mudancas || {}
+  return [...new Set([...(anteriores || []), ...(novos || [])])].filter((k) => k in m)
+}
+
+/**
+ * O aviso do barramento é sobre OUTRA postagem? Só quando dá para ter certeza: todos os sinais
+ * são do servidor ('remota'), só do domínio das postagens e todos trazem o id de outras postagens.
+ * Gravação local, reconciliação (sem id) ou qualquer outro domínio → não dá para dizer: relê.
+ */
+export function avisoDeOutraPostagem(aviso, id) {
+  if (!aviso || !id) return false
+  const dominios = aviso.dominios || [], refs = aviso.refs || [], origens = aviso.origens || []
+  if (!dominios.length || !dominios.every((d) => d === 'redes')) return false
+  if (!origens.length || !origens.every((o) => o === 'remota')) return false
+  return refs.length > 0 && !refs.includes(String(id))
+}
+
+/** O texto alternativo mudou no servidor DEPOIS de a pessoa começar a digitar o dela (e não é o mesmo texto)? */
+export const altMudouFora = (rascunho, altAtual) => !!rascunho && norm(altAtual) !== norm(rascunho.base) && norm(altAtual) !== norm(rascunho.v)
+
+/** Seleção que sobrevive à releitura: fica quem ainda existe (já com o objeto novo); quem sumiu sai. */
+export function podarSelecao(marcados, lista, chave) {
+  if (!marcados || !marcados.size) return marcados
+  const novo = new Map()
+  for (const x of lista || []) { const k = chave(x); if (marcados.has(k)) novo.set(k, x) }
+  return novo
+}
+
+// ── Combo editorial (Social media › Participantes) ──
+const COMBO_CAMPOS = ['combo_nome', 'combo_descricao', 'combo_proposta']
+/** O que mudou no formulário em relação ao lido (só isso vai ao servidor). */
+export function mudancasEditoriais(lido, form) {
+  const d = {}
+  for (const k of COMBO_CAMPOS) if (norm(form[k]).trim() !== norm(lido[k])) d[k] = form[k]
+  const itens = []
+  for (const it of form.itens || []) {
+    const orig = (lido.itens || []).find((x) => x.id === it.id) || {}
+    const m = {}
+    if (norm(it.nome).trim() !== norm(orig.nome)) m.nome = it.nome
+    if (norm(it.descricao).trim() !== norm(orig.descricao)) m.descricao = it.descricao
+    if (Object.keys(m).length) itens.push({ id: it.id, ...m })
+  }
+  if (itens.length) d.itens = itens
+  return d
+}
+/** O combo editável como mapa plano de campo → texto ('item:<id>:nome'…), a forma que a mesclagem entende. */
+export function achatarEditavel(ed) {
+  const o = {}
+  for (const k of COMBO_CAMPOS) o[k] = norm(ed && ed[k])
+  for (const it of (ed && ed.itens) || []) { o['item:' + it.id + ':nome'] = norm(it.nome); o['item:' + it.id + ':descricao'] = norm(it.descricao) }
+  return o
+}
+/**
+ * Volta do mapa plano para o formato do combo editável; o que o mapa não tem vem do `modelo` (o servidor agora).
+ * Texto vazio onde o servidor tem NULO continua nulo: é o que o servidor compara em `p_esperado` (vazio ≠ nulo lá).
+ */
+export function aEditavel(plano, modelo) {
+  const m = modelo || {}, p = plano || {}
+  const pega = (k, padrao) => (k in p ? (p[k] === '' && (padrao == null || padrao === '') ? padrao : p[k]) : padrao)
+  const o = { ...m }
+  for (const k of COMBO_CAMPOS) o[k] = pega(k, m[k])
+  o.itens = (m.itens || []).map((it) => ({ ...it, nome: pega('item:' + it.id + ':nome', it.nome), descricao: pega('item:' + it.id + ':descricao', it.descricao) }))
+  return o
+}
+/**
+ * Registro do combo em edição (null = ninguém editando). É o reducer genérico de
+ * lib/sync/mesclar.js com dois extras: 'iniciar' (abre a edição sobre o combo lido agora) e 'sair'.
+ * Chegou o combo novo do servidor ('servidor'): o que a pessoa não tocou acompanha, o que digitou
+ * nunca é trocado, o mesmo campo mudado dos dois lados vira conflito e ela escolhe.
+ */
+export function reduzirEditorial(estado, acao) {
+  if (acao.tipo === 'iniciar') { const plano = achatarEditavel(acao.editavel); return iniciarRegistro(plano, Object.keys(plano)) }
+  if (acao.tipo === 'sair') return null
+  return estado ? reduzirRegistro(estado, acao) : estado
 }

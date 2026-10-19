@@ -22,6 +22,7 @@ import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA, loginDaConta } from '../../src/
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
 import { auth, api, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
 import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
+import { useSincronizar } from './lib/sync/react'
 import { lerGuardada, apagarGuardada } from './lib/sessaoGuardada'
 import { Icone } from './components/Icone'
 
@@ -201,6 +202,21 @@ export function App() {
     return () => { cancelado = true }
   }, [estado])
 
+  // A permissão muda de verdade enquanto a pessoa está no painel (função trocada,
+  // conta suspensa): o servidor avisa pelo canal pessoal e a lista é relida na hora,
+  // em vez de valer só até o próximo login. Conta suspensa ou sem perfil sai do painel.
+  const recarregarPermissoes = React.useCallback(async () => {
+    const linhas = await rpc('minhas_permissoes', {})
+    if (!linhas || linhas.length === 0) { setMotivoBloqueio('sem-perfil'); setEstado('bloqueado-org'); return }
+    if (linhas[0].ativo === false) { setMotivoBloqueio('suspenso'); setEstado('bloqueado-org'); return }
+    const acoes = linhas[0].acoes || []
+    setAcoesPermitidas((ant) => (ant && ant.length === acoes.length && ant.every((a, i) => a === acoes[i]) ? ant : acoes))
+    setFuncaoRotulo(linhas[0].rotulo || linhas[0].funcao || null)
+    setFuncaoCodigo(linhas[0].funcao || null)
+    setPermissoesFalharam(false)
+  }, [])
+  useSincronizar(['perfis'], recarregarPermissoes, { ativo: estado === 'painel-org' && !!lerGuardada(CHAVE_SESSAO_ORG_CONTA) })
+
   React.useEffect(() => {
     if (estado !== 'painel-org' || !permissoesFalharam) return
     const t = setInterval(() => {
@@ -230,7 +246,22 @@ export function App() {
     sessionStorage.removeItem(CHAVE_SESSAO_ORG)
     apagarGuardada(CHAVE_SESSAO_ORG_CONTA)
     setAcoesPermitidas(null)
+    setFuncaoRotulo(null)
+    setFuncaoCodigo(null)
     setPermissoesFalharam(false)
+    setDestino(null)
+    setEstado('boas-vindas')
+  }
+
+  // Outra ABA saiu ou entrou como outra pessoa: aqui só se encerra o contexto desta aba.
+  // Nada de logout no servidor nem de apagar a sessão — ela já é a da outra conta (ou
+  // nem existe mais), e mexer nela derrubaria quem acabou de entrar.
+  function trocaLocal() {
+    setAcoesPermitidas(null)
+    setFuncaoRotulo(null)
+    setFuncaoCodigo(null)
+    setPermissoesFalharam(false)
+    setMotivoBloqueio(null)
     setDestino(null)
     setEstado('boas-vindas')
   }
@@ -342,6 +373,7 @@ export function App() {
         <PainelMarcaShell
           vistas={VISTAS_MARCA}
           onSair={() => sairMarca()}
+          onTrocaDeConta={trocaLocal}
           onPausada={() => setEstado('pausada-marca')}
           linkInicial={destino}
         />
@@ -356,6 +388,7 @@ export function App() {
       <PainelShell
         vistas={MODULOS_ORG}
         onSair={() => sairOrg()}
+        onTrocaDeConta={trocaLocal}
         permissoes={acoesPermitidas}
         rotaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : funcaoCodigo === 'social' ? 'social/planejamento' : 'visao'}
         nominal={!!lerGuardada(CHAVE_SESSAO_ORG_CONTA)}

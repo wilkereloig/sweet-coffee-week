@@ -10,6 +10,10 @@ import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha, BotaoIcone } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS, CAMPOS_EDICAO, registroDaEdicao, dadosParaSalvarEdicao, registroSalvoDaEdicao } from '../../lib/syncFichas'
+import { useRascunhoOrg } from '../../lib/rascunhoOrg'
 
 /*
  * Edição — a edição como CONFIGURAÇÃO (docs/EVOLUCAO-PAINEL-2026-09.md):
@@ -26,60 +30,112 @@ const CHAVES_CRONO = [['', '—'], ['confirmacao', 'Confirmação'], ['tema', 'T
 function dataBr(iso) { return iso ? String(iso).slice(0, 10).split('-').reverse().join('/') : '' }
 
 /* ── Configuração + cronograma ───────────────────────────────────────────── */
+const CAMPOS_ITEM = ['titulo', 'tipo', 'chave', 'inicio', 'fim', 'condicao', 'visivel_participante']
+const registroDoItem = (i) => ({
+  titulo: i.titulo || '', tipo: i.tipo || 'prazo', chave: i.chave || '', inicio: i.inicio || '', fim: i.fim || '',
+  condicao: i.condicao || '', visivel_participante: i.visivel_participante !== false,
+})
+
+/*
+ * Formulário de UM item do cronograma. Editar um item existente é editar um registro do servidor: se outra
+ * pessoa o mudar enquanto este formulário está aberto, o que foi digitado fica, o campo que ela não tocou
+ * acompanha o dado novo, e o mesmo campo mudado dos dois lados vira conflito (AvisoMudancaExterna). Item
+ * removido por outra pessoa não é recriado por um salvamento: o formulário diz e só deixa fechar.
+ */
+function FormItemCronograma({ edicao, inicial, onSalvo, onCancelar }) {
+  const noServidor = inicial.id ? (edicao.cronograma || []).find((x) => x.id === inicial.id) || null : null
+  const sumiu = !!inicial.id && !noServidor
+  const assinatura = JSON.stringify(registroDoItem(noServidor || inicial))
+  const servidor = React.useMemo(() => registroDoItem(noServidor || inicial), [assinatura]) // eslint-disable-line react-hooks/exhaustive-deps
+  const r = useRascunhoOrg(servidor, CAMPOS_ITEM, { chave: inicial.id || 'novo', rotulo: 'Item do cronograma' })
+  const item = r.local
+  const [salvando, setSalvando] = React.useState(false)
+  const [aviso, setAviso] = React.useState(null)
+  async function salvar(ev) {
+    ev.preventDefault()
+    if (sumiu) return
+    if (Object.keys(r.conflitos).length) { setAviso('Há campos que mudaram enquanto você editava. Escolha qual versão vale, acima, antes de salvar.'); return }
+    setAviso(null); setSalvando(true)
+    const enviado = r.local
+    try {
+      // Os campos que o formulário não mostra (ordem, obrigatório) vêm do item como está AGORA no servidor.
+      await rpc('salvar_cronograma_item', { p_secret: lerSenha(), p_item: { ...(noServidor || inicial), ...enviado, edicao_codigo: edicao.codigo } })
+      r.salvou(enviado)
+      onSalvo()
+    } catch (e) { setAviso(traduzirErro(e.message)) } finally { setSalvando(false) }
+  }
+  return (
+    <>
+      <AvisoMudancaExterna registro={r} rotulos={{ titulo: 'Título', tipo: 'Tipo', chave: 'Papel no painel', inicio: 'Início', fim: 'Fim', condicao: 'Condição', visivel_participante: 'A marca vê este item' }} />
+      {sumiu && <p className="ui-nota ui-nota--erro" role="alert">Este item foi removido por outra pessoa. Feche o formulário; salvar não o traria de volta.</p>}
+      <form className="ui-form ui-form--linha-dupla ui-form--destaque" onSubmit={salvar}>
+        <label className="og-campo"><span>Título</span><input type="text" required value={item.titulo} onChange={(e) => r.editar('titulo', e.target.value)} /></label>
+        <label className="og-campo"><span>Tipo</span>
+          <select value={item.tipo} onChange={(e) => r.editar('tipo', e.target.value)}>
+            {Object.entries(ROTULO_TIPO_CRONO).map(([k, r2]) => <option key={k} value={k}>{r2}</option>)}
+          </select></label>
+        <label className="og-campo"><span>Papel no painel <em>(liga à próxima ação)</em></span>
+          <select value={item.chave} onChange={(e) => r.editar('chave', e.target.value)}>
+            {CHAVES_CRONO.map(([k, r2]) => <option key={k} value={k}>{r2}</option>)}
+          </select></label>
+        {item.tipo !== 'prazo' && <label className="og-campo"><span>{item.tipo === 'marco' ? 'Data' : 'Início'}</span><input type="date" value={item.inicio} onChange={(e) => r.editar('inicio', e.target.value)} /></label>}
+        {item.tipo !== 'marco' && <label className="og-campo"><span>{item.tipo === 'prazo' ? 'Até' : 'Fim'}</span><input type="date" value={item.fim} onChange={(e) => r.editar('fim', e.target.value)} /></label>}
+        <label className="og-campo"><span>Condição <em>(opcional)</em></span><input type="text" value={item.condicao} onChange={(e) => r.editar('condicao', e.target.value)} /></label>
+        <label className="og-campo og-campo--linha"><input type="checkbox" checked={item.visivel_participante} onChange={(e) => r.editar('visivel_participante', e.target.checked)} /><span>A marca vê este item</span></label>
+        <div className="ui-linha-acoes">
+          <button className="og-btn og-btn--mini" type="submit" disabled={salvando || sumiu}>{salvando ? 'Salvando…' : 'Salvar item'}</button>
+          <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={onCancelar}>{sumiu ? 'Fechar' : 'Cancelar'}</button>
+        </div>
+        {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
+      </form>
+    </>
+  )
+}
+
 function AbaConfiguracao({ edicao, pode, onMudou }) {
-  const [form, setForm] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [item, setItem] = React.useState(null)
   const [avisoItem, setAvisoItem] = React.useState(null)
-  // Salvar ou remover um item do cronograma recarrega a edição: o formulário
-  // de cima só volta ao valor do banco quando a EDIÇÃO muda, senão o que foi
-  // digitado e ainda não salvo some.
-  React.useEffect(() => {
-    setForm({
-      nome: edicao.nome || '', tema: edicao.tema || '', festival_inicio: edicao.festival_inicio || '',
-      festival_fim: edicao.festival_fim || '', taxa_inscricao: edicao.taxa_inscricao ?? '', valor_combo: edicao.valor_combo ?? '',
-      foto_exige_pagamento: !!edicao.foto_exige_pagamento, lembrete_vendas_hora: (edicao.lembrete_vendas_hora || '').slice(0, 5),
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [edicao.codigo])
+  // O formulário de cima é um RASCUNHO da edição que resiste a alteração externa (useRascunhoOrg): a edição é relida
+  // em silêncio (outra pessoa salvou, reconexão, cronograma mexido aqui) e o que foi digitado e ainda não salvo nunca
+  // é trocado — campo não tocado acompanha o dado novo, o mesmo campo mudado dos dois lados pede escolha. Trocar de
+  // edição (outro código) recomeça do zero.
+  const assinatura = JSON.stringify(registroDaEdicao(edicao))
+  const servidor = React.useMemo(() => registroDaEdicao(edicao), [assinatura]) // eslint-disable-line react-hooks/exhaustive-deps
+  const r = useRascunhoOrg(servidor, CAMPOS_EDICAO, { chave: edicao.codigo, rotulo: 'Dados da edição' })
+  const form = r.local
   const podeMudar = pode('edicao.gerir')
-  if (!form) return null
 
   async function salvar(ev) {
     ev.preventDefault()
     setAviso(null)
+    if (Object.keys(r.conflitos).length) { setAviso('Há campos que mudaram enquanto você editava. Escolha qual versão vale, acima, antes de salvar.'); return }
+    const enviado = r.local
     try {
-      await rpc('salvar_edicao', { p_secret: lerSenha(), p_dados: {
-        codigo: edicao.codigo, nome: form.nome, tema: form.tema,
-        festival_inicio: form.festival_inicio || null, festival_fim: form.festival_fim || null,
-        taxa_inscricao: form.taxa_inscricao === '' ? null : Number(form.taxa_inscricao),
-        valor_combo: form.valor_combo === '' ? null : Number(form.valor_combo),
-        foto_exige_pagamento: form.foto_exige_pagamento,
-        lembrete_vendas_hora: form.lembrete_vendas_hora || null,
-      } })
+      await rpc('salvar_edicao', { p_secret: lerSenha(), p_dados: dadosParaSalvarEdicao(edicao.codigo, enviado) })
+      // A base passa a ser o que o servidor confirmou, na forma em que ele vai devolver (número "35.50" volta "35.5").
+      const salvo = registroSalvoDaEdicao(enviado)
+      r.salvou(salvo)
+      for (const c of ['taxa_inscricao', 'valor_combo']) if (enviado[c] !== salvo[c]) r.editar(c, salvo[c])
       setAviso({ ok: 'Edição salva.' })
-      onMudou()
+      // A edição se atualiza pelo domínio "edicao" que o salvamento anunciou.
     } catch (e) { setAviso(traduzirErro(e.message)) }
-  }
-  async function salvarItem(ev) {
-    ev.preventDefault()
-    setAvisoItem(null)
-    try {
-      await rpc('salvar_cronograma_item', { p_secret: lerSenha(), p_item: { ...item, edicao_codigo: edicao.codigo } })
-      setItem(null); onMudou()
-    } catch (e) { setAvisoItem(traduzirErro(e.message)) }
   }
   async function removerItem(i) {
     if (!await confirmar('Remover "' + i.titulo + '" do cronograma?')) return
     setAvisoItem(null)
-    try { await rpc('remover_cronograma_item', { p_secret: lerSenha(), p_id: i.id }); onMudou() } catch (e) { setAvisoItem(traduzirErro(e.message)) }
+    try { await rpc('remover_cronograma_item', { p_secret: lerSenha(), p_id: i.id }); if (onMudou) onMudou() } catch (e) { setAvisoItem(traduzirErro(e.message)) }
   }
-  const campo = (k) => ({ value: form[k], disabled: !podeMudar, onChange: (e) => setForm({ ...form, [k]: e.target.value }) })
+  const campo = (k) => ({ value: form[k], disabled: !podeMudar, onChange: (e) => r.editar(k, e.target.value) })
   const hoje = chaveDia(new Date())
 
   return (
     <div className="ui-pilha">
       <Secao titulo="Dados da edição">
+        <AvisoMudancaExterna registro={r} rotulos={{
+          nome: 'Nome', tema: 'Tema da edição', festival_inicio: 'Festival começa', festival_fim: 'Festival termina', valor_combo: 'Valor do combo',
+          taxa_inscricao: 'Taxa de inscrição', lembrete_vendas_hora: 'Lembrete da venda do dia', foto_exige_pagamento: 'Sessão de fotos condicionada ao pagamento',
+        }} />
         <form className="ui-form ui-form--linha-dupla" onSubmit={salvar}>
           <label className="og-campo"><span>Nome</span><input type="text" {...campo('nome')} /></label>
           <label className="og-campo"><span>Tema da edição <em>(opcional)</em></span><input type="text" {...campo('tema')} /></label>
@@ -88,7 +144,7 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
           <label className="og-campo"><span>Valor do combo (R$) <em>(o mesmo para todas as marcas)</em></span><input type="number" min="0" step="0.01" inputMode="decimal" {...campo('valor_combo')} /></label>
           <label className="og-campo"><span>Taxa de inscrição (R$) <em>(opcional)</em></span><input type="number" min="0" step="0.01" inputMode="decimal" {...campo('taxa_inscricao')} /></label>
           <label className="og-campo"><span>Lembrete da venda do dia <em>(vazio = sem lembrete)</em></span><input type="time" {...campo('lembrete_vendas_hora')} /></label>
-          <label className="og-campo og-campo--linha"><input type="checkbox" checked={form.foto_exige_pagamento} disabled={!podeMudar} onChange={(e) => setForm({ ...form, foto_exige_pagamento: e.target.checked })} />
+          <label className="og-campo og-campo--linha"><input type="checkbox" checked={form.foto_exige_pagamento} disabled={!podeMudar} onChange={(e) => r.editar('foto_exige_pagamento', e.target.checked)} />
             <span>Sessão de fotos condicionada ao pagamento da taxa (o painel avisa na liberação; não bloqueia sozinho)</span></label>
           {podeMudar ? <button className="og-btn og-btn--mini" type="submit">Salvar edição</button> : <p className="ui-nota">Só o administrador muda a edição.</p>}
           {aviso && (aviso.ok ? <p className="ui-nota ui-nota--ok" role="status">{aviso.ok}</p> : <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>)}
@@ -115,26 +171,9 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
           </li>
         ))}</ul>}
         {item && (
-          <form className="ui-form ui-form--linha-dupla ui-form--destaque" onSubmit={salvarItem}>
-            <label className="og-campo"><span>Título</span><input type="text" required value={item.titulo} onChange={(e) => setItem({ ...item, titulo: e.target.value })} /></label>
-            <label className="og-campo"><span>Tipo</span>
-              <select value={item.tipo} onChange={(e) => setItem({ ...item, tipo: e.target.value })}>
-                {Object.entries(ROTULO_TIPO_CRONO).map(([k, r]) => <option key={k} value={k}>{r}</option>)}
-              </select></label>
-            <label className="og-campo"><span>Papel no painel <em>(liga à próxima ação)</em></span>
-              <select value={item.chave} onChange={(e) => setItem({ ...item, chave: e.target.value })}>
-                {CHAVES_CRONO.map(([k, r]) => <option key={k} value={k}>{r}</option>)}
-              </select></label>
-            {item.tipo !== 'prazo' && <label className="og-campo"><span>{item.tipo === 'marco' ? 'Data' : 'Início'}</span><input type="date" value={item.inicio} onChange={(e) => setItem({ ...item, inicio: e.target.value })} /></label>}
-            {item.tipo !== 'marco' && <label className="og-campo"><span>{item.tipo === 'prazo' ? 'Até' : 'Fim'}</span><input type="date" value={item.fim} onChange={(e) => setItem({ ...item, fim: e.target.value })} /></label>}
-            <label className="og-campo"><span>Condição <em>(opcional)</em></span><input type="text" value={item.condicao} onChange={(e) => setItem({ ...item, condicao: e.target.value })} /></label>
-            <label className="og-campo og-campo--linha"><input type="checkbox" checked={item.visivel_participante} onChange={(e) => setItem({ ...item, visivel_participante: e.target.checked })} /><span>A marca vê este item</span></label>
-            <div className="ui-linha-acoes">
-              <button className="og-btn og-btn--mini" type="submit">Salvar item</button>
-              <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => { setItem(null); setAvisoItem(null) }}>Cancelar</button>
-            </div>
-            {avisoItem && <p className="ui-nota ui-nota--erro" role="alert">{avisoItem}</p>}
-          </form>
+          <FormItemCronograma key={item.id || 'novo'} edicao={edicao} inicial={item}
+            onSalvo={() => { setItem(null); setAvisoItem(null); if (onMudou) onMudou() }}
+            onCancelar={() => { setItem(null); setAvisoItem(null) }} />
         )}
         {!item && avisoItem && <p className="ui-nota ui-nota--erro" role="alert">{avisoItem}</p>}
       </Secao>
@@ -143,22 +182,36 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
 }
 
 /* ── Temas ───────────────────────────────────────────────────────────────── */
-function AbaTemas({ edicao, pode, irPara, registrarAtualizar }) {
+function AbaTemas({ edicao, pode, irPara }) {
+  const guarda = useGuarda()
   const [temas, setTemas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setTemas((await rpc('get_temas', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || []) } catch (e) { setErro(e.message) }
-  }, [edicao.codigo])
+  // true = leu. Releitura silenciosa (sinal de outra pessoa, depois de decidir) mantém a lista na tela se falhar.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
+    try {
+      const l = (await rpc('get_temas', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || []
+      if (!vale()) return true
+      setTemas(l)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
+    }
+  }, [edicao.codigo, guarda])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  useSincronizar(DOMINIOS_VISTAS.temas, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('temas') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
   async function decidir(t, status) {
     const obs = status === 'recusado' ? await pedirTexto('Por que ' + t.marca + ' precisa trocar de tema? A marca recebe este texto.', {}) : null
     if (status === 'recusado' && !obs) return
-    try { await rpc('decidir_tema', { p_secret: lerSenha(), p_proposta: t.id, p_status: status, p_obs: obs }); carregar() }
+    try { await rpc('decidir_tema', { p_secret: lerSenha(), p_proposta: t.id, p_status: status, p_obs: obs }); carregar({ silencioso: true }) }
     catch (e) { avisar(e.message.includes('tema_ja_aprovado') ? 'Este tema já foi aprovado para outra marca nesta edição.' : traduzirErro(e.message)) }
   }
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!temas) return <Carregando />
   const grupos = agruparTemas(temas)
   return (
@@ -186,25 +239,39 @@ function AbaTemas({ edicao, pode, irPara, registrarAtualizar }) {
 }
 
 /* ── Vendas ──────────────────────────────────────────────────────────────── */
-function AbaVendas({ edicao, pode, registrarAtualizar }) {
+function AbaVendas({ edicao, pode }) {
+  const guarda = useGuarda()
   const [dados, setDados] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setDados((await rpc('get_vendas_resumo', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || { marcas: [] }) } catch (e) { setErro(e.message) }
-  }, [edicao.codigo])
+  // true = leu. Releitura silenciosa (venda lançada por uma marca ou por outra pessoa) mantém a tabela na tela se falhar.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
+    try {
+      const d = (await rpc('get_vendas_resumo', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || { marcas: [] }
+      if (!vale()) return true
+      setDados(d)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
+    }
+  }, [edicao.codigo, guarda])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  useSincronizar(DOMINIOS_VISTAS.vendas, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('vendas') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
   async function registrar(m, dia) {
     const atual = (m.dias || {})[dia]
     const q = await pedirTexto('Combos vendidos por ' + m.marca + ' em ' + dataBr(dia) + ':', { valor: atual ?? '' })
     if (q === null) return
     const n = parseInt(q, 10)
     if (isNaN(n) || n < 0) { avisar('Informe um número inteiro, zero ou mais.'); return }
-    try { await rpc('registrar_venda_org', { p_secret: lerSenha(), p_participacao: m.participacao_id, p_dia: dia, p_quantidade: n, p_obs: 'Registrado pela organização' }); carregar() }
+    try { await rpc('registrar_venda_org', { p_secret: lerSenha(), p_participacao: m.participacao_id, p_dia: dia, p_quantidade: n, p_obs: 'Registrado pela organização' }); carregar({ silencioso: true }) }
     catch (e) { avisar(traduzirErro(e.message)) }
   }
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!dados) return <Carregando />
   const r = resumoVendas(dados)
   const dias = diasDoFestival(dados.festival_inicio, dados.festival_fim)
@@ -246,27 +313,37 @@ function AbaVendas({ edicao, pode, registrarAtualizar }) {
 }
 
 /* ── Revisão de dados ────────────────────────────────────────────────────── */
-function AbaRevisao({ pode, irPara, registrarAtualizar }) {
+function AbaRevisao({ pode, irPara }) {
+  const guarda = useGuarda()
   const [status, setStatus] = React.useState('aberta')
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const pedido = React.useRef(0)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    const meu = ++pedido.current // trocar de filtro rápido: só a última resposta vale
+  // Trocar de filtro rápido: só a última resposta vale (useGuarda). true = leu. A releitura silenciosa (sinal de outra
+  // pessoa, depois de resolver) mantém a lista e o filtro na tela e, se falhar, a lista que estava lá continua.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     try {
       const l = (await rpc('get_revisao', { p_secret: lerSenha(), p_status: status })) || []
-      if (meu === pedido.current) setLista(l)
-    } catch (e) { if (meu === pedido.current) setErro(e.message) }
-  }, [status])
+      if (!vale()) return true
+      setLista(l)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
+    }
+  }, [status, guarda])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  useSincronizar(DOMINIOS_VISTAS.revisao, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('revisao') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
   const podeResolver = pode('curadoria.decidir')
 
   async function resolver(r, novo) {
     const txt = await pedirTexto(novo === 'resolvida' ? 'O que foi feito? (fica no histórico)' : 'Por que descartar? (fica no histórico)', {})
     if (txt === null) return
-    try { await rpc('resolver_revisao', { p_secret: lerSenha(), p_id: r.id, p_status: novo, p_resolucao: txt }); carregar() } catch (e) { avisar(traduzirErro(e.message)) }
+    try { await rpc('resolver_revisao', { p_secret: lerSenha(), p_id: r.id, p_status: novo, p_resolucao: txt }); carregar({ silencioso: true }) } catch (e) { avisar(traduzirErro(e.message)) }
   }
   async function corrigir(r) {
     const campo = r.campo === 'nome_marca' || r.campo === 'razao_social' || r.campo === 'cnpj' || r.campo === 'telefone' || r.campo === 'email' ? r.campo : null
@@ -274,7 +351,7 @@ function AbaRevisao({ pode, irPara, registrarAtualizar }) {
     const sugestao = r.sugestao && r.sugestao.razao_social ? r.sugestao.razao_social.trim() : r.valor_original
     const novo = await pedirTexto('Valor correto para "' + campo + '" (o anterior fica guardado no histórico):', { valor: sugestao || '' })
     if (novo === null) return
-    try { await rpc('corrigir_participante', { p_secret: lerSenha(), p_participante: r.participante_id, p_campo: campo, p_valor: novo, p_pendencia: r.id }); carregar() }
+    try { await rpc('corrigir_participante', { p_secret: lerSenha(), p_participante: r.participante_id, p_campo: campo, p_valor: novo, p_pendencia: r.id }); carregar({ silencioso: true }) }
     catch (e) { avisar(traduzirErro(e.message)) }
   }
 
@@ -284,7 +361,7 @@ function AbaRevisao({ pode, irPara, registrarAtualizar }) {
         opcoes={[['aberta', 'Abertas'], ['resolvida', 'Resolvidas'], ['descartada', 'Descartadas']]} />
       <Ajuda titulo="Como a revisão funciona"><p>O sistema aponta, uma pessoa decide — a única correção automática é o nome da marca, que segue o padrão abaixo. Toda correção guarda o valor anterior.</p></Ajuda>
       {status === 'aberta' && <NomesPadrao pode={pode} />}
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
       {!erro && !lista && <Carregando />}
       {lista && lista.length === 0 && <Vazio titulo={status === 'aberta' ? 'Nada para revisar' : 'Nada por aqui'} />}
       {lista && lista.length > 0 && (
@@ -316,27 +393,42 @@ function AbaRevisao({ pode, irPara, registrarAtualizar }) {
 /* ── Nomes das marcas: o padrão (nome do empreendimento, grafia correta) ── */
 const ROTULO_REGRA_NOME = { acervo: 'mesma grafia do acervo', grafia: 'grafia corrigida', nome_informado_pela_organizacao: 'nome do empreendimento informado pela organização', revisar: 'precisa de uma pessoa' }
 function NomesPadrao({ pode }) {
+  const guarda = useGuarda()
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setLista((await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: false })) || []) } catch (e) { setErro(e.message) }
-  }, [])
+  // O ensaio (`p_aplicar: false`) só LÊ. true = leu; a releitura silenciosa mantém a lista na tela se falhar.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
+    try {
+      const l = (await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: false })) || []
+      if (!vale()) return true
+      setLista(l)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
+    }
+  }, [guarda])
   React.useEffect(() => { carregar() }, [carregar])
+  useSincronizar(DOMINIOS_VISTAS.revisao, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('nomes') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
   async function aplicar() {
     if (!await confirmar('Aplicar o padrão aos nomes listados? O nome anterior fica guardado no histórico.')) return
     try {
       const r = (await rpc('padronizar_nomes', { p_secret: lerSenha(), p_aplicar: true })) || []
       const naoAplicados = r.filter((x) => !x.aplicado)
       setAviso(naoAplicados.length ? naoAplicados.length + ' não mudaram: ' + naoAplicados.map((x) => x.anterior + ' (' + (x.motivo || ROTULO_REGRA_NOME[x.regra]) + ')').join('; ') : { ok: 'Nomes padronizados.' })
-      carregar()
+      carregar({ silencioso: true })
     } catch (e) { setAviso(traduzirErro(e.message)) }
   }
   if (!lista) {
     return (
       <Secao titulo="Nomes das marcas">
-        {erro ? <Erro texto={erro} onTentar={carregar} /> : <Carregando linhas={2} texto="Conferindo os nomes…" />}
+        {erro ? <Erro texto={erro} onTentar={tentarDeNovo} /> : <Carregando linhas={2} texto="Conferindo os nomes…" />}
       </Secao>
     )
   }
@@ -354,17 +446,32 @@ function NomesPadrao({ pode }) {
 }
 
 /* ── Importações ─────────────────────────────────────────────────────────── */
-function AbaImportacoes({ pode, registrarAtualizar }) {
+function AbaImportacoes({ pode }) {
+  const guarda = useGuarda()
   const [lotes, setLotes] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setLotes((await rpc('get_importacoes', { p_secret: lerSenha() })) || []) } catch (e) { setErro(e.message) }
-  }, [])
+  // true = leu. O lote entra por script e não tem domínio próprio: a tela se atualiza pelo que o lote promove
+  // (participantes) e pela conferência de reconexão. Releitura silenciosa mantém a lista na tela se falhar.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
+    try {
+      const l = (await rpc('get_importacoes', { p_secret: lerSenha() })) || []
+      if (!vale()) return true
+      setLotes(l)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
+    }
+  }, [guarda])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  useSincronizar(DOMINIOS_VISTAS.importacoes, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('importacoes') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
   if (!pode('importacao.gerir')) return <Vazio titulo="Só o administrador vê as importações" />
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!lotes) return <Carregando />
   if (!lotes.length) return <Vazio titulo="Nenhuma importação">A planilha da edição entra por scripts/importacao (ver docs/EVOLUCAO-PAINEL-2026-09.md).</Vazio>
   return (
@@ -404,21 +511,40 @@ function AbaEdicoes({ edicoes }) {
  * ficam em Edição; Temas e Vendas em Participantes; Revisão e Importações em
  * Administração. Quem precisa da edição atual usa este gancho.
  */
-export function useEdicoes(registrarAtualizar) {
+export function useEdicoes() {
+  const guarda = useGuarda()
   const [edicoes, setEdicoes] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setEdicoes((await rpc('get_edicoes', { p_secret: lerSenha() })) || []) } catch (e) { setErro(e.message) }
-  }, [])
-  React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  const temDados = React.useRef(false)
+  temDados.current = edicoes !== null
+  // true = leu. Releitura silenciosa (outra pessoa mexeu na edição, reconexão) mantém as edições na tela se falhar:
+  // trocar o conteúdo por "Erro" desmontaria os formulários de baixo e perderia o que está sendo digitado.
+  const ler = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
+    try {
+      const l = (await rpc('get_edicoes', { p_secret: lerSenha() })) || []
+      if (!vale()) return true
+      setEdicoes(l)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
+    }
+  }, [guarda])
+  React.useEffect(() => { ler() }, [ler])
+  useSincronizar(DOMINIOS_VISTAS.edicoes, async () => { if (!(await ler({ silencioso: true }))) throw new Error('edicoes') })
+  // `carregar` é o que as telas chamam (depois de salvar, "Tentar de novo"): com edições já na tela é SILENCIOSO; sem
+  // elas (primeira leitura que falhou) mostra o erro de novo, para a tentativa ter resposta.
+  const carregar = React.useCallback(() => ler({ silencioso: temDados.current }), [ler])
   return { edicoes, atual: (edicoes || []).find((e) => e.atual) || null, erro, carregar }
 }
 
 // Renderiza `filho(atual)` quando a edição atual existe; senão diz o que fazer.
-export function ComEdicaoAtual({ registrarAtualizar, children }) {
-  const { edicoes, atual, erro, carregar } = useEdicoes(registrarAtualizar)
+export function ComEdicaoAtual({ children }) {
+  const { edicoes, atual, erro, carregar } = useEdicoes()
   if (erro) return <Erro texto={erro} onTentar={carregar} />
   if (!edicoes) return <Carregando />
   if (!atual) return <Vazio titulo="Nenhuma edição marcada como atual">Abra a edição em Edição › Configuração.</Vazio>

@@ -2,6 +2,7 @@ import React from 'react'
 import { api, seFaltar } from '../../lib/marcaApi'
 import { minhasSolicitacoes } from '../../lib/pedidosMarca'
 import { resumoMarca, fotosDaParticipacao } from '../../lib/guia'
+import { barramento } from '../../lib/sync/barramento'
 
 /*
  * Estado da marca numa leitura só (29/09/2026): a casca usa para os números
@@ -15,16 +16,19 @@ export function useResumoMarca() {
   // escreve — uma resposta lenta e velha não desfaz o que a nova trouxe.
   const seqRef = React.useRef(0)
 
+  // Devolve false só se a leitura FALHOU (a casca mostra "sem sincronizar"); resposta
+  // velha, tela desmontada ou conta trocada (época do barramento) nunca grava.
   const carregar = React.useCallback(async () => {
     const minha = ++seqRef.current
-    const atual = () => minha === seqRef.current
+    const epoca = barramento.epoca()
+    const atual = () => minha === seqRef.current && epoca === barramento.epoca()
     try {
       const participantes = await api('participantes?select=*&order=created_at.desc&limit=1')
       const participante = (participantes && participantes[0]) || null
-      if (!participante) { if (atual()) setDados({ participante: null }); return }
+      if (!participante) { if (atual()) setDados({ participante: null }); return true }
       const pas = await api('participacoes?select=*&order=created_at.desc&limit=1')
       const participacao = (pas && pas[0]) || null
-      if (!participacao) { if (atual()) setDados({ participante, participacao: null }); return }
+      if (!participacao) { if (atual()) setDados({ participante, participacao: null }); return true }
       const id = participacao.id
       const [itens, unidades, correcoes, solics, estados, sessoes, arqs, leituras, temas, logo] = await Promise.all([
         api('participantes_itens?select=*&participacao_id=eq.' + id),
@@ -41,7 +45,7 @@ export function useResumoMarca() {
         // Logo oficial (cabeçalho e Início); sem a migration, segue sem ela.
         api('rpc/marca_minha_logo', { metodo: 'POST', corpo: {} }).catch(seFaltar(null)),
       ])
-      if (!atual()) return
+      if (!atual()) return true
       const estadoDe = Object.fromEntries((estados || []).map((e) => [e.solicitacao_id, e.estado]))
       const pedidos = minhasSolicitacoes(solics || [], participacao)
         .map((s) => ({ ...s, estado: estadoDe[s.id] || 'pendente' }))
@@ -60,9 +64,11 @@ export function useResumoMarca() {
         logo,
       })
       setErro(null)
+      return true
     } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
+      if (e && e.message === 'sessao_expirada') return true
       if (atual()) setErro(e.message || 'erro')
+      return false
     }
   }, [])
 

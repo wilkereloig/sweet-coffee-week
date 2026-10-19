@@ -8,6 +8,8 @@ import {
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Secao, Selo, Botao, Escolha, traduzirErro } from '../ui'
 import { confirmar } from '../Confirmar'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
 import '../../styles/edicao-org.css'
 
 /*
@@ -22,42 +24,50 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 const msgErro = (e) => traduzirErro(traduzirErroPublicacao(e && e.message))
 const PADRAO = { fase: 'preparacao', participantes_publicos: false, combos_publicos: false, avaliacao_aberta: false,
   avaliacao_abre_em: null, avaliacao_fecha_em: null, resultados_publicos: false }
+const CAMPOS_JANELA = ['abre', 'fecha']
 
 export function ChavesEdicao({ edicao, pode }) {
-  const [c, setC] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
-  const [janela, setJanela] = React.useState({ abre: '', fecha: '' })
-
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try {
-      const r = (await rpc('get_publicacao_edicao', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || { ...PADRAO, novo: true }
-      setC(r)
-      setJanela({ abre: paraLocalFortaleza(r.avaliacao_abre_em), fecha: paraLocalFortaleza(r.avaliacao_fecha_em) })
-    } catch (e) { setErro(e.message) }
-  }, [edicao.codigo])
-  React.useEffect(() => { carregar() }, [carregar])
-
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
-  if (!c) return <Carregando linhas={4} />
   const podeMudar = pode('edicao.gerir')
+
+  // As chaves moram em edicao_publicacao (domínio "edicao") e mudam por definir_publicacao_edicao
+  // ("edicao" e "publicacao"): relê sozinha quando outra pessoa liga/desliga algo. Outra edição =
+  // leitura nova (as chaves de uma nunca aparecem na outra).
+  const leitura = useLeitura(
+    async () => (await rpc('get_publicacao_edicao', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || { ...PADRAO, novo: true },
+    ['edicao', 'publicacao'], { chave: edicao.codigo },
+  )
+  const c = leitura.dados
+  // A janela digitada resiste à releitura e a qualquer "ligar/desligar" de outra chave: antes cada
+  // resposta do servidor reescrevia os dois campos. Acompanha o banco só enquanto a pessoa não mexeu.
+  const abreServidor = c ? paraLocalFortaleza(c.avaliacao_abre_em) : ''
+  const fechaServidor = c ? paraLocalFortaleza(c.avaliacao_fecha_em) : ''
+  const servidorJanela = React.useMemo(() => ({ abre: abreServidor, fecha: fechaServidor }), [abreServidor, fechaServidor])
+  const reg = useEdicaoProtegida(servidorJanela, CAMPOS_JANELA, { chave: edicao.codigo, rotulo: 'Janela da avaliação (não salva)', pendente: podeMudar })
+  const janela = reg.local
+  React.useEffect(() => { setAviso(null); setSalvando(false) }, [edicao.codigo])
+
+  if (leitura.bloqueada) return <Erro texto={leitura.erro} onTentar={leitura.recarregar} />
+  if (!c) return <Carregando linhas={4} />
   // D-18: participantes e combos públicos também com curadoria (quem publica cada casa).
   const podeChave = (chave) => podeMudar || ((chave === 'participantes_publicos' || chave === 'combos_publicos') && pode('curadoria.decidir'))
 
+  // Devolve true quando o servidor confirmou a mudança.
   async function aplicar(mudanca, pergunta, acao) {
     setAviso(null)
     const motivo = bloqueioMudanca(c, mudanca)
-    if (motivo) { setAviso(motivo); return }
-    if (pergunta && !(await confirmar(pergunta, { acao }))) return
+    if (motivo) { setAviso(motivo); return false }
+    if (pergunta && !(await confirmar(pergunta, { acao }))) return false
     setSalvando(true)
     try {
       const r = await rpc('definir_publicacao_edicao', { p_secret: lerSenha(), p_edicao: edicao.codigo, p_dados: mudanca })
-      setC(r)
-      setJanela({ abre: paraLocalFortaleza(r.avaliacao_abre_em), fecha: paraLocalFortaleza(r.avaliacao_fecha_em) })
+      // O servidor devolve o registro inteiro: a tela já mostra o estado novo. A janela digitada
+      // não é tocada aqui — ela só acompanha o banco se a pessoa não tiver mexido nela.
+      leitura.ajustar(r)
       setAviso({ ok: 'Salvo. O site lê a mudança na próxima visita.' })
-    } catch (e) { setAviso(msgErro(e)) } finally { setSalvando(false) }
+      return true
+    } catch (e) { setAviso(msgErro(e)); return false } finally { setSalvando(false) }
   }
 
   function mudarFase(fase) {
@@ -65,17 +75,19 @@ export function ChavesEdicao({ edicao, pode }) {
     const nome = (FASES.find(([k]) => k === fase) || [])[1] || fase
     aplicar({ fase }, 'Mudar a fase da edição para "' + nome + '"? Os textos e o que cada página mostra mudam no site.', 'Mudar fase')
   }
-  function salvarJanela(ev) {
+  async function salvarJanela(ev) {
     ev.preventDefault()
     const abre = deLocalFortaleza(janela.abre), fecha = deLocalFortaleza(janela.fecha)
     if (!!janela.abre !== !!abre || !!janela.fecha !== !!fecha) { setAviso('Data e hora incompletas.'); return }
     if (abre && fecha && new Date(fecha) <= new Date(abre)) { setAviso('O fim da avaliação precisa ser depois do início.'); return }
-    aplicar({ avaliacao_abre_em: abre, avaliacao_fecha_em: fecha })
+    const brutos = reg.local
+    if (await aplicar({ avaliacao_abre_em: abre, avaliacao_fecha_em: fecha })) reg.confirmarSalvo({ abre: brutos.abre, fecha: brutos.fecha })
   }
-  const janelaMudou = janela.abre !== paraLocalFortaleza(c.avaliacao_abre_em) || janela.fecha !== paraLocalFortaleza(c.avaliacao_fecha_em)
+  const janelaMudou = reg.sujo
 
   return (
     <div className="ui-pilha">
+      {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={leitura.erro} onTentar={leitura.recarregar} />}
       <p className="ui-nota">
         {c.novo ? 'Esta edição ainda não tem chaves gravadas: tudo desligado, fase Preparação. A primeira mudança cria o registro.'
           : 'Última mudança: ' + (c.atualizado_por || 'organização') + ', em ' + dataHoraCurta(c.atualizado_em) + '.'}
@@ -120,11 +132,12 @@ export function ChavesEdicao({ edicao, pode }) {
         <form className="ui-form" onSubmit={salvarJanela}>
           <div className="eo-par">
             <label className="og-campo"><span>Abre em</span>
-              <input type="datetime-local" value={janela.abre} disabled={!podeMudar} onChange={(e) => setJanela({ ...janela, abre: e.target.value })} /></label>
+              <input type="datetime-local" value={janela.abre} disabled={!podeMudar} onChange={(e) => reg.editar('abre', e.target.value)} /></label>
             <label className="og-campo"><span>Fecha em</span>
-              <input type="datetime-local" value={janela.fecha} disabled={!podeMudar} onChange={(e) => setJanela({ ...janela, fecha: e.target.value })} /></label>
+              <input type="datetime-local" value={janela.fecha} disabled={!podeMudar} onChange={(e) => reg.editar('fecha', e.target.value)} /></label>
           </div>
-          {podeMudar && <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={salvando || !janelaMudou}>Salvar janela</button></div>}
+          <AvisoMudancaExterna registro={reg} rotulos={{ abre: 'Abre em', fecha: 'Fecha em' }} />
+          {podeMudar && <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={salvando || !janelaMudou || reg.conflito}>Salvar janela</button></div>}
         </form>
       </Secao>
 
@@ -143,24 +156,27 @@ function Aviso({ aviso }) {
 }
 
 /* ── Avaliações: só números por casa, nenhum dado pessoal ──────────────── */
-export function Avaliacoes({ edicao, pode, registrarAtualizar }) {
-  const [linhas, setLinhas] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setLinhas((await rpc('get_avaliacoes_resumo', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || []) } catch (e) { setErro(e.message) }
-  }, [edicao.codigo])
-  React.useEffect(() => { if (pode('relatorio.ler')) carregar() }, [carregar, pode])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+export function Avaliacoes({ edicao, pode }) {
+  const podeLer = pode('relatorio.ler')
+  // Os números por casa dependem da edição (critérios, janela). ⚠️ Não existe domínio "avaliações":
+  // uma avaliação nova do público chega pela conferência periódica / "Atualizar", não por sinal.
+  const leitura = useLeitura(
+    async () => (await rpc('get_avaliacoes_resumo', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || [],
+    ['edicao'], { chave: edicao.codigo, ativo: podeLer },
+  )
+  const linhas = leitura.dados === undefined ? null : leitura.dados
 
-  if (!pode('relatorio.ler')) return <p className="ui-nota">Sua função não lê relatórios.</p>
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (!podeLer) return <p className="ui-nota">Sua função não lê relatórios.</p>
+  if (leitura.bloqueada) return <Erro texto={leitura.erro} onTentar={leitura.recarregar} />
   if (!linhas) return <Carregando />
+  const aviso = leitura.falhouAtualizar ? <Erro titulo="Não consegui atualizar" texto={leitura.erro} onTentar={leitura.recarregar} /> : null
   const criterios = criteriosDe(linhas)
   const total = linhas.reduce((n, l) => n + Number(l.avaliacoes || 0), 0)
-  if (!total) return <Vazio titulo="Nenhuma avaliação ainda">As avaliações do público aparecem aqui, por casa, quando a avaliação abrir.</Vazio>
+  if (!total) return <>{aviso}<Vazio titulo="Nenhuma avaliação ainda">As avaliações do público aparecem aqui, por casa, quando a avaliação abrir.</Vazio></>
 
   return (
+    <>
+    {aviso}
     <Secao titulo={'Avaliações da edição ' + edicao.codigo} nota={total + (total === 1 ? ' avaliação' : ' avaliações') + '. Média por critério; quem avaliou não aparece aqui.'}>
       <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Avaliações por casa">
         <table className="ui-tabela">
@@ -180,5 +196,6 @@ export function Avaliacoes({ edicao, pode, registrarAtualizar }) {
       </div>
       <p className="ui-nota">Os vencedores só aparecem no site com a chave "Resultados no site" ligada (Edição › Publicação no site).</p>
     </Secao>
+    </>
   )
 }

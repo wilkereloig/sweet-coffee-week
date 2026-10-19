@@ -34,17 +34,21 @@ export function useEntrega() {
   const [estado, setEstado] = React.useState(null)
   const ultimo = React.useRef(null)
   const vivo = React.useRef(true)
+  const cancelar = React.useRef(null)
   // StrictMode monta, desmonta e monta de novo: o efeito religa o "vivo" a cada montagem.
-  React.useEffect(() => { vivo.current = true; return () => { vivo.current = false } }, [])
+  // Sair da tela no meio de um download interrompe o que ainda estava sendo buscado (e nada é entregue depois).
+  React.useEffect(() => { vivo.current = true; return () => { vivo.current = false; if (cancelar.current) cancelar.current.abort() } }, [])
   const definir = (e) => { if (vivo.current) setEstado(e) }
 
   async function preparar(itens, { numerar = false, teto = Infinity } = {}) {
     const nomes = nomesUnicos(itens.map((x, i) => (numerar && itens.length > 1 ? nomeNumerado(i, itens.length, x.nome) : x.nome)))
     const arquivos = []
     let soma = 0
+    cancelar.current = new AbortController()
+    const sinal = cancelar.current.signal
     for (const [i, x] of itens.entries()) {
       if (itens.length > 1) definir({ fase: 'preparando', texto: 'Preparando ' + (i + 1) + ' de ' + itens.length + '…' })
-      const arq = await obterArquivo(fonteDe(x), nomes[i], { mime: x.mime })
+      const arq = await obterArquivo(fonteDe(x), nomes[i], { mime: x.mime, sinal })
       soma += arq.size
       if (soma > teto) throw new Error('grande:Os arquivos passam de ' + Math.round(teto / 1048576) + ' MB. Escolha menos (vídeos pesam mais).')
       arquivos.push(arq)

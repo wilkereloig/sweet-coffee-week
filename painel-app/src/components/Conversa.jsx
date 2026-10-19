@@ -18,9 +18,17 @@ export function Conversa({ mensagens, lado, onEnviar, podeEnviar = true, semPerm
   const [enviando, setEnviando] = React.useState(false)
   const [erroEnvio, setErroEnvio] = React.useState(null)
   const fimRef = React.useRef(null)
+  const noFim = React.useRef(true) // a pessoa está no fim da conversa (ou ainda não rolou)
+  const ultimoId = React.useRef(null)
 
+  // Mensagem que chega sozinha (outra pessoa, outra aba, reconexão) não arrasta quem está relendo o começo da conversa;
+  // a própria mensagem, a primeira carga e quem já está no fim seguem para o fim, como sempre.
   React.useEffect(() => {
-    if (fimRef.current) fimRef.current.scrollIntoView({ block: 'end' })
+    const ms = mensagens || []
+    const ultima = ms[ms.length - 1]
+    const primeira = ultimoId.current === null
+    ultimoId.current = ultima ? ultima.id : ''
+    if (fimRef.current && (primeira || noFim.current || (ultima && ultima.de === lado))) fimRef.current.scrollIntoView({ block: 'end' })
   }, [mensagens && mensagens.length])
 
   async function enviar(ev) {
@@ -49,7 +57,8 @@ export function Conversa({ mensagens, lado, onEnviar, podeEnviar = true, semPerm
   return (
     <div className="ui-conversa">
       {/* role="log": leitor de tela anuncia só o que CHEGA, não o histórico inteiro. */}
-      <div className="ui-conversa__rolo" role="log" aria-label="Mensagens">
+      <div className="ui-conversa__rolo" role="log" aria-label="Mensagens"
+        onScroll={(e) => { const el = e.currentTarget; noFim.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80 }}>
         {carregando && !(mensagens && mensagens.length) && <Carregando linhas={3} texto="Carregando a conversa…" />}
         {erro && <Erro titulo="Não consegui carregar a conversa" texto={erro} onTentar={onTentar} />}
         {!carregando && !erro && grupos.length === 0 && (

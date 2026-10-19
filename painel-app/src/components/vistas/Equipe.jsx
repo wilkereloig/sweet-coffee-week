@@ -12,6 +12,10 @@ import { confirmar } from '../Confirmar'
 import { Avatar } from '../Avatar'
 import { EditorFoto } from '../MeuPerfil'
 import { useEquipe } from '../../lib/equipe'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { useRascunhoOrg } from '../../lib/rascunhoOrg'
 
 /*
  * Vista Equipe — "Configurações → Usuários da equipe": quem entra no painel da
@@ -44,7 +48,7 @@ function SenhaUmaVez({ login, senha }) {
   )
 }
 
-function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
+function FolhaNovaConta({ aberto, funcoes, onFechar }) {
   const [nome, setNome] = React.useState('')
   const [funcao, setFuncao] = React.useState('')
   const [erro, setErro] = React.useState(null)
@@ -69,10 +73,16 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
     try {
       const r = await chamarFuncao('criar-conta-organizacao', { secret: lerSenha(), usuario: u, funcao, nome: nome.trim() })
       // Grava o nome também pela RPC: funciona mesmo antes de a Edge Function
-      // nova (que já aceita `nome`) estar publicada.
-      if (r && r.user_id) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: r.user_id, p_nome: nome.trim() }).catch(() => {})
+      // nova (que já aceita `nome`) estar publicada. Se esta gravação falhar a conta JÁ existe (e a senha
+      // aparece abaixo): o aviso diz exatamente o que faltou, em vez de fingir que tudo deu certo.
+      let avisoNome = null
+      if (r && r.user_id) {
+        try { await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: r.user_id, p_nome: nome.trim() }) }
+        catch (e) { avisoNome = 'A conta foi criada, mas o nome não foi gravado (' + traduzirErro((e.dados && e.dados.erro) || e.message) + '). Abra a conta na lista e salve o nome.' }
+      }
       setCred(r)
-      await onCriada()
+      if (avisoNome) setErro(avisoNome)
+      // A lista da equipe se atualiza pelo domínio "perfis" que a criação anunciou.
     } catch (e) {
       setErro(traduzirErro((e.dados && e.dados.erro) || e.message))
     } finally {
@@ -109,25 +119,28 @@ function FolhaNovaConta({ aberto, funcoes, onFechar, onCriada }) {
   )
 }
 
-function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico }) {
+function FolhaConta({ aberto, conta, funcoes, onFechar, onVerHistorico }) {
   const equipe = useEquipe()
   // Guarda a última conta não-nula: a folha ainda precisa de conteúdo para
   // animar a saída depois que `conta` vira null.
   const [c, setC] = React.useState(conta)
-  const [nome, setNome] = React.useState('')
-  const [funcao, setFuncao] = React.useState('')
   const [aviso, setAviso] = React.useState(null)
   const [ocupado, setOcupado] = React.useState(null)
   const [cred, setCred] = React.useState(null)
 
-  // Recarregar a lista depois de salvar entrega um objeto `conta` novo da
-  // MESMA pessoa: isso atualiza a ficha, mas não pode apagar a senha recém-
-  // gerada nem o "Salvo." — o formulário só zera quando a pessoa muda.
+  // A lista é relida em silêncio (outra pessoa mexeu na conta, reconexão) e entrega um objeto `conta`
+  // novo da MESMA pessoa: isso atualiza a ficha, mas não pode apagar a senha recém-gerada, o "Salvo."
+  // nem o que a pessoa digitou — o rascunho só recomeça quando a conta muda de pessoa.
   React.useEffect(() => { if (conta) setC(conta) }, [conta])
   const idConta = conta && conta.user_id
+  const fonte = conta || c
+  const servidor = React.useMemo(() => ({ nome: (fonte && fonte.nome) || '', funcao: (fonte && fonte.funcao) || '' }), [fonte && fonte.nome, fonte && fonte.funcao]) // eslint-disable-line react-hooks/exhaustive-deps
+  const r = useRascunhoOrg(servidor, ['nome', 'funcao'], { chave: idConta, rotulo: 'Conta da equipe' })
+  const nome = r.local.nome
+  const funcao = r.local.funcao
   React.useEffect(() => {
     if (!conta) return
-    setNome(conta.nome || ''); setFuncao(conta.funcao || ''); setAviso(null); setCred(null)
+    setAviso(null); setCred(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idConta])
 
@@ -137,7 +150,6 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
     try {
       await fn()
       if (ok) setAviso({ tom: 'ok', texto: ok })
-      await onSalvo()
     } catch (e) {
       setAviso({ tom: 'erro', texto: traduzirErro((e.dados && e.dados.erro) || e.message) })
     } finally {
@@ -147,10 +159,15 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
 
   const salvar = (ev) => {
     ev.preventDefault()
+    if (Object.keys(r.conflitos).length) { setAviso({ tom: 'erro', texto: 'Estes campos mudaram enquanto você editava. Escolha qual versão vale, acima, antes de salvar.' }); return }
+    const enviado = r.local
+    const base = r.base
     acao('salvar', async () => {
-      if ((nome || '') !== (c.nome || '')) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: c.user_id, p_nome: nome })
-      if (funcao && funcao !== (c.funcao || '')) await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: funcao })
-      equipe.recarregar()
+      // Só manda o que a PESSOA mudou em relação ao que a tela viu confirmado: um nome alterado por outra
+      // pessoa nunca é desfeito por um valor velho que ficou no formulário.
+      if ((enviado.nome || '') !== (base.nome || '')) await rpc('atualizar_conta', { p_secret: lerSenha(), p_user: c.user_id, p_nome: enviado.nome })
+      if (enviado.funcao && enviado.funcao !== (base.funcao || '')) await rpc('definir_funcao_conta', { p_secret: lerSenha(), p_user: c.user_id, p_funcao: enviado.funcao })
+      r.salvou(enviado)
     }, 'Salvo.')
   }
   const alternar = async () => {
@@ -178,12 +195,13 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
             <EditorFoto alvo={c.user_id} nome={c.nome || loginDaConta(c.email)}
               temFoto={!!(equipe.pessoas[c.user_id] || {}).avatar_path} onMudou={equipe.recarregar} />
           </Secao>
+          <AvisoMudancaExterna registro={r} rotulos={{ nome: 'Nome', funcao: 'Função' }} />
           <form className="ui-form" onSubmit={salvar}>
             <label className="og-campo"><span>Nome (aparece no histórico)</span>
-              <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={80} />
+              <input type="text" value={nome} onChange={(e) => r.editar('nome', e.target.value)} maxLength={80} />
             </label>
             <label className="og-campo"><span>Função</span>
-              <select value={funcao} onChange={(e) => setFuncao(e.target.value)}>
+              <select value={funcao} onChange={(e) => r.editar('funcao', e.target.value)}>
                 {!funcao && <option value="">Sem função — escolha uma</option>}
                 {funcoes.map((f) => <option key={f.codigo} value={f.codigo}>{f.rotulo}</option>)}
               </select>
@@ -210,22 +228,23 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onSalvo, onVerHistorico 
 const PERIODOS = { '': 'Sempre', '1': 'Hoje', '7': 'Últimos 7 dias', '30': 'Últimos 30 dias', '90': 'Últimos 90 dias' }
 
 function Historico({ contas, atorInicial, abrirLink }) {
+  const guarda = useGuarda()
   const [ator, setAtor] = React.useState((atorInicial && atorInicial.id) || '')
   const [acao, setAcao] = React.useState('')
   const [dias, setDias] = React.useState('30')
   const [marca, setMarca] = React.useState('')
   const [linhas, setLinhas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const pedido = React.useRef(0)
 
   // `atorInicial` é um pedido ({ id }), não o id solto: clicar "Ver o que
   // fez" duas vezes na mesma pessoa, depois de mexer no filtro, reaplica.
   React.useEffect(() => { if (atorInicial) setAtor(atorInicial.id) }, [atorInicial])
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    setLinhas(null)
-    const meu = ++pedido.current // mexer nos filtros rápido: só a última resposta vale
+  // Mexer nos filtros troca a lista (esqueleto); a releitura por sinal NÃO: mantém as linhas e os filtros na
+  // tela e, se falhar, o que estava lá continua. Só a última resposta vale (useGuarda). true = leu.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) { setErro(null); setLinhas(null) }
     try {
       const de = dias ? new Date(Date.now() - (dias === '1' ? 0 : Number(dias)) * 864e5) : null
       if (de && dias === '1') de.setHours(0, 0, 0, 0)
@@ -236,12 +255,19 @@ function Historico({ contas, atorInicial, abrirLink }) {
         p_de: de ? de.toISOString() : null,
         p_limite: 500,
       })
-      if (meu === pedido.current) setLinhas(l || [])
+      if (!vale()) return true
+      setLinhas(l || [])
+      setErro(null)
+      return true
     } catch (e) {
-      if (meu === pedido.current) setErro(e.message)
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
     }
-  }, [ator, acao, dias])
+  }, [ator, acao, dias, guarda])
   React.useEffect(() => { carregar() }, [carregar])
+  useSincronizar(DOMINIOS_VISTAS.historicoEquipe, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('historico') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   const t = marca.trim().toLowerCase()
   const visiveis = (linhas || [])
@@ -272,7 +298,7 @@ function Historico({ contas, atorInicial, abrirLink }) {
           <input type="search" placeholder="filtrar pelo nome da marca" value={marca} onChange={(e) => setMarca(e.target.value)} />
         </label>
       </div>
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
       {!erro && linhas === null && <Carregando linhas={4} />}
       {!erro && linhas && visiveis.length === 0 && <Vazio titulo="Nada registrado com esses filtros" />}
       {!erro && linhas && visiveis.length > 0 && (
@@ -289,7 +315,8 @@ function Historico({ contas, atorInicial, abrirLink }) {
 // — duas abas de Administração (reestruturação 29/09/2026). O filtro de
 // pessoa do histórico vem do endereço (`ator`), que é o que "Ver o que fez"
 // preenche.
-export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = 'equipe' }) {
+export function Equipe({ abrirLink, rota, navegar, secao = 'equipe' }) {
+  const guarda = useGuarda()
   const [config, setConfig] = React.useState(null)
   const [contas, setContas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
@@ -297,32 +324,38 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
   const ator = rota && rota.filtros.ator
   const atorHistorico = React.useMemo(() => (ator ? { id: ator } : null), [ator])
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  // As duas leituras são independentes: uma que cai não apaga a outra. A releitura SILENCIOSA (outra pessoa
+  // mexeu numa conta, reconexão) mantém a lista e a configuração na tela se falhar; só a primeira leitura e
+  // "Tentar de novo" mostram o erro. Resposta velha e tela desmontada não gravam nada. true = leu as duas.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     const senha = lerSenha()
-    try {
-      const [c, k] = await Promise.all([
-        rpc('get_config_admin', { p_secret: senha }),
-        rpc('get_contas_organizacao', { p_secret: senha }),
-      ])
-      setConfig(c || null)
-      setContas(k || [])
-    } catch (e) {
-      setConfig(null)
-      setContas([])
-      setErro(e.message)
-    }
-  }, [])
+    const [c, k] = await Promise.allSettled([
+      rpc('get_config_admin', { p_secret: senha }),
+      rpc('get_contas_organizacao', { p_secret: senha }),
+    ])
+    if (!vale()) return true
+    let ok = true
+    if (c.status === 'fulfilled') setConfig(c.value || null)
+    else { ok = false; if (!silencioso) { setConfig(null); setErro(c.reason.message) } }
+    if (k.status === 'fulfilled') setContas(k.value || [])
+    else { ok = false; if (!silencioso) { setContas([]); setErro(k.reason.message) } }
+    if (ok) setErro(null)
+    return ok
+  }, [guarda])
 
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // Conta criada, renomeada, desativada ou com função nova (aqui ou em outra sessão): relê em silêncio.
+  useSincronizar(DOMINIOS_VISTAS.equipe, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('equipe') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   const funcoes = (config && config.funcoes) || []
   const lista = contas || []
 
   return (
     <div className="og-embutida">
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
 
       {secao === 'equipe' && <div className="ui-grade-duas">
         <Secao
@@ -375,13 +408,12 @@ export function Equipe({ registrarAtualizar, abrirLink, rota, navegar, secao = '
         <Historico contas={lista} atorInicial={atorHistorico} abrirLink={abrirLink} />
       </Secao>}
 
-      <FolhaNovaConta aberto={!!folha && folha.tipo === 'nova'} funcoes={funcoes} onFechar={() => setFolha(null)} onCriada={carregar} />
+      <FolhaNovaConta aberto={!!folha && folha.tipo === 'nova'} funcoes={funcoes} onFechar={() => setFolha(null)} />
       <FolhaConta
         aberto={!!folha && folha.tipo === 'conta'}
         conta={folha && folha.tipo === 'conta' ? lista.find((x) => x.user_id === folha.conta.user_id) || folha.conta : null}
         funcoes={funcoes}
         onFechar={() => setFolha(null)}
-        onSalvo={carregar}
         onVerHistorico={(id) => {
           setFolha(null)
           navegar({ vista: 'admin', aba: 'historico', filtros: { ator: id } })

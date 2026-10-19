@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-No login do participante, "Perdi meu acesso" abre o WhatsApp da organização com a mensagem pronta.
+O painel agora se atualiza sozinho quando outra pessoa salva algo e mostra se está sincronizado.

@@ -13,6 +13,9 @@ import { Atividade } from '../Atividade'
 import { Icone, MODULO_ICONE } from '../Icone'
 import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro, Escolha, NivelTitulo } from '../ui'
 import { confirmar } from '../Confirmar'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS, mensagensAMarcar } from '../../lib/syncFichas'
+import { ATRIBUTO_SALVA_POR_EVENTO, EVENTO_SALVO } from '../../lib/rascunhoOrg'
 import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
 import { AbaCadastroMarca, AbaCombo, AbaUnidades, CorrecoesCampo } from './FichaCadastro'
 import { AbaAcesso } from './AcessoMarca'
@@ -37,40 +40,51 @@ export const pctCadastro = (p) => (p.participacao_id && Number(p.campos_total)
   ? Math.round(((Number(p.campos_total) - Number(p.campos_faltando || 0)) / Number(p.campos_total)) * 100) : null)
 
 /* ── Mensagens ─────────────────────────────────────────────────────────── */
-function AbaMensagens({ participante, pode, onLidas }) {
+function AbaMensagens({ participante, pode }) {
+  const guarda = useGuarda()
   const [msgs, setMsgs] = React.useState([])
   const [carregando, setCarregando] = React.useState(true)
   const [erro, setErro] = React.useState(null)
-  // Ref: o pai recria a função a cada render, e ela não pode reiniciar a busca.
-  const lidasRef = React.useRef(onLidas)
-  lidasRef.current = onLidas
+  // Mensagens da marca para as quais esta tela JÁ pediu "lida": `ler_mensagens_org` é uma gravação
+  // disparada de dentro da leitura e anuncia "mensagens", o que relê a conversa. Sem este registro,
+  // uma mensagem que o servidor não marcasse reiniciaria o ciclo para sempre.
+  const pedidas = React.useRef(new Set())
 
-  const carregar = React.useCallback(async () => {
+  // true = leu (e marcou o que devia); false = alguma perna falhou. Releitura silenciosa (sinal da
+  // marca, reconexão) mantém a conversa na tela se falhar.
+  const ler = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    let ok = true
     try {
-      const l = await rpc('get_mensagens', { p_secret: lerSenha(), p_participante: participante.id })
-      setMsgs(l || [])
+      const l = (await rpc('get_mensagens', { p_secret: lerSenha(), p_participante: participante.id })) || []
+      if (!vale()) return true
+      setMsgs(l)
       setErro(null)
-      // Abrir a conversa é ler: marca as mensagens da marca como lidas.
-      if ((l || []).some((m) => m.de === 'marca' && !m.lida_em)) {
-        await rpc('ler_mensagens_org', { p_secret: lerSenha(), p_participante: participante.id })
-        if (lidasRef.current) lidasRef.current()
+      // Abrir a conversa é ler: marca as mensagens da marca como lidas — uma vez por mensagem e só com a
+      // tela à vista (um sinal que chega com o app em segundo plano não lê pela pessoa).
+      const novas = typeof document !== 'undefined' && document.visibilityState === 'hidden' ? [] : mensagensAMarcar(l, pedidas.current)
+      if (novas.length) {
+        novas.forEach((m) => pedidas.current.add(m.id))
+        try { await rpc('ler_mensagens_org', { p_secret: lerSenha(), p_participante: participante.id }) } catch { novas.forEach((m) => pedidas.current.delete(m.id)); ok = false }
       }
     } catch (e) {
-      setErro(e.message)
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      ok = false
     } finally {
-      setCarregando(false)
+      if (vale()) setCarregando(false)
     }
-  }, [participante.id])
+    return ok
+  }, [participante.id, guarda])
 
-  React.useEffect(() => {
-    carregar()
-    const t = setInterval(() => { if (document.visibilityState === 'visible') carregar() }, 20000)
-    return () => clearInterval(t)
-  }, [carregar])
+  React.useEffect(() => { ler() }, [ler])
+  // Mensagem nova da marca, leitura em outra aba, reconexão: relê em silêncio (sem poll próprio).
+  useSincronizar(DOMINIOS_VISTAS.mensagens, async () => { if (!(await ler({ silencioso: true }))) throw new Error('mensagens') })
+  const carregar = React.useCallback(() => ler(), [ler])
 
   async function enviar(corpo) {
     await rpc('enviar_mensagem', { p_secret: lerSenha(), p_participante: participante.id, p_corpo: corpo })
-    await carregar()
+    await ler({ silencioso: true }) // a mensagem enviada já aparece; uma releitura que falhe não desfaz o envio
   }
 
   return (
@@ -88,6 +102,7 @@ function AbaMensagens({ participante, pode, onLidas }) {
 
 /* ── Histórico: quem fez o quê + observações internas ──────────────────── */
 function AbaHistorico({ participante, pode }) {
+  const guarda = useGuarda()
   const [linhas, setLinhas] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [texto, setTexto] = React.useState('')
@@ -95,15 +110,26 @@ function AbaHistorico({ participante, pode }) {
   const [avisoObs, setAvisoObs] = React.useState(null)
   const [filtro, setFiltro] = React.useState('')
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  // true = leu; false = falhou. A releitura silenciosa mantém a linha do tempo se falhar; filtro e
+  // observação em digitação não são tocados.
+  const ler = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     try {
-      setLinhas((await rpc('get_atividade', { p_secret: lerSenha(), p_participante: participante.id, p_limite: 300 })) || [])
+      const l = (await rpc('get_atividade', { p_secret: lerSenha(), p_participante: participante.id, p_limite: 300 })) || []
+      if (!vale()) return true
+      setLinhas(l)
+      setErro(null)
+      return true
     } catch (e) {
-      setErro(e.message)
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
     }
-  }, [participante.id])
-  React.useEffect(() => { carregar() }, [carregar])
+  }, [participante.id, guarda])
+  React.useEffect(() => { ler() }, [ler])
+  useSincronizar(DOMINIOS_VISTAS.atividade, async () => { if (!(await ler({ silencioso: true }))) throw new Error('atividade') })
+  const carregar = React.useCallback(() => ler(), [ler])
 
   async function salvarObs(ev) {
     ev.preventDefault()
@@ -113,7 +139,7 @@ function AbaHistorico({ participante, pode }) {
     try {
       await rpc('adicionar_observacao', { p_secret: lerSenha(), p_participante: participante.id, p_texto: texto.trim() })
       setTexto('')
-      await carregar()
+      await ler({ silencioso: true })
     } catch (e) {
       setAvisoObs(traduzirErro(e.message))
     } finally {
@@ -159,18 +185,24 @@ function EdicaoNaSecao({ titulo, onConcluir, sujoRef, children }) {
     const el = ref.current
     const sujos = new Set()
     const marcar = (e) => { const f = e.target && e.target.closest && e.target.closest('form'); if (f) sujos.add(f) }
-    const limpar = (e) => { sujos.delete(e.target) }
+    // Enviar NÃO é salvar: o formulário só fica limpo quando a gravação foi confirmada. Quem sabe avisar
+    // (Bloco, decisões, materiais) marca o <form> e dispara EVENTO_SALVO ao fim; um salvamento que falha
+    // continua contando como alteração não salva. Formulário sem essa marca mantém o comportamento antigo.
+    const aoEnviar = (e) => { const f = e.target; if (!(f && f.hasAttribute && f.hasAttribute(ATRIBUTO_SALVA_POR_EVENTO))) sujos.delete(f) }
+    const aoSalvar = (e) => { sujos.delete(e.target) }
     const temSujo = () => [...sujos].some((f) => f.isConnected)
     // Declarado (lib/pendencias): fechar a aba e "Atualizar agora" perguntam antes.
     const tirar = registrarPendencia('ficha-' + titulo, { rotulo: titulo + ': digitação ainda não salva', ativo: temSujo })
     el.addEventListener('input', marcar, true)
     el.addEventListener('change', marcar, true)
-    el.addEventListener('submit', limpar, true)
+    el.addEventListener('submit', aoEnviar, true)
+    el.addEventListener(EVENTO_SALVO, aoSalvar)
     sujoRef.current = temSujo
     return () => {
       el.removeEventListener('input', marcar, true)
       el.removeEventListener('change', marcar, true)
-      el.removeEventListener('submit', limpar, true)
+      el.removeEventListener('submit', aoEnviar, true)
+      el.removeEventListener(EVENTO_SALVO, aoSalvar)
       tirar()
       sujoRef.current = () => false
     }
@@ -203,7 +235,7 @@ function rolarPara(secao) {
 }
 const depoisDoQuadro = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn))
 
-export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, pode, onMudou, naoLidas = 0, onLidas }) {
+export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, pode, naoLidas = 0 }) {
   const { vista, secao } = destinoNaFicha(sub)
   const { fontes, recarregar } = useFichaGeral(p && p.participacao_id)
   const [editando, setEditando] = React.useState(null) // { secao, editor }
@@ -225,7 +257,11 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
   if (!p) return <Carregando linhas={4} />
 
   const podeSair = async () => !sujoRef.current() || confirmar('Há alterações não salvas neste editor. Sair sem salvar?', { acao: 'Sair sem salvar', perigo: true })
-  const aposSalvar = () => { recarregar(); if (onMudou) onMudou() }
+  // Gravação confirmada num editor: a visão, a lista de marcas e as abas relêem sozinhas pelos domínios que a
+  // gravação anunciou (useSincronizar) — sem a cascata de recargas de antes. Só duas coisas esperam por leitura:
+  // o editor de localização e o de fotos desenham a partir da mesma leitura da publicação, então aguardam ela
+  // para não mostrar o dado antigo logo depois de salvar; e o "Concluir" relê uma vez, para a leitura abrir já atual.
+  const aposSalvarPublicacao = () => recarregar()
 
   async function mudarVista(v, sec = '') {
     if (editando && !(await podeSair())) return
@@ -249,7 +285,7 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
     if (!(await podeSair())) return
     const s = editando && editando.secao
     setEditando(null)
-    aposSalvar()
+    recarregar()
     if (s) depoisDoQuadro(() => rolarPara(s))
   }
   async function voltar() {
@@ -259,14 +295,14 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
 
   const pub = fontes.publicacao.estado === 'ok' ? fontes.publicacao.dados : null
   function editorDe(chave) {
-    if (chave === 'cadastro') return <AbaCadastroMarca participante={p} pode={pode} onMudou={aposSalvar} />
-    if (chave === 'combo') return <AbaCombo participante={p} pode={pode} onMudou={aposSalvar} />
-    if (chave === 'unidades') return <AbaUnidades participante={p} pode={pode} onMudou={aposSalvar} />
+    if (chave === 'cadastro') return <AbaCadastroMarca participante={p} pode={pode} />
+    if (chave === 'combo') return <AbaCombo participante={p} pode={pode} />
+    if (chave === 'unidades') return <AbaUnidades participante={p} pode={pode} />
     if (chave === 'operacao') return <AbaOperacao participante={p} pode={pode} />
-    if (chave === 'publicacao') return <AbaPublicacao participante={p} pode={pode} onMudou={aposSalvar} />
+    if (chave === 'publicacao') return <AbaPublicacao participante={p} pode={pode} />
     if (!pub) return <p className="ui-nota">Os dados desta edição não carregaram. Feche o editor e tente de novo.</p>
-    if (chave === 'coordenadas') return <ConferirLocalizacao unidades={pub.unidades} pode={pode} onSalvo={aposSalvar} />
-    if (chave === 'fotos') return <RevisarFotos pub={pub} participacaoId={p.participacao_id} edicao={p.edicao_codigo} pode={pode} onSalvo={aposSalvar} />
+    if (chave === 'coordenadas') return <ConferirLocalizacao unidades={pub.unidades} pode={pode} onSalvo={aposSalvarPublicacao} />
+    if (chave === 'fotos') return <RevisarFotos pub={pub} participacaoId={p.participacao_id} edicao={p.edicao_codigo} pode={pode} onSalvo={aposSalvarPublicacao} />
     return null
   }
   const renderEditor = (alvo) => (
@@ -337,24 +373,25 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
         )}
         {vista === 'comunicacao' && (
           <div className="ui-pilha">
-            <AbaMensagens participante={p} pode={pode} onLidas={onLidas} />
-            {p.participacao_id && <CorrecoesCampo participacaoId={p.participacao_id} pode={pode} onMudou={aposSalvar} />}
+            <AbaMensagens key={p.id} participante={p} pode={pode} />
+            {p.participacao_id && <CorrecoesCampo key={p.participacao_id} participacaoId={p.participacao_id} pode={pode} />}
           </div>
         )}
         {vista === 'historico' && (
           <>
             <MacroSecao rotulo="Atividade" titulo="O que aconteceu nesta ficha" nota="Mudanças de situação, mensagens, pedidos e observações internas, com quem fez e quando.">
-              <AbaHistorico participante={p} pode={pode} />
+              <AbaHistorico key={p.id} participante={p} pode={pode} />
             </MacroSecao>
             <MacroSecao id="fg-trajetoria" rotulo="Trajetória" titulo="Participação no festival" nota="Edições em que a marca esteve, prêmios e o vínculo com o acervo. Não é o histórico de mudanças da ficha.">
-              <AbaTrajetoria participante={p} pode={pode} onMudou={onMudou} />
+              <AbaTrajetoria key={p.id} participante={p} pode={pode} />
             </MacroSecao>
           </>
         )}
         {vista === 'gestao' && (
           <div className="ui-pilha">
-            <PreenchimentoMarca participante={p} pode={pode} onMudou={aposSalvar} />
-            <AbaAcesso participante={p} pode={pode} onMudou={onMudou} onFechar={onVoltar} />
+            <PreenchimentoMarca key={p.id} participante={p} pode={pode} />
+            {/* key: a senha temporária e o histórico do acesso são de UMA marca e nunca aparecem sob outra. */}
+            <AbaAcesso key={p.id} participante={p} pode={pode} onFechar={onVoltar} />
           </div>
         )}
       </div>

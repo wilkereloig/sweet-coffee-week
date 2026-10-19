@@ -4,6 +4,7 @@ import { Icone } from './Icone'
 import { validarLogo, validarVetor, caminhoLogo, mimeDe, urlLogo, extensao, ACEITA_EXIBICAO, ACEITA_VETOR } from '../lib/logos'
 import { dataCurta } from '../lib/respostas'
 import { confirmar } from './Confirmar'
+import { useLeitura } from '../lib/leituraVivaReact'
 
 /*
  * Logo do estabelecimento — o MESMO editor na ficha da organização e no Meu
@@ -46,18 +47,22 @@ function inspecionar(file) {
 }
 
 export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = true, modo = 'org', onMudou }) {
-  const [info, setInfo] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [ocupado, setOcupado] = React.useState(false)
   const [escolha, setEscolha] = React.useState(null) // { file, url, meta, vetor }
   const [enviando, setEnviando] = React.useState(false) // mostra o seletor
   const inputRef = React.useRef(null)
+  // De QUEM é esta logo: o que termina depois de a tela passar para outra marca não pode escrever nela.
+  const marcaAgora = React.useRef(participanteId)
+  marcaAgora.current = participanteId
 
-  const carregar = React.useCallback(async () => {
-    try { setInfo(await adaptador.carregar()); setErro(null) } catch (e) { setErro(erroLegivel(e)) }
-  }, [adaptador])
-  React.useEffect(() => { carregar() }, [carregar])
+  // A logo se relê sozinha quando muda a logo da marca ou o que a escolhe como oficial (domínios
+  // "logos" e "participantes"), inclusive quando outra pessoa troca a logo com este editor aberto.
+  // Outra marca = leitura nova: a logo da anterior nunca aparece, nem uma resposta atrasada dela.
+  // A prévia/arquivo escolhido (`escolha`) e o aviso são estado local e não são tocados pela releitura.
+  const leitura = useLeitura(() => adaptador.carregar(), ['logos', 'participantes'], { chave: participanteId })
+  const info = leitura.dados === undefined ? null : leitura.dados
+  React.useEffect(() => { setEscolha(null); setEnviando(false); setAviso(null); setOcupado(false) }, [participanteId])
   // Revoga a prévia só quando ELA muda (anexar o vetor não troca a imagem).
   const urlPrevia = escolha && escolha.url
   React.useEffect(() => () => { if (urlPrevia) URL.revokeObjectURL(urlPrevia) }, [urlPrevia])
@@ -66,20 +71,29 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
   // não está "valendo", e a tela não pode dizer que está).
   async function depois(texto) {
     setEscolha(null); setEnviando(false)
+    // Relê agora porque a mensagem depende do estado novo, e entrega o resultado à leitura. Se a
+    // releitura falhar a gravação CONTINUA valendo: o editor não vira tela de erro, só o aviso diz
+    // que não deu para conferir (e a leitura tenta de novo sozinha).
     let novo = null
-    try { novo = await adaptador.carregar(); setInfo(novo); setErro(null) } catch (e) { setErro(erroLegivel(e)) }
-    setAviso({ ok: true, texto: typeof texto === 'function' ? texto(novo) : texto })
+    let falhou = null
+    try { novo = await adaptador.carregar(); leitura.ajustar(novo === undefined ? null : novo) } catch (e) { falhou = e }
+    if (falhou) setAviso({ texto: 'A logo foi salva, mas não consegui conferir o resultado agora (' + erroLegivel(falhou) + '). Atualize a página para ver como ficou.' })
+    else setAviso({ ok: true, texto: typeof texto === 'function' ? texto(novo) : texto })
     if (onMudou) onMudou()
   }
   async function executar(fn, texto) {
+    const marca = marcaAgora.current
+    const mesma = () => marcaAgora.current === marca
     setOcupado(true); setAviso(null)
-    try { await fn(); await depois(texto) } catch (e) { setAviso({ texto: erroLegivel(e) }) } finally { setOcupado(false) }
+    try { await fn(); if (mesma()) await depois(texto) } catch (e) { if (mesma()) setAviso({ texto: erroLegivel(e) }) } finally { if (mesma()) setOcupado(false) }
   }
 
   async function aoEscolher(file) {
     if (!file) return
+    const marca = marcaAgora.current
     setAviso(null)
     const meta = await inspecionar(file)
+    if (marcaAgora.current !== marca) return   // trocou de marca enquanto o arquivo era lido
     if (meta.quebrada) { setAviso({ texto: 'Não consegui abrir essa imagem. Confira o arquivo.' }); return }
     const problema = validarLogo({ nome: file.name, tamanho: file.size, ...meta })
     if (problema) { setAviso({ texto: problema }); return }
@@ -90,10 +104,10 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
     const textoSvg = extensao(file.name) === 'svg' ? await file.text().catch(() => '') : undefined
     const problema = validarVetor({ nome: file.name, tamanho: file.size, textoSvg })
     if (problema) { setAviso({ texto: problema }); return }
-    setEscolha((e) => ({ ...e, vetor: file }))
+    setEscolha((e) => (e ? { ...e, vetor: file } : e))
   }
 
-  function confirmar() {
+  function confirmarLogo() {
     const { file, meta, vetor } = escolha
     return executar(async () => {
       const path = caminhoLogo(participanteId, file.name, 'logo')
@@ -114,7 +128,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
 
   // O alvo `#campo-logo` existe desde o primeiro render: "Enviar logo" rola
   // até aqui antes de a RPC responder.
-  if (erro) return <div className="ui-logo-editor" id="campo-logo" tabIndex={-1}><Erro texto={erro} onTentar={carregar} /></div>
+  if (leitura.bloqueada) return <div className="ui-logo-editor" id="campo-logo" tabIndex={-1}><Erro texto={erroLegivel(leitura.erro)} onTentar={leitura.recarregar} /></div>
   if (!info) return <div className="ui-logo-editor" id="campo-logo" tabIndex={-1}><Carregando linhas={2} /></div>
 
   const atual = info.atual
@@ -124,6 +138,8 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
 
   return (
     <div className="ui-logo-editor" id="campo-logo" tabIndex={-1}>
+      {/* Releitura que falhou com a logo já na tela: o editor fica e a falha aparece aqui. */}
+      {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar a logo" texto={erroLegivel(leitura.erro)} onTentar={leitura.recarregar} />}
       {/* Sempre montado: "Trocar arquivo" da prévia também usa este campo. */}
       <input ref={inputRef} className="ui-oculto" type="file" accept={ACEITA_EXIBICAO} tabIndex={-1} aria-hidden="true" onChange={(e) => { aoEscolher(e.target.files[0]); e.target.value = '' }} />
       <div className="ui-logo-editor__topo">
@@ -199,7 +215,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
             <input type="file" accept={ACEITA_VETOR} onChange={(e) => aoEscolherVetor(e.target.files[0])} />
           </label>
           <div className="ui-acoes">
-            <Botao icone="feito" variante="destaque" disabled={ocupado} onClick={confirmar}>{ocupado ? 'Enviando…' : 'Confirmar logo'}</Botao>
+            <Botao icone="feito" variante="destaque" disabled={ocupado} onClick={confirmarLogo}>{ocupado ? 'Enviando…' : 'Confirmar logo'}</Botao>
             <Botao icone="imagem" variante="secundario" disabled={ocupado} onClick={() => inputRef.current && inputRef.current.click()}>Trocar arquivo</Botao>
             <Botao variante="secundario" disabled={ocupado} onClick={() => setEscolha(null)}>Cancelar</Botao>
           </div>

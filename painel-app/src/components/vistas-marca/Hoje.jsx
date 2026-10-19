@@ -1,7 +1,7 @@
 import React from 'react'
 import { Icone, MODULO_ICONE } from '../Icone'
 import { urlLogo } from '../../lib/logos'
-import { api } from '../../lib/marcaApi'
+import { api, seFaltar } from '../../lib/marcaApi'
 import { chaveDia } from '../../lib/hoje'
 import { tempoRelativo } from '../../lib/central'
 import { nivelDoAviso, NIVEIS } from '../../lib/guia'
@@ -9,11 +9,102 @@ import { VistaCabeca } from '../VistaCabeca'
 import { Carregando, Erro, Secao, Selo, Modulo, MacroSecao, GradeModulos, Botao, LogoMarca } from '../ui'
 import { VouchersMarca } from './VouchersMarca'
 import { momentoEdicao, resumoTrajetoria, proximosDoCronograma, textoPrazo } from '../../lib/operacao'
+import { useSincronizar, useGuarda, useRegistroEditavel } from '../../lib/sync/react'
+import { usePendencia } from '../../lib/pendencias'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { diaDoFormulario, rotuloDoDia, textoDaVenda, msAteMeiaNoite, comVendaGravada } from '../../lib/sincMarca'
 
 const dataBr = (iso) => (iso ? String(iso).slice(0, 10).split('-').reverse().join('/') : '')
 
 // Estado de etapa e de pendência: ícone + texto, nunca só cor (ícones em components/Icone.jsx).
 const ROTULO_ESTADO = { feito: 'concluído', atencao: 'alteração pedida', andamento: 'em andamento', pendente: 'falta' }
+
+/*
+ * Combos vendidos — o gesto diário da marca. O número digitado NUNCA é trocado por uma
+ * releitura: se a organização lançar a venda do mesmo dia enquanto a pessoa digita, a tela
+ * mostra as duas versões e ela escolhe (AvisoMudancaExterna). Só monta depois de as vendas
+ * terem sido lidas, para a primeira leitura não parecer "alteração de outra pessoa".
+ * Se a meia-noite passar com número digitado e não salvo, o campo continua sendo do dia
+ * em que a pessoa começou (rótulo "Ontem"): a venda não cai no dia errado.
+ */
+function VendaDoDia({ vendas, hoje, total, participacaoId, aoGravar, recarregar, invalidar }) {
+  const [diaForm, setDiaForm] = React.useState(hoje)
+  const [salvando, setSalvando] = React.useState(false)
+  const [erro, setErro] = React.useState(null)
+  const linhaDoDia = vendas.find((v) => v.dia === diaForm)
+  const qtdServidor = textoDaVenda(vendas, diaForm)
+  const servidor = React.useMemo(() => ({ quantidade: qtdServidor }), [qtdServidor])
+  const venda = useRegistroEditavel(servidor, ['quantidade'], { chave: diaForm })
+
+  React.useEffect(() => {
+    const alvo = diaDoFormulario({ hoje, atual: diaForm, sujo: venda.sujo })
+    if (alvo !== diaForm) setDiaForm(alvo)
+  }, [hoje, diaForm, venda.sujo])
+
+  async function gravar() {
+    const n = parseInt(venda.local.quantidade, 10)
+    if (isNaN(n) || n < 0) { setErro('Informe um número inteiro, zero ou mais.'); return false }
+    setSalvando(true)
+    setErro(null)
+    try {
+      const r = linhaDoDia
+        ? await api('vendas_diarias?id=eq.' + linhaDoDia.id, { metodo: 'PATCH', corpo: { quantidade: n }, prefer: 'return=representation' })
+        : await api('vendas_diarias', { metodo: 'POST', corpo: { participacao_id: participacaoId, dia: diaForm, quantidade: n }, prefer: 'return=representation' })
+      const linha = r && r[0]
+      if (!linha) throw new Error('sem_confirmacao')
+      invalidar()                                  // uma leitura já em voo é anterior a esta gravação: não pode desfazê-la
+      aoGravar(linha)
+      venda.salvou({ quantidade: String(linha.quantidade) })
+      return true
+    } catch (e) {
+      if (e && e.message === 'sessao_expirada') return false
+      if (/duplicate|unique|23505/i.test(e.message || '')) {
+        // A releitura traz o número do outro aparelho: se a pessoa tinha digitado outro, o aviso mostra os dois.
+        await recarregar().catch(() => {})
+        setErro('Já havia um número lançado hoje em outro aparelho. Confira e atualize.')
+        return false
+      }
+      setErro('Não deu para lançar agora. Tente de novo.')
+      return false
+    } finally {
+      setSalvando(false)
+    }
+  }
+  // Fechar a aba ou atualizar a versão com número digitado e não salvo pergunta antes.
+  const pend = usePendencia(venda.sujo, { rotulo: 'Combos vendidos', salvar: gravar })
+  const conflito = venda.sujo && Object.keys(venda.conflitos).length > 0
+  React.useEffect(() => { if (conflito) pend.sinalizarExterno(); else pend.limparExterno() }, [conflito]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <>
+      <AvisoMudancaExterna registro={venda} rotulos={{ quantidade: 'Combos vendidos' }} />
+      <form className="mc-venda" onSubmit={(ev) => { ev.preventDefault(); gravar() }}>
+        <div className="mc-venda__linha">
+          <label className="mc-venda__rotulo">
+            <span>{rotuloDoDia(diaForm, hoje)}</span>
+            <input className="mc-venda__campo" type="number" inputMode="numeric" min="0" step="1" placeholder="0" value={venda.local.quantidade} onChange={(e) => venda.editar('quantidade', e.target.value)} />
+          </label>
+          <button className="acao acao--amarela" type="submit" disabled={salvando}>{linhaDoDia ? 'Atualizar' : 'Salvar'}</button>
+          <span className="mc-venda__total"><b>{total}</b><span>no total da edição</span></span>
+        </div>
+        {vendas.length > 0 && (
+          <div className="mc-venda__dias" aria-label="Últimos dias lançados">
+            {vendas.slice(0, 14).map((v) => {
+              const d = new Date(v.dia + 'T00:00:00')
+              return (
+                <div className={'mc-venda__dia' + (v.dia === hoje ? ' is-hoje' : '')} key={v.id}>
+                  <b>{v.quantidade}</b>
+                  <span>{d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        {erro && <p className="mc-venda__erro" role="alert">{erro}</p>}
+      </form>
+    </>
+  )
+}
 
 /*
  * Início (marca) — guia de entrada (29/09/2026). Nesta ordem: situação (% e
@@ -23,36 +114,76 @@ const ROTULO_ESTADO = { feito: 'concluído', atencao: 'alteração pedida', anda
  * (`resumo`); aqui só se carrega o que é desta tela.
  */
 export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, resumo, dadosMarca, erroResumo, recarregarResumo, avisos = [] }) {
-  const [vendas, setVendas] = React.useState([])
+  const [vendas, setVendas] = React.useState(null)       // null = ainda não lidas (ou a leitura falhou)
   const [edicao, setEdicao] = React.useState(null)
   const [cronograma, setCronograma] = React.useState([])
   const [historia, setHistoria] = React.useState(null)
-  const [qtd, setQtd] = React.useState('')
-  const [salvando, setSalvando] = React.useState(false)
-  const [erro, setErro] = React.useState(null)
+  const [erroLocal, setErroLocal] = React.useState(null)    // leitura que falhou SEM haver dado anterior para mostrar
+  const [, tic] = React.useReducer((n) => n + 1, 0)
+  const guarda = useGuarda()
+  const lidos = React.useRef({})                            // o que já foi lido ao menos uma vez para esta participação
 
   const participante = dadosMarca && dadosMarca.participante
   const participacao = dadosMarca && dadosMarca.participacao
+  const participacaoId = participacao ? participacao.id : null
+  const edicaoCodigo = participacao ? participacao.edicao_codigo : null
   const estado = !dadosMarca ? 'carregando' : !participante ? 'sem-marca' : !participacao ? 'sem-participacao' : 'pronto'
   const hoje = chaveDia(new Date())
-  const deHoje = vendas.find((v) => v.dia === hoje)
+  const listaVendas = vendas || []
+  const deHoje = listaVendas.find((v) => v.dia === hoje)
 
+  // Virada do dia: sem isto, "hoje" só mudaria quando algo re-renderizasse a tela.
+  React.useEffect(() => {
+    const t = setTimeout(tic, msAteMeiaNoite(new Date()))
+    return () => clearTimeout(t)
+  }, [hoje])
+
+  // Releitura silenciosa (sinal de sincronização): nunca troca o conteúdo por "Carregando…" nem mexe no
+  // que a pessoa digitou. Leitura que falha MANTÉM o que já estava na tela e rejeita — o indicador de
+  // sincronização mostra "falha"; só quando nunca houve dado é que a tela diz que não carregou.
   const carregarLocal = React.useCallback(async () => {
-    api('rpc/marca_minha_historia', { metodo: 'POST', corpo: {} }).then(setHistoria).catch(() => setHistoria(null))
-    if (!participacao) return
-    const ed = encodeURIComponent(participacao.edicao_codigo)
-    const [eds, crono, v] = await Promise.all([
-      api('edicoes?select=*&codigo=eq.' + ed).catch(() => []),
-      api('edicao_cronograma?select=*&edicao_codigo=eq.' + ed + '&order=ordem').catch(() => []),
-      api('vendas_diarias?select=*&participacao_id=eq.' + participacao.id + '&order=dia.desc').catch(() => []),
-    ])
-    setEdicao((eds && eds[0]) || null)
-    setCronograma(crono || [])
-    setVendas(v || [])
-  }, [participacao && participacao.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    const vale = guarda()
+    const ed = participacaoId ? encodeURIComponent(edicaoCodigo) : null
+    const leituras = {
+      // Só a AUSÊNCIA da função no banco vira vazio (migration ainda não aplicada); falha de verdade conta como falha.
+      historia: () => api('rpc/marca_minha_historia', { metodo: 'POST', corpo: {} }).catch(seFaltar(null)),
+      ...(ed ? {
+        edicao: () => api('edicoes?select=*&codigo=eq.' + ed),
+        cronograma: () => api('edicao_cronograma?select=*&edicao_codigo=eq.' + ed + '&order=ordem'),
+        vendas: () => api('vendas_diarias?select=*&participacao_id=eq.' + participacaoId + '&order=dia.desc'),
+      } : {}),
+    }
+    const nomes = Object.keys(leituras)
+    const res = await Promise.allSettled(nomes.map((n) => leituras[n]()))
+    if (!vale()) return
+    const dado = {}
+    let falha = null
+    res.forEach((x, i) => { if (x.status === 'fulfilled') dado[nomes[i]] = x.value; else falha = falha || x.reason })
+    if (falha && falha.message === 'sessao_expirada') return    // o App leva ao login
+    if ('historia' in dado) setHistoria(dado.historia)
+    if ('edicao' in dado) setEdicao((dado.edicao && dado.edicao[0]) || null)
+    if ('cronograma' in dado) setCronograma(dado.cronograma || [])
+    if ('vendas' in dado) setVendas(dado.vendas || [])
+    Object.keys(dado).forEach((n) => { lidos.current[n] = true })
+    if (falha) {
+      if (nomes.some((n) => !lidos.current[n])) setErroLocal(falha.message || 'erro')
+      throw falha
+    }
+    setErroLocal(null)
+  }, [participacaoId, edicaoCodigo, guarda])
 
-  React.useEffect(() => { if (dadosMarca) carregarLocal() }, [carregarLocal, !!dadosMarca]) // eslint-disable-line react-hooks/exhaustive-deps
-  React.useEffect(() => { setQtd(deHoje ? String(deHoje.quantidade) : '') }, [deHoje])
+  // Outra participação (nova edição): nada do que está na tela vale para ela.
+  const ultimaParticipacao = React.useRef(participacaoId)
+  React.useEffect(() => {
+    if (!dadosMarca) return
+    if (ultimaParticipacao.current !== participacaoId) {
+      ultimaParticipacao.current = participacaoId
+      lidos.current = {}
+      setVendas(null); setEdicao(null); setCronograma([]); setErroLocal(null)
+    }
+    carregarLocal().catch(() => {})   // a falha fica em erroLocal; as releituras seguintes contam no indicador
+  }, [carregarLocal, !!dadosMarca]) // eslint-disable-line react-hooks/exhaustive-deps
+  useSincronizar(['participantes', 'edicao', 'vendas'], () => (dadosMarca ? carregarLocal() : undefined))
   // Aviso "registre as vendas de hoje": rola até a venda.
   React.useEffect(() => {
     if (!alvo) return
@@ -63,33 +194,11 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
     if (estado !== 'carregando') consumirAlvo && consumirAlvo()
   }, [alvo, estado]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function salvar(ev) {
-    ev.preventDefault()
-    const n = parseInt(qtd, 10)
-    if (isNaN(n) || n < 0) { setErro('Informe um número inteiro, zero ou mais.'); return }
-    setSalvando(true)
-    setErro(null)
-    try {
-      const r = deHoje
-        ? await api('vendas_diarias?id=eq.' + deHoje.id, { metodo: 'PATCH', corpo: { quantidade: n }, prefer: 'return=representation' })
-        : await api('vendas_diarias', { metodo: 'POST', corpo: { participacao_id: participacao.id, dia: hoje, quantidade: n }, prefer: 'return=representation' })
-      const linha = r && r[0]
-      if (!linha) throw new Error('sem_confirmacao')
-      setVendas((atual) => (deHoje ? atual.map((v) => (v.id === deHoje.id ? linha : v)) : [linha, ...atual]))
-    } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
-      if (/duplicate|unique|23505/i.test(e.message || '')) { await carregarLocal(); setErro('Já havia um número lançado hoje em outro aparelho. Confira e atualize.'); return }
-      setErro('Não deu para lançar agora. Tente de novo.')
-    } finally {
-      setSalvando(false)
-    }
-  }
-
   const ir = (link, vista) => (link ? abrirLink(link) : irPara(vista))
   const momento = momentoEdicao(edicao, hoje)
   const trajetoria = resumoTrajetoria(historia)
   const proximos = proximosDoCronograma(cronograma, hoje, 5)
-  const total = vendas.reduce((s, v) => s + Number(v.quantidade || 0), 0)
+  const total = listaVendas.reduce((s, v) => s + Number(v.quantidade || 0), 0)
   const nomePessoa = participante && String(participante.responsavel || '').trim().split(/\s+/)[0]
 
   // Mensagem nova da organização vem antes de tudo: é alguém esperando resposta.
@@ -137,6 +246,10 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
             </p>
           )}
         </div>
+      )}
+
+      {estado === 'pronto' && erroLocal && (
+        <Erro titulo="Parte das informações não carregou" texto={erroLocal} onTentar={() => carregarLocal().catch(() => {})} />
       )}
 
       {estado === 'sem-participacao' && (
@@ -276,32 +389,13 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
             </div>
           </MacroSecao>
 
-          {momento !== 'antes' && (
+          {momento !== 'antes' && (vendas !== null || !erroLocal) && (
             <Secao id="venda-do-dia" titulo="Combos vendidos" nota={deHoje ? 'Lançado. Dá para corrigir quantas vezes precisar.' : 'Lance no fim do expediente. A organização soma tudo para o balanço da edição.'}>
-              <form className="mc-venda" onSubmit={salvar}>
-                <div className="mc-venda__linha">
-                  <label className="mc-venda__rotulo">
-                    <span>Hoje</span>
-                    <input className="mc-venda__campo" type="number" inputMode="numeric" min="0" step="1" placeholder="0" value={qtd} onChange={(e) => setQtd(e.target.value)} />
-                  </label>
-                  <button className="acao acao--amarela" type="submit" disabled={salvando}>{deHoje ? 'Atualizar' : 'Salvar'}</button>
-                  <span className="mc-venda__total"><b>{total}</b><span>no total da edição</span></span>
-                </div>
-                {vendas.length > 0 && (
-                  <div className="mc-venda__dias" aria-label="Últimos dias lançados">
-                    {vendas.slice(0, 14).map((v) => {
-                      const d = new Date(v.dia + 'T00:00:00')
-                      return (
-                        <div className={'mc-venda__dia' + (v.dia === hoje ? ' is-hoje' : '')} key={v.id}>
-                          <b>{v.quantidade}</b>
-                          <span>{d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-                {erro && <p className="mc-venda__erro" role="alert">{erro}</p>}
-              </form>
+              {vendas === null
+                ? <Carregando linhas={2} texto="Carregando as vendas…" />
+                : <VendaDoDia vendas={vendas} hoje={hoje} total={total} participacaoId={participacaoId}
+                    aoGravar={(linha) => setVendas((atual) => comVendaGravada(atual, linha))}
+                    recarregar={carregarLocal} invalidar={() => { guarda() }} />}
             </Secao>
           )}
 

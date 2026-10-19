@@ -11,6 +11,8 @@ import { baixarArquivo } from '../../lib/redesArquivos'
 import * as R from '../../lib/redes'
 import { traduzirRedes } from './RedesFicha'
 import { usePendencia } from '../../lib/pendencias'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 
 /*
  * Social media › Participantes (17/10/2026): a ficha EDITORIAL de cada casa —
@@ -44,21 +46,7 @@ const ERROS = {
 }
 const traduzir = (m) => { for (const [k, v] of Object.entries(ERROS)) if (String(m).includes(k)) return v; return traduzirRedes(m) }
 
-/** O que mudou no formulário em relação ao lido (só isso vai ao servidor). */
-export function mudancasEditoriais(lido, form) {
-  const d = {}
-  for (const k of ['combo_nome', 'combo_descricao', 'combo_proposta']) if (n(form[k]).trim() !== n(lido[k])) d[k] = form[k]
-  const itens = []
-  for (const it of form.itens || []) {
-    const orig = (lido.itens || []).find((x) => x.id === it.id) || {}
-    const m = {}
-    if (n(it.nome).trim() !== n(orig.nome)) m.nome = it.nome
-    if (n(it.descricao).trim() !== n(orig.descricao)) m.descricao = it.descricao
-    if (Object.keys(m).length) itens.push({ id: it.id, ...m })
-  }
-  if (itens.length) d.itens = itens
-  return d
-}
+// O que mudou no formulário em relação ao lido (só isso vai ao servidor) vive em lib/redes.js (R.mudancasEditoriais).
 
 function TextoCopiavel({ texto, rotulo, onCopiado }) {
   const [ok, setOk] = React.useState(false)
@@ -78,45 +66,66 @@ function TextoCopiavel({ texto, rotulo, onCopiado }) {
 function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   const [f, setF] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const [editando, setEditando] = React.useState(false)
-  const [form, setForm] = React.useState(null)
-  const [lido, setLido] = React.useState(null)
-  const [conflito, setConflito] = React.useState(null)
+  // Combo em edição (null = ninguém editando): registro em três vias (R.reduzirEditorial). A releitura — por sinal da marca
+  // ou de outra pessoa, reconexão — NUNCA troca o que a pessoa digitou; o que ela não tocou acompanha o servidor; o mesmo
+  // campo mudado dos dois lados vira conflito e ela escolhe. Salvar manda o que ela mudou, com o que o servidor tem como "esperado".
+  const [reg, despachar] = React.useReducer(R.reduzirEditorial, null)
   const [salvando, setSalvando] = React.useState(false)
   const [aviso, setAviso] = React.useState('')
   const [erroAcao, setErroAcao] = React.useState(null)
   const [falhaBaixa, setFalhaBaixa] = React.useState(null) // { fonte, nome } que não baixou
   const baixar = (fonte, nome) => { setFalhaBaixa(null); baixarArquivo(fonte, nome).catch(() => setFalhaBaixa({ fonte, nome })) }
 
+  // Só a leitura MAIS NOVA vale (resposta velha, ficha fechada ou conta trocada não escrevem). Silenciosa: depois da
+  // primeira carga nada vira "Carregando…"; se falhar, a ficha continua com o que tem. Devolve a resposta · null (falhou)
+  // · undefined (atrasada, já substituída).
+  const guarda = useGuarda()
   const carregar = React.useCallback(async () => {
-    try { const r = await rpc('editorial_ficha', { p_secret: lerSenha(), p_participacao: participacaoId }); setF(r); setErro(null); return r }
-    catch (e) { setErro(e.message); return null }
-  }, [participacaoId])
+    const vale = guarda()
+    try {
+      const r = await rpc('editorial_ficha', { p_secret: lerSenha(), p_participacao: participacaoId })
+      if (!vale()) return undefined
+      setF(r); setErro(null)
+      despachar({ tipo: 'servidor', servidor: R.achatarEditavel(r.editavel) }) // sem edição aberta não faz nada
+      return r
+    } catch (e) { if (!vale()) return undefined; setErro(e.message); return null }
+  }, [participacaoId, guarda])
   React.useEffect(() => { carregar() }, [carregar])
+  // A marca, a curadoria ou outra pessoa mexeram no combo, na casa, nas fotos, nas unidades ou na versão do site; ou saiu postagem.
+  useSincronizar(['editorial', 'participantes', 'cadastro', 'unidades', 'publicacao', 'logos', 'redes'], async () => { if ((await carregar()) === null) throw new Error('editorial_ficha') })
   React.useEffect(() => { if (!aviso) return undefined; const t = setTimeout(() => setAviso(''), 4000); return () => clearTimeout(t) }, [aviso])
 
-  const mudou = editando && lido && form ? mudancasEditoriais(lido, form) : {}
+  const editando = !!reg
+  const lido = reg && f ? R.aEditavel(reg.base, f.editavel) : null // o que ela viu confirmado (o "esperado" do servidor)
+  const form = reg && f ? R.aEditavel(reg.local, f.editavel) : null // o que está na tela
+  const mudou = lido && form ? R.mudancasEditoriais(lido, form) : {}
   const sujo = Object.keys(mudou).length > 0
-  usePendencia(sujo, { rotulo: 'Combo de “' + ((f && f.marca) || 'participante') + '”: edição não salva', salvar: () => salvar() })
+  const conflitos = reg ? Object.keys(reg.conflitos) : []
+  const pend = usePendencia(sujo, { rotulo: 'Combo de “' + ((f && f.marca) || 'participante') + '”: edição não salva', salvar: () => salvar() })
+  // Registro aberto que mudou por fora e pede escolha: o indicador de sincronização e o "Atualizar agora" ficam sabendo.
+  React.useEffect(() => { if (conflitos.length) pend.sinalizarExterno(); else pend.limparExterno() }, [conflitos.length > 0, f && f.marca]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function editar() {
-    setLido(f.editavel)
-    setForm({ ...f.editavel, itens: (f.editavel.itens || []).map((i) => ({ ...i })) })
-    setEditando(true)
-    setConflito(null)
+    despachar({ tipo: 'iniciar', editavel: f.editavel })
+    setErroAcao(null)
   }
-  async function salvar(esperado = lido) {
+  const set = (campo, valor) => despachar({ tipo: 'editar', campo, valor })
+  async function salvar() {
+    if (!reg || !f) return true
+    if (conflitos.length) { setErroAcao('Escolha acima qual versão vale nos campos que mudaram antes de salvar.'); return false }
+    if (!sujo) { despachar({ tipo: 'sair' }); return true }
     setSalvando(true); setErroAcao(null)
     try {
-      const r = await rpc('editorial_salvar', { p_secret: lerSenha(), p_participacao: participacaoId, p_esperado: esperado, p_dados: mudancasEditoriais(esperado, form) })
-      setF(r); setEditando(false); setConflito(null); setLido(null)
+      const r = await rpc('editorial_salvar', { p_secret: lerSenha(), p_participacao: participacaoId, p_esperado: lido, p_dados: mudou })
+      setF(r); despachar({ tipo: 'sair' })
       setAviso('Salvo. A versão do site não mudou — a curadoria foi avisada para revisar.')
       onMudou()
       return true
     } catch (e) {
       if (/versao_desatualizada/.test(e.message)) {
-        const r = await carregar()
-        if (r) setConflito({ atual: r.editavel })
+        // Salvaram o mesmo texto antes: traz o combo de agora; a mesclagem separa o que acompanha do que conflita.
+        await carregar()
+        setErroAcao(ERROS.versao_desatualizada + ' Veja o que mudou acima.')
       } else setErroAcao(traduzir(e.message))
       return false
     } finally { setSalvando(false) }
@@ -148,13 +157,15 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   const difere = pub && (n(pub.nome) !== n(combo.nome) || n(pub.descricao) !== n(combo.descricao))
   const unidades = (f.atual && f.atual.unidades) || []
   const podeEditar = pode('editorial.editar')
+  const rotulosCombo = { ...ROTULO, ...Object.fromEntries((f.editavel.itens || []).flatMap((it) => [
+    ['item:' + it.id + ':nome', (TIPO_ITEM[it.tipo] || 'Componente') + ' — nome'], ['item:' + it.id + ':descricao', (TIPO_ITEM[it.tipo] || 'Componente') + ' — descrição']])) }
   // Rótulo por htmlFor (o texto digitado num textarea dentro do <label> entraria no nome acessível).
   const idDe = (k) => 'sp-' + participacaoId + '-' + k
   const campoCombo = (k, linhas) => (
     <div className="og-campo sp-campo" key={k}>
       <span><label htmlFor={idDe(k)}>{ROTULO[k]}</label></span>
-      {linhas ? <textarea id={idDe(k)} rows={linhas} maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
-        : <input id={idDe(k)} maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />}
+      {linhas ? <textarea id={idDe(k)} rows={linhas} maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => set(k, e.target.value)} />
+        : <input id={idDe(k)} maxLength={LIMITES[k]} value={n(form[k])} onChange={(e) => set(k, e.target.value)} />}
       <small className="rd-campo__nota">{n(form[k]).length}/{LIMITES[k]}</small>
     </div>
   )
@@ -193,23 +204,14 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
           </div>
         )}
 
-        {conflito && (
-          <div className="og-aviso rd-conflito" role="alert">
-            <p><b>{ERROS.versao_desatualizada}</b> O que você digitou continua no formulário. Compare:</p>
-            <dl className="rd-conflito__lista">
-              {Object.keys(mudou).filter((k) => k !== 'itens').map((k) => (
-                <div key={k}><dt>{ROTULO[k]}</dt><dd><span>Salvo agora:</span> {n(conflito.atual[k]) || '(vazio)'}</dd><dd><span>O seu:</span> {n(form[k]) || '(vazio)'}</dd></div>
-              ))}
-              {(mudou.itens || []).map((it) => {
-                const a = (conflito.atual.itens || []).find((x) => x.id === it.id) || {}
-                return <div key={it.id}><dt>{TIPO_ITEM[a.tipo] || 'Componente'}</dt><dd><span>Salvo agora:</span> {n(a.nome)} — {n(a.descricao) || '(sem descrição)'}</dd></div>
-              })}
-            </dl>
-            <div className="ui-acoes">
-              <Botao onClick={() => { setLido(conflito.atual); salvar(conflito.atual) }} disabled={salvando}>Salvar o meu por cima</Botao>
-              <Botao variante="secundario" onClick={() => { setEditando(false); setConflito(null) }}>Ficar com o salvo</Botao>
-            </div>
-          </div>
+        {reg && (
+          <AvisoMudancaExterna rotulos={rotulosCombo} quem="outra pessoa"
+            registro={{
+              conflitos: reg.conflitos, adotados: reg.adotados,
+              adotar: (c) => despachar({ tipo: 'adotar', campo: c }), manter: (c) => despachar({ tipo: 'manter', campo: c }),
+              adotarTodos: () => despachar({ tipo: 'adotarTodos' }), manterTodos: () => despachar({ tipo: 'manterTodos' }),
+              dispensar: () => despachar({ tipo: 'dispensar' }),
+            }} />
         )}
 
         <Secao titulo="Combo" nota="O que está no cadastro agora. A versão do site só muda quando a curadoria publica de novo."
@@ -225,17 +227,17 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
                   <div className="sp-item-form" key={it.id}>
                     <p className="sp-item-form__tipo">{TIPO_ITEM[it.tipo] || 'Componente'} {it.posicao}</p>
                     <div className="og-campo"><span><label htmlFor={idDe('item-nome-' + i)}>Nome</label></span>
-                      <input id={idDe('item-nome-' + i)} maxLength={LIMITES.item_nome} value={n(it.nome)} onChange={(e) => setForm({ ...form, itens: form.itens.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)) })} /></div>
+                      <input id={idDe('item-nome-' + i)} maxLength={LIMITES.item_nome} value={n(it.nome)} onChange={(e) => set('item:' + it.id + ':nome', e.target.value)} /></div>
                     <div className="og-campo"><span><label htmlFor={idDe('item-desc-' + i)}>Descrição</label></span>
-                      <textarea id={idDe('item-desc-' + i)} rows={2} maxLength={LIMITES.item_descricao} value={n(it.descricao)} onChange={(e) => setForm({ ...form, itens: form.itens.map((x, j) => (j === i ? { ...x, descricao: e.target.value } : x)) })} /></div>
+                      <textarea id={idDe('item-desc-' + i)} rows={2} maxLength={LIMITES.item_descricao} value={n(it.descricao)} onChange={(e) => set('item:' + it.id + ':descricao', e.target.value)} /></div>
                   </div>
                 ))}
               </fieldset>
               <p className="rd-campo__nota">Preço, tema, alergênicos e trocas não são editados aqui: são da marca e da curadoria.</p>
               {erroAcao && <p className="ui-nota ui-nota--erro" role="alert">{erroAcao}</p>}
               <div className="ui-acoes">
-                <Botao type="submit" variante="destaque" icone="feito" disabled={salvando || !sujo}>{salvando ? 'Salvando…' : 'Salvar textos'}</Botao>
-                <Botao variante="secundario" onClick={() => { setEditando(false); setConflito(null) }} disabled={salvando}>Cancelar</Botao>
+                <Botao type="submit" variante="destaque" icone="feito" disabled={salvando || !sujo || conflitos.length > 0}>{salvando ? 'Salvando…' : 'Salvar textos'}</Botao>
+                <Botao variante="secundario" onClick={() => despachar({ tipo: 'sair' })} disabled={salvando}>Cancelar</Botao>
               </div>
             </form>
           ) : (
@@ -335,26 +337,52 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   )
 }
 
-export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar }) {
+export function SocialParticipantes({ rota, navegar, pode }) {
   const f = rota.filtros || {}
   const [dados, setDados] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [edicoes, setEdicoes] = React.useState([])
   const [busca, setBusca] = React.useState(f.q || '')
-  const pedido = React.useRef(0)
-  const carregar = React.useCallback(async () => {
-    const meu = ++pedido.current // trocou de edição antes da resposta: a velha não sobrescreve a nova
-    try { const r = await rpc('editorial_participantes', { p_secret: lerSenha(), p_edicao: f.ed || null }); if (meu === pedido.current) { setDados(r); setErro(null) } }
-    catch (e) { if (meu === pedido.current) setErro(e.message) }
-  }, [f.ed])
+  // Duas leituras, cada uma com a sua guarda: trocou de edição antes da resposta (ou saiu, ou trocou de conta) → a velha
+  // não sobrescreve a nova. A releitura por sinal é SILENCIOSA e, se falhar, MANTÉM a lista que já está na tela.
+  const guardaLista = useGuarda()
+  const guardaOpcoes = useGuarda()
+  const temDados = React.useRef(false)
+  const carregar = React.useCallback(async (silencioso = false) => {
+    const vale = guardaLista()
+    try {
+      const r = await rpc('editorial_participantes', { p_secret: lerSenha(), p_edicao: f.ed || null })
+      if (!vale()) return true
+      temDados.current = true
+      setDados(r); setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!(silencioso === true && temDados.current)) setErro(e.message)
+      return false
+    }
+  }, [f.ed, guardaLista])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // O combo, a casa, a logo, as postagens e a versão do site de cada participante.
+  useSincronizar(['editorial', 'redes', 'logos', 'participantes', 'publicacao'], async () => { if (!(await carregar(true))) throw new Error('editorial_participantes') })
   const [erroOpcoes, setErroOpcoes] = React.useState(null)
-  const carregarOpcoes = React.useCallback(() => {
-    setErroOpcoes(null)
-    rpc('redes_opcoes', { p_secret: lerSenha() }).then((o) => o && setEdicoes(o.edicoes || [])).catch((e) => setErroOpcoes(e.message))
-  }, [])
+  const temEdicoes = React.useRef(false)
+  const carregarOpcoes = React.useCallback(async () => {
+    const vale = guardaOpcoes()
+    try {
+      const o = await rpc('redes_opcoes', { p_secret: lerSenha() })
+      if (!vale()) return true
+      if (o) { setEdicoes(o.edicoes || []); temEdicoes.current = true }
+      setErroOpcoes(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!temEdicoes.current) setErroOpcoes(e.message) // releitura que falha mantém as edições já carregadas
+      return false
+    }
+  }, [guardaOpcoes])
   React.useEffect(() => { carregarOpcoes() }, [carregarOpcoes])
+  useSincronizar(['edicao'], async () => { if (!(await carregarOpcoes())) throw new Error('redes_opcoes') })
   const mudar = (patch, opc) => {
     const x = { ...f, ...patch }
     for (const k of Object.keys(x)) if (x[k] === undefined || x[k] === '') delete x[k]
@@ -375,7 +403,14 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
     : porBusca
   const semPost = lista.filter((p) => !Number(p.n_posts)).length
   // `item` = participante (o mesmo id dos links da postagem); a ficha lê a participação da edição.
-  const aberta = f.item ? lista.find((p) => p.participante_id === f.item || p.participacao_id === f.item) : null
+  const doItem = f.item ? lista.find((p) => p.participante_id === f.item || p.participacao_id === f.item) : null
+  // Uma releitura da lista que por um instante não traz a casa (ou a edição padrão mudou no servidor) NÃO fecha a ficha
+  // aberta: ela teria texto digitado. Só some se a pessoa mudar o item ou a edição no endereço.
+  const chaveAberta = (f.item || '') + '|' + (f.ed || '')
+  const memoAberta = React.useRef({ chave: '', p: null })
+  if (!f.item) memoAberta.current = { chave: '', p: null }
+  else if (doItem) memoAberta.current = { chave: chaveAberta, p: doItem }
+  const aberta = f.item ? doItem || (memoAberta.current.chave === chaveAberta ? memoAberta.current.p : null) : null
 
   return (
     <div className="sp">
@@ -401,7 +436,7 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
         </label>
       </div>
       {erroOpcoes && <Erro titulo="Não carreguei a lista de edições" texto={traduzir(erroOpcoes)} onTentar={carregarOpcoes} />}
-      {erro && <Erro texto={traduzir(erro)} onTentar={carregar} />}
+      {erro && <Erro texto={traduzir(erro)} onTentar={() => carregar()} />}
       {!erro && !dados && <Carregando linhas={5} />}
       {dados && (visiveis.length ? (
         <ul className="sp-lista">
@@ -431,7 +466,7 @@ export function SocialParticipantes({ rota, navegar, pode, registrarAtualizar })
       )}
       {aberta && (
         <FichaEditorial key={aberta.participacao_id} participacaoId={aberta.participacao_id} pode={pode} navegar={navegar}
-          onMudou={carregar} onFechar={() => { const x = { ...f }; delete x.item; navegar({ ...ALVO, filtros: x }) }} />
+          onMudou={() => carregar(true)} onFechar={() => { const x = { ...f }; delete x.item; navegar({ ...ALVO, filtros: x }) }} />
       )}
     </div>
   )

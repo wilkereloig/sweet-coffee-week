@@ -10,6 +10,8 @@ import { FolhaResultadoAcessos, registrarEnvio, gerirAcesso } from './AcessoMarc
 import { FichaMarcaPagina, pendenciasDe, pctCadastro } from './FichaMarcaPagina'
 import { urlLogo } from '../../lib/logos'
 import { confirmar, pedirTexto } from '../Confirmar'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 
 // Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
 const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Mn}/gu, '').replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '')
@@ -17,7 +19,7 @@ const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
 /* ── Cadastro manual ─────────────────────────────────────────────────────── */
-function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = [] }) {
+function FolhaCadastroManual({ aberto, pode, onFechar, existentes = [] }) {
   const [nome, setNome] = React.useState('')
   const [telefone, setTelefone] = React.useState('')
   const [responsavel, setResponsavel] = React.useState('')
@@ -52,7 +54,6 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = []
       })
       if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
       setCred({ login: r.login || nome.trim(), senha: r.senha, participanteId: r.participante_id })
-      await onCriada()
     } catch (e) {
       const codigo = e.dados && e.dados.erro
       let recado = RECADO_MANUAL[codigo] || ('Não criou: ' + traduzirErro(e.message))
@@ -101,7 +102,8 @@ const ORDENS = {
   mensagens: (a, b) => (b._naoLidas || 0) - (a._naoLidas || 0) || new Date(b._ultimaMsg || 0) - new Date(a._ultimaMsg || 0),
 }
 
-export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar }) {
+export function Marcas({ pode = () => true, rota, navegar }) {
+  const guarda = useGuarda()
   const [participantes, setParticipantes] = React.useState(null)
   const [conversas, setConversas] = React.useState([])
   const [logos, setLogos] = React.useState({})
@@ -141,34 +143,49 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
     if (participantes && rolagem.current != null) { r.scrollTop = rolagem.current; rolagem.current = null }
   }, [ficha && ficha.id, !!participantes]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pedido = React.useRef(0)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  /*
+   * A lista, as conversas e as logos. Quatro leituras em paralelo, cada uma com o próprio destino:
+   * só a lista (com a conferência da sessão) derruba a tela; conversas e logos são enfeite e, se
+   * falharem, ficam como estavam. Releitura SILENCIOSA (sinal de outra pessoa, reconexão, depois de
+   * uma ação) nunca volta ao esqueleto nem troca a lista por erro: a seleção, a busca, os filtros, a
+   * rolagem e a ficha aberta ficam onde estão. Resposta velha (trocar Arquivadas rápido, clique +
+   * sinal ao mesmo tempo) e tela desmontada não gravam nada (useGuarda). true = tudo foi lido.
+   */
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     const senha = lerSenha()
-    const meu = ++pedido.current // trocar Arquivadas rápido: só a última resposta vale
-    try {
-      // admin_ping junto: RPC de leitura não dá erro com senha inválida, só
-      // devolve vazio — sem isso, sessão vencida pareceria "nenhuma marca".
-      const [valida, lista] = await Promise.all([
-        rpc('admin_ping', { p_secret: senha }),
-        rpc('get_participantes', { p_secret: senha, p_arquivados: arquivadas }),
-      ])
-      if (meu !== pedido.current) return
-      if (valida !== true) { setErro('A senha desta sessão não vale mais. Saia e entre de novo.'); return }
-      setParticipantes(lista || [])
-    } catch (e) {
-      if (meu === pedido.current) setErro(e.message)
+    // admin_ping junto: RPC de leitura não dá erro com senha inválida, só
+    // devolve vazio — sem isso, sessão vencida pareceria "nenhuma marca".
+    const [ping, lista, conv, logo] = await Promise.allSettled([
+      rpc('admin_ping', { p_secret: senha }),
+      rpc('get_participantes', { p_secret: senha, p_arquivados: arquivadas }),
+      rpc('get_conversas', { p_secret: senha }),
+      rpc('get_logos', { p_secret: senha }),
+    ])
+    if (!vale()) return true
+    let ok = true
+    if (ping.status === 'fulfilled' && lista.status === 'fulfilled') {
+      if (ping.value !== true) { ok = false; if (!silencioso) setErro('A senha desta sessão não vale mais. Saia e entre de novo.') }
+      else { setParticipantes(lista.value || []); setErro(null) }
+    } else {
+      ok = false
+      if (!silencioso) setErro((ping.status === 'rejected' ? ping.reason : lista.reason).message)
     }
-    // Leitura à parte: conversas não podem derrubar a lista (§10.4-b).
-    try { setConversas((await rpc('get_conversas', { p_secret: senha })) || []) } catch { setConversas([]) }
-    try { setLogos(Object.fromEntries(((await rpc('get_logos', { p_secret: senha })) || []).map((l) => [l.participante_id, l]))) } catch { setLogos({}) }
-  }, [arquivadas])
+    // Leitura à parte: conversas e logos não derrubam a lista (§10.4-b) nem se apagam uma à outra.
+    if (conv.status === 'fulfilled') setConversas(conv.value || []); else ok = false
+    if (logo.status === 'fulfilled') setLogos(Object.fromEntries((logo.value || []).map((x) => [x.participante_id, x]))); else ok = false
+    return ok
+  }, [arquivadas, guarda])
 
   // Trocou entre ativas e arquivadas: a lista anterior sai da tela (e da
   // seleção) enquanto a outra carrega — senão o lote agiria sobre a errada.
   React.useEffect(() => { setParticipantes(null); setSel(new Set()) }, [arquivadas])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // Marca, cadastro, unidade, correção, pedido, foto, logo, acesso ou mensagem mudou (aqui ou em outra
+  // sessão): relê em silêncio. Sem poll e sem "recarregar" depois de cada ação.
+  useSincronizar(DOMINIOS_VISTAS.listaMarcas, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('marcas') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   const porMarca = React.useMemo(() => Object.fromEntries(conversas.map((c) => [c.participante_id, c])), [conversas])
   const lista = React.useMemo(() => {
@@ -241,7 +258,6 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         await gerirAcesso(ids, acao, motivo)
       }
       setLoteAviso('Feito para ' + nome + '.')
-      carregar()
     } catch (e) {
       setLoteAviso(traduzirErro(e.message))
     }
@@ -252,18 +268,19 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const folhas = (
     <>
       <FolhaResultadoAcessos aberto={!!lote} modo={lote ? lote.modo : 'gerar'} marcas={lote ? lote.marcas : []}
-        onFechar={() => { setLote(null); setSel(new Set()) }} onMudou={carregar}
+        onFechar={() => { setLote(null); setSel(new Set()) }}
         onGerenciar={(m) => { setLote(null); setFicha({ id: m.id, aba: 'acesso' }) }} />
-      <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} onCriada={carregar} />
+      <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} />
     </>
   )
   if (ficha) {
     return (
       <div className="og-embutida" ref={raiz}>
-        {erro && <Erro texto={erro} onTentar={carregar} />}
+        {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
         {!erro && participantes && !participanteFicha && <Vazio titulo="Marca não encontrada">Ela pode ter sido arquivada. <button type="button" className="ui-link" onClick={() => setFicha(null)}>Voltar às marcas</button></Vazio>}
         {!erro && (!participantes || participanteFicha) && (
           <FichaMarcaPagina
+            key={ficha.id}
             participante={participanteFicha && { ...participanteFicha, _naoLidas: Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) }}
             logo={participanteFicha && logos[participanteFicha.id]}
             sub={ficha.aba || ''}
@@ -271,8 +288,6 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
             onVoltar={() => setFicha(null)}
             pode={pode}
             naoLidas={participanteFicha ? Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) : 0}
-            onLidas={() => rpc('get_conversas', { p_secret: lerSenha() }).then((c) => setConversas(c || [])).catch(() => {})}
-            onMudou={carregar}
           />
         )}
         {folhas}
@@ -332,7 +347,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
       )}
       {!pode('marca.liberar') && <p className="ui-nota">Sua função não cadastra marca.</p>}
 
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
       {!erro && participantes === null && <Carregando />}
       {!erro && participantes && participantes.length === 0 && (
         <Vazio titulo="Nenhuma marca ainda">

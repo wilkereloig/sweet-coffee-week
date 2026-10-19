@@ -1344,3 +1344,74 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   (confirmado por ele); nome de pessoa não entra no código nem na mensagem. O login da EQUIPE (`LoginOrganizacao.jsx`) continua com o aviso
   "fale com um administrador".
 
+
+
+#### Sincronização em tempo real do painel — 19/10/2026 (pedido do Wilker: "tudo que muda aparece nas outras telas e sessões")
+
+Antes: leitura por consulta HTTP ao abrir a tela, polls soltos (avisos 60 s, marca 60 s, mensagens 20 s) e nenhum aviso entre
+telas depois de salvar. Agora há **uma camada só** (`painel-app/src/lib/sync/`), com três mecanismos separados:
+
+| Mecanismo | O que faz | Onde |
+|---|---|---|
+| **Mesma sessão** | gravação CONFIRMADA (`rpc()`, `chamarFuncao()`, `api()` do lado marca) anuncia os domínios que alterou; as telas que leem esses domínios relêem | `rpc.js` / `marcaApi.js` → `sync/anuncio.js` → `sync/barramento.js` |
+| **Outras sessões e aparelhos** | o BANCO manda um sinal mínimo por gatilho (`realtime.send`, canais PRIVADOS); a tela relê pela rota autorizada de sempre | migration `20261022_sincronizacao_tempo_real.sql` → `sync/tempoReal.js` |
+| **Reconexão** | volta à aba (fora ≥ 3 s), rede de volta, canal reentrando, ou conferência a cada 3 min → `reconciliar()` relê tudo o que está montado | `sync/sessao.js` |
+
+- **Domínios** (`sync/dominios.js`, vocabulário FECHADO): `participantes, cadastro, unidades, temas, logos, correcoes, pedidos,
+  fotos, arquivos, materiais, edicao, publicacao, mensagens, avisos, vendas, vouchers, acessos, redes, biblioteca, editorial,
+  perfis, contatos, preenchimento, respostas, atividade, configuracao`. Domínio desconhecido é descartado (no cliente e no
+  servidor). **Toda RPC/função que o painel chama tem que estar classificada** (leitura, sem sinal, ou gravação → domínios):
+  `tests/painel-app-sincronizacao-ampliada.test.mjs` reprova chamada nova sem classificação. `org_preenchimento(s)` são
+  LEITURAS de propósito (criam o link na 1ª vez; o banco avisa por gatilho) — avisar daqui faria a tela recarregar em laço.
+- **Canais** (todos privados; política `sync_receber` em `realtime.messages`, só SELECT — o navegador não publica):
+  `scw:org` (`dado.ler`) · `scw:social` (`redes.ver`) · `scw:marcas` (qualquer marca ativa: vagas de foto abertas, arquivos
+  gerais, edição) · `scw:marca:<id>` (só a conta dona) · `scw:pessoa:<uid>` (avisos, leitura, perfil — vale até para conta
+  pausada, para ela saber). Social media NÃO entra em `scw:org`: vendas, vouchers, acessos e mensagens nunca chegam a ela.
+  O painel pergunta ao servidor quais canais pode ouvir (`sync_meus_canais()`), então permissão revogada sai da lista.
+- **O sinal é mínimo**: `{d: domínio, r: id opaco, t: hora}`. Nunca registro, nome, contato, texto ou token. Dedupe por
+  transação (`scw.sync_vistos`); o gatilho engole qualquer erro (o sinal nunca derruba a gravação).
+- **Sessão**: o transporte usa o MESMO token e a MESMA renovação do resto (`tokenVivo` → `renovarCompartilhado`); não cria
+  sessão paralela nem faz login. Token novo vai pelo quadro `access_token`, sem reconectar. O acesso COMPARTILHADO (senha única)
+  não tem token → **sem canal**: só a conferência periódica a cada 45 s (a senha nunca vai a canal nem à URL). O indicador diz
+  "conferindo a cada 45 segundos" — não chama isso de tempo real.
+- **Estado mostrado** (`IndicadorSync`): Atualizado · Atualizando · Sem conexão · Sem sincronizar (falha). "Em tempo real" só na
+  dica e só DEPOIS do `phx_reply` ok de todos os canais.
+- **Troca de conta**: `pararSincronizacao()` fecha os canais, zera o barramento e muda a ÉPOCA; resposta de carga iniciada antes
+  não grava mais em tela (`useGuarda`). Outra ABA que sai/entra como outra pessoa dispara `onTrocaDeConta` (evento `storage`)
+  → `App.trocaLocal()`, que só encerra o contexto desta aba, **sem** logout no servidor e **sem** apagar a sessão (que já é a
+  da outra conta).
+- **Para ligar uma tela nova**: `useSincronizar(['dominio', …], recarregarSilencioso)` (releitura SEM spinner, mantendo o que
+  estava na tela se falhar e rejeitando para o indicador), `const vale = useGuarda()()` antes de cada `await` com `if (!vale()) return`,
+  e nada de `setInterval` de dados. Registro em edição: `useRegistroEditavel` + `<AvisoMudancaExterna/>` (mescla em três vias:
+  campo que não toquei acompanha o servidor, o que digitei nunca é trocado em silêncio, o mesmo campo dos dois lados vira
+  conflito e a pessoa escolhe). `usePendencia(...).sinalizarExterno()` avisa o indicador.
+- **Avisos**: grupo por pessoa e leitura por conta continuam (`avisar_pessoa`, `notificacao_leitura`); ler um aviso atualiza o
+  contador das outras sessões da mesma pessoa; leitura que falha DESFAZ o otimista. Pendência resolvida deixa de contar como
+  aberta (post sai de "aprovação" → aviso do aprovador vira lido; pedido respondido → aviso da marca vira lido).
+- **Push** (`enviar-push` + `carga.ts` + migration `20261022_push_entrega.sql`): mensagem e formulário não mostram o texto na
+  tela de bloqueio; resultado por aviso e aparelho (`push_envios`); falha passageira tenta de novo (até 3×, 5 min, só avisos não
+  lidos); "ok" = o serviço de push ACEITOU, não prova que apareceu. O aviso interno existe antes do push e não depende dele.
+  Com o painel aberto, o service worker avisa as abas (`{tipo:'push'}`) para relerem os avisos.
+- ⚠️ `realtime.messages` só ganha partição do dia depois que um cliente se conecta ao Realtime (o `postgres` não consegue criá-la):
+  sinal emitido com ninguém conectado se perde — inofensivo (ninguém ouvia) e coberto pela releitura ao conectar.
+- Testes: `node --test tests/painel-app-sync-*.test.mjs tests/painel-app-sincronizacao*.test.mjs tests/painel-push-carga.test.mjs`;
+  banco: `supabase/testes/sincronizacao.sql` (transação que se desfaz). Reversão: `supabase/reverter/20261022_sincronizacao_tempo_real.sql`.
+- **Vistas ligadas à camada (19/10/2026)** — quem escreve tela nova usa os ajudantes que já existem, não copia o padrão:
+  `lib/leituraVivaReact.js` (`useLeitura` = carga inicial + releitura silenciosa com guarda; `useEdicaoProtegida` = formulário
+  que resiste à alteração externa, manda só o que mudou, bloqueia salvar com conflito) · `lib/rascunhoOrg.js`
+  (`useRascunhoOrg`, a versão curta do mesmo: registro editável + pendência + `avisarSalvo`) · `lib/syncFichas.js` (domínios por
+  vista da organização, `mesclarFonte` mantém o dado antigo se a releitura falha) · `lib/sincMarca.js` (lado da marca) ·
+  `lib/cadastroMescla.js` (mescla campo a campo do Cadastro da marca: unidades, horários, trocas) · `lib/redes.js`
+  (`mesclarPostExterno`, `reduzirEditorial`: postagem e combo editorial em três vias). ⚠️ `useRascunhoOrg` e `useEdicaoProtegida`
+  se sobrepõem — ao mexer num, avaliar fundir.
+- **Cobertura — o que NÃO chega em tempo real** (cai na conferência: 45 s sem canal, 3 min com): avaliações do público
+  (`Avaliacoes`: não há gatilho na tabela); "No site"/versão publicada para o social media (`publicacao`, `cadastro`,
+  `unidades` não vão ao `scw:social`); foto aprovada por outra sessão na Biblioteca do admin; nome de participante na lista de
+  postagens. Aba com conflito aberto no Cadastro da marca: trocar de aba grava SEM a coluna em conflito (a versão da marca
+  naquele campo se perde; o aviso de fechar a aba já cobre o resto).
+- **Regressão automática**: `tests/painel-app-sync-sem-polling.test.mjs` reprova `setInterval` fora da camada (exceções: versão
+  publicada, URL assinada de imagem, nova tentativa de `minhas_permissoes` quando a leitura falhou).
+- Navegador (backend e Realtime FALSOS, nada vai ao Supabase): `node tests/painel-sincronizacao-navegador.mjs` (15 cenários:
+  dois aparelhos, ordem trocada, queda, abas, sessão expirada, permissão revogada, canal negado, marca, segundo plano, sem rede,
+  senha única) e `node tests/painel-app-sync-vistas-navegador.mjs` (23 cenários das vistas reais: Produção, Arquivos, Materiais,
+  Chaves da edição, Publicação, Logo). Filtro opcional: `SO=<n>` no primeiro, texto no segundo.

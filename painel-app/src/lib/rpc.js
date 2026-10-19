@@ -23,6 +23,7 @@
 import { renovarCompartilhado } from './marcaApi.js'
 import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
 import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA } from '../../../src/lib/orgAccess.js'
+import { aoRpcConfirmada, aoFuncaoConfirmada } from './sync/anuncio.js'
 
 export const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://dgfmoibynftadsyjcclg.supabase.co'
 export const SUPABASE_KEY = import.meta.env?.VITE_SUPABASE_KEY || 'sb_publishable_E6G4mwt0xFzz_Ob0dULd9g_NhlJpH2R'
@@ -87,7 +88,11 @@ export async function rpc(nome, corpo = {}, fetchImpl = fetch) {
   // RPC `returns void` responde 204 sem corpo — ler como texto primeiro
   // cobre esse caso sem esconder falha de parse real.
   const bruto = await r.text()
-  return bruto ? JSON.parse(bruto) : null
+  const resposta = bruto ? JSON.parse(bruto) : null
+  // Só gravação CONFIRMADA avisa as outras leituras (19/10/2026): leitura, erro,
+  // 401 e recusa de negócio ({ok:false}) já saíram acima ou não passam por aqui.
+  aoRpcConfirmada(nome, corpoFinal, resposta)
+  return resposta
 }
 
 // Edge Functions (não é PostgREST) — porta fiel de chamarFuncao em
@@ -122,5 +127,6 @@ export async function chamarFuncao(nome, corpo, fetchImpl = fetch) {
     err.dados = dados
     throw err
   }
+  aoFuncaoConfirmada(nome, dados)
   return dados || {}
 }

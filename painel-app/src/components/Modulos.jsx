@@ -120,15 +120,14 @@ function TodasEdicoes({ registrarAtualizar }) {
 }
 
 export function ModEdicao(props) {
-  // Duas leituras da edição atual na mesma aba (get_config_admin no bloco de
-  // cima, get_edicoes no de baixo): abrir outra edição em cima remonta o de
-  // baixo, que relê — senão ele seguiria dizendo "nenhuma edição atual".
-  const [versao, setVersao] = React.useState(0)
+  // Duas leituras da edição atual na mesma aba (get_config_admin no bloco de cima, get_edicoes no de
+  // baixo): as duas assinam o domínio "edicao", então abrir outra edição em cima atualiza o de baixo
+  // pelo sinal — sem remontar (remontar perderia o que está sendo digitado na Configuração).
   return <Modulo id="edicao" {...props} abas={[
     { chave: 'configuracao', rotulo: 'Configuração', render: () => (
       <div className="ui-pilha">
-        <Producao {...props} secao="edicao" registrarAtualizar={null} onEdicaoMudou={() => setVersao((v) => v + 1)} />
-        <ComEdicaoAtual key={versao} registrarAtualizar={props.registrarAtualizar}>{(atual, carregar) => <AbaConfiguracao edicao={atual} pode={props.pode} onMudou={carregar} />}</ComEdicaoAtual>
+        <Producao {...props} secao="edicao" registrarAtualizar={null} />
+        <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual, carregar) => <AbaConfiguracao edicao={atual} pode={props.pode} onMudou={carregar} />}</ComEdicaoAtual>
       </div>
     ) },
     // Cartoon 2026.2: fase e chaves do site (interruptores 1 e 3–6) e o resumo das avaliações.

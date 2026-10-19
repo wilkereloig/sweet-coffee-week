@@ -4,8 +4,9 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { ROTULO_SESSAO } from '../../lib/participantes'
 import { fotosDaParticipacao } from '../../lib/guia'
 import { VistaCabeca } from '../VistaCabeca'
-import { Carregando, Secao, Selo } from '../ui'
+import { Carregando, Erro, Secao, Selo } from '../ui'
 import { Arquivos } from './Arquivos'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
 
 /*
  * Fotos (marca, 29/09/2026) — a sessão de fotos (que morava no fim do
@@ -14,18 +15,36 @@ import { Arquivos } from './Arquivos'
  */
 export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo }) {
   const [sessoes, setSessoes] = React.useState(null)
+  const [erroSessoes, setErroSessoes] = React.useState(null)
   const [reservando, setReservando] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const participacao = dadosMarca && dadosMarca.participacao
   const participante = dadosMarca && dadosMarca.participante
 
+  const guarda = useGuarda()
+  const temDados = React.useRef(false)
+
+  // A RLS devolve as sessões desta marca E as vagas abertas da edição: quando outra marca pega uma vaga, ela some
+  // na releitura (o clique em "reservar" já trata o "não está mais livre"). Releitura que falha MANTÉM a lista que
+  // estava na tela e rejeita (o indicador mostra a falha); "não deu para carregar" só aparece sem dado algum — antes
+  // a falha virava lista vazia, e a tela dizia "Aguardando liberação" sem saber.
   const carregar = React.useCallback(async () => {
-    try { setSessoes((await api('sessoes_fotos?select=*&order=data_hora.asc')) || []) } catch (e) {
+    const vale = guarda()
+    try {
+      const l = (await api('sessoes_fotos?select=*&order=data_hora.asc')) || []
+      if (!vale()) return
+      setSessoes(l)
+      setErroSessoes(null)
+      temDados.current = true
+    } catch (e) {
       if (e && e.message === 'sessao_expirada') return
-      setSessoes([])
+      if (!vale()) return
+      if (!temDados.current) setErroSessoes(e.message || 'erro')
+      throw e
     }
-  }, [])
-  React.useEffect(() => { carregar() }, [carregar])
+  }, [guarda])
+  React.useEffect(() => { carregar().catch(() => {}) }, [carregar])
+  useSincronizar(['fotos', 'participantes'], carregar)
   // Alvo com id (aviso de foto oficial) é da lista de fotos, que o consome.
   React.useEffect(() => { if (alvo && !alvo.id && consumirAlvo) consumirAlvo() }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -41,13 +60,14 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
         prefer: 'return=representation',
       })
       setAviso(r && r.length ? { tom: 'ok', texto: 'Horário reservado. A organização é avisada.' } : { tom: 'erro', texto: 'Esse horário não está mais livre. Escolha outro.' })
-      await carregar()
+      // A reserva já foi feita: releitura que falhar aqui não pode virar "não deu para reservar".
+      await carregar().catch(() => {})
       if (recarregarResumo) recarregarResumo()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
       // Índice "uma sessão ativa por participação" (23505): já há sessão marcada.
       setAviso({ tom: 'erro', texto: /23505|duplicate|unique/i.test((e && e.message) || '') ? 'Sua marca já tem uma sessão marcada.' : 'Não deu para reservar agora. Tente de novo.' })
-      await carregar()
+      await carregar().catch(() => {})
     } finally {
       setReservando(null)
     }
@@ -64,7 +84,8 @@ export function Fotos({ irPara, alvo, consumirAlvo, dadosMarca, recarregarResumo
       <VistaCabeca acento="magenta" icone="fotos" titulo="Fotos" nota="Sessão de fotos, fotos oficiais e o guia" />
       <div className="ui-grade-duas">
         <Secao titulo="Sessão de fotos">
-          {sessoes === null && <Carregando linhas={2} />}
+          {sessoes === null && !erroSessoes && <Carregando linhas={2} />}
+          {sessoes === null && erroSessoes && <Erro texto="Não deu para carregar a sessão de fotos agora." onTentar={() => { setErroSessoes(null); carregar().catch(() => {}) }} />}
           {sessoes && !jaTem && !liberado && (
             <p className="ui-nota">Aguardando liberação. Você recebe um aviso.</p>
           )}

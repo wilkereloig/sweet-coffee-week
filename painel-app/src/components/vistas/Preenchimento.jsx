@@ -7,6 +7,8 @@ import { linkPreenchimento, textoPreenchimento, painelDaMarca, entraNoLoteDeSenh
 import { emitirCredenciais, lerAcessos, registrarEnvio } from './AcessoMarca'
 import { Secao, Selo, Botao, BotaoIcone, Carregando, Erro, Vazio, traduzirErro } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 
 /*
  * Link de preenchimento (16/10/2026, pedido do Wilker).
@@ -28,7 +30,8 @@ async function copiar(texto) {
   try { await navigator.clipboard.writeText(texto); return true } catch { return false }
 }
 
-export function PreenchimentoMarca({ participante: p, pode, onMudou }) {
+export function PreenchimentoMarca({ participante: p, pode }) {
+  const guarda = useGuarda()
   const [d, setD] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
@@ -36,13 +39,35 @@ export function PreenchimentoMarca({ participante: p, pode, onMudou }) {
   const pa = p && p.participacao_id
   const podeEditar = pode('cadastro.editar')
 
-  const carregar = React.useCallback(async (extra = {}) => {
-    setErro(null)
+  // Leitura comum (abrir, sinal de outra pessoa, depois de aplicar/descartar). true = leu. A releitura SILENCIOSA
+  // mantém a tela como está e, se falhar, o que estava lá continua. `org_preenchimento` é LEITURA para a camada
+  // de sincronização (o banco avisa quando o link nasce): ler daqui nunca dispara um novo ciclo.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     try {
-      setD(await rpc('org_preenchimento', { p_secret: lerSenha(), p_participacao: pa, p_gerar: !!extra.gerar, p_novo: !!extra.novo }))
-    } catch (e) { setErro(traduzirErro(e.message)) }
-  }, [pa])
+      const novo = await rpc('org_preenchimento', { p_secret: lerSenha(), p_participacao: pa, p_gerar: false, p_novo: false })
+      if (!vale()) return true
+      setD(novo)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(traduzirErro(e.message))
+      return false
+    }
+  }, [pa, guarda])
+  // Gerar ou trocar o link É uma gravação (a mesma RPC cria o link): a falha precisa chegar a quem pediu, para a tela
+  // não dizer "Link gerado." depois de uma recusa. Por isso rejeita, ao contrário da leitura comum.
+  const gerarLink = React.useCallback(async (extra) => {
+    const vale = guarda()
+    const novo = await rpc('org_preenchimento', { p_secret: lerSenha(), p_participacao: pa, p_gerar: !!extra.gerar, p_novo: !!extra.novo })
+    if (!vale()) return
+    setD(novo)
+    setErro(null)
+  }, [pa, guarda])
   React.useEffect(() => { setD(null); setAviso(null); if (pa) carregar() }, [pa, carregar])
+  useSincronizar(DOMINIOS_VISTAS.preenchimentoMarca, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('preenchimento') }, { ativo: !!pa })
 
   if (!pa) return <Secao titulo="Link de preenchimento"><p className="ui-nota">Esta marca não tem participação aberta.</p></Secao>
   if (erro && !d) return <Erro texto={erro} onTentar={() => carregar()} />
@@ -68,8 +93,7 @@ export function PreenchimentoMarca({ participante: p, pode, onMudou }) {
     if (!await confirmar('Aplicar o envio de ' + p.nome_marca + ' no cadastro?\n\n' + (difs.length ? difs.length + ' campo(s) mudam.' : 'Nada muda nos campos; o envio fica marcado como revisado.'), { acao: 'Aplicar' })) return
     executar(async () => {
       await rpc('org_preenchimento_decidir', { p_secret: lerSenha(), p_envio: env.id, p_aplicar: true, p_motivo: null })
-      await carregar()
-      if (onMudou) onMudou()
+      await carregar({ silencioso: true }) // a ficha e a lista relêem sozinhas pelos domínios que o "Aplicar" anunciou
     }, 'Aplicado no cadastro.')
   }
   const descartar = async () => {
@@ -77,12 +101,12 @@ export function PreenchimentoMarca({ participante: p, pode, onMudou }) {
     if (motivo === null) return
     executar(async () => {
       await rpc('org_preenchimento_decidir', { p_secret: lerSenha(), p_envio: env.id, p_aplicar: false, p_motivo: motivo || null })
-      await carregar()
+      await carregar({ silencioso: true })
     }, 'Envio descartado. O cadastro não mudou.')
   }
   const trocar = async () => {
     if (!await confirmar('Trocar o link de ' + p.nome_marca + '?\n\nO link atual para de funcionar. Mande o novo para a marca.', { acao: 'Trocar link', perigo: true })) return
-    executar(() => carregar({ novo: true }), 'Link novo gerado. O anterior não abre mais.')
+    executar(() => gerarLink({ novo: true }), 'Link novo gerado. O anterior não abre mais.')
   }
 
   return (
@@ -99,7 +123,7 @@ export function PreenchimentoMarca({ participante: p, pode, onMudou }) {
         </dl>
         {link && <p className="pr-link"><a href={link} target="_blank" rel="noreferrer">{link}</a></p>}
         <div className="ac-acoes">
-          {!l && <Botao icone="mais" disabled={ocupado || !podeEditar} onClick={() => executar(() => carregar({ gerar: true }), 'Link gerado.')}>Gerar link</Botao>}
+          {!l && <Botao icone="mais" disabled={ocupado || !podeEditar} onClick={() => executar(() => gerarLink({ gerar: true }), 'Link gerado.')}>Gerar link</Botao>}
           {l && <Botao icone="copiar" disabled={ocupado} onClick={async () => setAviso(await copiar(mensagem) ? 'Mensagem copiada. Cole no WhatsApp da marca.' : 'Sem área de transferência neste navegador.')}>Copiar mensagem</Botao>}
           {wa && <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noreferrer">Abrir WhatsApp de {String(p.responsavel || 'responsável').split(/\s+/)[0]}</a>}
           {l && <Botao icone="copiar" variante="secundario" disabled={ocupado} onClick={async () => setAviso(await copiar(link) ? 'Link copiado.' : 'Sem área de transferência neste navegador.')}>Copiar só o link</Botao>}
@@ -161,6 +185,8 @@ export function PreenchimentoMarca({ participante: p, pode, onMudou }) {
 
 /* ── Participantes › Preenchimento: todas as marcas da edição atual ───────── */
 export function ListaPreenchimento({ pode, irPara }) {
+  const guardaAcesso = useGuarda() // leituras independentes: uma não pode invalidar a outra
+  const guardaLista = useGuarda()
   const [d, setD] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
@@ -171,20 +197,53 @@ export function ListaPreenchimento({ pode, irPara }) {
   const podeEditar = pode('cadastro.editar')
   const podeAcesso = pode('marca.liberar')
 
-  const lerAcesso = React.useCallback(async () => {
+  // Sem ler os acessos, a mensagem leva só a explicação do painel. Releitura que falha mantém o que já se sabia. true = leu.
+  const lerAcesso = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guardaAcesso()
     try {
       const [a, ps] = await Promise.all([lerAcessos(), rpc('get_participantes', { p_secret: lerSenha() })])
+      if (!vale()) return true
       setAcessos(a)
       setSlugs(Object.fromEntries((ps || []).map((x) => [x.id, x.slug])))
-    } catch { setAcessos(null) } // sem ler os acessos, a mensagem leva só a explicação do painel
-  }, [])
+      return true
+    } catch {
+      if (!vale()) return true
+      if (!silencioso) setAcessos(null)
+      return false
+    }
+  }, [guardaAcesso])
   React.useEffect(() => { lerAcesso() }, [lerAcesso])
 
-  const carregar = React.useCallback(async (gerar = false) => {
+  // Leitura comum da lista (`org_preenchimentos` é LEITURA para a camada de sincronização). true = leu.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guardaLista()
+    if (!silencioso) setErro(null)
+    try {
+      const novo = await rpc('org_preenchimentos', { p_secret: lerSenha(), p_gerar: false })
+      if (!vale()) return true
+      setD(novo)
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso) setErro(traduzirErro(e.message))
+      return false
+    }
+  }, [guardaLista])
+  // Gerar os links que faltam É uma gravação: rejeita, para a tela não dizer "Links gerados." depois de uma recusa.
+  const gerarLinks = React.useCallback(async () => {
+    const vale = guardaLista()
+    const novo = await rpc('org_preenchimentos', { p_secret: lerSenha(), p_gerar: true })
+    if (!vale()) return
+    setD(novo)
     setErro(null)
-    try { setD(await rpc('org_preenchimentos', { p_secret: lerSenha(), p_gerar: gerar })) } catch (e) { setErro(traduzirErro(e.message)) }
-  }, [])
+  }, [guardaLista])
   React.useEffect(() => { carregar() }, [carregar])
+  // Link, envio, marca ou acesso mudou (aqui ou em outra sessão): relê as duas leituras em silêncio.
+  useSincronizar(DOMINIOS_VISTAS.listaPreenchimento, async () => {
+    const [a, b] = await Promise.all([lerAcesso({ silencioso: true }), carregar({ silencioso: true })])
+    if (!(a && b)) throw new Error('preenchimento')
+  })
 
   if (erro && !d) return <Erro texto={erro} onTentar={() => carregar()} />
   if (!d) return <Carregando linhas={6} />
@@ -205,8 +264,8 @@ export function ListaPreenchimento({ pode, irPara }) {
   const enviados = marcas.filter((m) => m.enviado_em).length
 
   async function gerarFaltantes() {
-    setOcupado(true); setAviso(null)
-    try { await carregar(true); setAviso('Links gerados.') } finally { setOcupado(false) }
+    setOcupado(true); setAviso(null); setErro(null)
+    try { await gerarLinks(); setAviso('Links gerados.') } catch (e) { setErro(traduzirErro(e.message)) } finally { setOcupado(false) }
   }
   // Senha temporária pelo painel (Edge Functions criar-acesso-marca / regerar-senha-conta, com a sua sessão) e já copia as
   // mensagens com a senha, que só aparece agora. Sem conta → cria; com a temporária ainda valendo → gera outra (a anterior
@@ -233,12 +292,13 @@ export function ListaPreenchimento({ pode, irPara }) {
       if (ok.length) {
         const texto = ok.map((m) => '— ' + m.nome + (m.telefone ? ' · ' + m.telefone : '') + '\n\n' + mensagemDe(m, novos[m.participante_id])).join('\n\n\n')
         const copiou = await copiar(texto)
-        registrarEnvio(ok.map((m) => m.participante_id), 'copiado').catch(() => {})
-        setAviso(ok.length + (ok.length === 1 ? ' senha gerada. ' : ' senhas geradas. ') + (copiou ? 'Mensagens copiadas, já com usuário e senha temporária.' : 'Sem área de transferência: copie a mensagem de cada marca aqui na lista, agora.') + ' A senha não aparece de novo depois que você sair desta tela.')
+        // O rastro de "copiado" falhar não desfaz a senha gerada, mas a falha é dita (o histórico do acesso ficaria incompleto sem aviso).
+        const registrou = await registrarEnvio(ok.map((m) => m.participante_id), 'copiado').then(() => true, () => false)
+        setAviso(ok.length + (ok.length === 1 ? ' senha gerada. ' : ' senhas geradas. ') + (copiou ? 'Mensagens copiadas, já com usuário e senha temporária.' : 'Sem área de transferência: copie a mensagem de cada marca aqui na lista, agora.') + ' A senha não aparece de novo depois que você sair desta tela.' + (registrou ? '' : ' O histórico do acesso não registrou a cópia.'))
       }
       const falhas = feitos.filter((f) => f.erro).map((f) => f.p.nome_marca + ': ' + f.erro)
       if (falhas.length) setErro(falhas.join(' · '))
-      await lerAcesso()
+      await lerAcesso({ silencioso: true })
     } finally { setOcupado(false) }
   }
   async function copiarTodas() {

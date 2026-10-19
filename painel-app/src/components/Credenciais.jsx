@@ -13,9 +13,13 @@ export function Credenciais({ nomeMarca, responsavel, telefone, login, senha, on
   const [copiado, setCopiado] = React.useState(false)
   const [enviado, setEnviado] = React.useState(false) // false | 'enviando' | true
   const [erroEnvio, setErroEnvio] = React.useState(null)
+  const [avisoRastro, setAvisoRastro] = React.useState(null) // o registro de "copiado"/"WhatsApp aberto" não gravou
   const texto = montarRecado({ nomeMarca: nomeMarca || 'sua marca', responsavel, login, senha, origem: window.location.origin })
   const link = linkWhatsApp(telefone, texto)
   const registrar = (canal) => Promise.resolve(onRegistrar && onRegistrar(canal))
+  // Rastro de "copiado" / "WhatsApp aberto": falhar não desfaz a ação (a cópia e o link funcionaram), mas a falha
+  // aparece, discreta — sem ela o histórico do acesso parece completo e não está.
+  const registrarRastro = (canal) => registrar(canal).then(() => setAvisoRastro(null), (e) => setAvisoRastro('O histórico do acesso não registrou este passo: ' + traduzirErro(e.message)))
 
   // "Enviado" é afirmação: só aparece depois de o servidor gravar.
   async function marcarEnviado() {
@@ -28,7 +32,7 @@ export function Credenciais({ nomeMarca, responsavel, telefone, login, senha, on
     try {
       await navigator.clipboard.writeText(texto)
       setCopiado(true)
-      registrar('copiado').catch(() => {}) // registro de rastro: falhar não desfaz a cópia
+      registrarRastro('copiado')
     } catch {
       // Sem clipboard (contexto inseguro, permissão negada): os dados estão
       // na tela logo acima. Não fingir que copiou.
@@ -47,7 +51,7 @@ export function Credenciais({ nomeMarca, responsavel, telefone, login, senha, on
           {copiado === true ? 'Copiado' : copiado === 'manual' ? 'Selecione acima' : 'Copiar acesso'}
         </button>
         {link
-          ? <a className="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener noreferrer" href={link} onClick={() => { registrar('whatsapp_aberto').catch(() => {}) }}>Enviar pelo WhatsApp</a>
+          ? <a className="og-btn og-btn--vazado og-btn--mini" target="_blank" rel="noopener noreferrer" href={link} onClick={() => { registrarRastro('whatsapp_aberto') }}>Enviar pelo WhatsApp</a>
           : <span className="og-forms__nota">Sem WhatsApp no cadastro. Dá para copiar e colar.</span>}
         {onRegistrar && (
           <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={!!enviado} onClick={marcarEnviado}>
@@ -56,6 +60,7 @@ export function Credenciais({ nomeMarca, responsavel, telefone, login, senha, on
         )}
       </div>
       {erroEnvio && <p className="ui-nota ui-nota--erro" role="alert">{erroEnvio}</p>}
+      {avisoRastro && <p className="ui-nota" role="status">{avisoRastro}</p>}
       {!compacto && <p className="og-forms__nota">No primeiro acesso a marca é obrigada a trocar a senha. É isso que faz a mensagem do WhatsApp parar de valer depois de usada.</p>}
     </div>
   )

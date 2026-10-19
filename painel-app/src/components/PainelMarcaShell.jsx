@@ -14,6 +14,9 @@ import { InstalarApp, ConviteAparelho } from './AppNoAparelho'
 import { PontoVersao } from './Conexao'
 import { pushMarca } from '../lib/marcaApi'
 import { AvisosAparelho } from './AvisosAparelho'
+import { useSincronizar, useGuarda } from '../lib/sync/react'
+import { iniciarSincronizacao, pararSincronizacao } from '../lib/sync'
+import { IndicadorSync } from './IndicadorSync'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (celular), avisos
@@ -53,7 +56,8 @@ function aplicarAcento(vista) {
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')
 }
 
-const INTERVALO = 60000
+// O que o resumo da marca lê (useResumoMarca): qualquer um destes mudou → relê, sem poll.
+const DOMINIOS_RESUMO = ['participantes', 'cadastro', 'unidades', 'correcoes', 'pedidos', 'fotos', 'arquivos', 'temas', 'logos']
 
 // Rota da marca no endereço: #combo/2?campo=item-2-descricao (bloco na
 // "aba", campo e item nos filtros). Recarregar volta ao mesmo lugar.
@@ -69,7 +73,7 @@ const normalizar = (r) => {
     : { vista: 'inicio', aba: '', filtros: {} }
 }
 
-export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial = null }) {
+export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeConta = null, linkInicial = null }) {
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
   const vista = rota.vista
   const [contaAberta, setContaAberta] = React.useState(false)
@@ -129,40 +133,61 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     if (d) irPara(d.vista, d)
   }, [irPara])
 
-  const seqAvisos = React.useRef(0)
-  const carregar = React.useCallback(async () => {
-    const minha = ++seqAvisos.current
-    // Cada leitura por si: avisos fora do ar não congelam o resumo nem a
-    // detecção de conta pausada.
-    recarregarResumo()
-    // Bloqueada/desativada com o painel aberto: a RLS devolve listas vazias
-    // (sem erro), então só o perfil conta a verdade.
-    if (pausadaRef.current) precisaTrocarSenha().then((s) => { if (s === 'pausada' && pausadaRef.current) pausadaRef.current() })
+  // Sincronização desta sessão: canais privados da marca (e da pessoa) no Realtime.
+  // Outra aba que sair ou entrar como OUTRA conta encerra este contexto (App.trocaLocal).
+  const trocaRef = React.useRef(onTrocaDeConta)
+  trocaRef.current = onTrocaDeConta
+  React.useEffect(() => {
+    iniciarSincronizacao({ tipo: 'marca', aoTrocaDeConta: (m) => { if (trocaRef.current) trocaRef.current(m) } })
+    return () => pararSincronizacao()
+  }, [])
+
+  // Avisos e mensagens não lidas. Resposta velha (rede lenta) nunca sobrescreve a nova,
+  // nem depois de sair ou trocar de conta (useGuarda). Devolve false só se a leitura falhou.
+  const guardaAvisos = useGuarda()
+  const carregarAvisos = React.useCallback(async () => {
+    const vale = guardaAvisos()
     const [n, m] = await Promise.allSettled([
       api('notificacoes?select=id,criada_em,tipo,titulo,texto,link,lida_em&order=criada_em.desc&limit=60'),
       api('mensagens?select=id&de=eq.organizacao&lida_em=is.null'),
     ])
-    // Resposta velha (rede lenta) não sobrescreve a mais nova.
-    if (minha !== seqAvisos.current) return
+    if (!vale()) return true
+    let ok = true
+    const morta = (r) => r.status === 'rejected' && r.reason && r.reason.message === 'sessao_expirada'
     if (n.status === 'fulfilled') { setAvisos(n.value || []); setAvisosErro(null) }
-    else if (!(n.reason && n.reason.message === 'sessao_expirada')) setAvisosErro(n.reason && n.reason.message)
+    else if (!morta(n)) { setAvisosErro(n.reason && n.reason.message); ok = false }
     if (m.status === 'fulfilled') setMsgsNaoLidas((m.value || []).length)
+    else if (!morta(m)) ok = false
     setAvisosCarregando(false)
-  }, [recarregarResumo])
+    return ok
+  }, [guardaAvisos])
 
-  React.useEffect(() => {
-    carregar()
-    const t = setInterval(() => { if (document.visibilityState === 'visible') carregar() }, INTERVALO)
-    const volta = () => { if (document.visibilityState === 'visible') carregar() }
-    document.addEventListener('visibilitychange', volta)
-    return () => { clearInterval(t); document.removeEventListener('visibilitychange', volta) }
-  }, [carregar])
+  // Bloqueada/desativada com o painel aberto: a RLS devolve listas vazias (sem
+  // erro), então só o perfil conta a verdade. O servidor avisa pelo canal pessoal.
+  const verificarConta = React.useCallback(() => {
+    if (!pausadaRef.current) return undefined
+    return precisaTrocarSenha().then((s) => { if (s === 'pausada' && pausadaRef.current) pausadaRef.current() })
+  }, [])
+
+  // Relê tudo (sino, mensagem do service worker, depois de ler mensagens). Cada leitura por si:
+  // avisos fora do ar não congelam o resumo nem a detecção de conta pausada.
+  const carregar = React.useCallback(async () => {
+    recarregarResumo()
+    verificarConta()
+    return carregarAvisos()
+  }, [recarregarResumo, verificarConta, carregarAvisos])
+
+  React.useEffect(() => { carregar() }, [carregar])
+  useSincronizar(['avisos', 'mensagens'], async () => { if (!(await carregarAvisos())) throw new Error('avisos') })
+  useSincronizar(DOMINIOS_RESUMO, async () => { if (!(await recarregarResumo())) throw new Error('resumo') })
+  useSincronizar(['perfis'], verificarConta)
 
   React.useEffect(() => { if (linkInicial) abrirLink(linkInicial) }, [linkInicial]) // eslint-disable-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (!('serviceWorker' in navigator)) return
     function ouvir(ev) {
       const d = ev.data
+      if (d && d.tipo === 'push') { carregar(); return }     // push chegou com o painel aberto
       if (!d || d.tipo !== 'abrir' || typeof d.url !== 'string') return
       const ir = new URL(d.url, location.origin).searchParams.get('ir')
       if (ir) abrirLink(ir)
@@ -176,13 +201,25 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     setCentralAberta(false)
     if (!n.lida_em) {
       setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida_em: new Date().toISOString() } : x)))
-      api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: [n.id] } }).catch(() => {})
+      api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: [n.id] } }).catch((e) => {
+        // A leitura NÃO foi gravada: o aviso volta a "não lido" e o contador acompanha.
+        if (e && e.message === 'sessao_expirada') return
+        setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida_em: null } : x)))
+        setAvisosErro('Não deu para marcar o aviso como lido. Ele continua na lista.')
+        carregarAvisos()
+      })
     }
     if (n.link) abrirLink(n.link, n.tipo)
   }
   async function lerTodas() {
+    const antes = avisos
     setAvisos((l) => l.map((x) => ({ ...x, lida_em: x.lida_em || new Date().toISOString() })))
-    try { await api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: null } }) } catch (e) { setAvisosErro(e.message) }
+    try { await api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: null } }) } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      setAvisos(antes)
+      setAvisosErro('Não deu para marcar os avisos como lidos. Eles continuam na lista.')
+      carregarAvisos()
+    }
   }
 
   // Progresso do tour pela marca; espera o id chegar. Aberto por aviso ou push, não se impõe.
@@ -243,6 +280,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
           </div>
         )}
         <div className="pn-cabeca__dir">
+          <IndicadorSync />
           {/* A conversa a um toque de qualquer tela (no celular, só o ícone). */}
           {vista !== 'mensagens' && (
             <button type="button" className="pn-cabeca__btn pn-cabeca__btn--texto" data-tour="conversa"

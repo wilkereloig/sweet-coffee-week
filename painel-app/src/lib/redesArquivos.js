@@ -14,10 +14,17 @@ import { rpc, chamarFuncao, SUPABASE_URL } from './rpc.js'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess.js'
 import { validarArquivo, caminhoArquivo } from './redes.js'
 import { entregar, nomeArquivo } from './entrega.js'
+import { barramento } from './sync/barramento.js'
 
 const lerSenha = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || '' } catch { return '' } }
 const LOTE = 60
 const cache = new Map() // "bucket:path" → { url, ate }
+// O cache é da SESSÃO: sair ou trocar de conta muda a época do barramento (sair → pararSincronizacao), e um endereço
+// assinado para uma conta nunca serve a outra. Zera sozinho na primeira consulta da época nova.
+let epocaDoCache = barramento.epoca()
+function conferirEpoca() { if (epocaDoCache !== barramento.epoca()) { cache.clear(); epocaDoCache = barramento.epoca() } }
+/** Esquece os endereços assinados (sair / trocar de conta). Já é automático pela época; exportado para quem quiser forçar. */
+export function limparCacheUrls() { cache.clear(); epocaDoCache = barramento.epoca() }
 
 /*
  * Fonte de um arquivo = { bucket, path }. Um texto solto é caminho do bucket
@@ -46,6 +53,8 @@ export async function urlsAssinadas(lista, { forcar = false, bucket = 'redes' } 
     const f = fonteDe(x, bucket)
     if (f && !vistas.has(chaveFonte(f))) { vistas.add(chaveFonte(f)); fontes.push(f) }
   }
+  conferirEpoca()
+  const epoca = epocaDoCache
   const agora = Date.now()
   const faltam = fontes.filter((f) => !PUBLICOS.has(f.bucket) && (forcar || !((cache.get(chaveFonte(f)) || {}).ate > agora)))
   for (const b of EM_LOTE) {
@@ -54,13 +63,14 @@ export async function urlsAssinadas(lista, { forcar = false, bucket = 'redes' } 
       const r = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar_varios', bucket: b, paths: doBucket.slice(i, i + LOTE) })
       const validade = Number(r.validade || 300) * 1000
       // Margem de 60 s: a imagem pedida perto do fim ainda carrega.
-      for (const u of r.urls || []) if (u && u.url) cache.set(b + ':' + u.path, { url: u.url, ate: Date.now() + validade - 60000 })
+      // Resposta que chega depois de sair/trocar de conta não entra no cache da conta nova.
+      if (epoca === barramento.epoca()) for (const u of r.urls || []) if (u && u.url) cache.set(b + ':' + u.path, { url: u.url, ate: Date.now() + validade - 60000 })
     }
   }
   for (const f of faltam.filter((x) => !EM_LOTE.has(x.bucket))) {
     try {
       const r = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: f.bucket, path: f.path })
-      if (r && r.url) cache.set(chaveFonte(f), { url: r.url, ate: Date.now() + 240000 })
+      if (r && r.url && epoca === barramento.epoca()) cache.set(chaveFonte(f), { url: r.url, ate: Date.now() + 240000 })
     } catch { /* sem prévia: quem mostra cai no ícone do tipo */ }
   }
   return Object.fromEntries(fontes.map((f) => [chaveFonte(f),
@@ -72,19 +82,34 @@ export function useUrlsAssinadas(lista, bucket = 'redes') {
   const chave = [...new Set((lista || []).map((x) => chaveFonte(fonteDe(x, bucket))).filter(Boolean))].sort().join('|')
   const [urls, setUrls] = React.useState({})
   const [erro, setErro] = React.useState(null)
+  // Tela desmontada ou conta trocada: nenhuma resposta atrasada (renovação do intervalo ou de uma miniatura quebrada) escreve estado.
+  const montado = React.useRef(true)
+  React.useEffect(() => { montado.current = true; return () => { montado.current = false } }, [])
   React.useEffect(() => {
     if (!chave) return undefined
     let vivo = true
     const fontes = chave.split('|').map((k) => { const i = k.indexOf(':'); return { bucket: k.slice(0, i), path: k.slice(i + 1) } })
-    const pedir = () => urlsAssinadas(fontes)
-      .then((u) => { if (vivo) { setUrls((x) => ({ ...x, ...u })); setErro(null) } })
-      .catch((e) => { if (vivo) setErro(e.message) })
+    // A época é lida a CADA pedido (não uma vez só): o intervalo vive tanto quanto a lista de arquivos e continua renovando
+    // para a conta nova; só a resposta de um pedido feito na conta ANTERIOR é descartada.
+    const pedir = () => {
+      const epoca = barramento.epoca()
+      return urlsAssinadas(fontes)
+        .then((u) => { if (vivo && epoca === barramento.epoca()) { setUrls((x) => ({ ...x, ...u })); setErro(null) } })
+        .catch((e) => { if (vivo && epoca === barramento.epoca()) setErro(e.message) })
+    }
     pedir()
+    // Renovação de endereço assinado (vence em 5 min) — NÃO é releitura de dado: não depende de sinal nem de reconciliação.
     const t = setInterval(pedir, 120000)
     return () => { vivo = false; clearInterval(t) }
   }, [chave])
-  const renovar = React.useCallback((x) => urlsAssinadas([fonteDe(x, bucket)], { forcar: true })
-    .then((u) => { setUrls((y) => ({ ...y, ...u })); setErro(null) }).catch((e) => setErro(e.message)), [bucket])
+  // Várias renovações podem andar juntas (uma por miniatura quebrada): cada uma vale por si, só não escreve depois de desmontar / trocar de conta.
+  const renovar = React.useCallback((x) => {
+    const epoca = barramento.epoca()
+    const vale = () => montado.current && epoca === barramento.epoca()
+    return urlsAssinadas([fonteDe(x, bucket)], { forcar: true })
+      .then((u) => { if (vale()) { setUrls((y) => ({ ...y, ...u })); setErro(null) } })
+      .catch((e) => { if (vale()) setErro(e.message) })
+  }, [bucket])
   return React.useMemo(() => ({ urls, erro, renovar }), [urls, erro, renovar])
 }
 

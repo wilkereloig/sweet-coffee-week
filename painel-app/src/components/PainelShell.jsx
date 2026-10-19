@@ -13,6 +13,10 @@ import { Avatar } from './Avatar'
 import { MeuPerfil } from './MeuPerfil'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
 import { atalhosDaBarra, lerAtalhos, gravarAtalhos, MAX_ATALHOS } from '../lib/atalhosBarra'
+import { useSincronizar, useGuarda } from '../lib/sync/react'
+import { iniciarSincronizacao, pararSincronizacao } from '../lib/sync'
+import { barramento } from '../lib/sync/barramento'
+import { IndicadorSync } from './IndicadorSync'
 
 // Oito módulos (reestruturação 29/09/2026, docs/superpowers/specs/
 // 2026-09-29-painel-reestruturacao-design.md; Social media em 17/10/2026).
@@ -73,9 +77,7 @@ function aplicarAcento(vista) {
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')
 }
 
-const INTERVALO_AVISOS = 60000
-
-export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = 'visao', linkInicial = null, quem = null, nominal = false }) {
+export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes = null, rotaInicial = 'visao', linkInicial = null, quem = null, nominal = false }) {
   // A UI reflete o que a sessão pode fazer. `permissoes === null` é a senha
   // compartilhada — o banco libera qualquer ação por ela (pode(), segunda
   // perna do OR), então a UI não mente mostrando restrição que não existe.
@@ -141,7 +143,10 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
   const Vista = vistas[vista]
 
   const registrarAtualizar = React.useCallback((fn) => { atualizarRef.current = fn }, [])
-  function atualizar() { if (atualizarRef.current) atualizarRef.current(); carregarAvisos() }
+  // "Atualizar" relê TUDO o que está na tela (cada vista declara de que domínios
+  // depende, lib/sync/react.js) e os avisos; `atualizarRef` fica só para uma vista
+  // antiga que ainda registre o próprio recarregamento.
+  function atualizar() { if (atualizarRef.current) atualizarRef.current(); barramento.reconciliar() }
 
   /*
    * Navega para uma rota ({ vista, aba, filtros }; vista omitida = a atual,
@@ -173,27 +178,42 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
   // Compatibilidade: vistas que ainda chamam irPara(vista, { id, sub }).
   const irPara = React.useCallback((v, alvo = null) => abrirLink(linkDeAlvo(v, alvo)), [abrirLink])
 
+  // Resposta velha (rede lenta, clique + sinal ao mesmo tempo) nunca sobrescreve a nova,
+  // nem depois de sair ou trocar de conta (useGuarda). Devolve false só se a leitura falhou.
+  const guardaAvisos = useGuarda()
   const carregarAvisos = React.useCallback(async () => {
+    const vale = guardaAvisos()
     try {
       const l = await rpc('get_notificacoes_org', { p_secret: sessionStorage.getItem(CHAVE_SESSAO) || '', p_limite: 60 })
+      if (!vale()) return true
       setAvisos(l || [])
       setAvisosErro(null)
+      return true
     } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
+      if (!vale() || (e && e.message === 'sessao_expirada')) return true
       setAvisosErro(e.message)
+      return false
     } finally {
-      setAvisosCarregando(false)
+      if (vale()) setAvisosCarregando(false)
     }
-  }, [])
+  }, [guardaAvisos])
 
-  // Avisos: ao abrir, a cada minuto com a aba visível, e ao voltar para ela.
+  // Sincronização desta sessão: canais privados do Realtime (conta nominal) ou só a
+  // conferência periódica (senha compartilhada). Outra aba que sair ou entrar como
+  // OUTRA pessoa encerra este contexto sem mexer na sessão nova (App.trocaLocal).
+  const trocaRef = React.useRef(onTrocaDeConta)
+  trocaRef.current = onTrocaDeConta
   React.useEffect(() => {
-    carregarAvisos()
-    const t = setInterval(() => { if (document.visibilityState === 'visible') carregarAvisos() }, INTERVALO_AVISOS)
-    const volta = () => { if (document.visibilityState === 'visible') carregarAvisos() }
-    document.addEventListener('visibilitychange', volta)
-    return () => { clearInterval(t); document.removeEventListener('visibilitychange', volta) }
-  }, [carregarAvisos])
+    iniciarSincronizacao({ tipo: nominal ? 'org' : 'legado', aoTrocaDeConta: (m) => { if (trocaRef.current) trocaRef.current(m) } })
+    return () => pararSincronizacao()
+  }, [nominal])
+
+  // Avisos: ao abrir, e sempre que o domínio "avisos" muda (aviso novo, leitura em outra
+  // aba/aparelho da mesma pessoa, reconexão, volta ao app). Sem poll próprio.
+  React.useEffect(() => { carregarAvisos() }, [carregarAvisos])
+  useSincronizar(['avisos'], async () => { if (!(await carregarAvisos())) throw new Error('avisos') })
+  // Equipe (nome, foto, função): relê o diretório quando alguém mexe no perfil.
+  useSincronizar(['perfis'], async () => { if (!(await equipe.recarregar())) throw new Error('equipe') })
 
   // Link inicial (?ir= de uma notificação push aberta com o painel fechado) e
   // cliques em notificação com o painel já aberto (mensagem do service worker).
@@ -202,6 +222,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
     if (!('serviceWorker' in navigator)) return
     function ouvir(ev) {
       const d = ev.data
+      if (d && d.tipo === 'push') { carregarAvisos(); return }     // push chegou com o painel aberto
       if (!d || d.tipo !== 'abrir' || typeof d.url !== 'string') return
       const ir = new URL(d.url, location.origin).searchParams.get('ir')
       if (ir) abrirLink(ir)
@@ -215,17 +236,26 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
     setCentralAberta(false)
     if (!n.lida) {
       setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida: true } : x)))
-      rpc('ler_notificacoes_org', { p_secret: sessionStorage.getItem(CHAVE_SESSAO) || '', p_ids: [n.id] }).catch(() => {})
+      rpc('ler_notificacoes_org', { p_secret: sessionStorage.getItem(CHAVE_SESSAO) || '', p_ids: [n.id] }).catch((e) => {
+        // A leitura NÃO foi gravada: o aviso volta a "não lido" e o contador acompanha (nada de contador mentindo).
+        if (e && e.message === 'sessao_expirada') return
+        setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida: false } : x)))
+        setAvisosErro('Não deu para marcar o aviso como lido. Ele continua na lista.')
+        carregarAvisos()
+      })
     }
     if (n.link) abrirLink(n.link)
   }
 
   async function lerTodas() {
+    const antes = avisos
     setAvisos((l) => l.map((x) => ({ ...x, lida: true })))
     try {
       await rpc('ler_notificacoes_org', { p_secret: sessionStorage.getItem(CHAVE_SESSAO) || '', p_ids: null })
     } catch (e) {
-      setAvisosErro(e.message)
+      if (e && e.message === 'sessao_expirada') return
+      setAvisos(antes)
+      setAvisosErro('Não deu para marcar os avisos como lidos. Eles continuam na lista.')
       carregarAvisos()
     }
   }
@@ -285,6 +315,7 @@ export function PainelShell({ vistas, onSair, permissoes = null, rotaInicial = '
               </span>
             </button>
           )}
+          <IndicadorSync />
           <button className="pn-cabeca__btn" type="button" aria-label="Atualizar" data-tour="atualizar" onClick={atualizar}>
             <Icone nome="atualizar" tamanho={20} />
           </button>

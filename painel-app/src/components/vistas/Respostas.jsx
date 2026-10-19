@@ -10,6 +10,10 @@ import { Credenciais } from '../Credenciais'
 import { registrarEnvio } from './AcessoMarca'
 import { Carregando, Vazio, Erro, Selo } from '../ui'
 import { confirmar } from '../Confirmar'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS, statusAEnviar } from '../../lib/syncFichas'
+import { useRascunhoOrg } from '../../lib/rascunhoOrg'
 
 // Desarme automático do botão de apagar — dois toques, não `confirm()`: o
 // diálogo nativo quebra a casca de app. 6s é o mesmo tempo da versão
@@ -23,8 +27,13 @@ const APAGAR_TIMEOUT = 6000
 // decisão de design).
 function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
   const o = ORIGENS[origem]
-  const [status, setStatus] = React.useState(reg.status)
-  const [nota, setNota] = React.useState(reg.internal_notes || '')
+  // Triagem em edição que RESISTE a alteração externa: a ficha é relida em silêncio (outra pessoa mudou o status,
+  // reconexão) e `reg` chega novo; o que a pessoa escolheu ou digitou nunca é trocado, e um status que mudou por
+  // fora nunca é reenviado velho (só vai o que ELA mudou em relação ao que a tela viu confirmado).
+  const servidor = React.useMemo(() => ({ status: reg.status, nota: reg.internal_notes || '' }), [reg.status, reg.internal_notes])
+  const r = useRascunhoOrg(servidor, ['status', 'nota'], { chave: origem + ':' + reg.id, rotulo: 'Triagem' })
+  const status = r.local.status
+  const nota = r.local.nota
   const [salvando, setSalvando] = React.useState(false)
   const [avisoSalvar, setAvisoSalvar] = React.useState(null) // { tom, texto }
 
@@ -45,19 +54,26 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
   }
 
   async function salvar() {
+    if (Object.keys(r.conflitos).length) {
+      setAvisoSalvar({ tom: 'erro', texto: 'Estes campos mudaram enquanto você editava. Escolha qual versão vale, acima, antes de salvar.' })
+      return
+    }
     setSalvando(true)
     setAvisoSalvar(null)
     const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
+    const enviado = r.local
     try {
       // Status só vai se a pessoa mudou: o servidor faz coalesce, e mandar o
       // valor do select de volta regrediria um status que mudou por fora
       // (ex.: "Criar acesso" leva a candidatura a aguardando_cadastro).
-      const mudouStatus = status !== reg.status
+      const novoStatus = statusAEnviar(r)
+      const mudouStatus = novoStatus !== null
       const ok = await rpc('organizacao_atualizar_registro', {
-        p_secret: senha, p_origem: origem, p_id: reg.id, p_status: mudouStatus ? status : null, p_nota: nota,
+        p_secret: senha, p_origem: origem, p_id: reg.id, p_status: mudouStatus ? novoStatus : null, p_nota: enviado.nota,
       })
       if (ok !== true) throw new Error('O servidor não confirmou a gravação.')
-      onAtualizado({ ...reg, status: mudouStatus ? status : reg.status, internal_notes: nota })
+      onAtualizado({ ...reg, status: mudouStatus ? novoStatus : reg.status, internal_notes: enviado.nota })
+      r.salvou({ status: mudouStatus ? novoStatus : r.base.status, nota: enviado.nota })
       setAvisoSalvar({ tom: 'ok', texto: 'Salvo.' })
     } catch (e) {
       // O que a pessoa escreveu continua na tela — erro de rede não apaga texto.
@@ -106,7 +122,8 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
       setCredenciais({ login: r.login || reg.empresa, senha: r.senha, participanteId: r.participante_id })
       // O banco moveu a candidatura para aguardando_cadastro
       // (vincular_conta_marca): a ficha e a lista acompanham.
-      setStatus('aguardando_cadastro')
+      r.editar('status', 'aguardando_cadastro')
+      r.salvou({ status: 'aguardando_cadastro' })
       onAtualizado({ ...reg, status: 'aguardando_cadastro' })
     } catch (e) {
       const codigo = e.dados && e.dados.erro
@@ -128,15 +145,16 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
 
       <div className="og-bloco og-bloco--colado">
         <h3>Triagem</h3>
+        <AvisoMudancaExterna registro={r} rotulos={{ status: 'Status', nota: 'Nota interna' }} />
         <label className="og-campo">
           <span>Status</span>
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <select value={status} onChange={(e) => r.editar('status', e.target.value)}>
             {o.status.map((s) => <option key={s} value={s}>{ROTULO_STATUS[s] || s}</option>)}
           </select>
         </label>
         <label className="og-campo">
           <span>Nota interna</span>
-          <textarea placeholder="Só a equipe vê." value={nota} onChange={(e) => setNota(e.target.value)} />
+          <textarea placeholder="Só a equipe vê." value={nota} onChange={(e) => r.editar('nota', e.target.value)} />
         </label>
         {avisoSalvar && <div className="og-aviso" data-tom={avisoSalvar.tom}>{avisoSalvar.texto}</div>}
         {/* Texto visível, não só title: botão disabled não recebe hover nem
@@ -205,7 +223,8 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
 
 // `origens`: quais formulários esta lista mostra. Candidaturas (Participantes)
 // é só o "Quero participar"; Recebidos do site (Contatos) é Apoiar + Contato.
-export function Respostas({ registrarAtualizar, reportarEstado, pode = () => true, rota, navegar, origens = Object.keys(ORIGENS) }) {
+export function Respostas({ reportarEstado, pode = () => true, rota, navegar, origens = Object.keys(ORIGENS) }) {
+  const guarda = useGuarda()
   const [dados, setDados] = React.useState(null) // null = carregando
   const [erro, setErro] = React.useState(null)
   const [dias, setDias] = React.useState('')
@@ -217,8 +236,12 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
   const status = f.status || ''
   const setStatus = (v) => mudar({ status: v })
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  // true = leu. A releitura SILENCIOSA (sinal de outra pessoa, reconexão) mantém a lista, os filtros e a ficha
+  // aberta como estão — a ficha aberta recebe o registro novo e protege o que está sendo digitado — e, se falhar,
+  // a lista que estava na tela continua. Resposta velha e tela desmontada não gravam nada (useGuarda).
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
     const chaves = origens
     try {
@@ -226,27 +249,30 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
         rpc('admin_ping', { p_secret: senha }),
         ...chaves.map((k) => rpc(ORIGENS[k].rpc, { p_secret: senha })),
       ])
+      if (!vale()) return true
       if (valida !== true) {
-        setErro('A senha desta sessão não vale mais. Saia e entre de novo.')
-        return
+        if (!silencioso) setErro('A senha desta sessão não vale mais. Saia e entre de novo.')
+        return false
       }
       const novo = {}
       chaves.forEach((k, i) => { novo[k] = listas[i] || [] })
       setDados(novo)
+      setErro(null)
       // Alimenta quem pedir o estado (o sino hoje lê a tabela de avisos; isto
       // PainelShell, que não tem como ler o estado interno desta vista).
       if (reportarEstado) reportarEstado({ dados: novo })
+      return true
     } catch (e) {
-      setErro(e.message)
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
     }
-  }, [reportarEstado, origens.join()]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [reportarEstado, origens.join(), guarda]) // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => { carregar() }, [carregar])
-  // Registra esta vista como dona do botão "atualizar" do cabeçalho
-  // (PainelShell §Task 6) — sem isso o botão existiria e não faria nada.
-  React.useEffect(() => {
-    if (registrarAtualizar) registrarAtualizar(carregar)
-  }, [registrarAtualizar, carregar])
+  // Resposta nova do site, triagem de outra pessoa, candidatura que ganhou acesso: relê em silêncio.
+  useSincronizar(DOMINIOS_VISTAS.respostas, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('respostas') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   const vocabStatus = aba === 'tudo'
     ? [...new Set(origens.flatMap((o) => ORIGENS[o].status))]
@@ -310,7 +336,7 @@ export function Respostas({ registrarAtualizar, reportarEstado, pode = () => tru
       </div>
 
       <div>
-        {erro && <Erro texto={erro} onTentar={carregar} />}
+        {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
         {!erro && !dados && <Carregando />}
         {!erro && dados && itens.length === 0 && (
           <Vazio titulo="Nenhuma resposta aqui">{contagem.tudo === 0 ? 'Ainda não chegou nenhuma resposta.' : 'Nada com esses filtros.'}</Vazio>

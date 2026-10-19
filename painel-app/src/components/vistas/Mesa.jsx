@@ -11,6 +11,8 @@ import { Atividade } from '../Atividade'
 import { Carregando, Erro, Secao, Selo, LogoMarca } from '../ui'
 import { urlLogo } from '../../lib/logos'
 import { ResumoRedes } from './Redes'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 
 /*
  * A mesa — o painel inicial da organização. Responde "o que precisa de mim
@@ -25,7 +27,8 @@ const ROTULO_COMBO = ['doce', 'salgado', 'bebida']
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
-export function Mesa({ registrarAtualizar, abrirLink, navegar, pode, avisos = [] }) {
+export function Mesa({ abrirLink, navegar, pode, avisos = [] }) {
+  const guarda = useGuarda()
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
   const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [] })
@@ -33,47 +36,66 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, pode, avisos = []
   const [etapaSel, setEtapaSel] = React.useState(null) // null = a primeira com gente
   const [logos, setLogos] = React.useState({}) // participante_id → logo oficial
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  /*
+   * Duas fases, como sempre: a conferência da sessão + as candidaturas (a mesa só aparece com elas) e,
+   * depois, as leituras extras, cada uma com o PRÓPRIO destino — uma que cai não derruba nem apaga as outras.
+   * Releitura SILENCIOSA (sinal de outra pessoa, reconexão, volta ao app): sem esqueleto e sem trocar a mesa
+   * por erro; uma leitura que falha deixa na tela o que já estava lá, e a falha é dita ("Faltou ler…").
+   * Resposta velha e tela desmontada não gravam nada (useGuarda). true = tudo foi lido.
+   */
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     const senha = lerSenha()
     try {
       const [valida, lista] = await Promise.all([
         rpc('admin_ping', { p_secret: senha }),
         rpc(ORIGENS.quero_participar.rpc, { p_secret: senha }),
       ])
-      if (valida !== true) { setErro('A senha desta sessão não vale mais. Saia e entre de novo.'); return }
+      if (!vale()) return true
+      if (valida !== true) { if (!silencioso) setErro('A senha desta sessão não vale mais. Saia e entre de novo.'); return false }
       setCandidaturas(lista || [])
+      setErro(null)
     } catch (e) {
-      setErro(e.message)
-      return
+      if (!vale()) return true
+      if (!silencioso) setErro(e.message)
+      return false
     }
     // Carga apartada e que NÃO derruba a mesa (CLAUDE.md §10.4-b): cada
     // leitura extra tem o próprio catch — mas a falha é DITA, não vira lista
     // vazia: "Nada pendente agora" com metade das leituras caídas é mentira.
     const falhas = []
-    const pegar = (nome, corpo, oQue) => rpc(nome, { p_secret: senha, ...corpo }).catch(() => { falhas.push(oQue); return null })
-    setParticipantes((await pegar('get_participantes', {}, 'as marcas')) || [])
-    // Logo é enfeite do cartão: falhou, ficam as iniciais — não entra em `falhas`.
-    rpc('get_logos', { p_secret: senha })
-      .then((ls) => setLogos(Object.fromEntries((ls || []).map((l) => [l.participante_id, l]))))
-      .catch(() => setLogos({}))
-    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes] = await Promise.all([
+    const pegar = (nome, corpo, oQue) => rpc(nome, { p_secret: senha, ...corpo }).then((v) => ({ ok: true, v }), () => { if (oQue) falhas.push(oQue); return { ok: false, v: null } })
+    const part = await pegar('get_participantes', {}, 'as marcas')
+    if (!vale()) return true
+    if (part.ok) setParticipantes(part.v || [])
+    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes, logos] = await Promise.all([
       pegar(ORIGENS.apoiar.rpc, {}, 'as respostas do Apoiar'), pegar(ORIGENS.contato.rpc, {}, 'as mensagens do Contato'),
       pegar('get_solicitacoes_admin', {}, 'os pedidos'), pegar('get_sessoes_fotos', {}, 'as sessões de fotos'),
       pegar('get_conversas', {}, 'as mensagens das marcas'), pegar('get_atividade', { p_limite: 12 }, 'a atividade recente'),
       pegar('get_revisao', { p_status: 'aberta' }, 'a revisão de dados'), pegar('get_temas', {}, 'os temas'), pegar('get_edicoes', {}, 'a edição atual'),
+      // Logo é enfeite do cartão: falhou, ficam as iniciais (e o que já estava) — não entra em `falhas`.
+      pegar('get_logos', {}, null),
     ])
-    setExtra({
+    if (!vale()) return true
+    if (logos.ok) setLogos(Object.fromEntries((logos.v || []).map((l) => [l.participante_id, l])))
+    // Leitura que falhou deixa o que já estava (a primeira vez, a lista vazia de sempre).
+    const ou = (r, anterior, tratar = (v) => v || []) => (r.ok ? tratar(r.v) : anterior)
+    setExtra((x) => ({
       falhas,
-      dados: { apoiar: apoiar || [], contato: contato || [] },
-      solicitacoes: solicitacoes || [], sessoes: sessoes || [], conversas: conversas || [],
-      atividade: atividade || [], revisao: revisao || [], temas: temas || [],
-      edicao: (edicoes || []).find((e) => e.atual) || null,
-    })
-  }, [])
+      dados: { apoiar: ou(apoiar, x.dados.apoiar || []), contato: ou(contato, x.dados.contato || []) },
+      solicitacoes: ou(solicitacoes, x.solicitacoes), sessoes: ou(sessoes, x.sessoes), conversas: ou(conversas, x.conversas),
+      atividade: ou(atividade, x.atividade || []), revisao: ou(revisao, x.revisao), temas: ou(temas, x.temas),
+      edicao: ou(edicoes, x.edicao, (v) => (v || []).find((e) => e.atual) || null),
+    }))
+    return falhas.length === 0 && logos.ok && part.ok
+  }, [guarda])
 
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // Qualquer coisa que a mesa resume (candidatura, marca, pedido, sessão, mensagem, revisão, tema, edição, atividade)
+  // mudou — aqui ou em outra sessão: relê em silêncio. Sem poll e sem botão que só esta tela conheça.
+  useSincronizar(DOMINIOS_VISTAS.mesa, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('mesa') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   const colunas = candidaturas ? colunasMesa({ candidaturas, participantes }) : ETAPAS.map((e) => ({ ...e, itens: [] }))
   const etapa = colunas.find((c) => c.chave === etapaSel) || colunas.find((c) => c.itens.length) || colunas[0]
@@ -117,7 +139,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, pode, avisos = []
   return (
     <div className="og-embutida">
 
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
       {!erro && candidaturas === null && <Carregando linhas={3} />}
 
       {!erro && candidaturas && (
@@ -170,7 +192,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, pode, avisos = []
           </div>
 
           <Secao titulo="Precisa de atenção" nota={avisosNaoLidos ? avisosNaoLidos + (avisosNaoLidos === 1 ? ' aviso não lido no sino' : ' avisos não lidos no sino') : 'Pendências tiradas dos dados de agora'} className="ui-area-atencao">
-            {extra.falhas.length > 0 && <Erro texto={'Faltou ler ' + extra.falhas.join(', ') + '. O que aparece aqui pode estar incompleto.'} onTentar={carregar} />}
+            {extra.falhas.length > 0 && <Erro texto={'Faltou ler ' + extra.falhas.join(', ') + '. O que aparece aqui pode estar incompleto.'} onTentar={tentarDeNovo} />}
             {pendencias.length === 0 && conversasNovas.length === 0 && prazosProximos.length === 0 && conflitosTema.length === 0
               ? (extra.falhas.length ? null : <p className="ui-nota">Nada pendente agora.</p>)
               : (
@@ -210,7 +232,7 @@ export function Mesa({ registrarAtualizar, abrirLink, navegar, pode, avisos = []
           <Secao titulo="Atividade recente" nota="Quem fez o quê, por último" className="ui-area-atividade">
             {extra.atividade === null && <Carregando linhas={3} />}
             {extra.atividade && extra.atividade.length === 0 && (extra.falhas.includes('a atividade recente')
-              ? <Erro texto="A atividade recente não carregou." onTentar={carregar} />
+              ? <Erro texto="A atividade recente não carregou." onTentar={tentarDeNovo} />
               : <p className="ui-nota">Nenhuma ação registrada ainda.</p>)}
             {extra.atividade && extra.atividade.length > 0 && (
               <Atividade linhas={extra.atividade} onAbrirMarca={(id) => abrirLink('marcas/' + id)} />

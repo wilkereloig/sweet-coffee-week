@@ -11,6 +11,9 @@ import { Folha } from '../Folha'
 import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
 import { comEnvio } from '../../lib/pendencias'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
+import { renovarDaLista, valoresEditaveis, soAlterados, aparar, impressaoDoArquivo, envioReaproveitavel } from '../../lib/leituraViva'
 
 /*
  * Vista Produção — porta fiel de public/painel/index.html: agenda de fotos
@@ -50,7 +53,7 @@ function Prazo({ iso }) {
 const SEM_PERMISSAO_PRODUCAO = 'Sua função não gerencia produção'
 
 /* ── Novo pedido ───────────────────────────────────────────────────────── */
-function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeGerir, onFechar, onCriado }) {
+function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeGerir, onFechar }) {
   const [titulo, setTitulo] = React.useState('')
   const [texto, setTexto] = React.useState('')
   const [escopo, setEscopo] = React.useState('geral')
@@ -97,9 +100,9 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
         p_prioridade: prioridade,
       })
       // Nunca afirma antes do servidor confirmar: a linha acima ou gravou ou
-      // lançou. Só depois dela a tela diz que existe.
+      // lançou. Só depois dela a tela diz que existe. A lista de pedidos se
+      // atualiza sozinha (domínio "pedidos"): não há releitura para esperar aqui.
       setAviso({ texto: 'Rascunho criado. Publique na lista para a marca ver.', tom: 'ok' })
-      await onCriado()
     } catch (e) {
       setAviso({ texto: e.message, tom: 'erro' })
     } finally {
@@ -168,22 +171,20 @@ function FolhaNovoPedido({ aberto, opcoesMarcas, marcaPadrao, edicaoAtual, podeG
 }
 
 /* ── Quem falta responder a um pedido ─────────────────────────────────── */
-function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido }) {
-  const [carregando, setCarregando] = React.useState(true)
-  const [erro, setErro] = React.useState(null)
-  const [lista, setLista] = React.useState([])
+function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar }) {
+  // A lista de quem respondeu relê sozinha enquanto a folha está aberta (outra pessoa dá por
+  // respondido, a marca responde pelo painel dela). Outro pedido = outra lista: a de antes some.
+  const id = solicitacao ? solicitacao.id : null
+  const leitura = useLeitura(
+    async () => (await rpc('get_pendentes_solicitacao', { p_secret: lerSenha(), p_id: id })) || [],
+    ['pedidos', 'participantes'], { chave: id, ativo: !!id },
+  )
   const [erroAcao, setErroAcao] = React.useState(null)
   const [marcando, setMarcando] = React.useState(null)
-
-  React.useEffect(() => {
-    if (!solicitacao) return
-    let ativo = true
-    setCarregando(true); setErro(null); setLista([]); setErroAcao(null)
-    rpc('get_pendentes_solicitacao', { p_secret: lerSenha(), p_id: solicitacao.id })
-      .then((linhas) => { if (ativo) { setLista(linhas || []); setCarregando(false) } })
-      .catch((e) => { if (ativo) { setErro(e.message); setCarregando(false) } })
-    return () => { ativo = false }
-  }, [solicitacao])
+  const lista = leitura.dados || []
+  const carregando = !!id && leitura.carregando
+  const erro = leitura.bloqueada ? leitura.erro : null
+  React.useEffect(() => { setErroAcao(null); setMarcando(null) }, [id])
 
   // Quem dá por respondido é a organização, de propósito: um pedido pode ser
   // resolvido por telefone. O estado é o que a PRODUÇÃO considera entregue,
@@ -195,8 +196,9 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
       await rpc('marcar_solicitacao', {
         p_secret: lerSenha(), p_solicitacao: solicitacao.id, p_participacao: participacaoId, p_respondido: respondido,
       })
-      setLista((l) => l.map((x) => (x.participacao_id === participacaoId ? { ...x, estado: respondido ? 'respondido' : 'pendente', resposta: respondido ? x.resposta : null } : x)))
-      await onRespondido()
+      // Já confirmado pelo servidor: a linha muda na hora; a lista de pedidos de fora
+      // e esta se relêem sozinhas (domínio "pedidos"), então não há releitura a esperar.
+      leitura.ajustar((l) => l.map((x) => (x.participacao_id === participacaoId ? { ...x, estado: respondido ? 'respondido' : 'pendente', resposta: respondido ? x.resposta : null } : x)))
     } catch (e) {
       setErroAcao(e.message)
     } finally {
@@ -208,7 +210,8 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
     <Folha aberto={aberto} titulo={solicitacao ? solicitacao.titulo : 'Pedido'} sub="Quem já respondeu, e quem não" onFechar={onFechar}>
       <div className="og-bloco og-bloco--colado">
         {carregando && <Carregando linhas={3} texto="Carregando quem respondeu…" />}
-        {!carregando && erro && <Erro texto={erro} />}
+        {!carregando && erro && <Erro texto={erro} onTentar={leitura.recarregar} />}
+        {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar a lista" texto={leitura.erro} onTentar={leitura.recarregar} />}
         {!carregando && !erro && lista.length === 0 && <Vazio titulo="Ninguém ainda">Este pedido ainda não alcançou nenhuma marca.</Vazio>}
         {!carregando && !erro && solicitacao && solicitacao.texto && <p className="ui-citacao">{solicitacao.texto}</p>}
         {!carregando && !erro && lista.length > 0 && (
@@ -241,7 +244,7 @@ function FolhaQuemFalta({ aberto, solicitacao, podeGerir, onFechar, onRespondido
 }
 
 /* ── Publicar arquivo ──────────────────────────────────────────────────── */
-export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFechar, onPublicado, categoriaInicial = 'documento', escopoInicial = 'geral' }) {
+export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir, onFechar, categoriaInicial = 'documento', escopoInicial = 'geral' }) {
   const [file, setFile] = React.useState(null)
   const [nome, setNome] = React.useState('')
   const [escopo, setEscopo] = React.useState('geral')
@@ -252,12 +255,16 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
   const [categoria, setCategoria] = React.useState(categoriaInicial)
   const [aviso, setAviso] = React.useState(null)
   const [enviando, setEnviando] = React.useState(false)
+  // O que já subiu ao armazenamento mas ainda não foi registrado (o registro falhou): tentar
+  // de novo com o mesmo arquivo não sobe outra vez — o armazenamento não sobrescreve.
+  const subido = React.useRef(null)
 
   React.useEffect(() => {
     if (!aberto) return
     setCategoria(categoriaInicial)
     setFile(null); setNome(''); setEscopo(escopoInicial); setMarca(marcaPadrao)
     setVersao(''); setDescricao(''); setLeitura(false); setAviso(null); setEnviando(false)
+    subido.current = null
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
   // A lista de marcas é uma leitura à parte e pode chegar DEPOIS de a folha
@@ -277,15 +284,20 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
     const path = pasta + '/' + nomeSeguro(file.name)
     setEnviando(true)
     setAviso({ texto: 'Enviando…' })
+    let registrando = false
     try {
-      // Os bytes NÃO passam pela Edge Function: ela assina, o navegador sobe
-      // direto para o Storage. Um PDF de 20 MB atravessando o isolate
-      // esbarraria em limite de corpo, de memória e de tempo.
-      const assinatura = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'arquivos', path })
-      const envio = await comEnvio('Envio de “' + file.name + '”', () => fetch(assinatura.url, { method: 'PUT', body: file }))
-      if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')')
+      if (!envioReaproveitavel(subido.current, path, file)) {
+        // Os bytes NÃO passam pela Edge Function: ela assina, o navegador sobe
+        // direto para o Storage. Um PDF de 20 MB atravessando o isolate
+        // esbarraria em limite de corpo, de memória e de tempo.
+        const assinatura = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'arquivos', path })
+        const envio = await comEnvio('Envio de “' + file.name + '”', () => fetch(assinatura.url, { method: 'PUT', body: file }))
+        if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')')
+        subido.current = { path, impressao: impressaoDoArquivo(file) }
+      }
       // Só DEPOIS do arquivo estar lá é que a linha nasce. Ao contrário, a
       // marca veria um download que dá 404.
+      registrando = true
       await rpc('publicar_arquivo', {
         p_secret: lerSenha(),
         p_nome: nome.trim() || file.name,
@@ -299,10 +311,12 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
         p_exige_leitura: leitura,
         p_categoria: categoria,
       })
+      subido.current = null
+      // A lista de Arquivos se atualiza sozinha (domínio "arquivos").
       setAviso({ texto: 'Publicado.', tom: 'ok' })
-      await onPublicado()
     } catch (e) {
-      setAviso({ texto: e.message, tom: 'erro' })
+      // O arquivo já está lá e só o registro falhou: diz isso, em vez de deixá-lo órfão em silêncio.
+      setAviso({ texto: registrando ? e.message + ' O arquivo já foi enviado; ao publicar de novo ele não sobe outra vez.' : e.message, tom: 'erro' })
     } finally {
       setEnviando(false)
     }
@@ -362,7 +376,7 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
 }
 
 /* ── Agendar sessão ────────────────────────────────────────────────────── */
-function FolhaNovaSessao({ aberto, quandoInicial = '', opcoesMarcas, marcaPadrao, podeGerir, onFechar, onCriada }) {
+function FolhaNovaSessao({ aberto, quandoInicial = '', opcoesMarcas, marcaPadrao, podeGerir, onFechar }) {
   const [marca, setMarca] = React.useState(marcaPadrao)
   const [quando, setQuando] = React.useState('')
   const [local, setLocal] = React.useState('')
@@ -392,8 +406,8 @@ function FolhaNovaSessao({ aberto, quandoInicial = '', opcoesMarcas, marcaPadrao
         p_secret: lerSenha(), p_participacao: marca, p_data_hora: iso,
         p_local: local.trim() || null, p_observacoes: obs.trim() || null,
       })
+      // A agenda e a lista de sessões se atualizam sozinhas (domínio "fotos").
       setAviso({ texto: 'Agendada.', tom: 'ok' })
-      await onCriada()
     } catch (e) {
       setAviso({ texto: e.message, tom: 'erro' })
     } finally {
@@ -433,35 +447,48 @@ function FolhaNovaSessao({ aberto, quandoInicial = '', opcoesMarcas, marcaPadrao
 }
 
 /* ── Mudar uma sessão já agendada ──────────────────────────────────────── */
-function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
-  const [status, setStatus] = React.useState('')
+const CAMPOS_SESSAO = ['status', 'local', 'observacoes']
+
+function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar }) {
+  return (
+    <Folha aberto={aberto} titulo={(sessao && sessao.nome_marca) || 'Sessão'} sub={sessao ? dataHoraCurta(sessao.data_hora) : ''} onFechar={onFechar}>
+      {/* key: outra sessão = formulário novo; o rascunho de uma nunca aparece na outra. */}
+      {sessao && <FormularioSessao key={sessao.id} sessao={sessao} podeGerir={podeGerir} />}
+    </Folha>
+  )
+}
+
+function FormularioSessao({ sessao, podeGerir }) {
+  // Resiste a alteração de outra pessoa: o que está digitado nunca é trocado, e o que a
+  // pessoa não tocou acompanha o banco. `sessao` chega sempre fresca (vem da lista relida).
+  const servidor = React.useMemo(() => valoresEditaveis(sessao, CAMPOS_SESSAO), [sessao])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_SESSAO, { chave: sessao.id, rotulo: 'Sessão de fotos (alteração não salva)' })
+  const { status, local, observacoes: obs } = reg.local
   const [nova, setNova] = React.useState('')
-  const [local, setLocal] = React.useState('')
-  const [obs, setObs] = React.useState('')
   const [aviso, setAviso] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
-
-  React.useEffect(() => {
-    if (!sessao) return
-    setStatus(sessao.status || '')
-    setNova('')
-    setLocal(sessao.local || '')
-    setObs(sessao.observacoes || '')
-    setAviso(null)
-    setSalvando(false)
-  }, [sessao])
+  const semMudanca = !nova && Object.keys(soAlterados(reg.base, reg.local, CAMPOS_SESSAO)).length === 0
 
   async function salvar() {
+    const brutos = reg.local
+    const alterados = aparar(soAlterados(reg.base, reg.local, CAMPOS_SESSAO))
     setSalvando(true)
     try {
       // String vazia (não null) apaga: o SQL faz coalesce(p_x, x), e null
-      // manteria o valor antigo sem a pessoa conseguir limpar o campo.
+      // manteria o valor antigo sem a pessoa conseguir limpar o campo. Por isso mesmo
+      // só vai o que ela MUDOU (o resto vai null = "como está"): mandar o formulário
+      // inteiro desfaria o que outra pessoa alterou enquanto a folha estava aberta.
       await rpc('atualizar_sessao_fotos', {
         p_secret: lerSenha(), p_sessao_id: sessao.id,
-        p_status: status, p_data_hora: isoDoCampo(nova), p_local: local.trim(), p_observacoes: obs.trim(),
+        p_status: 'status' in alterados ? alterados.status : null,
+        p_data_hora: isoDoCampo(nova),
+        p_local: 'local' in alterados ? alterados.local : null,
+        p_observacoes: 'observacoes' in alterados ? alterados.observacoes : null,
       })
+      reg.confirmarSalvo(alterados, brutos)
+      setNova('')
+      // A lista de sessões e a agenda se atualizam sozinhas (domínio "fotos").
       setAviso({ texto: 'Salvo.', tom: 'ok' })
-      await onSalva()
     } catch (e) {
       setAviso({ texto: e.message, tom: 'erro' })
     } finally {
@@ -470,37 +497,37 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
   }
 
   return (
-    <Folha aberto={aberto} titulo={(sessao && sessao.nome_marca) || 'Sessão'} sub={sessao ? dataHoraCurta(sessao.data_hora) : ''} onFechar={onFechar}>
-      {sessao && (
-        <div className="og-bloco og-bloco--colado">
-          <label className="og-campo"><span>Situação</span>
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              {Object.entries(ROTULO_SESSAO).filter(([k]) => k !== 'aberto' || k === status).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </label>
-          <label className="og-campo"><span>Nova data e hora <em>(deixe em branco para manter)</em></span>
-            <input type="datetime-local" value={nova} onChange={(e) => setNova(e.target.value)} />
-          </label>
-          <label className="og-campo"><span>Local</span>
-            <input type="text" value={local} onChange={(e) => setLocal(e.target.value)} />
-          </label>
-          <label className="og-campo"><span>Observações</span>
-            <textarea value={obs} onChange={(e) => setObs(e.target.value)} />
-          </label>
-          {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
-          <button
-            className="og-btn" type="button"
-            disabled={salvando || !podeGerir}
-            title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
-            onClick={salvar}
-          >
-            Salvar
-          </button>
-        </div>
-      )}
-    </Folha>
+    <div className="og-bloco og-bloco--colado">
+      <AvisoMudancaExterna registro={reg} rotulos={{ status: 'Situação', local: 'Local', observacoes: 'Observações' }} />
+      <label className="og-campo"><span>Situação</span>
+        <select value={status} onChange={(e) => reg.editar('status', e.target.value)}>
+          {Object.entries(ROTULO_SESSAO).filter(([k]) => k !== 'aberto' || k === status).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      </label>
+      <label className="og-campo"><span>Nova data e hora <em>(deixe em branco para manter)</em></span>
+        <input type="datetime-local" value={nova} onChange={(e) => setNova(e.target.value)} />
+      </label>
+      <label className="og-campo"><span>Local</span>
+        <input type="text" value={local} onChange={(e) => reg.editar('local', e.target.value)} />
+      </label>
+      <label className="og-campo"><span>Observações</span>
+        <textarea value={obs} onChange={(e) => reg.editar('observacoes', e.target.value)} />
+      </label>
+      {aviso && <div className="og-aviso" data-tom={aviso.tom}>{aviso.texto}</div>}
+      {reg.conflito && <p className="ui-nota">Escolha acima qual versão vale em cada campo para poder salvar.</p>}
+      <button
+        className="og-btn" type="button"
+        disabled={salvando || !podeGerir || reg.conflito || semMudanca}
+        title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+        onClick={salvar}
+      >
+        Salvar
+      </button>
+    </div>
   )
 }
+
+const CAMPOS_EDICAO = ['codigo']
 
 /* ── A vista ───────────────────────────────────────────────────────────── */
 /*
@@ -510,26 +537,13 @@ function FolhaEditarSessao({ aberto, sessao, podeGerir, onFechar, onSalva }) {
  * ponytail: a vista carrega pedidos e sessões mesmo mostrando um só — são
  * listas pequenas; separar a carga quando alguma crescer.
  */
-export function Producao({ registrarAtualizar, reportarEstado, pode = () => true, rota, navegar, secao = 'pedidos', onEdicaoMudou }) {
+export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', onEdicaoMudou }) {
   const podeGerir = pode('producao.gerir')
-  const [solicitacoes, setSolicitacoes] = React.useState(null) // null = carregando
-  const [sessoes, setSessoes] = React.useState(null)
-  // undefined = ainda não leu; null = leu e não há (ou não deu para ler).
-  const [config, setConfig] = React.useState(undefined)
-  const [participantes, setParticipantes] = React.useState([])
-  const [erro, setErro] = React.useState(null)
   const [avisoGeral, setAvisoGeral] = React.useState(null) // {texto, tom}
   const [modoAgenda, setModoAgenda] = React.useState('abrir') // 'abrir' | 'marcar' — só UI, nunca gravado
   // Pedidos arquivados saem da lista (e do painel da marca); restaurar devolve.
   const [verArquivados, setVerArquivados] = React.useState(false)
   const [slotOcupado, setSlotOcupado] = React.useState(null)
-
-  // A edição aberta — movida de Equipe.jsx na Fase 3 do plano de funções
-  // (27/08/2026, achado de revisão adversarial): ela é governada por
-  // producao.gerir, e Equipe inteira só aparece pra quem tem acesso.gerir.
-  // Uma conta de função "produção" tinha producao.gerir e nunca via Equipe —
-  // ficava sem como abrir a edição que a própria agenda desta vista exige.
-  const [codigoEdicao, setCodigoEdicao] = React.useState('')
   const [avisoEdicao, setAvisoEdicao] = React.useState(null)
   const [salvandoEdicao, setSalvandoEdicao] = React.useState(false)
 
@@ -537,51 +551,46 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   const [folha, setFolha] = React.useState(null)
   // null | {tipo:'pedido'} | {tipo:'quemFalta', solicitacao}
   // | {tipo:'sessaoNova'} | {tipo:'sessaoEditar', sessao}
+  // ⚠️ `solicitacao` e `sessao` aqui são só o que foi clicado: o que as folhas mostram é a
+  // linha de AGORA da lista (renovarDaLista, abaixo).
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  // Três leituras, cada uma com a própria guarda e a própria falha — uma que dê erro não
+  // apaga as outras. Todas se releem em silêncio quando o domínio muda (sinal de outra
+  // pessoa, gravação desta sessão, reconexão): nada de "Carregando…" por cima do que está
+  // na tela, e a falha de uma releitura vira aviso sem tirar o conteúdo.
+  // 1) pedidos + sessões (+ a senha da sessão). ponytail: a vista carrega pedidos e
+  //    sessões mesmo mostrando um só — são listas pequenas; separar a carga quando alguma crescer.
+  const principal = useLeitura(async () => {
     const senha = lerSenha()
-    try {
-      const [valida, s, f] = await Promise.all([
-        rpc('admin_ping', { p_secret: senha }),
-        rpc('get_solicitacoes_admin', { p_secret: senha }),
-        rpc('get_sessoes_fotos', { p_secret: senha }),
-      ])
-      if (valida !== true) {
-        setErro('A senha desta sessão não vale mais. Saia e entre de novo.')
-        return
-      }
-      const solicitacoesOk = s || []
-      const sessoesOk = f || []
-      setSolicitacoes(solicitacoesOk)
-      setSessoes(sessoesOk)
-      // Alimenta quem pedir o estado (o sino hoje lê a tabela de avisos; isto
-      // PainelShell, que não sabe como esta vista busca os próprios dados).
-      if (reportarEstado) reportarEstado({ solicitacoes: solicitacoesOk, sessoes: sessoesOk })
-    } catch (e) {
-      setErro(e.message)
-    }
-    // Config e marcas: leituras À PARTE, cada uma com o próprio catch — uma
-    // função sem permissão ou uma migration ainda não aplicada não pode
-    // derrubar pedidos/arquivos/sessões, que já funcionam (CLAUDE.md §10.4-b,
-    // mesma regra aplicada em Mesa.jsx e Marcas.jsx para get_participantes).
-    try {
-      setConfig((await rpc('get_config_admin', { p_secret: senha })) || null)
-    } catch {
-      setConfig(null)
-    }
-    try {
-      setParticipantes((await rpc('get_participantes', { p_secret: senha })) || [])
-    } catch {
-      setParticipantes([])
-    }
-  }, [reportarEstado])
+    const [valida, s, f] = await Promise.all([
+      rpc('admin_ping', { p_secret: senha }),
+      rpc('get_solicitacoes_admin', { p_secret: senha }),
+      rpc('get_sessoes_fotos', { p_secret: senha }),
+    ])
+    if (valida !== true) throw new Error('A senha desta sessão não vale mais. Saia e entre de novo.')
+    return { solicitacoes: s || [], sessoes: f || [] }
+  }, secao === 'pedidos' ? ['pedidos', 'participantes'] : secao === 'fotos' ? ['fotos', 'participantes'] : [])
+  // 2) e 3) Config e marcas: leituras À PARTE, cada uma opcional — uma função sem permissão
+  //    ou uma migration ainda não aplicada não pode derrubar pedidos/arquivos/sessões, que já
+  //    funcionam (CLAUDE.md §10.4-b, mesma regra aplicada em Mesa.jsx e Marcas.jsx para
+  //    get_participantes). Falha sem dado anterior = "não há" (null / []), como sempre foi.
+  const cfg = useLeitura(
+    async () => (await rpc('get_config_admin', { p_secret: lerSenha() })) || null,
+    ['configuracao', 'edicao'], { opcional: true },
+  )
+  const part = useLeitura(
+    async () => (await rpc('get_participantes', { p_secret: lerSenha() })) || [],
+    ['participantes'], { opcional: true, ativo: secao !== 'edicao' },
+  )
+  const recarregarTudo = () => Promise.all([principal.recarregar(), cfg.recarregar(), part.recarregar()])
+  const falhaAoAtualizar = [principal, cfg, part].find((l) => l.falhouAtualizar)
+  const bloqueado = principal.bloqueada
 
-  React.useEffect(() => { carregar() }, [carregar])
-  // Registra esta vista como dona do botão "atualizar" do cabeçalho.
-  React.useEffect(() => {
-    if (registrarAtualizar) registrarAtualizar(carregar)
-  }, [registrarAtualizar, carregar])
+  const solicitacoes = principal.dados ? principal.dados.solicitacoes : null // null = carregando
+  const sessoes = principal.dados ? principal.dados.sessoes : null
+  // undefined = ainda não leu; null = leu e não há (ou não deu para ler).
+  const config = cfg.dados !== undefined ? cfg.dados : cfg.erro ? null : undefined
+  const participantes = part.dados || []
 
   const opcoesMarcas = marcasParaOpcoes(participantes)
   const marcaPadrao = opcoesMarcas.length ? opcoesMarcas[0].value : ''
@@ -595,11 +604,21 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   const vagasForaDaGrade = (sessoes || []).filter((s) => s.status === 'aberto'
     && !grade.some((d) => d.slots.some((sl) => sl.sessaoId === s.id)))
 
-  // Sincroniza só quando o VALOR do banco muda: recarregar a vista (abrir uma
-  // vaga, publicar um pedido) não pode apagar o que está sendo digitado.
-  React.useEffect(() => {
-    setCodigoEdicao(edicaoAtual || '')
-  }, [edicaoAtual])
+  // As folhas abertas mostram a linha de AGORA (a lista se relê sozinha); se a linha sumiu
+  // da lista, fica o que foi clicado.
+  const folhaPedido = folha && folha.tipo === 'quemFalta' ? renovarDaLista(folha.solicitacao, solicitacoes) : null
+  const folhaSessao = folha && folha.tipo === 'sessaoEditar' ? renovarDaLista(folha.sessao, sessoes) : null
+
+  // A edição aberta — movida de Equipe.jsx na Fase 3 do plano de funções
+  // (27/08/2026, achado de revisão adversarial): ela é governada por
+  // producao.gerir, e Equipe inteira só aparece pra quem tem acesso.gerir.
+  // Uma conta de função "produção" tinha producao.gerir e nunca via Equipe —
+  // ficava sem como abrir a edição que a própria agenda desta vista exige.
+  // O código digitado resiste à releitura: acompanha o banco só enquanto a pessoa não mexeu
+  // nele; se outra pessoa trocar a edição enquanto ela digita, aparece o aviso para escolher.
+  const servidorEdicao = React.useMemo(() => ({ codigo: edicaoAtual || '' }), [edicaoAtual])
+  const regEdicao = useEdicaoProtegida(servidorEdicao, CAMPOS_EDICAO, { chave: 'edicao-aberta', rotulo: 'Código da edição (não salvo)' })
+  const codigoEdicao = regEdicao.local.codigo
 
   // Pedido pedido pelo endereço (aviso "X marcas ainda não responderam"):
   // abre "Quem falta" dele UMA vez. Sem o ref, cada recarga de `solicitacoes`
@@ -619,11 +638,16 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
   }
 
   async function salvarEdicao(codigo) {
+    const digitado = regEdicao.local
     setSalvandoEdicao(true)
     setAvisoEdicao(null)
     try {
       await rpc('definir_edicao_atual', { p_secret: lerSenha(), p_codigo: codigo })
-      await carregar()
+      // Já confirmado: a tela acompanha na hora; a releitura vem por sinal ("edicao",
+      // "configuracao"). O campo passa a mostrar o que foi gravado (sem espaço nas pontas;
+      // vazio ao fechar), a menos que a pessoa já tenha digitado outra coisa.
+      cfg.ajustar((c) => ({ ...(c || {}), edicao_atual: codigo || null }))
+      regEdicao.confirmarSalvo({ codigo }, digitado)
       // O bloco de baixo (Configuração) lê a edição atual por outra RPC.
       if (onEdicaoMudou) onEdicaoMudou()
     } catch (e) {
@@ -650,7 +674,10 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
           p_secret: lerSenha(), p_edicao: edicaoAtual, p_data_hora: slot.quandoIso, p_local: null,
         })
       }
-      await carregar()
+      // Espera a agenda mostrar o novo estado do horário: é isso que impede o segundo clique de
+      // abrir outra vaga no mesmo lugar. (Nunca rejeita: se a releitura falhar, o aviso de
+      // "não consegui atualizar" aparece na vista e a gravação continua valendo.)
+      await principal.recarregar()
     } catch (e) {
       setAvisoGeral({
         texto: 'Não deu para ' + (slot.estado === 'aberto' ? 'fechar' : 'abrir') + ' a vaga: ' + e.message,
@@ -665,7 +692,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
     if (sim && !await confirmar('Arquivar o pedido "' + s.titulo + '"? Ele sai do painel da marca; dá para restaurar depois.')) return
     try {
       await rpc('atualizar_solicitacao', { p_secret: lerSenha(), p_id: s.id, p_arquivada: sim })
-      await carregar()
+      // Confirmado pelo servidor: a linha muda de lista na hora; a releitura vem por sinal ("pedidos").
+      principal.ajustar((d) => ({ ...d, solicitacoes: d.solicitacoes.map((x) => (x.id === s.id ? { ...x, arquivada: sim } : x)) }))
     } catch (e) {
       setAvisoGeral({ texto: 'Não deu para ' + (sim ? 'arquivar' : 'restaurar') + ': ' + e.message, tom: 'erro' })
     }
@@ -675,7 +703,8 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
     if (!await confirmar('Publicar este pedido? A marca passa a ver e o prazo começa a valer. Não dá para despublicar.')) return
     try {
       const n = await rpc('publicar_solicitacao', { p_secret: lerSenha(), p_id: id })
-      await carregar()
+      // Deixa de ser rascunho na hora (e o botão "Publicar" some); contagens e prazo vêm da releitura por sinal.
+      principal.ajustar((d) => ({ ...d, solicitacoes: d.solicitacoes.map((x) => (x.id === id ? { ...x, publicada_em: new Date().toISOString() } : x)) }))
       setAvisoGeral({ texto: 'Publicado para ' + n + (n === 1 ? ' marca.' : ' marcas.'), tom: 'ok' })
     } catch (e) {
       setAvisoGeral({ texto: 'Não deu para publicar: ' + e.message, tom: 'erro' })
@@ -687,8 +716,10 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
 
       {avisoGeral && <div className="og-aviso" data-tom={avisoGeral.tom}>{avisoGeral.texto}</div>}
 
-      {erro && <Erro texto={erro} onTentar={carregar} />}
-      {!erro && solicitacoes === null && <Carregando linhas={3} />}
+      {bloqueado && <Erro texto={principal.erro} onTentar={recarregarTudo} />}
+      {!bloqueado && principal.carregando && <Carregando linhas={3} />}
+      {/* Releitura que falhou com a tela já preenchida: o conteúdo fica e a falha aparece aqui. */}
+      {falhaAoAtualizar && <Erro titulo="Não consegui atualizar" texto={falhaAoAtualizar.erro} onTentar={recarregarTudo} />}
 
       {/* Explicação VISÍVEL, não só `title` — botão desabilitado não recebe
           hover nem foco de teclado (`pointer-events:none` + `disabled` no
@@ -696,11 +727,11 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
           revisão adversarial: os `title` abaixo continuam existindo (não
           custam nada pra quem usa leitor de tela via outra rota), mas quem
           de fato explica é este parágrafo. */}
-      {!erro && !podeGerir && (
+      {!bloqueado && !podeGerir && (
         <p className="og-aviso">{SEM_PERMISSAO_PRODUCAO}. As ações desta página aparecem desabilitadas.</p>
       )}
 
-      {!erro && (
+      {!bloqueado && (
         <>
           <div className={secao === 'fotos' ? 'ui-grade-duas' : 'ui-pilha'}>
           {secao === 'edicao' && <section className="og-forms">
@@ -722,15 +753,17 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
             <label className="og-campo og-campo--espaco"><span>Código da edição</span>
               <input
                 type="text" placeholder="2027"
-                value={codigoEdicao} onChange={(e) => setCodigoEdicao(e.target.value)}
+                value={codigoEdicao} onChange={(e) => regEdicao.editar('codigo', e.target.value)}
                 disabled={!podeGerir}
               />
             </label>
+            <AvisoMudancaExterna registro={regEdicao} rotulos={{ codigo: 'Código da edição' }} />
             {avisoEdicao && <div className="og-aviso" data-tom={avisoEdicao.tom}>{avisoEdicao.texto}</div>}
+            {regEdicao.conflito && <p className="ui-nota">Escolha acima qual código vale para poder salvar.</p>}
             <div className="ui-linha-acoes og-campo--espaco">
             <button
               className="og-btn" type="button"
-              disabled={salvandoEdicao || !podeGerir || !codigoEdicao.trim() || codigoEdicao.trim() === edicaoAtual}
+              disabled={salvandoEdicao || !podeGerir || regEdicao.conflito || !codigoEdicao.trim() || codigoEdicao.trim() === edicaoAtual}
               title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
               onClick={() => salvarEdicao(codigoEdicao.trim())}
             >
@@ -939,14 +972,12 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
         edicaoAtual={edicaoAtual}
         podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
-        onCriado={carregar}
       />
       <FolhaQuemFalta
         aberto={!!folha && folha.tipo === 'quemFalta'}
-        solicitacao={folha && folha.tipo === 'quemFalta' ? folha.solicitacao : null}
+        solicitacao={folhaPedido}
         podeGerir={podeGerir}
         onFechar={fecharFolha}
-        onRespondido={carregar}
       />
       <FolhaNovaSessao
         aberto={!!folha && folha.tipo === 'sessaoNova'}
@@ -955,14 +986,12 @@ export function Producao({ registrarAtualizar, reportarEstado, pode = () => true
         marcaPadrao={marcaPadrao}
         podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
-        onCriada={carregar}
       />
       <FolhaEditarSessao
         aberto={!!folha && folha.tipo === 'sessaoEditar'}
-        sessao={folha && folha.tipo === 'sessaoEditar' ? folha.sessao : null}
+        sessao={folhaSessao}
         podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
-        onSalva={carregar}
       />
     </div>
   )

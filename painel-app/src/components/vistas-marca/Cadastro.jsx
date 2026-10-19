@@ -2,12 +2,15 @@ import React from 'react'
 import { Icone } from '../Icone'
 import { LogoEditor } from '../LogoEditor'
 import { api, registrarPendente, subirLogo, seFaltar } from '../../lib/marcaApi'
-import { registrarPendencia } from '../../lib/pendencias'
+import { registrarPendencia, sinalizarMudancaExterna, limparMudancaExterna } from '../../lib/pendencias'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import * as MC from '../../lib/cadastroMescla'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { camposObrigatorios, progressoCampos, vistaDoBloco } from '../../lib/guia'
 import { Carregando, Erro, Vazio } from '../ui'
 import { VistaCabeca } from '../VistaCabeca'
 import { confirmar } from '../Confirmar'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import {
   TIPOS, ROTULO_TIPO, ROTULO_POSICAO, itensEmOrdem,
   precoNumero, blocoCompleto, valorInformado, custosDeLinhas, primeiroBlocoPendente,
@@ -135,10 +138,14 @@ function pedidoItem(i) {
   }
 }
 // PATCH só com as colunas que mudaram desde a foto `antes`. Nada mudou →
-// nem chama a rede, e conta como confirmado (`[true]`).
-function patchMudancas(caminho, corpo, antes) {
+// nem chama a rede, e conta como confirmado (`[true]`). `bloqueados` = colunas em
+// conflito com a organização (19/10/2026): ficam de fora até a pessoa escolher.
+function patchMudancas(caminho, corpo, antes, bloqueados) {
   const mudou = {}
-  for (const k of Object.keys(corpo)) if (!antes || JSON.stringify(corpo[k]) !== JSON.stringify(antes[k])) mudou[k] = corpo[k]
+  for (const k of Object.keys(corpo)) {
+    if (bloqueados && bloqueados.has(k)) continue
+    if (!antes || JSON.stringify(corpo[k]) !== JSON.stringify(antes[k])) mudou[k] = corpo[k]
+  }
   if (!Object.keys(mudou).length) return Promise.resolve([true])
   return api(caminho, { metodo: 'PATCH', corpo: mudou, prefer: 'return=representation' })
 }
@@ -156,6 +163,54 @@ function recadoOperacao(e) {
   if (m.includes('data_fora_do_festival')) return 'Esse dia está fora das datas do festival.'
   if (e && e.codigo === '23505') return 'Esse dia já tem um horário que começa nessa hora.'
   return 'Não deu para gravar o horário agora. O que você digitou continua na tela. Tente de novo.'
+}
+
+// Foto do que o servidor confirmou (baseRef): uma por entidade, no espaço do corpo do PATCH.
+const baseVazia = () => ({ marca: null, participacao: null, itens: {}, un: {}, pu: {}, disp: {}, decl: {}, sub: {} })
+// Só o que a tela mostra das unidades guardadas (sugestões): atualizar o resto não precisa renderizar de novo.
+const assinaturaPermanentes = (rs) => JSON.stringify((rs || []).map((r) => [r.id, r.nome_unidade, r.bairro, r.logradouro, r.numero]))
+// As conversões acima (donas do contrato do grant) emprestadas à mesclagem pura.
+const MAPAS = { marcaDeLinha, corpoMarca, participacaoDeLinha, corpoParticipacao, pedidoItem }
+
+/*
+ * TUDO o que o cadastro mostra, numa foto só. A abertura da tela e a releitura silenciosa
+ * (sincronização, 19/10/2026) leem por esta mesma função: uma fonte só para "o que o
+ * servidor tem agora". `edicao` e `tema` são complementos — se a leitura falhar, vêm
+ * `undefined` ("não li") e a tela fica com o que já mostra. `unRows === null` na foto
+ * original = as tabelas da camada de edição ainda não existem (`novo: false`).
+ */
+async function lerSnapshot() {
+  const linhas = await api('participantes?select=*&order=created_at.desc')
+  if (!linhas || !linhas.length) return { tipo: 'sem_marca' }
+  const p = linhas[0]
+  const pas = await api('participacoes?select=*&order=created_at.desc&limit=1')
+  const pa = (pas && pas[0]) || null
+  if (!pa) return { tipo: 'sem_participacao', p }
+  const [itensRows, puRows, unRows, edicao, tema] = await Promise.all([
+    api('participantes_itens?select=*&participacao_id=eq.' + pa.id),
+    api('participacao_unidades?select=*&participacao_id=eq.' + pa.id + '&order=ordem'),
+    api('unidades?select=*&participante_id=eq.' + p.id + '&order=criado_em').catch(seFaltar(null)),
+    pa.edicao_codigo
+      ? api('edicoes?select=valor_combo,festival_inicio,festival_fim&codigo=eq.' + encodeURIComponent(pa.edicao_codigo)).then((e) => (e && e[0]) || {}).catch(() => undefined)
+      : Promise.resolve(null),
+    api('temas_propostos?select=status,tema,observacao&participacao_id=eq.' + pa.id + '&status=neq.substituido&order=created_at.desc&limit=1')
+      .then((t) => (t && t[0]) || null).catch(() => undefined),
+  ])
+  const novo = unRows !== null
+  const listaItens = itensRows || []
+  const listaPu = puRows || []
+  const ids = (xs) => xs.map((x) => x.id).join(',')
+  const [dispRows, declRows, subRows] = novo
+    ? await Promise.all([
+      listaPu.length ? api('unidade_disponibilidade?select=*&participacao_unidade_id=in.(' + ids(listaPu) + ')&order=data,abre') : [],
+      listaItens.length ? api('declaracoes_alimentares?select=*&item_id=in.(' + ids(listaItens) + ')') : [],
+      listaItens.length ? api('substituicoes?select=*&item_id=in.(' + ids(listaItens) + ')&order=ordem,criado_em') : [],
+    ])
+    : [[], [], []]
+  return {
+    tipo: 'ok', p, pa, edicao, tema, novo, itensRows: listaItens, puRows: listaPu, unRows: unRows || [],
+    dispRows: dispRows || [], declRows: declRows || [], subRows: subRows || [],
+  }
 }
 
 /*
@@ -177,14 +232,15 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const ehCombo = !mostra(0)
   const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
   const [revisao, setRevisao] = React.useState({ tema: null })
-  // Situação do combo vem do resumo (lido a cada minuto): aprovar ou pedir
-  // ajuste na organização aparece aqui sem remontar a tela. `comboLocal` só
-  // cobre o instante entre enviar e o resumo novo chegar.
-  const [comboLocal, setComboLocal] = React.useState(null)
+  // Situação do combo vem do resumo (lido a cada minuto e a cada aviso da organização): aprovar
+  // ou pedir ajuste aparece aqui sem remontar a tela. `comboLocal` só cobre o instante entre
+  // enviar e o resumo novo chegar: guarda o resumo de quando foi posto e some assim que QUALQUER
+  // resumo novo chega (antes só sumia se o status mudasse — um segundo pedido de ajuste igual ao
+  // anterior ficava escondido para sempre atrás do "em análise" local).
+  const [comboLocal, setComboLocal] = React.useState(null) // { valor, resumo }
   const comboResumo = resumo && resumo.combo ? resumo.combo : null
-  const comboStatus = comboLocal || (comboResumo && comboResumo.status) || 'rascunho'
+  const comboStatus = (comboLocal && comboLocal.resumo === resumo ? comboLocal.valor : null) || (comboResumo && comboResumo.status) || 'rascunho'
   const comboNota = comboResumo ? comboResumo.nota : null
-  React.useEffect(() => { setComboLocal(null) }, [comboResumo && comboResumo.status])
   const [carregando, setCarregando] = React.useState(true)
   const [erroCarregar, setErroCarregar] = React.useState(null) // { titulo, texto, tentar }
   const [tentativa, setTentativa] = React.useState(0)
@@ -238,9 +294,31 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   // ou última gravação falhou).
   const pendenteRef = React.useRef(false)
   // Foto do que o servidor tem gravado (ver patchMudancas).
-  const baseRef = React.useRef({ marca: null, participacao: null, itens: {}, un: {}, pu: {}, disp: {}, decl: {}, sub: {} })
+  const baseRef = React.useRef(baseVazia())
   // Gravação em voo (uma por vez, ver salvarEmOrdem).
   const vooRef = React.useRef(null)
+
+  /* Sincronização com a organização (19/10/2026). A releitura é silenciosa e MESCLA (lib/cadastroMescla):
+     o digitado nunca é trocado; o que a pessoa não tocou acompanha o servidor; o mesmo campo editado dos
+     dois lados vira conflito e ela escolhe. Nada aqui grava — quem grava é o salvamento da pessoa. */
+  const vivoRef = React.useRef(null)                 // a tela agora (atribuída a cada render)
+  const prontoRef = React.useRef(false)              // a abertura terminou
+  const pedidoCargaRef = React.useRef(false)         // chegou aviso durante a abertura
+  const operandoRef = React.useRef(0)                // gravações imediatas (horário do combo) em curso
+  const ciclosRef = React.useRef(0)                  // sobe no começo e no fim de toda gravação
+  const adiadoRef = React.useRef(false)              // releitura descartada por causa de uma gravação
+  const recarregarRef = React.useRef(null)
+  const conflitosRef = React.useRef({})              // conflitos abertos: ui → { ent, id, chave, meu, deles, … }
+  const orfasRef = React.useRef(new Set())           // linhas que a organização removeu e a pessoa edita: não são mais gravadas
+  const esquecidasRef = React.useRef(new Set())      // ids que a PESSOA removeu (DELETE em voo): não ressuscitam
+  const dispensadasRef = React.useRef(new Set())     // avisos de "removida" que a pessoa dispensou (a linha fica na tela, sem gravar)
+  const [externo, setExterno] = React.useState({ conflitos: {}, adotados: {} })
+  const guarda = useGuarda()
+  const guardaPub = useGuarda()
+  vivoRef.current = {
+    marca, tema, combo, custosStr, extras, itens, unidades, declaracoes, substituicoes,
+    edicaoCodigo, statusCadastro, valorCombo, festival, permanentes, modeloNovo, participanteId, participacaoId, semParticipacao,
+  }
 
   function unidadeVazia() {
     tempSeqRef.current += 1
@@ -253,31 +331,35 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   }, [])
 
   // ── Carregar ──────────────────────────────────────────────────────────────
+  // A abertura (e a troca de participação) sobrescreve a tela inteira; a releitura silenciosa da
+  // sincronização, mais abaixo, lê pela MESMA `lerSnapshot` mas só mescla.
   React.useEffect(() => {
     let cancelado = false
     ;(async () => {
       try {
-        const linhas = await api('participantes?select=*&order=created_at.desc')
+        const snap = await lerSnapshot()
         if (cancelado) return
-        if (!linhas || !linhas.length) {
+        if (snap.tipo === 'sem_marca') {
           setErroCarregar({ titulo: 'Conta sem marca', texto: 'Sua conta existe, mas ainda não há marca vinculada a ela. Fale com a organização.', tentar: false })
           setCarregando(false)
           return
         }
-        const p = linhas[0]
+        const p = snap.p
+        baseRef.current = baseVazia()
+        setErroCarregar(null)
         setParticipanteId(p.id)
         const marcaInicial = marcaDeLinha(p)
         setMarca(marcaInicial)
         baseRef.current.marca = corpoMarca(marcaInicial)
-
-        const pas = await api('participacoes?select=*&order=created_at.desc&limit=1')
-        if (cancelado) return
-        const pa = (pas && pas[0]) || null
-        if (!pa) {
+        if (snap.tipo === 'sem_participacao') {
           setSemParticipacao(true)
+          setParticipacaoId(null)
           setCarregando(false)
+          prontoRef.current = true
           return
         }
+        const pa = snap.pa
+        setSemParticipacao(false)
         setParticipacaoId(pa.id)
         setEdicaoCodigo(pa.edicao_codigo || '')
         setStatusCadastro(pa.status_cadastro || '')
@@ -285,44 +367,19 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         setTema(daParticipacao.tema)
         setCombo(daParticipacao.combo)
         setCustosStr(daParticipacao.custosStr)
-        if (pa.edicao_codigo) {
-          api('edicoes?select=valor_combo,festival_inicio,festival_fim&codigo=eq.' + encodeURIComponent(pa.edicao_codigo))
-            .then((e) => {
-              const ed = (e && e[0]) || {}
-              setValorCombo(ed.valor_combo ?? null)
-              setFestival({ inicio: ed.festival_inicio || null, fim: ed.festival_fim || null })
-            }).catch(() => setValorCombo(null))
-        } else setValorCombo(null)
+        const ed = snap.edicao // undefined = a leitura falhou: o valor fica "a definir"
+        setValorCombo(ed ? ed.valor_combo ?? null : null)
+        setFestival({ inicio: ed ? ed.festival_inicio || null : null, fim: ed ? ed.festival_fim || null : null })
         setExtras(daParticipacao.extras)
         baseRef.current.participacao = corpoParticipacao(daParticipacao)
-        api('temas_propostos?select=status,tema,observacao&participacao_id=eq.' + pa.id + '&status=neq.substituido&order=created_at.desc&limit=1')
-          .then((t) => setRevisao({ tema: (t && t[0]) || null }))
-          .catch(() => setRevisao({ tema: null }))
+        setRevisao({ tema: snap.tema || null })
 
-        const [itensRows, puRows, unRows] = await Promise.all([
-          api('participantes_itens?select=*&participacao_id=eq.' + pa.id),
-          api('participacao_unidades?select=*&participacao_id=eq.' + pa.id + '&order=ordem'),
-          api('unidades?select=*&participante_id=eq.' + p.id + '&order=criado_em').catch(seFaltar(null)),
-        ])
-        if (cancelado) return
-        const novo = unRows !== null
-        const listaItens = itensRows || []
-        const listaPu = puRows || []
-        const ids = (xs) => xs.map((x) => x.id).join(',')
-        const [dispRows, declRows, subRows] = novo
-          ? await Promise.all([
-            listaPu.length ? api('unidade_disponibilidade?select=*&participacao_unidade_id=in.(' + ids(listaPu) + ')&order=data,abre') : [],
-            listaItens.length ? api('declaracoes_alimentares?select=*&item_id=in.(' + ids(listaItens) + ')') : [],
-            listaItens.length ? api('substituicoes?select=*&item_id=in.(' + ids(listaItens) + ')&order=ordem,criado_em') : [],
-          ])
-          : [[], [], []]
-        if (cancelado) return
-        const listaUn = unRows || []
+        const { novo, itensRows: listaItens, puRows: listaPu, unRows: listaUn, dispRows, declRows, subRows } = snap
         const doBanco = listaPu.map((pu) => E.unidadeDeLinhas(pu, listaUn.find((u) => u.id === pu.unidade_id), dispRows))
         // Sem unidade nesta edição: com unidades guardadas, elas viram sugestão;
         // sem nenhuma, a tela mostra uma em branco para preencher.
         const listaUnidades = doBanco.length || listaUn.length ? doBanco : [unidadeVazia()]
-        const subs = (subRows || []).map(E.substituicaoDeLinha)
+        const subs = subRows.map(E.substituicaoDeLinha)
         setModeloNovo(novo)
         setItens(listaItens)
         setUnidades(listaUnidades)
@@ -333,9 +390,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         base.itens = Object.fromEntries(listaItens.map((i) => [i.id, pedidoItem(i).corpo]))
         base.un = Object.fromEntries(listaUn.map((u) => [u.id, baseUnidade(u)]))
         base.pu = Object.fromEntries(listaPu.map((r) => [r.id, E.corpoParticipacaoUnidadeDeLinha(r)]))
-        base.disp = Object.fromEntries((dispRows || []).map((d) => [d.id, baseDisponibilidade(d)]))
-        base.decl = Object.fromEntries((declRows || []).map((d) => [d.id, baseDeclaracao(d)]))
-        base.sub = Object.fromEntries((subRows || []).map((s) => [s.id, baseSubstituicao(s)]))
+        base.disp = Object.fromEntries(dispRows.map((d) => [d.id, baseDisponibilidade(d)]))
+        base.decl = Object.fromEntries(declRows.map((d) => [d.id, baseDeclaracao(d)]))
+        base.sub = Object.fromEntries(subRows.map((s) => [s.id, baseSubstituicao(s)]))
         if (novo) carregarPub(pa.id)
         // Abre o primeiro bloco pendente DESTA aba (ou o primeiro dela).
         const dados = {
@@ -350,6 +407,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         setBlocoAberto(vis.includes(pend) ? pend
           : vis.find((n) => (n <= 4 && !blocoCompleto(n, dados)) || contagem[n]) ?? vis[0])
         setCarregando(false)
+        prontoRef.current = true
+        // Aviso que chegou enquanto a tela abria: a foto pode ser mais velha que ele.
+        if (pedidoCargaRef.current) {
+          pedidoCargaRef.current = false
+          if (recarregarRef.current) recarregarRef.current({ dominios: [], refs: [], origens: ['local'] }).catch(() => {})
+        }
       } catch (e) {
         if (cancelado) return
         if (e && e.message === 'sessao_expirada') return
@@ -368,6 +431,11 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     // salvamento corre volta a marcá-la, e o "Salvo" não mente sobre isso.
     pendenteRef.current = false
     const base = baseRef.current
+    // Conflito aberto = a pessoa ainda não escolheu: a coluna NÃO vai no PATCH. Linha que a
+    // organização removeu e a pessoa edita (órfã) deixa de ser gravada. (19/10/2026)
+    const conf = conflitosRef.current
+    const orfas = orfasRef.current
+    const bloq = (ent, id) => MC.bloqueadasDe(conf, ent, id)
     const marcarUnidade = (k, mudanca) => setUnidades((prev) => prev.map((y) => (y._key === k ? { ...y, ...mudanca } : y)))
 
     // Unidade = duas linhas: a permanente (unidades) e a desta edição
@@ -376,9 +444,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       const k = u._key
       const unId = u.unId || idsUnRef.current.get(k)
       const pu = u.puId ? { puId: u.puId } : idsPuRef.current.get(k)
+      if (pu && orfas.has('pu:' + pu.puId)) return Promise.resolve([true]) // a organização tirou esta unidade da edição
       if (unId && pu) {
         return Promise.all([
-          patchMudancas('unidades?id=eq.' + unId, E.corpoUnidade(u), base.un[unId]).then((l) => {
+          patchMudancas('unidades?id=eq.' + unId, E.corpoUnidade(u), base.un[unId], bloq('un', unId)).then((l) => {
             const x = linha(l)
             if (x) {
               base.un[x.id] = baseUnidade(x)
@@ -387,7 +456,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
             }
             return l
           }),
-          patchMudancas('participacao_unidades?id=eq.' + pu.puId, E.corpoParticipacaoUnidade(u, ordem), base.pu[pu.puId]).then((l) => {
+          patchMudancas('participacao_unidades?id=eq.' + pu.puId, E.corpoParticipacaoUnidade(u, ordem), base.pu[pu.puId], bloq('pu', pu.puId)).then((l) => {
             const x = linha(l)
             if (x) base.pu[x.id] = E.corpoParticipacaoUnidadeDeLinha(x)
             return l
@@ -437,8 +506,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     }
 
     // Linha filha sem id: POST uma vez (guardado por chave); com id: PATCH do que mudou.
-    function salvarFilha({ k, id, tabela, corpo, extra, aoVoltar, aoCriar }) {
-      if (id) return patchMudancas(tabela + '?id=eq.' + id, corpo, base[aoVoltar.base][id]).then((l) => { const x = linha(l); if (x) aoVoltar.fn(x); return l })
+    function salvarFilha({ k, id, ent, tabela, corpo, extra, aoVoltar, aoCriar }) {
+      if (id && orfas.has(ent + ':' + id)) return Promise.resolve([true])
+      if (id) return patchMudancas(tabela + '?id=eq.' + id, corpo, base[aoVoltar.base][id], bloq(ent, id)).then((l) => { const x = linha(l); if (x) aoVoltar.fn(x); return l })
       if (postandoRef.current.has(k)) return Promise.resolve([true])
       postandoRef.current.add(k)
       return api(tabela, { metodo: 'POST', corpo: { ...extra, ...corpo }, prefer: REPR })
@@ -464,25 +534,26 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
        salvamento de uma escrever, com o valor velho que ela leu, o que a outra
        acabou de salvar. `[true]` = nada a confirmar (sem mudança). */
     if (mostra(0)) {
-      tarefas.push(patchMudancas('participantes?id=eq.' + participanteId, corpoMarca(marca), base.marca)
+      tarefas.push(patchMudancas('participantes?id=eq.' + participanteId, corpoMarca(marca), base.marca, bloq('marca'))
         .then((l) => { if (linha(l)) base.marca = corpoMarca(marcaDeLinha(linha(l))); return l }))
     }
     if (mostra(1) || mostra(3)) {
-      tarefas.push(patchMudancas('participacoes?id=eq.' + participacaoId, corpoParticipacao({ tema, combo, custosStr, extras }), base.participacao)
+      tarefas.push(patchMudancas('participacoes?id=eq.' + participacaoId, corpoParticipacao({ tema, combo, custosStr, extras }), base.participacao, bloq('participacao'))
         .then((l) => { if (linha(l)) base.participacao = corpoParticipacao(participacaoDeLinha(linha(l))); return l }))
     }
     if (mostra(2)) {
       for (const i of itens) {
+        if (orfas.has('item:' + i.id)) continue
         const { caminho, corpo } = pedidoItem(i)
-        tarefas.push(patchMudancas(caminho, corpo, base.itens[i.id]).then((l) => { const x = linha(l); if (x) base.itens[x.id] = pedidoItem(x).corpo; return l }))
+        tarefas.push(patchMudancas(caminho, corpo, base.itens[i.id], bloq('item', i.id)).then((l) => { const x = linha(l); if (x) base.itens[x.id] = pedidoItem(x).corpo; return l }))
       }
     }
     if (modeloNovo && (mostra(4) || mostra(6))) unidades.forEach((u, i) => tarefas.push(salvarUnidade(u, i)))
     if (modeloNovo && mostra(6)) {
       for (const u of unidades) {
         for (const d of u.disponibilidade) {
-          if (E.erroFaixa(d.abre, d.fecha)) continue // o campo mostra o erro; grava quando corrigir
-          tarefas.push(patchMudancas('unidade_disponibilidade?id=eq.' + d.id, E.corpoDisponibilidade(d), base.disp[d.id])
+          if (E.erroFaixa(d.abre, d.fecha) || orfas.has('disp:' + d.id)) continue // o campo mostra o erro; grava quando corrigir
+          tarefas.push(patchMudancas('unidade_disponibilidade?id=eq.' + d.id, E.corpoDisponibilidade(d), base.disp[d.id], bloq('disp', d.id))
             .then((l) => { const x = linha(l); if (x) base.disp[x.id] = baseDisponibilidade(x); return l }))
         }
       }
@@ -493,7 +564,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           if (!E.declaracaoGravavel(aspecto, d)) continue
           const k = 'dec-' + itemId + '-' + aspecto
           tarefas.push(salvarFilha({
-            k, id: d.id || idsRef.current.get(k), tabela: 'declaracoes_alimentares', corpo: E.corpoDeclaracao(d), extra: { item_id: itemId, aspecto },
+            k, id: d.id || idsRef.current.get(k), ent: 'decl', tabela: 'declaracoes_alimentares', corpo: E.corpoDeclaracao(d), extra: { item_id: itemId, aspecto },
             aoVoltar: { base: 'decl', fn: (x) => { base.decl[x.id] = baseDeclaracao(x) } },
             aoCriar: (x) => setDeclaracoes((prev) => ({ ...prev, [itemId]: { ...prev[itemId], [aspecto]: { ...(prev[itemId] || {})[aspecto], id: x.id } } })),
           }))
@@ -502,7 +573,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       for (const s of substituicoes) {
         if (!E.substituicaoGravavel(s)) continue
         tarefas.push(salvarFilha({
-          k: s._key, id: s.id || idsRef.current.get(s._key), tabela: 'substituicoes', corpo: E.corpoSubstituicao(s), extra: { item_id: s.item_id },
+          k: s._key, id: s.id || idsRef.current.get(s._key), ent: 'sub', tabela: 'substituicoes', corpo: E.corpoSubstituicao(s), extra: { item_id: s.item_id },
           aoVoltar: { base: 'sub', fn: (x) => { base.sub[x.id] = baseSubstituicao(x) } },
           aoCriar: (x) => setSubstituicoes((prev) => prev.map((y) => (y._key === s._key ? { ...y, id: x.id } : y))),
         }))
@@ -511,7 +582,8 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     try {
       const respostas = await Promise.all(tarefas)
       if (respostas.some(vazio)) throw new Error('sem_confirmacao')
-      if (!pendenteRef.current) setSalvoTexto('Informações salvas.')
+      const aguardando = Object.values(conflitosRef.current).some((c) => c.chave !== '__removida')
+      if (!pendenteRef.current) setSalvoTexto(aguardando ? 'Salvo, menos o que aguarda a sua escolha.' : 'Informações salvas.')
       setErroSalvar(null)
       // Pendências, progresso e números das abas acompanham o que foi gravado.
       if (recarregarResumo) recarregarResumo()
@@ -524,6 +596,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       setSalvoTexto('')
       setErroSalvar('Não deu para salvar agora. O que você digitou continua na tela. Tente de novo.')
       return false
+    } finally {
+      // Cada PATCH trocou a base pelo que o servidor devolveu — inclusive a coluna em conflito, que não foi
+      // enviada. Devolve ao conflito a base de antes: senão o PRÓXIMO salvamento mandaria a minha por cima, calado.
+      MC.reimporConflitos(base, conflitosRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participanteId, participacaoId, marca, tema, combo, custosStr, itens, unidades, extras, declaracoes, substituicoes, modeloNovo, comboStatus, pub])
@@ -536,19 +612,28 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
    * Pedido durante o voo marca "de novo": roda mais uma vez no fim, com o
    * estado mais recente, e quem pediu recebe o resultado dessa última.
    */
+  // Uma releitura da sincronização que caiu no meio de uma gravação foi descartada (a foto podia ter
+  // pegado metade dela): quando a gravação acaba, ela roda de novo — mesmo se a gravação falhou.
+  const soltarAdiada = React.useCallback(() => {
+    if (!adiadoRef.current || !recarregarRef.current) return
+    adiadoRef.current = false
+    setTimeout(() => { if (recarregarRef.current) recarregarRef.current({ dominios: [], refs: [], origens: ['local'] }).catch(() => {}) }, 0)
+  }, [])
+
   const salvarEmOrdem = React.useCallback(() => {
     if (vooRef.current) { vooRef.current.deNovo = true; return vooRef.current.fim }
     const voo = { deNovo: false }
     vooRef.current = voo
+    ciclosRef.current += 1
     voo.fim = (async () => {
       try {
         let ok
         do { voo.deNovo = false; ok = await salvarRef.current() } while (voo.deNovo)
         return ok
-      } finally { vooRef.current = null }
+      } finally { vooRef.current = null; ciclosRef.current += 1; soltarAdiada() }
     })()
     return voo.fim
-  }, [])
+  }, [soltarAdiada])
 
   // Nada digitado se perde: trocar de aba (desmonte), sair da conta
   // (descarregarPendentes no App) e fechar a página (beforeunload avisa).
@@ -562,7 +647,8 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     const tirar = registrarPendente(descarregar)
     // Declarado também para o painel todo (lib/pendencias): "Atualizar agora" salva antes.
     const tirarGeral = registrarPendencia('cadastro-marca', {
-      rotulo: 'Seu cadastro: alterações ainda sendo salvas', ativo: () => !!pendenteRef.current || !!vooRef.current,
+      rotulo: 'Seu cadastro: alterações ainda sendo salvas',
+      ativo: () => !!pendenteRef.current || !!vooRef.current || Object.keys(conflitosRef.current).length > 0,
       salvar: async () => (await descarregar()) !== false,
     })
     function avisar(ev) { if (pendenteRef.current) { ev.preventDefault(); ev.returnValue = '' } }
@@ -592,6 +678,8 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   async function operar(fn) {
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
     await salvarEmOrdem()
+    operandoRef.current += 1
+    ciclosRef.current += 1
     try {
       await fn()
       setErroSalvar(null)
@@ -601,7 +689,158 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     } catch (e) {
       if (!(e && e.message === 'sessao_expirada')) setErroSalvar(recadoOperacao(e))
       return false
+    } finally {
+      operandoRef.current -= 1
+      ciclosRef.current += 1
+      soltarAdiada()
     }
+  }
+
+  // ── Sincronização: releitura silenciosa que MESCLA (19/10/2026) ──────────────
+  const aplicarTela = React.useCallback((t) => {
+    if (!t) return
+    if (t.marca) setMarca((a) => MC.aplicarCampos(a, t.marca))
+    if (t.tema) setTema((a) => MC.aplicarCampos(a, t.tema))
+    if (t.combo) setCombo((a) => MC.aplicarCampos(a, t.combo))
+    if (t.custosStr) setCustosStr((a) => MC.aplicarCampos(a, t.custosStr))
+    if (t.extras) setExtras((a) => MC.aplicarCampos(a, t.extras))
+    if (t.itens) setItens((a) => MC.aplicarItens(a, t.itens))
+    if (t.unidades) setUnidades((a) => MC.aplicarUnidades(a, t.unidades))
+    if (t.declaracoes) setDeclaracoes((a) => MC.aplicarDeclaracoes(a, t.declaracoes))
+    if (t.substituicoes) setSubstituicoes((a) => MC.aplicarSubstituicoes(a, t.substituicoes))
+  }, [])
+
+  // Outra participação (edição nova) ou o modelo novo que acabou de existir: não há o que mesclar,
+  // recomeça do zero. Antes grava o que estava pendente — na participação de ONDE foi digitado — e, se
+  // essa gravação falhar, não troca nada (nada digitado se perde nem vai para a edição errada).
+  const reiniciar = React.useCallback(async (vale) => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
+    if (pendenteRef.current && (await salvarEmOrdem()) === false) return
+    if (!vale()) return
+    idsRef.current = new Map()
+    idsUnRef.current = new Map()
+    idsPuRef.current = new Map()
+    postandoRef.current = new Set()
+    removidasRef.current = new Set()
+    esquecidasRef.current = new Set()
+    orfasRef.current = new Set()
+    dispensadasRef.current = new Set()
+    conflitosRef.current = {}
+    baseRef.current = baseVazia()
+    pendenteRef.current = false
+    prontoRef.current = false
+    limparMudancaExterna('cadastro-marca')
+    setExterno({ conflitos: {}, adotados: {} })
+    setErroSalvar(null)
+    setConcluirAviso(null)
+    setCarregando(true)
+    setTentativa((n) => n + 1)
+  }, [salvarEmOrdem])
+
+  const recarregarMesclando = React.useCallback(async (aviso) => {
+    if (!prontoRef.current) { pedidoCargaRef.current = true; return } // a abertura ainda corre: ela relê no fim
+    const vale = guarda()
+    // Uma gravação por vez: espera a que está em voo (até ~4 s). Mesclar no meio dela leria metade.
+    for (let i = 0; i < 80 && (vooRef.current || operandoRef.current > 0); i += 1) {
+      if (!vale()) return
+      if (vooRef.current) await vooRef.current.fim.catch(() => {})
+      else await new Promise((r) => setTimeout(r, 50))
+    }
+    if (!vale()) return
+    if (vooRef.current || operandoRef.current > 0) { adiadoRef.current = true; return }
+    const ciclo = ciclosRef.current
+    let snap
+    try { snap = await lerSnapshot() } catch (e) { if (e && e.message === 'sessao_expirada') return; throw e } // erro: o hook marca "sem sincronizar"
+    if (!vale()) return
+    // Uma gravação rodou durante a leitura: a foto pode ter pegado metade dela. A própria gravação anuncia
+    // o que mudou e a releitura vem sozinha (e `soltarAdiada` cobre a gravação que falhou).
+    if (vooRef.current || operandoRef.current > 0 || ciclo !== ciclosRef.current) { adiadoRef.current = true; return }
+    if (snap.tipo !== 'ok') return // sem marca / sem participação: nada a mesclar
+    const v = vivoRef.current
+    if (!v.participacaoId || snap.pa.id !== v.participacaoId || snap.p.id !== v.participanteId || snap.novo !== v.modeloNovo) {
+      await reiniciar(vale)
+      return
+    }
+
+    const plano = MC.planejarMesclagem({
+      vivo: v, base: baseRef.current, snap, mapas: MAPAS, esquecidas: esquecidasRef.current,
+      // ids que o servidor já devolveu e o estado React ainda não renderizou (POST que acabou de voltar)
+      ids: {
+        unId: (u) => u.unId || idsUnRef.current.get(u._key) || null,
+        puId: (u) => u.puId || (idsPuRef.current.get(u._key) || {}).puId || null,
+        declId: (itemId, aspecto, d) => d.id || idsRef.current.get('dec-' + itemId + '-' + aspecto) || null,
+        subId: (sb) => sb.id || idsRef.current.get(sb._key) || null,
+      },
+    })
+    baseRef.current = plano.base
+    orfasRef.current = new Set(plano.orfas)
+    for (const id of [...esquecidasRef.current]) if (!plano.servidorIds.has(id)) esquecidasRef.current.delete(id)
+    aplicarTela(plano.tela)
+
+    // O que a tela só mostra: troca por igual não renderiza (a mesma referência volta).
+    const ex = plano.exibicao
+    setEdicaoCodigo(ex.edicaoCodigo)
+    setStatusCadastro(ex.statusCadastro)
+    if ('valorCombo' in ex) {
+      setValorCombo(ex.valorCombo)
+      setFestival((f) => (MC.igualValor(f, ex.festival) ? f : ex.festival))
+    }
+    if ('revisaoTema' in ex) setRevisao((r) => (MC.igualValor(r.tema, ex.revisaoTema) ? r : { tema: ex.revisaoTema }))
+    if ('permanentes' in ex) setPermanentes((antes) => (assinaturaPermanentes(antes) === assinaturaPermanentes(ex.permanentes) ? antes : ex.permanentes))
+    const dominios = (aviso && aviso.dominios) || []
+    if (snap.novo && (dominios.includes('publicacao') || ((aviso && aviso.origens) || []).includes('reconciliacao'))) {
+      const validaPub = guardaPub()
+      api('rpc/marca_minha_publicacao', { metodo: 'POST', corpo: { p_participacao: v.participacaoId } })
+        .then((x) => { if (validaPub()) setPub((antes) => (MC.igualValor(antes, x) ? antes : x)) })
+        .catch(() => { /* fica a que já estava na tela */ })
+    }
+
+    // Conflitos abertos e o aviso "atualizamos estes campos". Sem novidade, nem setState: o eco do próprio
+    // salvamento não pisca, não mexe em foco nem em rolagem e não reinicia o salvamento automático.
+    const abertos = Object.fromEntries(Object.entries(plano.conflitos).filter(([ui]) => !dispensadasRef.current.has(ui)))
+    const assinatura = (c) => JSON.stringify(Object.entries(c).map(([k, x]) => [k, x.meu, x.deles]).sort())
+    const mudouConflitos = assinatura(conflitosRef.current) !== assinatura(abertos)
+    conflitosRef.current = abertos
+    const temAdotados = Object.keys(plano.adotados).length > 0
+    if (mudouConflitos || temAdotados) {
+      setExterno((e) => ({ conflitos: abertos, adotados: temAdotados ? { ...e.adotados, ...plano.adotados } : e.adotados }))
+    }
+    // Mudança de fora num registro que a pessoa está editando: o painel todo passa a saber (atualização de versão, etc.).
+    if (Object.keys(abertos).length || (temAdotados && (pendenteRef.current || vooRef.current))) sinalizarMudancaExterna('cadastro-marca', true)
+    else limparMudancaExterna('cadastro-marca')
+  }, [guarda, guardaPub, reiniciar, aplicarTela])
+  recarregarRef.current = recarregarMesclando
+  // O que este cadastro realmente lê: marca e participação (participantes), itens/declarações/trocas (cadastro),
+  // unidades e horários (unidades), tema em análise (temas), valor e datas (edicao), a página no ar (publicacao).
+  useSincronizar(['participantes', 'cadastro', 'unidades', 'temas', 'edicao', 'publicacao'], recarregarMesclando)
+
+  // A pessoa escolheu num conflito. "Usar a nova" leva o valor da organização para a tela E para a base;
+  // "Manter a minha" só leva a base — e o salvamento seguinte manda a minha, de propósito.
+  function resolverConflito(ui, como) {
+    const c = conflitosRef.current[ui]
+    if (!c) return
+    const base = baseRef.current
+    if (c.chave === '__removida') {
+      if (como === 'adotar') { aplicarTela(c.tela); MC.apagarDaBase(base, c) }
+      else if (c.manterTela) {
+        // a linha volta a ser gravada como NOVA (sem os ids que a organização apagou)
+        aplicarTela(c.manterTela)
+        const l = c.limparIds || {}
+        ;(l.pu || []).forEach((k) => idsPuRef.current.delete(k))
+        ;(l.un || []).forEach((k) => idsUnRef.current.delete(k))
+        ;(l.ids || []).forEach((k) => idsRef.current.delete(k))
+        MC.apagarDaBase(base, c)
+        agendarSalvar()
+      } else dispensadasRef.current.add(ui) // sem como recriar aqui: continua na tela, mas não é gravada
+    } else {
+      if (como === 'adotar') aplicarTela(c.tela)
+      MC.definirNaBase(base, c, c.deles)
+      if (como === 'manter') agendarSalvar()
+    }
+    const { [ui]: _resolvido, ...resto } = conflitosRef.current
+    conflitosRef.current = resto
+    setExterno((e) => { const { [ui]: _r, ...conflitos } = e.conflitos; return { ...e, conflitos } })
+    if (!Object.keys(resto).length) limparMudancaExterna('cadastro-marca')
   }
 
   // ── Campos ────────────────────────────────────────────────────────────────
@@ -638,6 +877,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     })
     const pu = alvoU && (alvoU.puId || (idsPuRef.current.get(alvoU._key) || {}).puId)
     if (alvoU && !pu && postandoRef.current.has(alvoU._key)) removidasRef.current.add(alvoU._key)
+    if (pu) esquecidasRef.current.add(String(pu))
     // Sai DESTA edição; a unidade permanente fica guardada (volta como sugestão).
     if (pu) {
       api('participacao_unidades?id=eq.' + pu, { metodo: 'DELETE' }).catch((e) => {
@@ -662,7 +902,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       if (n && !(await confirmar('Trocar o horário do combo nesta unidade? ' + (n === 1 ? 'O dia já informado dá' : 'Os ' + n + ' dias já informados dão') + ' lugar ao mesmo horário em todos os dias do festival.'))) return false
       return operar(async () => {
         await api('unidade_disponibilidade?participacao_unidade_id=eq.' + u.puId, { metodo: 'DELETE' })
-        for (const d of u.disponibilidade) delete baseRef.current.disp[d.id]
+        for (const d of u.disponibilidade) { delete baseRef.current.disp[d.id]; esquecidasRef.current.add(String(d.id)) }
         trocarDisponibilidade(u._key, [])
         const linhas = await api('unidade_disponibilidade', { metodo: 'POST', corpo: E.linhasMesmoHorario(u.puId, dias, r.abre, r.fecha, r.observacao), prefer: REPR })
         for (const x of linhas || []) baseRef.current.disp[x.id] = baseDisponibilidade(x)
@@ -684,6 +924,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     },
     remover(u, d) {
       return operar(async () => {
+        esquecidasRef.current.add(String(d.id))
         await api('unidade_disponibilidade?id=eq.' + d.id, { metodo: 'DELETE' })
         delete baseRef.current.disp[d.id]
         setUnidades((prev) => prev.map((y) => (y._key === u._key ? { ...y, disponibilidade: y.disponibilidade.filter((x) => x.id !== d.id) } : y)))
@@ -719,6 +960,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       if (!id && postandoRef.current.has(k)) removidasRef.current.add(k)
       if (id) {
         delete baseRef.current.sub[id]
+        esquecidasRef.current.add(String(id))
         api('substituicoes?id=eq.' + id, { metodo: 'DELETE' }).catch((e) => {
           if (e && e.message === 'sessao_expirada') return
           setErroSalvar('Não deu para remover a troca agora. Recarregue a página.')
@@ -749,6 +991,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
   async function concluir(ev) {
     ev.preventDefault()
+    // A organização mexeu em algo que a marca também editou e ninguém escolheu ainda: o que está GRAVADO
+    // é a versão da organização. Enviar assim analisaria uma versão que a marca nem viu aprovada.
+    if (Object.values(conflitosRef.current).some((c) => c.chave !== '__removida')) {
+      setConcluirAviso({ tom: 'erro', texto: 'Antes de enviar, escolha qual versão vale nas informações que a organização alterou (aviso no topo do cadastro).' })
+      return
+    }
     setConcluindo(true)
     setConcluirAviso(null)
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
@@ -768,7 +1016,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         const alteracao = !!(pub && pub.alterado_apos_aprovacao)
         setStatusCadastro('cadastro_completo')
         // O banco já passou o combo para análise: o pedido de ajuste sai da tela.
-        if (comboStatus === 'rascunho' || comboStatus === 'correcao_solicitada' || (comboStatus === 'aprovado' && alteracao)) setComboLocal('em_analise')
+        if (comboStatus === 'rascunho' || comboStatus === 'correcao_solicitada' || (comboStatus === 'aprovado' && alteracao)) setComboLocal({ valor: 'em_analise', resumo })
         setConcluirAviso({
           tom: 'ok',
           texto: alteracao
@@ -848,6 +1096,19 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     indice: n, aberto: blocoAberto === n, completo: pronto(n), faltam: faltamNo(n),
     onToggle: () => setBlocoAberto((a) => (a === n ? null : n)),
   })
+  // Alteração de fora: só o que pertence aos blocos DESTA aba (Meu cadastro × Meu combo).
+  const confVisiveis = Object.entries(externo.conflitos).filter(([, c]) => visiveis.includes(c.bloco))
+  const adotVisiveis = Object.entries(externo.adotados).filter(([, a]) => visiveis.includes(a.bloco))
+  const registroExterno = {
+    conflitos: Object.fromEntries(confVisiveis.map(([ui, c]) => [ui, { meu: MC.valorLegivel(c.chave, c.meu), deles: MC.valorLegivel(c.chave, c.deles) }])),
+    adotados: adotVisiveis.map(([ui]) => ui),
+    dispensar: () => setExterno((e) => ({ ...e, adotados: {} })),
+    adotar: (ui) => resolverConflito(ui, 'adotar'),
+    manter: (ui) => resolverConflito(ui, 'manter'),
+    adotarTodos: () => confVisiveis.forEach(([ui]) => resolverConflito(ui, 'adotar')),
+    manterTodos: () => confVisiveis.forEach(([ui]) => resolverConflito(ui, 'manter')),
+  }
+  const rotulosExterno = Object.fromEntries([...confVisiveis, ...adotVisiveis].map(([ui, x]) => [ui, x.rotulo]))
 
   return (
     <>
@@ -883,6 +1144,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
               <button className="link" type="button" onClick={() => { setErroSalvar(null); salvarEmOrdem() }}>Tentar de novo</button>
             </div>
           )}
+          <AvisoMudancaExterna registro={registroExterno} rotulos={rotulosExterno} />
           <EstadoPublicacao pub={pub} />
 
           {/* noValidate: campos obrigatórios moram em blocos fechados (hidden),

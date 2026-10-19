@@ -11,6 +11,9 @@ import { Carregando, Vazio, Erro, traduzirErro, BotaoIcone, Escolha } from '../u
 import { Icone } from '../Icone'
 import { confirmar } from '../Confirmar'
 import { comEnvio } from '../../lib/pendencias'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
+import { renovarDaLista, CAMPOS_ARQUIVO, formularioDoArquivo, soAlterados, aparar, impressaoDoArquivo, envioReaproveitavel } from '../../lib/leituraViva'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -21,26 +24,25 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
  *   'arquivados'    — fora do painel da marca, guardados; restaurar devolve
  * Cada lista vem agrupada por categoria, com tipo, tamanho, data e versão.
  */
-export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
+export function ArquivosOrg({ pode, aba = 'gerais' }) {
   const podeGerir = pode('producao.gerir')
-  const [arquivos, setArquivos] = React.useState(null)
-  const [participantes, setParticipantes] = React.useState([])
-  const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [folha, setFolha] = React.useState(null) // null | {tipo:'novo'} | {tipo:'editar', arquivo}
   const [marcaFiltro, setMarcaFiltro] = React.useState('')
   const [ocupado, setOcupado] = React.useState(null)
+  // Substituição que já subiu ao armazenamento mas ainda não foi registrada: tentar de novo com o
+  // mesmo arquivo não sobe outra vez (o armazenamento não sobrescreve).
+  const substituindo = React.useRef(null)
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try {
-      const l = await rpc('get_arquivos_admin', { p_secret: lerSenha() })
-      setArquivos(l || [])
-    } catch (e) { setErro(e.message) }
-    try { setParticipantes((await rpc('get_participantes', { p_secret: lerSenha() })) || []) } catch { setParticipantes([]) }
-  }, [])
-  React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // Cada uma das três abas é um componente separado com a própria leitura (a lista inteira): todas
+  // se relêem sozinhas quando um arquivo, a leitura dele ou a marca muda. A lista de marcas é uma
+  // leitura à parte e opcional (função sem permissão não derruba os arquivos).
+  const arq = useLeitura(async () => (await rpc('get_arquivos_admin', { p_secret: lerSenha() })) || [], ['arquivos', 'participantes'])
+  const part = useLeitura(async () => (await rpc('get_participantes', { p_secret: lerSenha() })) || [], ['participantes'], { opcional: true })
+  const arquivos = arq.dados === undefined ? null : arq.dados
+  const participantes = part.dados || []
+  // A folha de edição mostra o arquivo de AGORA (a lista se relê); se sumiu, fica o que foi clicado.
+  const arquivoAberto = folha && folha.tipo === 'editar' ? renovarDaLista(folha.arquivo, arquivos) : null
 
   const opcoesMarcas = marcasParaOpcoes(participantes)
   const visiveis = (arquivos || []).filter((a) =>
@@ -59,29 +61,44 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
     }
   }
 
-  async function substituir(a, file) {
+  async function substituir(clicado, file) {
     if (!file) return
+    // O seletor de arquivo pode ter ficado aberto um bom tempo: parte da linha de agora.
+    const a = renovarDaLista(clicado, arq.atual())
     setAviso(null); setOcupado(a.id)
+    let registrando = false
     try {
       const path = caminhoSubstituto(a.path, nomeSeguro(file.name))
-      // Os bytes vão direto ao Storage (a função só assina) — mesma regra de publicar.
-      const assinatura = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'arquivos', path })
-      const envio = await comEnvio('Envio de “' + file.name + '”', () => fetch(assinatura.url, { method: 'PUT', body: file }))
-      if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')')
+      if (!envioReaproveitavel(substituindo.current, path, file)) {
+        // Os bytes vão direto ao Storage (a função só assina) — mesma regra de publicar.
+        const assinatura = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'arquivos', path })
+        const envio = await comEnvio('Envio de “' + file.name + '”', () => fetch(assinatura.url, { method: 'PUT', body: file }))
+        if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')')
+        substituindo.current = { path, impressao: impressaoDoArquivo(file) }
+      }
+      registrando = true
       await rpc('substituir_arquivo', { p_secret: lerSenha(), p_id: a.id, p_path: path, p_mime: file.type || null, p_tamanho: file.size, p_versao: null })
-      await carregar()
+      substituindo.current = null
+      // A lista se atualiza sozinha (domínio "arquivos"): não há releitura a esperar.
       setAviso({ ok: '"' + a.nome + '" substituído. A marca já baixa a versão nova.' })
-    } catch (e) { setAviso(traduzirErro(e.message)) } finally { setOcupado(null) }
+    } catch (e) {
+      // O arquivo novo já está lá e só a troca no registro falhou: diz isso, em vez de deixá-lo órfão em silêncio.
+      setAviso(traduzirErro(e.message) + (registrando ? ' O arquivo já foi enviado; ao substituir de novo ele não sobe outra vez.' : ''))
+    } finally { setOcupado(null) }
   }
 
   async function arquivar(a, sim) {
     if (sim && !await confirmar('Arquivar "' + a.nome + '"? Sai do painel da marca; fica guardado em Arquivados.')) return
     setAviso(null); setOcupado(a.id)
-    try { await rpc('arquivar_arquivo', { p_secret: lerSenha(), p_id: a.id, p_arquivar: sim }); await carregar() }
+    try {
+      await rpc('arquivar_arquivo', { p_secret: lerSenha(), p_id: a.id, p_arquivar: sim })
+      // Confirmado: o arquivo muda de aba na hora; a releitura vem por sinal.
+      arq.ajustar((l) => l.map((x) => (x.id === a.id ? { ...x, arquivado: sim } : x)))
+    }
     catch (e) { setAviso(traduzirErro(e.message)) } finally { setOcupado(null) }
   }
 
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (arq.bloqueada) return <Erro texto={arq.erro} onTentar={arq.recarregar} />
   if (!arquivos) return <Carregando />
   // Uma tabela só, na ordem das categorias, com a categoria como coluna
   // (02/10/2026, pedido do Wilker: a página estava confusa). Antes era uma
@@ -91,6 +108,7 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
 
   return (
     <div className="og-embutida">
+      {arq.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={arq.erro} onTentar={arq.recarregar} />}
       <div className="ui-barra">
         {aba === 'participantes'
           ? <Escolha rotulo="Marca" valor={marcaFiltro} onMudar={setMarcaFiltro} opcoes={[['', 'Todas'], ...opcoesMarcas.map((o) => [o.value, o.label])]} />
@@ -148,12 +166,11 @@ export function ArquivosOrg({ registrarAtualizar, pode, aba = 'gerais' }) {
         categoriaInicial={aba === 'participantes' ? 'combo' : 'documento'}
         podeGerir={podeGerir}
         onFechar={() => setFolha(null)}
-        onPublicado={carregar}
       />
       <FolhaEditarArquivo
-        arquivo={folha && folha.tipo === 'editar' ? folha.arquivo : null}
+        arquivo={arquivoAberto}
         onFechar={() => setFolha(null)}
-        onSalvo={carregar}
+        onSalvo={arq.invalidar}
       />
     </div>
   )
@@ -172,40 +189,56 @@ function BotaoSubstituir({ alvo, ocupado, onArquivo }) {
 }
 
 function FolhaEditarArquivo({ arquivo, onFechar, onSalvo }) {
-  const [form, setForm] = React.useState({})
+  return (
+    <Folha aberto={!!arquivo} titulo="Editar arquivo" sub={arquivo ? arquivo.nome : ''} onFechar={onFechar}>
+      {/* key: outro arquivo = formulário novo; o rascunho de um nunca aparece no outro. */}
+      {arquivo && <FormularioArquivo key={arquivo.id} arquivo={arquivo} onFechar={onFechar} onSalvo={onSalvo} />}
+    </Folha>
+  )
+}
+
+function FormularioArquivo({ arquivo, onFechar, onSalvo }) {
+  // O formulário resiste a alteração de outra pessoa (a lista se relê sozinha): o que está digitado
+  // nunca é trocado e o que a pessoa não tocou acompanha o banco. `arquivo` chega sempre fresco.
+  const servidor = React.useMemo(() => formularioDoArquivo(arquivo), [arquivo])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_ARQUIVO, { chave: arquivo.id, rotulo: 'Edição do arquivo (não salva)' })
+  const form = reg.local
   const [aviso, setAviso] = React.useState(null)
   const [salvando, setSalvando] = React.useState(false)
-  React.useEffect(() => {
-    if (!arquivo) return
-    setForm({ nome: arquivo.nome || '', descricao: arquivo.descricao || '', categoria: arquivo.categoria || 'documento', versao: arquivo.versao || '', exige_leitura: !!arquivo.exige_leitura })
-    setAviso(null)
-  }, [arquivo && arquivo.id]) // eslint-disable-line react-hooks/exhaustive-deps
-  const mudar = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
+  const mudar = (k) => (e) => reg.editar(k, e.target.type === 'checkbox' ? e.target.checked : e.target.value)
 
   async function salvar(ev) {
     ev.preventDefault()
+    const brutos = reg.local
+    // Só o que a pessoa mudou: mandar o formulário inteiro desfaria o que outra pessoa alterou
+    // (versão, confirmação de leitura…) enquanto a folha estava aberta.
+    const alterados = aparar(soAlterados(reg.base, reg.local, CAMPOS_ARQUIVO))
+    if (!Object.keys(alterados).length) { onFechar(); return }
     setSalvando(true); setAviso(null)
-    try { await rpc('atualizar_arquivo', { p_secret: lerSenha(), p_id: arquivo.id, p_dados: form }); await onSalvo(); onFechar() }
+    try {
+      await rpc('atualizar_arquivo', { p_secret: lerSenha(), p_id: arquivo.id, p_dados: alterados })
+      reg.confirmarSalvo(alterados, brutos)
+      onSalvo() // uma leitura em voo, de antes desta gravação, não pode desfazê-la na lista
+      onFechar()
+    }
     catch (e) { setAviso(traduzirErro(e.message)) } finally { setSalvando(false) }
   }
 
   return (
-    <Folha aberto={!!arquivo} titulo="Editar arquivo" sub={arquivo ? arquivo.nome : ''} onFechar={onFechar}>
-      {arquivo && (
-        <form className="og-bloco og-bloco--colado" onSubmit={salvar}>
-          <label className="og-campo"><span>Nome que a marca vê</span><input type="text" value={form.nome || ''} onChange={mudar('nome')} /></label>
-          <label className="og-campo"><span>Categoria</span>
-            <select value={form.categoria || 'documento'} onChange={mudar('categoria')}>
-              {CATEGORIAS_ARQUIVO.map((c) => <option key={c.chave} value={c.chave}>{c.rotuloOrg}</option>)}
-            </select>
-          </label>
-          <label className="og-campo"><span>Descrição <em>(opcional)</em></span><input type="text" value={form.descricao || ''} onChange={mudar('descricao')} /></label>
-          <label className="og-campo"><span>Versão <em>(opcional)</em></span><input type="text" value={form.versao || ''} onChange={mudar('versao')} /></label>
-          <label className="og-campo og-campo--linha"><input type="checkbox" checked={!!form.exige_leitura} onChange={mudar('exige_leitura')} /><span>Pedir confirmação de leitura</span></label>
-          {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
-          <button className="og-btn" type="submit" disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar'}</button>
-        </form>
-      )}
-    </Folha>
+    <form className="og-bloco og-bloco--colado" onSubmit={salvar}>
+      <AvisoMudancaExterna registro={reg} rotulos={{ nome: 'Nome', descricao: 'Descrição', categoria: 'Categoria', versao: 'Versão', exige_leitura: 'Confirmação de leitura' }} />
+      <label className="og-campo"><span>Nome que a marca vê</span><input type="text" value={form.nome || ''} onChange={mudar('nome')} /></label>
+      <label className="og-campo"><span>Categoria</span>
+        <select value={form.categoria || 'documento'} onChange={mudar('categoria')}>
+          {CATEGORIAS_ARQUIVO.map((c) => <option key={c.chave} value={c.chave}>{c.rotuloOrg}</option>)}
+        </select>
+      </label>
+      <label className="og-campo"><span>Descrição <em>(opcional)</em></span><input type="text" value={form.descricao || ''} onChange={mudar('descricao')} /></label>
+      <label className="og-campo"><span>Versão <em>(opcional)</em></span><input type="text" value={form.versao || ''} onChange={mudar('versao')} /></label>
+      <label className="og-campo og-campo--linha"><input type="checkbox" checked={!!form.exige_leitura} onChange={mudar('exige_leitura')} /><span>Pedir confirmação de leitura</span></label>
+      {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
+      {reg.conflito && <p className="ui-nota">Escolha acima qual versão vale em cada campo para poder salvar.</p>}
+      <button className="og-btn" type="submit" disabled={salvando || reg.conflito}>{salvando ? 'Salvando…' : 'Salvar'}</button>
+    </form>
   )
 }

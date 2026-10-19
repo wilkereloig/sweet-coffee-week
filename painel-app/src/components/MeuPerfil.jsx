@@ -4,7 +4,9 @@ import { Avatar } from './Avatar'
 import { Botao, Secao } from './ui'
 import { avisar, confirmar } from './Confirmar'
 import { PUSH_ORGANIZACAO, AplicativoENotificacoes } from './AppNoAparelho'
+import { AvisoMudancaExterna } from './AvisoMudancaExterna'
 import { usePendencia, comEnvio } from '../lib/pendencias'
+import { useRegistroEditavel } from '../lib/sync/react'
 import { rpc } from '../lib/rpc'
 import { useEquipe, abrirFoto, gerarFoto, enviarFoto, removerFoto, areaRecorte } from '../lib/equipe'
 
@@ -118,21 +120,33 @@ export function EditorFoto({ alvo, nome, proprio = false, temFoto = false, onMud
  * foto e editar o nome de exibição. Login, função, ativação e permissões
  * NÃO mudam aqui — são de quem administra a equipe.
  */
+const CAMPOS_PERFIL = ['nome']
+
 export function MeuPerfil({ aberto, onFechar, onSair }) {
   const { eu, recarregar } = useEquipe()
-  const [nome, setNome] = React.useState('')
   const [salvando, setSalvando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
   const idNome = React.useId()
   const idEu = eu ? eu.user_id : null
-  React.useEffect(() => { if (aberto && eu) { setNome(eu.nome || ''); setErro(null) } }, [aberto, idEu]) // eslint-disable-line react-hooks/exhaustive-deps
-  usePendencia(!!(aberto && eu && nome.trim() !== (eu.nome || '')), { rotulo: 'Meu perfil: nome de exibição não salvo', salvar: () => gravarNome() })
+  // O nome digitado resiste ao diretório: quando alguém renomeia esta conta por fora (outra aba, a administração), o que
+  // a pessoa NÃO tinha tocado acompanha o servidor; o que ela digitou nunca é trocado — se os dois mudaram, ela escolhe.
+  const reg = useRegistroEditavel(eu, CAMPOS_PERFIL, { chave: idEu })
+  const nome = reg.local.nome == null ? '' : String(reg.local.nome)
+  const mudou = !!eu && nome.trim() !== (reg.base.nome == null ? '' : String(reg.base.nome))
+  const emConflito = Object.keys(reg.conflitos).length > 0
+  React.useEffect(() => { if (aberto) setErro(null) }, [aberto])
+  const pend = usePendencia(mudou, { rotulo: 'Meu perfil: nome de exibição não salvo', salvar: () => gravarNome() })
+  React.useEffect(() => { if (emConflito) pend.sinalizarExterno(); else pend.limparExterno() }, [emConflito]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function gravarNome() {
+    if (emConflito) { setErro('Escolha acima qual nome vale antes de salvar.'); return false }
     setSalvando(true)
     setErro(null)
+    const salvo = nome.trim()
     try {
       await rpc('meu_nome_definir', { p_nome: nome })
+      reg.salvou({ nome: salvo }) // a base acompanha já; o diretório confirma em seguida
+      reg.editar('nome', salvo)
       await recarregar()
       return true
     } catch (er) { setErro(traduzir(er.message)); return false } finally { setSalvando(false) }
@@ -141,9 +155,21 @@ export function MeuPerfil({ aberto, onFechar, onSair }) {
     e.preventDefault()
     if (await gravarNome()) avisar('Nome salvo. Os registros antigos continuam com o nome da época.')
   }
+  // Fechar com o nome alterado e não salvo pergunta (antes, fechar descartava em silêncio). Pelo Esc a pergunta abre
+  // DEPOIS da tecla: aberta durante ela, o próprio Esc a fechava.
+  async function fechar() {
+    if (mudou) await new Promise((ok) => setTimeout(ok, 30))
+    if (mudou) {
+      if (!(await confirmar('Fechar sem salvar o nome? O que você digitou se perde.', { acao: 'Fechar sem salvar' }))) return
+      // Descartar o que digitou: com conflito aberto, ficar com o nome do servidor; sem conflito, voltar ao nome salvo.
+      if (emConflito) reg.adotarTodos()
+      else reg.editar('nome', reg.base.nome == null ? '' : String(reg.base.nome))
+    }
+    onFechar()
+  }
 
   return (
-    <Folha aberto={aberto} titulo="Meu perfil" sub={eu ? eu.funcao_rotulo || 'Conta da equipe' : 'Acesso compartilhado'} onFechar={onFechar}>
+    <Folha aberto={aberto} titulo="Meu perfil" sub={eu ? eu.funcao_rotulo || 'Conta da equipe' : 'Acesso compartilhado'} onFechar={fechar}>
       {!eu ? (
         <div className="ui-pilha">
           <p>Você entrou pela <b>senha compartilhada</b> do painel. Ela não é uma pessoa: o que for feito por ela aparece como “Acesso compartilhado” no histórico.</p>
@@ -155,12 +181,13 @@ export function MeuPerfil({ aberto, onFechar, onSair }) {
             <EditorFoto alvo={eu.user_id} nome={eu.nome} proprio temFoto={!!eu.avatar_path} onMudou={recarregar} />
           </Secao>
           <Secao titulo="Nome de exibição" nota="É o nome que assina o que você faz no painel daqui para a frente.">
+            <AvisoMudancaExterna registro={reg} rotulos={{ nome: 'Nome de exibição' }} />
             <form className="pf-nome" onSubmit={salvarNome}>
               <label className="og-campo" htmlFor={idNome}>
                 <span>Nome</span>
-                <input id={idNome} value={nome} maxLength={60} autoComplete="name" onChange={(e) => setNome(e.target.value)} />
+                <input id={idNome} value={nome} maxLength={60} autoComplete="name" onChange={(e) => reg.editar('nome', e.target.value)} />
               </label>
-              <Botao type="submit" disabled={salvando || nome.trim() === (eu.nome || '')}>{salvando ? 'Salvando…' : 'Salvar nome'}</Botao>
+              <Botao type="submit" disabled={salvando || !mudou || emConflito}>{salvando ? 'Salvando…' : 'Salvar nome'}</Botao>
             </form>
             {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
           </Secao>
