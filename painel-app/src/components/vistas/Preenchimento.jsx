@@ -194,12 +194,11 @@ export function ListaPreenchimento({ pode, irPara }) {
   const origem = window.location.origin
   const painelDe = (m, cred) => painelDaMarca({ origem, slug: slugs[m.participante_id], acesso: acessos && acessos[m.participante_id], cred: cred || creds[m.participante_id] })
   const mensagemDe = (m, cred) => textoPreenchimento({ marca: m.nome, responsavel: m.responsavel, link: linkPreenchimento(origem, m.codigo), edicao: d.edicao || {}, painel: painelDe(m, cred) })
-  // Quem entra no lote de senhas: marca ativa, com link, e acesso que ainda NÃO tem senha definida pela própria marca
-  // (sem conta → cria; com a temporária ainda valendo → gera outra). Quem já trocou a senha não é mexido, nem acesso pausado.
+  // Quem entra no lote de senhas: toda marca ativa com link e acesso lido (sem conta → cria; com conta → gera senha
+  // temporária nova). Fora: acesso pausado, encerrada, sem link e quem acabou de ganhar senha nesta tela.
   const acessoDe = (m) => (acessos && acessos[m.participante_id]) || null
   const entraNoLote = (m) => entraNoLoteDeSenhas({ marca: m, acesso: acessoDe(m), cred: creds[m.participante_id] })
   const paraSenha = marcas.filter(entraNoLote)
-  const jaTrocaram = marcas.filter((m) => m.codigo && m.status_cadastro !== 'encerrado' && acessoDe(m) && acessoDe(m).senha_trocada_em)
   const semLink = marcas.filter((m) => !m.codigo && m.status_cadastro !== 'encerrado').length
   const comLink = marcas.filter((m) => m.codigo)
   const aRevisar = marcas.filter((m) => m.pendentes > 0).length
@@ -218,7 +217,7 @@ export function ListaPreenchimento({ pode, irPara }) {
     const trocar = lista.filter((m) => acessoDe(m).user_id)
     const partes = []
     if (criar.length) partes.push('criar ' + (criar.length === 1 ? 'o acesso de ' + criar[0].nome : criar.length + ' acessos novos'))
-    if (trocar.length) partes.push('gerar senha temporária NOVA para ' + (trocar.length === 1 ? trocar[0].nome : trocar.length + ' marcas que ainda não trocaram a senha'))
+    if (trocar.length) partes.push('gerar senha temporária NOVA para ' + (trocar.length === 1 ? trocar[0].nome : trocar.length + ' marcas que já têm acesso'))
     const aviso2 = trocar.length ? '\n\nA senha que você já mandou para ' + (trocar.length === 1 ? 'essa marca' : 'essas marcas') + ' deixa de valer e as sessões abertas caem. ' : '\n\n'
     if (!await confirmar(partes.join(' e ').replace(/^./, (c) => c.toUpperCase()) + '?' + aviso2 + 'A senha aparece UMA VEZ: ela já entra na mensagem copiada. Nada é enviado às marcas.', { acao: 'Gerar senhas', perigo: trocar.length > 0 })) return
     setOcupado(true); setAviso(null); setErro(null)
@@ -259,7 +258,7 @@ export function ListaPreenchimento({ pode, irPara }) {
           </>
         )}>
         <p className="ui-nota">{comLink.length} com link · {enviados} já enviaram · {aRevisar} para revisar</p>
-        <p className="ui-nota">A mensagem fecha com o Painel SCW: link, usuário e senha temporária. "Gerar senhas" cria o acesso de quem não tem e gera senha nova para quem ainda não trocou a sua (a que já foi enviada deixa de valer). A senha só aparece na hora em que é gerada.{jaTrocaram.length > 0 ? ' Não mexe em quem já definiu a própria senha: ' + jaTrocaram.map((m) => m.nome).join(', ') + '.' : ''}</p>
+        <p className="ui-nota">A mensagem abre com o Painel SCW: link, usuário e senha temporária (no primeiro acesso o painel pede para a marca criar a sua). "Gerar senhas" cria o acesso de quem não tem e gera senha temporária nova para as demais; a anterior deixa de valer e a nova só aparece na hora em que é gerada.</p>
         {aviso && <p className="ui-nota" role="status">{aviso}</p>}
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
         <ul className="pr-lista">

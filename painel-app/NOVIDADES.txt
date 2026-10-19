@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Preenchimento: a mensagem e a página das marcas agora apresentam o Painel SCW, e dá para criar os acessos que faltam.
+Preenchimento: a mensagem das marcas abre com o Painel SCW (link, usuário e senha temporária) e o painel gera as senhas de todas.

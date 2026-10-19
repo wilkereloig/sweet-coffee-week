@@ -46,16 +46,16 @@ export function textoPainel(painel) {
   if (!painel || !painel.origem) return ''
   const l = [
     '📲 Painel SCW',
-    'Você também tem acesso ao painel do Sweet & Coffee Week, nosso centro de comunicação com a organização. Nele você acessa os arquivos e as fotos do seu combo, preenche formulários, atualiza seus dados e confere as informações da sua participação.',
+    'Você tem acesso ao painel do Sweet & Coffee Week, nosso centro de comunicação com a organização. Nele você acessa os arquivos e as fotos do seu combo, preenche formulários, atualiza seus dados e confere as informações da sua participação.',
     '',
     'Acesse: ' + painel.origem + '/painel/',
   ]
   if (painel.sem_acesso) l.push('Seu usuário e sua senha temporária chegam em seguida, em outra mensagem.')
   else if (painel.login) {
     l.push('Usuário: ' + painel.login)
-    if (painel.senha) l.push('Senha temporária: ' + painel.senha, 'No primeiro acesso você define a sua senha.')
+    if (painel.senha) l.push('Senha temporária: ' + painel.senha, 'No primeiro acesso o painel pede para você criar a sua senha.')
     else if (painel.situacao === 'definida') l.push('Senha: a que você criou no primeiro acesso.')
-    else l.push('Senha temporária: a que enviamos na mensagem do seu acesso. No primeiro acesso você define a sua.')
+    else l.push('Senha temporária: a que enviamos na mensagem do seu acesso. No primeiro acesso o painel pede para você criar a sua.')
   }
   return l.join('\n')
 }
@@ -72,18 +72,19 @@ export function painelDaMarca({ origem, slug, acesso, cred }) {
 }
 
 /*
- * Quem entra no lote "Gerar senhas": marca ativa, com link e com o acesso LIDO, cuja senha ainda é a temporária (ou que
- * não tem conta). Nunca: quem já definiu a própria senha, acesso bloqueado/desativado, quem acabou de ganhar senha nesta
- * tela (gerar de novo invalidaria a que acabou de ser copiada) e marca encerrada.
+ * Quem entra no lote "Gerar senhas": TODA marca ativa com link e com o acesso LIDO — sem conta (cria) ou com conta (gera
+ * senha temporária nova, e o painel volta a pedir a troca no primeiro acesso). Decisão do Wilker em 19/10/2026: inclui até
+ * quem já tinha trocado a senha (eram contas de teste dele). Nunca: acesso bloqueado/desativado, marca encerrada, sem link
+ * (não há mensagem para levar a senha) e quem acabou de ganhar senha nesta tela (gerar de novo invalidaria a que acabou de
+ * ser copiada).
  */
 export function entraNoLoteDeSenhas({ marca, acesso, cred }) {
   if (!marca || !marca.codigo || marca.status_cadastro === 'encerrado') return false
   if (!acesso || cred) return false
-  if (acesso.senha_trocada_em) return false
   return !/bloque|desativ/i.test(acesso.status || '')
 }
 
-/** O recado do WhatsApp. Obrigatório e urgente, com o prazo da edição; fecha com o painel quando `painel` vem. */
+/** O recado do WhatsApp. Obrigatório e urgente, com o prazo da edição; o painel (acesso) vem NO TOPO, logo depois da saudação, quando `painel` vem. */
 export function textoPreenchimento({ marca, responsavel, link, edicao = {}, painel = null }) {
   const nome = texto(responsavel).split(/\s+/)[0]
   const tema = temaBonito(edicao.tema)
@@ -92,6 +93,7 @@ export function textoPreenchimento({ marca, responsavel, link, edicao = {}, pain
   return [
     'Olá' + (nome ? ', ' + nome : '') + '! Aqui é da organização do Sweet & Coffee Week.',
     '',
+    ...(painel ? [textoPainel(painel), ''] : []),
     'A edição' + (tema ? ' ' + tema : '') + (periodo ? ' acontece de ' + periodo : ' está chegando') +
       ' e precisamos fechar os dados da ' + texto(marca) + '. Preparamos uma página só sua, com um resumo da edição e as informações que já temos. Confira, corrija o que precisar e complete o que falta:',
     '',
@@ -99,7 +101,6 @@ export function textoPreenchimento({ marca, responsavel, link, edicao = {}, pain
     '',
     '⚠️ O preenchimento é obrigatório e urgente' + (prazo ? ': precisa ser feito até ' + prazo : '') +
       '. Sem ele, sua marca não entra no site nem nos materiais da edição.',
-    ...(painel ? ['', textoPainel(painel)] : []),
   ].join('\n')
 }
 

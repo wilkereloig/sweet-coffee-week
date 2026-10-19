@@ -1325,16 +1325,16 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   `participantes_itens.ingredientes` continua: dado antigo é preservado e ainda aparece na ficha e na página pública.
   ⛔ Não voltar a exigir ingredientes sem mudar as duas pontas (app e banco) juntas.
 
-- **Painel SCW na mensagem e na página de preenchimento** (19/10/2026, pedido do Wilker): a mensagem de WhatsApp fecha com
+- **Painel SCW na mensagem e na página de preenchimento** (19/10/2026, pedido do Wilker): a mensagem de WhatsApp traz, NO TOPO (logo depois da saudação),
   a apresentação do painel (centro de comunicação com a organização: arquivos, fotos do combo, formulários, atualizar e
   conferir dados), o link `/painel/`, o usuário (`participantes.slug`) e a senha. A página `/preencher/` ganhou o mesmo
-  aviso no fim (`#pr-painel`), **sem usuário nem senha**: a página abre só com o código do link. A senha temporária NÃO é
+  aviso no topo (`#pr-painel`), **sem usuário nem senha**: a página abre só com o código do link. A senha temporária NÃO é
   guardada (aparece uma vez, na tela que a cria), então `painelDaMarca` só a escreve se a credencial acabou de ser criada
   na tela; quem já recebeu a sua leva "a que enviamos na mensagem do seu acesso"; quem já trocou, "a que você criou".
   Em Participantes › Preenchimento, "Gerar senhas de N marcas e copiar" (`marca.liberar`) cria o acesso de quem não tem
-  (`criar-acesso-marca`) e gera senha temporária NOVA para quem ainda não trocou a sua (`regerar-senha-conta`), pelo
+  (`criar-acesso-marca`) e gera senha temporária NOVA para quem já tem (`regerar-senha-conta`; inclui as 2 contas de teste do Wilker, que já tinham trocado a senha), pelo
   `emitirCredenciais`, e copia as mensagens já com a senha; a credencial fica só em memória da tela. Fora do lote
-  (`entraNoLoteDeSenhas`): quem já definiu a própria senha, acesso bloqueado/desativado, marca encerrada, sem link e quem
-  acabou de ganhar senha na tela.
-  ⛔ Não regerar senha de quem já tem acesso só para pôr na mensagem (invalida a que foi enviada e derruba sessões).
+  (`entraNoLoteDeSenhas`): acesso bloqueado/desativado, marca encerrada, sem link e quem acabou de ganhar senha na tela.
+  A marca entra com a senha temporária e o painel já pede para ela criar a própria (`deve_trocar_senha`).
+  ⚠️ Gerar senha nova invalida a anterior e derruba as sessões abertas: só pelo botão, com a confirmação.
 

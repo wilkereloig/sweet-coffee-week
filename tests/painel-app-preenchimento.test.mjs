@@ -211,7 +211,8 @@ test('painel: a mensagem fecha com a explicação, o link e as credenciais que a
   assert.ok(novo.includes('arquivos') && novo.includes('fotos do seu combo') && novo.includes('formulários') && novo.includes('atualiza seus dados'))
   assert.ok(novo.includes('Acesse: ' + ORIGEM + '/painel/'))
   assert.ok(novo.includes('Usuário: parmadoces') && novo.includes('Senha temporária: AbC-123'))
-  assert.ok(novo.indexOf('Painel SCW') > novo.indexOf('obrigatório e urgente'), 'o painel vem no final, depois do prazo')
+  assert.ok(novo.indexOf('Painel SCW') > novo.indexOf('Aqui é da organização') && novo.indexOf('Painel SCW') < novo.indexOf('A edição Cartoon'), 'o painel vem no topo, logo depois da saudação')
+  assert.ok(novo.includes('o painel pede para você criar a sua senha'))
   // sem painel a mensagem é a de antes
   assert.ok(!textoPreenchimento(MSG).includes('Painel SCW'))
 })
@@ -229,20 +230,19 @@ test('painel: senha só aparece se estiver na mão — nunca inventada nem repet
   assert.equal(textoPainel(null), '')
 })
 
-test('página pública: aviso do painel no fim, sem usuário nem senha (a página abre só com o código do link)', () => {
-  const secao = PAGINA.slice(PAGINA.indexOf('id="pr-painel"'), PAGINA.indexOf('</main>'))
+test('página pública: aviso do painel no topo, sem usuário nem senha (a página abre só com o código do link)', () => {
+  const secao = PAGINA.slice(PAGINA.indexOf('id="pr-painel"'), PAGINA.indexOf('</section>', PAGINA.indexOf('id="pr-painel"')))
   assert.ok(secao.includes('centro de comunicação com a organização') && secao.includes('href="/painel/"'))
   assert.ok(!/senha\s*[:=]|usuário\s*:/i.test(secao), 'nenhuma credencial na página')
-  assert.ok(PAGINA.indexOf('id="pr-painel"') > PAGINA.indexOf('</form>'), 'fica depois do formulário, também visível após o envio')
-  const html = PAGINA.slice(0, PAGINA.indexOf('<script'))
-  assert.ok(html.indexOf('id="pr-painel"') > html.indexOf('id="pr-conteudo"') && html.indexOf('id="pr-painel"') < html.indexOf('</main>'))
+  assert.ok(PAGINA.indexOf('id="pr-painel"') < PAGINA.indexOf('id="pr-estado"'), 'fica NO TOPO, antes do estado e do formulário (visível também após o envio)')
+  assert.ok(PAGINA.indexOf('<main>') < PAGINA.indexOf('id="pr-painel"'))
 })
 
-test('lote de senhas: só quem ainda tem a temporária (ou não tem conta); nunca quem trocou, pausado, encerrado ou recém-gerado', () => {
+test('lote de senhas: toda marca ativa com link; nunca acesso pausado, encerrada, sem link ou recém-gerada', () => {
   const m = { codigo: 'c', status_cadastro: 'aguardando_cadastro' }
   assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: null, status: 'nao_criado' } }), true, 'sem conta: cria')
   assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null, status: 'aguardando_primeiro_acesso' } }), true, 'temporária ainda valendo: gera outra')
-  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: '2026-10-01', status: 'ativo' } }), false, 'já definiu a própria senha')
+  assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: '2026-10-01', status: 'ativo' } }), true, 'inclui até quem já trocou (pedido do Wilker: contas de teste)')
   assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null, status: 'bloqueado' } }), false)
   assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null, status: 'desativado' } }), false)
   assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: { user_id: 'u', senha_trocada_em: null }, cred: { senha: 'x' } }), false, 'acabou de ganhar senha: não gerar de novo')
