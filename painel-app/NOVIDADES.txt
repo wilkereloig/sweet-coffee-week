@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Biblioteca: dá para apagar e restaurar artes, e os arquivos soltos foram organizados em pastas.
+Biblioteca: a pasta mostra só os arquivos que estão nela de verdade (sem contar os apagados).

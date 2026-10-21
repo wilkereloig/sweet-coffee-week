@@ -1189,6 +1189,11 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   anterior (`substituida`) não se apaga nem restaura. Na tela: "Apagar" na prévia e "Apagar…" na seleção (confirmação em
   laranja, `confirmar(…, { perigo: true })`); as apagadas ficam em Filtros › Situação › "Artes apagadas", onde aparece
   "Restaurar". Até 200 por vez. O sinal de sincronização é `['biblioteca', 'redes']` (já havia gatilho em `redes_arquivos`).
+  🐛 **Contagem da pasta = o que a pasta mostra** (21/10/2026, migration `20261024_social_pastas_contagem.sql`, ✅ aplicada): o cartão dizia
+  "84 arquivos" e a pasta tinha 30 — `n_itens` contava toda linha de `social_biblioteca_pasta_item`, inclusive arte já removida da postagem e a
+  mesma arte repetida (mesmo caminho). `social_pastas_listar` agora devolve `n_itens` (disponíveis, uma arte por caminho) e `n_itens_todos` (bruto);
+  arquivar pasta decide a confirmação por `n_itens_todos`. ⚠️ Quem mexer em `social_biblioteca` (o que conta como "disponível") tem que mexer
+  também em `social_item_disponivel`, senão o número do cartão volta a divergir da lista.
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram

@@ -382,9 +382,12 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
   }
   async function arquivar(p) {
     const destino = p.pai_id ? '“' + (idx.porId.get(p.pai_id) || {}).nome + '”' : 'o primeiro nível da Biblioteca (os arquivos, para “Sem pasta”)'
-    const cheia = Number(p.n_itens) > 0 || Number(p.n_pastas) > 0
+    // `n_itens` é o que a pasta MOSTRA; `n_itens_todos` inclui arte apagada, que também sobe de pasta (e decide a confirmação).
+    const todos = Number(p.n_itens_todos ?? p.n_itens)
+    const apagadas = Math.max(0, todos - Number(p.n_itens))
+    const cheia = todos > 0 || Number(p.n_pastas) > 0
     const texto = cheia
-      ? 'Arquivar “' + p.nome + '”? ' + Number(p.n_pastas) + ' subpasta(s) e ' + Number(p.n_itens) + ' arquivo(s) vão para ' + destino + '. Nenhum arquivo é apagado.'
+      ? 'Arquivar “' + p.nome + '”? ' + Number(p.n_pastas) + ' subpasta(s) e ' + Number(p.n_itens) + ' arquivo(s)' + (apagadas ? ' (mais ' + apagadas + ' já apagado' + (apagadas === 1 ? '' : 's') + ')' : '') + ' vão para ' + destino + '. Nenhum arquivo é apagado.'
       : 'Arquivar “' + p.nome + '”? Ela está vazia. Nenhum arquivo é apagado.'
     if (!(await confirmar(texto, { acao: 'Arquivar pasta' }))) return
     try {

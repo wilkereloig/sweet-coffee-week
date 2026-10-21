@@ -723,6 +723,17 @@ test('biblioteca: apagar e restaurar arte (só arte, redes.gerir, nada sai do St
   assert.doesNotMatch(BIB.slice(BIB.indexOf('async function apagar(')), /window\.confirm/)
 })
 
+test('pastas: o número do cartão é o que a pasta mostra (disponível, uma arte por caminho); arquivar usa a conta bruta', () => {
+  const SQLC = ler('supabase/migrations/20261024_social_pastas_contagem.sql')
+  assert.match(SQLC, /function public\.social_item_disponivel\(p_tipo text, p_id uuid\)/)
+  assert.match(SQLC, /a\.removido_em is null/, 'arte apagada não conta')
+  assert.match(SQLC, /'arte:' \|\| a\.path/, 'a mesma arte em duas postagens conta uma vez')
+  assert.match(SQLC, /'n_itens_todos'/)
+  assert.match(SQLC, /redes_exigir\(p_secret, 'redes\.ver'\)/)
+  assert.doesNotMatch(SQLC, /drop |delete from/i)
+  assert.match(BIB, /n_itens_todos \?\? p\.n_itens/, 'arquivar pasta decide pela conta bruta')
+})
+
 test('revisão da entrega: nada falha calado, resposta velha não sobrescreve, pasta herdada na versão nova', () => {
   const SQLP = ler('supabase/migrations/20261019_social_pastas.sql')
   // Organizar em série (sem ciclo nem destino arquivado em corrida); corte da lista pelos mais recentes.
