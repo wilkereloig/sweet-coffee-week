@@ -12,6 +12,8 @@ import { useUrlsAssinadas, prepararArquivo, enviarArquivo, chaveFonte, urlDe } f
 import { Miniatura, traduzirRedes } from './RedesFicha'
 import { useEntrega, EstadoEntrega, BotoesEntrega } from './BaixarArquivo'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import * as A from '../../lib/arrastar'
+import { useArrasto, FantasmaArrasto } from '../../lib/arrastarReact'
 
 /*
  * Social media › Biblioteca (17/10/2026; PASTAS em 17/10/2026). Uma lista só,
@@ -68,12 +70,14 @@ const semPastasNoServidor = (m) => /social_pastas|schema cache|does not exist|ai
  * prévia), participante; tipo em linha discreta; situação só quando informa.
  * O cartão abre a prévia; "Baixar" fica à vista. Nada clicável aninhado.
  */
-function CartaoMaterial({ x, urls, renovar, onAbrir, selecionando, marcado, onMarcar, acao, ondeEsta }) {
+function CartaoMaterial({ x, urls, renovar, onAbrir, selecionando, marcado, onMarcar, acao, ondeEsta, onArrastar, arrastando }) {
   const t = TIPO[x.tipo] || {}
   const [sit, tom] = SITUACAO_BIB[x.situacao] || [x.situacao, 'neutro']
   const detalhes = [t.rotulo || x.tipo, x.vinculo !== 'Biblioteca' ? x.vinculo : null, x.largura && x.altura ? x.largura + '×' + x.altura : null].filter(Boolean).join(' · ')
+  // Arrastar para uma pasta: o mouse pega o cartão; o toque, só a alça (a rolagem da lista não é roubada).
   return (
-    <li className="bb-arq" data-tipo={x.tipo} data-marcado={marcado ? '1' : undefined}>
+    <li className={'bb-arq' + (onArrastar ? ' bb-arq--arrastavel' : '')} data-tipo={x.tipo} data-marcado={marcado ? '1' : undefined} data-arrastando={arrastando ? '1' : undefined}
+      onPointerDown={onArrastar ? (e) => onArrastar(e, x, false) : undefined} onDragStart={onArrastar ? (e) => e.preventDefault() : undefined}>
       {selecionando && (
         <label className="bb-arq__marca">
           <input type="checkbox" checked={marcado} onChange={() => onMarcar(x)} />
@@ -96,6 +100,12 @@ function CartaoMaterial({ x, urls, renovar, onAbrir, selecionando, marcado, onMa
           )}
         </span>
       </button>
+      {onArrastar && (
+        <button type="button" className="bb-arq__alca" tabIndex={-1} aria-hidden="true" title="Arraste até uma pasta"
+          onPointerDown={(e) => { e.stopPropagation(); onArrastar(e, x, true) }}>
+          <Icone nome="menu" tamanho={18} />
+        </button>
+      )}
       {!selecionando && acao && <div className="bb-arq__acoes">{acao}</div>}
     </li>
   )
@@ -292,6 +302,10 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
   const podeOrganizar = comPastas && !!pastasR.pode_organizar && !seletor
   // Apagar não depende das pastas (é a mesma permissão de organizar, redes.gerir; o banco confere de novo).
   const podeApagar = !seletor && !!pode('redes.gerir')
+  // Arrastar arquivo até uma pasta (mouse: o cartão; toque: a alça) = "Mover para…"; só quem organiza e com pastas no servidor.
+  const arrastar = useArrasto({ ativo: podeOrganizar, aoSoltar: soltarEm })
+  const sobre = arrastar.arrasto ? arrastar.arrasto.sobre : null
+  const alvo = (id) => (sobre === id ? '1' : undefined)
   const pastas = React.useMemo(() => (pastasR && pastasR.pastas) || [], [pastasR])
   const idx = React.useMemo(() => P.indexar(pastas), [pastas])
   const local = estado.pasta || ''
@@ -397,6 +411,14 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       recarregarTudo()
     } catch (e) { setAviso(traduzir(e.message)) }
   }
+  // Mover materiais: o diálogo "Mover para…" e o arrastar até uma pasta fazem exatamente isto.
+  async function moverItens(itens, destinoId) {
+    await rpc('social_biblioteca_mover', { p_secret: lerSenha(), p_itens: itens.map(P.refItem), p_pasta: destinoId })
+    const pasta = destinoId ? idx.porId.get(destinoId) : null
+    setAviso(itens.length + (itens.length === 1 ? ' arquivo movido' : ' arquivos movidos') + ' para ' + (destinoId ? '“' + (pasta ? pasta.nome : 'a pasta') + '”' : '“Sem pasta”') + '.')
+    setMarcados(new Map()); setSelecionando(false)
+    if (estado.ver) mudar({ ver: undefined })
+  }
   async function moverPara(destinoId) {
     const m = mover
     setMover(null)
@@ -404,14 +426,12 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       if (m.pasta) {
         await rpc('social_pasta_mover', { p_secret: lerSenha(), p_id: m.pasta.id, p_destino: destinoId })
         setAviso('“' + m.pasta.nome + '” agora está em ' + P.textoCaminho(idx.porId, destinoId) + '.')
-      } else {
-        await rpc('social_biblioteca_mover', { p_secret: lerSenha(), p_itens: m.itens.map(P.refItem), p_pasta: destinoId })
-        setAviso(m.itens.length + (m.itens.length === 1 ? ' arquivo movido' : ' arquivos movidos') + ' para ' + (destinoId ? '“' + idx.porId.get(destinoId).nome + '”' : '“Sem pasta”') + '.')
-        setMarcados(new Map()); setSelecionando(false)
-        if (estado.ver) mudar({ ver: undefined })
-      }
+      } else await moverItens(m.itens, destinoId)
       recarregarTudo()
     } catch (e) { setAviso(traduzir(e.message)) }
+  }
+  async function soltarEm(itens, destinoId) {
+    try { await moverItens(itens, destinoId); recarregarTudo() } catch (e) { setAviso(traduzir(e.message)) }
   }
   // ── Apagar e restaurar arte final (só `arte`; arquivo nenhum sai do Storage — dá para restaurar) ──
   async function apagar(its) {
@@ -470,11 +490,11 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
         )}
         {(local || buscando) && <nav className="bb-caminho" aria-label="Caminho da pasta">
           <ol>
-            <li>{local || buscando ? <button type="button" className="rd-link" onClick={() => irPara('')}>Biblioteca</button> : <span aria-current="page">Biblioteca</span>}</li>
+            <li>{local || buscando ? <button type="button" className="rd-link" data-alvo-pasta={A.RAIZ} data-alvo={alvo(A.RAIZ)} onClick={() => irPara('')}>Biblioteca</button> : <span aria-current="page">Biblioteca</span>}</li>
             {!buscando && local === 'sem' && <li><span aria-current="page">Sem pasta</span></li>}
             {!buscando && local === 'recentes' && <li><span aria-current="page">Recentes</span></li>}
             {!buscando && trilha.map((p, i) => (
-              <li key={p.id}>{i === trilha.length - 1 ? <span aria-current="page">{p.nome}</span> : <button type="button" className="rd-link" onClick={() => irPara(p.id)}>{p.nome}</button>}</li>
+              <li key={p.id}>{i === trilha.length - 1 ? <span aria-current="page">{p.nome}</span> : <button type="button" className="rd-link" data-alvo-pasta={p.id} data-alvo={alvo(p.id)} onClick={() => irPara(p.id)}>{p.nome}</button>}</li>
             ))}
             {buscando && <li><span aria-current="page">Busca</span></li>}
           </ol>
@@ -483,7 +503,8 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       {comPastas && (
         <div className="bb-atalhos" role="group" aria-label="Acesso rápido">
           {[['', 'Biblioteca', 'inicio'], ['sem', 'Sem pasta', 'pasta'], ['recentes', 'Recentes', 'horario']].map(([k, r, i]) => (
-            <button key={r} type="button" className="bb-atalho" aria-pressed={!buscando && !soDoParticipante && local === k} onClick={() => irPara(k)}><Icone nome={i} tamanho={16} />{r}</button>
+            <button key={r} type="button" className="bb-atalho" aria-pressed={!buscando && !soDoParticipante && local === k} onClick={() => irPara(k)}
+              {...(k === 'recentes' ? {} : { 'data-alvo-pasta': A.RAIZ, 'data-alvo': alvo(A.RAIZ) })}><Icone nome={i} tamanho={16} />{r}</button>
           ))}
         </div>
       )}
@@ -593,7 +614,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
           <h3 id={'bb-pastas-' + modo} className="bb-secao__titulo">{buscando ? 'Pastas encontradas' : 'Pastas'} ({subpastas.length})</h3>
           <ul className="bb-pastas">
             {subpastas.map((p) => (
-              <li key={p.id} className="bb-pasta">
+              <li key={p.id} className="bb-pasta" data-alvo-pasta={podeOrganizar ? p.id : undefined} data-alvo={alvo(p.id)}>
                 <button type="button" className="bb-pasta__abrir" onClick={() => irPara(p.id)}>
                   <span className="bb-pasta__icone" aria-hidden="true"><Icone nome="pasta" tamanho={20} /></span>
                   <span className="bb-pasta__corpo">
@@ -637,6 +658,8 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
                 <CartaoMaterial key={P.chaveItem(x)} x={x} urls={urls} renovar={renovar}
                   ondeEsta={(buscando || local === 'recentes' || soDoParticipante) && comPastas ? (x.pasta_id ? P.textoCaminho(idx.porId, x.pasta_id) : 'Sem pasta') : null}
                   selecionando={selecionando} marcado={marcados.has(P.chaveItem(x))} onMarcar={marcar}
+                  onArrastar={podeOrganizar ? (e, it, alca) => arrastar.iniciar(e, A.itensDoArrasto(it, marcados, selecionando, P.chaveItem), { alca }) : undefined}
+                  arrastando={!!arrastar.arrasto && arrastar.arrasto.itens.some((i) => P.chaveItem(i) === P.chaveItem(x))}
                   onAbrir={(it) => { if (!seletor) mudar({ ver: P.chaveItem(it) }, { empilhar: true }) }}
                   acao={seletor
                     ? <Botao variante={usado ? 'secundario' : 'destaque'} icone={usado ? 'feito' : 'mais'} disabled={usado || ocupado} onClick={() => onEscolher(x)}>{usado ? 'Já na postagem' : 'Usar nesta postagem'}</Botao>
@@ -689,6 +712,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
           onEscolher={moverPara} onFechar={() => setMover(null)} />
       )}
       {vincular && <VincularPasta pasta={vincular} opcoes={opcoes} onSalvar={(d) => salvarVinculo(vincular, d)} onFechar={() => setVincular(null)} />}
+      <FantasmaArrasto arrasto={arrastar.arrasto} />
     </div>
   )
 }

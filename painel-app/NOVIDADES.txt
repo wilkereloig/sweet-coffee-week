@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Biblioteca: a pasta mostra só os arquivos que estão nela de verdade (sem contar os apagados).
+Biblioteca: dá para arrastar um arquivo até uma pasta (no celular, pela alça do cartão).

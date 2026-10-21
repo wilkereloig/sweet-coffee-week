@@ -2400,6 +2400,16 @@ p.fg-vazio{margin:0}
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do
    `prefers-reduced-motion` sem ninguém notar. */
+/* Biblioteca › arrastar arquivo até uma pasta (21/10/2026). Mouse pega o cartão; toque, só a alça
+   (`touch-action:none` ali: a rolagem da lista continua livre no resto do cartão). */
+.bb-arq--arrastavel .bb-arq__abrir{padding-right:44px}
+.bb-arq__alca{position:absolute;top:6px;right:6px;z-index:1;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:var(--r-1);background:var(--sup-1);color:var(--scw-marrom);box-shadow:var(--contorno);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.bb-arq[data-arrastando]{opacity:.45}
+body[data-arrastando]{user-select:none;-webkit-user-select:none;cursor:grabbing}
+body[data-arrastando] [data-alvo-pasta]{outline:2px dashed var(--scw-marrom);outline-offset:2px}
+body[data-arrastando] [data-alvo-pasta][data-alvo]{outline:3px solid var(--scw-choco);background:var(--scw-amarelo)}
+.bb-fantasma{position:fixed;z-index:9999;pointer-events:none;display:inline-flex;align-items:center;gap:6px;max-width:min(80vw,320px);padding:8px 12px;border-radius:var(--r-2);background:var(--scw-choco);color:var(--scw-creme);font:700 14px/1.2 var(--f-ui);box-shadow:var(--sombra-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bb-fantasma[data-sobre]{background:var(--scw-verde);color:var(--scw-choco)}
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
   .og-btn:hover,.acao:hover,button.og-cartao:hover,.og-slot:hover,button.ui-numero:hover,.pn-setor--escolha:hover,

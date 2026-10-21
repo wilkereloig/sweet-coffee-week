@@ -1194,6 +1194,17 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   mesma arte repetida (mesmo caminho). `social_pastas_listar` agora devolve `n_itens` (disponíveis, uma arte por caminho) e `n_itens_todos` (bruto);
   arquivar pasta decide a confirmação por `n_itens_todos`. ⚠️ Quem mexer em `social_biblioteca` (o que conta como "disponível") tem que mexer
   também em `social_item_disponivel`, senão o número do cartão volta a divergir da lista.
+- **Arrastar arquivo até uma pasta** (21/10/2026, pedido do Wilker). Soltar numa pasta é a MESMA operação de "Mover para…"
+  (`moverItens` → `social_biblioteca_mover`, só uma chamada no arquivo; sem migration). Por PONTEIRO, não pelo arrastar nativo do HTML5
+  (que não existe no celular): `lib/arrastar.js` (lógica pura: `destinoValido`, `itensDoArrasto`, rolagem) + `lib/arrastarReact.jsx`
+  (`useArrasto`, `FantasmaArrasto`). **Mouse pega o cartão inteiro** (o clique simples continua abrindo a prévia: só vira arrasto depois de
+  mexer 6 px, e o clique que o navegador dispara ao soltar é engolido); **toque só pela alça** (`.bb-arq__alca`, `touch-action:none` ali)
+  para a rolagem da lista seguir livre. Alvos = elementos com `data-alvo-pasta` (id da pasta ou `raiz`): cartão da pasta, atalhos
+  Biblioteca/Sem pasta e o caminho; "Recentes" não é alvo. Arrastar um arquivo MARCADO leva a seleção inteira. Perto da borda do quadro
+  que rola (`.og-vista`) a lista rola sozinha; Esc cancela. A etiqueta que segue o dedo vai por portal ao `<body>`. Só quem organiza
+  (`redes.gerir`, com as pastas ativas); o teclado segue com Selecionar + Mover…. ⚠️ Elemento novo que deva ser alvo precisa de
+  `data-alvo-pasta`. Teste no navegador, mouse e toque de verdade (CDP): `node tests/painel-biblioteca-arrastar-navegador.mjs`
+  (rodar de dentro de `tests/`); lógica em `tests/painel-app-arrastar.test.mjs`.
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram
