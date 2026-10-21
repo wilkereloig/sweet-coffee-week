@@ -4,6 +4,7 @@
  *
  *   node tests/painel-biblioteca-arrastar-navegador.mjs        (rodar de dentro de `tests/`: o Playwright mora lá)
  *
+ * Também cobre a COR da pasta (escolher na paleta, marcar a atual, voltar ao padrão).
  * Cobre: soltar na pasta move (mesma RPC de "Mover para…"); clique simples ainda abre a prévia; soltar fora e Esc
  * não movem; seleção arrasta junto; atalho "Sem pasta"/caminho como alvo; toque só pela alça (corpo do cartão não
  * arrasta); sem `redes.gerir` não há alça nem arrasto.
@@ -43,6 +44,8 @@ function montar(permissoes) {
   const b = criarBackend(); const rt = criarRealtime()
   const onde = new Map(ITENS.map((x) => [x.id, null])) // id → pasta
   const movidos = []
+  const editadas = []
+  const pastas = PASTAS.map((p) => ({ ...p }))
   b.rpcs.minhas_permissoes = () => [{ acoes: permissoes, funcao: 'administrador', rotulo: 'Administrador', ativo: true, deve_trocar_senha: false }]
   b.rpcs.meu_perfil = () => ({ user_id: UID, nome: 'Admin Teste', funcao: 'administrador', funcao_rotulo: 'Administrador' })
   b.rpcs.equipe_diretorio = () => [{ user_id: UID, nome: 'Admin Teste', funcao: 'administrador', funcao_rotulo: 'Administrador', avatar_path: null }]
@@ -50,7 +53,7 @@ function montar(permissoes) {
   b.rpcs.sync_meus_canais = () => ['scw:org', 'scw:social', 'scw:pessoa:' + UID]
   b.rpcs.get_notificacoes_org = () => []
   b.rpcs.redes_opcoes = () => ({ participantes: [], edicoes: [] })
-  b.rpcs.social_pastas_listar = () => ({ pode_organizar: permissoes.includes('redes.gerir'), pastas: PASTAS.map((p) => ({ ...p, n_itens: [...onde.values()].filter((v) => v === p.id).length })) })
+  b.rpcs.social_pastas_listar = () => ({ pode_organizar: permissoes.includes('redes.gerir'), pastas: pastas.map((p) => ({ ...p, n_itens: [...onde.values()].filter((v) => v === p.id).length })) })
   b.rpcs.social_biblioteca = (c) => {
     const f = (c && c.p_filtros) || {}
     return ITENS.filter((x) => (f.pasta === 'sem' ? onde.get(x.id) === null : f.pasta ? onde.get(x.id) === f.pasta : true)).map((x) => ({ ...x, pasta_id: onde.get(x.id) }))
@@ -60,7 +63,13 @@ function montar(permissoes) {
     for (const i of c.p_itens) onde.set(i.id, c.p_pasta)
     return { movidos: c.p_itens.length, pasta_id: c.p_pasta }
   }
-  return { b, rt, movidos, onde }
+  b.rpcs.social_pasta_editar = (c) => {
+    editadas.push(c)
+    const p = pastas.find((x) => x.id === c.p_id)
+    if (c.p_dados && 'cor' in c.p_dados) p.cor = c.p_dados.cor || null
+    return p
+  }
+  return { b, rt, movidos, editadas, onde }
 }
 
 /* O tour guiado e o convite do aparelho abrem sozinhos nos primeiros segundos e cobrem a tela: dispensa, como a pessoa faria. */
@@ -151,6 +160,33 @@ async function principal() {
       await page.waitForSelector('.bb-arq', { timeout: 5000 })
       await arrastarMouse(page, page.locator('.bb-arq').first(), page.locator('.bb-atalho', { hasText: 'Sem pasta' }))
       ok(movidos.length === 3 && movidos[2].pasta === null, 'soltar em "Sem pasta" tira o arquivo da pasta (' + JSON.stringify(movidos[2]) + ')')
+      ok(erros.length === 0, 'sem erro de JavaScript (' + erros.join(' | ').slice(0, 200) + ')')
+      await ctx.close()
+    }
+
+    console.log('cor da pasta')
+    {
+      const { ctx, page, editadas, erros } = await abrir(nav, [...BASE_PERMISSOES, 'redes.gerir'], { viewport: { width: 1280, height: 900 } })
+      const disco = (nome) => page.locator('.bb-pasta', { hasText: nome }).locator('.bb-pasta__icone')
+      const fundo = (nome) => disco(nome).evaluate((e) => getComputedStyle(e).backgroundColor)
+      const antes = await fundo('Pasta Um')
+      await page.locator('.bb-pasta', { hasText: 'Pasta Um' }).locator('summary').click()
+      await page.locator('.bb-pasta', { hasText: 'Pasta Um' }).locator('.ui-mais-acoes__item', { hasText: 'Cor da pasta…' }).click()
+      await page.getByRole('radio', { name: 'Roxo' }).click()
+      await dormir(700)
+      ok(editadas.length === 1 && editadas[0].p_id === 'p1' && editadas[0].p_dados.cor === 'roxo', 'escolher Roxo chama social_pasta_editar só com a cor (' + JSON.stringify(editadas) + ')')
+      const roxo = await fundo('Pasta Um')
+      ok(roxo === 'rgb(77, 37, 126)' && roxo !== antes, 'o disco da pasta fica roxo (era ' + antes + ', ficou ' + roxo + ')')
+      ok(await fundo('Pasta Dois') === antes, 'a outra pasta não muda')
+      ok((await page.locator('.og-aviso[role=status]').first().textContent()).includes('Cor da pasta “Pasta Um”: Roxo.'), 'avisa a cor escolhida')
+      // reabrir: Roxo vem marcado; "Padrão" volta ao acento do módulo
+      await page.locator('.bb-pasta', { hasText: 'Pasta Um' }).locator('summary').click()
+      await page.locator('.bb-pasta', { hasText: 'Pasta Um' }).locator('.ui-mais-acoes__item', { hasText: 'Cor da pasta…' }).click()
+      ok(await page.getByRole('radio', { name: 'Roxo' }).getAttribute('aria-checked') === 'true', 'a cor atual aparece marcada ao reabrir')
+      await page.getByRole('radio', { name: 'Padrão' }).click()
+      await dormir(700)
+      ok(editadas.length === 2 && editadas[1].p_dados.cor === '', 'Padrão manda cor vazia')
+      ok(await fundo('Pasta Um') === antes, 'sem cor, o disco volta ao acento do módulo')
       ok(erros.length === 0, 'sem erro de JavaScript (' + erros.join(' | ').slice(0, 200) + ')')
       await ctx.close()
     }

@@ -1205,6 +1205,13 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   (`redes.gerir`, com as pastas ativas); o teclado segue com Selecionar + Mover…. ⚠️ Elemento novo que deva ser alvo precisa de
   `data-alvo-pasta`. Teste no navegador, mouse e toque de verdade (CDP): `node tests/painel-biblioteca-arrastar-navegador.mjs`
   (rodar de dentro de `tests/`); lógica em `tests/painel-app-arrastar.test.mjs`.
+- **Cor da pasta** (21/10/2026, pedido do Wilker). Migration `20261025_social_pastas_cor.sql` (✅ aplicada pelo MCP `supabase-scw`; só acrescenta a
+  coluna `social_pastas.cor` + as MESMAS três funções com `cor`) e teste `tests/painel-app-pastas-cor.test.mjs`. A cor é uma chave da PALETA da marca
+  (`CORES_PASTA` em `lib/pastas.js` = `social_pastas_cor_check`: amarelo, laranja, magenta, roxo, ciano, verde, marrom) — **nunca cor livre**: o
+  teste reprova divergência com o banco e exige contraste de ícone ≥ 3:1 (creme sobre roxo/marrom/magenta, chocolate sobre o resto). Sem cor, a pasta
+  usa o acento do módulo (como antes). Menu da pasta › "Cor da pasta…" abre o seletor (`CorDaPasta`, radiogroup); "Padrão" manda cor vazia. A cor
+  aparece no disco da pasta, num ponto no título da pasta aberta e na lista "Mover para…". Subpasta NÃO herda a cor da pasta-mãe (decisão simples;
+  herdar é possível depois). Cenário no navegador em `tests/painel-biblioteca-arrastar-navegador.mjs`.
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram

@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Biblioteca: dá para arrastar um arquivo até uma pasta (no celular, pela alça do cartão).
+Biblioteca: cada pasta pode ter uma cor da paleta da marca (menu da pasta › Cor da pasta).

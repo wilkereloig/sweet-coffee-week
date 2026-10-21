@@ -58,6 +58,7 @@ const ERROS_PASTA = {
   pasta_arquivada: 'Essa pasta foi arquivada. Atualize a biblioteca.', pasta_inexistente: 'Essa pasta não existe mais. Atualize a biblioteca.',
   pasta_com_conteudo: 'A pasta tem conteúdo: confirme para onde ele vai.', nada_selecionado: 'Nada selecionado.',
   selecao_grande: 'Mova até 500 materiais de cada vez.',
+  cor_invalida: 'Essa cor não está na paleta da marca. Escolha uma das cores da lista.',
   tipo_nao_apagavel: 'Só arte final se apaga por aqui. Logo, foto e material da campanha têm o arquivamento deles (no participante e em Arquivos).',
 }
 const LIMITE_APAGAR = 200 // o mesmo teto de social_biblioteca_apagar
@@ -125,7 +126,7 @@ function MoverPara({ aberto, titulo, pastas, moverPasta = null, atual = null, on
         {destinos.map((d) => (
           <li key={d.id}>
             <button type="button" className="bb-destino" style={{ '--nivel': d.nivel }} disabled={d.proibida || d.id === atual} onClick={() => onEscolher(d.id)}>
-              <Icone nome="pasta" tamanho={16} />{d.nome}
+              <Icone nome="pasta" tamanho={16} />{P.corValida(d.cor) && <span className="bb-ponto" style={P.estiloPasta(d.cor)} aria-hidden="true" />}{d.nome}
               {d.id === atual && <span className="bb-destino__nota"> · onde está</span>}
               {d.proibida && <span className="bb-destino__nota"> · é a pasta que está sendo movida (ou está dentro dela)</span>}
             </button>
@@ -181,6 +182,28 @@ function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, podeApagar, onMo
           {x.criado_por_rotulo && <div><dt>Enviado por</dt><dd><Autor id={x.criado_por_id} rotulo={x.criado_por_rotulo} tamanho={20} /> · {R.quandoTexto(x.criado_em)}</dd></div>}
         </dl>
       </div>
+    </Folha>
+  )
+}
+
+/** "Cor da pasta": só a paleta da marca (sem cor livre — contraste e coerência garantidos). Ajuda a achar a pasta de relance. */
+function CorDaPasta({ pasta, onEscolher, onFechar }) {
+  return (
+    <Folha aberto titulo={'Cor da pasta “' + pasta.nome + '”'} sub="Só ajuda a achar a pasta de relance: os arquivos e as postagens não mudam." onFechar={onFechar}>
+      <ul className="bb-cores" role="radiogroup" aria-label="Cor da pasta">
+        <li>
+          <button type="button" role="radio" aria-checked={!P.corValida(pasta.cor)} className="bb-cor" onClick={() => onEscolher(null)}>
+            <span className="bb-cor__amostra" aria-hidden="true"><Icone nome={P.corValida(pasta.cor) ? 'pasta' : 'feito'} tamanho={20} /></span>Padrão
+          </button>
+        </li>
+        {P.CORES_PASTA.map((c) => (
+          <li key={c.chave}>
+            <button type="button" role="radio" aria-checked={pasta.cor === c.chave} className="bb-cor" onClick={() => onEscolher(c.chave)}>
+              <span className="bb-cor__amostra" style={P.estiloPasta(c.chave)} aria-hidden="true"><Icone nome={pasta.cor === c.chave ? 'feito' : 'pasta'} tamanho={20} /></span>{c.rotulo}
+            </button>
+          </li>
+        ))}
+      </ul>
     </Folha>
   )
 }
@@ -256,6 +279,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
   const [marcados, setMarcados] = React.useState(() => new Map())
   const [mover, setMover] = React.useState(null) // { itens } | { pasta }
   const [vincular, setVincular] = React.useState(null)
+  const [corDe, setCorDe] = React.useState(null) // pasta cuja cor está sendo escolhida
   const [aviso, setAviso] = React.useState('')
   const [soDele, setSoDele] = React.useState(!!participanteId)
   const entrega = useEntrega()
@@ -466,6 +490,15 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       recarregarTudo()
     } catch (e) { setAviso(traduzir(e.message)) }
   }
+  async function definirCor(p, cor) {
+    setCorDe(null)
+    if ((cor || null) === (P.corValida(p.cor) ? p.cor : null)) return
+    try {
+      await rpc('social_pasta_editar', { p_secret: lerSenha(), p_id: p.id, p_dados: { cor: cor || '' } })
+      setAviso(cor ? 'Cor da pasta “' + p.nome + '”: ' + P.rotuloCor(cor) + '.' : 'Pasta “' + p.nome + '” voltou à cor padrão.')
+      carregarPastas()
+    } catch (e) { setAviso(traduzir(e.message)) }
+  }
   async function salvarVinculo(p, dados) {
     setVincular(null)
     try { await rpc('social_pasta_editar', { p_secret: lerSenha(), p_id: p.id, p_dados: dados }); setAviso('Vínculo da pasta salvo.'); carregarPastas() }
@@ -474,6 +507,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
 
   const acoesPasta = (p) => [
     { rotulo: 'Renomear', icone: 'editar', onClick: () => renomear(p) },
+    { rotulo: 'Cor da pasta…', icone: 'estrela', onClick: () => setCorDe(p) },
     { rotulo: 'Vincular a edição ou participante', icone: 'ficha', onClick: () => setVincular(p) },
     { rotulo: 'Mover para…', icone: 'pasta', onClick: () => setMover({ pasta: p }) },
     { rotulo: 'Arquivar', icone: 'arquivar', perigo: true, onClick: () => arquivar(p) },
@@ -563,7 +597,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       {/* A pasta aberta: nome, vínculo e o que dá para fazer com ela. */}
       <div className="bb-cabeca">
         <div className="bb-cabeca__titulos">
-          <h2 className="bb-cabeca__titulo">{tituloLocal}</h2>
+          <h2 className="bb-cabeca__titulo">{pastaAtual && P.corValida(pastaAtual.cor) && <span className="bb-ponto" style={P.estiloPasta(pastaAtual.cor)} aria-hidden="true" />}{tituloLocal}</h2>
           {pastaAtual && (pastaAtual.edicao_codigo || pastaAtual.participante_nome) && (
             <p className="bb-cabeca__vinculo">{[pastaAtual.edicao_codigo && 'Edição ' + pastaAtual.edicao_codigo, pastaAtual.participante_nome].filter(Boolean).join(' · ')}</p>
           )}
@@ -616,7 +650,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
             {subpastas.map((p) => (
               <li key={p.id} className="bb-pasta" data-alvo-pasta={podeOrganizar ? p.id : undefined} data-alvo={alvo(p.id)}>
                 <button type="button" className="bb-pasta__abrir" onClick={() => irPara(p.id)}>
-                  <span className="bb-pasta__icone" aria-hidden="true"><Icone nome="pasta" tamanho={20} /></span>
+                  <span className="bb-pasta__icone" style={P.estiloPasta(p.cor)} aria-hidden="true"><Icone nome="pasta" tamanho={20} /></span>
                   <span className="bb-pasta__corpo">
                     <span className="bb-pasta__nome">{p.nome}</span>
                     <span className="bb-pasta__meta">
@@ -712,6 +746,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
           onEscolher={moverPara} onFechar={() => setMover(null)} />
       )}
       {vincular && <VincularPasta pasta={vincular} opcoes={opcoes} onSalvar={(d) => salvarVinculo(vincular, d)} onFechar={() => setVincular(null)} />}
+      {corDe && <CorDaPasta pasta={corDe} onEscolher={(c) => definirCor(corDe, c)} onFechar={() => setCorDe(null)} />}
       <FantasmaArrasto arrasto={arrastar.arrasto} />
     </div>
   )
