@@ -5,7 +5,7 @@
 // sessões de 16 e 17/10/2026; aqui ficam os invariantes que dá para conferir sem banco.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import * as R from '../painel-app/src/lib/redes.js'
 import { STATUS } from '../painel-app/src/lib/status.js'
@@ -221,7 +221,10 @@ test('banco: tabelas fechadas, função Social media sem dado.ler, toda RPC exig
   const chamadas = new Set([...(VISTA + FICHA + ARQ + BIB + PART).matchAll(/rpc\('((?:redes|social|editorial)_[a-z_]+)'/g)].map((m) => m[1]))
   const PASTAS_SQL = ler('supabase/migrations/20261019_social_pastas.sql')
   const nomesPastas = [...PASTAS_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
-  const todas = [...nomes, ...[...nomesPastas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1])]
+  const APAGAR_SQL = ler('supabase/migrations/20261023_social_biblioteca_apagar.sql')
+  const nomesApagar = [...APAGAR_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
+  const todas = [...nomes, ...[...nomesPastas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
+    ...[...nomesApagar.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1])]
   for (const c of chamadas) assert.ok(todas.includes(c), 'RPC chamada e não publicada: ' + c)
 })
 
@@ -694,6 +697,30 @@ test('pastas: a biblioteca usa as RPCs das pastas, sem mexer no Storage; seletor
   assert.match(SQLP, /social_pastas_nome_nivel/)
   assert.match(BIB, /export function SeletorBiblioteca[\s\S]*<NavegadorBiblioteca modo="seletor"/)
   assert.match(BIB, /semPastasNoServidor/, 'sem a migration, a biblioteca segue (sem pastas)')
+})
+
+test('biblioteca: apagar e restaurar arte (só arte, redes.gerir, nada sai do Storage, restaurável)', () => {
+  const SQLA = ler('supabase/migrations/20261023_social_biblioteca_apagar.sql')
+  assert.doesNotMatch(SQLA, /storage\.objects|delete from public\.redes_arquivos|drop /i, 'apagar não toca no Storage nem apaga linha')
+  for (const f of ['social_biblioteca_apagar', 'social_biblioteca_restaurar']) {
+    const corpo = SQLA.slice(SQLA.indexOf('function public.' + f + '('), SQLA.indexOf('end $$;', SQLA.indexOf('function public.' + f + '(')))
+    assert.match(corpo, /redes_exigir\(p_secret, 'redes\.gerir'\)/, f + ': redes.gerir')
+    assert.match(corpo, /tipo_nao_apagavel/, f + ': só arte, o resto é recusado (não ignorado)')
+    assert.match(corpo, /redes_post_aberto/, f + ': postagem publicada/cancelada não muda')
+  }
+  assert.match(SQLA, /removido_em = now\(\), removido_por_rotulo = public\.ator_rotulo_atual\(\)/, 'mesma marca de redes_arquivo_remover')
+  assert.match(SQLA, /substituido_por is not null then continue/, 'versão anterior não volta')
+  assert.ok(existsSync(new URL('../supabase/testes/social-biblioteca-apagar.sql', import.meta.url)), 'teste do banco versionado')
+  const DOM = ler('painel-app/src/lib/sync/dominios.js')
+  assert.match(DOM, /social_biblioteca_apagar: \['biblioteca', 'redes'\]/)
+  assert.match(DOM, /social_biblioteca_restaurar: \['biblioteca', 'redes'\]/)
+  // Tela: confirmação em laranja, só arte, restaurar a partir das apagadas, sem depender das pastas.
+  assert.match(BIB, /rpc\('social_biblioteca_apagar'/)
+  assert.match(BIB, /rpc\('social_biblioteca_restaurar'/)
+  assert.match(BIB, /confirmar\(texto, \{ acao: 'Apagar', perigo: true \}\)/)
+  assert.match(BIB, /podeApagar = !seletor && !!pode\('redes\.gerir'\)/)
+  assert.match(BIB, /\['removida', 'Artes apagadas'\]/)
+  assert.doesNotMatch(BIB.slice(BIB.indexOf('async function apagar(')), /window\.confirm/)
 })
 
 test('revisão da entrega: nada falha calado, resposta velha não sobrescreve, pasta herdada na versão nova', () => {

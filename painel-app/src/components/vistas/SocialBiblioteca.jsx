@@ -36,7 +36,7 @@ export const TIPOS_BIB = [
 const TIPO = Object.fromEntries(TIPOS_BIB.map(([k, r, i]) => [k, { rotulo: r, icone: i }]))
 export const ROTULO_ORIGEM = { envio: 'Enviada aqui', biblioteca: 'Arte da biblioteca', foto: 'Foto da edição', logo: 'Logo', campanha: 'Material da campanha' }
 const SITUACAO_BIB = {
-  disponivel: ['Disponível', 'ok'], substituida: ['Versão anterior', 'neutro'], removida: ['Removida da postagem', 'encerrado'],
+  disponivel: ['Disponível', 'ok'], substituida: ['Versão anterior', 'neutro'], removida: ['Apagada', 'encerrado'],
   enviada: ['Enviada, sem aprovação', 'andamento'], aprovada: ['Aprovada', 'ok'], recusada: ['Recusada', 'encerrado'],
   oficial: ['Logo oficial', 'ok'], anterior: ['Logo anterior', 'neutro'], publicado: ['Publicado às marcas', 'ok'], nao_publicado: ['Não publicado', 'neutro'],
 }
@@ -56,7 +56,9 @@ const ERROS_PASTA = {
   pasta_arquivada: 'Essa pasta foi arquivada. Atualize a biblioteca.', pasta_inexistente: 'Essa pasta não existe mais. Atualize a biblioteca.',
   pasta_com_conteudo: 'A pasta tem conteúdo: confirme para onde ele vai.', nada_selecionado: 'Nada selecionado.',
   selecao_grande: 'Mova até 500 materiais de cada vez.',
+  tipo_nao_apagavel: 'Só arte final se apaga por aqui. Logo, foto e material da campanha têm o arquivamento deles (no participante e em Arquivos).',
 }
+const LIMITE_APAGAR = 200 // o mesmo teto de social_biblioteca_apagar
 const traduzir = (m) => { for (const [k, v] of Object.entries(ERROS_PASTA)) if (String(m).includes(k)) return v; return traduzirRedes(m) }
 const LIMITE_LISTA = 300 // o mesmo `limit` de social_biblioteca (os mais recentes)
 const semPastasNoServidor = (m) => /social_pastas|schema cache|does not exist|ainda não está pronta/i.test(String(m))
@@ -125,7 +127,7 @@ function MoverPara({ aberto, titulo, pastas, moverPasta = null, atual = null, on
 }
 
 /** Prévia completa (sem recorte) com as ações que cabem. */
-function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, onMover, onVerPostagem, onFechar }) {
+function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, podeApagar, onMover, onApagar, onRestaurar, onVerPostagem, onFechar }) {
   const { urls, erro: erroUrl, renovar } = useUrlsAssinadas(x ? [fonteItem(x)] : [])
   const [falhou, setFalhou] = React.useState(false)
   const tentou = React.useRef(false) // renova UMA vez: arquivo quebrado não vira laço de pedidos
@@ -154,6 +156,9 @@ function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, onMover, onVerPo
           <BotoesEntrega entrega={entrega} itens={[itemEntrega(x)]} />
           {podeOrganizar && <Botao variante="secundario" icone="pasta" onClick={onMover}>Mover para…</Botao>}
           {x.post_id && <Botao variante="secundario" icone="seta-direita" onClick={onVerPostagem}>Ver postagem</Botao>}
+          {podeApagar && x.tipo === 'arte' && (x.situacao === 'removida'
+            ? <Botao variante="secundario" icone="atualizar" onClick={onRestaurar}>Restaurar</Botao>
+            : x.situacao !== 'substituida' && <Botao variante="secundario" icone="apagar" className="og-btn--perigo" onClick={onApagar}>Apagar</Botao>)}
         </div>
         <EstadoEntrega entrega={entrega} />
         <dl className="rd-dados">
@@ -285,6 +290,8 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
 
   const comPastas = !!pastasR && !pastasR.indisponivel && !pastasR.erro
   const podeOrganizar = comPastas && !!pastasR.pode_organizar && !seletor
+  // Apagar não depende das pastas (é a mesma permissão de organizar, redes.gerir; o banco confere de novo).
+  const podeApagar = !seletor && !!pode('redes.gerir')
   const pastas = React.useMemo(() => (pastasR && pastasR.pastas) || [], [pastasR])
   const idx = React.useMemo(() => P.indexar(pastas), [pastas])
   const local = estado.pasta || ''
@@ -403,6 +410,39 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       recarregarTudo()
     } catch (e) { setAviso(traduzir(e.message)) }
   }
+  // ── Apagar e restaurar arte final (só `arte`; arquivo nenhum sai do Storage — dá para restaurar) ──
+  async function apagar(its) {
+    const artes = its.filter((x) => x.tipo === 'arte' && x.situacao !== 'removida' && x.situacao !== 'substituida')
+    if (!artes.length) { setAviso(traduzir('tipo_nao_apagavel')); return }
+    if (artes.length > LIMITE_APAGAR) { setAviso('Apague até ' + LIMITE_APAGAR + ' artes de cada vez.'); return }
+    const outras = its.length - artes.length
+    const emPostagem = artes.filter((x) => x.post_id).length
+    const texto = (artes.length === 1 ? 'Apagar “' + artes[0].nome + '”?' : 'Apagar ' + artes.length + ' artes?')
+      + ' Sai da biblioteca e não aparece mais para usar em postagens.'
+      + (emPostagem ? ' ' + (emPostagem === 1 ? 'Ela também sai da postagem' + (artes[0].vinculo && artes[0].vinculo !== 'Biblioteca' ? ' “' + artes[0].vinculo + '”' : '') : emPostagem + ' delas também saem das postagens') + ' (só de postagens ainda abertas).' : '')
+      + ' O arquivo fica guardado e dá para restaurar em Filtros › Situação › Artes apagadas.'
+      + (outras ? ' ' + outras + (outras === 1 ? ' item selecionado não é' : ' itens selecionados não são') + ' arte final (logo, foto ou material) e ' + (outras === 1 ? 'fica' : 'ficam') + ' como está.' : '')
+    if (!(await confirmar(texto, { acao: 'Apagar', perigo: true }))) return
+    try {
+      const r = await rpc('social_biblioteca_apagar', { p_secret: lerSenha(), p_itens: artes.map(P.refItem) })
+      const n = Number(r && r.apagados) || 0
+      setAviso(n === 1 ? '1 arte apagada.' : n + ' artes apagadas.')
+      setMarcados(new Map()); setSelecionando(false)
+      if (estado.ver) mudar({ ver: undefined })
+      recarregarTudo()
+    } catch (e) { setAviso(traduzir(e.message)) }
+  }
+  async function restaurar(its) {
+    const artes = its.filter((x) => x.tipo === 'arte' && x.situacao === 'removida')
+    if (!artes.length) return
+    try {
+      const r = await rpc('social_biblioteca_restaurar', { p_secret: lerSenha(), p_itens: artes.map(P.refItem) })
+      const n = Number(r && r.restaurados) || 0
+      setAviso(n === 1 ? '1 arte restaurada.' : n + ' artes restauradas.')
+      if (estado.ver) mudar({ ver: undefined })
+      recarregarTudo()
+    } catch (e) { setAviso(traduzir(e.message)) }
+  }
   async function salvarVinculo(p, dados) {
     setVincular(null)
     try { await rpc('social_pasta_editar', { p_secret: lerSenha(), p_id: p.id, p_dados: dados }); setAviso('Vínculo da pasta salvo.'); carregarPastas() }
@@ -486,7 +526,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
             <Escolha rotulo="Edição" valor={estado.ed || ''} opcoes={[['', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]} onMudar={(v) => mudar({ ed: v || undefined })} />
             <Escolha rotulo="Participante" valor={estado.part || ''} opcoes={[['', 'Todos'], ...(opcoes.participantes || []).map((p) => [p.id, p.nome])]} onMudar={(v) => mudar({ part: v || undefined })} />
             <Escolha rotulo="Situação" valor={estado.sit || 'disponivel'} opcoes={[['disponivel', 'Disponível para usar'], ['todas', 'Tudo, inclusive versões anteriores'],
-              ['aprovada', 'Fotos aprovadas'], ['enviada', 'Fotos sem aprovação'], ['oficial', 'Logos oficiais'], ['substituida', 'Versões anteriores de arte']]}
+              ['aprovada', 'Fotos aprovadas'], ['enviada', 'Fotos sem aprovação'], ['oficial', 'Logos oficiais'], ['substituida', 'Versões anteriores de arte'], ['removida', 'Artes apagadas']]}
               onMudar={(v) => mudar({ sit: v === 'disponivel' ? undefined : v })} />
           </div>
           <div className="ui-acoes">
@@ -619,6 +659,12 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
                 <div className="bb-barra__acoes">
                   <BotoesEntrega entrega={entrega} itens={marcadosLista.map(itemEntrega)} nomeZip={tituloLocal} compacto />
                   {podeOrganizar && <Botao variante="secundario" icone="pasta" onClick={() => setMover({ itens: marcadosLista })}>Mover…</Botao>}
+                  {podeApagar && marcadosLista.some((x) => x.tipo === 'arte' && x.situacao !== 'removida' && x.situacao !== 'substituida') && (
+                    <Botao variante="secundario" icone="apagar" className="og-btn--perigo" onClick={() => apagar(marcadosLista)}>Apagar…</Botao>
+                  )}
+                  {podeApagar && marcadosLista.some((x) => x.tipo === 'arte' && x.situacao === 'removida') && (
+                    <Botao variante="secundario" icone="atualizar" onClick={() => restaurar(marcadosLista)}>Restaurar</Botao>
+                  )}
                 </div>
               )}
             </div>
@@ -628,8 +674,8 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       )}
 
       {!seletor && vendo && (
-        <PreviaMaterial x={vendo} pastasIdx={idx} entrega={entrega} podeOrganizar={podeOrganizar}
-          onMover={() => setMover({ itens: [vendo] })} onFechar={() => mudar({ ver: undefined })}
+        <PreviaMaterial x={vendo} pastasIdx={idx} entrega={entrega} podeOrganizar={podeOrganizar} podeApagar={podeApagar}
+          onMover={() => setMover({ itens: [vendo] })} onApagar={() => apagar([vendo])} onRestaurar={() => restaurar([vendo])} onFechar={() => mudar({ ver: undefined })}
           onVerPostagem={() => navegar({ vista: 'social', aba: 'planejamento', filtros: { item: vendo.post_id } })} />
       )}
       {!seletor && estado.ver && lista && !vendo && <p className="og-aviso" role="status">Este arquivo não está nesta pasta (ou mudou de lugar). <button type="button" className="rd-link" onClick={() => mudar({ ver: undefined })}>Fechar</button></p>}

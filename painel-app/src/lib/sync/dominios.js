@@ -168,6 +168,8 @@ export const RPC_ESCRITA = Object.freeze({
   redes_arquivos_ordenar: ['redes'],
   social_biblioteca_registrar: ['biblioteca', 'redes'],
   social_biblioteca_mover: ['biblioteca'],
+  social_biblioteca_apagar: ['biblioteca', 'redes'],
+  social_biblioteca_restaurar: ['biblioteca', 'redes'],
   social_pasta_criar: ['biblioteca'],
   social_pasta_editar: ['biblioteca'],
   social_pasta_arquivar: ['biblioteca'],

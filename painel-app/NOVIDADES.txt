@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Visão geral conta só as marcas que participam da edição, e o título cabe no celular.
+Biblioteca: dá para apagar e restaurar artes, e os arquivos soltos foram organizados em pastas.

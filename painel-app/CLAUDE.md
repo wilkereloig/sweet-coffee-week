@@ -1178,6 +1178,17 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   presa embaixo; "Mover para…" mostra a árvore sem a própria pasta nem as de dentro. Envio dentro da pasta aberta
   (`social_biblioteca_registrar` com `pasta_id`), "Enviado e registrado" só depois do banco. O seletor da postagem é o
   MESMO navegador (`NavegadorBiblioteca modo="seletor"`). Pasta, filtros e prévia (`ver=tipo:id`) no endereço.
+- **Apagar e restaurar arte na Biblioteca** (21/10/2026, pedido do Wilker). Migration `20261023_social_biblioteca_apagar.sql`
+  (✅ aplicada em 21/10/2026 pelo MCP `supabase-scw`; só acrescenta duas funções) + teste do banco
+  `supabase/testes/social-biblioteca-apagar.sql` (termina em exceção `TESTE_OK`; nada fica). Segue a regra do painel (excluir =
+  arquivar + restaurar): `social_biblioteca_apagar` marca `redes_arquivos.removido_em`/`removido_por_rotulo` (a MESMA marca de
+  `redes_arquivo_remover`), nada sai do Storage, e `social_biblioteca_restaurar` desfaz. ⚠️ **Só `arte`** se apaga aqui: logo,
+  foto do combo/loja e material da campanha têm arquivamento próprio (participante, Arquivos) e o banco recusa com
+  `tipo_nao_apagavel` em vez de ignorar. Permissão `redes.gerir`. Arte presa a postagem já publicada/cancelada não sai
+  (`post_fechado`, via `redes_post_aberto`); em postagem aberta sai também da postagem e o histórico dela registra. Versão
+  anterior (`substituida`) não se apaga nem restaura. Na tela: "Apagar" na prévia e "Apagar…" na seleção (confirmação em
+  laranja, `confirmar(…, { perigo: true })`); as apagadas ficam em Filtros › Situação › "Artes apagadas", onde aparece
+  "Restaurar". Até 200 por vez. O sinal de sincronização é `['biblioteca', 'redes']` (já havia gatilho em `redes_arquivos`).
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram
