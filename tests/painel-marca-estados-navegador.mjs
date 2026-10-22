@@ -46,6 +46,7 @@ const cenario = (c) => {
   return {
     participacao, itens: itens(c.descrever !== false), faltando: c.faltando ?? [],
     correcoes: c.correcoes || [], pub: c.pub || { estado: 'nao_publicado', alterado_apos_aprovacao: false },
+    sessoes: c.sessoes || [], arquivos: c.arquivos || [], leituras: c.leituras || [], solicitacoes: c.solicitacoes || [], estados: c.estados || [],
   }
 }
 
@@ -62,6 +63,11 @@ async function abrir(nav, c, viewport) {
   b.tabelas.correcoes_campo = () => d.correcoes
   b.tabelas.edicoes = () => [{ codigo: '2026.2', nome: 'Cartoon', tema: 'Cartoon', festival_inicio: '2026-11-05', festival_fim: '2026-11-15', valor_combo: 25 }]
   b.tabelas.notificacoes = () => []
+  b.tabelas.sessoes_fotos = () => d.sessoes
+  b.tabelas.arquivos = () => d.arquivos
+  b.tabelas.arquivo_leitura = () => d.leituras
+  b.tabelas.solicitacoes = () => d.solicitacoes
+  b.tabelas.solicitacao_estado = () => d.estados
   b.rpcs.sync_meus_canais = () => ['scw:pessoa:' + UID, 'scw:marcas', 'scw:marca:' + PID]
   b.rpcs.marca_minha_logo = () => ({ atual: { id: 'l1' }, versoes: [] })
   b.rpcs.marca_previa_publica = () => ({ previa: {}, faltando: d.faltando })
@@ -169,10 +175,85 @@ async function principal() {
       await ctx.close()
     }
 
+    console.log('S7 fotos: vagas por dia, sessão com data completa, fotos oficiais')
+    {
+      const dia = (n, h) => { const d = new Date(Date.now() + n * 864e5); d.setUTCHours(h, 0, 0, 0); return d.toISOString() }
+      const vagas = [
+        { id: 'v1', status: 'aberto', participante_id: null, edicao_codigo: '2026.2', data_hora: dia(3, 14), local: 'Estúdio Centro' },
+        { id: 'v2', status: 'aberto', participante_id: null, edicao_codigo: '2026.2', data_hora: dia(3, 16), local: 'Estúdio Centro' },
+        { id: 'v3', status: 'aberto', participante_id: null, edicao_codigo: '2026.2', data_hora: dia(4, 14), local: 'Estúdio Centro' },
+      ]
+      const a = await abrir(nav, { sessoes: vagas }, [390, 844])
+      await irPara(a.page, '#fotos')
+      const t = await textoDe(a.page)
+      ok(/Agendamento/i.test(t) && /Prepara/i.test(t) && /Fotos oficiais/i.test(t), 'três blocos: agendamento, preparação e fotos oficiais')
+      ok(/segunda|terça|quarta|quinta|sexta|sábado|domingo/i.test(t), 'a vaga mostra o dia da semana por extenso')
+      ok(/escolh|horário/i.test(t), 'convida a escolher um horário')
+      ok(a.erros.length === 0, 'sem erro de JavaScript ' + a.erros.join(' | ').slice(0, 160))
+      for (const [w, h] of TAMANHOS) { await a.page.setViewportSize({ width: w, height: h }); await dormir(300); await capturar(a.page, 's7-fotos-vagas', w) }
+      await a.ctx.close()
+      const marcada = [{ id: 's1', status: 'agendada', participante_id: PID, participacao_id: PA, edicao_codigo: '2026.2', data_hora: dia(2, 15), local: 'Estúdio Centro, Rua A 10' }]
+      const b = await abrir(nav, { sessoes: marcada }, [390, 844])
+      await irPara(b.page, '#fotos')
+      const m = await textoDe(b.page)
+      ok(/Estúdio Centro, Rua A 10/.test(m), 'a sessão marcada mostra o local')
+      ok(/agendada|marcada/i.test(m), 'estado: sessão agendada')
+      await capturar(b.page, 's7-fotos-sessao', 390)
+      await b.ctx.close()
+      const c = await abrir(nav, { participacao: { foto_liberacao: 'pendente' } }, [390, 844])
+      await irPara(c.page, '#fotos')
+      ok(/aguardando liberação/i.test(await textoDe(c.page)), 'antes da liberação diz "aguardando liberação"')
+      await c.ctx.close()
+    }
+
+    console.log('S8 arquivos: leitura em destaque, formato e tamanho, abrir × baixar')
+    {
+      const arqs = [
+        { id: 'a1', nome: 'Manual da edição', categoria: 'guia', exige_leitura: true, publicado_em: '2026-10-01T10:00:00Z', arquivado: false, path: 'geral/manual.pdf', mime: 'application/pdf', tamanho: 2516582, versao: 1 },
+        { id: 'a2', nome: 'Termo de uso de imagem', categoria: 'documento', exige_leitura: false, publicado_em: '2026-09-20T10:00:00Z', arquivado: false, path: 'geral/termo.docx', tamanho: 40960 },
+      ]
+      const a = await abrir(nav, { arquivos: arqs }, [390, 844])
+      await irPara(a.page, '#arquivos')
+      const t = await textoDe(a.page)
+      ok(/Manual da edição/.test(t) && /Termo de uso de imagem/.test(t), 'os dois arquivos aparecem')
+      ok(/Li e confirmo a leitura/.test(t), 'botão de leitura com o texto honesto')
+      ok(!/Li e estou de acordo/.test(t), 'sem "de acordo"')
+      ok(/2,4 MB|2,5 MB/.test(t), 'tamanho legível')
+      ok(/Baixar/.test(t), 'tem Baixar')
+      ok(a.erros.length === 0, 'sem erro de JavaScript ' + a.erros.join(' | ').slice(0, 160))
+      for (const [w, h] of TAMANHOS) { await a.page.setViewportSize({ width: w, height: h }); await dormir(300); await capturar(a.page, 's8-arquivos', w) }
+      await a.ctx.close()
+    }
+
+    console.log('S9 solicitações: título, o que é pedido, prazo, estado e ação; respondidas à parte')
+    {
+      const em = (n) => new Date(Date.now() + n * 864e5).toISOString()
+      const sol = [
+        { id: 'p1', titulo: 'Mande a logo em alta', escopo: 'participacao', participacao_id: PA, bloco: 'arquivo', prioridade: 'importante', prazo_em: em(1), publicado: true, texto: 'Em PNG, fundo transparente.' },
+        { id: 'p2', titulo: 'Confirme o horário do combo', escopo: 'participacao', participacao_id: PA, bloco: 'combo', prioridade: 'normal', prazo_em: em(10), publicado: true },
+        { id: 'p3', titulo: 'Foto da fachada', escopo: 'participacao', participacao_id: PA, bloco: 'fotos', prioridade: 'normal', prazo_em: em(-3), publicado: true },
+      ]
+      const est = [{ solicitacao_id: 'p3', participacao_id: PA, estado: 'respondido', resposta: 'Enviada por e-mail.' }]
+      const a = await abrir(nav, { solicitacoes: sol, estados: est }, [390, 844])
+      await irPara(a.page, '#pedidos')
+      const t = await textoDe(a.page)
+      ok(/Solicitações/.test(t), 'a tela se chama Solicitações')
+      ok(/Mande a logo em alta/.test(t) && /Confirme o horário do combo/.test(t), 'pendentes aparecem')
+      ok(/Respondidas \(1\)/.test(t), 'respondidas ficam à parte e recolhidas')
+      ok(/vence amanhã/i.test(t), 'prazo em palavras')
+      ok(/Responder/.test(t), 'tem a ação Responder')
+      ok(/Em PNG, fundo transparente/.test(t), 'mostra o que é pedido, em palavras da organização')
+      const cortado = await a.page.evaluate(() => { const e = document.querySelector('.pn-cabeca__titulo'); return !e || e.scrollWidth > e.clientWidth + 1 })
+      ok(!cortado, 'o título "Solicitações" não fica cortado pelo botão de conversa (390px)')
+      ok(a.erros.length === 0, 'sem erro de JavaScript ' + a.erros.join(' | ').slice(0, 160))
+      for (const [w, h] of TAMANHOS) { await a.page.setViewportSize({ width: w, height: h }); await dormir(300); await capturar(a.page, 's9-pedidos', w) }
+      await a.ctx.close()
+    }
+
     console.log('S6 sem rolagem horizontal em nenhum tamanho (Início e formulário)')
     {
       const { ctx, page } = await abrir(nav, { descrever: false, faltando: ['combo_nome'] }, [360, 780])
-      for (const hash of ['#inicio', '#cadastro', '#combo/1']) {
+      for (const hash of ['#inicio', '#cadastro', '#combo/1', '#fotos', '#arquivos', '#pedidos']) {
         await irPara(page, hash)
         for (const [w, h] of TAMANHOS) {
           await page.setViewportSize({ width: w, height: h }); await dormir(250)

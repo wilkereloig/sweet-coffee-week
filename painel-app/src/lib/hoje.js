@@ -53,7 +53,7 @@ export function proximosPassos({
     const vence = prazoMaisProximo ? diasCalendario(prazoMaisProximo, agora) : null
     passos.push({
       chave: 'pedidos',
-      texto: pedidosPendentes === 1 ? 'Responder 1 pedido da organização' : 'Responder ' + pedidosPendentes + ' pedidos da organização',
+      texto: pedidosPendentes === 1 ? 'Responder 1 solicitação da organização' : 'Responder ' + pedidosPendentes + ' solicitações da organização',
       detalhe: vence === null ? null : vence < 0 ? 'Há prazo vencido.' : vence === 0 ? 'Um prazo vence hoje.' : vence <= 3 ? 'O prazo mais próximo vence em ' + vence + (vence === 1 ? ' dia.' : ' dias.') : null,
       tom: vence !== null && vence <= 3 ? 'urgente' : 'normal',
       destino: 'pedidos',

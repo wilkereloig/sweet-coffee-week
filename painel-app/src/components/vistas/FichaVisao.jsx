@@ -10,6 +10,7 @@ import { mascaraWhatsApp } from '../../lib/participantes'
 import { linkWebSeguro } from '../../lib/cadastro'
 import { estadoLogoLista } from '../../lib/logos'
 import { BUCKET_EDICAO, traduzirPendencia } from '../../lib/publicacao'
+import { NOMES_PUBLICACAO } from '../../lib/nomesPublicacao'
 import { ROTULO_MATERIAL, ROTULO_MATERIAL_STATUS } from '../../lib/operacao'
 import {
   criarCarregadorFicha, situacaoTema, TEXTO_TEMA, TOM_TEMA, textoCusto, componentesDaFicha, unidadesDaFicha,
@@ -152,7 +153,7 @@ export function Pendencias({ itens, carregando, onIr }) {
     </section>
   )
 }
-const ONDE = { cadastro: 'Cadastro', combo: 'Tema e combo', unidades: 'Unidades', fotos: 'Fotos', operacao: 'Operação', publicacao: 'Publicação', comunicacao: 'Comunicação' }
+const ONDE = { cadastro: 'Cadastro', combo: 'Tema e combo', unidades: 'Unidades', fotos: 'Fotos', operacao: 'Operação', publicacao: NOMES_PUBLICACAO.marcas.pagina, comunicacao: 'Comunicação' }
 
 /* ── Seções ────────────────────────────────────────────────────────────── */
 function SecaoCadastro({ p, logo, fontes, recarregar, acoes, edicao }) {
@@ -429,13 +430,13 @@ function SecaoOperacao({ p, fontes, recarregar, pode, onEditar, onIr, edicaoAber
 
 function SecaoPublicacao({ p, fontes, recarregar, pode, onEditar, edicaoAberta, previa, onPrevia, PreviaPagina }) {
   const pub = fontes.publicacao
-  if (pub.estado !== 'ok' || !pub.dados) return <SecaoFicha id="publicacao" titulo="Publicação"><EstadoFonte f={pub} oQue="a publicação" onTentar={recarregar} /></SecaoFicha>
+  if (pub.estado !== 'ok' || !pub.dados) return <SecaoFicha id="publicacao" titulo={NOMES_PUBLICACAO.marcas.pagina}><EstadoFonte f={pub} oQue="a publicação" onTentar={recarregar} /></SecaoFicha>
   const r = resumoPublicacao(pub.dados)
   const ctx = { unidades: pub.dados.unidades, itens: pub.dados.atual && pub.dados.atual.combo && pub.dados.atual.combo.itens }
   const acoes = <>{botoesAcao("publicacao", pode, { temPublicacao: true }, onEditar)}
     {pub.dados.atual && <Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => onPrevia(!previa)}>{previa ? 'Fechar prévia' : 'Ver prévia pública'}</Botao>}</>
   return (
-    <SecaoFicha id="publicacao" titulo="Publicação" acoes={acoes} edicao={edicaoAberta}
+    <SecaoFicha id="publicacao" titulo={NOMES_PUBLICACAO.marcas.pagina} acoes={acoes} edicao={edicaoAberta}
       nota="O que está no ar é uma cópia congelada: o cadastro pode mudar sem mudar o site, até a próxima publicação.">
       <Dados itens={[
         ['No site', <><Selo key="s" dominio="publicacao" valor={r.estado} /> <span className="fg-texto-apoio">{r.texto}</span></>, { largo: true }],

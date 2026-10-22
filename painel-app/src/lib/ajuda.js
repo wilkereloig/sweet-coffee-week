@@ -14,7 +14,13 @@
  *            rotaDoLink na organização, interpretarLinkMarca na marca;
  *            tests/painel-app-ajuda reprova link que não abre nada).
  *   aparelho — mostra instalar + avisos dentro do balão (só por clique).
+ *
+ * Os três "publicar" (página de cada marca, liberação da edição, planejamento do
+ * Instagram) citam nome e lugar de lib/nomesPublicacao.js; o teste
+ * painel-app-nomes-publicacao confere que todo "Módulo › Aba" citado existe.
  */
+import { NOMES_PUBLICACAO, ondeFica } from './nomesPublicacao.js'
+
 const bloqueado = (pode, acao, texto) => (pode(acao) ? '' : ' ' + texto)
 
 export const TOUR = {
@@ -22,26 +28,31 @@ export const TOUR = {
     { id: 'menu', alvos: ['menu'], titulo: 'O menu do painel',
       texto: 'Cada botão é um assunto: operação do dia, relacionamento, conteúdo e administração. Neste tour, cada um aparece no lugar onde fica.' },
     { id: 'visao', alvos: ['menu-visao'], link: 'visao', titulo: 'Visão geral',
-      texto: 'Comece por aqui. Candidaturas por etapa, o que precisa de atenção hoje e o que a equipe fez por último. Tocar num número abre a lista já filtrada.' },
+      texto: 'Comece por aqui, em três partes: o que precisa da equipe agora (cada cartão abre a lista já filtrada do que ele conta; no de pedidos, o número soma as respostas que faltam e a lista mostra também quem já respondeu), como estão as marcas na edição e o que aconteceu por último.' },
     { id: 'participantes', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', titulo: 'Participantes',
-      texto: (pode) => 'Marcas, candidaturas, temas e vendas. Na ficha de cada marca: cadastro, combo, unidades, operação, mensagens, acesso e histórico.'
+      texto: (pode) => 'Marcas, candidaturas, temas, vendas e preenchimento. '
+        + NOMES_PUBLICACAO.marcas.frase + ': ' + ondeFica('marcas') + '. '
+        + 'A ficha de cada marca tem quatro vistas: Visão do participante (tudo o que foi preenchido, só para ler), Comunicação, Histórico e Gestão.'
         + bloqueado(pode, 'triagem.editar', 'Sua função vê as candidaturas, mas não muda a triagem.') },
     { id: 'acoes', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', titulo: 'Ver, revisar, aprovar, corrigir, editar',
-      texto: (pode) => 'Visualizar não muda nada. Revisar é triar a candidatura. Aprovar aceita o combo ou o tema. Solicitar correção devolve um campo à marca com o motivo, e ela corrige. Editar é a organização mudar o dado da marca, com antes e depois no histórico.'
+      texto: (pode) => 'Visualizar não muda nada: a Visão do participante só lê, e Ver como participante (em Mais ações, só do Administrador) abre o painel da marca como ela vê, sem gravar. Revisar é triar a candidatura. Aprovar aceita o combo ou o tema. Solicitar correção devolve um campo à marca com o motivo, e ela corrige. Editar é a organização mudar o dado da marca, com antes e depois no histórico.'
         + (pode('curadoria.decidir') ? '' : ' Sua função não aprova nem pede correção.')
         + (pode('cadastro.editar') ? '' : ' Editar o cadastro é só do Administrador.') },
     { id: 'conversa', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', exige: 'mensagem.enviar', titulo: 'Conversa com a marca',
-      texto: 'Abra a ficha da marca e vá em Mensagens. A marca recebe aviso a cada mensagem, e a resposta dela chega no sino.' },
+      texto: 'Abra a ficha da marca e vá em Comunicação. A marca recebe aviso a cada mensagem, e a resposta dela chega no sino.' },
     { id: 'contatos', alvos: ['menu-contatos', 'menu-mais'], link: 'contatos/pessoas', titulo: 'Contatos',
       texto: (pode) => 'Pessoas, Press Kit, vouchers e o que chegou pelos formulários do site.'
         + bloqueado(pode, 'relacionamento.gerir', 'Sua função consulta, mas não altera contatos.') },
     { id: 'operacao', alvos: ['menu-operacao', 'menu-mais'], link: 'operacao/pedidos', titulo: 'Operação',
       texto: (pode) => 'Pedidos às marcas com prazo, a agenda de fotos e os materiais. A marca só reserva foto depois de liberada, na ficha › Operação.'
         + bloqueado(pode, 'producao.gerir', 'Sua função acompanha, mas não abre vaga nem marca sessão.') },
+    { id: 'social', tela: 'social', alvos: ['menu-social', 'menu-mais'], link: 'social/planejamento', exige: 'redes.ver', titulo: 'Social media',
+      texto: NOMES_PUBLICACAO.instagram.frase + ': ' + ondeFica('instagram') + '. Calendário, arte, legenda e aprovação. O painel registra e avisa; quem publica no Instagram é a equipe, à mão.' },
     { id: 'arquivos', tela: 'arquivos', alvos: ['menu-arquivos', 'menu-mais'], link: 'arquivos/gerais', titulo: 'Arquivos',
       texto: 'Publique para todas as marcas ou para uma só, e escolha se pede confirmação de leitura. No celular, fica em "mais".' },
     { id: 'edicao', tela: 'edicao', alvos: ['menu-edicao', 'menu-mais'], link: 'edicao/configuracao', titulo: 'Edição',
-      texto: (pode) => 'A edição atual, datas, taxa e regras. As telas da marca leem daqui, então mudar uma data muda o que todas veem.'
+      texto: (pode) => 'A edição atual, datas, taxa e regras. As telas da marca leem daqui, então mudar uma data muda o que todas veem. '
+        + NOMES_PUBLICACAO.edicao.frase + ': ' + ondeFica('edicao') + '. A página de cada marca se publica à parte (' + ondeFica('marcas') + ').'
         + bloqueado(pode, 'edicao.gerir', 'Sua função só consulta a configuração.') },
     { id: 'admin', tela: 'admin', alvos: ['menu-admin', 'menu-mais'], link: 'admin/revisao', titulo: 'Administração',
       texto: (pode) => 'Revisão de dados'
@@ -73,7 +84,7 @@ export const TOUR = {
     { id: 'conversa', alvos: ['conversa'], link: 'mensagens', titulo: 'Falar com a organização',
       texto: 'De qualquer tela. Mensagem nova aparece com um número e vira a primeira ação do Início.' },
     { id: 'sino', alvos: ['sino'], titulo: 'Central de avisos',
-      texto: 'Tudo o que a organização fez: mensagem, pedido, arquivo, fotos. Tocar no aviso abre a tela certa.' },
+      texto: 'Tudo o que a organização fez: mensagem, solicitação, arquivo, fotos. Tocar no aviso abre a tela certa.' },
     { id: 'conta', alvos: ['conta'], aparelho: true, titulo: 'Conta, avisos e app',
       texto: 'Na conta: trocar a senha, sair e os avisos deste aparelho. Instalar o painel e ligar os avisos só acontece quando você tocar.' },
     { id: 'fim', alvos: ['ver-tour'], titulo: 'Rever o tour',

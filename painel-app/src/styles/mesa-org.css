@@ -1,0 +1,19 @@
+/*
+ * Visão geral da organização (22/10/2026) — peças novas de vistas/Mesa.jsx e vistas/mesa/*.jsx.
+ * Só o que painel.css não tem: os cartões vêm de .ui-modulo / .ui-macro, a agenda de .ui-atencao, os
+ * números de .ui-resumo__*, a esteira de .og-esteira / .og-cartao. Só tokens do painel (paleta, --e-*,
+ * --f-*): nada de cor, raio ou fonte literal, nenhuma caixa-alta, nenhuma regra de fundo/borda/sombra de card
+ * (essa definição mora no topo de painel.css). Prefixo `ms-`.
+ */
+
+/* Cartão de ação: o número grande e a frase que o completa, na mesma linha; abaixo, quem são. */
+.ms-acao{display:flex;align-items:baseline;gap:var(--e-3);min-width:0}
+.ms-acao__frase{flex:1 1 auto;min-width:0;font:700 14.5px/1.3 var(--f-ui);overflow-wrap:anywhere}
+.ms-acao__detalhe{display:block;font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom);overflow-wrap:anywhere}
+
+/* A edição em números: o total de um lado, as barras do outro quando cabe. */
+.ms-edicao{display:grid;gap:var(--e-3) var(--e-6);grid-template-columns:minmax(0,1fr);align-items:center}
+@media (min-width:900px){ .ms-edicao{grid-template-columns:minmax(0,2fr) minmax(0,3fr)} }
+
+/* A última área da página não empurra o fim da rolagem. */
+.ms-visao > .ui-macro:last-child{margin-bottom:0}

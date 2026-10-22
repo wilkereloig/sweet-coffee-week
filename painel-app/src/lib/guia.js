@@ -196,7 +196,7 @@ export function resumoMarca(d = {}) {
   const pedidoItem = (p) => {
     const dias = p.prazo_em ? (new Date(p.prazo_em).getTime() - agora.getTime()) / 86400000 : null
     return { tipo: 'pedido', titulo: p.titulo,
-      texto: p.prazo_em ? (dias < 0 ? 'Prazo vencido em ' : 'Prazo: ') + new Date(p.prazo_em).toLocaleDateString('pt-BR') : 'Pedido da organização',
+      texto: p.prazo_em ? (dias < 0 ? 'Prazo vencido em ' : 'Prazo: ') + new Date(p.prazo_em).toLocaleDateString('pt-BR') : 'Solicitação da organização',
       acao: 'Responder', vista: vistaDoPedido(p.bloco), link: 'pedidos/' + p.id, prioridade: p.prioridade || 'normal',
       prazo_em: p.prazo_em || null, vencido: dias !== null && dias < 0, urgente: dias !== null && dias <= PRAZO_URGENTE_DIAS }
   }

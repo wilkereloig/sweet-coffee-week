@@ -191,7 +191,7 @@ export function apresentarDestaque(d, { itens = [], agora = new Date(), prazoCad
   // Cadastro pendente (campo, correção, envio): o prazo de preenchimento da edição acompanha a ação.
   if (!prazo && prazoCadastro && TIPOS_DO_CADASTRO.includes(d.tipo)) prazo = { texto: prazoCadastro.texto, urgente: !!prazoCadastro.urgente }
   let motivo = MOTIVO[d.tipo] || ''
-  if (pedido) motivo = d.prioridade === 'importante' ? 'A organização marcou este pedido como importante.' : d.vencido ? 'O prazo já passou.' : d.urgente ? 'O prazo está perto.' : 'A organização pediu uma resposta.'
+  if (pedido) motivo = d.prioridade === 'importante' ? 'A organização marcou esta solicitação como importante.' : d.vencido ? 'O prazo já passou.' : d.urgente ? 'O prazo está perto.' : 'A organização pediu uma resposta.'
   if (d.tipo === 'campo' && d.campo === 'logo') motivo = 'A logo não trava o envio, mas a organização precisa dela.'
   else if (d.tipo === 'campo' && (d.codigo || !d.link)) motivo = ''   // o texto da pendência já diz
   return {
@@ -379,7 +379,7 @@ export function resumoDoGrupo(g) {
   const arquivos = qtd((p) => p.tipo === 'arquivo')
   if (correcoes) partes.push(correcoes === 1 ? '1 alteração pedida' : correcoes + ' alterações pedidas')
   if (campos) partes.push(campos === 1 ? 'falta 1 informação' : 'faltam ' + campos + ' informações')
-  if (pedidos) partes.push(pedidos === 1 ? '1 pedido aberto' : pedidos + ' pedidos abertos')
+  if (pedidos) partes.push(pedidos === 1 ? '1 solicitação aberta' : pedidos + ' solicitações abertas')
   if (arquivos) {
     const foto = g.chave === 'fotos'
     partes.push(foto ? (arquivos === 1 ? '1 foto para conferir' : arquivos + ' fotos para conferir') : (arquivos === 1 ? '1 arquivo para ler' : arquivos + ' arquivos para ler'))

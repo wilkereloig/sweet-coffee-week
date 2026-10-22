@@ -31,7 +31,7 @@ const DESTINOS = ['inicio', 'cadastro', 'combo', 'fotos', 'arquivos']
 const OCULTAS = ['pedidos', 'mensagens', 'guia']
 // Barra do celular: os cinco cabem, sem "Mais".
 const ATALHOS = DESTINOS
-const TITULOS = { inicio: 'Início', cadastro: 'Meu cadastro', combo: 'Meu combo', fotos: 'Fotos', arquivos: 'Arquivos', pedidos: 'Pedidos', mensagens: 'Mensagens', guia: 'Guia de fotos' }
+const TITULOS = { inicio: 'Início', cadastro: 'Meu cadastro', combo: 'Meu combo', fotos: 'Fotos', arquivos: 'Arquivos', pedidos: 'Solicitações', mensagens: 'Mensagens', guia: 'Guia de fotos' }
 const SUBS = {
   inicio: 'o que falta e o que vem agora',
   cadastro: 'o estabelecimento e onde encontrar',
@@ -298,10 +298,11 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
           {/* A conversa a um toque de qualquer tela (no celular, só o ícone). */}
           {vista !== 'mensagens' && (
             <button type="button" className="pn-cabeca__btn pn-cabeca__btn--texto" data-tour="conversa"
-              aria-label={'Falar com a organização' + (msgsNaoLidas ? ' (' + msgsNaoLidas + (msgsNaoLidas === 1 ? ' mensagem nova)' : ' mensagens novas)') : '')}
+              aria-label={'Conversa: falar com a organização' + (msgsNaoLidas ? ' (' + msgsNaoLidas + (msgsNaoLidas === 1 ? ' mensagem nova)' : ' mensagens novas)') : '')}
               onClick={() => irPara('mensagens')}>
               <Icone nome="mensagens" tamanho={20} />
               <span className="pn-cabeca__btn-rotulo" aria-hidden="true">Falar com a organização</span>
+              <span className="pn-cabeca__btn-curto" aria-hidden="true">Conversa</span>
               {msgsNaoLidas > 0 && <span className="pn-badge" aria-hidden="true">{msgsNaoLidas}</span>}
             </button>
           )}

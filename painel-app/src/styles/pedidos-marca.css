@@ -1,0 +1,49 @@
+/*
+ * Solicitações da marca (22/10/2026). Peças novas de vistas-marca/pedidos/*.jsx. Card (.ui-modulo), selo,
+ * botão, campo e nota vêm do painel.css; aqui só a linha de solicitação e o resumo. Só tokens do painel:
+ * paleta, --e-*, --r-*, --f-*. Nada de cor, raio ou fonte literal; nenhuma regra daqui redeclara fundo,
+ * borda ou sombra de CARD. Nenhuma animação nova além da seta que já girava.
+ */
+
+/* Resumo: quantas estão abertas e a de prazo mais próximo — uma linha, antes das listas. */
+.pm-resumo{display:flex;align-items:flex-start;gap:var(--e-2);margin:0 0 var(--e-4);max-width:72ch;font:700 14.5px/1.4 var(--f-ui)}
+.pm-resumo svg{flex:0 0 auto;margin-top:1px}
+
+.pm-lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
+.pm-pedido{display:flex;flex-direction:column;gap:var(--e-3);padding:var(--e-4) var(--e-1);border-bottom:1px solid var(--scw-filete)}
+.pm-pedido:last-child{border-bottom:0}
+
+.pm-pedido__topo{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--e-2) var(--e-3)}
+.pm-pedido__titulo{flex:1 1 220px;min-width:0;margin:0;font:700 16.5px/1.3 var(--f-ui);overflow-wrap:anywhere}
+.pm-pedido__selos{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--e-2)}
+
+.pm-pedido__bloco{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pm-rotulo{margin:0;font:700 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.pm-texto{margin:0;font:400 15px/1.55 var(--f-texto);white-space:pre-wrap;overflow-wrap:anywhere}
+/* Recolhida: três linhas do que foi pedido bastam para reconhecer; abrir mostra tudo. */
+.pm-texto.is-previa{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+
+.pm-meta{margin:0;font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom);overflow-wrap:anywhere}
+.pm-meta b{font:700 13.5px/1.4 var(--f-ui);color:var(--scw-choco)}
+
+/* Prazo: ícone + texto sempre; prazo curto ou vencido vira pílula escura (nunca só cor). */
+.pm-prazo{display:inline-flex;align-items:center;align-self:flex-start;gap:6px;margin:0;font:700 14px/1.35 var(--f-ui);color:var(--scw-choco)}
+.pm-prazo svg{flex:0 0 auto}
+.pm-prazo[data-urgente]{padding:4px 12px;border-radius:999px;background:var(--scw-choco);color:var(--scw-creme)}
+
+.pm-pedido__acoes{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e-2)}
+
+.pm-pedido__corpo{display:flex;flex-direction:column;gap:var(--e-3);min-width:0}
+.pm-resposta{display:flex;flex-direction:column;gap:6px}
+
+/* Respondidas: o card inteiro é a gaveta; fechada, só o título e a contagem. */
+.pm-recolhida > details > summary{display:flex;align-items:center;justify-content:space-between;gap:var(--e-3);min-height:44px;cursor:pointer;list-style:none;font:700 17.5px/1.2 var(--f-ui)}
+.pm-recolhida > details > summary::-webkit-details-marker{display:none}
+.pm-recolhida__seta{flex:0 0 auto;color:var(--scw-marrom);transition:transform 200ms var(--scw-ease)}
+.pm-recolhida > details[open] .pm-recolhida__seta{transform:rotate(180deg)}
+.pm-recolhida .pm-lista{margin-top:var(--e-3)}
+
+@media (max-width:520px){
+  .pm-pedido__acoes .og-btn{flex:1 1 auto}
+  .pm-pedido__selos{justify-content:flex-start}
+}

@@ -1,0 +1,30 @@
+/*
+ * Arquivos da marca (22/10/2026). Peças novas de vistas-marca/arquivos/*.jsx. Card (.ui-modulo), selo,
+ * botão e nota vêm do painel.css; aqui só a linha de arquivo. Só tokens do painel: paleta, --e-*, --r-*,
+ * --f-*. Nada de cor, raio ou fonte literal; nenhuma regra daqui redeclara fundo, borda ou sombra de CARD.
+ * Nenhuma animação nova.
+ */
+
+.am-lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
+.am-item{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--e-3) var(--e-4);
+  padding:var(--e-4) var(--e-1);border-bottom:1px solid var(--scw-filete)}
+.am-item:last-child{border-bottom:0}
+/* Arquivo apontado por um aviso: o amarelo da paleta, suave, sem cor nova. */
+.am-item.is-destaque{background:color-mix(in srgb,var(--scw-amarelo) 22%,transparent);border-radius:var(--r-1)}
+
+.am-item__corpo{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:var(--e-1)}
+.am-item__nome{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e-2);margin:0;font:700 15.5px/1.3 var(--f-ui);overflow-wrap:anywhere}
+.am-item__meta,.am-item__desc,.am-item__dica{margin:0;font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom);overflow-wrap:anywhere}
+.am-item__desc{color:var(--scw-choco)}
+.am-item__selos{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e-2);margin-top:var(--e-1)}
+.am-item__lido{display:inline-flex;align-items:center;gap:6px;font:700 13.5px/1.3 var(--f-ui)}
+.am-item__lido svg{flex:0 0 auto}
+
+.am-item__acoes{flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:var(--e-2)}
+.am-item__retorno{flex:1 1 100%;margin:0}
+
+/* No celular as ações ocupam a largura toda: alvo grande, sem rolagem lateral. */
+@media (max-width:520px){
+  .am-item__acoes{flex:1 1 100%}
+  .am-item__acoes .og-btn{flex:1 1 auto}
+}

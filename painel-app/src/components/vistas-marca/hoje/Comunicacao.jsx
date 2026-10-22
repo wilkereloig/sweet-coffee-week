@@ -14,7 +14,7 @@ export function Comunicacao({ mensagemAcima, solicitacoes, recentes, cronograma,
   return (
     <MacroSecao rotulo="Comunicação" titulo="Conversa e próximos prazos">
       <GradeModulos className="ui-modulos--dois">
-        <Modulo icone={MODULO_ICONE.mensagens} titulo="Com a organização" sub="Conversa, pedidos e avisos">
+        <Modulo icone={MODULO_ICONE.mensagens} titulo="Com a organização" sub="Conversa, solicitações e avisos">
           <ul className="gm-pendencias">
             <li className="gm-pendencia" data-tipo="mensagens">
               <span className="gm-pendencia__icone"><Icone nome="mensagens" tamanho={20} /></span>

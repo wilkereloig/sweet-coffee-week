@@ -300,7 +300,7 @@ export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
       <ul className="ui-mais-acoes__menu">
         {lista.map((a, i) => (
           <li key={i}>
-            <button type="button" className={'ui-mais-acoes__item' + (a.perigo ? ' is-perigo' : '')} disabled={a.desativado} onClick={() => escolher(a.onClick)}>
+            <button type="button" className={'ui-mais-acoes__item' + (a.perigo ? ' is-perigo' : '')} disabled={a.desativado} title={a.descricao || undefined} onClick={() => escolher(a.onClick)}>
               {a.icone && <Icone nome={a.icone} tamanho={16} />}{a.rotulo}
             </button>
           </li>

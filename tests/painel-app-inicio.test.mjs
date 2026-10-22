@@ -355,7 +355,8 @@ test('grupos: resumo em palavras, botão principal por assunto e "Corrigir" quan
   assert.equal(por.cadastro.botao, 'Corrigir meu cadastro')
   assert.equal(por.documentos.resumo, '2 arquivos para ler')
   assert.equal(por.fotos.resumo, '1 foto para conferir')
-  assert.equal(por.solicitacoes.resumo, '1 pedido aberto')
+  // Um nome só para o que o participante lê: o mesmo "solicitação" do botão "Ver solicitações" e do resumo de Comunicação.
+  assert.equal(por.solicitacoes.resumo, '1 solicitação aberta')
   assert.equal(por.solicitacoes.vista, 'pedidos')
   assert.equal(por.documentos.vista, 'arquivos')
   assert.ok(Object.values(por).every((g) => g.aVista.length <= 3 && g.aVista.length + g.recolhidas.length === g.itens.length))
@@ -541,4 +542,11 @@ test('convite de instalar/ligar avisos: só da 2ª visita em diante (a 1ª é da
   assert.equal(contarVisita('marca', 'p1', { local: null, sessao: null }), 2)
   const shell = readFileSync(new URL('../painel-app/src/components/PainelMarcaShell.jsx', import.meta.url), 'utf8')
   assert.match(shell, /liberado=\{!tour\.aberto && visitas >= 2\}/, 'o shell da marca só libera o convite na 2ª visita')
+})
+
+test('botão de conversa: o nome acessível CONTÉM os dois textos visíveis (WCAG 2.5.3, comando de voz)', () => {
+  const shell = readFileSync(new URL('../painel-app/src/components/PainelMarcaShell.jsx', import.meta.url), 'utf8')
+  const bloco = shell.slice(shell.indexOf('data-tour="conversa"'), shell.indexOf('data-tour="conversa"') + 900)
+  const nome = /aria-label=\{'([^']+)'/.exec(bloco)[1].toLowerCase()
+  for (const visivel of ['falar com a organização', 'conversa']) assert.ok(nome.includes(visivel), 'o aria-label tem que conter "' + visivel + '"')
 })

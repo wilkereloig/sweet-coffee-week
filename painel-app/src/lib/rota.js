@@ -72,6 +72,7 @@ const EDICAO_ABA = {
   temas: ['participantes', 'temas'], vendas: ['participantes', 'vendas'],
   revisao: ['admin', 'revisao'], importacoes: ['admin', 'importacoes'],
   configuracao: ['edicao', 'configuracao'], edicoes: ['edicao', 'edicoes'],
+  publicacao: ['edicao', 'publicacao'], avaliacoes: ['edicao', 'avaliacoes'],
 }
 const PRODUCAO_ABA = {
   pedido: ['operacao', 'pedidos'], pedidos: ['operacao', 'pedidos'],
@@ -131,7 +132,7 @@ function rotaCrua(link) {
   }
 }
 
-const ABA_PARTICIPANTES = new Set(['lista', 'candidaturas', 'temas', 'vendas'])
+const ABA_PARTICIPANTES = new Set(['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento'])
 const ABA_CONTATOS = new Set(['pessoas', 'presskit', 'vouchers', 'recebidos'])
 const ABA_ARQUIVOS = new Set(['gerais', 'participantes', 'arquivados'])
 

@@ -11,9 +11,12 @@ import { confirmar } from '../Confirmar'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
 import '../../styles/edicao-org.css'
+import { NOMES_PUBLICACAO, ondeFica } from '../../lib/nomesPublicacao'
 
 /*
- * Edição › Publicação no site e Edição › Avaliações (Cartoon 2026.2).
+ * Edição › Liberação no site (rota `publicacao`) e Edição › Avaliações (Cartoon 2026.2).
+ * Nomes e frases: lib/nomesPublicacao.js. Aqui se libera a edição INTEIRA; a página de cada
+ * marca se publica em Participantes › Páginas das marcas.
  * As chaves 1 e 3–6 de docs/cartoon-2026-2/02-arquitetura-rotas-fases.md §2.6
  * moram em edicao_publicacao e só mudam por definir_publicacao_edicao
  * (edicao.gerir), com auditoria. As chaves 2a/2b (rota pública e entrada do
@@ -73,7 +76,7 @@ export function ChavesEdicao({ edicao, pode }) {
   function mudarFase(fase) {
     if (fase === c.fase) return
     const nome = (FASES.find(([k]) => k === fase) || [])[1] || fase
-    aplicar({ fase }, 'Mudar a fase da edição para "' + nome + '"? Os textos e o que cada página mostra mudam no site.', 'Mudar fase')
+    aplicar({ fase }, 'Mudar a fase da edição ' + edicao.codigo + ' para "' + nome + '"? Os textos e o que cada página mostra mudam no site.', 'Mudar fase')
   }
   async function salvarJanela(ev) {
     ev.preventDefault()
@@ -88,6 +91,9 @@ export function ChavesEdicao({ edicao, pode }) {
   return (
     <div className="ui-pilha">
       {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={leitura.erro} onTentar={leitura.recarregar} />}
+      <p className="ui-nota">
+        <b>{NOMES_PUBLICACAO.edicao.frase}.</b> Vale para a edição {edicao.codigo} inteira, não para uma marca. {NOMES_PUBLICACAO.marcas.frase} fica em {ondeFica('marcas')}.
+      </p>
       <p className="ui-nota">
         {c.novo ? 'Esta edição ainda não tem chaves gravadas: tudo desligado, fase Preparação. A primeira mudança cria o registro.'
           : 'Última mudança: ' + (c.atualizado_por || 'organização') + ', em ' + dataHoraCurta(c.atualizado_em) + '.'}
@@ -117,7 +123,7 @@ export function ChavesEdicao({ edicao, pode }) {
                   <Selo tom={ligada ? 'ok' : 'neutro'}>{ligada ? 'Ligada' : 'Desligada'}</Selo>
                   <Botao icone={ligada ? 'fechar' : 'sucesso'} variante={ligada ? 'secundario' : undefined}
                     disabled={!pode_ || semPermissao || salvando || !!bloqueio}
-                    onClick={() => aplicar({ [chave]: !ligada }, ligada ? null : 'Ligar "' + nome + '"? ' + efeito, 'Ligar')}>
+                    onClick={() => aplicar({ [chave]: !ligada }, ligada ? null : 'Ligar "' + nome + '" na edição ' + edicao.codigo + '? ' + efeito, 'Ligar')}>
                     {ligada ? 'Desligar' : 'Ligar'}<span className="ui-oculto"> {nome}</span>
                   </Botao>
                 </span>
@@ -194,7 +200,7 @@ export function Avaliacoes({ edicao, pode }) {
           ))}</tbody>
         </table>
       </div>
-      <p className="ui-nota">Os vencedores só aparecem no site com a chave "Resultados no site" ligada (Edição › Publicação no site).</p>
+      <p className="ui-nota">Os vencedores só aparecem no site com a chave "Resultados no site" ligada ({ondeFica('edicao')}).</p>
     </Secao>
     </>
   )

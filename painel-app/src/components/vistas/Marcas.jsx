@@ -202,7 +202,7 @@ export function Marcas({ pode = () => true, rota, navegar }) {
         : status === 'sem_pendencias' ? !!p.participacao_id && pendenciasDe(p) === 0
         : status === 'com_pendencias' ? pendenciasDe(p) > 0
         : status === 'incompleto' ? Number(p.campos_faltando) > 0
-        : status === 'aguardando_aprovacao' ? p.combo_status === 'em_analise'
+        : status === 'aguardando_aprovacao' ? p.combo_status === 'em_analise' && participaDaEdicao(p)
         : status === 'alteracao' ? p.combo_status === 'correcao_solicitada' || Number(p.correcoes_abertas) > 0
         : status === 'sem_atividade' ? !!p.participacao_id && (!p.ultima_atividade || Date.now() - new Date(p.ultima_atividade) > 7 * 864e5)
         : status === 'sem_conta' ? !p.user_id && participaDaEdicao(p)

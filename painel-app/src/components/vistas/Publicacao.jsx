@@ -16,14 +16,18 @@ import { comEnvio } from '../../lib/pendencias'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
 import { soAlterados, aparar, impressaoDoArquivo } from '../../lib/leituraViva'
+import { NOMES_PUBLICACAO, ondeFica } from '../../lib/nomesPublicacao'
 
 /*
  * Publicação da edição — lado da organização (Cartoon 2026.2, plano em
  * docs/cartoon-2026-2/04-painel.md §4.4–4.5). Duas telas:
- *   ListaPublicacao → Participantes › Publicação: uma linha por casa, filtros.
- *   AbaPublicacao   → ficha da marca, aba Publicação: pendências, diferença
- *                     entre a versão no ar e a atual, prévia, publicar/retirar,
- *                     slug, coordenadas e fotos.
+ *   ListaPublicacao → Participantes › Páginas das marcas (rota `publicacao`): uma
+ *                     linha por casa, filtros.
+ *   AbaPublicacao   → ficha da marca, seção "Página da marca no site": pendências,
+ *                     diferença entre a versão no ar e a atual, prévia,
+ *                     publicar/retirar, slug, coordenadas e fotos.
+ * Os nomes visíveis vêm de lib/nomesPublicacao.js: aqui se publica a página de
+ * UMA marca; a liberação da edição inteira é Edição › Liberação no site.
  * O banco decide (pode() em cada RPC); o botão desabilitado é só conforto.
  */
 
@@ -48,7 +52,7 @@ function Aviso({ aviso }) {
     : <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>
 }
 
-/* ── Lista: Participantes › Publicação ─────────────────────────────────── */
+/* ── Lista: Participantes › Páginas das marcas ─────────────────────────── */
 export function ListaPublicacao({ edicao, rota, navegar }) {
   const filtro = (rota && rota.filtros && rota.filtros.situacao) || ''
   // Relê sozinha quando muda o que a linha mostra: publicação, a marca (nome, situação do combo),
@@ -65,11 +69,14 @@ export function ListaPublicacao({ edicao, rota, navegar }) {
 
   return (
     <div className="ui-pilha">
+      <p className="ui-nota">
+        <b>{NOMES_PUBLICACAO.marcas.frase}.</b> Edição {edicao.codigo}. A versão publicada fica no ar até a organização publicar a próxima, mesmo com alteração em análise.
+        {' '}{NOMES_PUBLICACAO.edicao.frase} fica em {ondeFica('edicao')}.
+      </p>
       <div className="og-filtros">
         <Escolha rotulo="Mostrar" valor={filtro} opcoes={FILTROS_PUBLICACAO}
           onMudar={(v) => navegar({ filtros: v ? { situacao: v } : {} }, { substituir: true })} />
       </div>
-      <p className="ui-nota">Edição {edicao.codigo}. A versão publicada fica no ar até a organização publicar a próxima, mesmo com alteração em análise.</p>
       {erro && <Erro texto={erro} onTentar={leitura.recarregar} />}
       {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={leitura.erro} onTentar={leitura.recarregar} />}
       {!erro && linhas === null && <Carregando />}
@@ -146,6 +153,8 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
   if (!pub) return <Carregando linhas={4} />
 
   const nome = participante.nome_marca || 'esta casa'
+  const ed = participante.edicao_codigo // a publicação é por participação: sempre diz a qual edição vale
+  const naEd = ed ? ' (edição ' + ed + ')' : ''
   const podeDecidir = pode('curadoria.decidir')
   const comboOk = podePublicarCombo(pub)
   const ctx = { unidades: pub.unidades, itens: pub.atual && pub.atual.combo && pub.atual.combo.itens }
@@ -158,9 +167,9 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
     // A versão nova substitui a do ar: se a do ar mostra o combo, publicar só a casa TIRA o combo do site.
     const tiraCombo = nivel === 'marca' && v && v.nivel === 'marca_e_combo'
     const texto = nivel === 'marca'
-      ? 'Publicar a casa ' + nome + ' no site? Entra no catálogo nome, apresentação, logo e unidades, sem o combo.'
+      ? 'Publicar a casa ' + nome + ' no site' + naEd + '? Entra no catálogo nome, apresentação, logo e unidades, sem o combo.'
         + (tiraCombo ? ' Atenção: o combo que está no ar agora SAI do site. Para mantê-lo, use "Publicar casa e combo".' : '')
-      : 'Publicar casa e combo de ' + nome + ' no site? Esta passa a ser a versão no ar' + (v ? ', no lugar da v' + v.versao : '') + '.'
+      : 'Publicar casa e combo de ' + nome + ' no site' + naEd + '? Esta passa a ser a versão no ar' + (v ? ', no lugar da v' + v.versao : '') + '.'
     if (!(await confirmar(texto))) return
     setAgindo(true)
     try {
@@ -172,7 +181,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
 
   async function retirar() {
     setAviso(null); setFaltando(null)
-    const motivo = await pedirTexto('Retirar ' + nome + ' do site? A página sai do ar na hora; o endereço continua reservado.',
+    const motivo = await pedirTexto('Retirar ' + nome + ' do site' + naEd + '? A página sai do ar na hora; o endereço continua reservado.',
       { rotulo: 'Motivo (a marca recebe este texto)' }, { acao: 'Retirar do site', perigo: true })
     if (motivo == null) return
     if (!motivo.trim()) { setAviso('Escreva o motivo da retirada: a marca recebe esse texto.'); return }
@@ -186,7 +195,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
   return (
     <div className="ui-pilha">
       {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={traduzirErroPublicacao(leitura.erro)} onTentar={leitura.recarregar} />}
-      <MacroSecao rotulo="Publicação no site" titulo={textoPublicacao(pub)}
+      <MacroSecao rotulo={NOMES_PUBLICACAO.marcas.pagina + (ed ? ' · edição ' + ed : '')} titulo={textoPublicacao(pub)}
         nota={v ? 'No ar desde ' + dataHoraCurta(v.publicado_em) + (v.publicado_por ? ', por ' + v.publicado_por : '') + '.'
           : pub.ultima && pub.ultima.retirado_em ? 'Retirada em ' + dataHoraCurta(pub.ultima.retirado_em) + (pub.ultima.retirado_por ? ' por ' + pub.ultima.retirado_por : '') + (pub.ultima.motivo ? '. Motivo: ' + pub.ultima.motivo : '') + '.'
             : 'Nada desta casa está no site ainda.'}>
@@ -203,6 +212,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
               {pub.estado === 'publicado' && <Botao icone="arquivar" variante="secundario" className="og-btn--perigo" disabled={!podeDecidir || agindo} onClick={retirar}>Retirar do site</Botao>}
             </div>
             {!podeDecidir && <p className="ui-nota">Publicar e retirar são da curadoria.</p>}
+            <p className="ui-nota">Vale só para esta casa. {NOMES_PUBLICACAO.edicao.frase} fica em {ondeFica('edicao')}.</p>
             {podeDecidir && !comboOk && (
               <p className="ui-nota">{pub.combo_status !== 'aprovado'
                 ? 'O combo só vai ao ar depois de aprovado (aba Operação). A casa pode ser publicada antes.'

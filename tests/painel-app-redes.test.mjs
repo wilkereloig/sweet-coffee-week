@@ -10,6 +10,7 @@ import { execFileSync } from 'node:child_process'
 import * as R from '../painel-app/src/lib/redes.js'
 import { STATUS } from '../painel-app/src/lib/status.js'
 import { rotaDoLink, lerRota, montarRota, migrarRota } from '../painel-app/src/lib/rota.js'
+import { NOMES_PUBLICACAO } from '../painel-app/src/lib/nomesPublicacao.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const SQL = ler('supabase/migrations/20261017_social_media.sql')
@@ -290,7 +291,9 @@ test('edição simultânea: só vai o que mudou; conflito separa o que a outra p
 
 test('módulo Social media: um calendário só, entrada da função, abas por permissão', () => {
   assert.match(MODULOS, /export function ModSocial/)
-  assert.match(MODULOS, /chave: 'planejamento', rotulo: 'Planejamento'/)
+  // O rótulo vem de lib/nomesPublicacao.js (fonte única dos nomes de "publicar"); o valor é conferido em painel-app-nomes-publicacao.
+  assert.match(MODULOS, /chave: 'planejamento', rotulo: NOMES_PUBLICACAO\.instagram\.rotulo/)
+  assert.equal(NOMES_PUBLICACAO.instagram.rotulo, 'Planejamento')
   assert.match(MODULOS, /chave: 'participantes', rotulo: 'Participantes', mostrar: props\.pode\('editorial\.ler'\)/)
   assert.doesNotMatch(MODULOS, /chave: 'redes'/, 'Operação não tem mais o calendário: uma entrada só')
   assert.equal((MODULOS.match(/<Redes /g) || []).length, 1)

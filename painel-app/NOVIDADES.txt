@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Mais claro: o Início mostra o que fazer agora, as pendências por assunto e o que espera a organização; o cadastro ficou mais fácil de seguir.
+Mais claro: Início, cadastro, Fotos, Arquivos e Solicitações do participante, e a Visão geral da equipe.

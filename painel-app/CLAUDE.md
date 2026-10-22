@@ -1080,8 +1080,73 @@ achados confirmados estão corrigidos e cobertos por teste.
   (`contarVisita` em `lib/instalar.js`: uma por sessão do navegador, por conta e aparelho; sem armazenamento devolve 2). Na 1ª só há o tour
   (dispensável) — antes o convite abria como modal por cima do Início logo depois dele. ⚠️ Aviso de atualização continua com prioridade
   própria (`telaOcupada`).
-- ⚠️ **Ficou para depois** (não feito): fotos com miniaturas e download em lote; Arquivos "abrir × baixar" no iPhone; organização (Visão geral,
-  nomes de Publicação, Ficha). Nada disto foi validado no iPhone real. Testes: `tests/painel-app-guia-estados`, `painel-app-inicio`, `painel-app-edicao-marca`; navegador (backend falso):
+- **Fotos, Arquivos e Solicitações da marca** (mesma rodada, 22/10/2026; só interface, sem RPC/tabela nova — tudo cabe na lista do "Ver como"):
+  - **Fotos** (`vistas-marca/Fotos.jsx` + `fotos/*.jsx` + `lib/fotosMarca.js` + `fotos-marca.css`, prefixo `fm-`): três blocos — agendamento, preparação
+    (link para o Guia de fotos, sem duplicar conteúdo) e fotos oficiais. Sessão marcada mostra dia da semana + data, hora e local ("a organização ainda
+    vai confirmar" se faltar, nunca inventa); vagas agrupadas por dia, hora no fuso de quem abre; estados em palavras+ícone (aguardando liberação · sem
+    horários · escolha um horário · agendada · remarcada · realizada). Reservar pede confirmação (a marca não desfaz sozinha); vaga tomada por outra marca
+    diz "Esse horário acabou de ser escolhido por outra marca" e relê as vagas. Miniaturas das fotos oficiais usam as URLs assinadas que o código já
+    obtinha (carregamento preguiçoso; falha numa miniatura não derruba a lista). ⚠️ **Download em lote NÃO foi feito**: o ZIP (`useEntrega`) só existe
+    para a organização via `arquivo-url`; a marca assina um arquivo por vez (`assinarDownload`) — um ZIP no navegador dela é código novo sem como
+    validar a memória no iPhone aqui.
+  - **Arquivos** (`Arquivos.jsx` + `arquivos/ItemArquivo.jsx` + `lib/arquivosMarca.js` + `arquivos-marca.css`, `am-`): os que exigem leitura e não foram lidos
+    sobem num bloco "Para ler e confirmar"; "Novo" = publicado há até 7 dias (o banco não guarda quem abriu o quê). Formato, tamanho e versão só quando o
+    dado existe. **Abrir × Baixar**: "Abrir" só para PDF/imagem/MP4 (nova aba); "Baixar" sempre (link assinado com `download`); uma nota diz o que acontece
+    no iPhone/Android/computador e a tela nunca diz "salvo". Leitura que falha ao ler = "Confirmação não verificada", nunca "pendente". ⚠️ Arquivo
+    SUBSTITUÍDO depois da leitura só é informado ("publicada depois da sua leitura"); pedir confirmação de novo precisa de decisão do banco
+    (`substituir_arquivo` zerar `arquivo_leitura`) e de ler `lido_em` no resumo — fica como pedido.
+  - **Solicitações** (a tela que era "Pedidos"; `Pedidos.jsx` + `pedidos/PedidoLinha.jsx` + `lib/pedidosMarca.js` + `pedidos-marca.css`, `pm-`): cada
+    linha tem título, "O que é pedido" (`solicitacoes.texto`), onde fica no painel, prazo em palavras com data local, situação e a ação (Responder ·
+    Continuar resposta · Ver resposta). Pendentes em cima (importante e prazo ≤3 dias primeiro), respondidas recolhidas em "Respondidas (N)"; "em andamento"
+    = resposta começada neste aparelho (o banco só tem pendente/respondido). O contador "Para responder (N)" bate com o do Início (teste contra `resumoMarca`).
+    O nome do destino na barra passou a ser **Solicitações** (a chave de rota segue `pedidos`, links gravados valem).
+  - **Ajuda no celular:** o botão de conversa mostra "Conversa" EMPILHADO sob o ícone (≤1100px; abaixo de 380px só o ícone, nome completo no `aria-label`).
+    ⛔ Não voltar ao rótulo ao lado do ícone: tomava a largura do título da página ("Solici…", "Arqui…"); há teste de navegador que mede o título.
+- **Painel da equipe — Visão geral e nomes** (22/10/2026):
+  - **Visão geral** (`vistas/Mesa.jsx` + `vistas/mesa/*.jsx` + `lib/visaoGeral.js` + `mesa-org.css`, `ms-`), três áreas nesta ordem: **Ações da equipe**
+    (cartões de decisão por urgência: mensagens, aprovação, temas, pedidos, candidaturas, revisão, respostas do site, marcas sem acesso; a **agenda** sobe ao
+    topo quando um prazo vence hoje/amanhã) · **Situação das marcas** (a esteira e as barras da edição) · **Atividade recente** (5, "Ver mais" até 12).
+    Cada cartão é o `Modulo` do painel com o destino dito no pé; **o número é o tamanho da lista que ele abre** (testado contra o filtro real de
+    `Marcas.jsx` e `respostas.js › filtrados`). Cartão cuja ação exige permissão (`mensagem.enviar`, `curadoria.decidir`, `producao.gerir`…) não aparece
+    sem ela; quem só tem pendência de outra função lê "Nada que a sua função possa resolver agora". "Nada precisa da equipe agora" só depois de ler tudo,
+    sem falha e sem pendência oculta (`estadoDasAcoes`); leitura que caiu é dita NO BLOCO que ela alimenta.
+  - **Temas**: o cartão conta propostas `proposto`; a aba Temas (Edição.jsx › `AbaTemas`) abre em **"Esperando decisão (N)"** (mesmo N) com a opção "Todos".
+  - **Os três "publicar"** têm nomes distintos, fonte única em `lib/nomesPublicacao.js`: Participantes › **Páginas das marcas** (revisar e publicar a
+    página de CADA marca) · Edição › **Liberação no site** (chaves e fase da edição INTEIRA) · Social media › **Planejamento** (posts do Instagram). Só os
+    NOMES mudaram; chaves de rota (`publicacao`, `planejamento`), `sub` da ficha e links gravados valem. `lib/rota.js` ganhou as abas `publicacao` e
+    `preenchimento` (Participantes) e `publicacao`/`avaliacoes` (Edição) — antes `participantes/publicacao` caía na lista de Marcas.
+  - **Ficha da marca**: uma nota sob as abas diz que "Visão do participante" só LÊ e que "Ver como participante" (só `acesso.gerir`) abre o painel real da
+    marca em outra aba (o item do menu tem `title`); a edição aparece nas ações de publicação. Tour da equipe reescrito (passo "Social media" só com `redes.ver`).
+  - **CSS morto removido de `painel.css`** (grade antiga da Mesa, `ui-resumo__*` sem uso, `ui-pedido*`/`ui-arquivo*`/`ui-resposta*`) — conferido por
+    script em todo `painel-app/src`, `tests/` e `public/painel` antes. ⚠️ Rotas antigas e a tela "Ver como" não mudaram.
+  - Testes: `painel-app-fotos-marca`, `arquivos-marca`, `pedidos-marca`, `visao-geral`, `nomes-publicacao`; navegador (backend falso, rodar de dentro de
+    `tests/`): `painel-marca-estados-navegador.mjs` (S1–S9 e rolagem horizontal em Início, formulário, Fotos, Arquivos e Solicitações) e
+    `painel-visao-geral-navegador.mjs` (V1–V4: áreas, número = lista, permissão, leitura que cai).
+- **Revisão independente desta rodada** (4 lentes + cético por achado): 25 achados confirmados, todos corrigidos e cobertos por teste. O que ficou como regra:
+  - **Marca.** Foco e feedback: resultado de reservar/confirmar/responder vive num `AvisoComFoco` (`<p tabIndex=-1>` com `role` status/alert que recebe o foco uma
+    vez por aviso) — item que muda de lugar não pode largar o leitor de tela no vazio; o arquivo recém-confirmado fica em "Para ler" (parâmetro `mantidos` de
+    `organizarArquivos`) até reabrir a tela. Botão de confirmar leitura só com `leituraConhecida` (falha ao ler `arquivo_leitura` = "Confirmação não
+    verificada", nunca "pendente"). Abrir/Baixar de arquivos E de fotos oficiais usam o mesmo `useAcessoArquivo` (`urlParaBaixar`, `nomeArquivo`,
+    `notaDeAbertura`). Reserva de foto aplica a linha devolvida pelo PATCH antes de reler (a vaga conquistada sai da lista mesmo se a releitura cair). No modo
+    "Ver como", `modo_visualizacao` vira a frase do modo (`traduzirErro`). Solicitação de bloco `fotos` entra na lista da aba Fotos. O **rascunho de resposta**
+    de uma solicitação fica no `sessionStorage` por participação (sem ir ao banco), é declarado com `usePendencia` e **apagado no logout e na troca de conta**
+    (`limparRascunhosPedidos` em `App.jsx › sairMarca/trocaLocal`). ⚠️ O texto visível ao participante diz **"solicitação"** em todo lugar (guia, Início, tour,
+    avisos de mudança em `sincMarca.js`); "pedido" só sobrou em nomes de função, chave de rota e na organização.
+  - **Equipe.** Leitura que cai NUNCA vira zeros/"sem edição": `Mesa.jsx` guarda `marcasLidas` e `edicaoLida` ("leu ao menos uma vez" — a releitura silenciosa que
+    falha mantém o dado antigo) e `estadoDaEdicao` escolhe o texto ("Não consegui ler as marcas/a edição atual…"); com as marcas nunca lidas a esteira vira uma
+    nota (senão sobrariam contadores "0"). `estadoDasAcoes` ganhou `agendaUrgente`: "Nada precisa da equipe agora" não aparece junto de prazo que vence
+    hoje/amanhã. **Marca encerrada não conta em "Cadastros para aprovar"** (`aguardandoAprovacao` e o filtro `aguardando_aprovacao` de `Marcas.jsx` exigem
+    `participaDaEdicao`, os dois juntos). Aba Temas: grupo com tema já aprovado e propostas de outras marcas mostra "Já aprovado para <marca>: …precisam trocar de
+    tema" (a aprovada continua visível; "N marcas pediram" só em grupo sem aprovada). O cartão de pedidos soma respostas que faltam e o destino ("Quem falta")
+    lista TODAS as marcas do pedido, pendentes primeiro — por isso o texto não promete "mesmo número" ali.
+  - **Botão de conversa**: o nome acessível é "Conversa: falar com a organização (N mensagens novas)" — contém o rótulo longo (computador) e o curto (celular), WCAG 2.5.3
+    (teste em `painel-app-inicio`).
+  - ⚠️ Conhecido e NÃO resolvido: o bloco de Social media (`ResumoRedes`, em `Redes.jsx`) lê o próprio resumo e pode mostrar "N atrasadas" ao lado de "Nada precisa da
+    equipe agora" — resolver exige o `ResumoRedes` avisar a Mesa ou sair dessa seção. Também: a aba Arquivos da marca não lista solicitação de bloco `arquivo`
+    (só a aba Fotos lista as de `fotos`); o modo `fotos` de `<Arquivos>` ficou sem uso (ramo morto).
+- ⚠️ **Ainda não validado** (nada disto foi feito): iPhone/Android reais (o `download` virar anexo, aba que fecha sozinha, `IntersectionObserver` do Safari,
+  zoom 200%), miniaturas com URLs assinadas reais, o fluxo completo de primeiro acesso + troca de senha em aparelho, reserva de foto por duas marcas ao mesmo
+  tempo (só o erro traduzido está coberto), e a Visão geral com dados reais. Testes: `tests/painel-app-guia-estados`, `painel-app-inicio`, `painel-app-edicao-marca`; navegador (backend falso):
   `node tests/painel-marca-estados-navegador.mjs` (de dentro de `tests/`; `CAPTURAS=<pasta>` salva imagens em 360/390/768/1280/1440).
 
 #### "Ver como participante" — 22/10/2026 (pedido do Wilker)

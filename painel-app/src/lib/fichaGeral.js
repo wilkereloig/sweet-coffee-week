@@ -22,6 +22,7 @@ import { ALERGENICOS, CARACTERISTICAS, formatarPreco, horarioResumido } from '..
 import { estadoPublicacao, textoPublicacao, diferencas, traduzirPendencia, urlPublicaParticipante } from './publicacao.js'
 import { camposObrigatorios, dadosDeLinhas, blocoDoCampo, CAMPOS_APONTAVEIS } from './guia.js'
 import { rotulo } from './status.js'
+import { NOMES_PUBLICACAO } from './nomesPublicacao.js'
 
 const txt = (v) => (v == null ? '' : String(v).trim())
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -379,7 +380,7 @@ export function resumoPublicacao(pub) {
 // ------------------------------------------------------------------ navegação
 export const SECOES_VISAO = [
   ['cadastro', 'Cadastro'], ['combo', 'Tema e combo'], ['unidades', 'Unidades'],
-  ['fotos', 'Fotos'], ['operacao', 'Operação'], ['publicacao', 'Publicação'],
+  ['fotos', 'Fotos'], ['operacao', 'Operação'], ['publicacao', NOMES_PUBLICACAO.marcas.pagina],
 ]
 const SECAO_DO_BLOCO = { 0: 'cadastro', 1: 'combo', 2: 'combo', 3: 'combo', 4: 'unidades', 5: 'combo', 6: 'unidades', 7: 'fotos' }
 export const secaoDoBloco = (b) => SECAO_DO_BLOCO[b] || 'cadastro'

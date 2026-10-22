@@ -22,6 +22,7 @@ import { AbaAcesso } from './AcessoMarca'
 import { PreenchimentoMarca } from './Preenchimento'
 import { AbaPublicacao, PreviaPagina, ConferirLocalizacao, RevisarFotos } from './Publicacao'
 import { useFichaGeral, VisaoParticipante } from './FichaVisao'
+import { NOMES_PUBLICACAO } from '../../lib/nomesPublicacao'
 
 /*
  * Ficha do participante (15/10/2026 — ficha geral). Mesmo endereço de antes
@@ -32,6 +33,11 @@ import { useFichaGeral, VisaoParticipante } from './FichaVisao'
  *   Histórico   → atividade no painel + trajetória no festival
  *   Gestão      → acesso e administração
  * Os `sub` das abas antigas são traduzidos em lib/rota.js (destinoNaFicha).
+ *
+ * ⚠️ Não confundir (22/10/2026): "Visão do participante" é a VISTA de leitura de tudo o que foi
+ * preenchido (não grava); "Ver como participante" é a AÇÃO, em Mais ações e só do administrador,
+ * que abre o painel REAL da marca numa aba nova, também só leitura. A frase de cada uma aparece
+ * escrita na tela (nota sob as abas e `descricao` do item do menu).
  */
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -221,10 +227,14 @@ function EdicaoNaSecao({ titulo, onConcluir, sujoRef, children }) {
 const TITULO_EDITOR = {
   cadastro: 'Editando os dados da marca', combo: 'Editando tema e componentes', unidades: 'Editando as unidades',
   coordenadas: 'Conferindo a localização das unidades', fotos: 'Revisando as fotos', operacao: 'Operação da participação',
-  publicacao: 'Publicação no site',
+  publicacao: NOMES_PUBLICACAO.marcas.pagina,
 }
+// Editores que mexem no que é DA EDIÇÃO (não no cadastro permanente da marca): o título diz qual edição.
+const EDITOR_DA_EDICAO = new Set(['combo', 'unidades', 'coordenadas', 'fotos', 'operacao', 'publicacao'])
 
 const VISTAS = [['visao', 'Visão do participante'], ['comunicacao', 'Comunicação'], ['historico', 'Histórico'], ['gestao', 'Gestão']]
+const FRASE_VISAO = 'tudo o que foi preenchido, só para ler. Nada é gravado ao abrir.'
+const FRASE_VER_COMO = 'Abre o painel real da marca, em outra aba, como ela vê. Só leitura: nada é gravado.'
 
 function rolarPara(secao) {
   const el = document.getElementById('fg-' + secao)
@@ -306,7 +316,7 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
     return null
   }
   const renderEditor = (alvo) => (
-    <EdicaoNaSecao titulo={TITULO_EDITOR[alvo.editor] || 'Editando'} onConcluir={concluir} sujoRef={sujoRef}>{editorDe(alvo.editor)}</EdicaoNaSecao>
+    <EdicaoNaSecao titulo={(TITULO_EDITOR[alvo.editor] || 'Editando') + (p.edicao_codigo && EDITOR_DA_EDICAO.has(alvo.editor) ? ' · edição ' + p.edicao_codigo : '')} onConcluir={concluir} sujoRef={sujoRef}>{editorDe(alvo.editor)}</EdicaoNaSecao>
   )
 
   const nome1 = String(p.responsavel || '').trim().split(/\s+/)[0]
@@ -346,7 +356,8 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
             { rotulo: 'Ver trajetória no festival', icone: 'pessoas', onClick: () => mudarVista('historico', 'trajetoria') },
             { rotulo: 'Gerenciar acesso', icone: 'chave', onClick: () => mudarVista('gestao') },
             // Aba nova, só leitura: o painel exatamente como a marca vê (VerComoParticipante). Só administrador.
-            ...(pode('acesso.gerir') ? [{ rotulo: 'Ver como participante', icone: 'visao', onClick: () => window.open('/painel/?ver_como=' + p.id, '_blank') }] : []),
+            // `descricao`: a frase curta que o item mostra quando o MaisAcoes (ui.jsx) passar a desenhá-la.
+            ...(pode('acesso.gerir') ? [{ rotulo: 'Ver como participante', icone: 'visao', descricao: FRASE_VER_COMO, onClick: () => window.open('/painel/?ver_como=' + p.id, '_blank') }] : []),
             { rotulo: 'Arquivar marca', icone: 'arquivar', perigo: true, onClick: () => mudarVista('gestao') },
           ]} />
         </div>
@@ -358,6 +369,10 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
       <div {...painelDaAba(idAbas, vista)} className="ui-painel-aba">
         {vista === 'visao' && (
           <>
+            <p className="ui-nota">
+              <b>{VISTAS[0][1]}:</b> {FRASE_VISAO}
+              {pode('acesso.gerir') && <> <b>Mais ações › Ver como participante</b> — {FRASE_VER_COMO}</>}
+            </p>
             {secoes.length > 1 && (
               <nav className="fg-ancoras" aria-label="Seções da visão do participante">
                 <ul className="fg-ancoras__lista">

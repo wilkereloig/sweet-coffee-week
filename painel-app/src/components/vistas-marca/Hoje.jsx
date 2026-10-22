@@ -171,7 +171,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
             ['arquivos', arquivos.length ? 'Arquivos (' + arquivos.length + ')' : 'Arquivos', contadores.arquivos],
             ['guia', 'Guia de fotos', 0],
             ['fotos', 'Fotos', contadores.fotos],
-            ['pedidos', 'Pedidos', pedidosAbertos],
+            ['pedidos', 'Solicitações', pedidosAbertos],
           ]} />
       ),
     }

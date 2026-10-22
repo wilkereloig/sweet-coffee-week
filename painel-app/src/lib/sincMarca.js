@@ -87,12 +87,12 @@ export function textoDaMudanca(m) {
   const partes = []
   if (m.fechado) {
     partes.push(m.comResposta
-      ? 'Este pedido já foi respondido enquanto você escrevia — veja a resposta acima.'
-      : 'A organização deu este pedido como resolvido enquanto você escrevia.')
+      ? 'Esta solicitação já foi respondida enquanto você escrevia — veja a resposta acima.'
+      : 'A organização deu esta solicitação como resolvida enquanto você escrevia.')
   } else if (m.respostaMudou) {
-    partes.push('A resposta deste pedido foi atualizada enquanto você escrevia — veja acima.')
+    partes.push('A resposta desta solicitação foi atualizada enquanto você escrevia — veja acima.')
   }
-  if (m.campos.length) partes.push('A organização alterou ' + listar(m.campos.map((c) => CAMPO_PEDIDO[c])) + ' do pedido. Releia antes de enviar.')
+  if (m.campos.length) partes.push('A organização alterou ' + listar(m.campos.map((c) => CAMPO_PEDIDO[c])) + ' da solicitação. Releia antes de enviar.')
   partes.push('O que você escreveu continua aqui' + (m.fechado ? ': envie como complemento, se ainda fizer sentido, ou apague.' : '.'))
   return partes.join(' ')
 }
@@ -119,7 +119,7 @@ export function rascunhosSemPedido(minhas, rascunhos) {
   const ids = new Set((minhas || []).map((s) => s.id))
   return Object.entries(rascunhos || {})
     .filter(([id, r]) => !ids.has(id) && temTexto(r))
-    .map(([id, r]) => ({ id, titulo: (r.visto && r.visto.titulo) || 'Pedido', texto: r.texto }))
+    .map(([id, r]) => ({ id, titulo: (r.visto && r.visto.titulo) || 'Solicitação', texto: r.texto }))
 }
 
 // ── Mensagens ────────────────────────────────────────────────────────────────

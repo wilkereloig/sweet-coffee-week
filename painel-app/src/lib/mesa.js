@@ -62,6 +62,14 @@ export function colunasMesa({ candidaturas = [], participantes = [] }) {
  */
 export const participaDaEdicao = (p) => !!p && p.status_cadastro !== 'encerrado'
 
+/*
+ * As encerradas da edição (22/10/2026): a lista de Marcas filtrada por edição as mostra, mas elas não entram em
+ * nenhum número de `resumoDaEdicao`. A Visão geral diz isso em voz alta, em vez de deixar 24 abrir uma lista de 26.
+ */
+export function encerradasNaEdicao(participantes = [], edicaoCodigo) {
+  return (participantes || []).filter((p) => edicaoCodigo && p.edicao_codigo === edicaoCodigo && !participaDaEdicao(p))
+}
+
 export function resumoDaEdicao(participantes = [], edicaoCodigo) {
   const naEdicao = (participantes || []).filter((p) => edicaoCodigo && p.edicao_codigo === edicaoCodigo && participaDaEdicao(p))
   const comAcesso = naEdicao.filter((p) => p.user_id).length

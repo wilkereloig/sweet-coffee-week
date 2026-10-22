@@ -58,6 +58,20 @@ test('itensProntos vem como string do banco (bigint) e vira Number', () => {
   assert.equal(acha(colunas, 'acesso').itens[0].itensProntos, 2)
 })
 
+test('Visão geral: as encerradas da edição são contadas à parte (a lista da edição as mostra, os números não)', async () => {
+  const { encerradasNaEdicao, resumoDaEdicao } = await import('../painel-app/src/lib/mesa.js')
+  const marcas = [
+    { id: 'a', edicao_codigo: '2026.2', status_cadastro: 'em_preenchimento' },
+    { id: 'b', edicao_codigo: '2026.2', status_cadastro: 'encerrado' },
+    { id: 'c', edicao_codigo: '2026.1', status_cadastro: 'encerrado' }, // outra edição
+  ]
+  assert.deepEqual(encerradasNaEdicao(marcas, '2026.2').map((p) => p.id), ['b'])
+  // total que a lista filtrada por edição abre = os que contam + as encerradas
+  assert.equal(marcas.filter((p) => p.edicao_codigo === '2026.2').length, resumoDaEdicao(marcas, '2026.2').naEdicao.length + encerradasNaEdicao(marcas, '2026.2').length)
+  assert.deepEqual(encerradasNaEdicao(marcas, undefined), [], 'sem edição atual não afirma nada')
+  assert.deepEqual(encerradasNaEdicao(undefined, '2026.2'), [])
+})
+
 test('Visão geral: marca encerrada não entra no total, no acesso nem nos completos', async () => {
   const { resumoDaEdicao, participaDaEdicao } = await import('../painel-app/src/lib/mesa.js')
   const marcas = [

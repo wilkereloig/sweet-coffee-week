@@ -131,7 +131,7 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
    Card, lista em card, bloco do cadastro, número, cartão da esteira: creme,
    anel de 1px por dentro e sombra-1. Quem é card entra NESTA lista; nenhuma
    regra abaixo redeclara fundo, borda ou sombra de card. */
-.ui-modulo,.og-lista,.mc-bloco,.ui-resumo__bloco,.ui-numero,.og-cartao,
+.ui-modulo,.og-lista,.mc-bloco,.ui-numero,.og-cartao,
 .gm-etapa,.gm-atalho,.og-esteira__etapa,.ui-pendencias li,
 .rd-cartao,.sp-cartao,.rd-agenda,.bb-arq,.sc-cartao{
   background:var(--sup-1);border:0;box-shadow:var(--contorno),var(--sombra-1);
@@ -241,7 +241,10 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 /* Botão com rótulo (Falar com a organização): texto no desktop, só ícone no celular. */
 .pn-cabeca__btn--texto{width:auto;padding:0 14px;display:inline-flex;gap:8px;font:700 14px/1 var(--f-ui)}
 .pn-cabeca__btn--texto .pn-badge{position:static}
-@media (max-width:1100px){ .pn-cabeca__btn--texto{width:44px;padding:0;justify-content:center} .pn-cabeca__btn-rotulo{display:none} .pn-cabeca__btn--texto .pn-badge{position:absolute} }
+.pn-cabeca__btn-curto{display:none}
+/* Celular/tablet: rótulo CURTO ("Conversa") EMPILHADO sob o ícone — não rouba largura do título da página; abaixo de 380px só o ícone (o nome completo está no aria-label). */
+@media (max-width:1100px){ .pn-cabeca__btn--texto{width:58px;padding:0;flex-direction:column;justify-content:center;gap:2px} .pn-cabeca__btn-rotulo{display:none} .pn-cabeca__btn-curto{display:block;font:700 11px/1 var(--f-ui)} .pn-cabeca__btn--texto .pn-badge{position:absolute;top:2px;right:6px} }
+@media (max-width:379px){ .pn-cabeca__btn--texto{width:44px} .pn-cabeca__btn-curto{display:none} }
 @media (min-width:901px){ #btn-sair{display:none} }
 /* Estado da sincronização (19/10/2026): ponto + rótulo curto; vira botão em falha/sem conexão. */
 .pn-sync{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 10px;border:0;border-radius:var(--r-2);background:transparent;color:var(--scw-marrom);font:600 12px/1 var(--f-ui);white-space:nowrap}
@@ -407,22 +410,8 @@ button.pn-sync{cursor:pointer;color:var(--scw-choco)}
 .ui-grade-duas{display:grid;gap:0 clamp(28px,3.4vw,56px);grid-template-columns:minmax(0,1fr)}
 @media (min-width:1280px){ .ui-grade-duas{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
-/* Painel inicial (mesa / hoje): números em cima; atenção e atividade lado a
-   lado no desktop; esteira em largura total. */
-.ui-grade-painel{display:grid;gap:0 clamp(28px,3.4vw,56px);grid-template-columns:minmax(0,1fr);grid-template-areas:"numeros" "atencao" "redes" "atividade" "esteira"}
-.ui-resumo{grid-area:numeros}
-.ui-area-atencao{grid-area:atencao}
-.ui-area-atividade{grid-area:atividade}
-.ui-area-esteira{grid-area:esteira}
-.ui-area-redes{grid-area:redes}
 /* Filtro que veio de fora (contador da Visão geral): diz qual é e como sair. */
 .ui-filtro-ativo{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 14px;font:700 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
-@media (min-width:1100px){
-  .ui-grade-painel{grid-template-columns:minmax(0,3fr) minmax(0,2fr);grid-template-areas:"numeros numeros" "atencao atividade" "redes redes" "esteira esteira"}
-}
-.ui-area-historia{grid-area:historia}
-.ui-grade-painel--marca{grid-template-areas:"atencao" "esteira" "atividade" "historia"}
-@media (min-width:1100px){ .ui-grade-painel--marca{grid-template-areas:"atencao atividade" "esteira atividade" "historia historia";align-items:start} }
 
 /* ═══ Botões ═══════════════════════════════════════════════════════════════
    Uma família só (og-btn); `acao` é o apelido usado pelo formulário da marca. */
@@ -781,37 +770,22 @@ body:has(.ui-conexao) :is(.og-vista,.pn-vista__trilho){padding-bottom:calc(200px
 .ui-tour__nav{display:flex;gap:8px;margin-left:auto}
 
 /* ═══ Painel inicial ═══════════════════════════════════════════════════════ */
-/* Resumo da Visão geral: a edição em frações do total (barras) e, ao lado,
-   só o que pede ação acima de zero — zerado vira uma linha "Em dia". Oito
-   cartões iguais davam o mesmo peso a 0 e a 19. */
-.ui-resumo{display:grid;gap:12px;margin:0 0 var(--espaco-secao);grid-template-columns:minmax(0,1fr)}
-@media (min-width:760px){ .ui-resumo{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
-.ui-resumo__bloco{display:flex;flex-direction:column;gap:12px;min-width:0;padding:20px 22px 22px;border-radius:var(--r-3)}
-.ui-resumo__rotulo{margin:0;font:700 12px/1 var(--f-ui);letter-spacing:.02em;color:var(--scw-marrom)}
-.ui-resumo__total,.ui-resumo__barra,.ui-resumo__acao{
+/* Barras do resumo da edição (ResumoRedes e barras de situação). */
+.ui-resumo__total,.ui-resumo__barra{
   width:100%;border:0;background:transparent;color:var(--scw-choco);text-align:left;cursor:pointer;font:inherit;
   border-radius:var(--r-1);transition:background var(--scw-transicao);
 }
-@media (hover:hover){ .ui-resumo__total:hover,.ui-resumo__barra:hover,.ui-resumo__acao:hover{background:var(--scw-bege)} }
+@media (hover:hover){ .ui-resumo__total:hover,.ui-resumo__barra:hover{background:var(--scw-bege)} }
 .ui-resumo__total{display:flex;align-items:baseline;gap:10px;min-height:44px;padding:4px 8px;margin:-4px -8px 0;width:calc(100% + 16px)}
 .ui-resumo__n{font:900 clamp(34px,3.4vw,46px)/.9 var(--f-titulo);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
 .ui-resumo__texto{font:700 14px/1.25 var(--f-ui)}
-.ui-resumo__barras,.ui-resumo__acoes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
-.ui-resumo__acoes{gap:0}
+.ui-resumo__barras{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
 .ui-resumo__barra{display:flex;flex-direction:column;gap:7px;min-height:44px;padding:8px;margin:0 -8px;width:calc(100% + 16px)}
 .ui-resumo__linha{display:flex;justify-content:space-between;gap:12px;font:400 14px/1.3 var(--f-ui)}
 .ui-resumo__linha b{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .ui-resumo__trilho{display:block;height:8px;border-radius:4px;background:var(--scw-bege);overflow:hidden}
 .ui-resumo__trilho > span{display:block;height:100%;border-radius:inherit;background:var(--scw-choco)}
-.ui-resumo__acao{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 8px;margin:0 -8px;width:calc(100% + 16px)}
-.ui-resumo__acoes li + li{border-top:1px solid var(--scw-filete)}
-/* O número que pede ação vai em chapa amarela: é o único lugar do resumo com cor. */
-.ui-resumo__n--acao{flex:0 0 auto;min-width:52px;padding:8px 10px 6px;border-radius:var(--r-1);background:var(--scw-amarelo);text-align:center;font-size:clamp(24px,2.4vw,30px)}
-.ui-resumo__acao .ui-resumo__texto{flex:1 1 auto;min-width:0}
-.ui-resumo__ir{flex:0 0 auto;font:700 20px/1 var(--f-ui);color:var(--scw-marrom)}
 .ui-resumo__ok{display:flex;align-items:center;gap:8px;margin:0;font:700 15px/1.3 var(--f-ui)}
-.ui-resumo__emdia{margin:0;font:400 13px/1.45 var(--f-texto);color:var(--scw-marrom)}
-.ui-resumo__emdia b{color:var(--scw-choco);font-family:var(--f-ui)}
 .ui-numeros{list-style:none;margin:0 0 var(--espaco-secao);padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
 .ui-numero{
   width:100%;height:100%;text-align:left;border-radius:var(--r-3);padding:18px 20px;
@@ -1189,29 +1163,8 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .mc-venda__erro{margin:14px 0 0;display:flex;gap:10px;align-items:flex-start;color:var(--scw-amarelo);font:700 14px/1.4 var(--f-texto)}
 .mc-venda__erro::before{content:'';flex:0 0 20px;height:20px;border-radius:50%;background:var(--scw-amarelo) var(--icone-exclamacao-choco) center/14px no-repeat}
 
-/* Pedidos da marca (acordeão com resposta). */
-.ui-pedidos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--scw-filete);max-width:980px}
-.ui-pedido{border-bottom:1px solid var(--scw-filete)}
-.ui-pedido__cabeca{width:100%;text-align:left;border:0;background:transparent;padding:16px 6px;display:flex;align-items:center;gap:14px;min-height:60px}
-@media (hover:hover){ .ui-pedido__cabeca:hover{background:var(--sup-toque)} }
-.ui-pedido__titulo{flex:1 1 auto;min-width:0;font:700 16px/1.3 var(--f-ui)}
-.ui-pedido__chevron{flex:0 0 auto;color:var(--scw-marrom);transition:transform 200ms var(--scw-ease)}
-.ui-pedido.is-aberto .ui-pedido__chevron{transform:rotate(180deg)}
-.ui-pedido__prazo{margin:0;font:700 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
-.ui-resposta{display:flex;flex-direction:column;gap:6px}
-.ui-resposta__rotulo{margin:0;font:700 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
-.ui-pedido.is-feito .ui-pedido__titulo{color:var(--scw-marrom)}
-.ui-pedido__corpo{padding:0 6px 22px;display:flex;flex-direction:column;gap:14px}
 .ui-pedido__texto{margin:0;font:400 15px/1.55 var(--f-texto);white-space:pre-wrap}
 
-/* Arquivos da marca. */
-.ui-arquivos{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
-.ui-arquivo{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:14px 4px;border-bottom:1px solid var(--scw-filete)}
-.ui-arquivo.is-destaque{background:rgba(253,187,26,.18)}
-.ui-arquivo__corpo{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 260px}
-.ui-arquivo__corpo b{font:700 15.5px/1.3 var(--f-ui)}
-.ui-arquivo__corpo span{font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom)}
-.ui-arquivo__corpo .og-selo{align-self:flex-start;margin-top:4px;font:700 11px/1.2 var(--f-ui);color:var(--scw-choco)}
 
 /* ═══ Guia de fotos (só leitura) ═══════════════════════════════════════════ */
 .gf{display:grid;gap:clamp(28px,3.4vw,44px)}

@@ -90,7 +90,7 @@ test('organização deu o pedido como resolvido enquanto a marca escrevia: aviso
   const m = mudancaDoPedido(visto, pedido, { estado: 'respondido', resposta: null })
   assert.equal(m.fechado, true)
   const t = textoDaMudanca(m)
-  assert.match(t, /A organização deu este pedido como resolvido/)
+  assert.match(t, /A organização deu esta solicitação como resolvida/)
   assert.match(t, /O que você escreveu continua aqui/)
   assert.match(t, /complemento/)
 })
@@ -99,8 +99,8 @@ test('pedido respondido em outro aparelho: o aviso manda olhar a resposta, sem c
   const visto = fotoDoPedido(pedido, undefined)
   const m = mudancaDoPedido(visto, pedido, { estado: 'respondido', resposta: 'Enviado ontem.' })
   assert.equal(m.fechado, true)
-  assert.match(textoDaMudanca(m), /já foi respondido/)
-  assert.doesNotMatch(textoDaMudanca(m), /deu este pedido como resolvido/)
+  assert.match(textoDaMudanca(m), /já foi respondida/)
+  assert.doesNotMatch(textoDaMudanca(m), /deu esta solicitação como resolvida/)
 })
 
 test('organização mudou prazo e texto do pedido: aviso diz o quê, sem inventar fechamento', () => {

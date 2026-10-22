@@ -191,6 +191,8 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
 function AbaTemas({ edicao, pode, irPara }) {
   const guarda = useGuarda()
   const [temas, setTemas] = React.useState(null)
+  // Filtro: 'pendentes' = as propostas esperando decisão (o número do cartão da Visão geral); null = o padrão (pendentes, se houver).
+  const [ver, setVer] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   // true = leu. Releitura silenciosa (sinal de outra pessoa, depois de decidir) mantém a lista na tela se falhar.
   const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
@@ -221,13 +223,32 @@ function AbaTemas({ edicao, pode, irPara }) {
   if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!temas) return <Carregando />
   const grupos = agruparTemas(temas)
+  // O número é o do cartão "Temas para decidir" (Visão geral): só status 'proposto'.
+  const aguardando = temas.filter((t) => t.status === 'proposto').length
+  const modo = ver || (aguardando ? 'pendentes' : 'todos')
+  const aparece = (t) => modo === 'todos' || t.status === 'proposto'
+  const visiveis = grupos.filter((g) => g.itens.some(aparece))
+  // Grupo com tema JÁ aprovado e propostas de outras marcas: a aprovada fica à vista (é ela que explica por que
+  // não há "Aprovar") e a nota diz isso, em vez de contá-la entre as marcas que "pediram".
+  const doGrupo = (g) => g.itens.filter((t) => aparece(t) || (g.aprovado && t.id === g.aprovado.id))
+  const notaDoGrupo = (g) => {
+    const esperando = g.itens.filter((t) => t.status === 'proposto').length
+    if (g.aprovado && esperando) return 'Já aprovado para ' + (g.aprovado.marca || 'outra marca') + ': ' + (esperando === 1 ? 'a outra marca precisa' : 'as outras marcas precisam') + ' trocar de tema'
+    if (g.conflito) return 'Conflito: ' + g.itens.length + ' marcas pediram este tema'
+    return g.aprovado ? rotulo('tema', 'aprovado') : rotulo('tema', 'proposto')
+  }
   return (
     <div className="ui-pilha">
       <Ajuda titulo="Regra dos temas"><p>O tema não se repete na edição. Quando duas marcas pedem o mesmo, a prioridade é de quem está com o pagamento em dia e, entre elas, de quem informou primeiro. O painel mostra a ordem; quem aprova é a organização.</p></Ajuda>
+      {grupos.length > 0 && (
+        <Escolha rotulo="Mostrar" valor={modo} onMudar={setVer}
+          opcoes={[['pendentes', 'Esperando decisão (' + aguardando + ')'], ['todos', 'Todos os temas (' + temas.length + ')']]} />
+      )}
       {grupos.length === 0 && <Vazio titulo="Nenhum tema informado ainda">Os temas aparecem aqui assim que as marcas preenchem o cadastro.</Vazio>}
-      {grupos.map((g) => (
-        <Secao key={g.chave} titulo={g.tema} nota={g.conflito ? 'Conflito: ' + g.itens.length + ' marcas pediram este tema' : g.aprovado ? rotulo('tema', 'aprovado') : rotulo('tema', 'proposto')}>
-          <ol className="ui-lista-simples">{g.itens.map((t) => (
+      {grupos.length > 0 && visiveis.length === 0 && <Vazio titulo="Nenhum tema esperando decisão">Todos os temas já foram decididos. Escolha “Todos os temas” para ver.</Vazio>}
+      {visiveis.map((g) => (
+        <Secao key={g.chave} titulo={g.tema} nota={notaDoGrupo(g)}>
+          <ol className="ui-lista-simples">{doGrupo(g).map((t) => (
             <li key={t.id}>
               <b>{g.conflito ? t.prioridade + 'º · ' : ''}{t.marca}</b>
               <span>Informado {tempoRelativo(t.solicitado_em)} ({dataCurta(t.solicitado_em)}) · {ROTULO_PAGAMENTO[t.pagamento_status]}{t.status === 'aprovado' ? ' · APROVADO por ' + (t.decidido_rotulo || '—') : ''}</span>
