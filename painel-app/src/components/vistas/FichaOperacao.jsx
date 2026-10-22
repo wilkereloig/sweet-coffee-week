@@ -121,6 +121,7 @@ export function AbaOperacao({ participante, pode }) {
   const pendencias = f.pendencias || []
 
   async function decidirTema(status) {
+    if (status === 'aprovado' && !(await confirmar('Aprovar o tema “' + temaAtivo.tema + '”? A marca é avisada na hora e o tema não pode ser aprovado para outra marca.', { acao: 'Aprovar tema' }))) return
     const obs = status === 'recusado' ? await pedirTexto('Por que o tema precisa mudar? A marca recebe este texto.', {}) : ''
     if (status === 'recusado' && !obs) return
     try {

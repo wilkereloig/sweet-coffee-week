@@ -206,6 +206,7 @@ function AbaTemas({ edicao, pode, irPara }) {
   useSincronizar(DOMINIOS_VISTAS.temas, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('temas') })
   const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
   async function decidir(t, status) {
+    if (status === 'aprovado' && !(await confirmar('Aprovar o tema “' + t.tema + '” para ' + t.marca + '? A marca é avisada na hora e o tema não pode ser aprovado para outra marca.', { acao: 'Aprovar tema' }))) return
     const obs = status === 'recusado' ? await pedirTexto('Por que ' + t.marca + ' precisa trocar de tema? A marca recebe este texto.', {}) : null
     if (status === 'recusado' && !obs) return
     try { await rpc('decidir_tema', { p_secret: lerSenha(), p_proposta: t.id, p_status: status, p_obs: obs }); carregar({ silencioso: true }) }

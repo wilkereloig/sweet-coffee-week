@@ -24,6 +24,7 @@ import { auth, api, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExp
 import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
 import { useSincronizar } from './lib/sync/react'
 import { lerGuardada, apagarGuardada } from './lib/sessaoGuardada'
+import { limparRascunhosSocial } from './lib/rascunhosSocial'
 import { Icone } from './components/Icone'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
@@ -242,9 +243,10 @@ export function App() {
     // não há como saber, olhando só pra `estado`, qual das duas está ativa.
     let sessaoConta = null
     try { sessaoConta = JSON.parse(lerGuardada(CHAVE_SESSAO_ORG_CONTA) || 'null') } catch { /* sessão ilegível */ }
-    if (sessaoConta) auth('logout', null, 'POST', sessaoConta.access_token).catch(() => { /* segue mesmo assim */ })
+    if (sessaoConta) auth('logout?scope=local', null, 'POST', sessaoConta.access_token).catch(() => { /* segue mesmo assim */ })
     sessionStorage.removeItem(CHAVE_SESSAO_ORG)
     apagarGuardada(CHAVE_SESSAO_ORG_CONTA)
+    limparRascunhosSocial()
     setAcoesPermitidas(null)
     setFuncaoRotulo(null)
     setFuncaoCodigo(null)
@@ -257,6 +259,7 @@ export function App() {
   // Nada de logout no servidor nem de apagar a sessão — ela já é a da outra conta (ou
   // nem existe mais), e mexer nela derrubaria quem acabou de entrar.
   function trocaLocal() {
+    limparRascunhosSocial()
     setAcoesPermitidas(null)
     setFuncaoRotulo(null)
     setFuncaoCodigo(null)
@@ -272,7 +275,7 @@ export function App() {
     if (!expirou) await comTeto(desligarAvisos((endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })).catch(() => {}), 4000)
     let sessao = null
     try { sessao = JSON.parse(lerGuardada(CHAVE_SESSAO_MARCA) || 'null') } catch { /* sessão ilegível */ }
-    if (sessao) auth('logout', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
+    if (sessao) auth('logout?scope=local', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
     apagarGuardada(CHAVE_SESSAO_MARCA)
     setDestino(null)
     setEstado('boas-vindas')

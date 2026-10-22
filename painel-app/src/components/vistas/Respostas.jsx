@@ -116,10 +116,12 @@ function DetalheResposta({ origem, reg, onAtualizado, onApagado, pode }) {
     setAvisoAcesso(null)
     const senha = sessionStorage.getItem(CHAVE_SESSAO) || ''
     try {
-      const r = await chamarFuncao('criar-acesso-marca', { secret: senha, origem_id: reg.id })
-      if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
+      // `resp` (e não `r`): `r` é o rascunho da triagem, e aqui ele sombreava a resposta da função — a conta nascia e a
+      // tela mostrava "Não criou: r.editar is not a function" (achado da auditoria de 21/10/2026).
+      const resp = await chamarFuncao('criar-acesso-marca', { secret: senha, origem_id: reg.id })
+      if (!resp || !resp.login || !resp.senha) throw new Error('a função não devolveu as credenciais.')
       setAvisoAcesso({ tom: 'ok', texto: 'Acesso criado. Copie ou envie agora.' })
-      setCredenciais({ login: r.login || reg.empresa, senha: r.senha, participanteId: r.participante_id })
+      setCredenciais({ login: resp.login || reg.empresa, senha: resp.senha, participanteId: resp.participante_id })
       // O banco moveu a candidatura para aguardando_cadastro
       // (vincular_conta_marca): a ficha e a lista acompanham.
       r.editar('status', 'aguardando_cadastro')

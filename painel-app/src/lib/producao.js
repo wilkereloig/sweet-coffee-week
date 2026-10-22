@@ -30,11 +30,11 @@ export function montarAgendaGrade(sessoes, hoje = new Date()) {
       const quando = new Date(dia)
       quando.setHours(h, m, 0, 0)
       const s = sessoes.find((x) =>
-        (x.status === 'aberto' || x.status === 'agendada') &&
+        (x.status === 'aberto' || x.status === 'agendada' || x.status === 'remarcada') &&
         Math.abs(new Date(x.data_hora).getTime() - quando.getTime()) < 60000)
       let estado = 'fechado', quem = ''
       if (s && s.status === 'aberto') { estado = 'aberto'; quem = 'vaga aberta' }
-      else if (s && s.status === 'agendada') { estado = 'reservado'; quem = s.nome_marca || 'reservada' }
+      else if (s && (s.status === 'agendada' || s.status === 'remarcada')) { estado = 'reservado'; quem = s.nome_marca || 'reservada' }
       return { hhmm, quandoIso: quando.toISOString(), estado, quem, sessaoId: s ? s.id : null }
     })
     dias.push({

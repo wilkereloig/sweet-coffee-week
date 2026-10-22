@@ -31,7 +31,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     })
   }
 
-  solicitacoes.filter((s) => s.publicada_em && Number(s.pendentes || 0) > 0).forEach((s) => {
+  solicitacoes.filter((s) => s.publicada_em && !s.arquivada && Number(s.pendentes || 0) > 0).forEach((s) => {
     const n = Number(s.pendentes)
     fila.push({
       tipo: 'alerta',

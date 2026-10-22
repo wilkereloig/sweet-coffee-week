@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Biblioteca: cada pasta pode ter uma cor da paleta da marca (menu da pasta › Cor da pasta).
+Correções da auditoria: criar acesso de candidatura, Sair só neste aparelho, e mais confirmações. Pastas com cor.

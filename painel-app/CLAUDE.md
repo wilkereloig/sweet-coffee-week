@@ -1212,6 +1212,14 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   usa o acento do módulo (como antes). Menu da pasta › "Cor da pasta…" abre o seletor (`CorDaPasta`, radiogroup); "Padrão" manda cor vazia. A cor
   aparece no disco da pasta, num ponto no título da pasta aberta e na lista "Mover para…". Subpasta NÃO herda a cor da pasta-mãe (decisão simples;
   herdar é possível depois). Cenário no navegador em `tests/painel-biblioteca-arrastar-navegador.mjs`.
+- **Auditoria geral — lote 1, 21/10/2026** (relatório em `…/00_PLANEJAMENTO/AUDITORIA-PAINEL-2026-10-21.md`, no Dropbox; não vai ao repositório público).
+  Corrigido, com teste em `tests/painel-app-auditoria-21-10.test.mjs`: **criar acesso de candidatura** (variável `r` sombreada pelo rascunho da triagem:
+  a conta nascia e a tela dizia "Não criou"; a lista agora também relê, `respostas` em `FUNCOES_ESCRITA`); **Sair encerra só este aparelho**
+  (`logout?scope=local` — sem escopo o GoTrue encerra a conta em todos); **rascunhos do Social media** saem no "Sair"/troca de conta
+  (`lib/rascunhosSocial.js`, módulo sem dependências para o `App` não puxar o de Redes); pedido arquivado não conta como "faltando resposta";
+  sessão `remarcada` ocupa o horário na agenda de fotos; aprovar tema e "Gerar acessos" pedem confirmação; Biblioteca: a arte em uso não vira
+  "Apagada" (`20261026_social_biblioteca_arte_em_uso.sql`, ordem do `distinct on (a.path)`). ⚠️ Toda variável nova num componente que usa
+  `useRascunhoOrg` NÃO pode se chamar `r` (é o rascunho).
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram

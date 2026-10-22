@@ -128,7 +128,7 @@ export function Mesa({ abrirLink, navegar, pode, avisos = [] }) {
     { rotulo: 'mensagens não lidas', um: 'mensagem não lida', n: conversasNovas.reduce((s, c) => s + Number(c.nao_lidas || 0), 0), ir: lista({ situacao: 'mensagens' }) },
     { rotulo: 'marcas sem acesso ao painel', um: 'marca sem acesso ao painel', n: semAcesso, ir: lista({ edicao: edCodigo, situacao: 'sem_conta' }) },
     { rotulo: 'dados para revisar', um: 'dado para revisar', n: extra.revisao.length, ir: () => navegar({ vista: 'admin', aba: 'revisao' }) },
-    { rotulo: 'respostas de pedido faltando', um: 'resposta de pedido faltando', n: extra.solicitacoes.filter((s) => s.publicada_em).reduce((s, x) => s + Number(x.pendentes || 0), 0), ir: () => navegar({ vista: 'operacao', aba: 'pedidos' }) },
+    { rotulo: 'respostas de pedido faltando', um: 'resposta de pedido faltando', n: extra.solicitacoes.filter((s) => s.publicada_em && !s.arquivada).reduce((s, x) => s + Number(x.pendentes || 0), 0), ir: () => navegar({ vista: 'operacao', aba: 'pedidos' }) },
   ]
   const abertas = acoes.filter((a) => a.n > 0)
   const emDia = acoes.filter((a) => a.n === 0)

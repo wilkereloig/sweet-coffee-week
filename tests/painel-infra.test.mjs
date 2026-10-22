@@ -511,7 +511,7 @@ test('criar acesso pede confirmação, e a credencial só existe na resposta da 
   const chama = corpo.indexOf("chamarFuncao('criar-acesso-marca'")
   assert.ok(confirma > -1, 'a conta nasce sem confirmar com quem está na tela')
   assert.ok(chama > confirma, 'a Edge Function é chamada antes da confirmação')
-  assert.match(corpo.slice(0, 900), /r\.login\b.*r\.senha\b/s, 'a checagem da resposta não exige login e senha')
+  assert.match(corpo.slice(0, 1400), /resp\.login\b.*resp\.senha\b/s, 'a checagem da resposta não exige login e senha') // `resp`: `r` é o rascunho da triagem
 })
 
 // O corpo que Respostas.jsx manda pro chamarFuncao tem que casar com o que a

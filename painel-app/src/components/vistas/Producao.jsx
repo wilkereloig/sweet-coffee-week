@@ -872,7 +872,7 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
                 texto="Um pedido é o que aparece no painel da marca com prazo. Aviso para todas ou cobrança de uma só."
               />
             )}
-            {solicitacoes && solicitacoes.some((s) => s.arquivada) && (
+            {solicitacoes && (verArquivados || solicitacoes.some((s) => s.arquivada)) && (
               <Escolha rotulo="Mostrar" valor={verArquivados ? '1' : '0'} onMudar={(v) => setVerArquivados(v === '1')}
                 opcoes={[['0', 'Pedidos ativos'], ['1', 'Arquivados (' + solicitacoes.filter((s) => s.arquivada).length + ')']]} />
             )}

@@ -189,7 +189,7 @@ export const RPC_ESCRITA = Object.freeze({
 
 // ── Edge Functions ──────────────────────────────────────────────────────────
 export const FUNCOES_ESCRITA = Object.freeze({
-  'criar-acesso-marca': ['acessos', 'participantes', 'perfis'],
+  'criar-acesso-marca': ['acessos', 'participantes', 'perfis', 'respostas'], // a candidatura vira "aguardando cadastro"
   'regerar-senha-conta': ['acessos', 'perfis'],
   'criar-conta-organizacao': ['perfis'],
 })

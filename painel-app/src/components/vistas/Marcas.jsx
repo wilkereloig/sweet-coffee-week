@@ -230,7 +230,7 @@ export function Marcas({ pode = () => true, rota, navegar }) {
     try {
       if (acao === 'gerar') {
         if (!selSemConta.length) { setLoteAviso('Nenhuma das selecionadas está sem acesso. Para quem já tem, use "Gerar novas senhas".'); return }
-        setLote({ modo: 'gerar', marcas: selSemConta }); return
+        if (await confirmar('Criar o acesso de ' + selSemConta.length + (selSemConta.length === 1 ? ' marca?' : ' marcas?') + '\n\nCada senha temporária aparece UMA VEZ, na tela seguinte. Tenha o WhatsApp à mão.', { acao: 'Criar acessos' })) setLote({ modo: 'gerar', marcas: selSemConta }); return
       }
       if (!n) { setLoteAviso('Nenhuma das selecionadas tem acesso ainda. Use "Gerar acessos".'); return }
       if (acao === 'regerar') {
@@ -339,7 +339,7 @@ export function Marcas({ pode = () => true, rota, navegar }) {
           </label>
         </div>
         {semAcesso.length > 0 && (
-          <Botao icone="chave" variante="secundario" mini={false} disabled={!pode('marca.liberar')} onClick={() => setLote({ modo: 'gerar', marcas: semAcesso })}>Gerar acessos ({semAcesso.length})</Botao>
+          <Botao icone="chave" variante="secundario" mini={false} disabled={!pode('marca.liberar')} onClick={async () => { if (await confirmar('Criar o acesso de ' + semAcesso.length + (semAcesso.length === 1 ? ' marca?' : ' marcas?') + '\n\nCada senha temporária aparece UMA VEZ, na tela seguinte. Tenha o WhatsApp à mão.', { acao: 'Criar acessos' })) setLote({ modo: 'gerar', marcas: semAcesso }) }}>Gerar acessos ({semAcesso.length})</Botao>
         )}
         <button className="og-btn" type="button" disabled={!pode('marca.liberar')} onClick={() => setCadastroAberto(true)}>Cadastrar marca</button>
       </div>
