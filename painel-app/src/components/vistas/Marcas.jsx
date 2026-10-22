@@ -13,6 +13,7 @@ import { confirmar, pedirTexto } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 import { participaDaEdicao } from '../../lib/mesa'
+import { ORIGEM_PUBLICA } from '../../lib/origem'
 
 // Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
 const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Mn}/gu, '').replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '')
@@ -240,7 +241,7 @@ export function Marcas({ pode = () => true, rota, navegar }) {
         setLote({ modo: 'regerar', marcas: selComConta }); return
       }
       if (acao === 'copiar') {
-        const texto = textoTodosAcessos(selComConta.map((p) => ({ nomeMarca: p.nome_marca, responsavel: p.responsavel, login: p.slug || p.nome_marca })), window.location.origin)
+        const texto = textoTodosAcessos(selComConta.map((p) => ({ nomeMarca: p.nome_marca, responsavel: p.responsavel, login: p.slug || p.nome_marca })), ORIGEM_PUBLICA)
         await navigator.clipboard.writeText(texto)
         setLoteAviso('Acessos de ' + nome + ' copiados, sem senha. Para mandar senha, gere senhas novas.'); return
       }

@@ -447,7 +447,19 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
   var MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   var BLOCOS = ['marca', 'tema', 'combo', 'itens', 'unidades'];
 
-  var codigo = (location.hash || '').replace(/^#/, '').replace(/^k=/, '').toLowerCase();
+  // O link chega de dois jeitos: o código do banco (32 hex, minúsculo) ou a forma curta (22 caracteres em base64url,
+  // os mesmos 128 bits — painel-app/src/lib/preenchimento.js › codigoCurto). A curta diferencia maiúscula de minúscula,
+  // então só o longo passa por toLowerCase. Devolve sempre o código de 32 hex que o banco conhece.
+  function codigoDoLink(bruto) {
+    if (!/^[A-Za-z0-9_-]{22}$/.test(bruto)) return bruto.toLowerCase();
+    var A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    var bits = '';
+    for (var i = 0; i < 22; i++) bits += ('00000' + A.indexOf(bruto.charAt(i)).toString(2)).slice(-6);
+    var hex = '';
+    for (var j = 0; j < 128; j += 4) hex += Number('0b' + bits.substr(j, 4)).toString(16);
+    return hex;
+  }
+  var codigo = codigoDoLink((location.hash || '').replace(/^#/, '').replace(/^k=/, ''));
   var form = document.getElementById('pr-form');
   var estadoEl = document.getElementById('pr-estado');
   var info = null;          // resposta de preenchimento_ler

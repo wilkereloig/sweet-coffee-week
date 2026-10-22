@@ -1059,6 +1059,7 @@ teste `tests/painel-app-preenchimento.test.mjs`.
   WhatsApp por marca. A mensagem diz "obrigatório e urgente" com o prazo do cronograma (`chave = 'preenchimento'`,
   24/10/2026). ⛔ Prazo é dado da edição, não constante no front.
 - Trocar o link revoga o anterior (`p_novo`). Link vence em `festival_fim + 15 dias`.
+- **Link curto e domínio oficial (22/10/2026, pedido do Wilker):** o link sai como `/preencher/#<22 caracteres>` — os MESMOS 128 bits do código de 32 hex, em base64url (`codigoCurto`/`codigoLongo` em `lib/preenchimento.js`; a página decodifica em `codigoDoLink`). Sem tabela nem servidor no meio, código continua no fragmento; links longos já enviados seguem valendo. ⚠️ A forma curta diferencia maiúscula: só o código longo passa por `toLowerCase`. Todo texto que vai para fora do painel (mensagens, link, formulários do site) usa `ORIGEM_PUBLICA` (`lib/origem.js`, `https://www.sweetcoffeeweek.com.br`), nunca o endereço da barra — aberto na prévia do Vercel, o painel copiava `…-eloidesignstudio.vercel.app`. O teste reprova `window.location.origin` em `painel-app/src`.
 - ⚠️ Fica de fora do formulário: declarações alimentares/alergênicos, trocas, horário do combo por dia
   (`unidade_disponibilidade`) e canais de delivery — o horário do combo chega como texto em
   `participacao_unidades.horarios`; alergias vêm em "Observações".

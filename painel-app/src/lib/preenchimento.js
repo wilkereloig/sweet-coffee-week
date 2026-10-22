@@ -15,7 +15,38 @@
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const texto = (v) => (v == null ? '' : String(v)).trim()
 
-export const linkPreenchimento = (origem, codigo) => (codigo ? String(origem).replace(/\/$/, '') + '/preencher/#' + codigo : null)
+/*
+ * Link curto (22/10/2026): o código do banco são 128 bits em 32 caracteres hex; o mesmo número em base64url cabe em 22.
+ * Não é um "encurtador": nenhuma tabela, nenhum servidor no meio, o código continua no fragmento (#) e sem perder
+ * entropia. A página /preencher/ entende os dois jeitos, então os links longos já enviados seguem valendo.
+ * ⚠️ A base64url diferencia maiúscula de minúscula: quem lê o link curto NÃO pode passar `toLowerCase()` nele.
+ */
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+const HEX32 = /^[a-f0-9]{32}$/
+
+export function codigoCurto(codigo) {
+  const h = texto(codigo).toLowerCase()
+  if (!HEX32.test(h)) return texto(codigo)
+  let bits = ''
+  for (const c of h) bits += parseInt(c, 16).toString(2).padStart(4, '0')
+  bits += '0000' // 128 + 4 = 132 = 22 × 6
+  let s = ''
+  for (let i = 0; i < 132; i += 6) s += B64[parseInt(bits.slice(i, i + 6), 2)]
+  return s
+}
+
+/** Volta ao código de 32 hex. O que não for curto válido sai em minúsculas, como a página sempre tratou o código longo. */
+export function codigoLongo(curto) {
+  const s = texto(curto)
+  if (!/^[A-Za-z0-9_-]{22}$/.test(s)) return s.toLowerCase()
+  let bits = ''
+  for (const c of s) bits += B64.indexOf(c).toString(2).padStart(6, '0')
+  let h = ''
+  for (let i = 0; i < 128; i += 4) h += parseInt(bits.slice(i, i + 4), 2).toString(16)
+  return h
+}
+
+export const linkPreenchimento = (origem, codigo) => (codigo ? String(origem).replace(/\/$/, '') + '/preencher/#' + codigoCurto(codigo) : null)
 
 // '2026-10-24' → '24/10'; '2026-11-05' → '5 de novembro'.
 function partes(iso) {

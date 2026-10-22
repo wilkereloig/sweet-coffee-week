@@ -11,6 +11,7 @@ import { Secao, traduzirErro, Selo, BotaoIcone, Botao } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { ORIGEM_PUBLICA } from '../../lib/origem'
 
 /*
  * Acesso das marcas ao painel (29/09/2026, spec acessos-e-guia-da-marca).
@@ -81,13 +82,13 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
     }
   }
   async function copiarTodos() {
-    const origem = window.location.origin
+    const origem = ORIGEM_PUBLICA
     const texto = textoTodosAcessos(criados.map((r) => ({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha })), origem)
     try { await navigator.clipboard.writeText(texto); setCopiado(true); registrar(criados.map((r) => r.p.id), 'copiado') } catch { setCopiado('manual') }
   }
   async function copiarUm(r) {
     try {
-      await navigator.clipboard.writeText(textoAcesso({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: window.location.origin }))
+      await navigator.clipboard.writeText(textoAcesso({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: ORIGEM_PUBLICA }))
       registrar([r.p.id], 'copiado')
     } catch { /* os dados estão na tela */ }
   }
@@ -112,7 +113,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
         <p className="og-cred__aviso">Anote ou envie agora. <b>As senhas não aparecem de novo.</b> Abrir o WhatsApp não conta como enviado.</p>
         <ul className="ac-lista">
           {resultados.map((r) => {
-            const wa = r.senha && linkWhatsApp(r.p.telefone, montarRecado({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: window.location.origin }))
+            const wa = r.senha && linkWhatsApp(r.p.telefone, montarRecado({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: ORIGEM_PUBLICA }))
             const envio = envios[r.p.id] || 'nao_enviado'
             return (
               <li key={r.p.id} className="ac-linha">
@@ -237,7 +238,7 @@ export function AbaAcesso({ participante, pode, onFechar }) {
     })
   }
   async function copiarAcesso() {
-    const texto = textoAcesso({ nomeMarca: participante.nome_marca, responsavel: participante.responsavel, login: participante.slug || participante.nome_marca, origem: window.location.origin })
+    const texto = textoAcesso({ nomeMarca: participante.nome_marca, responsavel: participante.responsavel, login: participante.slug || participante.nome_marca, origem: ORIGEM_PUBLICA })
     try { await navigator.clipboard.writeText(texto); setAviso('Acesso copiado (sem senha: a definitiva só a marca conhece).') } catch { setAviso('Sem área de transferência neste navegador.') }
   }
 

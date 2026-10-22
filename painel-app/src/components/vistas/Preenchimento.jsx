@@ -9,6 +9,7 @@ import { Secao, Selo, Botao, BotaoIcone, Carregando, Erro, Vazio, traduzirErro }
 import { confirmar, pedirTexto } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { ORIGEM_PUBLICA } from '../../lib/origem'
 
 /*
  * Link de preenchimento (16/10/2026, pedido do Wilker).
@@ -79,9 +80,9 @@ export function PreenchimentoMarca({ participante: p, pode }) {
   }
 
   const l = d.link
-  const link = linkPreenchimento(window.location.origin, l && l.codigo)
+  const link = linkPreenchimento(ORIGEM_PUBLICA, l && l.codigo)
   // Na ficha só a explicação do painel e o link; usuário e senha saem da lista (Participantes › Preenchimento), que sabe o acesso de cada marca.
-  const mensagem = link ? textoPreenchimento({ marca: p.nome_marca, responsavel: p.responsavel, link, edicao: d.edicao || {}, painel: { origem: window.location.origin } }) : ''
+  const mensagem = link ? textoPreenchimento({ marca: p.nome_marca, responsavel: p.responsavel, link, edicao: d.edicao || {}, painel: { origem: ORIGEM_PUBLICA } }) : ''
   const wa = link ? linkWhatsApp(p.telefone, mensagem) : null
   const sit = situacaoLink(l, d.pendente ? 1 : 0)
   const env = d.pendente
@@ -250,7 +251,7 @@ export function ListaPreenchimento({ pode, irPara }) {
 
   const marcas = d.marcas || []
   if (!marcas.length) return <Vazio titulo="Nenhuma marca na edição atual" icone="pessoas" />
-  const origem = window.location.origin
+  const origem = ORIGEM_PUBLICA
   const painelDe = (m, cred) => painelDaMarca({ origem, slug: slugs[m.participante_id], acesso: acessos && acessos[m.participante_id], cred: cred || creds[m.participante_id] })
   const mensagemDe = (m, cred) => textoPreenchimento({ marca: m.nome, responsavel: m.responsavel, link: linkPreenchimento(origem, m.codigo), edicao: d.edicao || {}, painel: painelDe(m, cred) })
   // Quem entra no lote de senhas: toda marca ativa com link e acesso lido (sem conta → cria; com conta → gera senha

@@ -1,6 +1,7 @@
 import React from 'react'
 import { montarRecado, linkWhatsApp } from '../lib/participantes'
 import { traduzirErro } from './ui'
+import { ORIGEM_PUBLICA } from '../lib/origem'
 
 // As credenciais aparecem UMA VEZ SÓ — pintadas na hora da criação e nunca
 // recarregadas (a senha não fica guardada em lugar nenhum). Compartilhada
@@ -14,7 +15,7 @@ export function Credenciais({ nomeMarca, responsavel, telefone, login, senha, on
   const [enviado, setEnviado] = React.useState(false) // false | 'enviando' | true
   const [erroEnvio, setErroEnvio] = React.useState(null)
   const [avisoRastro, setAvisoRastro] = React.useState(null) // o registro de "copiado"/"WhatsApp aberto" não gravou
-  const texto = montarRecado({ nomeMarca: nomeMarca || 'sua marca', responsavel, login, senha, origem: window.location.origin })
+  const texto = montarRecado({ nomeMarca: nomeMarca || 'sua marca', responsavel, login, senha, origem: ORIGEM_PUBLICA })
   const link = linkWhatsApp(telefone, texto)
   const registrar = (canal) => Promise.resolve(onRegistrar && onRegistrar(canal))
   // Rastro de "copiado" / "WhatsApp aberto": falhar não desfaz a ação (a cópia e o link funcionaram), mas a falha

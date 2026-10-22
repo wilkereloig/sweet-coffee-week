@@ -3,11 +3,13 @@
 // /preencher/ e do contrato do banco (supabase/migrations/20261016_link_preenchimento.sql).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import vm from 'node:vm'
 import {
   linkPreenchimento, textoPreenchimento, textoPainel, painelDaMarca, entraNoLoteDeSenhas, diferencasEnvio, situacaoLink, dataCurtaBR, periodoEdicao,
+  codigoCurto, codigoLongo,
 } from '../painel-app/src/lib/preenchimento.js'
+import { ORIGEM_PUBLICA } from '../painel-app/src/lib/origem.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const PAGINA = ler('public/preencher/index.html')
@@ -16,9 +18,57 @@ const SQL_V2 = ler('supabase/migrations/20261016_link_preenchimento_alimentar.sq
 const SQL = SQL_BASE + '\n' + SQL_V2
 const CODIGO = '0123456789abcdef0123456789abcdef'
 
-test('link leva o código no fragmento, nunca na busca', () => {
-  assert.equal(linkPreenchimento('https://sweetcoffeeweek.com.br/', CODIGO), 'https://sweetcoffeeweek.com.br/preencher/#' + CODIGO)
+test('link leva o código no fragmento, nunca na busca, na forma curta (22 caracteres)', () => {
+  const l = linkPreenchimento('https://sweetcoffeeweek.com.br/', CODIGO)
+  assert.equal(l, 'https://sweetcoffeeweek.com.br/preencher/#' + codigoCurto(CODIGO))
+  assert.equal(l.split('#')[1].length, 22)
   assert.equal(linkPreenchimento('https://x', null), null)
+  // Código que não é de 32 hex (nunca sai do banco) passa como veio, sem inventar encurtamento.
+  assert.equal(linkPreenchimento('https://x', 'abc'), 'https://x/preencher/#abc')
+})
+
+test('código curto: os mesmos 128 bits em base64url, ida e volta, igual ao Buffer do Node', () => {
+  assert.equal(codigoCurto('0'.repeat(32)), 'A'.repeat(22))
+  assert.equal(codigoCurto('f'.repeat(32)), '_'.repeat(21) + 'w')
+  const amostras = [CODIGO, '7b95a98811b4495ca3e8179ba363f30e', '6460ade6b978420c91808375d5e53933', '0045677a45da4082b991b1336b7bb348', 'fe501efb04a846a7a7eb9f56eb6613bb']
+  for (const hex of amostras) {
+    const curto = codigoCurto(hex)
+    assert.equal(curto, Buffer.from(hex, 'hex').toString('base64url'), 'diverge do base64url padrão: ' + hex)
+    assert.match(curto, /^[A-Za-z0-9_-]{22}$/)
+    assert.equal(codigoLongo(curto), hex, 'ida e volta: ' + hex)
+  }
+  // O longo continua valendo como está (links já enviados); maiúscula do longo não importa.
+  assert.equal(codigoLongo(CODIGO.toUpperCase()), CODIGO)
+})
+
+test('o endereço das mensagens é o do site, nunca o da barra do navegador (prévia do Vercel, localhost)', () => {
+  assert.equal(ORIGEM_PUBLICA, 'https://www.sweetcoffeeweek.com.br')
+  const pasta = new URL('../painel-app/src/', import.meta.url)
+  const achados = []
+  const varrer = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const caminho = new URL(e.name + (e.isDirectory() ? '/' : ''), dir)
+      if (e.isDirectory()) varrer(caminho)
+      else if (/\.(jsx?|mjs)$/.test(e.name) && /window\.location\.origin/.test(readFileSync(caminho, 'utf8'))) achados.push(caminho.pathname.split('/src/')[1])
+    }
+  }
+  varrer(pasta)
+  assert.deepEqual(achados, [], 'texto para marca não pode usar window.location.origin: ' + achados.join(', '))
+})
+
+test('página: aceita o código curto (22) sem lowercase e o longo (32 hex) como sempre, e dá o mesmo código', () => {
+  const m = /function codigoDoLink\(bruto\) \{[\s\S]*?\n  \}\n/.exec(SCRIPTS[0])
+  assert.ok(m, 'página precisa declarar codigoDoLink(bruto)')
+  const codigoDoLink = vm.runInNewContext(m[0] + ';codigoDoLink')
+  for (const hex of [CODIGO, '7b95a98811b4495ca3e8179ba363f30e', 'f'.repeat(32), '0'.repeat(32)]) {
+    assert.equal(codigoDoLink(hex), hex)
+    assert.equal(codigoDoLink(hex.toUpperCase()), hex, 'o longo segue sem diferenciar maiúscula')
+    assert.equal(codigoDoLink(codigoCurto(hex)), hex, 'curto vira o mesmo código do banco')
+    assert.equal(codigoDoLink(codigoCurto(hex)), codigoLongo(codigoCurto(hex)), 'página e painel decodificam igual')
+  }
+  assert.equal(codigoDoLink('k=' + CODIGO.slice(0, 5)).length > 0, true) // não explode com lixo
+  assert.doesNotMatch(codigoDoLink('abc'), /^[a-f0-9]{32}$/, 'lixo continua falhando na validação de 32 hex')
+  assert.match(SCRIPTS[0], /var codigo = codigoDoLink\(/)
 })
 
 test('datas e período em português, sem fuso', () => {

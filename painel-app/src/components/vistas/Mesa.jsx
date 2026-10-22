@@ -13,6 +13,7 @@ import { urlLogo } from '../../lib/logos'
 import { ResumoRedes } from './Redes'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { ORIGEM_PUBLICA } from '../../lib/origem'
 
 /*
  * A mesa — o painel inicial da organização. Responde "o que precisa de mim
@@ -325,7 +326,7 @@ export function Formularios() {
             <ul className="og-forms__lista">
               {Object.entries(ORIGENS).map(([chave, o]) => {
                 const publico = !!o.form
-                const url = publico ? window.location.origin + o.form : ''
+                const url = publico ? ORIGEM_PUBLICA + o.form : ''
                 return (
                   <li className="og-forms__item" key={chave}>
                     <p className="og-forms__nome"><span className="og-forms__ponto" style={{ background: o.cor }} aria-hidden="true" />{o.rotulo}</p>

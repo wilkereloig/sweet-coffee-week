@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Social media ganhou campanhas, checklist por postagem e lembretes automáticos.
+Links de preenchimento mais curtos e sempre com o endereço oficial do site.
