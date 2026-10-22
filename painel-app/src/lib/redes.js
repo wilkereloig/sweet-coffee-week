@@ -301,7 +301,7 @@ export function escopoAtalho(atalho) {
   }[atalho] || ''
 }
 /** Quantos filtros (não período nem visualização) estão ligados. */
-export const FILTROS = ['resp', 'sit', 'fmt', 'ed', 'part', 'q']
+export const FILTROS = ['resp', 'sit', 'fmt', 'ed', 'part', 'q', 'camp']
 export const filtrosAtivos = (f = {}) => FILTROS.filter((k) => f[k]).length
 
 /**
@@ -340,7 +340,7 @@ export const SECOES = {
   legenda: ['legenda'],
   extras: ['mencoes', 'observacoes'],
   programacao: ['programado_para', 'responsavel_id'],
-  detalhes: ['titulo', 'perfil', 'formato', 'edicao_codigo', 'participante_id', 'referencias'],
+  detalhes: ['titulo', 'perfil', 'formato', 'edicao_codigo', 'campanha_id', 'participante_id', 'referencias'],
 }
 /** Seções com alteração não salva (ficam abertas até salvar ou desfazer). */
 export const secoesSujas = (mudancas) => Object.keys(SECOES).filter((s) => SECOES[s].some((k) => k in mudancas))
@@ -398,6 +398,7 @@ export function filtrar(posts, f = {}, ctx = {}) {
     if (f.fmt && p.formato !== f.fmt) return false
     if (f.ed && p.edicao_codigo !== f.ed) return false
     if (f.part && p.participante_id !== f.part) return false
+    if (f.camp && p.campanha_id !== f.camp) return false
     if (q && !semAcento(p.titulo).includes(q) && !semAcento(p.participante_nome).includes(q)) return false
     return noAtalho(p, f.atalho, { eu: ctx.eu, agora })
   })
@@ -492,7 +493,7 @@ export function validarArquivo({ nome, tipo, tamanho, cabecalho }) {
 export const caminhoArquivo = (postId, uuid, ext) => postId + '/' + uuid + '.' + ext
 
 /** Campos de conteúdo que redes_salvar aceita (o resto tem ação própria). */
-export const CAMPOS = ['titulo', 'perfil', 'edicao_codigo', 'participante_id', 'formato', 'legenda', 'mencoes', 'observacoes', 'referencias', 'programado_para', 'responsavel_id']
+export const CAMPOS = ['titulo', 'perfil', 'edicao_codigo', 'participante_id', 'formato', 'legenda', 'mencoes', 'observacoes', 'referencias', 'programado_para', 'responsavel_id', 'campanha_id']
 const norm = (v) => (v == null ? '' : String(v))
 /** Só o que mudou em relação à base (o que vai para o servidor). */
 export function diferencas(base, campos) {

@@ -256,3 +256,9 @@ begin
   end if;
   return public.redes_json(p);
 end $$;
+
+-- Execução só pelas mesmas portas das outras funções do módulo (cada uma confere a permissão por dentro).
+revoke execute on function public.redes_campanhas_listar(text), public.redes_campanha_salvar(text, uuid, jsonb),
+  public.redes_campanha_arquivar(text, uuid, boolean) from public;
+grant execute on function public.redes_campanhas_listar(text), public.redes_campanha_salvar(text, uuid, jsonb),
+  public.redes_campanha_arquivar(text, uuid, boolean) to anon, authenticated;

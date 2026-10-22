@@ -15,6 +15,8 @@ import { quemAprova } from '../../lib/socialGuia'
 import { usePendencia } from '../../lib/pendencias'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { FormularioCampanha } from './FormularioCampanha'
+import { campanhaDaPostagem } from '../../lib/campanhas'
 
 /*
  * Ficha de uma publicação (Social media, 16–17/10/2026; reorganizada em
@@ -50,6 +52,7 @@ const miniDe = (a) => (a.miniatura_path ? { bucket: 'redes', path: a.miniatura_p
 const CHAVE_NOVO = 'scw_redes_rascunho_novo'
 
 const ERROS_REDES = {
+  campanha_invalida: 'Essa campanha não está disponível (foi arquivada ou não existe). Escolha outra.',
   requisitos_pendentes: 'Ainda falta algo para enviar para aprovação (veja a lista em “Próximo passo”).',
   post_fechado: 'Esta publicação já foi publicada ou cancelada: o registro não muda mais por aqui.',
   post_nao_pronto: 'A postagem precisa estar aprovada antes de confirmar a publicação.',
@@ -244,7 +247,7 @@ function Gaveta({ titulo, aberto, onAlternar, children, id, travada = false }) {
   )
 }
 
-const ROTULO_CAMPO = { titulo: 'Título interno', perfil: 'Perfil', edicao_codigo: 'Edição', participante_id: 'Participante', formato: 'Formato', legenda: 'Legenda', mencoes: 'Perfis a mencionar', observacoes: 'Observações para quem publica', referencias: 'Referências', programado_para: 'Data e horário', responsavel_id: 'Responsável' }
+const ROTULO_CAMPO = { titulo: 'Título interno', perfil: 'Perfil', edicao_codigo: 'Edição', campanha_id: 'Campanha', campanha: 'Campanha', participante_id: 'Participante', formato: 'Formato', legenda: 'Legenda', mencoes: 'Perfis a mencionar', observacoes: 'Observações para quem publica', referencias: 'Referências', programado_para: 'Data e horário', responsavel_id: 'Responsável' }
 
 function valorLegivel(k, v, opcoes) {
   if (v == null || v === '') return '(vazio)'
@@ -339,6 +342,8 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const entrega = useEntrega() // baixar / salvar ou compartilhar, com preparo, erro e "Tentar de novo"
   const entregaGaveta = useEntrega() // o "Baixar" de cada arquivo na gaveta: o estado aparece ali, não lá na prévia
   const [copiado, setCopiado] = React.useState(false)
+  const [novaCampanha, setNovaCampanha] = React.useState(false)
+  const [campanhasNovas, setCampanhasNovas] = React.useState([]) // criadas aqui, antes de a lista chegar pelo sinal
   const [verAntigos, setVerAntigos] = React.useState(false)
   const fila = React.useRef(Promise.resolve())
   const primeira = React.useRef(true)
@@ -847,6 +852,17 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       <textarea rows={3} maxLength={2000} value={campos.observacoes} onChange={(e) => setCampo('observacoes', e.target.value)} />
     </Campo>
   )
+  // Campanha: uma por postagem (ou nenhuma). A arquivada só aparece se a postagem já a tem.
+  const listaCampanhas = [...(opcoes.campanhas || []), ...campanhasNovas.filter((n) => !(opcoes.campanhas || []).some((c) => c.id === n.id))]
+  const campoCampanha = (
+    <Campo rotulo="Campanha" nota="Opcional. Agrupa as postagens de uma mesma ação.">
+      <select value={campos.campanha_id || ''} onChange={(e) => { if (e.target.value === '__nova__') setNovaCampanha(true); else setCampo('campanha_id', e.target.value) }}>
+        <option value="">Nenhuma</option>
+        {listaCampanhas.filter((c) => !c.arquivada || c.id === campos.campanha_id).map((c) => <option key={c.id} value={c.id}>{c.nome}{c.arquivada ? ' (arquivada)' : ''}</option>)}
+        {pode('redes.editar') && <option value="__nova__">Nova campanha…</option>}
+      </select>
+    </Campo>
+  )
   const camposDetalhes = (
     <div className="rd-grade">
       <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
@@ -859,12 +875,13 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
         <input type="text" maxLength={60} autoCapitalize="none" list={'rd-perfis-' + id} value={campos.perfil} onChange={(e) => setCampo('perfil', e.target.value)} />
       </Campo>
       <datalist id={'rd-perfis-' + id}>{[...new Set([R.PERFIL_PADRAO, ...(opcoes.perfis || [])])].map((p) => <option key={p} value={p} />)}</datalist>
-      <Campo rotulo="Edição ou campanha">
+      <Campo rotulo="Edição">
         <select value={campos.edicao_codigo} onChange={(e) => setCampo('edicao_codigo', e.target.value)}>
           <option value="">Institucional (sem edição)</option>
           {(opcoes.edicoes || []).map((e) => <option key={e.codigo} value={e.codigo}>{e.codigo} · {e.nome}</option>)}
         </select>
       </Campo>
+      {campoCampanha}
       <Campo rotulo="Participante associado">
         <select value={campos.participante_id} onChange={(e) => setCampo('participante_id', e.target.value)}>
           <option value="">Nenhum</option>
@@ -924,6 +941,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     )
 
   return (
+    <>
     <Folha aberto titulo={titulo} sub={sub} onFechar={fechar} larga="ampla" cheia rodape={rodape}>
       <div className="rd-ficha-c">
         <div className={'rd-ficha' + (novo ? ' rd-ficha--novo' : '')}>
@@ -1011,12 +1029,13 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                         <input type="text" maxLength={60} autoCapitalize="none" list={'rd-perfis-' + id} value={campos.perfil} onChange={(e) => setCampo('perfil', e.target.value)} />
                       </Campo>
                       <datalist id={'rd-perfis-' + id}>{[...new Set([R.PERFIL_PADRAO, ...(opcoes.perfis || [])])].map((p) => <option key={p} value={p} />)}</datalist>
-                      <Campo rotulo="Edição ou campanha">
+                      <Campo rotulo="Edição">
                         <select value={campos.edicao_codigo} onChange={(e) => setCampo('edicao_codigo', e.target.value)}>
                           <option value="">Institucional (sem edição)</option>
                           {(opcoes.edicoes || []).map((e) => <option key={e.codigo} value={e.codigo}>{e.codigo} · {e.nome}</option>)}
                         </select>
                       </Campo>
+                      {campoCampanha}
                       <Campo rotulo="Participante associado">
                         <select value={campos.participante_id} onChange={(e) => setCampo('participante_id', e.target.value)}>
                           <option value="">Nenhum</option>
@@ -1237,7 +1256,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                 </p>
 
                 {/* O resto, recolhido: abre quando precisa. */}
-                <Gaveta titulo="Detalhes: título interno, formato, edição e participante" aberto={gavetas.has('detalhes') || emEdicao('detalhes')} travada={emEdicao('detalhes')} onAlternar={(v) => alternarGaveta('detalhes', v)}>
+                <Gaveta titulo="Detalhes: título interno, formato, edição, campanha e participante" aberto={gavetas.has('detalhes') || emEdicao('detalhes')} travada={emEdicao('detalhes')} onAlternar={(v) => alternarGaveta('detalhes', v)}>
                   {emEdicao('detalhes') ? (
                     <div className="rd-bloco__form">
                       {camposDetalhes}
@@ -1250,6 +1269,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                         <div><dt>Formato</dt><dd>{(R.FORMATO[campos.formato] || {}).rotulo} — <span className="rd-campo__nota">{R.requisitoFormato(campos.formato)}</span></dd></div>
                         <div><dt>Perfil</dt><dd>{campos.perfil || R.PERFIL_PADRAO}</dd></div>
                         <div><dt>Edição</dt><dd>{campos.edicao_codigo || 'Institucional (sem edição)'}</dd></div>
+                        <div><dt>Campanha</dt><dd>{(campanhaDaPostagem(post) && campos.campanha_id === post.campanha_id ? post.campanha_nome : (listaCampanhas.find((c) => c.id === campos.campanha_id) || {}).nome) || 'Nenhuma'}</dd></div>
                         <div><dt>Participante</dt><dd>{participante || 'Nenhum'}</dd></div>
                         {campos.referencias && <div><dt>Referências</dt><dd className="rd-pre">{campos.referencias}</dd></div>}
                       </dl>
@@ -1399,5 +1419,10 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
         </div>
       </div>
     </Folha>
+    {novaCampanha && (
+      <FormularioCampanha campanha={null} onFechar={() => setNovaCampanha(false)}
+        onSalvou={(c) => { setCampanhasNovas((l) => [...l, c]); setCampo('campanha_id', c.id); setNovaCampanha(false) }} />
+    )}
+    </>
   )
 }

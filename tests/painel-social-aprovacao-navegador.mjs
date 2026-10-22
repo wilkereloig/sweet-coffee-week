@@ -22,6 +22,7 @@ const OUTRO = 'u-micka-0002'
 const EMAIL = 'eline.teste@equipe.sweetcoffeeweek.com.br'
 const PID = '11111111-1111-4111-8111-111111111111'
 const PERMISSOES = ['dado.ler', 'redes.ver', 'redes.editar', 'redes.arquivos', 'redes.publicar', 'redes.aprovar', 'editorial.ler']
+const CAMPANHA = { id: '22222222-2222-4222-8222-222222222222', nome: 'Confirmados', cor: 'roxo', descricao: 'Um por casa', inicio: '2026-10-20', fim: '2026-11-04', meta: 20, arquivada: false, n_total: 3, n_publicadas: 2, n_abertas: 1, n_atrasadas: 0 }
 const falhas = []
 const ok = (cond, msg) => { if (cond) console.log('  ✓ ' + msg); else { falhas.push(msg); console.log('  ✗ ' + msg) } }
 const matar = (pid) => { if (!pid) return; try { if (process.platform === 'win32') execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' }); else process.kill(-pid, 'SIGKILL') } catch { /* já morto */ } }
@@ -41,7 +42,7 @@ function montar(permissoes) {
   const post = () => ({
     id: PID, titulo: 'Post de teste', perfil: '@sweetcoffeeweek', edicao_codigo: '2026.2', participante_id: null, formato: 'feed', legenda: estado.legenda, mencoes: '', observacoes: '', referencias: '',
     programado_para: '2026-11-03T20:00:00Z', responsavel_id: OUTRO, situacao: estado.situacao, versao: estado.versao, criado_por_id: OUTRO, atualizado_por_id: estado.por.id, atualizado_por_rotulo: estado.por.rotulo,
-    atualizado_em: estado.em, responsavel_nome: 'Micka', participante_nome: null, n_arquivos: estado.arquivos.length, miniatura: null, n_comentarios: 0, ajuste_aberto: false, pendencias: [],
+    atualizado_em: estado.em, responsavel_nome: 'Micka', participante_nome: null, campanha_id: CAMPANHA.id, campanha_nome: CAMPANHA.nome, campanha_cor: CAMPANHA.cor, n_arquivos: estado.arquivos.length, miniatura: null, n_comentarios: 0, ajuste_aberto: false, pendencias: [],
   })
   b.rpcs.minhas_permissoes = () => [{ acoes: permissoes, funcao: 'administrador', rotulo: 'Administrador', ativo: true, deve_trocar_senha: false }]
   b.rpcs.meu_perfil = () => ({ user_id: UID, nome: 'Eline', funcao: 'administrador', funcao_rotulo: 'Administrador' })
@@ -51,7 +52,10 @@ function montar(permissoes) {
   b.rpcs.get_notificacoes_org = () => []
   b.rpcs.redes_opcoes = () => ({ participantes: [], edicoes: [], perfis: ['@sweetcoffeeweek'], responsaveis: [] })
   b.rpcs.redes_resumo = () => ({})
-  b.rpcs.redes_listar = () => [post()]
+  b.rpcs.redes_campanhas_listar = () => [CAMPANHA]
+  const salvas = []
+  b.rpcs.redes_campanha_salvar = (c) => { salvas.push(c); return { ...CAMPANHA, id: '33333333-3333-4333-8333-333333333333', ...c.p_dados, meta: c.p_dados.meta === '' ? null : c.p_dados.meta } }
+  b.rpcs.redes_listar = () => ({ agora: new Date().toISOString(), eu: UID, posts: [post()] })
   b.rpcs.redes_post = () => ({ post: post(), arquivos: estado.arquivos, historico: [], comentarios: [], conflitos: [], agora: '2026-10-21T15:00:00Z', eu: UID })
   b.rpcs.redes_situacao = (c) => {
     aprovacoes.push({ versao: c.p_versao, para: c.p_situacao })
@@ -61,7 +65,7 @@ function montar(permissoes) {
   }
   // O que o banco faz quando OUTRA pessoa mexe na arte em "aguardando aprovação": versão +1 e carimbo dela.
   const mudarArte = (porQuem) => { estado.arquivos = [arte('a1', 0, 1), arte('a2', 1)].map((x, i) => ({ ...x, ordem: i })); estado.versao += 1; estado.por = porQuem; estado.em = '2026-10-21T15:30:00Z' }
-  return { b, rt, estado, aprovacoes, mudarArte }
+  return { b, rt, estado, aprovacoes, mudarArte, salvas }
 }
 
 async function abrir(nav, permissoes) {
@@ -128,6 +132,34 @@ async function principal() {
       await dormir(1800)
       ok(await page.locator('.rd-mudou').count() === 0, 'se foi ela quem mexeu, não há aviso')
       ok(await page.getByRole('button', { name: 'Aprovar', exact: true }).count() > 0, 'e o "Aprovar" continua à mão')
+      await ctx.close()
+    }
+
+    console.log('campanhas: no cartão, na ficha e na aba')
+    {
+      const { ctx, page, erros, salvas } = await abrir(nav, PERMISSOES)
+      // a postagem é de 3/11: o dia dela, sem a ficha aberta, mostra o cartão
+      await page.goto(`${BASE}/painel/#social/planejamento?modo=dia&data=2026-11-03`, { waitUntil: 'domcontentloaded' })
+      await page.locator('.rd-cartao').first().waitFor({ timeout: 15000 }).catch(() => {})
+      ok(await page.locator('.rd-cartao__camp', { hasText: 'Confirmados' }).count() >= 1, 'o cartão mostra a campanha')
+      await page.goto(`${BASE}/painel/#social/planejamento?item=${PID}`, { waitUntil: 'domcontentloaded' })
+      await page.getByText('Detalhes: título interno', { exact: false }).first().waitFor({ timeout: 15000 }).catch(() => {})
+      await page.getByText('Detalhes: título interno', { exact: false }).first().click()
+      await dormir(400)
+      const linha = page.locator('.rd-dados div', { has: page.locator('dt', { hasText: /^Campanha$/ }) }).first()
+      ok(/Confirmados/.test((await linha.textContent()) || ''), 'a ficha mostra a campanha nos detalhes')
+      await page.goto(`${BASE}/painel/#social/campanhas`, { waitUntil: 'domcontentloaded' })
+      await page.locator('.sc-cartao').first().waitFor({ timeout: 15000 }).catch(() => {})
+      const cartao = (await page.locator('.sc-cartao').first().textContent().catch(() => '')) || ''
+      ok(/Confirmados/.test(cartao) && /2 de 20 publicadas/.test(cartao), 'a aba Campanhas mostra nome e progresso (“' + cartao.trim().slice(0, 90) + '”)')
+      ok(await page.getByRole('button', { name: 'Nova campanha' }).count() > 0, 'quem edita vê “Nova campanha”')
+      await page.getByRole('button', { name: 'Nova campanha' }).first().click()
+      await page.getByLabel('Nome', { exact: true }).fill('Contagem regressiva')
+      await page.getByRole('button', { name: 'Salvar campanha' }).click()
+      await dormir(900)
+      ok(salvas.length === 1 && salvas[0].p_id === null && salvas[0].p_dados.nome === 'Contagem regressiva' && salvas[0].p_dados.cor === 'amarelo', 'o formulário manda nome e cor padrão (' + JSON.stringify(salvas[0] || null).slice(0, 140) + ')')
+      ok(await page.locator('dialog, .ui-folha, [role=dialog]').filter({ hasText: 'Nova campanha' }).count() === 0, 'e fecha depois de salvar')
+      ok(erros.length === 0, 'sem erro de JavaScript (' + erros.join(' | ').slice(0, 200) + ')')
       await ctx.close()
     }
 

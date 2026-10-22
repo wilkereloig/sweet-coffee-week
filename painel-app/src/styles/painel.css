@@ -133,7 +133,7 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
    regra abaixo redeclara fundo, borda ou sombra de card. */
 .ui-modulo,.og-lista,.mc-bloco,.ui-resumo__bloco,.ui-numero,.og-cartao,
 .gm-etapa,.gm-atalho,.og-esteira__etapa,.ui-pendencias li,
-.rd-cartao,.sp-cartao,.rd-agenda,.bb-arq{
+.rd-cartao,.sp-cartao,.rd-agenda,.bb-arq,.sc-cartao{
   background:var(--sup-1);border:0;box-shadow:var(--contorno),var(--sombra-1);
 }
 /* Card que é atalho: sob o ponteiro ganha a cor de toque e sobe um degrau.
@@ -2410,6 +2410,29 @@ p.fg-vazio{margin:0}
 @media (hover:hover){ .bb-cor:hover{box-shadow:var(--sombra-1),var(--contorno)} .bb-cor[aria-checked="true"]:hover{box-shadow:inset 0 0 0 3px var(--scw-choco)} }
 .bb-cor__amostra{flex:0 0 auto;width:40px;height:40px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--pasta-cor,var(--pn-acento,var(--scw-amarelo)));color:var(--pasta-tinta,var(--pn-acento-tinta,var(--scw-choco)))}
 .bb-ponto{display:inline-block;flex:0 0 auto;width:14px;height:14px;margin-right:8px;border-radius:50%;background:var(--pasta-cor);box-shadow:0 0 0 1px var(--scw-filete);vertical-align:-1px}
+/* ═══ Social media › Campanhas (21/10/2026) — a cor vem de --pasta-cor (mesma paleta da pasta); o fundo do card é a definição única lá em cima ═══ */
+.sc{display:flex;flex-direction:column;gap:var(--e-4,16px)}
+.sc-cabeca{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.sc-cabeca__nota{margin:0;max-width:60ch;font:400 14px/1.4 var(--f-ui);color:var(--scw-marrom)}
+.sc-lista{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.sc-cartao{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:8px;padding:14px 16px 14px 20px;border-radius:var(--r-3);color:var(--scw-choco)}
+.sc-cartao::before{content:'';position:absolute;inset:0 auto 0 0;width:6px;background:var(--pasta-cor,var(--scw-amarelo))}
+.sc-cartao.is-arquivada{opacity:.78}
+.sc-cartao__topo{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sc-cartao__nome{margin:0;font:700 17px/1.25 var(--f-ui);overflow-wrap:anywhere}
+.sc-cartao__selo{flex:0 0 auto;padding:2px 8px;border-radius:999px;background:var(--scw-bege);font:700 12px/1.4 var(--f-ui);color:var(--scw-marrom)}
+.sc-cartao__periodo{display:inline-flex;align-items:center;gap:6px;margin:0;font:400 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.sc-cartao__desc{margin:0;font:400 14px/1.4 var(--f-ui);overflow-wrap:anywhere}
+.sc-barra{height:10px;border-radius:999px;background:var(--scw-bege);box-shadow:inset 0 0 0 1px var(--scw-filete);overflow:hidden}
+.sc-barra>span{display:block;height:100%;border-radius:inherit;background:var(--pasta-cor,var(--scw-amarelo));box-shadow:inset 0 0 0 1px rgba(61,19,8,.35)}
+.sc-cartao__prog,.sc-cartao__nums{margin:0;font:400 14px/1.3 var(--f-ui)}
+.sc-cartao__nums{color:var(--scw-marrom)}
+.sc-cartao__atraso{color:var(--scw-choco)}
+.sc-cartao__acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}
+.sc-arquivadas{display:flex;flex-direction:column;gap:12px}
+/* Cartão da postagem: ponto da campanha + nome curto */
+.rd-cartao__camp{display:inline-flex;align-items:center;max-width:100%;font:400 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.rd-cartao__camp .bb-ponto{width:10px;height:10px;margin-right:5px}
 /* Biblioteca › arrastar arquivo até uma pasta (21/10/2026). Mouse pega o cartão; toque, só a alça
    (`touch-action:none` ali: a rolagem da lista continua livre no resto do cartão). */
 .bb-arq--arrastavel .bb-arq__abrir{padding-right:44px}

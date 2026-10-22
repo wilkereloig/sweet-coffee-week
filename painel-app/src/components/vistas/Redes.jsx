@@ -4,6 +4,8 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Icone } from '../Icone'
 import { Carregando, Erro, Vazio, Selo, Botao, BotaoIcone, Escolha, Secao } from '../ui'
 import * as R from '../../lib/redes'
+import * as C from '../../lib/campanhas'
+import * as P from '../../lib/pastas'
 import { useUrlsAssinadas } from '../../lib/redesArquivos'
 import { RedesFicha, traduzirRedes, Miniatura } from './RedesFicha'
 import { Avatar } from '../Avatar'
@@ -52,6 +54,7 @@ function descricao(p, agora, conflito) {
   const pend = (p.pendencias || []).filter((x) => x !== 'atrasada').length
   return [p.titulo, p.programado_para ? R.quandoTexto(p.programado_para) : 'sem data', (R.FORMATO[p.formato] || {}).rotulo,
     p.responsavel_nome ? 'responsável ' + p.responsavel_nome : 'sem responsável', (R.SITUACAO[p.situacao] || {}).rotulo,
+    p.campanha_nome ? 'campanha ' + p.campanha_nome : '',
     p.ajuste_aberto ? 'ajuste pedido' : '',
     R.atrasada(p, agora) ? 'atrasada' : '', conflito ? 'mesmo horário de outra publicação' : '',
     pend ? pend + (pend === 1 ? ' pendência' : ' pendências') : ''].filter(Boolean).join(', ')
@@ -67,6 +70,7 @@ export function CartaoPost({ p, agora, conflito, urls, renovar, onAbrir, compact
   const fmt = R.FORMATO[p.formato] || {}
   const sit = R.SITUACAO[p.situacao] || {}
   const alerta = R.alertaDoCartao(p, { agora, conflito })
+  const camp = C.campanhaDaPostagem(p)
   const hora = p.programado_para ? R.horaCurta(R.partes(p.programado_para).hora) : 'Sem data'
   const seq = p.formato === 'story' && Number(p.n_arquivos) > 1 ? ' ×' + p.n_arquivos : ''
   return (
@@ -76,6 +80,7 @@ export function CartaoPost({ p, agora, conflito, urls, renovar, onAbrir, compact
       <span className="rd-cartao__corpo" aria-hidden="true">
         <span className="rd-cartao__titulo">{p.titulo}</span>
         <span className="rd-cartao__meta">{hora} · {fmt.curto}{seq}</span>
+        {camp && <span className="rd-cartao__camp" style={P.estiloPasta(camp.cor)}><span className="bb-ponto" />{C.nomeCurto(camp.nome)}</span>}
         <span className="rd-cartao__estado">
           {compacto ? <span className="rd-cartao__sit">{sit.curto || sit.rotulo}</span> : <Selo dominio="post_redes" valor={p.situacao} />}
           {alerta && (compacto
@@ -435,6 +440,7 @@ export function Redes({ rota, navegar, pode }) {
   const [opcoes, setOpcoes] = React.useState({ equipe: [], participantes: [], edicoes: [], perfis: [], aprovadores: [] })
   const [erroOpcoes, setErroOpcoes] = React.useState(null)
   const [resumo, setResumo] = React.useState(null)
+  const [campanhas, setCampanhas] = React.useState([])
   const [busca, setBusca] = React.useState(f.q || '')
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
   const [guia, setGuia] = React.useState(false)
@@ -447,6 +453,7 @@ export function Redes({ rota, navegar, pode }) {
   const guardaLista = useGuarda()
   const guardaResumo = useGuarda()
   const guardaOpcoes = useGuarda()
+  const guardaCampanhas = useGuarda()
   // Uma leitura por mês (ou pela janela do atalho): mudar de modo dentro do mês não relê.
   const chaveLeitura = atalho ? 'atalho' : R.inicioMes(data)
   const temDados = React.useRef(false)
@@ -481,6 +488,19 @@ export function Redes({ rota, navegar, pode }) {
   }, [guardaResumo])
   React.useEffect(() => { carregar() }, [carregar])
   React.useEffect(() => { carregarResumo() }, [carregarResumo])
+  // Campanhas (seletor da ficha, filtro e ponto do cartão): leitura à parte e opcional — se falhar, o planejamento segue sem elas.
+  const carregarCampanhas = React.useCallback(async () => {
+    const vale = guardaCampanhas()
+    try {
+      const r = await rpc('redes_campanhas_listar', { p_secret: lerSenha() })
+      if (!vale()) return true
+      setCampanhas(r || [])
+      return true
+    } catch {
+      return !vale()
+    }
+  }, [guardaCampanhas])
+  React.useEffect(() => { carregarCampanhas() }, [carregarCampanhas])
   // Equipe, participantes, edições, perfis de destino e quem aprova: uma leitura (redes_opcoes).
   const opcoesCarregadas = React.useRef(false)
   const carregarOpcoes = React.useCallback(async () => {
@@ -500,7 +520,7 @@ export function Redes({ rota, navegar, pode }) {
   React.useEffect(() => { carregarOpcoes() }, [carregarOpcoes])
   // Postagens e números dos alertas mudam com "redes" (o nome do responsável, com "perfis").
   useSincronizar(['redes', 'perfis'], async () => {
-    const [a, b] = await Promise.all([carregar(true), carregarResumo()])
+    const [a, b] = await Promise.all([carregar(true), carregarResumo(), carregarCampanhas()])
     if (!a || !b) throw new Error('redes')
   })
   // Opções: participantes (administração) ou editorial (o mesmo cadastro, como a Social media o recebe),
@@ -561,7 +581,7 @@ export function Redes({ rota, navegar, pode }) {
   const agora = Date.now()
   const eu = dados ? dados.eu : null
   const posts = dados ? dados.posts || [] : []
-  const filtrados = R.filtrar(posts, { resp: f.resp, sit: f.sit, fmt: f.fmt, ed: f.ed, part: f.part, q: f.q, atalho }, { eu, agora })
+  const filtrados = R.filtrar(posts, { resp: f.resp, sit: f.sit, fmt: f.fmt, ed: f.ed, part: f.part, camp: f.camp, q: f.q, atalho }, { eu, agora })
   const conflitosMapa = R.conflitos(posts)
   const contagem = R.contagemAtalhos(resumo, posts, { eu, agora })
   const aprova = pode('redes.aprovar')
@@ -581,17 +601,19 @@ export function Redes({ rota, navegar, pode }) {
 
   const nFiltros = R.filtrosAtivos(f)
   const podeCriar = pode('redes.editar')
-  const limparFiltros = () => { setBusca(''); mudar({ resp: undefined, sit: undefined, fmt: undefined, ed: undefined, part: undefined, q: undefined }) }
+  const limparFiltros = () => { setBusca(''); mudar({ resp: undefined, sit: undefined, fmt: undefined, ed: undefined, part: undefined, camp: undefined, q: undefined }) }
   const opResp = [['', 'Todos'], ...(eu ? [['eu', 'Eu']] : []), ['ninguem', 'Sem responsável'], ...(opcoes.equipe || []).map((e) => [e.user_id, e.nome])]
   const opSit = [['', 'Todas'], ['abertas', 'Em aberto'], ...R.ETAPAS.map((s) => [s.chave, s.rotulo]), ['atrasada', 'Atrasadas']]
   const opAtalho = [['', 'Nenhuma'], ...Object.entries(R.ATALHOS).filter(([k]) => k !== 'minhas' || eu).map(([k, r]) => [k, r + ' (' + (contagem[k] || 0) + ')'])]
   const opFmt = [['', 'Todos'], ...R.FORMATOS.map((x) => [x.chave, x.rotulo])]
   const opEd = [['', 'Todas'], ...(opcoes.edicoes || []).map((e) => [e.codigo, e.codigo + ' · ' + e.nome])]
   const opPart = [['', 'Todos'], ...(opcoes.participantes || []).map((x) => [x.id, x.nome])]
+  const opCamp = [['', 'Todas'], ...C.ordenarCampanhas(campanhas).map((c) => [c.id, c.nome + (c.arquivada ? ' (arquivada)' : '')])]
   const rotuloDe = (ops, v) => ((ops.find(([k]) => k === v) || [])[1] || v)
   const resumoFiltros = [f.resp && rotuloDe(opResp, f.resp), f.sit && rotuloDe(opSit, f.sit), f.fmt && rotuloDe(opFmt, f.fmt),
-    f.ed && f.ed, f.part && rotuloDe(opPart, f.part), f.q && '“' + f.q + '”'].filter(Boolean)
+    f.ed && f.ed, f.part && rotuloDe(opPart, f.part), f.camp && 'Campanha ' + rotuloDe(opCamp, f.camp), f.q && '“' + f.q + '”'].filter(Boolean)
   const nSemData = Number(contagem.sem_data) || 0
+  const opcoesFicha = React.useMemo(() => ({ ...opcoes, campanhas }), [opcoes, campanhas])
   const campoBusca = (
     <label className="og-campo rd-busca">
       <span className={compacto ? undefined : 'ui-oculto'}>Buscar</span>
@@ -675,6 +697,7 @@ export function Redes({ rota, navegar, pode }) {
             <Escolha rotulo="Formato" valor={f.fmt || ''} opcoes={opFmt} onMudar={(v) => mudar({ fmt: v })} />
             <Escolha rotulo="Edição" valor={f.ed || ''} opcoes={opEd} onMudar={(v) => mudar({ ed: v })} />
             <Escolha rotulo="Participante" valor={f.part || ''} opcoes={opPart} onMudar={(v) => mudar({ part: v })} />
+            <Escolha rotulo="Campanha" valor={f.camp || ''} opcoes={opCamp} onMudar={(v) => mudar({ camp: v })} />
             <Escolha rotulo="Lista rápida (todas as datas)" valor={atalho} opcoes={opAtalho} onMudar={(v) => { if (v) setFiltrosAbertos(false); mudar({ atalho: v || undefined, modo: v ? 'lista' : undefined }) }} />
           </div>
           <div className="ui-acoes">
@@ -709,7 +732,7 @@ export function Redes({ rota, navegar, pode }) {
         podeCriar={podeCriar} onNova={() => abrir('novo')} />
 
       {item && (
-        <RedesFicha key={item} id={item} pode={pode} opcoes={opcoes} posts={posts} inicial={inicialNovo}
+        <RedesFicha key={item} id={item} pode={pode} opcoes={opcoesFicha} posts={posts} inicial={inicialNovo}
           onFechar={fechar} onMudou={() => carregar(true)}
           voltaParticipante={/^part:/.test(f.volta || '')}
           onVerParticipante={(pid, ed) => navegar({ vista: 'social', aba: 'participantes', filtros: { item: pid, ed: ed || undefined } })}

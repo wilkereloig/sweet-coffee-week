@@ -104,7 +104,7 @@ function CartaoMaterial({ x, urls, renovar, onAbrir, selecionando, marcado, onMa
       {onArrastar && (
         <button type="button" className="bb-arq__alca" tabIndex={-1} aria-hidden="true" title="Arraste até uma pasta"
           onPointerDown={(e) => { e.stopPropagation(); onArrastar(e, x, true) }}>
-          <Icone nome="menu" tamanho={18} />
+          <Icone nome="menu" tamanho={20} />
         </button>
       )}
       {!selecionando && acao && <div className="bb-arq__acoes">{acao}</div>}

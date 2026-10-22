@@ -60,7 +60,7 @@ export const RPC_LEITURA = new Set([
   // org_preenchimento(s) leem (e, na primeira vez, criam o link: o banco avisa por
   // gatilho). Se avisassem daqui, a tela que as chama recarregaria para sempre.
   'org_preenchimento', 'org_preenchimentos',
-  'redes_listar', 'redes_opcoes', 'redes_post', 'redes_resumo',
+  'redes_listar', 'redes_opcoes', 'redes_post', 'redes_resumo', 'redes_campanhas_listar',
   'social_biblioteca', 'social_pastas_listar',
   // Canais de tempo real que ESTA conta pode ouvir (lista do servidor).
   'sync_meus_canais',
@@ -161,6 +161,8 @@ export const RPC_ESCRITA = Object.freeze({
   redes_desfazer_publicacao: ['redes', 'avisos'],
   redes_comentar: ['redes', 'avisos'],
   redes_duplicar: ['redes'],
+  redes_campanha_salvar: ['redes'],
+  redes_campanha_arquivar: ['redes'],
   redes_arquivo_alt: ['redes', 'biblioteca'],
   redes_arquivo_associar: ['redes', 'biblioteca', 'avisos'],
   redes_arquivo_registrar: ['redes', 'biblioteca', 'avisos'],

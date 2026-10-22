@@ -96,5 +96,9 @@ const ERROS = {
   campanha_nao_encontrada: 'Essa campanha não existe mais.',
   campanha_invalida: 'Essa campanha não está disponível (foi arquivada ou não existe). Escolha outra.',
 }
-/** Código do banco → frase; desconhecido → null (quem chama cai no tradutor geral). */
-export const traduzirErroCampanha = (codigo) => ERROS[codigo] || null
+/** Mensagem do banco (traz o código) → frase; desconhecido → null (quem chama cai no tradutor geral). */
+export function traduzirErroCampanha(msg) {
+  const m = String(msg || '')
+  for (const [codigo, frase] of Object.entries(ERROS)) if (m.includes(codigo)) return frase
+  return null
+}

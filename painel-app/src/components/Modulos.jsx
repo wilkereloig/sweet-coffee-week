@@ -19,6 +19,7 @@ import { ListaPreenchimento } from './vistas/Preenchimento'
 import { ChavesEdicao, Avaliacoes } from './vistas/PublicacaoEdicao'
 import { Redes, ResumoRedes } from './vistas/Redes'
 import { SocialBiblioteca } from './vistas/SocialBiblioteca'
+import { SocialCampanhas } from './vistas/SocialCampanhas'
 import { SocialParticipantes } from './vistas/SocialParticipantes'
 
 /*
@@ -99,6 +100,7 @@ export function Operacao(props) {
 export function ModSocial(props) {
   return <Modulo id="social" {...props} nota="Planejamento do Instagram — o painel registra, não publica" abas={[
     { chave: 'planejamento', rotulo: 'Planejamento', render: () => <Redes {...props} /> },
+    { chave: 'campanhas', rotulo: 'Campanhas', render: () => <SocialCampanhas {...props} /> },
     { chave: 'biblioteca', rotulo: 'Biblioteca', render: () => <SocialBiblioteca {...props} /> },
     { chave: 'participantes', rotulo: 'Participantes', mostrar: props.pode('editorial.ler'), render: () => <SocialParticipantes {...props} /> },
   ]} />
