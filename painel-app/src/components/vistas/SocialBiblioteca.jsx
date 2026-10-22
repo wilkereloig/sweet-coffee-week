@@ -364,6 +364,9 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       return false
     }
   }, [chave, guardaLista])
+  // Trocar de pasta esvazia a lista na hora: sem isto os arquivos da pasta anterior ficavam à vista (e marcáveis, arrastáveis)
+  // sob o nome da nova até a resposta chegar. Declarado ANTES do efeito que carrega.
+  React.useEffect(() => { setLista(null); temLista.current = false }, [local])
   React.useEffect(() => { carregar() }, [carregar])
   const recarregarTudo = React.useCallback(() => { carregarPastas(); carregar() }, [carregarPastas, carregar])
   // A lista mostra arte final (redes/biblioteca), fotos e logos (editorial = o que a Social media recebe do cadastro; logos = acervo).

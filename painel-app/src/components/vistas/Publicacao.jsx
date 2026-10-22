@@ -155,8 +155,11 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
 
   async function publicar(nivel) {
     setAviso(null); setFaltando(null)
+    // A versão nova substitui a do ar: se a do ar mostra o combo, publicar só a casa TIRA o combo do site.
+    const tiraCombo = nivel === 'marca' && v && v.nivel === 'marca_e_combo'
     const texto = nivel === 'marca'
       ? 'Publicar a casa ' + nome + ' no site? Entra no catálogo nome, apresentação, logo e unidades, sem o combo.'
+        + (tiraCombo ? ' Atenção: o combo que está no ar agora SAI do site. Para mantê-lo, use "Publicar casa e combo".' : '')
       : 'Publicar casa e combo de ' + nome + ' no site? Esta passa a ser a versão no ar' + (v ? ', no lugar da v' + v.versao : '') + '.'
     if (!(await confirmar(texto))) return
     setAgindo(true)

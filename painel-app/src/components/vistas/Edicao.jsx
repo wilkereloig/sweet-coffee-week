@@ -111,6 +111,12 @@ function AbaConfiguracao({ edicao, pode, onMudou }) {
     setAviso(null)
     if (Object.keys(r.conflitos).length) { setAviso('Há campos que mudaram enquanto você editava. Escolha qual versão vale, acima, antes de salvar.'); return }
     const enviado = r.local
+    // Valor do combo e datas do festival valem para TODAS as marcas (a marca vê o valor; os prazos seguem as datas):
+    // quem salva vê o que muda antes de gravar.
+    const muda = []
+    if (String(enviado.valor_combo ?? '') !== String(servidor.valor_combo ?? '')) muda.push('o valor do combo (de R$ ' + (servidor.valor_combo || '—') + ' para R$ ' + (enviado.valor_combo || '—') + ')')
+    if (enviado.festival_inicio !== servidor.festival_inicio || enviado.festival_fim !== servidor.festival_fim) muda.push('as datas do festival')
+    if (muda.length && !await confirmar('Esta mudança vale para todas as marcas da edição: ' + muda.join(' e ') + '. Salvar mesmo assim?')) return
     try {
       await rpc('salvar_edicao', { p_secret: lerSenha(), p_dados: dadosParaSalvarEdicao(edicao.codigo, enviado) })
       // A base passa a ser o que o servidor confirmou, na forma em que ele vai devolver (número "35.50" volta "35.5").

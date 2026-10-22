@@ -5,7 +5,7 @@ import { dataHoraCurta, prazoSelo } from '../../lib/painelFormat'
 import { BLOCOS, ROTULO_SESSAO, montarAgendaGrade, nomeSeguro, isoDoCampo, campoDoIso } from '../../lib/producao'
 import { marcasParaOpcoes } from '../../lib/participantes'
 import { rotulo } from '../../lib/status'
-import { CATEGORIAS_ARQUIVO } from '../../lib/arquivos'
+import { CATEGORIAS_ARQUIVO, caminhoSubstituto } from '../../lib/arquivos'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone } from '../ui'
@@ -281,12 +281,17 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
     if (!file) { setAviso({ texto: 'Escolha um arquivo.', tom: 'erro' }); return }
     if (escopo === 'marca' && !marca) { setAviso({ texto: 'Escolha a marca.', tom: 'erro' }); return }
     const pasta = escopo === 'geral' ? 'geral' : marca
-    const path = pasta + '/' + nomeSeguro(file.name)
+    // O Storage aceita sobrescrever (`upsert`): publicar OUTRO arquivo com o mesmo nome nesta pasta apagaria os bytes
+    // que a linha anterior ainda serve. Por isso o nome ganha um carimbo — e, depois de um envio que já subiu mas
+    // não registrou, o MESMO caminho é reaproveitado (senão o arquivo subiria de novo e o primeiro ficaria órfão).
+    const anterior = subido.current
+    const reaproveita = !!anterior && anterior.path.startsWith(pasta + '/') && envioReaproveitavel(anterior, anterior.path, file)
+    const path = reaproveita ? anterior.path : caminhoSubstituto(pasta + '/', nomeSeguro(file.name))
     setEnviando(true)
     setAviso({ texto: 'Enviando…' })
     let registrando = false
     try {
-      if (!envioReaproveitavel(subido.current, path, file)) {
+      if (!reaproveita) {
         // Os bytes NÃO passam pela Edge Function: ela assina, o navegador sobe
         // direto para o Storage. Um PDF de 20 MB atravessando o isolate
         // esbarraria em limite de corpo, de memória e de tempo.
@@ -590,6 +595,8 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
   const sessoes = principal.dados ? principal.dados.sessoes : null
   // undefined = ainda não leu; null = leu e não há (ou não deu para ler).
   const config = cfg.dados !== undefined ? cfg.dados : cfg.erro ? null : undefined
+  // Leitura que FALHOU não é "nenhuma edição aberta": a tela não pode afirmar isso nem deixar abrir uma às cegas.
+  const leituraFalhou = cfg.dados === undefined && !!cfg.erro
   const participantes = part.dados || []
 
   const opcoesMarcas = marcasParaOpcoes(participantes)
@@ -741,11 +748,13 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
             </div>
             <div className="og-item og-item--info">
               <span className="og-item__cor" data-tom={config === undefined ? undefined : edicaoAtual ? 'ok' : 'aviso'} aria-hidden="true" />
-              <p className="og-item__nome">{config === undefined ? 'Carregando…' : (edicaoAtual || 'Nenhuma edição aberta')}</p>
+              <p className="og-item__nome">{config === undefined ? 'Carregando…' : leituraFalhou ? 'Não deu para ler a edição aberta' : (edicaoAtual || 'Nenhuma edição aberta')}</p>
               <p className="og-item__meta">
                 {config === undefined
                   ? 'Lendo a configuração da edição.'
-                  : edicaoAtual
+                  : leituraFalhou
+                    ? 'Confira a conexão e atualize. Até ler, não dá para dizer se há edição aberta, nem trocar ou fechar.'
+                    : edicaoAtual
                     ? 'Toda conta nova de marca já nasce com o formulário desta edição.'
                     : 'Contas novas de marca entram e não têm o que preencher até você abrir uma.'}
               </p>
@@ -763,9 +772,14 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
             <div className="ui-linha-acoes og-campo--espaco">
             <button
               className="og-btn" type="button"
-              disabled={salvandoEdicao || !podeGerir || regEdicao.conflito || !codigoEdicao.trim() || codigoEdicao.trim() === edicaoAtual}
+              disabled={salvandoEdicao || !podeGerir || leituraFalhou || regEdicao.conflito || !codigoEdicao.trim() || codigoEdicao.trim() === edicaoAtual}
               title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
-              onClick={() => salvarEdicao(codigoEdicao.trim())}
+              onClick={async () => {
+                const novo = codigoEdicao.trim()
+                // Trocar a edição aberta muda o formulário e as contas novas de TODAS as marcas: pede confirmação.
+                if (edicaoAtual && !await confirmar('Trocar a edição aberta de "' + edicaoAtual + '" para "' + novo + '"? Contas novas e o formulário das marcas passam a seguir "' + novo + '".')) return
+                salvarEdicao(novo)
+              }}
             >
               Salvar edição
             </button>
@@ -774,7 +788,7 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
             {edicaoAtual && (
               <button
                 className="og-btn og-btn--vazado" type="button"
-                disabled={salvandoEdicao || !podeGerir}
+                disabled={salvandoEdicao || !podeGerir || leituraFalhou}
                 title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
                 onClick={async () => { if (await confirmar('Fechar a edição? Contas novas de marca deixam de ganhar formulário até você abrir outra.')) salvarEdicao('') }}
               >

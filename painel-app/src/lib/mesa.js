@@ -45,7 +45,7 @@ export function colunasMesa({ candidaturas = [], participantes = [] }) {
     const edicao = p.edicao_codigo ? 'edição ' + p.edicao_codigo : 'sem edição aberta'
     colunas[et].push({
       tipo: 'marca', participacaoId: p.participacao_id, participanteId: p.id,
-      nome: p.nome_marca, meta: p.user_id || completa ? edicao : edicao + ' · sem acesso ainda',
+      nome: p.nome_marca, meta: (p.user_id || completa ? edicao : edicao + ' · sem acesso ainda') + (p.status_cadastro === 'encerrado' ? ' · encerrada' : ''),
       // Contagem vinda do banco pode chegar como STRING (bigint do Postgres).
       itensProntos: Number(p.itens_prontos || 0), novo: false,
     })

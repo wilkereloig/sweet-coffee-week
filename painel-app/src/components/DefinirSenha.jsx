@@ -23,18 +23,37 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
   const [senha2, setSenha2] = React.useState('')
   const [carregando, setCarregando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
+  // A senha JÁ mudou no Auth, mas baixar a trava falhou: repetir só essa parte (a senha digitada não existe mais aqui).
+  const [faltaLiberar, setFaltaLiberar] = React.useState(false)
+
+  async function liberar() {
+    // Duas tentativas: uma queda curta de rede logo depois do PUT não deve deixar a conta presa na troca.
+    for (let i = 0; i < 2; i++) {
+      try { await aoMarcarTrocada(); return true } catch { /* tenta de novo */ }
+    }
+    return false
+  }
 
   async function enviar(ev) {
     ev.preventDefault()
     setErro(null)
+    if (faltaLiberar) {
+      setCarregando(true)
+      const ok = await liberar()
+      setCarregando(false)
+      if (!ok) { setErro('Ainda não deu para liberar o painel. Confira a conexão e tente de novo.'); return }
+      onConcluido()
+      return
+    }
     if (senha1.length < 10) { setErro('A senha precisa de pelo menos 10 caracteres.'); return }
     if (senha1 !== senha2) { setErro('As duas senhas não são iguais.'); return }
 
     setCarregando(true)
     let r
+    let token
     try {
       // Renova antes: quem deixou esta tela aberta por mais de 1 h tem o token vencido.
-      const token = await tokenVivo(chaveSessao)
+      token = await tokenVivo(chaveSessao)
       if (!token) {
         setCarregando(false)
         setErro('Sua sessão expirou. Entre de novo com a senha que você recebeu.')
@@ -53,9 +72,19 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
     }
     setSenha1('')
     setSenha2('')
-    // Baixa a flag ANTES de seguir — se falhar, o próximo login pede a troca
-    // de novo (chato, nunca inseguro), então o erro não trava o fluxo.
-    try { await aoMarcarTrocada() } catch { /* senha já trocada; o próximo login pede de novo */ }
+    // A senha antiga (a que viajou por WhatsApp) pode estar aberta em outro aparelho: encerra as outras sessões.
+    // Melhor esforço — a senha já mudou, e a sessão atual segue.
+    auth('logout?scope=others', null, 'POST', token).catch(() => { /* a senha nova já vale */ })
+    // Baixa a flag ANTES de seguir. Sem ela a conta fica presa na troca e o painel abre vazio, então a falha
+    // não é engolida: a tela pede para tentar de novo (só essa parte).
+    setCarregando(true)
+    const liberada = await liberar()
+    setCarregando(false)
+    if (!liberada) {
+      setFaltaLiberar(true)
+      setErro('A senha foi trocada, mas não deu para liberar o painel. Confira a conexão e toque em "Tentar de novo".')
+      return
+    }
     onConcluido()
   }
 
@@ -71,7 +100,7 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
               Ela é sua: a organização não vê e não tem como recuperar. Se você perder, ela gera um acesso novo.
             </p>
           </div>
-          <label className="pn-campo--porta">
+          {!faltaLiberar && <label className="pn-campo--porta">
             <span className="pn-campo__rotulo">Nova senha</span>
             <input
               className="pn-campo__escuro"
@@ -84,8 +113,8 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
               onChange={(e) => setSenha1(e.target.value)}
             />
             <span className="pn-campo__ajuda" id="senha-ajuda">Pelo menos 10 caracteres.</span>
-          </label>
-          <label className="pn-campo--porta">
+          </label>}
+          {!faltaLiberar && <label className="pn-campo--porta">
             <span className="pn-campo__rotulo">Repita a senha</span>
             <input
               className="pn-campo__escuro"
@@ -96,10 +125,10 @@ export function DefinirSenha({ chaveSessao, aoMarcarTrocada, onConcluido }) {
               value={senha2}
               onChange={(e) => setSenha2(e.target.value)}
             />
-          </label>
+          </label>}
           {erro && <div className="pn-erro" role="alert">{erro}</div>}
           <button className="og-btn og-btn--amarelo" type="submit" disabled={carregando}>
-            {carregando ? 'Salvando…' : 'Salvar e continuar'}
+            {carregando ? 'Salvando…' : faltaLiberar ? 'Tentar de novo' : 'Salvar e continuar'}
           </button>
         </form>
       </div>

@@ -7,6 +7,7 @@ import { dataCurta } from '../../lib/respostas'
 import { rotulo } from '../../lib/status'
 import { tempoRelativo } from '../../lib/central'
 import { mascaraWhatsApp } from '../../lib/participantes'
+import { linkWebSeguro } from '../../lib/cadastro'
 import { estadoLogoLista } from '../../lib/logos'
 import { BUCKET_EDICAO, traduzirPendencia } from '../../lib/publicacao'
 import { ROTULO_MATERIAL, ROTULO_MATERIAL_STATUS } from '../../lib/operacao'
@@ -316,7 +317,7 @@ function Unidade({ u }) {
         u.participa && ['Horário da loja', u.horarioLoja],
         u.participa && ['Horário do combo', u.horarioCombo === null ? null : u.horarioCombo.length ? <ul className="fg-lista">{u.horarioCombo.map((h) => <li key={h.dias}><b>{h.dias}</b>{h.faixas}</li>)}</ul> : null, { largo: true, vazio: u.horarioCombo === null ? 'Não carregou' : 'Não informado' }],
         u.participa && ['Atendimento do combo', modos, { largo: true }],
-        u.participa && u.modos.delivery === 'sim' && ['Canais de pedido', u.canais.length ? u.canais.map((c, i) => <span key={i} className="fg-canal">{c.rotulo}{c.link && <>: <a className="og-link" href={c.link} target="_blank" rel="noreferrer">{c.link}</a></>}</span>) : null, { largo: true }],
+        u.participa && u.modos.delivery === 'sim' && ['Canais de pedido', u.canais.length ? u.canais.map((c, i) => <span key={i} className="fg-canal">{c.rotulo}{c.link && <>: {linkWebSeguro(c.link) ? <a className="og-link" href={linkWebSeguro(c.link)} target="_blank" rel="noreferrer">{c.link}</a> : <span>{c.link} (endereço inválido)</span>}</>}</span>) : null, { largo: true }],
         u.participa && u.modos.delivery === 'sim' && ['Regiões de entrega', u.regioes],
         u.participa && u.modos.delivery === 'sim' && ['Taxa de entrega', u.taxa],
         u.participa && ['WhatsApp público da loja', u.whatsappPublico && mascaraWhatsApp(u.whatsappPublico), { vazio: 'Não divulgado no site' }],

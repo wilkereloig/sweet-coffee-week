@@ -1,7 +1,7 @@
 import React from 'react'
 import { Icone } from '../../Icone'
 import { confirmar } from '../../Confirmar'
-import { CANAIS } from '../../../lib/cadastro'
+import { CANAIS, erroLinkCanal } from '../../../lib/cadastro'
 import {
   MODOS_SERVICO, ESTADOS_TRES, nomeDaUnidade, idCampoUnidade, rotuloDia, erroFaixa,
 } from '../../../lib/edicaoMarca'
@@ -115,7 +115,8 @@ export function Atendimento({ unidades, dias, est, alterar, alterarCanal, horari
                 {CANAIS.map((c) => (
                   <label key={c.tipo}>
                     <span>{c.rotulo} <em>(deixe em branco se não usa)</em></span>
-                    <input placeholder={c.dica} value={u.canais[c.tipo]} onChange={(e) => alterarCanal(k, c.tipo, e.target.value)} />
+                    <input placeholder={c.dica} value={u.canais[c.tipo]} aria-invalid={erroLinkCanal(u.canais[c.tipo]) ? true : undefined} onChange={(e) => alterarCanal(k, c.tipo, e.target.value)} />
+                    {erroLinkCanal(u.canais[c.tipo]) && <span className="gm-campo-erro">{erroLinkCanal(u.canais[c.tipo])}</span>}
                   </label>
                 ))}
                 {i === 0 && <Correcao e={est('atendimento-canais')} />}

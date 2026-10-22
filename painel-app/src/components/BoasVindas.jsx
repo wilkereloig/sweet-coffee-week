@@ -7,7 +7,7 @@ import { Icone } from './Icone'
  * cartões (mesmos ícones que LoginOrganizacao.jsx e LoginMarca.jsx usam
  * no próprio formulário).
  */
-export function BoasVindas({ onEscolherOrg, onEscolherMarca }) {
+export function BoasVindas({ onEscolherOrg, onEscolherMarca, aviso }) {
   return (
     <div className="pn-porta" id="login">
       <div className="pn-porta__caixa">
@@ -15,6 +15,7 @@ export function BoasVindas({ onEscolherOrg, onEscolherMarca }) {
         <div>
           <h1 className="pn-porta__titulo">Bem-vindo ao Painel SCW</h1>
           <p className="pn-porta__lead">Entre com o login que você recebeu. Cada acesso abre uma área diferente.</p>
+          {aviso && <div className="pn-erro" role="alert">{aviso}</div>}
 
           <div className="pn-porta__grade">
             <button type="button" className="pn-setor pn-setor--org pn-setor--escolha" onClick={onEscolherOrg}>

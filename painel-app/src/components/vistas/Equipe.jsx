@@ -1,6 +1,7 @@
 import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
+import { textoAvisosSenha } from '../../lib/cadastro'
 import { GRUPOS_ACAO, tempoRelativo } from '../../lib/central'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { USUARIO_VALIDO, loginDaConta, usuarioDaEquipe } from '../../../../src/lib/orgAccess'
@@ -29,7 +30,7 @@ import { useRascunhoOrg } from '../../lib/rascunhoOrg'
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
 // A senha gerada aparece UMA vez: copiar é o único jeito de não perdê-la.
-function SenhaUmaVez({ login, senha }) {
+function SenhaUmaVez({ login, senha, avisos }) {
   const [copiado, setCopiado] = React.useState(false)
   async function copiar() {
     try { await navigator.clipboard.writeText('Login: ' + login + '\nSenha: ' + senha); setCopiado(true) } catch { setCopiado('manual') }
@@ -44,6 +45,7 @@ function SenhaUmaVez({ login, senha }) {
         <button className="og-btn og-btn--mini" type="button" onClick={copiar}>{copiado === true ? 'Copiado' : copiado === 'manual' ? 'Selecione acima' : 'Copiar dados'}</button>
       </div>
       <p className="ui-nota">No primeiro acesso a pessoa é obrigada a trocar a senha.</p>
+      {textoAvisosSenha(avisos) && <p className="ui-nota ui-nota--erro" role="alert">{textoAvisosSenha(avisos)}</p>}
     </div>
   )
 }
@@ -112,7 +114,7 @@ function FolhaNovaConta({ aberto, funcoes, onFechar }) {
           <li><b>Social media</b>: planejamento do Instagram, biblioteca e textos do combo (nome, descrição, componentes). Não vê cadastro, contatos nem financeiro.</li>
         </ul>
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
-        {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} />}
+        {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} avisos={cred.avisos} />}
         {!cred && <button className="og-btn" type="submit" disabled={criando}>{criando ? 'Criando…' : 'Criar acesso'}</button>}
       </form>
     </Folha>
@@ -209,7 +211,7 @@ function FolhaConta({ aberto, conta, funcoes, onFechar, onVerHistorico }) {
             <button className="og-btn" type="submit" disabled={!!ocupado}>{ocupado === 'salvar' ? 'Salvando…' : 'Salvar'}</button>
           </form>
           {aviso && <p className={'ui-nota ' + (aviso.tom === 'erro' ? 'ui-nota--erro' : 'ui-nota--ok')} role={aviso.tom === 'erro' ? 'alert' : 'status'}>{aviso.texto}</p>}
-          {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} />}
+          {cred && <SenhaUmaVez login={cred.login} senha={cred.senha} avisos={cred.avisos} />}
           <Secao titulo="Acesso">
             <div className="ui-linha-acoes">
               <Botao icone="chave" variante="secundario" disabled={!!ocupado} onClick={novaSenha}>Gerar senha nova</Botao>

@@ -15,6 +15,12 @@ import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
 import { comEnvio } from './pendencias.js'
 import { aoApiConfirmada } from './sync/anuncio.js'
 
+/* Rede que não responde não pode deixar "Conferindo sua sessão" para sempre: a chamada aborta e cai no tratamento
+   de falha de rede de quem chamou. Navegador sem AbortSignal.timeout segue sem limite (como antes). */
+function comTempoLimite(ms) {
+  return typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(ms) : undefined
+}
+
 export async function auth(caminho, corpo, metodo = 'POST', token, fetchImpl = fetch) {
   const cab = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }
   if (token) cab.Authorization = 'Bearer ' + token
@@ -22,6 +28,7 @@ export async function auth(caminho, corpo, metodo = 'POST', token, fetchImpl = f
     method: metodo,
     headers: cab,
     body: corpo ? JSON.stringify(corpo) : undefined,
+    signal: comTempoLimite(20000),
   })
   let dados = {}
   try { dados = await r.json() } catch { /* corpo vazio ou não-JSON */ }
@@ -165,6 +172,7 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
     method: opcoes.metodo || 'GET',
     headers: cab,
     body: opcoes.corpo ? JSON.stringify(opcoes.corpo) : undefined,
+    signal: comTempoLimite(30000),
   })
   let dados = null
   try { dados = await r.json() } catch { /* sem corpo */ }
@@ -206,8 +214,10 @@ export async function precisaTrocarSenha(fetchImpl = fetch) {
   }
 }
 
+// Falha PROPAGA: quem chama (DefinirSenha) tenta de novo e, se não der, avisa. Engolir deixava a conta presa na
+// troca (deve_trocar_senha ligada) e o painel abria vazio.
 export async function marcarSenhaTrocada(fetchImpl = fetch) {
-  try { await api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} }, fetchImpl) } catch { /* ver comentário acima */ }
+  await api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} }, fetchImpl)
 }
 
 /**

@@ -80,7 +80,13 @@ function estadoInicial() {
 
 // 'conferindo-marca' e 'conferindo-org' (Fase 2 do plano de funções) mostram
 // a mesma tela — extraído pra não repetir o mesmo bloco a segunda vez (§5.3).
-function TelaConferindo() {
+function TelaConferindo({ onSair }) {
+  // Rede que não responde: depois de alguns segundos aparece uma saída, em vez de "Um instante…" para sempre.
+  const [demorou, setDemorou] = React.useState(false)
+  React.useEffect(() => {
+    const t = setTimeout(() => setDemorou(true), 8000)
+    return () => clearTimeout(t)
+  }, [])
   return (
     <div className="pn-porta" id="login">
       <div className="pn-porta__caixa">
@@ -88,11 +94,19 @@ function TelaConferindo() {
         <div>
           <h1 className="pn-porta__titulo">Um instante…</h1>
           <p className="pn-porta__lead">Conferindo sua sessão.</p>
+          {demorou && (
+            <>
+              <p className="pn-porta__lead">Está demorando mais que o normal. Confira a conexão ou saia para entrar de novo.</p>
+              <button className="pn-link--porta" type="button" onClick={onSair}><Icone nome="sair" tamanho={16} />Sair</button>
+            </>
+          )}
         </div>
       </div>
     </div>
   )
 }
+
+const TEXTO_SESSAO_EXPIROU = 'Sua sessão terminou. Entre de novo.'
 
 // Sair não pode ficar preso numa rede ruim: o que depende de rede (limpar o
 // aviso do aparelho, salvar o rascunho) ganha um teto e a saída segue.
@@ -109,6 +123,8 @@ const VISTAS_MARCA = {
 export function App() {
   const [estado, setEstado] = React.useState(estadoInicial)
   const [motivoBloqueio, setMotivoBloqueio] = React.useState(null)
+  // Sessão que morreu em uso (ou no boot) volta às boas-vindas COM explicação, em vez de parecer um recomeço sem motivo.
+  const [avisoSessao, setAvisoSessao] = React.useState(null)
   // null = senha única (pode() libera tudo pra ela; PainelShell trata null
   // como "sem restrição", Fase 3 do plano). Array = as `acoes` da conta
   // nominal, carregadas uma vez em 'conferindo-org' — nunca refeito depois,
@@ -232,7 +248,8 @@ export function App() {
     return () => clearInterval(t)
   }, [estado, permissoesFalharam])
 
-  async function sairOrg({ expirou = false } = {}) {
+  async function sairOrg({ expirou = false, semAviso = false } = {}) {
+    if (expirou && !semAviso) setAvisoSessao(TEXTO_SESSAO_EXPIROU)
     // Sair tira os avisos DESTE aparelho: num computador compartilhado, a
     // próxima pessoa não continua recebendo o que era da conta anterior.
     // ⚠️ Não quando a saída é por sessão morta: a remoção precisaria da
@@ -269,7 +286,8 @@ export function App() {
     setEstado('boas-vindas')
   }
 
-  async function sairMarca({ expirou = false } = {}) {
+  async function sairMarca({ expirou = false, semAviso = false } = {}) {
+    if (expirou && !semAviso) setAvisoSessao(TEXTO_SESSAO_EXPIROU)
     // Autosave pendente vai antes: depois do removeItem não há token.
     if (!expirou) await comTeto(descarregarPendentes(), 8000)
     if (!expirou) await comTeto(desligarAvisos((endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })).catch(() => {}), 4000)
@@ -284,8 +302,9 @@ export function App() {
   if (estado === 'boas-vindas') {
     return (
       <BoasVindas
-        onEscolherOrg={() => setEstado('login-org')}
-        onEscolherMarca={() => setEstado('login-marca')}
+        aviso={avisoSessao}
+        onEscolherOrg={() => { setAvisoSessao(null); setEstado('login-org') }}
+        onEscolherMarca={() => { setAvisoSessao(null); setEstado('login-marca') }}
       />
     )
   }
@@ -307,7 +326,7 @@ export function App() {
   }
 
   if (estado === 'conferindo-marca' || estado === 'conferindo-org') {
-    return <TelaConferindo />
+    return <TelaConferindo onSair={() => (estado === 'conferindo-marca' ? sairMarca({ expirou: true, semAviso: true }) : sairOrg({ expirou: true, semAviso: true }))} />
   }
 
   if (estado === 'pausada-marca') {

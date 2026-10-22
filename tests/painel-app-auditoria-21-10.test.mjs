@@ -167,3 +167,115 @@ test('Social media › ficha da postagem: limite de legenda conta as menções, 
   assert.match(f, /Fechar mesmo assim/)
   assert.match(f, /if \(t\) \{ setCampo\('programado_para', t\); setDhLocal\(null\) \} else setDhLocal\(n\)/, 'data inválida fica como rascunho de digitação')
 })
+
+// ── Lote 4 (segurança) ─────────────────────────────────────────────────────────────────────────────────────────────
+test('link do canal de delivery: só endereço web; javascript:/data: nunca viram href', async () => {
+  const C = await import('../painel-app/src/lib/cadastro.js')
+  assert.equal(C.linkWebSeguro('https://www.ifood.com.br/delivery/x'), 'https://www.ifood.com.br/delivery/x')
+  assert.equal(C.linkWebSeguro('  wa.me/5584999999999  '), 'https://wa.me/5584999999999', 'sem esquema: completa com https')
+  assert.equal(C.linkWebSeguro('ifood.com.br/loja?x=1'), 'https://ifood.com.br/loja?x=1')
+  for (const ruim of ['javascript:alert(1)', 'JaVaScRiPt:alert(1)', 'data:text/html,<script>', 'vbscript:x', 'ftp://x.com/a', 'mailto:a@b.com', 'oi', 'meu delivery', 'https://', 'http://localhost', '//x.com']) assert.equal(C.linkWebSeguro(ruim), '', ruim)
+  assert.deepEqual(C.canaisParaArray({ aplicativo: 'javascript:alert(1)', whatsapp: 'wa.me/5584999999999', site: '' }), [{ tipo: 'whatsapp', link: 'https://wa.me/5584999999999' }])
+  assert.equal(C.erroLinkCanal('javascript:alert(1)').length > 0, true)
+  assert.equal(C.erroLinkCanal(''), '')
+  assert.equal(C.erroLinkCanal('wa.me/55'), '')
+  // O href da ficha e o da página pública também checam (o dado já gravado antes não é confiável).
+  assert.match(ler('painel-app/src/components/vistas/FichaVisao.jsx'), /linkWebSeguro\(c\.link\) \? <a className="og-link" href=\{linkWebSeguro\(c\.link\)\}/)
+  assert.match(ler('src/edicao/cartoon/paginas/Participante.jsx'), /\.filter\(\(c\) => \/\^https\?:/)
+  assert.match(ler('painel-app/src/components/vistas-marca/edicao/Atendimento.jsx'), /erroLinkCanal\(u\.canais\[c\.tipo\]\)/)
+})
+
+test('Storage › arquivos: a marca só lê o que está publicado e não arquivado, com conta ativa', () => {
+  const sql = ler('supabase/migrations/20261029_storage_arquivos_politica.sql')
+  assert.match(sql, /alter policy arquivos_marca_le on storage\.objects using \(/)
+  assert.match(sql, /public\.conta_ativa\(\)/)
+  assert.match(sql, /a\.path = storage\.objects\.name and a\.publicado_em is not null and not a\.arquivado/)
+  assert.doesNotMatch(sql, /drop |delete from/i, 'só altera a política')
+})
+
+test('regerar-senha-conta: falha ao zerar o envio ou encerrar sessões vira aviso (a senha já mudou e só a resposta a mostra)', async () => {
+  const f = ler('supabase/functions/regerar-senha-conta/index.ts')
+  assert.match(f, /const \{ error: emitidaErr \} = await admin\.from\('perfis'\)\.update\(\{ senha_emitida_em/)
+  assert.match(f, /if \(emitidaErr\) avisos\.push\('envio_nao_zerado'\)/)
+  assert.match(f, /const \{ error: sessoesErr \} = await admin\.rpc\('encerrar_sessoes_usuario'/)
+  assert.match(f, /if \(sessoesErr\) avisos\.push\('sessoes_nao_encerradas'\)/)
+  assert.match(f, /troca_obrigatoria: true, avisos \}\)/)
+  const C = await import('../painel-app/src/lib/cadastro.js')
+  assert.equal(C.textoAvisosSenha([]), '')
+  assert.equal(C.textoAvisosSenha(undefined), '')
+  assert.match(C.textoAvisosSenha(['sessoes_nao_encerradas']), /continua logado/)
+  assert.match(C.textoAvisosSenha(['envio_nao_zerado', 'sessoes_nao_encerradas']), /consta como enviado e quem já estava dentro/)
+  assert.equal(C.textoAvisosSenha(['inexistente']), '', 'aviso desconhecido não escreve nada')
+  assert.match(ler('painel-app/src/components/vistas/Equipe.jsx'), /textoAvisosSenha\(avisos\)/)
+  assert.match(ler('painel-app/src/components/vistas/AcessoMarca.jsx'), /aviso: textoAvisosSenha\(r\.avisos\)/)
+})
+
+test('criar-acesso-marca: o servidor confere que a candidatura está aprovada (a tela já só oferecia nesse caso)', () => {
+  const f = ler('supabase/functions/criar-acesso-marca/index.ts')
+  const bloco = f.slice(f.indexOf("if (jaTem?.user_id)"), f.indexOf('} else if (participanteExistente)'))
+  assert.match(bloco, /candidatura\.status !== 'aprovado' && candidatura\.status !== 'aguardando_cadastro'/)
+  assert.match(bloco, /erro: 'candidatura_nao_aprovada'/)
+  assert.ok(bloco.indexOf('conta_ja_existe') < bloco.indexOf('candidatura_nao_aprovada'), 'candidatura que já tem conta continua dizendo isso')
+  assert.match(ler('painel-app/src/lib/respostas.js'), /candidatura_nao_aprovada:/)
+})
+
+test('Primeiro acesso: se baixar a trava falha, a tela não segue (conta presa na troca abre painel vazio) e tenta de novo só essa parte', () => {
+  const d = ler('painel-app/src/components/DefinirSenha.jsx')
+  assert.match(d, /for \(let i = 0; i < 2; i\+\+\)/, 'duas tentativas')
+  assert.match(d, /setFaltaLiberar\(true\)/)
+  assert.match(d, /if \(faltaLiberar\) \{/, 'o reenvio só repete a liberação, não a troca de senha')
+  assert.match(d, /auth\('logout\?scope=others'/, 'a senha antiga (WhatsApp) deixa de valer em outros aparelhos')
+  const api = ler('painel-app/src/lib/marcaApi.js')
+  const corpo = api.slice(api.indexOf('export async function marcarSenhaTrocada'), api.indexOf('/**', api.indexOf('export async function marcarSenhaTrocada')))
+  assert.doesNotMatch(corpo, /catch/, 'marcarSenhaTrocada propaga a falha')
+  assert.match(ler('painel-app/src/components/ContaMarca.jsx'), /auth\('logout\?scope=others'/)
+})
+
+test('Sessão da marca: rede sem resposta aborta, a espera tem saída e a sessão morta explica', () => {
+  const api = ler('painel-app/src/lib/marcaApi.js')
+  assert.match(api, /signal: comTempoLimite\(20000\)/, 'auth com tempo-limite')
+  assert.match(api, /signal: comTempoLimite\(30000\)/, 'api com tempo-limite')
+  const app = ler('painel-app/src/App.jsx')
+  assert.match(app, /setTimeout\(\(\) => setDemorou\(true\), 8000\)/)
+  assert.match(app, /<TelaConferindo onSair=/)
+  assert.match(app, /if \(expirou && !semAviso\) setAvisoSessao\(TEXTO_SESSAO_EXPIROU\)/)
+  assert.match(app, /aviso=\{avisoSessao\}/)
+  assert.match(ler('painel-app/src/components/BoasVindas.jsx'), /\{aviso && <div className="pn-erro" role="alert">\{aviso\}<\/div>\}/)
+})
+
+test('Pedido › "Complementar a resposta" acrescenta, não apaga a anterior', () => {
+  const sql = ler('supabase/migrations/20261030_marca_complementar_resposta.sql')
+  assert.match(sql, /anterior \|\| E'\\n\\n— Complemento de '/)
+  assert.match(sql, /if char_length\(junto\) > 4000 then raise exception 'resposta_longa'/, 'recusa em vez de cortar o fim do que acabou de ser escrito')
+  assert.match(sql, /returns void/)
+  assert.doesNotMatch(sql, /drop |delete from/i)
+  assert.match(ler('painel-app/src/components/ui.jsx'), /resposta_longa:/)
+})
+
+test('Edição › Configuração: leitura que falhou não diz "nenhuma edição"; trocar a edição e mudar valor/datas pedem confirmação', () => {
+  const p = ler('painel-app/src/components/vistas/Producao.jsx')
+  assert.match(p, /const leituraFalhou = cfg\.dados === undefined && !!cfg\.erro/)
+  assert.match(p, /leituraFalhou \? 'Não deu para ler a edição aberta'/)
+  assert.match(p, /disabled=\{salvandoEdicao \|\| !podeGerir \|\| leituraFalhou \|\| regEdicao\.conflito/)
+  assert.match(p, /Trocar a edição aberta de "/)
+  const e = ler('painel-app/src/components/vistas/Edicao.jsx')
+  assert.match(e, /Esta mudança vale para todas as marcas da edição: /)
+  assert.match(e, /String\(enviado\.valor_combo \?\? ''\) !== String\(servidor\.valor_combo \?\? ''\)/)
+})
+
+test('Publicar arquivo ganha carimbo no nome (o Storage sobrescreve o mesmo caminho); publicar só a casa avisa que o combo sai', () => {
+  const p = ler('painel-app/src/components/vistas/Producao.jsx')
+  assert.match(p, /const path = reaproveita \? anterior\.path : caminhoSubstituto\(pasta \+ '\/', nomeSeguro\(file\.name\)\)/)
+  assert.doesNotMatch(p, /const path = pasta \+ '\/' \+ nomeSeguro\(file\.name\)/)
+  const pub = ler('painel-app/src/components/vistas/Publicacao.jsx')
+  assert.match(pub, /const tiraCombo = nivel === 'marca' && v && v\.nivel === 'marca_e_combo'/)
+  assert.match(pub, /o combo que está no ar agora SAI do site/)
+})
+
+test('Biblioteca: trocar de pasta esvazia a lista antes de carregar; Mesa marca a marca encerrada na coluna Completas', async () => {
+  const b = ler('painel-app/src/components/vistas/SocialBiblioteca.jsx')
+  assert.ok(b.indexOf('setLista(null); temLista.current = false }, [local])') < b.indexOf('React.useEffect(() => { carregar() }, [carregar])'), 'o efeito que esvazia vem antes do que carrega')
+  const { colunasMesa } = await import('../painel-app/src/lib/mesa.js')
+  const col = colunasMesa({ candidaturas: [], participantes: [{ participacao_id: 1, nome_marca: 'A', status_cadastro: 'encerrado', edicao_codigo: '2026.2' }] })
+  assert.match(col.find((c) => c.chave === 'completas').itens[0].meta, /encerrada/)
+})

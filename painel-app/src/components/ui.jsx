@@ -61,6 +61,7 @@ const ERROS = {
   NetworkError: 'Sem conexão com o servidor. Confira a internet e tente de novo.',
   mensagem_vazia: 'Escreva a mensagem antes de enviar.',
   resposta_vazia: 'Escreva a resposta antes de enviar.',
+  resposta_longa: 'A resposta com o complemento passa de 4000 caracteres. Resuma o complemento.',
   texto_vazio: 'Escreva algo antes de salvar.',
   ultimo_administrador: 'Não dá: é o último administrador ativo. Promova outra pessoa antes.',
   conta_ja_existe: 'Já existe uma conta com esse e-mail.',

@@ -243,9 +243,9 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
                   <strong>{r}</strong>{p.unidades.length > 1 ? ` · ${T.modoEm} ${nomesUnidades(modos[k])}` : ''}
                   {k === 'delivery' && modos.delivery.map((u) => (
                     <div key={u.id} className="ct-modos__delivery">
-                      {(u.combo?.canais || []).length > 0 && (
+                      {(u.combo?.canais || []).some((c) => /^https?:\/\//i.test(String(c.link || '').trim())) && (
                         <p>{T.pedirPor}:{' '}
-                          {u.combo.canais.map((c, i) => <a key={i} className="ct-link" href={c.link} target="_blank" rel="noopener noreferrer">{T.canais[c.tipo] || c.tipo}</a>)
+                          {u.combo.canais.filter((c) => /^https?:\/\//i.test(String(c.link || '').trim())).map((c, i) => <a key={i} className="ct-link" href={String(c.link).trim()} target="_blank" rel="noopener noreferrer">{T.canais[c.tipo] || c.tipo}</a>)
                             .reduce((acc, el, i) => (i ? [...acc, ' · ', el] : [el]), [])}
                         </p>
                       )}

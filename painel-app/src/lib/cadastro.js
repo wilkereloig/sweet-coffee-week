@@ -145,9 +145,28 @@ export function canaisParaObjeto(lista) {
   return obj
 }
 
+/*
+ * Link de canal de pedido (iFood, WhatsApp, site…) vira `href` na ficha da organização e na página pública da casa.
+ * Só endereço web: `javascript:`, `data:` e afins nunca passam (auditoria de 21/10/2026). Sem esquema ("wa.me/…",
+ * "ifood.com.br/…") a pessoa quase sempre quis https — completa. Devolve o link normalizado ou '' se não servir.
+ */
+export function linkWebSeguro(v) {
+  const t = String(v == null ? '' : v).trim()
+  if (!t) return ''
+  const comEsquema = /^[a-z][a-z0-9+.-]*:/i.test(t) && !/^[\w.-]+:\d+(\/|$)/.test(t)
+  if (comEsquema && !/^https?:\/\//i.test(t)) return ''
+  const candidato = /^https?:\/\//i.test(t) ? t : /^[\w-]+(\.[\w-]+)+(:\d+)?([/?#].*)?$/.test(t) ? 'https://' + t : ''
+  if (!candidato) return ''
+  try {
+    const u = new URL(candidato)
+    return (u.protocol === 'https:' || u.protocol === 'http:') && u.hostname.includes('.') ? u.href : ''
+  } catch { return '' }
+}
+export const erroLinkCanal = (v) => (String(v == null ? '' : v).trim() && !linkWebSeguro(v) ? 'Use o endereço do site (começa com https://, ou algo como wa.me/…).' : '')
+
 export function canaisParaArray(obj) {
-  return CANAIS.filter((c) => ((obj && obj[c.tipo]) || '').trim() !== '')
-    .map((c) => ({ tipo: c.tipo, link: obj[c.tipo].trim() }))
+  // Link que não é endereço web fica de fora (o campo mostra o erro): nunca vai ao banco nem vira `href`.
+  return CANAIS.map((c) => ({ tipo: c.tipo, link: linkWebSeguro(obj && obj[c.tipo]) })).filter((c) => c.link)
 }
 
 /*
@@ -197,4 +216,14 @@ export function pendenciasDeLinhas({ participante = {}, participacao = {}, itens
     itens, unidades,
     custos: custosDeLinhas(participacao, unidades),
   })
+}
+
+/* Avisos que a Edge `regerar-senha-conta` devolve com ok:true: a senha mudou, mas um passo de limpeza falhou. */
+const AVISO_SENHA = {
+  envio_nao_zerado: 'o envio anterior ainda consta como enviado',
+  sessoes_nao_encerradas: 'quem já estava dentro continua logado até a sessão vencer',
+}
+export function textoAvisosSenha(avisos) {
+  const itens = (Array.isArray(avisos) ? avisos : []).map((a) => AVISO_SENHA[a]).filter(Boolean)
+  return itens.length ? 'A senha nova vale, mas ' + itens.join(' e ') + '. Gere de novo se isso importar.' : ''
 }

@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Mais correções da auditoria: Visão geral, cadastro da marca, legenda, título e responsável das postagens.
+Mais segurança no painel, primeiro acesso da marca mais firme e correções em Edição, Arquivos e Biblioteca.

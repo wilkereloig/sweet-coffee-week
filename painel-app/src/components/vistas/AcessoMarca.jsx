@@ -2,6 +2,7 @@ import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { RECADO_MANUAL, textoAcesso, textoTodosAcessos, linkWhatsApp, montarRecado, validarWhatsApp } from '../../lib/participantes'
+import { textoAvisosSenha } from '../../lib/cadastro'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
@@ -41,7 +42,7 @@ export async function emitirCredenciais(marcas, modo, aoAvancar) {
         : await chamarFuncao('regerar-senha-conta', { secret: lerSenha(), participante_id: p.id })
       if (!r || !r.senha) throw new Error('a função não devolveu as credenciais.')
       // O login real é o que a função devolve (o slug): "nome-2" não se alcança digitando o nome.
-      feitos.push({ p, login: r.login || p.slug || p.nome_marca, senha: r.senha })
+      feitos.push({ p, login: r.login || p.slug || p.nome_marca, senha: r.senha, aviso: textoAvisosSenha(r.avisos) })
     } catch (e) {
       const c = e.dados && e.dados.erro
       feitos.push({ p, erro: c === 'conta_ja_existe' ? 'Já tem acesso: use "Gerar novas senhas".' : RECADO_MANUAL[c] || traduzirErro(c || e.message) })
@@ -122,6 +123,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
                 {r.senha ? (
                   <>
                     <dl className="ac-linha__cred"><dt>Login</dt><dd>{r.login}</dd><dt>Senha temporária</dt><dd>{r.senha}</dd></dl>
+                    {r.aviso && <p className="ui-nota ui-nota--erro" role="alert">{r.aviso}</p>}
                     <div className="ac-linha__estado">
                       <Selo dominio="acesso" valor={envio === 'nao_enviado' ? 'aguardando_envio' : 'aguardando_primeiro_acesso'} />
                       <Selo dominio="envio" valor={envio} />

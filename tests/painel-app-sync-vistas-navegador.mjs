@@ -267,6 +267,10 @@ cenario('Producao edicao: código digitado resiste à releitura; conflito pede e
   // salvar com espaços: o campo volta aparado
   await campo.fill('  2028 ')
   await pagina.getByRole('button', { name: 'Salvar edição' }).click()
+  // trocar a edição aberta pede confirmação (muda o formulário de todas as marcas)
+  await pagina.locator('dialog').waitFor()
+  assert.match(await pagina.locator('dialog').textContent(), /Trocar a edição aberta de "2026\.4" para "2028"/)
+  await pagina.locator('dialog button[type=submit]').click()
   await ate(async () => chamadasDe('definir_edicao_atual').length === 1, 'salvou')
   assert.equal(chamadasDe('definir_edicao_atual')[0].corpo.p_codigo, '2028')
   await ate(async () => (await campo.inputValue()) === '2028', 'campo normalizado')

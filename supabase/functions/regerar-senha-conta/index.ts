@@ -26,7 +26,7 @@
 //
 // Entrada (POST JSON): { secret, user_id } ou { secret, participante_id } —
 // ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
-// Saída: { ok, user_id, login, senha, troca_obrigatoria }
+// Saída: { ok, user_id, login, senha, troca_obrigatoria, avisos } (avisos: 'envio_nao_zerado' | 'sessoes_nao_encerradas')
 // =============================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -150,8 +150,13 @@ Deno.serve(async (req) => {
   // Senha temporária nova: o envio anterior deixa de contar (status volta a
   // "aguardando envio") e as sessões abertas caem — quem estava dentro com a
   // senha antiga precisa entrar de novo (29/09/2026).
-  await admin.from('perfis').update({ senha_emitida_em: new Date().toISOString() }).eq('user_id', userId)
-  await admin.rpc('encerrar_sessoes_usuario', { p_user: userId })
+  // A senha já mudou e só esta resposta a mostra: falha daqui NÃO vira erro (o admin perderia a senha nova). Vira
+  // aviso na resposta, e a tela diz que o envio antigo ou as sessões abertas ainda contam.
+  const avisos: string[] = []
+  const { error: emitidaErr } = await admin.from('perfis').update({ senha_emitida_em: new Date().toISOString() }).eq('user_id', userId)
+  if (emitidaErr) avisos.push('envio_nao_zerado')
+  const { error: sessoesErr } = await admin.rpc('encerrar_sessoes_usuario', { p_user: userId })
+  if (sessoesErr) avisos.push('sessoes_nao_encerradas')
 
   await admin.from('auditoria').insert({
     ator_user_id: atorId,
@@ -166,5 +171,5 @@ Deno.serve(async (req) => {
   // Igual à criação: a senha não fica gravada em lugar nenhum além do hash do
   // Auth. Reabrir a tela depois não a mostra de novo — se sumiu, gera-se outra.
   // Marca entra pelo NOME do estabelecimento (o e-mail é sintético).
-  return json({ ok: true, user_id: userId, login: ehMarca ? loginMarca : (usuario.user.email || '').replace(/@equipe\.sweetcoffeeweek\.com\.br$/i, ''), senha: novaSenha, troca_obrigatoria: true })
+  return json({ ok: true, user_id: userId, login: ehMarca ? loginMarca : (usuario.user.email || '').replace(/@equipe\.sweetcoffeeweek\.com\.br$/i, ''), senha: novaSenha, troca_obrigatoria: true, avisos })
 })

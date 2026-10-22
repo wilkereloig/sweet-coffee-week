@@ -35,6 +35,8 @@ function AlterarSenha() {
       const r = await auth('user', { password: s1 }, 'PUT', token)
       if (!r.ok) { setAviso({ tom: 'erro', texto: recadoSenha(r) }); return }
       await api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} }).catch(() => null)
+      // A senha antiga pode estar aberta em outro aparelho: encerra as outras sessões (esta segue).
+      auth('logout?scope=others', null, 'POST', token).catch(() => { /* a senha nova já vale */ })
       setS1(''); setS2('')
       setAviso({ tom: 'ok', texto: 'Senha alterada.' })
     } catch {
