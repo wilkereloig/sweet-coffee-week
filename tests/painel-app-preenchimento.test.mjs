@@ -374,3 +374,12 @@ test('lote de senhas: toda marca ativa com link; nunca acesso pausado, encerrada
   assert.equal(entraNoLoteDeSenhas({ marca: { ...m, codigo: null }, acesso: { user_id: null } }), false, 'sem link não há mensagem para levar a senha')
   assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: null }), false, 'acesso não lido: não mexe em conta nenhuma')
 })
+
+test('gerar senhas: as mensagens ficam À VISTA numa folha com "Copiar tudo" (a cópia automática depois de ~1 min falhava calada)', () => {
+  const jsx = ler('painel-app/src/components/vistas/Preenchimento.jsx')
+  assert.match(jsx, /setLote\(\{ texto, n: ok\.length/)
+  assert.match(jsx, /<Folha aberto titulo=\{lote\.n/)
+  assert.match(jsx, /<textarea readOnly[^>]*value=\{lote\.texto\}/)
+  assert.match(jsx, /Copiar tudo/)
+  assert.match(jsx, /Fechar sem copiar\?/, 'fechar sem copiar pergunta: a senha não volta')
+})

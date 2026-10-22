@@ -7,6 +7,7 @@ import { linkPreenchimento, textoPreenchimento, painelDaMarca, entraNoLoteDeSenh
 import { emitirCredenciais, lerAcessos, registrarEnvio } from './AcessoMarca'
 import { Secao, Selo, Botao, BotaoIcone, Carregando, Erro, Vazio, traduzirErro } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
+import { Folha } from '../Folha'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 import { ORIGEM_PUBLICA } from '../../lib/origem'
@@ -195,6 +196,9 @@ export function ListaPreenchimento({ pode, irPara }) {
   const [acessos, setAcessos] = React.useState(null)
   const [slugs, setSlugs] = React.useState({})
   const [creds, setCreds] = React.useState({}) // só em memória: a senha temporária não é guardada em lugar nenhum
+  // Mensagens com senha recém-gerada, À VISTA numa folha (22/10/2026): gerar 25 senhas leva ~1 min e o navegador recusa
+  // copiar sem um clique recente — a cópia automática falhava calada. A folha mostra o texto e copia num clique novo.
+  const [lote, setLote] = React.useState(null) // { texto, n, copiado }
   const podeEditar = pode('cadastro.editar')
   const podeAcesso = pode('marca.liberar')
 
@@ -293,14 +297,24 @@ export function ListaPreenchimento({ pode, irPara }) {
       if (ok.length) {
         const texto = ok.map((m) => '— ' + m.nome + (m.telefone ? ' · ' + m.telefone : '') + '\n\n' + mensagemDe(m, novos[m.participante_id])).join('\n\n\n')
         const copiou = await copiar(texto)
+        setLote({ texto, n: ok.length, copiado: copiou, ids: ok.map((m) => m.participante_id) })
         // O rastro de "copiado" falhar não desfaz a senha gerada, mas a falha é dita (o histórico do acesso ficaria incompleto sem aviso).
-        const registrou = await registrarEnvio(ok.map((m) => m.participante_id), 'copiado').then(() => true, () => false)
-        setAviso(ok.length + (ok.length === 1 ? ' senha gerada. ' : ' senhas geradas. ') + (copiou ? 'Mensagens copiadas, já com usuário e senha temporária.' : 'Sem área de transferência: copie a mensagem de cada marca aqui na lista, agora.') + ' A senha não aparece de novo depois que você sair desta tela.' + (registrou ? '' : ' O histórico do acesso não registrou a cópia.'))
+        const registrou = !copiou || await registrarEnvio(ok.map((m) => m.participante_id), 'copiado').then(() => true, () => false)
+        setAviso(ok.length + (ok.length === 1 ? ' senha gerada. ' : ' senhas geradas. ') + 'As mensagens estão na janela aberta, já com usuário e senha temporária. A senha não aparece de novo depois que você sair desta tela.' + (registrou ? '' : ' O histórico do acesso não registrou a cópia.'))
       }
       const falhas = feitos.filter((f) => f.erro).map((f) => f.p.nome_marca + ': ' + f.erro)
       if (falhas.length) setErro(falhas.join(' · '))
       await lerAcesso({ silencioso: true })
     } finally { setOcupado(false) }
+  }
+  async function copiarLote() {
+    const copiou = await copiar(lote.texto)
+    setLote((l) => ({ ...l, copiado: copiou ? true : 'falhou' }))
+    if (copiou) registrarEnvio(lote.ids, 'copiado').catch(() => {})
+  }
+  async function fecharLote() {
+    if (lote.copiado !== true && !(await confirmar('Fechar sem copiar? As senhas não aparecem de novo (a lista ainda copia cada marca enquanto esta tela estiver aberta).', { acao: 'Fechar', perigo: true }))) return
+    setLote(null)
   }
   async function copiarTodas() {
     const texto = comLink.map((m) => '— ' + m.nome + (m.telefone ? ' · ' + m.telefone : '') + '\n\n' + mensagemDe(m)).join('\n\n\n')
@@ -322,6 +336,16 @@ export function ListaPreenchimento({ pode, irPara }) {
         <p className="ui-nota">A mensagem abre com o Painel SCW: link, usuário e senha temporária (no primeiro acesso o painel pede para a marca criar a sua). "Gerar senhas" cria o acesso de quem não tem e gera senha temporária nova para as demais; a anterior deixa de valer e a nova só aparece na hora em que é gerada.</p>
         {aviso && <p className="ui-nota" role="status">{aviso}</p>}
         {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
+        {lote && (
+          <Folha aberto titulo={lote.n + (lote.n === 1 ? ' senha gerada' : ' senhas geradas')} sub="Mensagens prontas, com usuário e senha temporária. Copie agora: a senha não aparece de novo." onFechar={fecharLote}
+            rodape={<Botao icone="copiar" onClick={copiarLote}>{lote.copiado === true ? 'Copiado ✓ — copiar de novo' : 'Copiar tudo'}</Botao>}>
+            {lote.copiado === true && <p className="ui-nota" role="status">Copiado. Cole no WhatsApp ou onde preferir.</p>}
+            {lote.copiado === 'falhou' && <p className="ui-nota ui-nota--erro" role="alert">O navegador não deixou copiar. Selecione o texto abaixo (Ctrl+A dentro da caixa) e copie com Ctrl+C.</p>}
+            <label className="og-campo"><span className="ui-oculto">Mensagens com as senhas</span>
+              <textarea readOnly rows={18} value={lote.texto} onFocus={(e) => e.target.select()} data-testid="lote-senhas" />
+            </label>
+          </Folha>
+        )}
         <ul className="pr-lista">
           {marcas.map((m) => {
             const sit = m.status_cadastro === 'encerrado' ? { texto: 'Encerrada', tom: 'encerrado' } : situacaoLink(m, m.pendentes)
