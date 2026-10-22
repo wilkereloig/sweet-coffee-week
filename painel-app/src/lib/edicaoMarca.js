@@ -90,6 +90,15 @@ export function unidadeDeLinhas(pu, un, disp = []) {
   }
 }
 
+/** O que `corpoUnidade` deixa de fora por inválido — para o "Salvo" dizer a verdade (auditoria de 21/10/2026). */
+export function camposInvalidosDaUnidade(u) {
+  const r = []
+  if (erroCep(u.cep)) r.push('o CEP')
+  if (erroUf(u.uf)) r.push('a UF')
+  if (erroWhatsappUnidade(u.whatsapp_publico)) r.push('o WhatsApp da unidade')
+  return r
+}
+
 /** Corpo do PATCH/POST em `unidades`. Valor inválido FICA DE FORA (o campo mostra o erro). */
 export function corpoUnidade(u) {
   const corpo = {

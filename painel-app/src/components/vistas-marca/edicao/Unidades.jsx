@@ -1,5 +1,6 @@
 import React from 'react'
 import { Icone } from '../../Icone'
+import { confirmar } from '../../Confirmar'
 import { mascaraWhatsApp } from '../../../lib/participantes'
 import { nomeDaUnidade, idCampoUnidade, erroCep, erroUf, erroWhatsappUnidade } from '../../../lib/edicaoMarca'
 import { EstadoCampo, Correcao, Publico } from './campos'
@@ -51,7 +52,7 @@ export function Unidades({ unidades, sugestoes, est, alterar, adicionar, remover
             <div className="topo">
               <b>{nome}</b>
               {!u.participa && <span className="selo">Fora desta edição</span>}
-              <button className="link" type="button" aria-label={'Remover ' + nome + ' desta edição'} onClick={() => remover(k)}>remover</button>
+              <button className="link" type="button" aria-label={'Remover ' + nome + ' desta edição'} onClick={async () => { if (await confirmar('Remover ' + nome + ' desta edição?' + '\n\n' + 'O que você preencheu nesta unidade (endereço, horários, canais) sai daqui. Dá para adicioná-la de novo depois.', { acao: 'Remover unidade', perigo: true })) remover(k) }}>remover</button>
             </div>
             <label className="marcar">
               <input type="checkbox" checked={u.participa} onChange={(e) => alterar(k, 'participa', e.target.checked)} />

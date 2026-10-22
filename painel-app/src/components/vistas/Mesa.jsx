@@ -31,7 +31,7 @@ export function Mesa({ abrirLink, navegar, pode, avisos = [] }) {
   const guarda = useGuarda()
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
-  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [] })
+  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [], lidas: false })
   const [erro, setErro] = React.useState(null)
   const [etapaSel, setEtapaSel] = React.useState(null) // null = a primeira com gente
   const [logos, setLogos] = React.useState({}) // participante_id → logo oficial
@@ -82,7 +82,7 @@ export function Mesa({ abrirLink, navegar, pode, avisos = [] }) {
     // Leitura que falhou deixa o que já estava (a primeira vez, a lista vazia de sempre).
     const ou = (r, anterior, tratar = (v) => v || []) => (r.ok ? tratar(r.v) : anterior)
     setExtra((x) => ({
-      falhas,
+      falhas, lidas: true,
       dados: { apoiar: ou(apoiar, x.dados.apoiar || []), contato: ou(contato, x.dados.contato || []) },
       solicitacoes: ou(solicitacoes, x.solicitacoes), sessoes: ou(sessoes, x.sessoes), conversas: ou(conversas, x.conversas),
       atividade: ou(atividade, x.atividade || []), revisao: ou(revisao, x.revisao), temas: ou(temas, x.temas),
@@ -168,7 +168,10 @@ export function Mesa({ abrirLink, navegar, pode, avisos = [] }) {
             <section className="ui-resumo__bloco" aria-labelledby="resumo-acoes">
               <h2 className="ui-resumo__rotulo" id="resumo-acoes">Para resolver</h2>
               {abertas.length === 0
-                ? <p className="ui-resumo__ok"><Icone nome="ok-circulo" tamanho={20} /> Tudo em dia.</p>
+                // "Tudo em dia" só depois de LER tudo: antes das leituras (ou com alguma caída) não se sabe — dizer que está em dia seria mentira.
+                ? (!extra.lidas ? <p className="ui-nota">Conferindo o que está pendente…</p>
+                  : extra.falhas.length ? <p className="ui-nota">Não consegui ler tudo, então não dá para dizer que está em dia.</p>
+                  : <p className="ui-resumo__ok"><Icone nome="ok-circulo" tamanho={20} /> Tudo em dia.</p>)
                 : (
                   <ul className="ui-resumo__acoes">
                     {abertas.map((x) => (
@@ -191,7 +194,7 @@ export function Mesa({ abrirLink, navegar, pode, avisos = [] }) {
           <Secao titulo="Precisa de atenção" nota={avisosNaoLidos ? avisosNaoLidos + (avisosNaoLidos === 1 ? ' aviso não lido no sino' : ' avisos não lidos no sino') : 'Pendências tiradas dos dados de agora'} className="ui-area-atencao">
             {extra.falhas.length > 0 && <Erro texto={'Faltou ler ' + extra.falhas.join(', ') + '. O que aparece aqui pode estar incompleto.'} onTentar={tentarDeNovo} />}
             {pendencias.length === 0 && conversasNovas.length === 0 && prazosProximos.length === 0 && conflitosTema.length === 0
-              ? (extra.falhas.length ? null : <p className="ui-nota">Nada pendente agora.</p>)
+              ? (extra.falhas.length ? null : !extra.lidas ? <p className="ui-nota">Conferindo…</p> : <p className="ui-nota">Nada pendente agora.</p>)
               : (
                 <ul className="ui-atencao">
                   {prazosProximos.map((i) => (

@@ -440,8 +440,11 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
     // Unidade = duas linhas: a permanente (unidades) e a desta edição
     // (participacao_unidades). A nova nasce em dois POST, nessa ordem.
+    // Campo inválido não vai no PATCH (o campo mostra o erro): o "Salvo" tem que dizer o que ficou de fora.
+    const omitidos = new Set()
     function salvarUnidade(u, ordem) {
       const k = u._key
+      for (const c of E.camposInvalidosDaUnidade(u)) omitidos.add(c)
       const unId = u.unId || idsUnRef.current.get(k)
       const pu = u.puId ? { puId: u.puId } : idsPuRef.current.get(k)
       if (pu && orfas.has('pu:' + pu.puId)) return Promise.resolve([true]) // a organização tirou esta unidade da edição
@@ -583,7 +586,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       const respostas = await Promise.all(tarefas)
       if (respostas.some(vazio)) throw new Error('sem_confirmacao')
       const aguardando = Object.values(conflitosRef.current).some((c) => c.chave !== '__removida')
-      if (!pendenteRef.current) setSalvoTexto(aguardando ? 'Salvo, menos o que aguarda a sua escolha.' : 'Informações salvas.')
+      const lista = [...omitidos]
+      const faltou = lista.length ? 'Salvo, menos ' + (lista.length > 1 ? lista.slice(0, -1).join(', ') + ' e ' + lista[lista.length - 1] : lista[0]) + ' (corrija o campo para gravar).' : ''
+      if (!pendenteRef.current) setSalvoTexto(aguardando ? 'Salvo, menos o que aguarda a sua escolha.' : faltou || 'Informações salvas.')
       setErroSalvar(null)
       // Pendências, progresso e números das abas acompanham o que foi gravado.
       if (recarregarResumo) recarregarResumo()

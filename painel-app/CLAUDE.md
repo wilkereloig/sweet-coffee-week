@@ -1229,6 +1229,16 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   na ficha tem `redes.aprovar`, aparece "<quem> mudou <o quê> às hh:mm depois que você abriu" e o botão principal vira "Conferi as mudanças" (idem
   "Aprovar direto" bloqueado); só depois volta "Aprovar", que manda a versão atual. Mudança da PRÓPRIA pessoa não pede conferência. O banco continua recusando
   versão antiga (`redes_travar`). Teste no navegador: `node tests/painel-social-aprovacao-navegador.mjs`. Não cobre texto alternativo (`redes_arquivo_alt`).
+- **Auditoria geral — lote 3, 21/10/2026** (testes em `tests/painel-app-auditoria-21-10.test.mjs`). **Banco** (`20261028_social_resumo_e_responsavel.sql`, ✅ aplicada;
+  teste `supabase/testes/social-resumo-e-responsavel.sql`): `redes_salvar` só confere o responsável quando ele MUDA (antes, responsável com senha redefinida travava toda
+  gravação da postagem com `responsavel_invalido`); `redes_resumo.proximos_itens` é só de agora em diante (antes mostrava só os 5 atrasados mais antigos). **Tela**: Visão
+  geral só diz "Tudo em dia"/"Nada pendente" depois de ler tudo (`extra.lidas`; com leitura caída diz que não dá para afirmar); cadastro da marca pede confirmação ao
+  remover unidade, troca e horário do dia, e o "Salvo" diz o que ficou de fora por inválido (`camposInvalidosDaUnidade`: CEP, UF, WhatsApp); ficha da postagem: limite
+  de 2200 conta legenda + menções por pontos de código (`R.contarCaracteres`), título/perfil vazios avisam em português, fechar com arte subindo/falha pergunta, e data
+  digitada pela metade não apaga data e hora. ⚠️ Escrever `
+` em Python de edição pode virar quebra de linha DE VERDADE dentro de um texto JS (build quebra) — conferir com
+  `vite build` depois de editar texto com `
+`.
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram

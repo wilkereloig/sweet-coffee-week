@@ -1,5 +1,6 @@
 import React from 'react'
 import { Icone } from '../../Icone'
+import { confirmar } from '../../Confirmar'
 import { CANAIS } from '../../../lib/cadastro'
 import {
   MODOS_SERVICO, ESTADOS_TRES, nomeDaUnidade, idCampoUnidade, rotuloDia, erroFaixa,
@@ -54,7 +55,7 @@ function HorarioCombo({ u, i, dias, horario }) {
                       <label><span>Abre</span><input type="time" value={d.abre} aria-invalid={erro ? true : undefined} onChange={(e) => horario.alterar(k, d.id, 'abre', e.target.value)} /></label>
                       <label><span>Fecha</span><input type="time" value={d.fecha} aria-invalid={erro ? true : undefined} onChange={(e) => horario.alterar(k, d.id, 'fecha', e.target.value)} /></label>
                       <label className="em-horario__obs"><span>Observação <em>(opcional)</em></span><input maxLength={120} value={d.observacao} onChange={(e) => horario.alterar(k, d.id, 'observacao', e.target.value)} /></label>
-                      <button className="link" type="button" onClick={() => horario.remover(u, d)}>Tirar {dia}</button>
+                      <button className="link" type="button" onClick={async () => { if (await confirmar('Tirar o horário de ' + dia + '?', { acao: 'Tirar horário', perigo: true })) horario.remover(u, d) }}>Tirar {dia}</button>
                       {erro && <span className="gm-campo-erro">{erro}</span>}
                     </li>
                   )

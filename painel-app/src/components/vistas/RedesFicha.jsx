@@ -501,7 +501,8 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const horaIn = dhLocal ? dhLocal.hora : dh.hora
   function mudarDH(k, v) {
     const n = { data: dataIn, hora: horaIn, [k]: v }
-    if (n.data && n.hora) { setCampo('programado_para', R.instanteDe(n.data, n.hora)); setDhLocal(null) }
+    // Data digitada pela metade (ano "0002" enquanto se digita) não vira instante: antes devolvia null e apagava data E hora.
+    if (n.data && n.hora) { const t = R.instanteDe(n.data, n.hora); if (t) { setCampo('programado_para', t); setDhLocal(null) } else setDhLocal(n) }
     else if (!n.data && !n.hora) { setCampo('programado_para', ''); setDhLocal(null) }
     else setDhLocal(n)
   }
@@ -546,6 +547,9 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     // Conflito aberto: só a escolha explícita ("Salvar as minhas por cima" / "Ficar com a versão salva") destrava.
     if (conflito) { setErroAcao('Escolha acima qual versão fica — a de ' + (base.atualizado_por_rotulo || 'outra pessoa') + ' ou a sua — antes de salvar.'); return null }
     const d = R.diferencas(base, campos)
+    // Título e perfil não podem ficar vazios (o banco recusava com erro técnico).
+    if ('titulo' in d && !norm(d.titulo).trim()) { setErroAcao('Dê um título à postagem.'); document.getElementById(idCampo('titulo'))?.focus(); return null }
+    if ('perfil' in d && !norm(d.perfil).trim()) { setErroAcao('Escolha o perfil em que a postagem vai sair.'); return null }
     if (!Object.keys(d).length) { setEditando(new Set()); return base }
     setSalvando(true); setErroAcao(null)
     try { return await gravar(base, d, { ...campos }) }
@@ -626,8 +630,11 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   async function fechar() {
     // Pelo Esc: a pergunta abre DEPOIS da tecla. Aberta durante ela, o próprio
     // Esc fechava o diálogo recém-aberto como "Voltar" — e nada aparecia.
-    if (sujo) await new Promise((ok) => setTimeout(ok, 30))
+    const subindo = envios.some((e) => e.estado !== 'feito')
+    if (sujo || subindo) await new Promise((ok) => setTimeout(ok, 30))
     if (sujo && !(await confirmar('Fechar sem salvar? O que você digitou fica guardado neste aparelho e volta quando abrir esta postagem de novo.', { acao: 'Fechar sem salvar' }))) return
+    // Arte ainda subindo (ou com falha) não pode ser largada em silêncio: ao fechar a ficha, o erro dela não aparece em lugar nenhum.
+    if (subindo && !(await confirmar('Há arte ainda subindo ou que falhou. Se fechar agora, a postagem pode ficar sem ela e você não vê o erro.', { acao: 'Fechar mesmo assim', perigo: true }))) return
     onFechar()
   }
 
@@ -732,7 +739,8 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const texto = R.textoCompleto(campos.legenda, campos.mencoes)
   const ultimoAjuste = [...comentarios].reverse().find((c) => c.ajuste) || null
   const participante = campos.participante_id ? ((opcoes.participantes || []).find((p) => p.id === campos.participante_id) || {}).nome || post.participante_nome || 'Participante' : ''
-  const nLegenda = campos.legenda.length
+  // O limite do Instagram vale para o texto FINAL: legenda + menções (é o que "Copiar legenda" leva).
+  const nLegenda = R.contarCaracteres(R.textoCompleto(campos.legenda, campos.mencoes))
 
   function irPara(pendencia) {
     const o = R.ONDE_PENDENCIA[pendencia] || { secao: 'detalhes', campo: 'titulo' }
@@ -825,7 +833,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const campoLegenda = (
     <Campo rotulo={story ? 'Legenda (opcional no Story)' : 'Legenda'} largo id={idCampo('legenda')} erro={nLegenda > R.LIMITE_LEGENDA_INSTAGRAM} rotuloOculto={!novo}
       nota={nLegenda > R.LIMITE_LEGENDA_INSTAGRAM ? nLegenda + ' caracteres — o Instagram aceita até ' + R.LIMITE_LEGENDA_INSTAGRAM + '. Encurte.'
-        : nLegenda + ' de ' + R.LIMITE_LEGENDA_INSTAGRAM + ' caracteres · hashtags podem ir aqui mesmo'}>
+        : nLegenda + ' de ' + R.LIMITE_LEGENDA_INSTAGRAM + ' caracteres' + (campos.mencoes ? ' (legenda + menções)' : '') + ' · hashtags podem ir aqui mesmo'}>
       <textarea rows={8} maxLength={5000} value={campos.legenda} onChange={(e) => setCampo('legenda', e.target.value)} />
     </Campo>
   )
@@ -1040,7 +1048,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                       {campos.legenda.trim() ? <div className="rd-legenda__texto">{campos.legenda}</div> : <p className="rd-falta">{story ? 'Sem legenda (o Story não exige).' : 'Sem legenda ainda.'}</p>}
                       {texto && (
                         <p className={'rd-legenda__conta' + (nLegenda > R.LIMITE_LEGENDA_INSTAGRAM ? ' rd-campo__nota--erro' : '')}>
-                          {nLegenda} de {R.LIMITE_LEGENDA_INSTAGRAM} caracteres{campos.mencoes ? ' · “Copiar legenda” leva as menções junto' : ''}
+                          {nLegenda} de {R.LIMITE_LEGENDA_INSTAGRAM} caracteres{campos.mencoes ? ' (legenda + menções, que “Copiar legenda” leva junto)' : ''}
                         </p>
                       )}
                     </>

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Icone } from '../../Icone'
+import { confirmar } from '../../Confirmar'
 import { ROTULO_POSICAO, itensEmOrdem } from '../../../lib/cadastro'
 import {
   ALERGENICOS_PAINEL, DICA_ALERGENICO, ESTADOS_ALERGENICO, CARACTERISTICAS_PAINEL, PERGUNTA_CARACTERISTICA,
@@ -98,7 +99,7 @@ function Trocas({ it, lista, unidades, sub }) {
                 <span className="em-ajuda">Nada marcado = todas as unidades.</span>
               </fieldset>
             )}
-            <button className="link" type="button" onClick={() => sub.remover(k)}>Remover esta troca</button>
+            <button className="link" type="button" onClick={async () => { if (await confirmar('Remover esta troca?' + '\n\n' + 'O que você preencheu nela será apagado.', { acao: 'Remover troca', perigo: true })) sub.remover(k) }}>Remover esta troca</button>
           </div>
         )
       })}

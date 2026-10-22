@@ -441,6 +441,8 @@ export function textoCompleto(legenda, mencoes) {
   return [String(legenda || '').trim(), String(mencoes || '').trim()].filter(Boolean).join('\n\n')
 }
 export const LIMITE_LEGENDA_INSTAGRAM = 2200
+/** Caracteres como a pessoa os vê (um emoji conta 1, não 2 como `.length`). */
+export const contarCaracteres = (t) => Array.from(String(t || '')).length
 
 /** "@jolie.cafe" a partir do que a casa cadastrou (link, @ ou só o nome). Vazio se não der. */
 export function arrobaDe(instagram) {

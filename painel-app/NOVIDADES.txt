@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Aprovação: se alguém muda a arte ou o texto enquanto você revisa, o painel avisa e pede para conferir antes de aprovar.
+Mais correções da auditoria: Visão geral, cadastro da marca, legenda, título e responsável das postagens.

@@ -3,7 +3,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { FUNCOES_ESCRITA } from '../painel-app/src/lib/sync/dominios.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
@@ -107,4 +107,63 @@ test('aprovação: o banco sobe a versão e avisa quem aprova; a tela exige "Con
   assert.match(f, /!!ocupado \|\| !!mudouDepois\} onClick=\{\(\) => situacao\('pronto'\)\}>Aprovar direto/, '"Aprovar direto" também espera a conferência')
   assert.match(f, /podeRef\.current\('redes\.aprovar'\)/, 'só quem aprova vê o aviso')
   assert.match(f, /R\.conteudoParaAprovar\(r\.post, r\.arquivos\)/)
+})
+
+// ── Lote 3 ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+test('cadastro da marca: o "Salvo" diz o que ficou de fora por inválido (CEP, UF, WhatsApp da unidade)', async () => {
+  const E = await import('../painel-app/src/lib/edicaoMarca.js')
+  assert.deepEqual(E.camposInvalidosDaUnidade({ cep: '5902', uf: 'RN', whatsapp_publico: '' }), ['o CEP'])
+  assert.deepEqual(E.camposInvalidosDaUnidade({ cep: '59000000', uf: 'RNX', whatsapp_publico: '' }), ['a UF'])
+  assert.deepEqual(E.camposInvalidosDaUnidade({ cep: '59000-000', uf: 'rn', whatsapp_publico: '(84) 99999-0000' }), [])
+  const corpo = E.corpoUnidade({ cep: '5902', uf: 'RNX', logradouro: 'Rua A' })
+  assert.ok(!('cep' in corpo) && !('uf' in corpo) && corpo.logradouro === 'Rua A', 'o que é inválido continua fora do PATCH')
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  assert.match(c, /E\.camposInvalidosDaUnidade\(u\)/)
+  assert.match(c, /'Salvo, menos ' \+ /)
+})
+
+test('cadastro da marca: remover unidade, troca e horário do dia pedem confirmação', () => {
+  for (const [arq, re] of [
+    ['painel-app/src/components/vistas-marca/edicao/Unidades.jsx', /await confirmar\('Remover ' \+ nome/],
+    ['painel-app/src/components/vistas-marca/edicao/Alimentar.jsx', /await confirmar\('Remover esta troca\?'/],
+    ['painel-app/src/components/vistas-marca/edicao/Atendimento.jsx', /await confirmar\('Tirar o horário de '/],
+  ]) {
+    const s = ler(arq)
+    assert.match(s, re, arq)
+    assert.match(s, /import \{ confirmar \} from '\.\.\/\.\.\/Confirmar'/, arq + ' importa a confirmação')
+  }
+})
+
+test('Visão geral: "Tudo em dia" e "Nada pendente" só depois de ler tudo', () => {
+  const m = ler('painel-app/src/components/vistas/Mesa.jsx')
+  assert.match(m, /falhas: \[\], lidas: false/)
+  assert.match(m, /falhas, lidas: true,/)
+  assert.match(m, /!extra\.lidas \? <p className="ui-nota">Conferindo o que está pendente…<\/p>/)
+  assert.match(m, /extra\.falhas\.length \? <p className="ui-nota">Não consegui ler tudo, então não dá para dizer que está em dia\./)
+  assert.match(m, /!extra\.lidas \? <p className="ui-nota">Conferindo…<\/p> : <p className="ui-nota">Nada pendente agora\./)
+})
+
+test('Social media: responsável sem acesso não trava a gravação; "Próximos itens" só do futuro', () => {
+  const sql = ler('supabase/migrations/20261028_social_resumo_e_responsavel.sql')
+  assert.match(sql, /if p\.responsavel_id is distinct from antes\.responsavel_id then perform public\.redes_conferir_responsavel\(p\.responsavel_id\); end if;/)
+  assert.doesNotMatch(sql, /perform public\.redes_conferir_responsavel\(p\.responsavel_id\);\n  p := public\.redes_gravar/, 'não confere mais a cada gravação')
+  assert.match(sql, /from abertos where programado_para >= now\(\) and programado_para < now\(\) \+ interval '7 days'/)
+  assert.doesNotMatch(sql, /programado_para is not null and programado_para < now\(\)/)
+  assert.doesNotMatch(sql, /drop |delete from/i)
+  assert.ok(existsSync(new URL('../supabase/testes/social-resumo-e-responsavel.sql', import.meta.url)))
+})
+
+test('Social media › ficha da postagem: limite de legenda conta as menções, título vazio avisa, fechar com arte subindo pergunta, data pela metade não apaga', async () => {
+  const R = await import('../painel-app/src/lib/redes.js')
+  assert.equal(R.contarCaracteres('oi 😀'), 4, 'um emoji conta 1')
+  assert.equal(R.contarCaracteres(null), 0)
+  assert.equal(R.contarCaracteres(R.textoCompleto('a'.repeat(2190), '@casa.cafe @outra.casa')), 2190 + 2 + 22, 'legenda + menções = o texto que vai para o Instagram')
+  assert.equal(R.instanteDe('0002-11-03', '20:00'), null, 'ano digitado pela metade não é instante')
+  const f = ler('painel-app/src/components/vistas/RedesFicha.jsx')
+  assert.match(f, /nLegenda = R\.contarCaracteres\(R\.textoCompleto\(campos\.legenda, campos\.mencoes\)\)/)
+  assert.match(f, /'titulo' in d && !norm\(d\.titulo\)\.trim\(\)\) \{ setErroAcao\('Dê um título à postagem\.'\)/)
+  assert.match(f, /'perfil' in d && !norm\(d\.perfil\)\.trim\(\)/)
+  assert.match(f, /const subindo = envios\.some\(\(e\) => e\.estado !== 'feito'\)/)
+  assert.match(f, /Fechar mesmo assim/)
+  assert.match(f, /if \(t\) \{ setCampo\('programado_para', t\); setDhLocal\(null\) \} else setDhLocal\(n\)/, 'data inválida fica como rascunho de digitação')
 })
