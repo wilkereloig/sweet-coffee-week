@@ -20,8 +20,8 @@ fuso America/Fortaleza; sinal de sincronização classificado em `lib/sync/domin
 - Permissão: `redes.editar` cria, edita e arquiva/restaura (é o planejamento da Social media). `redes.ver` lê.
 - RPCs: `redes_campanhas_listar(p_secret)` (cada campanha com `n_total`, `n_publicadas`, `n_abertas`, `n_atrasadas`; canceladas não
   contam), `redes_campanha_salvar(p_secret, p_id, p_dados)` (cria quando `p_id` é nulo), `redes_campanha_arquivar(p_secret, p_id,
-  p_arquivar)`. Erros: `nome_obrigatorio`, `nome_repetido`, `cor_invalida`, `periodo_invalido`, `meta_invalida`,
-  `campanha_nao_encontrada`.
+  p_arquivar)`. Erros: `nome_obrigatorio`, `nome_longo`, `nome_repetido`, `cor_invalida`, `descricao_longa`, `periodo_invalido`,
+  `meta_invalida`, `campanha_nao_encontrada`, `campanha_invalida` (ao escolher uma arquivada/inexistente).
 - `redes_salvar`/`redes_criar` aceitam `campanha_id` (campanha arquivada não pode ser escolhida para uma postagem nova, mas a
   postagem que já a tem continua com ela). `redes_json` e `redes_listar` devolvem `campanha_id`, `campanha_nome`, `campanha_cor`.
 - Mudar a campanha de uma postagem entra no histórico da postagem (`conteudo`, campo `campanha`) e **não** desfaz aprovação
@@ -44,13 +44,13 @@ fuso America/Fortaleza; sinal de sincronização classificado em `lib/sync/domin
   - todo formato: "Arte conferida (formato, corte, texto sem erro)", "Legenda revisada", "Marcas e menções conferidas", "Data e horário confirmados";
   - reels: "Capa definida", "Áudio escolhido";
   - story: "Link ou adesivo configurado".
-- `redes_checklist_itens`: `id`, `post_id`, `ordem`, `texto` (1–80), `feito`, `feito_por_id`, `feito_por_rotulo`, `feito_em`.
+- `redes_checklist_itens`: `id`, `post_id`, `ordem`, `texto` (1–80), `feito`, `feito_por_id`, `feito_por_rotulo`, `feito_em`, `removido_em`. Quem tirou todos os itens de propósito não os recebe de volta (a cópia só roda em postagem SEM nenhuma linha).
   A postagem recebe a cópia dos itens ativos do modelo do formato ao ser criada; postagem sem itens (antiga) ganha a cópia na
   primeira leitura (`redes_checklist_garantir`, só em postagem aberta). Mudar o formato depois **não** mexe nos itens.
 - RPCs (todas com `redes.editar`, exceto o modelo): `redes_checklist_marcar(p_secret, p_item, p_feito)`,
-  `redes_checklist_item_salvar(p_secret, p_post, p_texto)` (acrescentar), `redes_checklist_item_remover(p_secret, p_item)`,
+  `redes_checklist_item_salvar(p_secret, p_post, p_texto)` (acrescentar), `redes_checklist_item_remover(p_secret, p_item)` (remoção LÓGICA, `removido_em`),
   `redes_checklist_modelos_listar(p_secret)` (`redes.ver`), `redes_checklist_modelo_salvar(p_secret, p_formato, p_itens)`
-  (`redes.gerir`, substitui a lista do formato; só afeta postagens novas). Postagem fechada (publicada/cancelada) recusa
+  (`redes.gerir`, substitui a lista do formato marcando as linhas antigas com `removido_em` — nada se apaga; só afeta postagens novas). Postagem fechada (publicada/cancelada) recusa
   mudança (`post_fechado`, via `redes_post_aberto`).
 - `redes_json`/`redes_listar` devolvem `checklist_total` e `checklist_feitos`; a ficha lê os itens por `redes_post`.
 - Marcar/remover não sobe a `versao` da postagem nem toca `atualizado_em` (checklist é anotação, não conteúdo aprovado).
