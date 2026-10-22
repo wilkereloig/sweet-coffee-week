@@ -2430,6 +2430,27 @@ p.fg-vazio{margin:0}
 .sc-cartao__atraso{color:var(--scw-choco)}
 .sc-cartao__acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}
 .sc-arquivadas{display:flex;flex-direction:column;gap:12px}
+/* ═══ Social media › Checklist da postagem (21/10/2026) ═══ */
+.ck{display:flex;flex-direction:column;gap:8px;margin:0 0 var(--e-4,16px);padding:12px 14px;border-radius:var(--r-2);background:var(--sup-2)}
+.ck-cabeca{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ck-cabeca h3{margin:0;font:700 16px/1.3 var(--f-ui)}
+.ck-conta{font:700 14px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.ck-conta.is-completo{color:var(--scw-choco)}
+.ck-vazio{margin:0;font:400 14px/1.4 var(--f-ui);color:var(--scw-marrom)}
+.ck-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.ck-item{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:44px}
+.ck-item__rotulo{display:flex;align-items:center;gap:10px;flex:1 1 220px;min-height:44px;cursor:pointer;font:400 15px/1.3 var(--f-ui)}
+.ck-item__rotulo input[type="checkbox"]{flex:0 0 auto;width:22px;height:22px;accent-color:var(--scw-choco)}
+.ck-item.is-feito .ck-item__texto{color:var(--scw-marrom);text-decoration:line-through;text-decoration-color:rgba(61,19,8,.45)}
+.ck-item__quem{flex:0 0 auto;font:400 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.ck-item__campo{flex:1 1 auto;min-width:0;min-height:44px}
+.ck-novo{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.ck-novo .og-campo{flex:1 1 220px}
+.ck-modelo{display:flex;flex-direction:column;gap:8px;margin:0 0 var(--e-5,24px)}
+.ck-modelo h3{margin:0;font:700 16px/1.3 var(--f-ui)}
+.rd-cartao__ck{display:inline-flex;align-items:center;gap:3px;font:700 12.5px/1.25 var(--f-ui);color:var(--scw-choco)}
+.rd-cartao__ck svg{flex:0 0 auto;color:var(--scw-marrom)}
+.rd-cartao__ck.is-completo svg{color:var(--scw-choco)}
 /* Cartão da postagem: ponto da campanha + nome curto */
 .rd-cartao__camp{display:inline-flex;align-items:center;max-width:100%;font:400 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
 .rd-cartao__camp .bb-ponto{width:10px;height:10px;margin-right:5px}

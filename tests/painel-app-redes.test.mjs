@@ -224,10 +224,13 @@ test('banco: tabelas fechadas, função Social media sem dado.ler, toda RPC exig
   const APAGAR_SQL = ler('supabase/migrations/20261023_social_biblioteca_apagar.sql')
   const nomesApagar = [...APAGAR_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
   const CAMPANHAS_SQL = ler('supabase/migrations/20261031_social_campanhas.sql')
+  const CHECKLIST_SQL = ler('supabase/migrations/20261101_social_checklist.sql')
+  const nomesChecklist = [...CHECKLIST_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
   const nomesCampanhas = [...CAMPANHAS_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
   const todas = [...nomes, ...[...nomesPastas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
     ...[...nomesApagar.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
-    ...[...nomesCampanhas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1])]
+    ...[...nomesCampanhas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
+    ...[...nomesChecklist.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1])]
   for (const c of chamadas) assert.ok(todas.includes(c), 'RPC chamada e não publicada: ' + c)
 })
 

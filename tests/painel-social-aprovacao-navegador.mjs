@@ -39,10 +39,16 @@ function montar(permissoes) {
   const b = criarBackend(); const rt = criarRealtime()
   const estado = { versao: 5, arquivos: [arte('a1', 0)], situacao: 'aprovacao', por: { id: OUTRO, rotulo: 'Micka' }, em: '2026-10-21T14:00:00Z', legenda: 'Legenda original' }
   const aprovacoes = []
+  const marcacoes = []
+  estado.checklist = [
+    { id: 'k1', post_id: PID, ordem: 1, texto: 'Arte conferida', feito: true, feito_por_id: OUTRO, feito_por_rotulo: 'Micka', feito_em: '2026-10-21T14:00:00Z' },
+    { id: 'k2', post_id: PID, ordem: 2, texto: 'Legenda revisada', feito: false },
+    { id: 'k3', post_id: PID, ordem: 3, texto: 'Data e horário confirmados', feito: false },
+  ]
   const post = () => ({
     id: PID, titulo: 'Post de teste', perfil: '@sweetcoffeeweek', edicao_codigo: '2026.2', participante_id: null, formato: 'feed', legenda: estado.legenda, mencoes: '', observacoes: '', referencias: '',
     programado_para: '2026-11-03T20:00:00Z', responsavel_id: OUTRO, situacao: estado.situacao, versao: estado.versao, criado_por_id: OUTRO, atualizado_por_id: estado.por.id, atualizado_por_rotulo: estado.por.rotulo,
-    atualizado_em: estado.em, responsavel_nome: 'Micka', participante_nome: null, campanha_id: CAMPANHA.id, campanha_nome: CAMPANHA.nome, campanha_cor: CAMPANHA.cor, n_arquivos: estado.arquivos.length, miniatura: null, n_comentarios: 0, ajuste_aberto: false, pendencias: [],
+    atualizado_em: estado.em, responsavel_nome: 'Micka', participante_nome: null, campanha_id: CAMPANHA.id, campanha_nome: CAMPANHA.nome, campanha_cor: CAMPANHA.cor, checklist_total: estado.checklist.length, checklist_feitos: estado.checklist.filter((k) => k.feito).length, n_arquivos: estado.arquivos.length, miniatura: null, n_comentarios: 0, ajuste_aberto: false, pendencias: [],
   })
   b.rpcs.minhas_permissoes = () => [{ acoes: permissoes, funcao: 'administrador', rotulo: 'Administrador', ativo: true, deve_trocar_senha: false }]
   b.rpcs.meu_perfil = () => ({ user_id: UID, nome: 'Eline', funcao: 'administrador', funcao_rotulo: 'Administrador' })
@@ -54,9 +60,18 @@ function montar(permissoes) {
   b.rpcs.redes_resumo = () => ({})
   b.rpcs.redes_campanhas_listar = () => [CAMPANHA]
   const salvas = []
+  const modelosSalvos = []
+  b.rpcs.redes_checklist_modelos_listar = () => ['feed', 'carrossel', 'reels', 'story'].flatMap((f) => [{ id: f + '1', formato: f, ordem: 1, texto: 'Arte conferida', ativo: true }, { id: f + '2', formato: f, ordem: 2, texto: 'Legenda revisada', ativo: true }])
+  b.rpcs.redes_checklist_modelo_salvar = (c) => { modelosSalvos.push(c); return c.p_itens.map((x, i) => ({ id: 'n' + i, formato: c.p_formato, ordem: i + 1, texto: x.texto, ativo: x.ativo })) }
+  b.rpcs.redes_checklist_marcar = (c) => {
+    marcacoes.push(c)
+    const k = estado.checklist.find((x) => x.id === c.p_item)
+    Object.assign(k, { feito: c.p_feito, feito_por_id: c.p_feito ? UID : null, feito_por_rotulo: c.p_feito ? 'Eline' : null, feito_em: c.p_feito ? new Date().toISOString() : null })
+    return k
+  }
   b.rpcs.redes_campanha_salvar = (c) => { salvas.push(c); return { ...CAMPANHA, id: '33333333-3333-4333-8333-333333333333', ...c.p_dados, meta: c.p_dados.meta === '' ? null : c.p_dados.meta } }
   b.rpcs.redes_listar = () => ({ agora: new Date().toISOString(), eu: UID, posts: [post()] })
-  b.rpcs.redes_post = () => ({ post: post(), arquivos: estado.arquivos, historico: [], comentarios: [], conflitos: [], agora: '2026-10-21T15:00:00Z', eu: UID })
+  b.rpcs.redes_post = () => ({ post: post(), arquivos: estado.arquivos, checklist: estado.checklist, historico: [], comentarios: [], conflitos: [], agora: '2026-10-21T15:00:00Z', eu: UID })
   b.rpcs.redes_situacao = (c) => {
     aprovacoes.push({ versao: c.p_versao, para: c.p_situacao })
     if (c.p_versao !== estado.versao) return { __erro: true }
@@ -65,12 +80,13 @@ function montar(permissoes) {
   }
   // O que o banco faz quando OUTRA pessoa mexe na arte em "aguardando aprovação": versão +1 e carimbo dela.
   const mudarArte = (porQuem) => { estado.arquivos = [arte('a1', 0, 1), arte('a2', 1)].map((x, i) => ({ ...x, ordem: i })); estado.versao += 1; estado.por = porQuem; estado.em = '2026-10-21T15:30:00Z' }
-  return { b, rt, estado, aprovacoes, mudarArte, salvas }
+  return { b, rt, estado, aprovacoes, mudarArte, salvas, marcacoes, modelosSalvos }
 }
 
-async function abrir(nav, permissoes) {
+async function abrir(nav, permissoes, ajustar) {
   const ctx = await nav.newContext({ viewport: { width: 1280, height: 900 } })
   const m = montar(permissoes)
+  if (ajustar) ajustar(m)
   await m.b.instalar(ctx); await m.rt.instalar(ctx)
   await ctx.addInitScript((s) => { if (!localStorage.getItem('scw_org_conta') && s) localStorage.setItem('scw_org_conta', s) }, sessaoGuardada(UID, EMAIL))
   const page = await ctx.newPage()
@@ -161,6 +177,52 @@ async function principal() {
       ok(await page.locator('dialog, .ui-folha, [role=dialog]').filter({ hasText: 'Nova campanha' }).count() === 0, 'e fecha depois de salvar')
       ok(erros.length === 0, 'sem erro de JavaScript (' + erros.join(' | ').slice(0, 200) + ')')
       await ctx.close()
+    }
+
+    console.log('checklist: marcar, contar e perguntar antes de enviar')
+    {
+      const { ctx, page, estado, marcacoes, aprovacoes, erros } = await abrir(nav, PERMISSOES, (m) => { m.estado.situacao = 'rascunho' })
+      const bloco = page.locator('.ck')
+      await bloco.waitFor({ timeout: 15000 }).catch(() => {})
+      ok(/1\/3/.test((await bloco.textContent().catch(() => '')) || ''), 'o bloco mostra 1/3')
+      await page.getByRole('checkbox', { name: 'Legenda revisada' }).click()
+      await dormir(700)
+      ok(marcacoes.length === 1 && marcacoes[0].p_item === 'k2' && marcacoes[0].p_feito === true, 'marcar manda o item e o valor (' + JSON.stringify(marcacoes[0] || null) + ')')
+      ok(/2\/3/.test((await bloco.textContent().catch(() => '')) || ''), 'e a contagem vira 2/3 depois da resposta do servidor')
+      ok(estado.versao === 5, 'marcar item não sobe a versão da postagem')
+      await page.getByRole('button', { name: 'Enviar para aprovação' }).last().click()
+      await page.locator('dialog[open]').waitFor({ timeout: 8000 }).catch(() => {})
+      const pergunta = (await page.locator('dialog[open]').textContent().catch(() => '')) || ''
+      ok(/Falta 1 item do checklist: Data e horário confirmados/.test(pergunta), 'com item aberto, pergunta antes de enviar (“' + pergunta.trim().slice(0, 100) + '”)')
+      await page.locator('dialog[open] button:not([type=submit])').first().click()
+      await dormir(500)
+      ok(aprovacoes.length === 0, 'cancelar a pergunta não envia')
+      await page.getByRole('button', { name: 'Enviar para aprovação' }).last().click()
+      await page.locator('dialog[open] button[type=submit]').click()
+      await dormir(900)
+      ok(aprovacoes.length === 1 && aprovacoes[0].para === 'aprovacao', 'confirmar envia mesmo com item aberto')
+      ok(erros.length === 0, 'sem erro de JavaScript (' + erros.join(' | ').slice(0, 200) + ')')
+      await ctx.close()
+    }
+
+    console.log('checklist padrão: só o administrador abre e salva por formato')
+    {
+      const { ctx, page, modelosSalvos, erros } = await abrir(nav, [...PERMISSOES, 'redes.gerir'])
+      await page.goto(`${BASE}/painel/#social/planejamento`, { waitUntil: 'domcontentloaded' })
+      await page.getByRole('button', { name: 'Checklist padrão' }).click()
+      await page.getByRole('heading', { name: 'Reel' }).waitFor({ timeout: 10000 }).catch(() => {})
+      ok(await page.getByRole('heading', { name: 'Story' }).count() === 1 && await page.getByRole('heading', { name: 'Carrossel' }).count() === 1, 'a folha mostra um grupo por formato')
+      await page.getByRole('textbox', { name: 'Item 1 de Reel' }).fill('Capa conferida')
+      await page.getByRole('button', { name: 'Salvar Reel' }).click()
+      await dormir(700)
+      ok(modelosSalvos.length === 1 && modelosSalvos[0].p_formato === 'reels' && modelosSalvos[0].p_itens[0].texto === 'Capa conferida' && modelosSalvos[0].p_itens.length === 2, 'salvar manda só o formato editado, na ordem (' + JSON.stringify(modelosSalvos[0] || null).slice(0, 150) + ')')
+      ok(erros.length === 0, 'sem erro de JavaScript (' + erros.join(' | ').slice(0, 200) + ')')
+      await ctx.close()
+      const sem = await abrir(nav, PERMISSOES)
+      await sem.page.goto(`${BASE}/painel/#social/planejamento`, { waitUntil: 'domcontentloaded' })
+      await dormir(1500)
+      ok(await sem.page.getByRole('button', { name: 'Checklist padrão' }).count() === 0, 'sem redes.gerir o botão não existe')
+      await sem.ctx.close()
     }
 
     console.log('quem não aprova não vê o aviso')

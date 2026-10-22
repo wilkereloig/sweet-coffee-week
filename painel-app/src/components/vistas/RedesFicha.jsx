@@ -17,6 +17,8 @@ import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { FormularioCampanha } from './FormularioCampanha'
 import { campanhaDaPostagem } from '../../lib/campanhas'
+import { ChecklistPostagem } from './ChecklistPostagem'
+import * as K from '../../lib/checklist'
 
 /*
  * Ficha de uma publicação (Social media, 16–17/10/2026; reorganizada em
@@ -436,6 +438,17 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     if ((await recarregar()) === null) throw new Error('redes_post')
   }, { ativo: !novo })
 
+  // Postagem de antes do checklist (ou sem itens): recebe a cópia do modelo do formato, uma vez por abertura. Quem só lê não escreve.
+  const garantido = React.useRef(new Set())
+  React.useEffect(() => {
+    if (novo || !carga || !carga.post || R.FECHADAS.includes(carga.post.situacao) || !podeRef.current('redes.editar')) return
+    if ((carga.checklist || []).length > 0 || garantido.current.has(id)) return
+    garantido.current.add(id)
+    rpc('redes_checklist_garantir', { p_secret: lerSenha(), p_post: id })
+      .then((l) => setCarga((c) => (c && c.post && c.post.id === id ? { ...c, checklist: l } : c)))
+      .catch(() => { /* sem checklist por ora: a ficha segue normal */ })
+  }, [carga, id, novo])
+
   const mudancas = base && campos ? R.diferencas(base, campos) : {}
   // Conflito aberto = campos que outra pessoa mudou E que esta tela também tem alterados, até a pessoa escolher. Enquanto
   // houver, NADA salva por cima (salvar() recusa): a base já anda para a versão nova, então salvar levaria a versão nova
@@ -776,11 +789,17 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   // Mudou depois que quem aprova abriu: antes de "Aprovar", a pessoa confere (e o banco ainda recusa versão antiga).
   const principal = principalBruta && principalBruta.chave === 'aprovar' && mudouDepois ? { chave: 'conferir', rotulo: 'Conferi as mudanças', icone: 'feito' } : principalBruta
   function conferiMudancas() { vistaRef.current = R.conteudoParaAprovar(base, arquivos); setMudouDepois(null) }
-  function executarPrincipal() {
+  // O checklist avisa, não trava: com itens abertos pergunta e deixa seguir.
+  async function checklistLiberaEnvio() {
+    const pergunta = K.textoConfirmacaoEnvio(carga && carga.checklist)
+    return !pergunta || confirmar(pergunta)
+  }
+  async function executarPrincipal() {
     if (!principal) return
     if (principal.chave === 'criar' || principal.chave === 'salvar') return salvar()
     if (principal.chave === 'enviar') {
       if (principal.bloqueada) { setAviso('Resolva o que falta (em “Próximo passo”) antes de enviar.'); focoDepois.current = idPend; return }
+      if (!(await checklistLiberaEnvio())) return
       return situacao('aprovacao')
     }
     if (principal.chave === 'conferir') return conferiMudancas()
@@ -1256,6 +1275,9 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                 </p>
 
                 {/* O resto, recolhido: abre quando precisa. */}
+                <ChecklistPostagem postId={id} itens={(carga && carga.checklist) || []} fechada={fechada} podeEditar={podeEditar}
+                  onItens={(fn) => setCarga((c) => (c ? { ...c, checklist: fn(c.checklist || []) } : c))} />
+
                 <Gaveta titulo="Detalhes: título interno, formato, edição, campanha e participante" aberto={gavetas.has('detalhes') || emEdicao('detalhes')} travada={emEdicao('detalhes')} onAlternar={(v) => alternarGaveta('detalhes', v)}>
                   {emEdicao('detalhes') ? (
                     <div className="rd-bloco__form">

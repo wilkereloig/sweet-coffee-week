@@ -5,6 +5,8 @@ import { Icone } from '../Icone'
 import { Carregando, Erro, Vazio, Selo, Botao, BotaoIcone, Escolha, Secao } from '../ui'
 import * as R from '../../lib/redes'
 import * as C from '../../lib/campanhas'
+import * as K from '../../lib/checklist'
+import { ChecklistModelos } from './ChecklistPostagem'
 import * as P from '../../lib/pastas'
 import { useUrlsAssinadas } from '../../lib/redesArquivos'
 import { RedesFicha, traduzirRedes, Miniatura } from './RedesFicha'
@@ -55,6 +57,7 @@ function descricao(p, agora, conflito) {
   return [p.titulo, p.programado_para ? R.quandoTexto(p.programado_para) : 'sem data', (R.FORMATO[p.formato] || {}).rotulo,
     p.responsavel_nome ? 'responsável ' + p.responsavel_nome : 'sem responsável', (R.SITUACAO[p.situacao] || {}).rotulo,
     p.campanha_nome ? 'campanha ' + p.campanha_nome : '',
+    K.contagemDoCartao(p) ? 'checklist ' + K.contagemDoCartao(p).texto : '',
     p.ajuste_aberto ? 'ajuste pedido' : '',
     R.atrasada(p, agora) ? 'atrasada' : '', conflito ? 'mesmo horário de outra publicação' : '',
     pend ? pend + (pend === 1 ? ' pendência' : ' pendências') : ''].filter(Boolean).join(', ')
@@ -71,6 +74,7 @@ export function CartaoPost({ p, agora, conflito, urls, renovar, onAbrir, compact
   const sit = R.SITUACAO[p.situacao] || {}
   const alerta = R.alertaDoCartao(p, { agora, conflito })
   const camp = C.campanhaDaPostagem(p)
+  const ck = K.contagemDoCartao(p)
   const hora = p.programado_para ? R.horaCurta(R.partes(p.programado_para).hora) : 'Sem data'
   const seq = p.formato === 'story' && Number(p.n_arquivos) > 1 ? ' ×' + p.n_arquivos : ''
   return (
@@ -86,6 +90,7 @@ export function CartaoPost({ p, agora, conflito, urls, renovar, onAbrir, compact
           {alerta && (compacto
             ? <span className="rd-cartao__alerta" data-tom={alerta.tom}><Icone nome="atencao" tamanho={16} />{alerta.texto}</span>
             : <Selo tom={alerta.tom}>{alerta.texto}</Selo>)}
+          {ck && <span className={'rd-cartao__ck' + (ck.completo ? ' is-completo' : '')}><Icone nome="feito" tamanho={16} />{ck.texto}</span>}
         </span>
         {!compacto && (
           <span className="rd-cartao__resp">
@@ -444,6 +449,7 @@ export function Redes({ rota, navegar, pode }) {
   const [busca, setBusca] = React.useState(f.q || '')
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
   const [guia, setGuia] = React.useState(false)
+  const [modelosAbertos, setModelosAbertos] = React.useState(false)
 
   // Três leituras, cada uma com a sua guarda: resposta velha (mês anterior, clique + sinal ao mesmo tempo)
   // nunca sobrescreve a nova, nem depois de sair ou trocar de conta. A releitura por sinal é SILENCIOSA:
@@ -631,6 +637,7 @@ export function Redes({ rota, navegar, pode }) {
           <button type="button" className="rd-ajuda" onClick={() => setGuia(true)} aria-haspopup="dialog">
             <Icone nome="informacao" tamanho={20} /><span>Como funciona</span>
           </button>
+          {pode('redes.gerir') && <Botao variante="secundario" icone="feito" onClick={() => setModelosAbertos(true)}>Checklist padrão</Botao>}
           {podeCriar && <Botao icone="mais" variante="destaque" onClick={() => abrir('novo')}>Nova postagem</Botao>}
         </div>
       </header>
@@ -728,6 +735,7 @@ export function Redes({ rota, navegar, pode }) {
       )}
       </div>
 
+      {modelosAbertos && <ChecklistModelos onFechar={() => setModelosAbertos(false)} />}
       <SocialGuia aberto={guia} onFechar={() => setGuia(false)} aprovadores={opcoes.aprovadores || []} aprova={aprova}
         podeCriar={podeCriar} onNova={() => abrir('novo')} />
 
