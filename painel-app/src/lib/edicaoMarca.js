@@ -326,3 +326,162 @@ export function textoPublicacao(pub) {
   }
   return { tom: 'neutro', texto: 'Sua página ainda não está publicada. A organização publica depois de aprovar o cadastro.', link: null }
 }
+
+/* ── Clareza do formulário da marca (22/10/2026) ─────────────────────────────
+ * Tudo puro, testado em tests/painel-app-edicao-marca.test.mjs. Os ÍNDICES dos
+ * blocos (0 a 7), `data-bloco`, `bloco-N`, `campo-*` e os links NÃO mudam: só o
+ * rótulo que a pessoa lê.
+ */
+const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios)
+
+export const ROTULO_AREA = { cadastro: 'Meu cadastro', combo: 'Meu combo' }
+
+/** Título e subtítulo de cada bloco, por índice. O número que aparece é LOCAL da aba (numeroLocalDoBloco). */
+export const TITULOS_BLOCO = [
+  { titulo: 'Dados da marca', sub: 'Nome, logo, contatos e apresentação da casa' },
+  { titulo: 'Tema e inspiração', sub: 'Sua leitura do tema da edição' },
+  { titulo: 'Itens do combo', sub: 'Dois itens de comer e uma bebida' },
+  { titulo: 'Apresentação e condições do combo', sub: 'Nome, descrição, condições, valor e custos' },
+  { titulo: 'Unidades participantes', sub: 'Endereço, WhatsApp e quais participam' },
+  { titulo: 'Informações alimentares e trocas', sub: 'Alergênicos, características e trocas de cada item' },
+  { titulo: 'Atendimento e horários do combo', sub: 'Local, retirada, delivery e horário do combo por unidade' },
+]
+
+/** Meu cadastro = 0 · 4 · 6 · 7; Meu combo = 1 · 2 · 3 · 5. O mesmo corte de vistaDoBloco (guia.js) — o teste confere. */
+export function areaDoBloco(bloco) {
+  if (bloco === null || bloco === undefined) return 'cadastro'
+  return [0, 4, 6, 7].includes(Number(bloco)) ? 'cadastro' : 'combo'
+}
+
+/** Posição do bloco na aba (1, 2, 3…), ou null se ele não está nela. `visiveis` = blocos da aba. */
+export function numeroLocalDoBloco(bloco, visiveis = []) {
+  const i = [...visiveis].sort((a, b) => a - b).indexOf(Number(bloco))
+  return i < 0 ? null : i + 1
+}
+
+/**
+ * Diz ONDE a falta está: `naOutraAba` quando o bloco não é da aba aberta, e o texto completo
+ * ("Falta em Meu combo: Dar um nome ao combo") para quem está no outro lado.
+ */
+export function comOnde(f, visiveis = []) {
+  const area = areaDoBloco(f.bloco)
+  const naOutraAba = f.bloco !== null && f.bloco !== undefined && !visiveis.includes(Number(f.bloco))
+  return { ...f, area, naOutraAba, textoCompleto: naOutraAba ? 'Falta em ' + ROTULO_AREA[area] + ': ' + f.texto : f.texto }
+}
+
+/**
+ * O que falta para enviar, dividido nas duas áreas. `faltaCampos` = campos obrigatórios vazios (sem a logo);
+ * `pendEdicao` = códigos de pendenciasEdicao. O servidor continua sendo a autoridade: isto só organiza a leitura.
+ */
+export function revisaoPorArea({ faltaCampos = [], pendEdicao = [], unidades = [], itens = [], visiveis = [] } = {}) {
+  const lista = [
+    ...faltaCampos.map((c) => ({ texto: c.campo ? c.rotulo : c.rotulo + ' (fale com a organização)', bloco: c.bloco, campo: c.campo || null })),
+    ...pendEdicao.map((codigo) => ({ ...traduzirFaltando(codigo, { unidades, itens }), codigo })),
+  ].map((f) => comOnde(f, visiveis)).sort((a, b) => (a.bloco ?? 99) - (b.bloco ?? 99))
+  const areas = ['cadastro', 'combo'].map((chave) => {
+    const doArea = lista.filter((f) => f.area === chave)
+    const faltam = doArea.length
+    return {
+      chave, rotulo: ROTULO_AREA[chave], faltam, pronto: faltam === 0, itens: doArea,
+      texto: ROTULO_AREA[chave] + ': ' + (faltam === 0 ? 'pronto' : faltam === 1 ? '1 falta' : faltam + ' faltam'),
+    }
+  })
+  return { areas, faltam: lista.length, pronto: lista.length === 0 }
+}
+
+/**
+ * Situação de UM bloco, em palavras, para o cabeçalho recolhido. Ordem: correção pedida > falta >
+ * em análise / aprovado > preenchido. "Preenchido" NUNCA é "aprovado": só a organização aprova, e o
+ * tema tem aprovação própria (temas_propostos), à parte da do combo.
+ */
+export function estadoDoBloco({ bloco, faltam = 0, pronto = true, correcao = false, comboStatus = 'rascunho', temaStatus = null, alterado = false } = {}) {
+  if (correcao) return { estado: 'alteracao', texto: 'Correção solicitada' }
+  if (faltam > 0) return { estado: 'falta', texto: faltam === 1 ? 'Falta 1 informação' : 'Faltam ' + faltam + ' informações' }
+  if (!pronto) return { estado: 'espera', texto: 'Abre quando a organização liberar' }
+  // O tema tem decisão própria (temas_propostos): vale para o bloco 1 mesmo com o combo em outro estado
+  // (tema aprovado ≠ combo aprovado; combo aprovado não faz de um tema ainda proposto um tema aprovado).
+  if (Number(bloco) === 1 && temaStatus === 'aprovado') return { estado: 'aprovado', texto: comboStatus === 'aprovado' && !alterado ? 'Aprovado' : 'Tema aprovado' }
+  if (Number(bloco) === 1 && temaStatus === 'proposto') return { estado: 'analise', texto: 'Tema em análise' }
+  if (comboStatus === 'aprovado' && alterado) return { estado: 'completo', texto: 'Preenchido · alterações a enviar' }
+  if (comboStatus === 'aprovado') return { estado: 'aprovado', texto: 'Aprovado' }
+  if (comboStatus === 'em_analise') return { estado: 'analise', texto: 'Em análise' }
+  return { estado: 'completo', texto: 'Preenchido' }
+}
+
+const curto = (s, n) => { const t = texto(s); return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t }
+const unidadeConta = (u) => u.participa !== false && !!(texto(u.logradouro) || u.unId || u.puId)
+
+/** O que o bloco já tem, em poucas palavras ("3 itens", "2 unidades"). '' = nada para resumir. */
+export function resumoDoBloco(bloco, { marca = {}, tema = {}, combo = {}, itens = [], unidades = [], declaracoes = {} } = {}) {
+  switch (Number(bloco)) {
+    case 0: return [curto(marca.nome_marca, 32), texto(marca.telefone)].filter(Boolean).join(' · ')
+    case 1: return texto(tema.tema_combo) ? 'Tema: ' + curto(tema.tema_combo, 48) : ''
+    case 2: {
+      const n = itens.filter((i) => texto(i.nome)).length
+      if (!n) return ''
+      return n === itens.length ? plural(n, 'item', 'itens') : n + ' de ' + itens.length + ' itens com nome'
+    }
+    case 3: return texto(combo.combo_nome) ? 'Combo: ' + curto(combo.combo_nome, 48) : ''
+    case 4: { const n = unidades.filter(unidadeConta).length; return n ? plural(n, 'unidade', 'unidades') : '' }
+    case 5: {
+      if (!itens.length) return ''
+      const n = itens.filter((i) => alergenicosRespondidos(declaracoes[i.id]) === ASPECTOS_ALERGENICOS.length).length
+      return n + ' de ' + itens.length + ' itens respondidos'
+    }
+    case 6: {
+      const participam = unidades.filter(unidadeConta)
+      if (!participam.length) return ''
+      return 'Horário do combo em ' + participam.filter((u) => (u.disponibilidade || []).length).length + ' de ' + plural(participam.length, 'unidade', 'unidades')
+    }
+    default: return ''
+  }
+}
+
+/**
+ * A situação da participação num rótulo só: envio e aprovação são coisas diferentes, e "preenchido"
+ * não é "aprovado". `tom` é o do <Selo> (neutro · andamento · atencao · ok · encerrado).
+ */
+export function situacaoDaMarca({ semParticipacao = false, statusCadastro = '', comboStatus = 'rascunho', alterado = false, publicada = false, faltam = 0 } = {}) {
+  if (semParticipacao) return { chave: 'sem_edicao', texto: 'Sem edição aberta', tom: 'encerrado', nota: '' }
+  if (statusCadastro === 'encerrado') return { chave: 'encerrada', texto: 'Participação encerrada', tom: 'encerrado', nota: '' }
+  if (comboStatus === 'aprovado') {
+    if (alterado) return { chave: 'aprovado_alterado', texto: 'Aprovado, com alterações a enviar', tom: 'atencao', nota: '' }
+    return publicada
+      ? { chave: 'publicada', texto: 'Combo aprovado · página no ar', tom: 'ok', nota: '' }
+      : { chave: 'aprovado', texto: 'Combo aprovado', tom: 'ok', nota: '' }
+  }
+  if (comboStatus === 'em_analise') {
+    return { chave: 'em_analise', texto: 'Enviado · em análise', tom: 'andamento',
+      nota: 'Aguardando a organização. Ela confere e avisa aqui. Você não precisa enviar de novo, a não ser que mude alguma coisa.' }
+  }
+  if (comboStatus === 'correcao_solicitada') {
+    return { chave: 'ajuste', texto: 'Ajuste pedido', tom: 'atencao',
+      nota: 'A organização pediu ajustes. Corrija os campos marcados (em Meu cadastro e em Meu combo) e envie novamente.' }
+  }
+  if (statusCadastro === 'cadastro_completo') {
+    return { chave: 'enviado', texto: 'Enviado para a organização', tom: 'andamento', nota: 'Aguardando a organização. Ela confere e avisa aqui.' }
+  }
+  return faltam ? { chave: 'rascunho', texto: 'Rascunho', tom: 'neutro', nota: '' } : { chave: 'pronto', texto: 'Pronto para enviar', tom: 'andamento', nota: '' }
+}
+
+/** A linha de baixo do progresso: o que falta para ENVIAR (não é o mesmo que "% preenchido"). */
+export function textoEnvio({ faltam = 0, chave = 'rascunho' } = {}) {
+  if (faltam > 0) return faltam === 1 ? 'Falta 1 item para enviar' : 'Faltam ' + faltam + ' itens para enviar'
+  if (chave === 'em_analise' || chave === 'enviado') return 'Aguardando a organização'
+  if (['aprovado', 'publicada'].includes(chave)) return 'Nada a enviar agora'
+  if (['encerrada', 'sem_edicao'].includes(chave)) return ''
+  return 'Tudo pronto para enviar'
+}
+
+/**
+ * O rótulo do salvamento automático. `texto` é o que o salvamento deixou ('' = nada ainda; "Salvo, menos …" = ficou
+ * campo inválido de fora; o resto = gravado). O erro tem UMA voz só (o aviso com role="alert"): aqui é só o rótulo.
+ */
+export function rotuloSalvamento({ salvando = false, erro = false, texto: salvo = '' } = {}) {
+  if (salvando) return { estado: 'salvando', texto: 'Salvando…', detalhe: '' }
+  if (erro) return { estado: 'erro', texto: 'Não foi possível salvar', detalhe: '' }
+  if (!salvo) return { estado: 'vazio', texto: '', detalhe: '' }
+  if (/^Salvo, menos o que aguarda/.test(salvo)) return { estado: 'parcial', texto: salvo, detalhe: '' }
+  if (/^Salvo, menos /.test(salvo)) return { estado: 'corrigir', texto: 'Há campos que precisam ser corrigidos', detalhe: salvo }
+  return { estado: 'salvo', texto: 'Alterações salvas', detalhe: '' }
+}

@@ -9,6 +9,7 @@
  */
 import { TIPOS, unidadeTemEndereco, itensEmOrdem, custosFaltando, custosDeLinhas } from './cadastro.js'
 import { interpretarLink } from './central.js'
+import { traduzirFaltando } from './edicaoMarca.js'
 
 // Meu cadastro = A marca (0) + Unidades (4) + Atendimento e horário do combo (6)
 // + Fotos (7); Meu combo = tema (1), itens (2), combo (3), alimentar e trocas (5).
@@ -132,10 +133,10 @@ export function fotosDaParticipacao(sessoes, participacao, agora = new Date()) {
 const ETAPAS = [
   // 6 (atendimento) e 5 (alimentar) não têm campo na contagem de 17, mas uma
   // correção pedida neles acende a etapa certa.
-  { chave: 'estabelecimento', rotulo: 'Dados do estabelecimento', blocos: [0, 4, 6] },
-  { chave: 'tema', rotulo: 'Tema', blocos: [1] },
-  { chave: 'itens', rotulo: 'Os três itens', blocos: [2, 5] },
-  { chave: 'preco', rotulo: 'Custos e detalhes', blocos: [3] },
+  { chave: 'estabelecimento', rotulo: 'Dados, unidades e atendimento', blocos: [0, 4, 6] },
+  { chave: 'tema', rotulo: 'Tema e inspiração', blocos: [1] },
+  { chave: 'itens', rotulo: 'Itens e informações alimentares', blocos: [2, 5] },
+  { chave: 'preco', rotulo: 'Apresentação e condições do combo', blocos: [3] },
 ]
 
 /*
@@ -151,8 +152,8 @@ const ETAPAS = [
 export function resumoMarca(d = {}) {
   const participacao = d.participacao || null
   if (!participacao) {
-    return { semParticipacao: true, progresso: { feitos: 0, total: 17, pct: 0 }, etapas: [], pendencias: [], proxima: null,
-      contagem: {}, campo: () => null, combo: null }
+    return { semParticipacao: true, progresso: { feitos: 0, total: 13, pct: 0 }, envio: { faltam: 0, itens: [], pronto: false, conhecido: false, podeEnviar: false },
+      etapas: [], pendencias: [], proxima: null, contagem: {}, campo: () => null, combo: null }
   }
   const dados = dadosDeLinhas(d)
   const campos = camposObrigatorios(dados)
@@ -160,6 +161,26 @@ export function resumoMarca(d = {}) {
   const correcoes = d.correcoes || []
   const abertas = correcoes.filter((c) => c.estado === 'aberta')
   const comboStatus = participacao.combo_status || 'rascunho'
+  const statusCadastro = participacao.status_cadastro || 'em_preenchimento'
+  const alteradoAposAprovacao = !!(d.publicacao && d.publicacao.alterado_apos_aprovacao)
+  const agora = d.agora ? new Date(d.agora) : new Date()
+
+  // O que a página pública exige além dos campos (pendencias_publicacao, lida pelo
+  // servidor). `null` = a leitura não existe neste banco: não sabemos, não afirmamos.
+  const conhecido = Array.isArray(d.faltandoEdicao)
+  // A mesma falta de endereço vem dos dois lados (campo obrigatório e `unidade:<id>:endereco`/`sem_unidade`
+  // do servidor): quando o servidor já a lista, vale a dele (leva à unidade certa) e o campo básico não conta de novo.
+  const enderecoNoServidor = conhecido && d.faltandoEdicao.some((c) => c === 'sem_unidade' || /^unidade:.+:endereco$/.test(c))
+  const duplicado = (x) => enderecoNoServidor && x.campo === 'unidade-endereco'
+  const faltasEdicao = (conhecido ? d.faltandoEdicao : [])
+    .map((c) => ({ codigo: c, ...traduzirFaltando(c, { unidades: d.unidades || [], itens: d.itens || [] }) }))
+  // A logo não trava o envio (marca_concluir_cadastro); o resto, sim.
+  const faltasBasicas = campos.filter((x) => !x.ok && x.campo !== 'logo' && !duplicado(x))
+  const envio = {
+    faltam: faltasBasicas.length + faltasEdicao.length,
+    itens: faltasEdicao, conhecido,
+    pronto: faltasBasicas.length === 0 && faltasEdicao.length === 0,
+  }
 
   const pendencias = []
   for (const c of abertas) {
@@ -172,15 +193,25 @@ export function resumoMarca(d = {}) {
       acao: 'Corrigir agora', vista: 'combo', link: linkDoCampo(1, 'tema_combo'), bloco: 1, campo: 'tema_combo' })
   }
   const pedidos = (d.pedidos || []).filter((p) => p.estado !== 'respondido')
-  const pedidoItem = (p) => ({ tipo: 'pedido', titulo: p.titulo, texto: p.prazo_em ? 'Prazo: ' + new Date(p.prazo_em).toLocaleDateString('pt-BR') : 'Pedido da organização',
-    acao: 'Responder', vista: vistaDoPedido(p.bloco), link: 'pedidos/' + p.id, prioridade: p.prioridade || 'normal' })
+  const pedidoItem = (p) => {
+    const dias = p.prazo_em ? (new Date(p.prazo_em).getTime() - agora.getTime()) / 86400000 : null
+    return { tipo: 'pedido', titulo: p.titulo,
+      texto: p.prazo_em ? (dias < 0 ? 'Prazo vencido em ' : 'Prazo: ') + new Date(p.prazo_em).toLocaleDateString('pt-BR') : 'Pedido da organização',
+      acao: 'Responder', vista: vistaDoPedido(p.bloco), link: 'pedidos/' + p.id, prioridade: p.prioridade || 'normal',
+      prazo_em: p.prazo_em || null, vencido: dias !== null && dias < 0, urgente: dias !== null && dias <= PRAZO_URGENTE_DIAS }
+  }
   for (const p of pedidos.filter((x) => x.prioridade === 'importante')) pendencias.push(pedidoItem(p))
   // Campo vazio: uma pendência por campo (a mais precisa possível).
-  for (const c of campos.filter((x) => !x.ok)) {
+  for (const c of campos.filter((x) => !x.ok && !duplicado(x))) {
     if (abertas.some((a) => a.campo === c.campo)) continue
     pendencias.push({ tipo: 'campo', titulo: c.rotulo, texto: c.campo === 'logo' ? 'Envie a logo oficial da marca em alta resolução.' : c.campo ? 'Ainda não preenchido.' : 'O combo ainda não tem os três itens: fale com a organização.',
       acao: c.campo ? 'Completar agora' : null, vista: vistaDoBloco(c.bloco), link: c.campo ? linkDoCampo(c.bloco, c.campo) : null,
       bloco: c.bloco, campo: c.campo })
+  }
+  // O que a página pública exige e ainda falta (blocos 3 a 6): uma pendência por item, com o nome da unidade.
+  for (const f of faltasEdicao) {
+    pendencias.push({ tipo: 'campo', titulo: f.texto, texto: 'Falta para enviar o cadastro.', acao: f.campo ? 'Completar agora' : null,
+      vista: vistaDoBloco(f.bloco), link: f.campo ? linkDoCampo(f.bloco, f.campo) : null, bloco: f.bloco, campo: f.campo, codigo: f.codigo })
   }
   for (const p of pedidos.filter((x) => x.prioridade !== 'importante')) pendencias.push(pedidoItem(p))
   const sessao = (d.sessoes || []).find((s) => s.status === 'agendada' || s.status === 'remarcada') || null
@@ -189,37 +220,59 @@ export function resumoMarca(d = {}) {
     pendencias.push({ tipo: 'fotos', titulo: 'Marque a sessão de fotos', texto: d.vagasAbertas + (d.vagasAbertas === 1 ? ' horário livre' : ' horários livres') + ' na agenda.',
       acao: 'Escolher horário', vista: 'fotos', link: 'fotos' })
   }
+  // Leitura confirmada de arquivo: só pede ciência, não é aceite de termo.
   if (Number(d.arquivosParaLer) > 0) {
-    pendencias.push({ tipo: 'arquivo', titulo: d.arquivosParaLer === 1 ? 'Um arquivo para ler' : d.arquivosParaLer + ' arquivos para ler',
-      texto: 'A organização pediu confirmação de leitura.', acao: 'Ver arquivos', vista: 'arquivos', link: 'arquivos' })
+    pendencias.push({ tipo: 'arquivo', qtd: Number(d.arquivosParaLer), titulo: d.arquivosParaLer === 1 ? 'Um arquivo para ler' : d.arquivosParaLer + ' arquivos para ler',
+      texto: 'A organização pediu que você confirme a leitura.', acao: 'Ver arquivos', vista: 'arquivos', link: 'arquivos' })
   }
   if (Number(d.fotosParaLer) > 0) {
-    pendencias.push({ tipo: 'arquivo', titulo: d.fotosParaLer === 1 ? 'Uma foto oficial para conferir' : d.fotosParaLer + ' fotos oficiais para conferir',
-      texto: 'A organização pediu confirmação de leitura.', acao: 'Ver fotos', vista: 'fotos', link: 'fotos' })
+    pendencias.push({ tipo: 'arquivo', qtd: Number(d.fotosParaLer), titulo: d.fotosParaLer === 1 ? 'Uma foto oficial para conferir' : d.fotosParaLer + ' fotos oficiais para conferir',
+      texto: 'A organização pediu que você confirme que conferiu.', acao: 'Ver fotos', vista: 'fotos', link: 'fotos' })
   }
 
-  const cadastroCompleto = campos.every((x) => x.ok)
-  // Tudo preenchido mas ainda não enviado: enviar é a próxima ação.
-  if (cadastroCompleto && participacao.status_cadastro !== 'cadastro_completo' && comboStatus !== 'aprovado') {
-    pendencias.push({ tipo: 'enviar', titulo: abertas.length || correcoes.some((c) => c.estado === 'corrigida') ? 'Enviar novamente para análise' : 'Enviar o cadastro para análise',
-      texto: 'Tudo preenchido. Falta enviar para a organização conferir.', acao: 'Enviar', vista: 'combo', link: 'combo' })
+  // Enviar para a organização: só quando o servidor aceitaria e há algo a analisar.
+  //  - em análise: quem age é a organização, não há o que cobrar;
+  //  - encerrada: a participação acabou;
+  //  - aprovado: só se mudou depois da aprovação (enviar alterações);
+  //  - rascunho/ajuste pedido: enquanto o cadastro não foi marcado como completo.
+  const reenvio = abertas.length > 0 || correcoes.some((c) => c.estado === 'corrigida') || comboStatus === 'correcao_solicitada'
+  const podeEnviar = statusCadastro !== 'encerrado' && comboStatus !== 'em_analise'
+    && (comboStatus === 'aprovado' ? alteradoAposAprovacao : (comboStatus === 'correcao_solicitada' || statusCadastro !== 'cadastro_completo'))
+  envio.podeEnviar = podeEnviar
+  if (podeEnviar && envio.pronto) {
+    const soLogo = campos.some((x) => !x.ok && x.campo === 'logo')
+    pendencias.push({ tipo: 'enviar',
+      titulo: comboStatus === 'aprovado' ? 'Enviar as alterações para análise' : reenvio ? 'Enviar novamente para análise' : 'Enviar o cadastro para análise',
+      texto: (reenvio ? 'Conferiu o que foi pedido? ' : 'O que a organização exige para analisar está pronto. ') + (soLogo ? 'A logo pode ser enviada depois.' : 'Falta só enviar.'),
+      acao: 'Enviar', vista: 'combo', link: 'combo' })
   }
 
+  // O que cada etapa diz em palavras (nunca só "falta"): o Início escreve este texto ao lado do selo.
   const etapas = ETAPAS.map((e) => {
     const doBloco = campos.filter((x) => e.blocos.includes(x.bloco))
     const corr = abertas.some((c) => e.blocos.includes(c.bloco))
-    return { chave: e.chave, rotulo: e.rotulo, vista: vistaDoBloco(e.blocos[0]),
-      estado: corr ? 'atencao' : doBloco.every((x) => x.ok) ? 'feito' : 'pendente',
-      faltam: doBloco.filter((x) => !x.ok).length }
+    const faltamAqui = doBloco.filter((x) => !x.ok).length + faltasEdicao.filter((f) => e.blocos.includes(f.bloco)).length
+    const estado = corr ? 'atencao' : faltamAqui === 0 ? 'feito' : 'pendente'
+    return { chave: e.chave, rotulo: e.rotulo, vista: vistaDoBloco(e.blocos[0]), estado, faltam: faltamAqui,
+      detalhe: corr ? 'ajuste pedido' : faltamAqui === 0 ? 'preenchido' : faltamAqui === 1 ? 'falta 1 informação' : 'faltam ' + faltamAqui + ' informações' }
   })
+  const liberadoFotos = participacao.foto_liberacao === 'liberado'
   etapas.push({ chave: 'fotos', rotulo: 'Fotos', vista: 'fotos',
-    estado: fotosFeitas ? 'feito' : sessao ? 'andamento' : 'pendente', faltam: 0 })
+    estado: fotosFeitas ? 'feito' : sessao ? 'andamento' : 'pendente', faltam: 0,
+    detalhe: fotosFeitas ? 'sessão realizada' : sessao ? 'sessão marcada'
+      : !liberadoFotos ? 'aguardando liberação da organização' : Number(d.vagasAbertas) > 0 ? 'escolher um horário' : 'sem horários livres por enquanto' })
   etapas.push({ chave: 'analise', rotulo: 'Aprovação', vista: 'combo',
     estado: comboStatus === 'aprovado' ? 'feito' : comboStatus === 'correcao_solicitada' ? 'atencao'
-      : comboStatus === 'em_analise' ? 'andamento' : 'pendente', faltam: 0 })
+      : comboStatus === 'em_analise' ? 'andamento' : 'pendente', faltam: 0,
+    detalhe: comboStatus === 'aprovado' ? (alteradoAposAprovacao ? 'aprovado, com alterações a enviar' : 'aprovado')
+      : comboStatus === 'correcao_solicitada' ? 'ajuste pedido pela organização'
+      : comboStatus === 'em_analise' ? 'em análise pela organização'
+      : statusCadastro === 'encerrado' ? 'participação encerrada'
+      : podeEnviar && envio.pronto ? 'pronto para enviar' : 'depois de preencher e enviar' })
 
+  // Por aba: cada pendência conta 1 (arquivos e fotos para ler contam quantos são).
   const contagem = { inicio: 0, cadastro: 0, combo: 0, fotos: 0, arquivos: 0 }
-  for (const p of pendencias) if (p.tipo !== 'enviar') contagem[p.vista in contagem ? p.vista : 'inicio']++
+  for (const p of pendencias) if (p.tipo !== 'enviar') contagem[p.vista in contagem ? p.vista : 'inicio'] += p.qtd || 1
 
   // Estado de cada campo para o formulário: ícone + texto, nunca só cor.
   const porCampo = {}
@@ -236,13 +289,54 @@ export function resumoMarca(d = {}) {
     return e
   }
 
-  const proxima = pendencias.find((p) => p.link && (p.tipo === 'correcao' || p.tipo === 'campo' || p.tipo === 'enviar'))
-    || pendencias.find((p) => p.link) || null
+  // Próxima ação: correção pedida > pedido importante ou com prazo curto/vencido > campo que falta > enviar > o resto.
+  // `critica` = não pode ser coberta por um aviso só informativo (mensagem nova).
+  const ordem = (p) => (p.tipo === 'correcao' ? 0 : p.tipo === 'pedido' && (p.urgente || p.prioridade === 'importante') ? 1
+    : p.tipo === 'campo' ? 2 : p.tipo === 'enviar' ? 3 : 4)
+  // Mesma referência da pendência (agruparPendencias exclui o destaque por identidade).
+  let proxima = null
+  for (const p of pendencias) if (p.link && (!proxima || ordem(p) < ordem(proxima))) proxima = p
+  if (proxima) proxima.critica = ordem(proxima) <= 1
 
   return {
-    semParticipacao: false, progresso, etapas, pendencias, proxima, contagem, campo, sessao,
-    combo: { status: comboStatus, nota: participacao.combo_revisao_nota || null, desde: participacao.updated_at || null },
+    semParticipacao: false, progresso, envio, etapas, pendencias, proxima, contagem, campo, sessao,
+    combo: { status: comboStatus, nota: participacao.combo_revisao_nota || null, desde: participacao.updated_at || null,
+      alteradoAposAprovacao },
   }
+}
+
+/** Pedido que vence em até tantos dias (ou já venceu) sobe na frente do preenchimento. */
+export const PRAZO_URGENTE_DIAS = 3
+
+/*
+ * Pendências por assunto, para o Início: um grupo por área, com poucas linhas à vista e o resto
+ * recolhido. Mesmos itens de `resumoMarca().pendencias`, só reunidos — nada some nem se repete.
+ * `fora` = itens que já aparecem no destaque (a próxima ação) e não devem se repetir na lista.
+ */
+const AREAS = [
+  { chave: 'cadastro', rotulo: 'Meu cadastro', vista: 'cadastro' },
+  { chave: 'combo', rotulo: 'Meu combo', vista: 'combo' },
+  { chave: 'fotos', rotulo: 'Fotos', vista: 'fotos' },
+  { chave: 'solicitacoes', rotulo: 'Solicitações', vista: 'pedidos' },
+  { chave: 'documentos', rotulo: 'Documentos', vista: 'arquivos' },
+]
+const areaDaPendencia = (p) => {
+  if (p.tipo === 'pedido') return 'solicitacoes'
+  if (p.tipo === 'fotos') return 'fotos'
+  if (p.tipo === 'arquivo') return p.vista === 'fotos' ? 'fotos' : 'documentos'
+  return p.vista === 'cadastro' ? 'cadastro' : 'combo'
+}
+export function agruparPendencias(pendencias = [], { fora = null, visiveis = 3 } = {}) {
+  const mapa = new Map(AREAS.map((a) => [a.chave, { ...a, itens: [] }]))
+  for (const p of pendencias) {
+    if (p === fora || p.tipo === 'enviar') continue
+    mapa.get(areaDaPendencia(p)).itens.push(p)
+  }
+  return AREAS.map((a) => mapa.get(a.chave)).filter((g) => g.itens.length)
+    .map((g) => {
+      const total = g.itens.reduce((n, p) => n + (p.qtd || 1), 0)
+      return { ...g, total, aVista: g.itens.slice(0, visiveis), recolhidas: g.itens.slice(visiveis) }
+    })
 }
 
 /* ── Avisos (sino) ──────────────────────────────────────────────────────── */

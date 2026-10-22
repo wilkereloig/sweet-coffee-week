@@ -1034,6 +1034,56 @@ Comunicação · Histórico · Gestão. ⛔ Não recriar aba por assunto nem o "
   `pagamento.gerir`, mas `get_ficha_360` entrega `pagamento_status` a qualquer `dado.ler`
   (restringir é migration). Voltar do navegador com editor sujo não pergunta (só os botões).
 
+#### Início e formulário da marca mais claros — 22/10/2026 (revisão de organização e usabilidade)
+Pedido do Wilker com o painel indo para os participantes. Só interface: nenhuma RPC, tabela ou validação mudou (o servidor segue
+autoridade do envio). Análise em três frentes (UX, frontend, QA) + revisão independente de 3 lentes com cético por achado; os 20
+achados confirmados estão corrigidos e cobertos por teste.
+- **Uma leitura, um vocabulário de envio** (`lib/guia.js › resumoMarca`): `envio = { faltam, itens, pronto, conhecido, podeEnviar }`.
+  - O Início passou a ler o que a camada de edição exige (`marca_previa_publica().faltando`, em `useResumoMarca`, junto com
+    `marca_minha_publicacao`); `conhecido: false` = o banco ainda não tem a leitura → não se afirma nada sobre isso. ⛔ Falha
+    de leitura nunca vira "tudo pronto".
+  - **"Enviar" só quando o servidor aceitaria e há o que analisar** (`podeEnviar`): nunca com combo `em_analise` nem participação
+    `encerrado`; `aprovado` só se `alterado_apos_aprovacao` ("Enviar as alterações"); `correcao_solicitada` mesmo sem linha de
+    correção diz "novamente". A logo não trava o envio (conta no %, não em `envio`).
+  - A mesma falta de endereço (campo básico × `unidade:<id>:endereco`/`sem_unidade` do servidor) conta UMA vez, e vale a do servidor
+    (aponta a unidade certa). ⚠️ `participacao_unidades` é lida COM `order=ordem` no resumo — o id do campo (`…-endereco-2`) é a
+    posição; sem a ordem o link cai na unidade errada (teste reprova).
+  - `%` = **"dos dados básicos"** (campos obrigatórios de `campos_cadastro`, com a logo), nunca "concluído": o alcance está escrito em
+    todo lugar (cabeçalho, Início, formulário); o que falta para ENVIAR é a linha "Faltam N itens para enviar" (`envio`).
+  - `etapas[].detalhe` = frase pronta ("aguardando liberação da organização", "em análise pela organização"…): nunca só "falta".
+  - `proxima.critica` (mesma referência da pendência): correção > pedido importante ou com prazo ≤ `PRAZO_URGENTE_DIAS` (3) ou vencido >
+    campo > enviar. `agruparPendencias` reúne por assunto (Meu cadastro, Meu combo, Fotos, Solicitações, Documentos) sem perder nem
+    repetir; `qtd` conta arquivos/fotos para ler na aba.
+- **Início** (`vistas-marca/Hoje.jsx` + `hoje/*.jsx` + `lib/inicioMarca.js`, estilo `styles/inicio-marca.css`, prefixo `im-`): identificação
+  compacta (só ≤900px; no computador o topo já identifica) → **O que fazer agora** → pendências por assunto → acompanhamento →
+  comunicação e prazos → materiais e história. Decisões:
+  - mensagem nova só é o destaque se NÃO houver ação crítica (nem cadastro pendente com o prazo de preenchimento do cronograma em até
+    3 dias — `prazoDoCadastro`); senão fica logo abaixo; o envio que perde o destaque sai em `enviarAparte`, nunca some;
+  - sem tarefa, diz o que está com a organização ("Aguardando a organização") — ou "Falta lançar os combos de hoje" durante o
+    festival, ou "A edição terminou"; depois do festival não se espera sessão de fotos;
+  - "Seu preenchimento" (selo **Preenchido**, neutro) é separado de "Com a organização" (tema, combo, fotos, página: **Concluído** só
+    aqui) — tema aprovado ≠ combo aprovado ≠ página publicada;
+  - durante o festival "Combos vendidos" sobe logo abaixo do destaque; os blocos têm `key` própria, então mudar a ordem MOVE e não
+    remonta (o digitado nas vendas fica). Antes do festival a venda não aparece.
+  - `dataBr`: instante com hora (prazo de pedido, UTC) vira data LOCAL; dia puro (`AAAA-MM-DD`) fica como veio.
+- **Formulário** (`Cadastro.jsx` + `edicao/*` + `lib/edicaoMarca.js`, `edicao-marca.css`): numeração visível LOCAL por aba (Meu cadastro 1–3,
+  Meu combo 1–4; os ids `bloco-N`/`data-bloco`/`campo-*` e os links gravados NÃO mudaram); cabeçalho do bloco = um `<button>` com título,
+  estado em ícone+texto (`estadoDoBloco`: o tema segue `temas_propostos`, não o combo) e, recolhido, o resumo; salvar × enviar:
+  `rotuloSalvamento` ("Salvando…" fora do leitor de tela, "Alterações salvas" só depois da resposta do servidor, erro numa voz só) e
+  a nota "os dados são salvos sozinhos; enviar é um passo à parte e leva o cadastro INTEIRO"; **Revisar antes de enviar** por área
+  (`revisaoPorArea`, cada falta leva ao campo mesmo na outra aba); "Continuar" só navega e põe o foco no cabeçalho do próximo bloco;
+  alimentar por item com progresso ("5 de 8 alergênicos"), item com correção abre sozinho; ausência de resposta NUNCA vira "não contém".
+  ⚠️ A barra presa `.mc-resumo` mede ~117–144px no celular de 360px: `scroll-margin-top` dos blocos e a altura reservada da linha de
+  salvamento estão em `edicao-marca.css` (medido, não calculado).
+- **Arquivos**: o botão só grava `arquivo_leitura` → "Li e confirmo a leitura" / "Conferi as fotos" (nunca "de acordo": não é aceite formal).
+- **Atenção na primeira tarefa:** o convite de instalar/ligar avisos (`ConviteAparelho`) só abre a partir da **2ª visita** da pessoa ao painel
+  (`contarVisita` em `lib/instalar.js`: uma por sessão do navegador, por conta e aparelho; sem armazenamento devolve 2). Na 1ª só há o tour
+  (dispensável) — antes o convite abria como modal por cima do Início logo depois dele. ⚠️ Aviso de atualização continua com prioridade
+  própria (`telaOcupada`).
+- ⚠️ **Ficou para depois** (não feito): fotos com miniaturas e download em lote; Arquivos "abrir × baixar" no iPhone; organização (Visão geral,
+  nomes de Publicação, Ficha). Nada disto foi validado no iPhone real. Testes: `tests/painel-app-guia-estados`, `painel-app-inicio`, `painel-app-edicao-marca`; navegador (backend falso):
+  `node tests/painel-marca-estados-navegador.mjs` (de dentro de `tests/`; `CAPTURAS=<pasta>` salva imagens em 360/390/768/1280/1440).
+
 #### "Ver como participante" — 22/10/2026 (pedido do Wilker)
 O administrador vê o painel da marca EXATAMENTE como ela vê, sem gravar e sem usar nem tocar a sessão dela. Ficha › Mais ações ›
 "Ver como participante" (só `acesso.gerir`) abre `/painel/?ver_como=<participante>` numa aba nova (`VerComoParticipante.jsx`, estado

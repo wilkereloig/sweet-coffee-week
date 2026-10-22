@@ -15,6 +15,7 @@ const ESTADO_CAMPO = {
   alteracao: { icone: 'editar', texto: 'Alteração solicitada' },
   analise: { icone: 'horario', texto: 'Em análise' },
   aprovado: { icone: 'sucesso', texto: 'Aprovado' },
+  espera: { icone: 'horario', texto: 'Em espera' },
 }
 export function EstadoCampo({ e }) {
   if (!e) return null
@@ -22,17 +23,51 @@ export function EstadoCampo({ e }) {
   if (!x) return null
   return <span className="gm-campo-estado" data-estado={e.estado}><Icone nome={x.icone} tamanho={16} />{x.texto}</span>
 }
+
+/*
+ * O mesmo vocabulário, no cabeçalho do bloco (lib/edicaoMarca · estadoDoBloco): ícone + palavras, nunca só
+ * cor. "Preenchido" e "Aprovado" são estados DIFERENTES — só a organização aprova.
+ */
+export function EstadoBloco({ e }) {
+  const x = e && ESTADO_CAMPO[e.estado]
+  if (!x) return null
+  return <span className="gm-campo-estado em-estado-bloco" data-estado={e.estado}><Icone nome={x.icone} tamanho={16} />{e.texto}</span>
+}
+
+// "(opcional)" escrito de um jeito só. Um texto no lugar de "opcional" cabe quando o motivo é outro
+// (a logo conta no progresso, mas não trava o envio).
+export function Opcional({ children = 'opcional' }) {
+  return <em className="em-opcional">({children})</em>
+}
 export function Correcao({ e }) {
   if (!e || e.estado !== 'alteracao' || !e.comentario) return null
   return <span className="gm-correcao" role="note"><b>A organização pediu:</b> {e.comentario}</span>
 }
 
 // O que vai para o site e o que fica com a organização — texto + ícone, nunca só cor.
+// Selo por linha SÓ para a exceção dentro de um grupo (ex.: o CEP, "uso interno", no meio de campos públicos).
 export function Publico({ sim = true }) {
   return (
     <span className="em-publico" data-publico={sim ? 'sim' : 'nao'}>
       <Icone nome={sim ? 'visao' : 'cadeado'} tamanho={16} />{sim ? 'aparece no site' : 'uso interno'}
     </span>
+  )
+}
+
+/*
+ * Grupo de campos com a MESMA visibilidade, explicada UMA vez na cabeça do grupo (em vez de um selo por
+ * linha): "Aparece no site" ou "Uso interno da organização".
+ */
+export function GrupoPublico({ sim = true, children }) {
+  const idTitulo = React.useId()
+  return (
+    <div className="em-grupo" role="group" aria-labelledby={idTitulo} data-publico={sim ? 'sim' : 'nao'}>
+      <p className="em-grupo__cab">
+        <b id={idTitulo}><Icone nome={sim ? 'visao' : 'cadeado'} tamanho={16} />{sim ? 'Aparece no site' : 'Uso interno da organização'}</b>
+        <span>{sim ? 'O que você preencher aqui aparece na sua página do site.' : 'Só a organização vê. Nada disto aparece no site.'}</span>
+      </p>
+      {children}
+    </div>
   )
 }
 

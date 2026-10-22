@@ -7,7 +7,7 @@ import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import * as MC from '../../lib/cadastroMescla'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { camposObrigatorios, progressoCampos, vistaDoBloco } from '../../lib/guia'
-import { Carregando, Erro, Vazio } from '../ui'
+import { Carregando, Erro, Vazio, Selo } from '../ui'
 import { VistaCabeca } from '../VistaCabeca'
 import { confirmar } from '../Confirmar'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
@@ -16,11 +16,11 @@ import {
   precoNumero, blocoCompleto, valorInformado, custosDeLinhas, primeiroBlocoPendente,
 } from '../../lib/cadastro'
 import * as E from '../../lib/edicaoMarca'
-import { EstadoCampo, Correcao, Publico, Contador } from './edicao/campos'
+import { EstadoCampo, EstadoBloco, Correcao, GrupoPublico, Opcional, Contador } from './edicao/campos'
 import { Unidades } from './edicao/Unidades'
 import { Atendimento } from './edicao/Atendimento'
 import { Alimentar } from './edicao/Alimentar'
-import { Previa, ListaFaltando, EstadoPublicacao } from './edicao/Envio'
+import { Previa, ListaFaltando, EstadoPublicacao, Revisao } from './edicao/Envio'
 import '../../styles/edicao-marca.css'
 
 /*
@@ -37,39 +37,46 @@ import '../../styles/edicao-marca.css'
  */
 
 const ICONE_BLOCO = ['bloco-marca', 'bloco-tema', 'bloco-itens', 'bloco-preco', 'bloco-local', 'informacao', 'atendimento']
-const TITULO_BLOCO = [
-  { b: '01 · A marca', s: 'Quem participa' },
-  { b: '02 · O tema', s: 'Sua leitura do tema da edição' },
-  { b: '03 · Os três itens', s: 'Dois itens de comer e uma bebida' },
-  { b: '04 · O combo', s: 'Nome, descrição, condições, valor e custos' },
-  { b: '05 · Unidades', s: 'Endereço, WhatsApp e quais participam' },
-  { b: '06 · Informações alimentares e trocas', s: 'Alergênicos, características e trocas de cada item' },
-  { b: '07 · Atendimento e horário do combo', s: 'Local, retirada, delivery e horário do combo por unidade' },
-]
 
-function Bloco({ indice, aberto, completo, faltam = 0, onToggle, children }) {
-  const t = TITULO_BLOCO[indice]
-  const selo = completo ? 'Pronto' : faltam ? (faltam === 1 ? 'Falta 1' : 'Faltam ' + faltam) : 'Pendente'
+/*
+ * Cabeçalho do bloco = UM <button> (sem controle dentro): número da aba, título, a situação em palavras
+ * (E.estadoDoBloco) e, recolhido, um resumo do que já tem. O número é LOCAL da aba — Meu cadastro 1·2·3,
+ * Meu combo 1·2·3·4 —, mas o índice (data-bloco, bloco-N, links) segue o de sempre.
+ */
+function Bloco({ indice, numero, aberto, completo, estado, resumo, proximo, onToggle, onContinuar, children }) {
+  const t = E.TITULOS_BLOCO[indice]
   return (
     <div className={'mc-bloco' + (aberto ? ' is-aberto' : '') + (completo ? ' is-pronto' : '')} data-bloco={indice}>
       <button type="button" className="mc-bloco__cabeca" aria-expanded={aberto} aria-controls={'bloco-' + indice} onClick={onToggle}>
         <span className="mc-bloco__disco" aria-hidden="true">
           <Icone nome={ICONE_BLOCO[indice]} tamanho={24} />
         </span>
-        <span className="mc-bloco__texto"><b>{t.b}</b><span>{t.s}</span></span>
-        <span className={'selo' + (completo ? ' completo' : '')}>{selo}</span>
+        <span className="em-bloco__col">
+          <span className="mc-bloco__texto"><b>{numero ? numero + ' · ' : ''}{t.titulo}</b>{aberto && <span>{t.sub}</span>}</span>
+          <span className="em-bloco__linha">
+            <EstadoBloco e={estado} />
+            {!aberto && resumo && <span className="em-bloco__resumo">{resumo}</span>}
+          </span>
+        </span>
         <Icone nome="abrir" tamanho={16} className="mc-bloco__chevron" />
       </button>
-      <div className="mc-bloco__corpo" id={'bloco-' + indice} hidden={!aberto}>{children}</div>
+      <div className="mc-bloco__corpo" id={'bloco-' + indice} hidden={!aberto}>
+        {children}
+        {/* Só navega: abre a próxima seção depois de gravar o que está na fila. Nunca envia. */}
+        <div className="em-continuar">
+          <button className="acao secundaria" type="button" onClick={onContinuar}>
+            {proximo ? 'Continuar: ' + proximo : 'Revisar e enviar'}<Icone nome="seta-direita" tamanho={16} />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
-function seloParticipacao(status) {
-  if (status === 'cadastro_completo') return { classe: 'selo completo', texto: 'Cadastro completo' }
-  if (status === 'em_preenchimento') return { classe: 'selo andamento', texto: 'Em preenchimento' }
-  if (status === 'encerrado') return { classe: 'selo', texto: 'Edição encerrada' }
-  return { classe: 'selo', texto: 'Aguardando cadastro' }
+const rolarPara = (el) => {
+  if (!el) return
+  const quieto = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  el.scrollIntoView({ behavior: quieto ? 'auto' : 'smooth', block: 'start' })
 }
 
 const MARCA_VAZIA = { nome_marca: '', responsavel: '', telefone: '', email: '', instagram: '', site: '', cnpj: '', razao_social: '', apresentacao_publica: '' }
@@ -277,10 +284,15 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const [blocoAberto, setBlocoAberto] = React.useState(0)
   const [salvoTexto, setSalvoTexto] = React.useState('')
   const [erroSalvar, setErroSalvar] = React.useState(null)
+  // Gravação em voo (salvamento automático ou operação imediata): só para o rótulo "Salvando…".
+  const [salvando, setSalvando] = React.useState(false)
+  const [revisaoAberta, setRevisaoAberta] = React.useState(false)
   const [concluindo, setConcluindo] = React.useState(false)
   const [concluirAviso, setConcluirAviso] = React.useState(null)
 
   const timerRef = React.useRef(null)
+  const emVooRef = React.useRef(0) // quantas gravações estão em voo agora (salvarEmOrdem e operar)
+  const resumoRef = React.useRef(resumo) // o resumo mais recente, para a abertura (efeito que não re-roda)
   const salvarRef = React.useRef(() => Promise.resolve())
   const tempSeqRef = React.useRef(0)
   // Linhas com POST em voo e ids já devolvidos pelo servidor (por chave
@@ -315,6 +327,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const [externo, setExterno] = React.useState({ conflitos: {}, adotados: {} })
   const guarda = useGuarda()
   const guardaPub = useGuarda()
+  resumoRef.current = resumo
   vivoRef.current = {
     marca, tema, combo, custosStr, extras, itens, unidades, declaracoes, substituicoes,
     edicaoCodigo, statusCadastro, valorCombo, festival, permanentes, modeloNovo, participanteId, participacaoId, semParticipacao,
@@ -404,8 +417,11 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           : {}
         const pend = primeiroBlocoPendente(dados)
         const vis = [0, 1, 2, 3, 4, 5, 6].filter(mostra)
-        setBlocoAberto(vis.includes(pend) ? pend
-          : vis.find((n) => (n <= 4 && !blocoCompleto(n, dados)) || contagem[n]) ?? vis[0])
+        // Correção pedida pela organização vem antes de campo vazio (se o resumo já chegou).
+        const corrigir = ((resumoRef.current && resumoRef.current.pendencias) || []).find((p) => p.tipo === 'correcao' && vis.includes(Number(p.bloco)))
+        setBlocoAberto(corrigir ? Number(corrigir.bloco)
+          : vis.includes(pend) ? pend
+            : vis.find((n) => (n <= 4 && !blocoCompleto(n, dados)) || contagem[n]) ?? vis[0])
         setCarregando(false)
         prontoRef.current = true
         // Aviso que chegou enquanto a tela abria: a foto pode ser mais velha que ele.
@@ -625,20 +641,28 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     setTimeout(() => { if (recarregarRef.current) recarregarRef.current({ dominios: [], refs: [], origens: ['local'] }).catch(() => {}) }, 0)
   }, [])
 
+  // "Salvando…" liga no começo de toda gravação e desliga quando a última termina (conta, não um liga/desliga:
+  // a gravação imediata do horário e o autosave podem se sobrepor).
+  const emVoo = React.useCallback((delta) => {
+    emVooRef.current = Math.max(0, emVooRef.current + delta)
+    setSalvando(emVooRef.current > 0)
+  }, [])
+
   const salvarEmOrdem = React.useCallback(() => {
     if (vooRef.current) { vooRef.current.deNovo = true; return vooRef.current.fim }
     const voo = { deNovo: false }
     vooRef.current = voo
     ciclosRef.current += 1
+    emVoo(1)
     voo.fim = (async () => {
       try {
         let ok
         do { voo.deNovo = false; ok = await salvarRef.current() } while (voo.deNovo)
         return ok
-      } finally { vooRef.current = null; ciclosRef.current += 1; soltarAdiada() }
+      } finally { vooRef.current = null; ciclosRef.current += 1; emVoo(-1); soltarAdiada() }
     })()
     return voo.fim
-  }, [soltarAdiada])
+  }, [soltarAdiada, emVoo])
 
   // Nada digitado se perde: trocar de aba (desmonte), sair da conta
   // (descarregarPendentes no App) e fechar a página (beforeunload avisa).
@@ -685,6 +709,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     await salvarEmOrdem()
     operandoRef.current += 1
     ciclosRef.current += 1
+    emVoo(1)
     try {
       await fn()
       setErroSalvar(null)
@@ -697,6 +722,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     } finally {
       operandoRef.current -= 1
       ciclosRef.current += 1
+      emVoo(-1)
       soltarAdiada()
     }
   }
@@ -974,11 +1000,17 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     },
   }
 
-  const traduzir = (codigo) => E.traduzirFaltando(codigo, { unidades, itens })
+  // Código do servidor → texto, com o ONDE: "Falta em Meu combo: …" quando o bloco é da outra aba.
+  const traduzir = (codigo) => E.comOnde(E.traduzirFaltando(codigo, { unidades, itens }), visiveis)
   function focarCampo(campo, bloco) {
     window.setTimeout(() => {
       const el = (campo && document.getElementById('campo-' + campo)) || document.getElementById('bloco-' + bloco)
-      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (el.focus) el.focus({ preventScroll: true }) }
+      if (el) {
+        // Item de "Informações alimentares" recolhido: abre para o campo estar na tela.
+        const fechado = el.closest && el.closest('details:not([open])')
+        if (fechado) fechado.open = true
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (el.focus) el.focus({ preventScroll: true })
+      }
     }, 60)
   }
   // Pendência da lista → o campo. Está na OUTRA aba (Meu cadastro × Meu combo): leva até ela.
@@ -986,6 +1018,33 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     if (f.bloco === null) return
     if (visiveis.includes(f.bloco)) { setBlocoAberto(f.bloco); focarCampo(f.campo, f.bloco) }
     else if (irPara) irPara(vistaDoBloco(f.bloco), { sub: String(f.bloco), campo: f.campo || '' })
+  }
+
+  // "Continuar": SÓ navega. Grava o que está na fila (em ordem, como o resto) e abre a próxima seção da aba;
+  // na última, leva à revisão. Nunca envia para análise — isso é o botão de baixo.
+  async function continuar(n) {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
+    if (pendenteRef.current) await salvarEmOrdem() // se falhar, o aviso de erro já está na tela e o digitado continua
+    const prox = visiveis[visiveis.indexOf(n) + 1]
+    // O botão que foi tocado fica dentro de um bloco que se recolhe (some do foco): o foco vai para o
+    // cabeçalho de onde a pessoa continua, e o leitor de tela anuncia o título e "expandido".
+    if (prox === undefined) {
+      setRevisaoAberta(true)
+      window.setTimeout(() => {
+        const rev = document.getElementById('em-revisao')
+        rolarPara(rev)
+        const resumo = rev && rev.querySelector('summary')
+        if (resumo) resumo.focus({ preventScroll: true })
+      }, 60)
+      return
+    }
+    setBlocoAberto(prox)
+    window.setTimeout(() => {
+      const alvo = document.querySelector('[data-bloco="' + prox + '"]')
+      rolarPara(alvo)
+      const cabeca = alvo && alvo.querySelector('.mc-bloco__cabeca')
+      if (cabeca) cabeca.focus({ preventScroll: true })
+    }, 60)
   }
 
   async function abrirPrevia() {
@@ -1069,7 +1128,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const logoOk = !!(resumo && resumo.campo && (resumo.campo('logo') || {}).estado !== 'falta')
   const dadosProgresso = { marca, tema, itens, unidades, custos, logo: logoOk }
   const prog = progressoCampos(dadosProgresso)
-  const selo = semParticipacao ? { classe: 'selo', texto: 'Sem edição aberta' } : seloParticipacao(statusCadastro)
   // Estado de cada campo: completo/falta ao vivo; o que a organização disse
   // (alteração pedida, em análise, aprovado) vem do resumo.
   const obrigatorios = camposObrigatorios(dadosProgresso)
@@ -1097,10 +1155,25 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const reenviar = comboStatus === 'correcao_solicitada'
   const alterado = !!(pub && pub.alterado_apos_aprovacao)
   const semModelo = <p className="aviso">Esta etapa abre quando a organização liberar a nova versão do cadastro da edição.</p>
+  // Situação em palavras: ENVIO (statusCadastro) e APROVAÇÃO (comboStatus) são coisas diferentes; "preenchido" não é "aprovado".
+  const situacao = E.situacaoDaMarca({ semParticipacao, statusCadastro, comboStatus, alterado, publicada: !!(pub && pub.estado === 'publicado'), faltam: faltamEnviar })
+  const salvamento = E.rotuloSalvamento({ salvando, erro: !!erroSalvar, texto: salvoTexto })
+  const conferencia = E.revisaoPorArea({ faltaCampos, pendEdicao, unidades, itens, visiveis })
+  // Blocos com correção pedida (a organização apontou um campo, ou o tema foi recusado).
+  const comCorrecao = new Set(((resumo && resumo.pendencias) || []).filter((p) => p.tipo === 'correcao').map((p) => Number(p.bloco)))
+  const tituloDoProximo = (n) => { const p = visiveis[visiveis.indexOf(n) + 1]; return p === undefined ? null : E.TITULOS_BLOCO[p].titulo }
   const blocoProps = (n) => ({
-    indice: n, aberto: blocoAberto === n, completo: pronto(n), faltam: faltamNo(n),
+    indice: n, numero: E.numeroLocalDoBloco(n, visiveis), aberto: blocoAberto === n, completo: pronto(n),
+    estado: E.estadoDoBloco({
+      bloco: n, faltam: faltamNo(n), pronto: pronto(n), correcao: comCorrecao.has(n),
+      comboStatus, temaStatus: revisao.tema ? revisao.tema.status : null, alterado,
+    }),
+    resumo: E.resumoDoBloco(n, { marca, tema, combo, itens, unidades, declaracoes }),
+    proximo: tituloDoProximo(n), onContinuar: () => continuar(n),
     onToggle: () => setBlocoAberto((a) => (a === n ? null : n)),
   })
+  const rotuloEnviar = concluindo ? 'Enviando…' : alterado ? 'Enviar alterações' : reenviar ? 'Enviar novamente para análise'
+    : comboStatus === 'em_analise' ? 'Enviar de novo para análise' : 'Enviar para análise'
   // Alteração de fora: só o que pertence aos blocos DESTA aba (Meu cadastro × Meu combo).
   const confVisiveis = Object.entries(externo.conflitos).filter(([, c]) => visiveis.includes(c.bloco))
   const adotVisiveis = Object.entries(externo.adotados).filter(([, a]) => visiveis.includes(a.bloco))
@@ -1132,17 +1205,28 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
       {!semParticipacao && (
         <div>
+          {/* Três coisas diferentes, uma em cada lugar: a SITUAÇÃO (selo), o PROGRESSO dos dados básicos (%) e o
+              que falta para ENVIAR (linha de baixo). O salvamento é outro assunto. Este é o único elemento preso ao topo. */}
           <div className="mc-resumo">
-            <span className={selo.classe}>{selo.texto}</span>
+            <Selo tom={situacao.tom}>{situacao.texto}</Selo>
             <div className="progresso">
-              <b>Cadastro {prog.pct}% concluído</b>
-              <div className="trilha" role="progressbar" aria-label="Cadastro concluído" aria-valuemin={0} aria-valuemax={100} aria-valuenow={prog.pct}>
+              <b>{prog.pct}% dos dados básicos preenchidos</b>
+              <div className="trilha" role="progressbar" aria-label="Dados obrigatórios preenchidos" aria-valuemin={0} aria-valuemax={100} aria-valuenow={prog.pct}>
                 <i style={{ '--p': prog.pct / 100 }} />
               </div>
-              <span className="em-faltam">{faltamEnviar ? (faltamEnviar === 1 ? 'Falta 1 item para enviar' : 'Faltam ' + faltamEnviar + ' itens para enviar') : 'Tudo pronto para enviar'}</span>
+              <span className="em-faltam">{E.textoEnvio({ faltam: faltamEnviar, chave: situacao.chave })}</span>
             </div>
-            <p className="salvo" role="status">{salvoTexto}</p>
+            {/* "Salvando…" fica fora do leitor de tela (senão anuncia a cada pausa na digitação); o erro tem UMA voz: o aviso abaixo. */}
+            <p className="salvo em-salvo" role="status" data-estado={salvamento.estado}>
+              {salvamento.texto && (
+                <span className="em-salvo__rotulo" aria-hidden={salvamento.estado === 'salvando' || salvamento.estado === 'erro' ? 'true' : undefined}>
+                  <Icone nome={salvamento.estado === 'salvando' ? 'horario' : salvamento.estado === 'salvo' ? 'feito' : 'atencao'} tamanho={16} />{salvamento.texto}
+                </span>
+              )}
+              {salvamento.detalhe && <span className="em-salvo__detalhe">{salvamento.detalhe}</span>}
+            </p>
           </div>
+          {situacao.nota && <p className="nota em-situacao">{situacao.nota}</p>}
           {erroSalvar && (
             <div className="aviso erro" role="alert">
               {erroSalvar}{' '}
@@ -1163,43 +1247,47 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           >
             {mostra(0) && <Bloco {...blocoProps(0)}>
               <p className="nota">Isto atravessa as edições. Corrija o que mudou.</p>
-              {/* Só leitura: o nome é o login da marca (§10.4-b). Mudar aqui a deixaria sem entrar. */}
-              <label><span>Nome da marca <EstadoCampo e={est('nome_marca')} /> <Publico /></span><input id="campo-nome_marca" readOnly aria-describedby="nota-nome_marca" value={marca.nome_marca} /><span className="nota" id="nota-nome_marca">Para mudar o nome, fale com a organização.</span><Correcao e={est('nome_marca')} /></label>
-              {/* A logo oficial: sobe na hora (não espera o salvamento automático). */}
-              {participanteId && (
-                <div className="mc-campo-logo">
-                  <span className="mc-campo-logo__rotulo">Logo do estabelecimento <EstadoCampo e={est('logo')} /> <Publico /></span>
-                  <LogoEditor participanteId={participanteId} nomeMarca={marca.nome_marca} adaptador={adaptadorLogo} modo="marca" onMudou={recarregarResumo} />
-                  <Correcao e={est('logo')} />
+              <GrupoPublico>
+                {/* Só leitura: o nome é o login da marca (§10.4-b). Mudar aqui a deixaria sem entrar. */}
+                <label><span>Nome da marca <EstadoCampo e={est('nome_marca')} /></span><input id="campo-nome_marca" readOnly aria-describedby="nota-nome_marca" value={marca.nome_marca} /><span className="nota" id="nota-nome_marca">Para mudar o nome, fale com a organização.</span><Correcao e={est('nome_marca')} /></label>
+                {/* A logo oficial: sobe na hora (não espera o salvamento automático). */}
+                {participanteId && (
+                  <div className="mc-campo-logo">
+                    <span className="mc-campo-logo__rotulo">Logo do estabelecimento <Opcional>pode enviar depois</Opcional> <EstadoCampo e={est('logo')} /></span>
+                    <LogoEditor participanteId={participanteId} nomeMarca={marca.nome_marca} adaptador={adaptadorLogo} modo="marca" onMudou={recarregarResumo} />
+                    <Correcao e={est('logo')} />
+                  </div>
+                )}
+                {modeloNovo && (
+                  <label><span>Apresentação da casa <Opcional /> <EstadoCampo e={est('apresentacao_publica')} /> <Contador valor={marca.apresentacao_publica} max={280} /></span>
+                    <textarea id="campo-apresentacao_publica" maxLength={280} aria-describedby="nota-apresentacao" value={marca.apresentacao_publica} onChange={(e) => alterarMarca('apresentacao_publica', e.target.value)} />
+                    <span className="nota" id="nota-apresentacao">Duas ou três frases sobre a casa, para a sua página no site. Sem preço nem promoção.</span>
+                    <Correcao e={est('apresentacao_publica')} />
+                  </label>
+                )}
+                <div className="dupla">
+                  <label><span>Instagram <Opcional /> <EstadoCampo e={est('instagram')} /></span><input id="campo-instagram" placeholder="@suamarca" value={marca.instagram} onChange={(e) => alterarMarca('instagram', e.target.value)} /><Correcao e={est('instagram')} /></label>
+                  <label><span>Site <Opcional /></span><input placeholder="https://" value={marca.site} onChange={(e) => alterarMarca('site', e.target.value)} /></label>
                 </div>
-              )}
-              {modeloNovo && (
-                <label><span>Apresentação da casa <em>(opcional)</em> <EstadoCampo e={est('apresentacao_publica')} /> <Publico /> <Contador valor={marca.apresentacao_publica} max={280} /></span>
-                  <textarea id="campo-apresentacao_publica" maxLength={280} aria-describedby="nota-apresentacao" value={marca.apresentacao_publica} onChange={(e) => alterarMarca('apresentacao_publica', e.target.value)} />
-                  <span className="nota" id="nota-apresentacao">Duas ou três frases sobre a casa, para a sua página no site. Sem preço nem promoção.</span>
-                  <Correcao e={est('apresentacao_publica')} />
-                </label>
-              )}
-              <div className="dupla">
-                <label><span>Responsável pelo festival <EstadoCampo e={est('responsavel')} /> <Publico sim={false} /></span><input id="campo-responsavel" required value={marca.responsavel} onChange={(e) => alterarMarca('responsavel', e.target.value)} /><Correcao e={est('responsavel')} /></label>
-                {/* O telefone de cadastro É o WhatsApp: é por ele que a organização fala com a marca. */}
-                <label><span>WhatsApp do responsável <EstadoCampo e={est('telefone')} /> <Publico sim={false} /></span>
-                  <input id="campo-telefone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="(84) 99999-9999" required
-                    aria-invalid={!!erroWhats} aria-describedby={erroWhats ? 'erro-telefone' : undefined}
-                    value={marca.telefone} onChange={(e) => alterarMarca('telefone', mascaraWhatsApp(e.target.value))} />
-                  {erroWhats && <span className="gm-campo-erro" id="erro-telefone">{erroWhats}</span>}
-                  <Correcao e={est('telefone')} />
-                </label>
-              </div>
-              <div className="dupla">
-                <label><span>E-mail de contato <EstadoCampo e={est('email')} /> <Publico sim={false} /></span><input id="campo-email" type="email" inputMode="email" value={marca.email} onChange={(e) => alterarMarca('email', e.target.value)} /><Correcao e={est('email')} /></label>
-                <label><span>Instagram <em>(opcional)</em> <EstadoCampo e={est('instagram')} /> <Publico /></span><input id="campo-instagram" placeholder="@suamarca" value={marca.instagram} onChange={(e) => alterarMarca('instagram', e.target.value)} /><Correcao e={est('instagram')} /></label>
-              </div>
-              <div className="dupla">
-                <label><span>Site <em>(opcional)</em> <Publico /></span><input placeholder="https://" value={marca.site} onChange={(e) => alterarMarca('site', e.target.value)} /></label>
-                <label><span>CNPJ <em>(opcional)</em> <Publico sim={false} /></span><input inputMode="numeric" value={marca.cnpj} onChange={(e) => alterarMarca('cnpj', e.target.value)} /></label>
-              </div>
-              <label><span>Razão social <em>(opcional)</em> <Publico sim={false} /></span><input value={marca.razao_social} onChange={(e) => alterarMarca('razao_social', e.target.value)} /></label>
+              </GrupoPublico>
+              <GrupoPublico sim={false}>
+                <div className="dupla">
+                  <label><span>Responsável pelo festival <EstadoCampo e={est('responsavel')} /></span><input id="campo-responsavel" required value={marca.responsavel} onChange={(e) => alterarMarca('responsavel', e.target.value)} /><Correcao e={est('responsavel')} /></label>
+                  {/* O telefone de cadastro É o WhatsApp: é por ele que a organização fala com a marca. */}
+                  <label><span>WhatsApp do responsável <EstadoCampo e={est('telefone')} /></span>
+                    <input id="campo-telefone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="(84) 99999-9999" required
+                      aria-invalid={!!erroWhats} aria-describedby={erroWhats ? 'erro-telefone' : undefined}
+                      value={marca.telefone} onChange={(e) => alterarMarca('telefone', mascaraWhatsApp(e.target.value))} />
+                    {erroWhats && <span className="gm-campo-erro" id="erro-telefone">{erroWhats}</span>}
+                    <Correcao e={est('telefone')} />
+                  </label>
+                </div>
+                <div className="dupla">
+                  <label><span>E-mail de contato <Opcional /> <EstadoCampo e={est('email')} /></span><input id="campo-email" type="email" inputMode="email" value={marca.email} onChange={(e) => alterarMarca('email', e.target.value)} /><Correcao e={est('email')} /></label>
+                  <label><span>CNPJ <Opcional /></span><input inputMode="numeric" value={marca.cnpj} onChange={(e) => alterarMarca('cnpj', e.target.value)} /></label>
+                </div>
+                <label><span>Razão social <Opcional /></span><input value={marca.razao_social} onChange={(e) => alterarMarca('razao_social', e.target.value)} /></label>
+              </GrupoPublico>
             </Bloco>}
 
             {mostra(1) && <Bloco {...blocoProps(1)}>
@@ -1212,11 +1300,13 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                 </div>
               )}
               <p className="nota">Na edição, cada tema é de uma marca só. Se duas pedirem o mesmo, a organização decide pela ordem de chegada e pelo pagamento em dia.</p>
-              <label><span>Tema escolhido pela marca <EstadoCampo e={est('tema_combo')} /> <Publico sim={false} /></span><input id="campo-tema_combo" required value={tema.tema_combo} onChange={(e) => alterarTema('tema_combo', e.target.value)} /><Correcao e={est('tema_combo')} /></label>
-              <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em> <EstadoCampo e={est('tema_justificativa')} /> <Publico sim={false} /></span>
-                <textarea id="campo-tema_justificativa" required value={tema.tema_justificativa} onChange={(e) => alterarTema('tema_justificativa', e.target.value)} />
-                <Correcao e={est('tema_justificativa')} />
-              </label>
+              <GrupoPublico sim={false}>
+                <label><span>Tema escolhido pela marca <EstadoCampo e={est('tema_combo')} /></span><input id="campo-tema_combo" required value={tema.tema_combo} onChange={(e) => alterarTema('tema_combo', e.target.value)} /><Correcao e={est('tema_combo')} /></label>
+                <label><span>Justificativa <em>(por que esse ângulo, como conversa com a inspiração)</em> <EstadoCampo e={est('tema_justificativa')} /></span>
+                  <textarea id="campo-tema_justificativa" required value={tema.tema_justificativa} onChange={(e) => alterarTema('tema_justificativa', e.target.value)} />
+                  <Correcao e={est('tema_justificativa')} />
+                </label>
+              </GrupoPublico>
             </Bloco>}
 
             {mostra(2) && <Bloco {...blocoProps(2)}>
@@ -1233,7 +1323,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                   Faltam itens do combo na sua participação. Fale com a organização para liberar.
                 </div>
               )}
-              <div>
+              <GrupoPublico>
                 {itensEmOrdem(itens).map((it) => {
                   const tipo = it.tipo
                   return (
@@ -1245,63 +1335,67 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                           <label className="marcar"><input type="radio" name={'tipo-' + it.id} checked={tipo === 'doce'} onChange={() => alterarItem(it.id, 'tipo', 'doce')} /><span>Doce</span></label>
                         </div>
                       )}
-                      <label><span>Nome <EstadoCampo e={est('item-' + it.posicao + '-nome')} /> <Publico /></span><input id={'campo-item-' + it.posicao + '-nome'} maxLength={80} value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /><Correcao e={est('item-' + it.posicao + '-nome')} /></label>
-                      <label><span>Descrição <em>(como conversa com o tema)</em> <EstadoCampo e={est('item-' + it.posicao + '-descricao')} /> <Publico /></span>
+                      <label><span>Nome <EstadoCampo e={est('item-' + it.posicao + '-nome')} /></span><input id={'campo-item-' + it.posicao + '-nome'} maxLength={80} value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /><Correcao e={est('item-' + it.posicao + '-nome')} /></label>
+                      <label><span>Descrição <em>(como conversa com o tema)</em> <EstadoCampo e={est('item-' + it.posicao + '-descricao')} /></span>
                         <textarea id={'campo-item-' + it.posicao + '-descricao'} maxLength={300} value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
                         <Correcao e={est('item-' + it.posicao + '-descricao')} />
                       </label>
                     </div>
                   )
                 })}
-              </div>
+              </GrupoPublico>
             </Bloco>}
 
             {mostra(3) && <Bloco {...blocoProps(3)}>
-              {modeloNovo && (
-                <>
-                  <label><span>Nome do combo <EstadoCampo e={est('combo_nome')} /> <Publico /> <Contador valor={combo.combo_nome} max={80} /></span>
-                    <input id="campo-combo_nome" maxLength={80} value={combo.combo_nome} onChange={(e) => alterarCombo('combo_nome', e.target.value)} />
-                    <Correcao e={est('combo_nome')} />
+              <GrupoPublico>
+                {modeloNovo && (
+                  <>
+                    <label><span>Nome do combo <EstadoCampo e={est('combo_nome')} /> <Contador valor={combo.combo_nome} max={80} /></span>
+                      <input id="campo-combo_nome" maxLength={80} value={combo.combo_nome} onChange={(e) => alterarCombo('combo_nome', e.target.value)} />
+                      <Correcao e={est('combo_nome')} />
+                    </label>
+                    <label><span>Descrição do combo <EstadoCampo e={est('combo_descricao')} /> <Contador valor={combo.combo_descricao} max={400} /></span>
+                      <textarea id="campo-combo_descricao" maxLength={400} value={combo.combo_descricao} onChange={(e) => alterarCombo('combo_descricao', e.target.value)} />
+                      <Correcao e={est('combo_descricao')} />
+                    </label>
+                    <label><span>Condições <Opcional /> <EstadoCampo e={est('combo_condicoes')} /> <Contador valor={combo.combo_condicoes} max={280} /></span>
+                      <input id="campo-combo_condicoes" maxLength={280} aria-describedby="nota-condicoes" value={combo.combo_condicoes} onChange={(e) => alterarCombo('combo_condicoes', e.target.value)} />
+                      <span className="nota" id="nota-condicoes">Ex.: só no salão; até durar o estoque do dia. Não escreva preço: o valor é o oficial da edição.</span>
+                      <Correcao e={est('combo_condicoes')} />
+                    </label>
+                  </>
+                )}
+                {/* Valor do combo: a organização define, um para todas as marcas. */}
+                <p className="mc-valor-combo">
+                  <span>Valor do combo</span>
+                  <b>{valorCombo === undefined ? '…' : valorCombo == null ? 'a definir' : 'R$ ' + Number(valorCombo).toFixed(2).replace('.', ',')}</b>
+                  <em>definido pela organização</em>
+                </p>
+              </GrupoPublico>
+              <GrupoPublico sim={false}>
+                <div className="marcar-grupo" role="radiogroup" aria-label="Pode ser para viagem?">
+                  <span className="marcar-grupo__pergunta">Pode ser para viagem?</span>
+                  <label className="marcar"><input type="radio" name="combo_para_viagem" checked={extras.combo_para_viagem === true} onChange={() => alterarExtra('combo_para_viagem', true)} /><span>Sim</span></label>
+                  <label className="marcar"><input type="radio" name="combo_para_viagem" checked={extras.combo_para_viagem === false} onChange={() => alterarExtra('combo_para_viagem', false)} /><span>Não</span></label>
+                </div>
+                {custos.viagem && (
+                  <label className="mc-campo-curto"><span>Custo da embalagem para viagem <em>(em reais)</em> <EstadoCampo e={est('custo_embalagem')} /></span>
+                    <input id="campo-custo_embalagem" inputMode="decimal" placeholder="0,00" required value={custosStr.embalagem} onChange={(e) => alterarCusto('embalagem', e.target.value)} />
+                    <Correcao e={est('custo_embalagem')} />
                   </label>
-                  <label><span>Descrição do combo <EstadoCampo e={est('combo_descricao')} /> <Publico /> <Contador valor={combo.combo_descricao} max={400} /></span>
-                    <textarea id="campo-combo_descricao" maxLength={400} value={combo.combo_descricao} onChange={(e) => alterarCombo('combo_descricao', e.target.value)} />
-                    <Correcao e={est('combo_descricao')} />
-                  </label>
-                  <label><span>Condições <em>(opcional)</em> <EstadoCampo e={est('combo_condicoes')} /> <Publico /> <Contador valor={combo.combo_condicoes} max={280} /></span>
-                    <input id="campo-combo_condicoes" maxLength={280} aria-describedby="nota-condicoes" value={combo.combo_condicoes} onChange={(e) => alterarCombo('combo_condicoes', e.target.value)} />
-                    <span className="nota" id="nota-condicoes">Ex.: só no salão; até durar o estoque do dia. Não escreva preço: o valor é o oficial da edição.</span>
-                    <Correcao e={est('combo_condicoes')} />
-                  </label>
-                </>
-              )}
-              {/* Valor do combo: a organização define, um para todas as marcas. */}
-              <p className="mc-valor-combo">
-                <span>Valor do combo</span>
-                <b>{valorCombo === undefined ? '…' : valorCombo == null ? 'a definir' : 'R$ ' + Number(valorCombo).toFixed(2).replace('.', ',')}</b>
-                <em>definido pela organização</em> <Publico />
-              </p>
-              <div className="marcar-grupo" role="radiogroup" aria-label="Pode ser para viagem?">
-                <span className="marcar-grupo__pergunta">Pode ser para viagem? <Publico sim={false} /></span>
-                <label className="marcar"><input type="radio" name="combo_para_viagem" checked={extras.combo_para_viagem === true} onChange={() => alterarExtra('combo_para_viagem', true)} /><span>Sim</span></label>
-                <label className="marcar"><input type="radio" name="combo_para_viagem" checked={extras.combo_para_viagem === false} onChange={() => alterarExtra('combo_para_viagem', false)} /><span>Não</span></label>
-              </div>
-              {custos.viagem && (
-                <label className="mc-campo-curto"><span>Custo da embalagem para viagem <em>(em reais)</em> <EstadoCampo e={est('custo_embalagem')} /> <Publico sim={false} /></span>
-                  <input id="campo-custo_embalagem" inputMode="decimal" placeholder="0,00" required value={custosStr.embalagem} onChange={(e) => alterarCusto('embalagem', e.target.value)} />
-                  <Correcao e={est('custo_embalagem')} />
+                )}
+                {custos.delivery
+                  ? (
+                    <label className="mc-campo-curto"><span>Custo do delivery <em>(em reais)</em> <EstadoCampo e={est('custo_delivery')} /></span>
+                      <input id="campo-custo_delivery" inputMode="decimal" placeholder="0,00" required value={custosStr.delivery} onChange={(e) => alterarCusto('delivery', e.target.value)} />
+                      <Correcao e={est('custo_delivery')} />
+                    </label>
+                  )
+                  : <p className="nota">Custo do delivery: pedido só se alguma unidade entregar o combo (Meu cadastro › Atendimento e horários do combo).</p>}
+                <label><span>A proposta criativa: qual é a história do combo? <Opcional /></span>
+                  <textarea value={extras.combo_proposta} onChange={(e) => alterarExtra('combo_proposta', e.target.value)} />
                 </label>
-              )}
-              {custos.delivery
-                ? (
-                  <label className="mc-campo-curto"><span>Custo do delivery <em>(em reais)</em> <EstadoCampo e={est('custo_delivery')} /> <Publico sim={false} /></span>
-                    <input id="campo-custo_delivery" inputMode="decimal" placeholder="0,00" required value={custosStr.delivery} onChange={(e) => alterarCusto('delivery', e.target.value)} />
-                    <Correcao e={est('custo_delivery')} />
-                  </label>
-                )
-                : <p className="nota">Custo do delivery: pedido só se alguma unidade entregar o combo (Meu cadastro › Atendimento e horário do combo).</p>}
-              <label><span>A proposta criativa: qual é a história do combo? <em>(opcional)</em> <Publico sim={false} /></span>
-                <textarea value={extras.combo_proposta} onChange={(e) => alterarExtra('combo_proposta', e.target.value)} />
-              </label>
+              </GrupoPublico>
             </Bloco>}
 
             {mostra(4) && <Bloco {...blocoProps(4)}>
@@ -1324,16 +1418,21 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                 : semModelo}
             </Bloco>}
 
+            {/* Conferência das duas áreas antes de enviar: leitura, sem tela nova. Quem decide é o servidor. */}
+            <Revisao revisao={conferencia} aberta={revisaoAberta} onToggle={setRevisaoAberta} onIr={irParaFalta} />
             {modeloNovo && (
               <button className="acao secundaria larga" type="button" onClick={abrirPrevia}>
                 <Icone nome="visao" tamanho={16} />Ver como fica no site
               </button>
             )}
-            {/* Enviar vale para o cadastro inteiro (as duas abas): quem confere o
-                que falta é o servidor (marca_concluir_cadastro). */}
-            <button className="acao larga" type="submit" disabled={concluindo}>
-              {concluindo ? 'Enviando…' : alterado ? 'Enviar alterações' : reenviar ? 'Enviar novamente para análise' : 'Enviar para análise'}
-            </button>
+            {/* Salvar e enviar são coisas diferentes. Enviar vale para o cadastro inteiro (as duas abas): quem
+                confere o que falta é o servidor (marca_concluir_cadastro). */}
+            <p className="nota em-envio__nota" id="nota-envio">
+              <Icone nome="informacao" tamanho={16} />
+              <span><b>Os dados são salvos automaticamente.</b> Quando terminar as duas áreas (Meu cadastro e Meu combo), envie para
+                a organização conferir. O envio é um passo à parte e leva o cadastro inteiro, não só esta área.</span>
+            </p>
+            <button className="acao larga" type="submit" disabled={concluindo} aria-describedby="nota-envio">{rotuloEnviar}</button>
           </form>
 
           {concluirAviso && (

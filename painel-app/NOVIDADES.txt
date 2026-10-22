@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Novo: "Ver como participante" na ficha da marca, e as senhas geradas aparecem na tela para copiar.
+Mais claro: o Início mostra o que fazer agora, as pendências por assunto e o que espera a organização; o cadastro ficou mais fácil de seguir.

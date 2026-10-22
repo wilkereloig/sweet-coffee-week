@@ -11,6 +11,7 @@ import { lerRota, montarRota } from '../lib/rota'
 import { ContaMarca } from './ContaMarca'
 import { Tour, useTour } from './Tour'
 import { InstalarApp, ConviteAparelho } from './AppNoAparelho'
+import { contarVisita } from '../lib/instalar'
 import { PontoVersao } from './Conexao'
 import { pushMarca } from '../lib/marcaApi'
 import { AvisosAparelho } from './AvisosAparelho'
@@ -57,7 +58,7 @@ function aplicarAcento(vista) {
 }
 
 // O que o resumo da marca lê (useResumoMarca): qualquer um destes mudou → relê, sem poll.
-const DOMINIOS_RESUMO = ['participantes', 'cadastro', 'unidades', 'correcoes', 'pedidos', 'fotos', 'arquivos', 'temas', 'logos']
+const DOMINIOS_RESUMO = ['participantes', 'cadastro', 'unidades', 'correcoes', 'pedidos', 'fotos', 'arquivos', 'temas', 'logos', 'publicacao', 'edicao']
 
 // Rota da marca no endereço: #combo/2?campo=item-2-descricao (bloco na
 // "aba", campo e item nos filtros). Recarregar volta ao mesmo lugar.
@@ -230,6 +231,8 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
   const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial && !verComo })
   const idParticipante = (dadosMarca && dadosMarca.participante && dadosMarca.participante.id) || null
   const pushDaMarca = React.useMemo(() => pushMarca(idParticipante), [idParticipante])
+  // O convite de instalar/ligar avisos só a partir da 2ª visita: a primeira é da primeira tarefa (e do tour, dispensável).
+  const visitas = React.useMemo(() => (idParticipante ? contarVisita('marca', idParticipante) : 0), [idParticipante])
 
   const Vista = vistas[vista]
   // Números das abas = pendências daquela seção (+ mensagens não lidas no Início).
@@ -256,7 +259,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
             className="pn-rail__btn"
             type="button"
             data-tour={'menu-' + d}
-            aria-label={TITULOS[d] + (contadores[d] ? ' (' + contadores[d] + (contadores[d] === 1 ? ' pendência)' : ' pendências)') : pronto(d) ? ' (concluído)' : '')}
+            aria-label={TITULOS[d] + (contadores[d] ? ' (' + contadores[d] + (contadores[d] === 1 ? ' pendência)' : ' pendências)') : pronto(d) ? ' (preenchido)' : '')}
             aria-current={d === vista ? 'page' : undefined}
             onClick={() => irPara(d)}
           >
@@ -286,7 +289,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
             <LogoMarca url={urlLogo(dadosMarca.logo && dadosMarca.logo.atual && dadosMarca.logo.atual.path)} nome={dadosMarca.participante.nome_marca} tamanho={36} />
             <span className="pn-cabeca__ident-texto">
               <span className="pn-cabeca__ident-nome">{dadosMarca.participante.nome_marca}</span>
-              <span className="pn-cabeca__ident-sub">{[dadosMarca.participacao && 'Edição ' + dadosMarca.participacao.edicao_codigo, resumo && !resumo.semParticipacao && 'Cadastro ' + resumo.progresso.pct + '% concluído'].filter(Boolean).join(' · ')}</span>
+              <span className="pn-cabeca__ident-sub">{[dadosMarca.participacao && 'Edição ' + dadosMarca.participacao.edicao_codigo, resumo && !resumo.semParticipacao && resumo.progresso.pct + '% dos dados básicos'].filter(Boolean).join(' · ')}</span>
             </span>
           </div>
         )}
@@ -368,7 +371,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
           explicacao="Ligue para saber na hora quando a organização escrever, pedir algo ou marcar as fotos."
           {...pushMarca(dadosMarca.participante.id)} />}</>} />}
       <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={verComo ? verComo.onSair : onSair} />
-      {!verComo && <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto} />}
+      {!verComo && <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto && visitas >= 2} />}
     </div>
   )
 }

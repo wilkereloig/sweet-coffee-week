@@ -84,6 +84,9 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
     }
   }
 
+  // Só ciência: grava `arquivo_leitura` (quem leu e quando). Não é aceite de termo nem concordância — por isso o
+  // botão diz "Li e confirmo a leitura" / "Conferi as fotos". `setLidos` só roda DEPOIS da gravação confirmada:
+  // se `api` falha (rede, RLS, sessão), cai no `catch` e o arquivo continua pendente.
   async function confirmarLeitura(arquivoId) {
     if (!participacaoId) { setAviso('Sua participação ainda não foi aberta: a confirmação fica disponível quando ela abrir.'); return }
     setConfirmando(arquivoId)
@@ -100,7 +103,7 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
       if (recarregarResumo) recarregarResumo()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
-      setAviso('Não deu para registrar a leitura agora. Tente de novo.')
+      setAviso(fotos ? 'Não deu para registrar a conferência agora. Tente de novo.' : 'Não deu para registrar a leitura agora. Tente de novo.')
     } finally {
       setConfirmando(null)
     }
@@ -130,8 +133,8 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
                         {a.descricao && <span>{a.descricao}</span>}
                         <Selo tom={a.escopo === 'marca' ? 'andamento' : 'neutro'}>{a.escopo === 'marca' ? 'Só para você' : 'Para todos os participantes'}</Selo>
                         {a.exige_leitura && (lido
-                          ? <span>Leitura confirmada em {dataHoraExtensa(lido)}</span>
-                          : <Selo tom="atencao">Confirme a leitura</Selo>)}
+                          ? <span>{fotos ? 'Conferência confirmada em ' : 'Leitura confirmada em '}{dataHoraExtensa(lido)}</span>
+                          : <Selo tom="atencao">{fotos ? 'Confirme que conferiu' : 'Confirme a leitura'}</Selo>)}
                       </div>
                       <div className="ui-linha-acoes">
                         <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>
@@ -139,7 +142,7 @@ export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregar
                         </button>
                         {a.exige_leitura && !lido && (
                           <button className="og-btn og-btn--mini" type="button" disabled={confirmando === a.id} onClick={() => confirmarLeitura(a.id)}>
-                            {confirmando === a.id ? 'Registrando…' : 'Li e estou de acordo'}
+                            {confirmando === a.id ? 'Registrando…' : fotos ? 'Conferi as fotos' : 'Li e confirmo a leitura'}
                           </button>
                         )}
                       </div>

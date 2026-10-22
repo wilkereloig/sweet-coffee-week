@@ -5,7 +5,10 @@ import { textoPublicacao } from '../../../lib/edicaoMarca'
 
 const FichaPrevia = React.lazy(() => import('./FichaPrevia.jsx'))
 
-/* O que falta, já traduzido (traduzirFaltando), cada item levando ao campo. */
+/*
+ * O que falta, já traduzido (traduzirFaltando), cada item levando ao campo. Quando a falta é da OUTRA área
+ * (Meu cadastro × Meu combo), `textoCompleto` diz onde ("Falta em Meu combo: …") e o botão leva até lá.
+ */
 export function ListaFaltando({ itens, onIr }) {
   if (!itens || !itens.length) return null
   return (
@@ -13,11 +16,39 @@ export function ListaFaltando({ itens, onIr }) {
       {itens.map((f, n) => (
         <li key={n}>
           {f.bloco !== null && onIr
-            ? <button className="link" type="button" onClick={() => onIr(f)}>{f.texto}<Icone nome="seta-direita" tamanho={16} /></button>
-            : f.texto}
+            ? <button className="link" type="button" onClick={() => onIr(f)}>{f.textoCompleto || f.texto}<Icone nome="seta-direita" tamanho={16} /></button>
+            : (f.textoCompleto || f.texto)}
         </li>
       ))}
     </ul>
+  )
+}
+
+/*
+ * Revisão antes de enviar (lib/edicaoMarca · revisaoPorArea): o que falta em cada área, lado a lado, com o
+ * caminho até cada item — inclusive o que está na outra aba. É leitura: quem decide se pode enviar é o servidor.
+ */
+export function Revisao({ revisao, aberta, onToggle, onIr }) {
+  return (
+    <details className="ui-recolhe em-revisao" id="em-revisao" open={aberta} onToggle={(e) => onToggle(e.currentTarget.open)}>
+      <summary>
+        <span>Revisar antes de enviar</span>
+        <span className="em-revisao__resumo">{revisao.areas.map((a) => a.texto).join(' · ')}</span>
+      </summary>
+      <div className="em-revisao__corpo">
+        {revisao.areas.map((a) => (
+          <div className="em-revisao__area" key={a.chave} data-pronto={a.pronto ? 'sim' : 'nao'}>
+            <p className="em-revisao__titulo">
+              <Icone nome={a.pronto ? 'feito' : 'atencao'} tamanho={16} />
+              <b>{a.rotulo}</b>
+              <span>{a.pronto ? 'pronto' : a.faltam === 1 ? '1 informação falta' : a.faltam + ' informações faltam'}</span>
+            </p>
+            <ListaFaltando itens={a.itens} onIr={onIr} />
+          </div>
+        ))}
+        <p className="nota em-revisao__nota">Esta lista é uma conferência. Ao enviar, o sistema confere de novo e mostra o que ainda faltar.</p>
+      </div>
+    </details>
   )
 }
 

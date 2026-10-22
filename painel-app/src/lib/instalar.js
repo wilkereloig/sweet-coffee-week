@@ -62,6 +62,22 @@ export function adiarConvite(papel, conta, agora = Date.now()) {
   try { localStorage.setItem(chaveConvite(papel, conta), String(agora)) } catch { /* segue sem lembrar */ }
 }
 
+/*
+ * Visitas ao painel por conta e aparelho (22/10/2026): conta UMA por sessão do navegador. O convite de instalar/ligar
+ * avisos só abre a partir da 2ª — na primeira a pessoa está aprendendo o painel (o tour, dispensável, já cobre isso) e a
+ * primeira tarefa não pode disputar atenção com um diálogo. Guarda só um número. Sem armazenamento: devolve 2 (o convite
+ * não fica escondido para sempre por causa de uma aba privada).
+ */
+export function contarVisita(papel, conta, { local = typeof localStorage === 'undefined' ? null : localStorage, sessao = typeof sessionStorage === 'undefined' ? null : sessionStorage } = {}) {
+  try {
+    const k = 'scw_visitas_' + papel + '_' + (conta || 'sem-conta')
+    const s = 'scw_visita_contada_' + papel + '_' + (conta || 'sem-conta')
+    let n = Number(local.getItem(k)) || 0
+    if (sessao.getItem(s) !== '1') { n += 1; local.setItem(k, String(n)); sessao.setItem(s, '1') }
+    return n
+  } catch { return 2 }
+}
+
 /** Que aparelho é este (só o que muda a instrução). */
 export function plataforma(ua = typeof navigator === 'undefined' ? '' : navigator.userAgent, toque = typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints) {
   const ios = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && toque > 1)

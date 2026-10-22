@@ -7,7 +7,7 @@ import {
   ESTADOS_CARACTERISTICA, DISPONIBILIDADES, MODALIDADES, ASPECTOS_ALERGENICOS, alergenicosRespondidos,
   declaracaoGravavel, substituicaoGravavel, nomeDaUnidade, alternar,
 } from '../../../lib/edicaoMarca'
-import { EstadoCampo, Correcao, Publico, Escolhas } from './campos'
+import { EstadoCampo, Correcao, GrupoPublico, Opcional, Escolhas } from './campos'
 
 /*
  * Bloco 5 · Informações alimentares e trocas, por componente do combo.
@@ -20,12 +20,12 @@ function Declaracoes({ it, decl, alterar }) {
   const outroSemTexto = outro.estado && !declaracaoGravavel('outro_alergenico', outro)
   return (
     <>
-      <h4 className="em-sub">Alergênicos <Publico /></h4>
+      <h4 className="em-sub">Alergênicos</h4>
       {ALERGENICOS_PAINEL.map(([a, rotulo]) => (
         <Escolhas key={a} nome={'al-' + it.id + '-' + a} legenda={rotulo + (DICA_ALERGENICO[a] ? ' (' + DICA_ALERGENICO[a] + ')' : '')}
           opcoes={ESTADOS_ALERGENICO} valor={d[a] && d[a].estado} onMudar={(v) => alterar(it.id, a, 'estado', v)} />
       ))}
-      <Escolhas nome={'al-' + it.id + '-outro'} legenda="Outro alergênico" ajuda="Opcional. Ex.: gergelim, mostarda."
+      <Escolhas nome={'al-' + it.id + '-outro'} legenda={<>Outro alergênico <Opcional /></>} ajuda="Ex.: gergelim, mostarda."
         opcoes={ESTADOS_ALERGENICO} valor={outro.estado} onMudar={(v) => alterar(it.id, 'outro_alergenico', 'estado', v)}>
         {outro.estado && outro.estado !== 'nao_informado' && (
           <label className="em-escolhas__extra"><span>Qual?</span>
@@ -35,7 +35,7 @@ function Declaracoes({ it, decl, alterar }) {
           </label>
         )}
       </Escolhas>
-      <h4 className="em-sub">Características <Publico /></h4>
+      <h4 className="em-sub">Características</h4>
       {CARACTERISTICAS_PAINEL.map((a) => (
         <Escolhas key={a} nome={'ca-' + it.id + '-' + a} legenda={PERGUNTA_CARACTERISTICA[a]}
           opcoes={ESTADOS_CARACTERISTICA} valor={d[a] && d[a].estado} onMudar={(v) => alterar(it.id, a, 'estado', v)} />
@@ -48,7 +48,7 @@ function Trocas({ it, lista, unidades, sub }) {
   const participam = unidades.filter((u) => u.participa && u.puId)
   return (
     <div id={'campo-item-' + it.posicao + '-trocas'} tabIndex={-1}>
-      <h4 className="em-sub">Trocas <em>(opcional)</em> <Publico /></h4>
+      <h4 className="em-sub">Trocas <Opcional /></h4>
       <p className="nota">Uma troca por linha: o que sai e o que entra. Ex.: leite integral por bebida de aveia.</p>
       {lista.map((s) => {
         const k = s._key
@@ -66,12 +66,12 @@ function Trocas({ it, lista, unidades, sub }) {
                   {DISPONIBILIDADES.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
                 </select>
               </label>
-              <label><span>Acréscimo em reais <em>(opcional)</em></span>
+              <label><span>Acréscimo em reais <Opcional /></span>
                 <input inputMode="decimal" value={s.acrescimo} onChange={campo('acrescimo')} />
                 <span className="nota">Em branco = não informado (“consulte a loja”). 0 = sem custo.</span>
               </label>
             </div>
-            <label><span>Como pedir a troca <em>(opcional)</em></span>
+            <label><span>Como pedir a troca <Opcional /></span>
               <input maxLength={160} value={s.como_solicitar} onChange={campo('como_solicitar')} />
               <span className="nota">Ex.: peça no caixa; escreva na observação do aplicativo.</span>
             </label>
@@ -108,30 +108,54 @@ function Trocas({ it, lista, unidades, sub }) {
   )
 }
 
+/*
+ * Um item = um <details>: o resumo diz quantos alergênicos já foram respondidos, o primeiro item com resposta
+ * pendente abre sozinho, e os outros ficam recolhidos. Recolher só esconde — nada é desmontado, o que já foi
+ * respondido continua na tela e no salvamento. Nenhuma resposta é marcada pela tela; "ação em lote" não existe.
+ */
+function ItemAlimentar({ it, declaracoes, substituicoes, unidades, est, alterarDeclaracao, sub, abertoAoMontar }) {
+  const total = ASPECTOS_ALERGENICOS.length
+  const n = alergenicosRespondidos(declaracoes[it.id])
+  const trocas = substituicoes.filter((s) => s.item_id === it.id)
+  const idCampo = 'item-' + it.posicao + '-alimentar'
+  // Correção pedida neste item (alergênicos ou trocas): abre sozinho, mesmo que chegue depois (sincronização).
+  const corrigir = [idCampo, 'item-' + it.posicao + '-trocas'].some((c) => (est(c) || {}).estado === 'alteracao')
+  const [aberto, setAberto] = React.useState(abertoAoMontar || corrigir)
+  React.useEffect(() => { if (corrigir) setAberto(true) }, [corrigir])
+  return (
+    <details className="item em-item" open={aberto} onToggle={(e) => setAberto(e.currentTarget.open)}>
+      <summary>
+        <b>{ROTULO_POSICAO[it.posicao] || 'Item'}{it.nome ? ' · ' + it.nome : ''}</b>
+        <span className="em-item__conta" data-completo={n === total ? 'sim' : 'nao'}>
+          <Icone nome={n === total ? 'feito' : 'horario'} tamanho={16} />
+          {n} de {total} alergênicos respondidos{trocas.length ? ' · ' + (trocas.length === 1 ? '1 troca' : trocas.length + ' trocas') : ''}
+        </span>
+        <Icone nome="abrir" tamanho={16} className="em-item__seta" />
+      </summary>
+      <div id={'campo-' + idCampo} tabIndex={-1}>
+        <EstadoCampo e={est(idCampo)} /><Correcao e={est(idCampo)} />
+        <Declaracoes it={it} decl={declaracoes[it.id]} alterar={alterarDeclaracao} />
+      </div>
+      <EstadoCampo e={est('item-' + it.posicao + '-trocas')} /><Correcao e={est('item-' + it.posicao + '-trocas')} />
+      <Trocas it={it} lista={trocas} unidades={unidades} sub={sub} />
+    </details>
+  )
+}
+
 export function Alimentar({ itens, declaracoes, substituicoes, unidades, est, alterarDeclaracao, sub }) {
+  const lista = itensEmOrdem(itens)
+  const pendente = lista.findIndex((it) => alergenicosRespondidos(declaracoes[it.id]) < ASPECTOS_ALERGENICOS.length)
   return (
     <>
       <p className="nota">Responda por componente. <b>Não sabe?</b> Marque “Não sei” — é resposta válida. Só não deixe sem responder.</p>
       <p className="aviso" role="note"><b>Sem lactose não é o mesmo que sem leite.</b> Um doce sem lactose pode conter leite
         (proteína do leite). Responda os dois separadamente: leite em Alergênicos, lactose em Características.</p>
-      {itensEmOrdem(itens).map((it) => {
-        const n = alergenicosRespondidos(declaracoes[it.id])
-        const idCampo = 'item-' + it.posicao + '-alimentar'
-        return (
-          <div className="item" key={it.id}>
-            <div className="topo">
-              <b>{ROTULO_POSICAO[it.posicao] || 'Item'}{it.nome ? ' · ' + it.nome : ''}</b>
-              <span className="em-item__conta">{n} de {ASPECTOS_ALERGENICOS.length} alergênicos respondidos</span>
-            </div>
-            <div id={'campo-' + idCampo} tabIndex={-1}>
-              <EstadoCampo e={est(idCampo)} /><Correcao e={est(idCampo)} />
-              <Declaracoes it={it} decl={declaracoes[it.id]} alterar={alterarDeclaracao} />
-            </div>
-            <EstadoCampo e={est('item-' + it.posicao + '-trocas')} /><Correcao e={est('item-' + it.posicao + '-trocas')} />
-            <Trocas it={it} lista={substituicoes.filter((s) => s.item_id === it.id)} unidades={unidades} sub={sub} />
-          </div>
-        )
-      })}
+      <GrupoPublico>
+        {lista.map((it, i) => (
+          <ItemAlimentar key={it.id} it={it} declaracoes={declaracoes} substituicoes={substituicoes} unidades={unidades}
+            est={est} alterarDeclaracao={alterarDeclaracao} sub={sub} abertoAoMontar={i === pendente} />
+        ))}
+      </GrupoPublico>
     </>
   )
 }
