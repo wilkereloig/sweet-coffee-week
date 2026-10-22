@@ -137,23 +137,97 @@ test('página: horário por seleção vira texto e volta igual', () => {
   const js = SCRIPTS[0]
   const trecho = js.slice(js.indexOf('var DIAS'), js.indexOf('function montarHorario'))
   const ctx = { txt: (v) => (v == null ? '' : String(v)) }
-  vm.runInNewContext(trecho + ';this.diasTexto=diasTexto;this.horaTexto=horaTexto;this.lerHorario=lerHorario;this.lerHorarios=lerHorarios;this.textoHorarios=textoHorarios;', ctx)
+  vm.runInNewContext(trecho + ';this.diasTexto=diasTexto;this.horaTexto=horaTexto;this.lerHorario=lerHorario;this.lerHorarios=lerHorarios;this.textoHorarios=textoHorarios;this.diasDeFaixas=diasDeFaixas;this.faixasDeDias=faixasDeDias;this.diaCompleto=diaCompleto;', ctx)
   assert.equal(ctx.diasTexto([0, 1, 2, 3, 4, 5, 6]), 'Todos os dias')
   assert.equal(ctx.diasTexto([1, 2, 3, 4, 5, 6]), 'Ter a Dom')
   assert.equal(ctx.diasTexto([0, 2, 4]), 'Seg, Qua, Sex')
-  assert.equal(ctx.horaTexto('14:30') + ' · ' + ctx.horaTexto('9:00'), '14h30 · 9h')
-  for (const t of ['Todos os dias, 14h às 21h', 'Ter a Dom, 10h às 22h30', 'Seg, Qua, Sex, 9h às 18h', 'Sáb e Dom, 8h às 0h']) {
+  assert.equal(ctx.horaTexto('14:30') + ' · ' + ctx.horaTexto('9:00') + ' · ' + ctx.horaTexto('1:30'), '14h30 · 9h · 1h30')
+  // Cada faixa lida volta idêntica: dias, períodos (até dois) e "fechado".
+  for (const t of ['Todos os dias, 14h às 21h', 'Ter a Dom, 10h às 22h30', 'Seg, Qua, Sex, 9h às 18h', 'Sáb e Dom, 8h às 0h',
+    'Seg a Sex, 11h às 14h e 18h às 22h', 'Dom, fechado', 'Seg a Sáb, 17h às 2h']) {
     const l = ctx.lerHorario(t)
     assert.ok(l, 'não leu: ' + t)
-    assert.equal(ctx.diasTexto(l.dias) + ', ' + ctx.horaTexto(l.abre) + ' às ' + ctx.horaTexto(l.fecha), t)
+    const volta = ctx.textoHorarios([l])
+    assert.equal(volta, t)
   }
   assert.equal(ctx.lerHorario('de terça a domingo, a partir das 14'), null, 'texto livre antigo fica como "Hoje está"')
-  // Horário diferente por dia: faixas separadas por ";".
-  const multi = 'Seg a Sex, 12h às 21h; Sáb e Dom, 10h às 22h30'
+  assert.equal(ctx.lerHorario('Seg a Sex, 9h15 às 18h'), null, 'hora fora da lista de seleção não é lida pela metade')
+  // Horário diferente por dia: faixas separadas por ";", inclusive um dia que não abre.
+  const multi = 'Seg a Sex, 12h às 21h; Sáb, 10h às 22h30; Dom, fechado'
   const faixas = ctx.lerHorarios(multi)
-  assert.equal(faixas.length, 2)
+  assert.equal(faixas.length, 3)
   assert.equal(ctx.textoHorarios(faixas), multi)
   assert.equal(ctx.lerHorarios('Seg a Sex, 12h às 21h; qualquer coisa'), null)
+  assert.equal(ctx.lerHorarios('Seg a Qua, 12h às 21h; Qua a Dom, 10h às 18h'), null, 'dia repetido em duas faixas não é lido')
+})
+
+test('página: uma resposta por dia vira faixas juntando os dias iguais', () => {
+  const js = SCRIPTS[0]
+  const trecho = js.slice(js.indexOf('var DIAS'), js.indexOf('function montarHorario'))
+  const ctx = { txt: (v) => (v == null ? '' : String(v)) }
+  vm.runInNewContext(trecho + ';this.diasDeFaixas=diasDeFaixas;this.faixasDeDias=faixasDeDias;this.textoHorarios=textoHorarios;this.lerHorarios=lerHorarios;this.diaCompleto=diaCompleto;', ctx)
+  const util = [['10:00', '22:00']]
+  const dias = [util, util, util, util, util, [['10:00', '18:00']], 'F']
+  assert.equal(ctx.textoHorarios(ctx.faixasDeDias(dias)), 'Seg a Sex, 10h às 22h; Sáb, 10h às 18h; Dom, fechado')
+  assert.equal(ctx.textoHorarios(ctx.faixasDeDias(Array(7).fill(util))), 'Todos os dias, 10h às 22h')
+  // Texto antigo só com a semana: sábado e domingo ficam SEM resposta (a marca precisa decidir).
+  const so = ctx.diasDeFaixas(ctx.lerHorarios('Seg a Sex, 12h às 21h'))
+  assert.deepEqual([so[4] !== null, so[5], so[6]], [true, null, null])
+  // Completo = fechado ou todo período com abre, fecha e abre ≠ fecha.
+  assert.ok(ctx.diaCompleto('F'))
+  assert.ok(ctx.diaCompleto(util))
+  assert.ok(!ctx.diaCompleto(null))
+  assert.ok(!ctx.diaCompleto([['10:00', '']]))
+  assert.ok(!ctx.diaCompleto([['10:00', '10:00']]))
+  assert.ok(!ctx.diaCompleto([['10:00', '14:00'], ['', '']]))
+})
+
+test('página: horário nunca passa do limite do banco e a loja pode ser "igual ao combo"', () => {
+  assert.match(PAGINA, /data-pergunta="horario_combo" data-max="300"/)
+  assert.match(PAGINA, /data-pergunta="horario_loja" data-max="200"/)
+  // O banco corta em silêncio no limite; por isso a página recusa texto maior em vez de mandá-lo.
+  assert.match(SQL, /preenchimento_texto\(un, 'horario_loja', 200\)/)
+  assert.match(SQL, /preenchimento_texto\(un, 'horario_combo', 300\)/)
+  assert.match(SCRIPTS[0], /texto\.length > max/)
+  assert.match(SCRIPTS[0], /igual\.value === 'sim'\) x\.horario_loja = x\.horario_combo/)
+})
+
+test('página: máscaras e conferência de formato', () => {
+  const js = SCRIPTS[0]
+  const trecho = js.slice(js.indexOf('function digitos'), js.indexOf('// O que falta'))
+  const ctx = {}
+  vm.runInNewContext(trecho + ';this.mascaraTel=mascaraTel;this.mascaraCep=mascaraCep;this.mascaraCnpj=mascaraCnpj;this.telefoneOk=telefoneOk;this.emailOk=emailOk;this.instagramLimpo=instagramLimpo;', ctx)
+  assert.equal(ctx.mascaraTel('84999990000'), '(84) 99999-0000')
+  assert.equal(ctx.mascaraTel('+55 84 3222-1000'), '(84) 3222-1000')
+  assert.equal(ctx.mascaraTel('8'), '(8')
+  assert.equal(ctx.mascaraCep('59090000'), '59090-000')
+  assert.equal(ctx.mascaraCnpj('12345678000190'), '12.345.678/0001-90')
+  assert.ok(ctx.telefoneOk('(84) 99999-0000') && ctx.telefoneOk('+55 (84) 3222-1000'))
+  assert.ok(!ctx.telefoneOk('99999-0000') && !ctx.telefoneOk('(84) 9999'))
+  assert.ok(ctx.emailOk('a@b.co') && !ctx.emailOk('a@b') && !ctx.emailOk('a b@c.com'))
+  assert.equal(ctx.instagramLimpo('https://www.instagram.com/minhamarca/?igsh=abc'), '@minhamarca')
+  assert.equal(ctx.instagramLimpo(' @@minhamarca '), '@minhamarca')
+  assert.equal(ctx.instagramLimpo(''), '')
+})
+
+test('página: duas vozes da família (Slab no título, Nexa na interface, Nexa Text na leitura)', () => {
+  const css = PAGINA.slice(PAGINA.indexOf('<style>'), PAGINA.indexOf('</style>')).replace(/@font-face\{[^}]*\}/g, '')
+  assert.match(css, /--f-ui:'nexa','Nexa Slab'/)
+  assert.match(css, /--f-texto:'nexa-text','Nexa Slab'/)
+  assert.match(css, /body\{[^}]*font-family:var\(--f-texto\)[^}]*font-weight:400[^}]*font-synthesis:none/)
+  assert.match(css, /h1,h2,h3\{font-family:var\(--f-slab\)/)
+  // O kit não tem 500 nem 800 na sem serifa: 800 só nos títulos (Slab), nenhum 500.
+  assert.doesNotMatch(css, /font-weight:500/)
+  const com800 = [...css.matchAll(/([^{}]+)\{[^}]*font-weight:800[^}]*\}/g)].map((m) => m[1].trim())
+  assert.deepEqual(com800.filter((x) => x !== 'h1,h2,h3'), [], '800 só nos títulos')
+  // Rótulo, botão e opção são Nexa; campo e parágrafo, Nexa Text.
+  for (const sel of ['.campo>span', '.pergunta>span', '.opcao', '.btn', '.marcar']) {
+    const regra = css.match(new RegExp('(?:^|\n|\})\s*' + sel.replace(/[.>]/g, '\$&') + '\{[^}]*\}'))
+    assert.ok(regra && /font-family:var\(--f-ui\)/.test(regra[0]), sel + ' em Nexa (interface)')
+  }
+  // O kit carrega só pelo JS (o .css responde 412) e dentro do único script da página.
+  assert.doesNotMatch(PAGINA, /ngx4uek\.css/)
+  assert.match(SCRIPTS[0], /use\.typekit\.net\/ngx4uek\.js/)
 })
 
 test('página: alergênicos e características da página são os do banco', () => {

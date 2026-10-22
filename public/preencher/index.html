@@ -12,6 +12,9 @@
 <meta property="og:description" content="Confira e complete os dados da sua marca para a próxima edição.">
 <meta property="og:locale" content="pt_BR">
 <link rel="icon" href="/favicon.ico">
+<!-- Nexa e Nexa Text: kit Typekit ngx4uek, carregado pelo JS no fim da página (o .css do kit responde 412). -->
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="preconnect" href="https://p.typekit.net" crossorigin>
 <style>
 /* ─────────────────────────────────────────────────────────────
    Sweet & Coffee Week — Link de preenchimento (16/10/2026)
@@ -31,16 +34,21 @@
   --scw-creme:#FEF0DD; --scw-bege:#F8E4C1; --scw-choco:#3D1308; --scw-marrom:#6A2C15;
   --scw-amarelo:#FDBB1A; --scw-cyan:#01AFCC; --scw-laranja:#FF4810;
   --scw-filete:rgba(61,19,8,.14); --scw-borda-campo:rgba(61,19,8,.28);
-  --scw-font:'Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
+  /* Duas vozes da mesma família (CLAUDE.md §6.5): Slab só nos títulos; Nexa na interface
+     (rótulo, botão, opção); Nexa Text na leitura e nos campos. O kit não tem 500, 800 nem 900
+     na sem serifa: só 400 e 700. Sem o Typekit o fallback é a própria Nexa Slab. */
+  --f-slab:'Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-ui:'nexa','Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-texto:'nexa-text','Nexa Slab',system-ui,-apple-system,'Segoe UI',sans-serif;
   --r:14px; --r-card:22px;
   --trilho:clamp(16px,5vw,40px);
 }
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--scw-creme);color:var(--scw-choco);font-family:var(--scw-font);
-  font-weight:500;font-size:16px;line-height:1.5;overflow-x:hidden}
+body{margin:0;background:var(--scw-creme);color:var(--scw-choco);font-family:var(--f-texto);
+  font-weight:400;font-synthesis:none;font-size:16px;line-height:1.5;overflow-x:hidden}
 :where(a,button,input,select,textarea,summary):focus-visible{outline:3px solid var(--scw-cyan);outline-offset:2px;border-radius:6px}
-h1,h2,h3{line-height:1.15;margin:0;font-weight:800}
+h1,h2,h3{font-family:var(--f-slab);line-height:1.15;margin:0;font-weight:800}
 p{margin:0}
 svg{flex:none}
 .oculto{display:none!important}
@@ -49,23 +57,23 @@ svg{flex:none}
 .topo{background:var(--scw-choco);color:var(--scw-creme);padding:calc(env(safe-area-inset-top) + 20px) var(--trilho) 24px}
 .topo__in{max-width:640px;margin:0 auto;display:flex;gap:14px;align-items:center}
 .topo__logo{width:68px;height:68px;flex:none;border-radius:16px;background:var(--scw-creme);object-fit:contain;padding:5px}
-.topo__ola{font-size:15px;color:var(--scw-amarelo);font-weight:700}
+.topo__ola{font-family:var(--f-ui);font-size:15px;color:var(--scw-amarelo);font-weight:700}
 .topo h1{font-size:clamp(21px,5vw,28px)}
 
 main{max-width:640px;margin:0 auto;padding:18px var(--trilho) calc(env(safe-area-inset-bottom) + 32px)}
 
 /* Resumo: três fatos com ícone + o prazo. Nada além disso. */
 .resumo{list-style:none;padding:0;margin:0 0 12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.fato{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:12px 6px;border-radius:var(--r);
+.fato{font-family:var(--f-ui);display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:12px 6px;border-radius:var(--r);
   background:rgba(255,255,255,.55);border:1px solid var(--scw-filete);font-size:13px;line-height:1.25}
-.fato b{font-size:14px;font-weight:800}
+.fato b{font-size:14px;font-weight:700}
 .fato__disco{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--scw-amarelo)}
 .fato:nth-child(2) .fato__disco{background:var(--scw-cyan)}
 .fato:nth-child(3) .fato__disco{background:var(--scw-bege)}
 .prazo{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:var(--r);background:var(--scw-laranja);
-  color:var(--scw-choco);font-weight:700;margin-bottom:18px}
+  color:var(--scw-choco);font-family:var(--f-ui);font-weight:700;margin-bottom:18px}
 .importante{padding:14px;border-radius:var(--r);border:1.5px solid var(--scw-choco);background:rgba(255,255,255,.55);margin-bottom:18px;font-size:15px}
-.importante__titulo{display:flex;align-items:center;gap:8px;font-weight:800;margin-bottom:6px}
+.importante__titulo{display:flex;align-items:center;gap:8px;font-family:var(--f-ui);font-weight:700;margin-bottom:6px}
 .importante ul{margin:0;padding-left:20px}
 .importante li{margin:4px 0}
 .aviso{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:var(--r);background:var(--scw-bege);margin-bottom:18px;font-size:15px}
@@ -78,8 +86,8 @@ fieldset{border:0;padding:0;margin:0}
 .bloco__disco{width:40px;height:40px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--scw-amarelo)}
 .bloco:nth-of-type(2n) .bloco__disco{background:var(--scw-cyan)}
 .campo{display:block;margin-top:12px}
-.campo>span{display:block;font-weight:700;font-size:15px;margin-bottom:5px}
-.campo>span em{font-style:normal;font-weight:500;color:var(--scw-marrom)}
+.campo>span{display:block;font-family:var(--f-ui);font-weight:700;font-size:15px;margin-bottom:5px}
+.campo>span em{font-family:var(--f-texto);font-style:normal;font-weight:400;color:var(--scw-marrom)}
 .campo input,.campo textarea{width:100%;min-height:48px;font:inherit;color:inherit;background:#fff;
   border:1.5px solid var(--scw-borda-campo);border-radius:var(--r);padding:11px 13px}
 .campo textarea{min-height:76px;resize:vertical}
@@ -90,18 +98,18 @@ fieldset{border:0;padding:0;margin:0}
 .dupla--numero{grid-template-columns:1fr 110px}
 
 .pergunta{margin-top:12px}
-.pergunta>span{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.pergunta>span{display:block;font-family:var(--f-ui);font-weight:700;font-size:15px;margin-bottom:6px}
 .opcoes{display:flex;gap:8px;flex-wrap:wrap}
-.opcao{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1.5px solid var(--scw-borda-campo);
+.opcao{display:flex;align-items:center;gap:8px;font-family:var(--f-ui);font-weight:700;min-height:44px;padding:8px 14px;border:1.5px solid var(--scw-borda-campo);
   border-radius:999px;background:#fff;cursor:pointer}
 .opcao input{width:20px;height:20px;margin:0;accent-color:var(--scw-choco)}
 .opcao:has(input:checked){border-color:var(--scw-choco);background:var(--scw-bege)}
 .pergunta--falta .opcao{border-color:var(--scw-laranja)}
-.nota-curta{font-style:normal;font-weight:500;font-size:14px;color:var(--scw-marrom)}
+.nota-curta{font-family:var(--f-texto);font-style:normal;font-weight:400;font-size:14px;color:var(--scw-marrom)}
 .valores__outro{margin:0;flex:1 1 120px}
 .valores__outro.fechado{display:none}
 .horas{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-.horas label{display:flex;align-items:center;gap:6px;font-weight:700}
+.horas label{display:flex;align-items:center;gap:6px;font-family:var(--f-ui);font-weight:700}
 .horas select{min-height:48px;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--scw-borda-campo);border-radius:var(--r);padding:8px 10px}
 .atual{font-size:14px;color:var(--scw-marrom);margin-bottom:6px}
 .faixa{padding:10px 0;border-top:1px dashed var(--scw-borda-campo)}
@@ -109,10 +117,20 @@ fieldset{border:0;padding:0;margin:0}
 .faixa__tirar{margin-top:8px}
 .faixas__mais{margin-top:8px}
 .opcao--off{opacity:.4;cursor:not-allowed}
+.hrow{padding:12px 0;border-top:1px dashed var(--scw-borda-campo)}
+.hrow:first-of-type{border-top:0;padding-top:4px}
+.hrow__nome{display:block;margin-bottom:8px;font-family:var(--f-ui);font-weight:700}
+.hrow__horas{margin-top:2px}
+.hrow__horas .btn--mini{margin-top:8px}
+.hdetalhar{margin-top:8px}
+.hresumo{font-family:var(--f-ui);margin-top:12px;padding:10px 12px;border-radius:var(--r);background:var(--scw-bege);font-size:14px;font-weight:700}
+.hresumo--falta{background:rgba(255,72,16,.08);border:1.5px solid var(--scw-laranja)}
+.progresso{font-family:var(--f-ui);margin:0 0 8px;font-size:14px;font-weight:700;color:var(--scw-marrom);text-align:center}
+.progresso--ok{color:var(--scw-choco)}
 .troca{margin-top:4px;padding:4px 14px 14px;border-radius:var(--r);background:rgba(248,228,193,.55)}
 
 details.mais{margin-top:12px}
-details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font-weight:700;font-size:15px;color:var(--scw-marrom)}
+details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font-weight:700;font-size:15px;color:var(--scw-marrom)}
 
 .item{margin-top:14px;padding-top:12px;border-top:1px dashed var(--scw-borda-campo)}
 .item:first-of-type{border-top:0;padding-top:0}
@@ -123,14 +141,14 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
 .loja--fora>*:not(.loja__cabeca){display:none}
 .loja--fora h3{opacity:.55;text-decoration:line-through}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:800;min-height:48px;padding:12px 20px;
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-family:var(--f-ui);font-weight:700;min-height:48px;padding:12px 20px;
   border-radius:999px;border:0;cursor:pointer;background:var(--scw-choco);color:var(--scw-creme)}
 .btn--claro{background:transparent;color:var(--scw-choco);border:1.5px solid var(--scw-choco)}
 .btn--mini{min-height:44px;padding:8px 12px;font-size:14px;background:transparent;color:var(--scw-marrom);border:1.5px solid var(--scw-borda-campo)}
 .btn[disabled]{opacity:.55;cursor:wait}
 
 .final{margin-top:4px}
-.marcar{display:flex;gap:10px;align-items:flex-start;padding:14px;border-radius:var(--r);background:var(--scw-bege);font-weight:700;cursor:pointer}
+.marcar{display:flex;gap:10px;align-items:flex-start;padding:14px;border-radius:var(--r);background:var(--scw-bege);font-family:var(--f-ui);font-weight:700;cursor:pointer}
 .marcar input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--scw-choco)}
 .marcar--falta{outline:2px solid var(--scw-laranja)}
 .enviar{position:sticky;bottom:0;background:var(--scw-creme);padding:12px 8px calc(env(safe-area-inset-bottom) + 12px);margin:12px -8px 0}
@@ -138,7 +156,8 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
 .enviar .btn{width:100%;font-size:17px}
 .faltas{display:flex;gap:10px;margin:0 0 10px;padding:12px 14px;border-radius:var(--r);background:rgba(255,72,16,.07);border:1.5px solid var(--scw-laranja);font-size:14px}
 .faltas ul{margin:4px 0 0;padding-left:18px}
-.faltas a{color:inherit;font-weight:700}
+.faltas a{color:inherit;font-family:var(--f-ui);font-weight:700}
+.faltas strong{font-family:var(--f-ui);font-weight:700}
 
 .estado{text-align:center;padding:40px 8px}
 .estado__disco{width:64px;height:64px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:var(--scw-amarelo)}
@@ -253,7 +272,7 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
 
       <fieldset class="cartao bloco" data-bloco="observacao">
         <legend class="sr">Observações</legend>
-        <div class="bloco__cabeca"><span class="bloco__disco" aria-hidden="true"><!--icone:mensagem:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20.2l1.1-4.4A8 8 0 1 1 20 12Z"/></svg><!--/icone--></span><h2>Algo mais? <em style="font-weight:500;font-size:15px">(opcional)</em></h2></div>
+        <div class="bloco__cabeca"><span class="bloco__disco" aria-hidden="true"><!--icone:mensagem:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20.2l1.1-4.4A8 8 0 1 1 20 12Z"/></svg><!--/icone--></span><h2>Algo mais? <em style="font-family:var(--f-texto);font-weight:400;font-size:15px">(opcional)</em></h2></div>
         <label class="campo"><span class="sr">Observações</span>
           <textarea name="observacao" maxlength="2000" placeholder="Nome da marca errado, alergias, dúvidas…"></textarea></label>
       </fieldset>
@@ -262,6 +281,7 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
         <label class="marcar" id="pr-confirma-caixa"><input type="checkbox" id="pr-confirma"><span>Conferi tudo e as informações estão corretas.</span></label>
       </div>
       <div class="enviar">
+        <p class="progresso" id="pr-progresso" role="status" aria-live="polite"></p>
         <div class="faltas oculto" id="pr-faltas" role="alert" tabindex="-1"></div>
         <button type="submit" class="btn" id="pr-enviar"><!--icone:enviar:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 4 3.8 10.7l6.9 2.6 2.6 6.9Z"/><path d="M20 4l-9.3 9.3"/></svg><!--/icone--><span>Enviar</span></button>
       </div>
@@ -370,9 +390,20 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
         <label class="campo oculto" data-outra-cidade style="margin:0;flex:1 1 160px"><span class="sr">Qual cidade</span><input data-k="cidade" maxlength="80" placeholder="Qual?"></label>
       </div>
     </div>
-    <div class="pergunta horario" data-horario data-pergunta="horario_combo">
-      <span>Dias e horário do combo no festival</span>
+    <div class="pergunta horario" data-horario data-pergunta="horario_combo" data-max="300">
+      <span>Dias e horário em que o combo é vendido no festival</span>
       <input type="hidden" data-k="horario_combo">
+    </div>
+    <div class="pergunta" role="radiogroup" data-pergunta="loja_igual">
+      <span>A loja abre nesses mesmos dias e horários?</span>
+      <div class="opcoes">
+        <label class="opcao"><input type="radio" data-loja-igual value="sim">Sim, é o mesmo</label>
+        <label class="opcao"><input type="radio" data-loja-igual value="nao">Não, a loja abre em outro horário</label>
+      </div>
+    </div>
+    <div class="pergunta horario oculto" data-horario data-pergunta="horario_loja" data-max="200">
+      <span>Dias e horário de funcionamento da loja</span>
+      <input type="hidden" data-k="horario_loja">
     </div>
     <div class="pergunta" role="group" data-pergunta="modos">
       <span>Como vende o combo?</span>
@@ -383,16 +414,12 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
       </div>
     </div>
     <details class="mais">
-      <summary><!--icone:mais:20--><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg><!--/icone-->Nome da loja, CEP, horário e WhatsApp</summary>
+      <summary><!--icone:mais:20--><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg><!--/icone-->Nome da loja, CEP e WhatsApp</summary>
       <div class="dupla">
         <label class="campo"><span>Nome da loja</span><input data-k="nome_unidade" maxlength="60" placeholder="Ex.: Ponta Negra"></label>
         <label class="campo"><span>CEP</span><input data-k="cep" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="59000-000"></label>
         <label class="campo"><span>Complemento</span><input data-k="complemento" maxlength="80"></label>
         <label class="campo"><span>Referência</span><input data-k="referencia" maxlength="120"></label>
-      </div>
-      <div class="pergunta horario" data-horario>
-        <span>Horário da loja</span>
-        <input type="hidden" data-k="horario_loja">
       </div>
       <label class="campo"><span>WhatsApp da loja</span><input data-k="whatsapp" type="tel" inputmode="tel" maxlength="20" placeholder="(84) 99999-9999"></label>
       <label class="opcao" style="margin-top:8px;border-radius:var(--r)"><input type="checkbox" data-k="whatsapp_autorizado">Pode aparecer no site</label>
@@ -403,6 +430,15 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
 <script>
 (function () {
   'use strict';
+  // Fontes: Nexa (interface) e Nexa Text (leitura), a mesma família do site. Se o kit não chegar
+  // (rede fora, bloqueio de terceiros), a página segue em Nexa Slab, como era antes.
+  (function () {
+    var tk = document.createElement('script');
+    tk.src = 'https://use.typekit.net/ngx4uek.js';
+    tk.async = true;
+    tk.onload = function () { try { Typekit.load({ kitId: 'ngx4uek', scriptTimeout: 3000, async: true }); } catch (e) { /* sem o kit, fica a Nexa Slab */ } };
+    document.head.appendChild(tk);
+  })();
   // Chave PUBLICÁVEL (a mesma do /quero-participar): só alcança as duas funções
   // abertas, que exigem o código do link. Nunca a chave secreta aqui.
   var SUPABASE_URL = 'https://dgfmoibynftadsyjcclg.supabase.co';
@@ -576,6 +612,12 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
       c.checked = c.value ? c.value.toLowerCase() === cidade.toLowerCase() : (!!cidade && !/^(natal|parnamirim)$/i.test(cidade));
     });
     if (/^(natal|parnamirim)$/i.test(cidade)) no.querySelector('[data-k="cidade"]').value = '';
+    // Horário da loja: "o mesmo do combo" é o caso comum (e o que já está salvo, se for igual).
+    var hLoja = txt(u && u.horario_loja).trim(), hCombo = txt(u && u.horario_combo).trim();
+    no.querySelectorAll('[data-loja-igual]').forEach(function (c) {
+      c.name = 'loja-igual-' + contadorLoja;
+      c.checked = c.value === (!hLoja || hLoja === hCombo ? 'sim' : 'nao');
+    });
     [['logradouro', 'Rua / avenida'], ['bairro', 'Bairro']].forEach(function (p) {
       no.querySelector('[data-k="' + p[0] + '"]').dataset.obrigatorio = p[1];
     });
@@ -631,9 +673,20 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     outro.classList.toggle('fechado', !caixa.querySelector('input[value="outro"]:checked'));
   }
 
-  /* ── Horário por toque: dias em caixinhas + "das/às" em listas. O input escondido é a fonte. ── */
+  /* ── Horário por toque ──────────────────────────────────────────────────────
+     Uma pergunta primeiro: os horários são iguais todos os dias, ou mudam?
+     Se mudam: três linhas (Segunda a sexta · Sábado · Domingo) e, se precisar,
+     dia a dia. Cada dia tem UMA resposta: abre (1 ou 2 períodos) ou não abre.
+     O input escondido é a fonte e guarda o texto, p.ex.
+     "Seg a Sex, 10h às 22h; Sáb, 10h às 18h; Dom, fechado". ── */
   var DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-  var HORAS = (function () { var l = []; for (var h = 6; h <= 23; h++) { l.push(h + ':00'); l.push(h + ':30'); } l.push('0:00'); return l; })();
+  var DIAS_LONGO = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+  var HORAS = (function () {
+    var l = [];
+    for (var h = 5; h <= 23; h++) { l.push(h + ':00'); l.push(h + ':30'); }
+    ['0:00', '0:30', '1:00', '1:30', '2:00'].forEach(function (x) { l.push(x); });
+    return l;
+  })();
   function horaTexto(v) { var p = v.split(':'); return Number(p[0]) + 'h' + (p[1] === '00' ? '' : p[1]); }
   function diasTexto(idx) {
     if (idx.length === 7) return 'Todos os dias';
@@ -642,8 +695,20 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     var nomes = idx.map(function (d) { return DIAS[d]; });
     return nomes.length === 2 ? nomes.join(' e ') : nomes.join(', ');
   }
+  function periodosTexto(ps) {
+    return ps.map(function (p) { return horaTexto(p[0]) + ' às ' + horaTexto(p[1]); }).join(' e ');
+  }
+  var PERIODO = '\\d{1,2}h(?:\\d{2})? às \\d{1,2}h(?:\\d{2})?';
+  var RE_FAIXA = new RegExp('^(.*), (fechado|' + PERIODO + '(?: e ' + PERIODO + ')*)$', 'i');
+  function lerPeriodo(t) {
+    var m = /^(\d{1,2})h(\d{2})? às (\d{1,2})h(\d{2})?$/.exec(t.trim());
+    if (!m) return null;
+    var a = Number(m[1]) + ':' + (m[2] || '00'), f = Number(m[3]) + ':' + (m[4] || '00');
+    return HORAS.indexOf(a) > -1 && HORAS.indexOf(f) > -1 ? [a, f] : null;
+  }
+  // Uma faixa: "Seg a Sex, 10h às 14h e 18h às 22h" ou "Dom, fechado". Que não lê = null.
   function lerHorario(t) {
-    var m = /^(.*), (\d{1,2})h(\d{2})? às (\d{1,2})h(\d{2})?$/.exec(txt(t).trim());
+    var m = RE_FAIXA.exec(txt(t).trim());
     if (!m) return null;
     var nomes = DIAS.map(function (d) { return d.toLowerCase(); });
     function ix(n) { return nomes.indexOf(n.trim().toLowerCase().replace('sab', 'sáb')); }
@@ -651,110 +716,200 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     if (/^todos os dias$/i.test(parte)) dias = [0, 1, 2, 3, 4, 5, 6];
     else if (r) { var a = ix(r[1]), b = ix(r[2]); if (a < 0 || b < a) return null; for (var d = a; d <= b; d++) dias.push(d); }
     else { dias = parte.replace(/ e /g, ',').split(',').map(ix); if (dias.some(function (d) { return d < 0; })) return null; }
-    return { dias: dias, abre: Number(m[2]) + ':' + (m[3] || '00'), fecha: Number(m[4]) + ':' + (m[5] || '00') };
+    var fechado = /^fechado$/i.test(m[2]), periodos = [];
+    if (!fechado) {
+      periodos = m[2].split(' e ').map(lerPeriodo);
+      if (periodos.some(function (p) { return !p; })) return null;
+    }
+    return { dias: dias, fechado: fechado, periodos: periodos };
   }
-  // Várias faixas: "Seg a Sex, 12h às 21h; Sáb, Dom, 10h às 22h". Uma que não lê = null.
+  // Várias faixas separadas por ";". Uma que não lê, ou um dia repetido = null.
   function lerHorarios(t) {
     var partes = txt(t).split(';').map(function (x) { return x.trim(); }).filter(Boolean);
     if (!partes.length) return null;
     var faixas = partes.map(lerHorario);
-    return faixas.some(function (f) { return !f; }) ? null : faixas;
+    if (faixas.some(function (f) { return !f; })) return null;
+    return diasDeFaixas(faixas) ? faixas : null;
   }
   function textoHorarios(faixas) {
-    return faixas.map(function (f) { return diasTexto(f.dias) + ', ' + horaTexto(f.abre) + ' às ' + horaTexto(f.fecha); }).join('; ');
+    return faixas.map(function (f) { return diasTexto(f.dias) + ', ' + (f.fechado ? 'fechado' : periodosTexto(f.periodos)); }).join('; ');
   }
+  // Uma resposta por dia: null (sem resposta), 'F' (não abre) ou [[abre, fecha], ...].
+  function diasDeFaixas(faixas) {
+    var d = [null, null, null, null, null, null, null];
+    for (var k = 0; k < faixas.length; k++) {
+      for (var j = 0; j < faixas[k].dias.length; j++) {
+        var i = faixas[k].dias[j];
+        if (d[i] !== null) return null;
+        d[i] = faixas[k].fechado ? 'F' : faixas[k].periodos;
+      }
+    }
+    return d;
+  }
+  // Dias com a mesma resposta viram uma faixa só (na ordem em que aparecem).
+  function faixasDeDias(d) {
+    var ordem = [], por = {};
+    d.forEach(function (v, i) {
+      var k = JSON.stringify(v);
+      if (!por[k]) { por[k] = { dias: [], fechado: v === 'F', periodos: v === 'F' ? [] : v }; ordem.push(k); }
+      por[k].dias.push(i);
+    });
+    return ordem.map(function (k) { return por[k]; });
+  }
+  function periodoCompleto(p) { return !!p[0] && !!p[1] && p[0] !== p[1]; }
+  function diaCompleto(v) { return v === 'F' || (Array.isArray(v) && v.length > 0 && v.every(periodoCompleto)); }
+  function chaveDia(v) { return JSON.stringify(v); }
+
   function montarHorario(caixa) {
     if (caixa.dataset.pronto) return;
     caixa.dataset.pronto = '1';
+    contadorGrupo += 1;
+    var uid = contadorGrupo;
     var input = caixa.querySelector('input[type="hidden"]');
+    var max = Number(caixa.dataset.max) || 300;
     var original = input.value.trim(), lidas = lerHorarios(original);
+    var dias = (lidas && diasDeFaixas(lidas)) || [null, null, null, null, null, null, null];
+    var modo = null, linhas = [];
+    if (lidas) {
+      var iguais = dias.every(function (v) { return v !== null && chaveDia(v) === chaveDia(dias[0]); });
+      var semana = dias[0] !== null && dias.slice(0, 5).every(function (v) { return chaveDia(v) === chaveDia(dias[0]); });
+      modo = iguais ? 'todos' : semana ? 'grupos' : 'dias';
+    }
     if (original && !lidas) caixa.insertBefore(el('p', { 'class': 'atual' }, 'Hoje está: ' + original + '. Escolha abaixo para trocar.'), input);
-    var lista = el('div', { 'class': 'faixas' });
-    var mais = el('button', { type: 'button', 'class': 'btn btn--mini faixas__mais' }, '+ Outro horário em outros dias');
-    caixa.insertBefore(lista, input);
-    caixa.insertBefore(mais, input);
-    var faixas = [];
 
-    function seletor(rotulo, valor, onde) {
+    // Pergunta inicial: iguais todos os dias, ou mudam?
+    var inicio = el('div', { 'class': 'opcoes', role: 'radiogroup', 'aria-label': 'Os horários mudam durante a semana?' });
+    function opcaoModo(valor, rotulo) {
+      var lab = el('label', { 'class': 'opcao' });
+      var r = el('input', { type: 'radio', name: 'hmodo-' + uid, value: valor });
+      lab.appendChild(r); lab.appendChild(document.createTextNode(rotulo));
+      inicio.appendChild(lab);
+      return r;
+    }
+    var rTodos = opcaoModo('todos', 'Igual todos os dias');
+    var rMuda = opcaoModo('muda', 'Muda conforme o dia');
+    var caixaLinhas = el('div', { 'class': 'hlinhas' });
+    var detalhar = el('button', { type: 'button', 'class': 'btn btn--mini hdetalhar oculto' }, 'Detalhar dia a dia');
+    var resumo = el('p', { 'class': 'hresumo oculto', role: 'status' });
+    caixa.insertBefore(inicio, input);
+    caixa.insertBefore(caixaLinhas, input);
+    caixa.insertBefore(detalhar, input);
+    caixa.insertBefore(resumo, input);
+
+    function seletor(rotulo, valor, onde, nome) {
       var lab = el('label', null, rotulo + ' ');
-      var sel = el('select', { 'aria-label': rotulo === 'Das' ? 'Abre às' : 'Fecha às' });
+      var sel = el('select', { 'aria-label': nome });
       sel.appendChild(el('option', { value: '' }, '—'));
       HORAS.forEach(function (h) { var o = el('option', { value: h }, horaTexto(h)); if (h === valor) o.selected = true; sel.appendChild(o); });
       lab.appendChild(sel); onde.appendChild(lab);
       return sel;
     }
-    // Dia já usado em outra faixa fica apagado aqui: um dia, um horário.
-    function usadosFora(f) {
-      var u = {};
-      faixas.forEach(function (g) { if (g !== f) g.dias.forEach(function (c) { if (c.checked) u[c.dataset.dia] = 1; }); });
-      return u;
-    }
-    function atualizar() {
-      faixas.forEach(function (f) {
-        var u = usadosFora(f);
-        f.dias.forEach(function (c) { c.disabled = !!u[c.dataset.dia] && !c.checked; c.parentNode.classList.toggle('opcao--off', c.disabled); });
-        f.todos.checked = f.dias.every(function (c) { return c.checked; });
-        f.todos.disabled = Object.keys(u).length > 0;
-        f.todos.parentNode.classList.toggle('opcao--off', f.todos.disabled);
-        f.tirar.classList.toggle('oculto', faixas.length < 2);
-      });
-      var livres = DIAS.length - Object.keys(usadosFora(null)).length;
-      mais.classList.toggle('oculto', livres === 0 || faixas.some(function (f) { return !completa(f); }));
-      compor();
-    }
-    function completa(f) { return f.dias.some(function (c) { return c.checked; }) && f.abre.value && f.fecha.value; }
-    function vazia(f) { return !f.dias.some(function (c) { return c.checked; }) && !f.abre.value && !f.fecha.value; }
-    function compor() {
-      if (faixas.every(vazia)) { input.value = original; return; }
-      if (!faixas.every(completa)) { input.value = ''; return; }
-      input.value = textoHorarios(faixas.map(function (f) {
-        return { dias: f.dias.filter(function (c) { return c.checked; }).map(function (c) { return Number(c.dataset.dia); }), abre: f.abre.value, fecha: f.fecha.value };
-      }));
-    }
-    function novaFaixa(dados) {
+    function agrupavel() { return dias.slice(0, 5).every(function (v) { return chaveDia(v) === chaveDia(dias[0]); }); }
+
+    function linha(grupo, nome) {
       contadorGrupo += 1;
-      var f = { no: el('div', { 'class': 'faixa' }) };
-      var opcoes = el('div', { 'class': 'opcoes' });
-      f.todos = el('input', { type: 'checkbox' });
-      var labTodos = el('label', { 'class': 'opcao' }); labTodos.appendChild(f.todos); labTodos.appendChild(document.createTextNode('Todos os dias'));
-      opcoes.appendChild(labTodos);
-      f.dias = DIAS.map(function (d, k) {
-        var c = el('input', { type: 'checkbox', 'data-dia': String(k) });
-        c.checked = !!dados && dados.dias.indexOf(k) > -1;
-        var lab = el('label', { 'class': 'opcao' }); lab.appendChild(c); lab.appendChild(document.createTextNode(d));
-        opcoes.appendChild(lab);
+      var rid = contadorGrupo;
+      var v = dias[grupo[0]];
+      var r = { grupo: grupo, nome: nome, no: el('div', { 'class': 'hrow' }), dois: Array.isArray(v) && v.length > 1 };
+      r.no.appendChild(el('b', { 'class': 'hrow__nome' }, nome));
+      var op = el('div', { 'class': 'opcoes', role: 'radiogroup', 'aria-label': nome + ': abre ou não abre' });
+      function radio(rotulo, valor) {
+        var lab = el('label', { 'class': 'opcao' });
+        var c = el('input', { type: 'radio', name: 'hdia-' + rid, value: valor });
+        lab.appendChild(c); lab.appendChild(document.createTextNode(rotulo)); op.appendChild(lab);
         return c;
-      });
-      var horas = el('div', { 'class': 'horas' });
-      f.abre = seletor('Das', dados && dados.abre, horas);
-      f.fecha = seletor('às', dados && dados.fecha, horas);
-      f.tirar = el('button', { type: 'button', 'class': 'btn btn--mini faixa__tirar' }, 'Tirar este horário');
-      f.no.appendChild(opcoes); f.no.appendChild(horas); f.no.appendChild(f.tirar);
-      f.todos.addEventListener('change', function () {
-        f.dias.forEach(function (c) { if (!c.disabled) c.checked = f.todos.checked; });
-        atualizar();
-      });
-      f.dias.forEach(function (c) { c.addEventListener('change', atualizar); });
-      f.abre.addEventListener('change', atualizar);
-      f.fecha.addEventListener('change', atualizar);
-      f.tirar.addEventListener('click', function () {
-        faixas.splice(faixas.indexOf(f), 1);
-        f.no.remove();
-        atualizar();
-        caixa.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-      lista.appendChild(f.no);
-      faixas.push(f);
-      return f;
+      }
+      r.abre = radio('Abre', 'abre');
+      r.fecha = radio('Não abre', 'fecha');
+      r.no.appendChild(op);
+      r.horas = el('div', { 'class': 'hrow__horas' });
+      var h1 = el('div', { 'class': 'horas' }), h2 = el('div', { 'class': 'horas' });
+      r.a1 = seletor('Das', Array.isArray(v) && v[0] ? v[0][0] : '', h1, nome + ': abre às');
+      r.f1 = seletor('às', Array.isArray(v) && v[0] ? v[0][1] : '', h1, nome + ': fecha às');
+      r.a2 = seletor('e das', Array.isArray(v) && v[1] ? v[1][0] : '', h2, nome + ': segundo período, abre às');
+      r.f2 = seletor('às', Array.isArray(v) && v[1] ? v[1][1] : '', h2, nome + ': segundo período, fecha às');
+      r.h2 = h2;
+      r.mais = el('button', { type: 'button', 'class': 'btn btn--mini' }, '+ Intervalo (ex.: fecha para o almoço)');
+      r.tirar = el('button', { type: 'button', 'class': 'btn btn--mini' }, 'Tirar este intervalo');
+      r.horas.appendChild(h1); r.horas.appendChild(h2); r.horas.appendChild(r.mais); r.horas.appendChild(r.tirar);
+      r.no.appendChild(r.horas);
+      if (v === 'F') r.fecha.checked = true;
+      else if (Array.isArray(v)) r.abre.checked = true;
+
+      function ler() {
+        var val = null;
+        if (r.fecha.checked) val = 'F';
+        else if (r.abre.checked) {
+          val = [[r.a1.value, r.f1.value]];
+          if (r.dois) val.push([r.a2.value, r.f2.value]);
+        }
+        grupo.forEach(function (i) { dias[i] = val; });
+        mostrar(); compor();
+      }
+      function mostrar() {
+        r.horas.classList.toggle('oculto', !r.abre.checked);
+        r.h2.classList.toggle('oculto', !r.dois);
+        r.mais.classList.toggle('oculto', r.dois);
+        r.tirar.classList.toggle('oculto', !r.dois);
+      }
+      [r.abre, r.fecha, r.a1, r.f1, r.a2, r.f2].forEach(function (c) { c.addEventListener('change', ler); });
+      r.mais.addEventListener('click', function () { r.dois = true; ler(); r.a2.focus(); caixa.dispatchEvent(new Event('change', { bubbles: true })); });
+      r.tirar.addEventListener('click', function () { r.dois = false; r.a2.value = ''; r.f2.value = ''; ler(); caixa.dispatchEvent(new Event('change', { bubbles: true })); });
+      mostrar();
+      return r;
     }
-    (lidas || [null]).forEach(novaFaixa);
-    mais.addEventListener('click', function () {
-      var f = novaFaixa(null);
-      atualizar();
-      var livre = f.dias.filter(function (c) { return !c.disabled; })[0];
-      if (livre) livre.focus();
-    });
-    atualizar();
+
+    function desenhar() {
+      caixaLinhas.textContent = '';
+      linhas = [];
+      var grupos = modo === 'todos' ? [[[0, 1, 2, 3, 4, 5, 6], 'Todos os dias']]
+        : modo === 'grupos' ? [[[0, 1, 2, 3, 4], 'Segunda a sexta'], [[5], 'Sábado'], [[6], 'Domingo']]
+        : modo === 'dias' ? DIAS_LONGO.map(function (n, i) { return [[i], n]; }) : [];
+      grupos.forEach(function (g) { var r = linha(g[0], g[1]); linhas.push(r); caixaLinhas.appendChild(r.no); });
+      rTodos.checked = modo === 'todos';
+      rMuda.checked = modo === 'grupos' || modo === 'dias';
+      var podeDetalhar = modo === 'grupos', podeVoltar = modo === 'dias' && agrupavel();
+      detalhar.classList.toggle('oculto', !(podeDetalhar || podeVoltar));
+      detalhar.textContent = podeDetalhar ? 'Detalhar dia a dia' : 'Voltar a Segunda a sexta';
+    }
+    function compor() {
+      if (modo === null) { input.value = original; caixa.dataset.faltam = ''; resumo.classList.add('oculto'); return; }
+      var falta = linhas.filter(function (r) { return !diaCompleto(dias[r.grupo[0]]); }).map(function (r) { return r.nome; });
+      resumo.classList.remove('oculto');
+      resumo.classList.remove('hresumo--falta');
+      if (falta.length) {
+        input.value = '';
+        caixa.dataset.faltam = falta.join(', ');
+        resumo.textContent = 'Falta responder: ' + falta.join(', ') + '.';
+        return;
+      }
+      var texto = textoHorarios(faixasDeDias(dias));
+      if (texto.length > max) {
+        input.value = '';
+        caixa.dataset.faltam = 'junte os dias com o mesmo horário';
+        resumo.classList.add('hresumo--falta');
+        resumo.textContent = 'Está detalhado demais. Junte os dias que têm o mesmo horário.';
+        return;
+      }
+      input.value = texto;
+      caixa.dataset.faltam = '';
+      resumo.textContent = 'Fica assim: ' + texto.replace(/; /g, ' · ') + '.';
+    }
+    function trocarModo(novo) {
+      if (novo === 'todos') {
+        var base = dias[0] !== null ? dias[0] : (dias.filter(function (v) { return v !== null; })[0] || null);
+        for (var i = 0; i < 7; i++) dias[i] = base;
+      }
+      modo = novo;
+      desenhar();
+      compor();
+      caixa.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    rTodos.addEventListener('change', function () { if (rTodos.checked) trocarModo('todos'); });
+    rMuda.addEventListener('change', function () { if (rMuda.checked) trocarModo('grupos'); });
+    detalhar.addEventListener('click', function () { trocarModo(modo === 'grupos' ? 'dias' : 'grupos'); });
+    desenhar();
+    compor();
   }
   function prepararSelecoes(raiz) {
     raiz.querySelectorAll('.valores').forEach(montarValores);
@@ -771,6 +926,10 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     if (!lista.length) adicionarLoja(null);
     else lista.forEach(adicionarLoja);
     prepararSelecoes(form);
+    // Número já salvo e limpo aparece com máscara; texto estranho (dois números, ramal) fica como está.
+    form.querySelectorAll('[name="marca.telefone"],[data-k="whatsapp"]').forEach(function (c) { if (telefoneOk(c.value) && digitos(c.value).length <= 13) c.value = mascaraTel(c.value); });
+    form.querySelectorAll('[data-k="cep"]').forEach(function (c) { if (digitos(c.value).length === 8) c.value = mascaraCep(c.value); });
+    form.querySelectorAll('[name="marca.cnpj"]').forEach(function (c) { if (digitos(c.value).length === 14) c.value = mascaraCnpj(c.value); });
   }
 
   /* ── Ler (mesma forma de preenchimento_estado) ── */
@@ -793,6 +952,8 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
       var cid = u.no.querySelector('[data-cidade]:checked');
       if (cid && cid.value) x.cidade = cid.value;
       else if (!cid) x.cidade = '';
+      var igual = u.no.querySelector('[data-loja-igual]:checked');
+      if (igual && igual.value === 'sim') x.horario_loja = x.horario_combo;
       d.unidades.push(x);
     });
     if (document.getElementById('pr-confirma').checked) d.confirmados = BLOCOS.slice();
@@ -804,63 +965,125 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     return lojas.some(function (u) { return !u.remover && u.no.querySelector('[data-modo="delivery_combo"]').checked; });
   }
 
+  /* ── Máscaras e conferência de formato: só ao digitar, nunca ao carregar o que já está salvo ── */
+  function digitos(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
+  function semPais(d) { return d.length > 11 && d.slice(0, 2) === '55' ? d.slice(2) : d; }
+  function mascaraTel(v) {
+    var d = semPais(digitos(v)).slice(0, 11);
+    if (!d.length) return '';
+    if (d.length <= 2) return '(' + d;
+    if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+    if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+  }
+  function mascaraCep(v) { var d = digitos(v).slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; }
+  function mascaraCnpj(v) {
+    var d = digitos(v).slice(0, 14), s = d.slice(0, 2);
+    if (d.length > 2) s += '.' + d.slice(2, 5);
+    if (d.length > 5) s += '.' + d.slice(5, 8);
+    if (d.length > 8) s += '/' + d.slice(8, 12);
+    if (d.length > 12) s += '-' + d.slice(12);
+    return s;
+  }
+  function telefoneOk(v) { var d = semPais(digitos(v)); return d.length === 10 || d.length === 11; }
+  function formatoOk(tipo, v) { return tipo === 'tel' ? telefoneOk(v) : tipo === 'email' ? emailOk(v) : digitos(v).length === 8; }
+  function emailOk(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim()); }
+  // "instagram.com/marca/?igsh=…", " marca " ou "@@marca" viram "@marca".
+  function instagramLimpo(v) {
+    var s = String(v == null ? '' : v).trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^(www\.)?instagram\.com\//i, '');
+    s = s.replace(/[\/?#].*$/, '').replace(/\s+/g, '').replace(/^@+/, '');
+    return s ? '@' + s : '';
+  }
+
   // O que falta: a mesma régua de campos_cadastro (sem a logo, que é da organização).
-  function faltas() {
+  // pintar = false só conta (contador do rodapé); senão marca os campos em laranja.
+  function faltas(pintar) {
+    var pinta = pintar !== false;
     var lista = [];
-    form.querySelectorAll('.campo--falta').forEach(function (c) { c.classList.remove('campo--falta'); });
-    form.querySelectorAll('.pergunta--falta').forEach(function (c) { c.classList.remove('pergunta--falta'); });
-    document.getElementById('pr-confirma-caixa').classList.remove('marcar--falta');
+    function marca(no, cls) { if (pinta) no.classList.add(cls); }
+    if (pinta) {
+      form.querySelectorAll('.campo--falta').forEach(function (c) { c.classList.remove('campo--falta'); });
+      form.querySelectorAll('.pergunta--falta').forEach(function (c) { c.classList.remove('pergunta--falta'); });
+      document.getElementById('pr-confirma-caixa').classList.remove('marcar--falta');
+    }
     form.querySelectorAll('[data-obrigatorio]').forEach(function (input) {
       if (input.closest('.oculto') || input.closest('.loja--fora') || input.value.trim()) return;
       var valores = input.closest('.valores');
       if (valores) {
-        valores.closest('.pergunta').classList.add('pergunta--falta');
+        marca(valores.closest('.pergunta'), 'pergunta--falta');
         lista.push({ texto: input.dataset.obrigatorio, alvo: valores.querySelector('input[type="radio"]') || input });
         return;
       }
-      input.closest('.campo').classList.add('campo--falta');
+      marca(input.closest('.campo'), 'campo--falta');
       lista.push({ texto: input.dataset.obrigatorio, alvo: input });
     });
+    // Formato: o que está escrito mas não dá para usar (número incompleto, e-mail sem @…).
+    function formato(input, tipo, texto) {
+      if (!input || input.closest('.loja--fora') || !input.value.trim() || formatoOk(tipo, input.value)) return;
+      marca(input.closest('.campo'), 'campo--falta');
+      lista.push({ texto: texto, alvo: input });
+    }
+    formato(form.querySelector('[name="marca.telefone"]'), 'tel', 'WhatsApp: confira o número (DDD + número)');
+    formato(form.querySelector('[name="marca.email"]'), 'email', 'E-mail: confira o endereço');
     if (!form.querySelector('[name="combo.combo_para_viagem"]:checked')) {
-      form.querySelector('[data-pergunta="viagem"]').classList.add('pergunta--falta');
+      marca(form.querySelector('[data-pergunta="viagem"]'), 'pergunta--falta');
       lista.push({ texto: 'Pode ser para viagem?', alvo: form.querySelector('[name="combo.combo_para_viagem"]') });
     }
     document.querySelectorAll('#pr-itens .item').forEach(function (no) {
       var nome = ITENS[Number(no.dataset.posicao) - 1];
       if (!no.querySelector('[data-nenhum]:checked') && !no.querySelector('[data-alergenico]:checked')) {
-        no.querySelector('[data-pergunta="alergenicos"]').classList.add('pergunta--falta');
+        marca(no.querySelector('[data-pergunta="alergenicos"]'), 'pergunta--falta');
         lista.push({ texto: nome + ': contém algum alergênico?', alvo: no.querySelector('[data-alergenico]') });
       }
       if (!no.querySelector('[data-troca]:checked')) {
-        no.querySelector('[data-pergunta="troca"]').classList.add('pergunta--falta');
+        marca(no.querySelector('[data-pergunta="troca"]'), 'pergunta--falta');
         lista.push({ texto: nome + ': tem opção de troca?', alvo: no.querySelector('[data-troca]') });
       }
     });
     lojas.forEach(function (u, i) {
       if (u.remover) return;
+      var rot = 'Loja ' + (i + 1) + ': ';
       var cid = u.no.querySelector('[data-cidade]:checked');
       if (!cid || (!cid.value && !u.no.querySelector('[data-k="cidade"]').value.trim())) {
-        u.no.querySelector('[data-pergunta="cidade"]').classList.add('pergunta--falta');
-        lista.push({ texto: 'Loja ' + (i + 1) + ': cidade', alvo: u.no.querySelector('[data-cidade]') });
+        marca(u.no.querySelector('[data-pergunta="cidade"]'), 'pergunta--falta');
+        lista.push({ texto: rot + 'cidade', alvo: u.no.querySelector('[data-cidade]') });
       }
-      if (!u.no.querySelector('[data-k="horario_combo"]').value.trim()) {
-        var hc = u.no.querySelector('[data-pergunta="horario_combo"]');
-        hc.classList.add('pergunta--falta');
-        lista.push({ texto: 'Loja ' + (i + 1) + ': dias e horário do combo', alvo: hc.querySelector('input[type="checkbox"]') || hc });
+      formato(u.no.querySelector('[data-k="cep"]'), 'cep', rot + 'CEP com 8 números');
+      formato(u.no.querySelector('[data-k="whatsapp"]'), 'tel', rot + 'WhatsApp da loja (DDD + número)');
+      var hc = u.no.querySelector('[data-pergunta="horario_combo"]');
+      if (!hc.querySelector('input[type="hidden"]').value.trim()) {
+        marca(hc, 'pergunta--falta');
+        lista.push({ texto: rot + 'dias e horário do combo' + (hc.dataset.faltam ? ' (falta: ' + hc.dataset.faltam + ')' : ''), alvo: hc.querySelector('input[type="radio"]') || hc });
+      }
+      var hl = u.no.querySelector('[data-pergunta="horario_loja"]');
+      if (u.no.querySelector('[data-loja-igual][value="nao"]:checked') && !hl.querySelector('input[type="hidden"]').value.trim()) {
+        marca(hl, 'pergunta--falta');
+        lista.push({ texto: rot + 'dias e horário da loja' + (hl.dataset.faltam ? ' (falta: ' + hl.dataset.faltam + ')' : ''), alvo: hl.querySelector('input[type="radio"]') || hl });
       }
       if (u.no.querySelector('[data-modo]:checked')) return;
-      u.no.querySelector('[data-pergunta="modos"]').classList.add('pergunta--falta');
-      lista.push({ texto: 'Loja ' + (i + 1) + ': como vende o combo', alvo: u.no.querySelector('[data-modo]') });
+      marca(u.no.querySelector('[data-pergunta="modos"]'), 'pergunta--falta');
+      lista.push({ texto: rot + 'como vende o combo', alvo: u.no.querySelector('[data-modo]') });
     });
     if (!lojas.some(function (u) { return !u.remover; })) {
       lista.push({ texto: 'Pelo menos uma loja', alvo: document.getElementById('pr-add-loja') });
     }
     var confirma = document.getElementById('pr-confirma');
     if (!confirma.checked) {
-      document.getElementById('pr-confirma-caixa').classList.add('marcar--falta');
+      marca(document.getElementById('pr-confirma-caixa'), 'marcar--falta');
       lista.push({ texto: 'Marcar “Conferi tudo”', alvo: confirma });
     }
     return lista;
+  }
+
+  // Contador ao vivo no rodapé fixo: a pessoa sabe quanto falta sem apertar nada.
+  function atualizarProgresso() {
+    var p = document.getElementById('pr-progresso');
+    var l = faltas(false);
+    var soConfirma = l.length === 1 && !document.getElementById('pr-confirma').checked;
+    p.classList.toggle('progresso--ok', l.length === 0 || soConfirma);
+    p.textContent = !l.length ? 'Tudo certo. É só enviar.'
+      : soConfirma ? 'Falta só marcar “Conferi tudo”.'
+      : l.length === 1 ? 'Falta 1 item.' : 'Faltam ' + l.length + ' itens.';
   }
 
   function reavaliar() {
@@ -874,9 +1097,11 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     lojas.forEach(function (u) {
       var c = u.no.querySelector('[data-cidade]:checked');
       u.no.querySelector('[data-outra-cidade]').classList.toggle('oculto', !(c && !c.value));
+      u.no.querySelector('[data-pergunta="horario_loja"]').classList.toggle('oculto', !u.no.querySelector('[data-loja-igual][value="nao"]:checked'));
     });
     titulosLojas();
     guardarRascunho();
+    atualizarProgresso();
   }
 
   function guardarRascunho() {
@@ -927,7 +1152,17 @@ details.mais>summary{display:inline-flex;align-items:center;gap:6px;min-height:4
     aguarde: 'Você acabou de enviar. Espere alguns segundos e tente de novo.'
   };
 
+  form.addEventListener('input', function (ev) {
+    var c = ev.target, k = c.dataset ? c.dataset.k : '';
+    if (ev.inputType && ev.inputType.indexOf('delete') === 0) return;
+    if (c.name === 'marca.telefone' || k === 'whatsapp') c.value = mascaraTel(c.value);
+    else if (k === 'cep') c.value = mascaraCep(c.value);
+    else if (c.name === 'marca.cnpj') c.value = mascaraCnpj(c.value);
+  });
   form.addEventListener('input', guardarRascunho);
+  form.addEventListener('change', function (ev) {
+    if (ev.target.name === 'marca.instagram') ev.target.value = instagramLimpo(ev.target.value);
+  });
   form.addEventListener('change', reavaliar);
   document.getElementById('pr-add-loja').addEventListener('click', function () {
     var reg = adicionarLoja(null);
