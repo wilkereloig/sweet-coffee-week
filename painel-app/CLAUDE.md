@@ -1073,6 +1073,25 @@ teste `tests/painel-app-preenchimento.test.mjs`.
   `declaracoes_alimentares` e `substituicoes`. ⛔ Desmarcar selo não grava "não": vira `nao_informado`
   só se antes estava marcado; alergênico só vira `nao_contem` quando a pessoa respondeu a pergunta.
 
+- **v3 (22/10/2026, pedido do Wilker: "horários diferentes por dia" e "facilite ao máximo", mobile e Nexa):**
+  - **Horário por dia.** Pergunta "igual todos os dias / muda conforme o dia"; se muda: Segunda a sexta ·
+    Sábado · Domingo e "Detalhar dia a dia". Cada dia = abre (até 2 períodos, p.ex. almoço) ou **não abre**.
+    Texto `Seg a Sex, 10h às 22h; Sáb, 10h às 18h; Dom, fechado` nas MESMAS colunas (`horarios`,
+    `horario_loja_texto`) — **sem migration**. Horas de 5h a 2h (madrugada). Texto antigo ilegível aparece
+    como "Hoje está: …"; texto só da semana deixa sábado e domingo **sem resposta** (a marca decide).
+  - ⚠️ **O banco corta em silêncio** em 300 (combo) e 200 (loja) caracteres (`preenchimento_texto`): a página
+    recusa o que passa disso (`data-max`) em vez de mandar truncado.
+  - A loja pergunta "abre nos mesmos dias e horários do combo?"; "Sim" grava o mesmo texto nos dois campos.
+    O horário da loja saiu do `<details>` e só aparece em "Não".
+  - **Contador ao vivo** no rodapé fixo (`faltas(false)` conta, `faltas()` pinta). Máscaras de WhatsApp, CEP
+    e CNPJ **só ao digitar** (nunca reescrevem o que já veio salvo); Instagram vira `@usuario`; número,
+    e-mail e CEP malformados entram na lista do que falta.
+  - **Tipografia: duas vozes** (§6.5) — Slab nos títulos, Nexa na interface (rótulo, opção, botão), Nexa Text
+    na leitura e nos campos; só 400 e 700 na sem serifa (`font-synthesis: none`). O kit carrega pelo JS,
+    dentro do script único da página (o teste exige UM `<script>`).
+  - ⚠️ **O kit `ngx4uek` baixa ~90 arquivos / ~3 MB** (dezenas de famílias sem uso): a Nexa chega em ~3,5 s
+    em 4G e ~17 s em 3G, e até lá a página aparece em Slab (sem texto invisível). Enxugar o kit no Adobe Fonts
+    (só Nexa e Nexa Text) resolve a página, o painel e o site de uma vez. `events:false` não adianta.
 #### Social media — planejamento, biblioteca e participantes — 16–17/10/2026 (`#social/…`)
 Módulo próprio (era Operação › Redes sociais; `#operacao/redes…` e avisos antigos `operacao/redes/<id>` caem aqui —
 `migrarRota`/`rotaDoLink` em `lib/rota.js`, e a barra de endereço é corrigida). **Um calendário só.** Abas:
