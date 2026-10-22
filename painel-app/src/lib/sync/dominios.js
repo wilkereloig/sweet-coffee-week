@@ -60,6 +60,8 @@ export const RPC_LEITURA = new Set([
   // org_preenchimento(s) leem (e, na primeira vez, criam o link: o banco avisa por
   // gatilho). Se avisassem daqui, a tela que as chama recarregaria para sempre.
   'org_preenchimento', 'org_preenchimentos',
+  // "Ver como participante": a leitura do painel da marca, feita pelo administrador.
+  'org_ver_como_ler',
   'redes_listar', 'redes_opcoes', 'redes_post', 'redes_resumo', 'redes_campanhas_listar', 'redes_checklist_modelos_listar',
   'social_biblioteca', 'social_pastas_listar',
   // Canais de tempo real que ESTA conta pode ouvir (lista do servidor).
@@ -68,6 +70,8 @@ export const RPC_LEITURA = new Set([
 export const RPC_SEM_SINAL = new Set([
   // Assinatura de push deste aparelho: não é dado compartilhado.
   'registrar_push_organizacao', 'remover_push_organizacao', 'push_aparelho',
+  // Abrir o modo "Ver como participante" só registra na auditoria.
+  'org_ver_como_iniciar',
 ])
 const ehLeituraPorNome = (n) => /^get_/.test(n)
 

@@ -2396,6 +2396,15 @@ p.fg-vazio{margin:0}
   .cv__acoes > .og-btn{flex:1 1 100%}
 }
 
+/* "Ver como participante" (22/10/2026): faixa presa no topo, sempre à vista — quem olha sabe que é a visão da marca
+   e que nada grava. Roxo com creme (contraste alto), por cima da cabeça da casca. */
+.vc-faixa{position:fixed;z-index:80;top:calc(var(--topo-app, 0px) + 8px);left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;max-width:calc(100vw - 32px);padding:6px 6px 6px 14px;border-radius:999px;
+  background:var(--scw-roxo);color:var(--scw-creme);font:400 .875rem/1.2 var(--f-ui);box-shadow:var(--sombra-2)}
+.vc-faixa span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vc-faixa__sair{flex:none;min-height:32px;padding:0 14px;border:0;border-radius:999px;background:var(--scw-creme);color:var(--scw-roxo);font:700 .8125rem/1 var(--f-ui);cursor:pointer}
+.vc-faixa__sair:focus-visible{outline:2px solid var(--scw-amarelo);outline-offset:2px}
+
 
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do

@@ -51,6 +51,7 @@ export function Erro({ titulo = 'Não consegui carregar', texto, onTentar }) {
 
 // Mensagem técnica → frase. O código cru só aparece se não houver tradução.
 const ERROS = {
+  modo_visualizacao: 'Modo visualização: você está vendo como a marca, e nada é gravado.',
   nao_autorizado: 'Sua função não permite esta ação, ou a sessão não vale mais.',
   sessao_expirada: 'Sua sessão terminou. Entre de novo.',
   usuario_invalido: 'Usuário inválido: de 3 a 30 caracteres, só letras minúsculas sem acento, números e . _ - entre eles (ex.: ana.producao).',

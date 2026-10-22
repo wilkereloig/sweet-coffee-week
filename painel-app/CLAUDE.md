@@ -1034,6 +1034,25 @@ Comunicação · Histórico · Gestão. ⛔ Não recriar aba por assunto nem o "
   `pagamento.gerir`, mas `get_ficha_360` entrega `pagamento_status` a qualquer `dado.ler`
   (restringir é migration). Voltar do navegador com editor sujo não pergunta (só os botões).
 
+#### "Ver como participante" — 22/10/2026 (pedido do Wilker)
+O administrador vê o painel da marca EXATAMENTE como ela vê, sem gravar e sem usar nem tocar a sessão dela. Ficha › Mais ações ›
+"Ver como participante" (só `acesso.gerir`) abre `/painel/?ver_como=<participante>` numa aba nova (`VerComoParticipante.jsx`, estado
+`ver-como` do `App`, exige conta pessoal da organização). Migration `20261104_ver_como_participante.sql`; testes
+`tests/painel-app-ver-como.test.mjs`, `tests/painel-ver-como-navegador.mjs` e `supabase/testes/ver-como-participante.sql`.
+- **Um desvio só, no cliente da marca** (`lib/marcaApi.js`, `ativarVerComo`): `api()` manda GET para `org_ver_como_ler` (o caminho
+  do PostgREST vira consulta por `consultaDoCaminho`) e as funções de leitura (`RPC_LEITURA_MARCA`, a mesma lista do banco) também;
+  QUALQUER outra coisa (PATCH/POST/DELETE, `marca_*` que grava, `auth()`, `subirLogo`) lança `modo_visualizacao`. Download vai pela
+  `arquivo-url` da organização. Sem tempo real, sem tour automático, sem convite de aparelho, sem marcar aviso/mensagem como lido.
+- **No banco:** `org_ver_como_ler` é STABLE e SECURITY INVOKER — o Postgres recusa escrita dentro dela. Confere o administrador
+  (`ver_como_alvo`: conta pessoal + `acesso.gerir`) e só então troca a identidade DA TRANSAÇÃO para a conta da marca
+  (`request.jwt.claims`/`claim.sub`): a mesma RLS e as mesmas `marca_*`. Tabelas e funções em lista fechada; identificador validado
+  e citado, valor como literal. Abrir registra `participante.ver_como` na auditoria (`org_ver_como_iniciar`).
+- ⚠️ **`conta_ativa()` tem uma exceção**: com a chave `scw_ver_como` nas claims (= id de quem tem `acesso.gerir`) ela é verdadeira
+  mesmo com senha temporária — senão o administrador veria tudo vazio. Só função do banco escreve `request.jwt.claims`; JWT de
+  verdade não traz essa chave no topo. ⛔ Nunca ler a senha da marca: ela não é recuperável (hash) e o caminho é gerar outra.
+- Tela nova da marca que GRAVA não precisa de nada: o desvio já recusa. Tela nova que LÊ tabela fora da lista do banco aparece vazia
+  no modo — acrescentar a tabela em `org_ver_como_ler` (e conferir se a marca lê pela RLS dela).
+
 #### Logos oficiais da Cartoon — 15/10/2026
 As 26 logos de `10_LOGOS_PARTICIPANTES/PRINCIPAIS` (Dropbox da edição) são as oficiais, conferidas pelo Wilker; não recriar nem
 questionar. No painel elas entram como logo **do acervo** (`logos_marca.origem = 'acervo'`, caminho `/logos/participants/<slug>.png`,

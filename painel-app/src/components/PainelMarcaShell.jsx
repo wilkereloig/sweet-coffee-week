@@ -73,7 +73,9 @@ const normalizar = (r) => {
     : { vista: 'inicio', aba: '', filtros: {} }
 }
 
-export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeConta = null, linkInicial = null }) {
+// `verComo` ({ nome, onSair }): o administrador vendo como a marca (App › VerComoParticipante). Sem tempo real, sem
+// tour automático, sem convite de aparelho, sem marcar aviso como lido: só leitura (marcaApi bloqueia o resto).
+export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeConta = null, linkInicial = null, verComo = null }) {
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
   const vista = rota.vista
   const [contaAberta, setContaAberta] = React.useState(false)
@@ -138,9 +140,10 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
   const trocaRef = React.useRef(onTrocaDeConta)
   trocaRef.current = onTrocaDeConta
   React.useEffect(() => {
+    if (verComo) return undefined
     iniciarSincronizacao({ tipo: 'marca', aoTrocaDeConta: (m) => { if (trocaRef.current) trocaRef.current(m) } })
     return () => pararSincronizacao()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Avisos e mensagens não lidas. Resposta velha (rede lenta) nunca sobrescreve a nova,
   // nem depois de sair ou trocar de conta (useGuarda). Devolve false só se a leitura falhou.
@@ -199,7 +202,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
 
   function abrirAviso(n) {
     setCentralAberta(false)
-    if (!n.lida_em) {
+    if (!n.lida_em && !verComo) {
       setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida_em: new Date().toISOString() } : x)))
       api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: [n.id] } }).catch((e) => {
         // A leitura NÃO foi gravada: o aviso volta a "não lido" e o contador acompanha.
@@ -212,6 +215,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
     if (n.link) abrirLink(n.link, n.tipo)
   }
   async function lerTodas() {
+    if (verComo) return
     const antes = avisos
     setAvisos((l) => l.map((x) => ({ ...x, lida_em: x.lida_em || new Date().toISOString() })))
     try { await api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: null } }) } catch (e) {
@@ -223,7 +227,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
   }
 
   // Progresso do tour pela marca; espera o id chegar. Aberto por aviso ou push, não se impõe.
-  const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial })
+  const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial && !verComo })
   const idParticipante = (dadosMarca && dadosMarca.participante && dadosMarca.participante.id) || null
   const pushDaMarca = React.useMemo(() => pushMarca(idParticipante), [idParticipante])
 
@@ -236,7 +240,14 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
     : d === 'combo' ? ['tema', 'itens', 'preco'].every((k) => (resumo.etapas.find((e) => e.chave === k) || {}).estado === 'feito') : false)
 
   return (
-    <div className="pn-casca">
+    <div className={'pn-casca' + (verComo ? ' vc-casca' : '')}>
+      {verComo && (
+        <div className="vc-faixa" role="status">
+          <Icone nome="visao" tamanho={16} />
+          <span>Vendo como <b>{verComo.nome}</b> · nada é gravado</span>
+          <button type="button" className="vc-faixa__sair" onClick={verComo.onSair}>Sair</button>
+        </div>
+      )}
       <nav className="pn-rail" aria-label="Seções" data-tour="menu">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         {DESTINOS.map((d) => (
@@ -280,7 +291,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
           </div>
         )}
         <div className="pn-cabeca__dir">
-          <IndicadorSync />
+          {!verComo && <IndicadorSync />}
           {/* A conversa a um toque de qualquer tela (no celular, só o ícone). */}
           {vista !== 'mensagens' && (
             <button type="button" className="pn-cabeca__btn pn-cabeca__btn--texto" data-tour="conversa"
@@ -356,8 +367,8 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
         aparelho={<><InstalarApp compacto />{dadosMarca && dadosMarca.participante && <AvisosAparelho compacto
           explicacao="Ligue para saber na hora quando a organização escrever, pedir algo ou marcar as fotos."
           {...pushMarca(dadosMarca.participante.id)} />}</>} />}
-      <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={onSair} />
-      <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto} />
+      <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={verComo ? verComo.onSair : onSair} />
+      {!verComo && <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto} />}
     </div>
   )
 }

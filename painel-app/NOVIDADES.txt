@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Links de preenchimento mais curtos e sempre com o endereço oficial do site.
+Novo: "Ver como participante" na ficha da marca, e as senhas geradas aparecem na tela para copiar.

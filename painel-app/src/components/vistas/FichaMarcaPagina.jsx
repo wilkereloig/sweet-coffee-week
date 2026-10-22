@@ -345,6 +345,8 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
             { rotulo: 'Registrar observação interna', icone: 'historico', onClick: () => mudarVista('historico') },
             { rotulo: 'Ver trajetória no festival', icone: 'pessoas', onClick: () => mudarVista('historico', 'trajetoria') },
             { rotulo: 'Gerenciar acesso', icone: 'chave', onClick: () => mudarVista('gestao') },
+            // Aba nova, só leitura: o painel exatamente como a marca vê (VerComoParticipante). Só administrador.
+            ...(pode('acesso.gerir') ? [{ rotulo: 'Ver como participante', icone: 'visao', onClick: () => window.open('/painel/?ver_como=' + p.id, '_blank') }] : []),
             { rotulo: 'Arquivar marca', icone: 'arquivar', perigo: true, onClick: () => mudarVista('gestao') },
           ]} />
         </div>

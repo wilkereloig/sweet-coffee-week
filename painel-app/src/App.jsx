@@ -5,6 +5,7 @@ import { LoginMarca } from './components/LoginMarca'
 import { DefinirSenha } from './components/DefinirSenha'
 import { PainelShell } from './components/PainelShell'
 import { PainelMarcaShell } from './components/PainelMarcaShell'
+import { VerComoParticipante, verComoDaUrl } from './components/VerComoParticipante'
 import { Cadastro } from './components/vistas-marca/Cadastro'
 import { Pedidos as PedidosMarca } from './components/vistas-marca/Pedidos'
 import { Hoje } from './components/vistas-marca/Hoje'
@@ -60,7 +61,11 @@ function quemOrg(funcaoRotulo) {
   return { nome: 'Acesso compartilhado', funcao: 'sem identificação no histórico' }
 }
 
+// "Ver como participante" (?ver_como=<id>), aberto pela ficha da marca: só com a conta pessoal da organização.
+const VER_COMO = verComoDaUrl(location.search)
+
 function estadoInicial() {
+  if (VER_COMO && lerGuardada(CHAVE_SESSAO_ORG_CONTA)) return 'ver-como'
   // Conta nominal decide primeiro — mesma ordem que rpc.js usa pra escolher
   // o modo de acesso (lê scw_org_conta antes de qualquer coisa). As duas
   // portas de organização não deveriam coexistir na mesma aba, mas SE
@@ -384,6 +389,16 @@ export function App() {
         aoMarcarTrocada={() => rpc('marcar_senha_trocada', {})}
         onConcluido={() => setEstado('painel-org')}
       />
+    )
+  }
+
+  if (estado === 'ver-como') {
+    return (
+      <>
+        <Conexao />
+        <Confirmacoes />
+        <VerComoParticipante id={VER_COMO} vistas={VISTAS_MARCA} />
+      </>
     )
   }
 

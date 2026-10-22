@@ -52,7 +52,7 @@ export function Mensagens({ aoMudarMensagens, voltar }) {
       await api('rpc/marca_ler_mensagens', { metodo: 'POST', corpo: {} })
     } catch (e) {
       novas.forEach((id) => tentadas.current.delete(id))   // tenta de novo na próxima leitura
-      if (e && e.message === 'sessao_expirada') return
+      if (e && (e.message === 'sessao_expirada' || e.message === 'modo_visualizacao')) return
       throw e                                               // a lista segue na tela
     }
     if (avisarRef.current) avisarRef.current()
