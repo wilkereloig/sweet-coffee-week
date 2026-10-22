@@ -319,6 +319,12 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   const [conflitoChaves, setConflitoChaves] = React.useState([])
   // Campos que acompanharam o que outra pessoa salvou (a pessoa não tinha tocado neles): avisa, não pergunta.
   const [externoAdotado, setExternoAdotado] = React.useState({ campos: [], quem: '' })
+  // Aprovar o que se VIU: a tela se relê quando outra pessoa mexe (e passa a mandar a versão nova), então a versão sozinha
+  // não prova que quem aprova conferiu a arte. `vistaRef` = o que a pessoa viu ao abrir (ou ao clicar "Conferi").
+  const vistaRef = React.useRef(null)
+  const [mudouDepois, setMudouDepois] = React.useState(null) // { quem, em, partes } — outra pessoa mudou o que se aprova
+  const podeRef = React.useRef(pode)
+  podeRef.current = pode
   const [recuperado, setRecuperado] = React.useState(() => novo && !(inicial && inicial.doParticipante) && !!lerNovoGuardado())
   const [ocupado, setOcupado] = React.useState('')
   const [aviso, setAviso] = React.useState('')
@@ -400,6 +406,13 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       }
       // Rascunho feito sobre uma versão que outra pessoa já mudou: avisa, não salva sozinho.
       if (g) setRecuperado(g.versao != null && g.versao !== r.post.versao ? 'antiga' : true)
+      const agoraVisto = R.conteudoParaAprovar(r.post, r.arquivos)
+      if (vistaRef.current == null || (!!r.eu && r.post.atualizado_por_id === r.eu)) vistaRef.current = agoraVisto // 1ª leitura, ou a mudança é da própria pessoa
+      else {
+        const partes = R.partesMudadas(vistaRef.current, agoraVisto)
+        if (!partes.length) setMudouDepois(null)
+        else if (podeRef.current('redes.aprovar') && ['aprovacao', 'rascunho', 'preparacao'].includes(r.post.situacao)) setMudouDepois({ quem: r.post.atualizado_por_rotulo || 'Outra pessoa', em: r.post.atualizado_em, partes })
+      }
       definirBase(r.post)
       setCarga(r)
       setErro(null)
@@ -746,7 +759,10 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   }
 
   // A ÚNICA ação em destaque (rodapé). Com alteração não salva, é salvar.
-  const principal = (fechada && !sujo) || (novo && !pode('redes.editar')) ? null : R.proximaAcao({ novo, sujo: !novo && sujo, situacao: post.situacao || 'rascunho', bloqueios: bloqueios.length, pode, confirmando: !!confirma })
+  const principalBruta = (fechada && !sujo) || (novo && !pode('redes.editar')) ? null : R.proximaAcao({ novo, sujo: !novo && sujo, situacao: post.situacao || 'rascunho', bloqueios: bloqueios.length, pode, confirmando: !!confirma })
+  // Mudou depois que quem aprova abriu: antes de "Aprovar", a pessoa confere (e o banco ainda recusa versão antiga).
+  const principal = principalBruta && principalBruta.chave === 'aprovar' && mudouDepois ? { chave: 'conferir', rotulo: 'Conferi as mudanças', icone: 'feito' } : principalBruta
+  function conferiMudancas() { vistaRef.current = R.conteudoParaAprovar(base, arquivos); setMudouDepois(null) }
   function executarPrincipal() {
     if (!principal) return
     if (principal.chave === 'criar' || principal.chave === 'salvar') return salvar()
@@ -754,6 +770,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       if (principal.bloqueada) { setAviso('Resolva o que falta (em “Próximo passo”) antes de enviar.'); focoDepois.current = idPend; return }
       return situacao('aprovacao')
     }
+    if (principal.chave === 'conferir') return conferiMudancas()
     if (principal.chave === 'aprovar') return situacao('pronto')
     if (principal.chave === 'confirmar') return abrirConfirmacao()
   }
@@ -930,6 +947,12 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
             {!conflito && externoAdotado.campos.length > 0 && (
               <AvisoMudancaExterna quem={externoAdotado.quem || 'outra pessoa'} rotulos={ROTULO_CAMPO}
                 registro={{ conflitos: {}, adotados: externoAdotado.campos, dispensar: () => setExternoAdotado({ campos: [], quem: '' }) }} />
+            )}
+            {mudouDepois && pode('redes.aprovar') && ['aprovacao', 'rascunho', 'preparacao'].includes(post.situacao) && (
+              <div className="og-aviso rd-mudou" role="alert">
+                <p><b>{mudouDepois.quem}</b> mudou {R.textoPartes(mudouDepois.partes)}{mudouDepois.em ? ' às ' + R.horaCurta(R.partes(mudouDepois.em).hora) : ''} depois que você abriu esta postagem. Confira antes de aprovar.</p>
+                <Botao variante="secundario" icone="feito" onClick={conferiMudancas}>Conferi as mudanças</Botao>
+              </div>
             )}
             {conflito && (
               <div className="og-aviso rd-conflito" role="alert">
@@ -1169,7 +1192,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
 
                   <div className="ui-acoes rd-etapa__acoes">
                     {(post.situacao === 'rascunho' || post.situacao === 'preparacao') && aprova && pode('redes.editar') && (
-                      <Botao icone="sucesso" variante="secundario" disabled={bloqueios.length > 0 || !!ocupado} onClick={() => situacao('pronto')}>Aprovar direto</Botao>
+                      <Botao icone="sucesso" variante="secundario" disabled={bloqueios.length > 0 || !!ocupado || !!mudouDepois} onClick={() => situacao('pronto')}>Aprovar direto</Botao>
                     )}
                     {post.situacao === 'aprovacao' && aprova && <Botao icone="editar" variante="secundario" disabled={!!ocupado} onClick={pedirAjuste}>Pedir ajuste</Botao>}
                     {post.situacao === 'aprovacao' && !aprova && pode('redes.editar') && <Botao variante="secundario" disabled={!!ocupado} onClick={() => situacao('rascunho')}>Retirar da aprovação</Botao>}

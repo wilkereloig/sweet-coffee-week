@@ -2400,6 +2400,9 @@ p.fg-vazio{margin:0}
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do
    `prefers-reduced-motion` sem ninguém notar. */
+/* Social media › aprovar o que se viu (21/10/2026): aviso de que outra pessoa mudou a postagem depois de aberta. */
+.rd-mudou{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.rd-mudou p{margin:0;flex:1 1 240px}
 /* Biblioteca › cor da pasta (21/10/2026): só a paleta da marca; sem cor, o acento do módulo (como antes). */
 .bb-cores{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .bb-cor{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:6px 10px;border:0;border-radius:var(--r-2);background:var(--sup-1);box-shadow:var(--contorno);color:var(--scw-choco);font:700 15px/1.2 var(--f-ui);text-align:left;cursor:pointer}

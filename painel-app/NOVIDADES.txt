@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Correções da auditoria: criar acesso de candidatura, Sair só neste aparelho, e mais confirmações. Pastas com cor.
+Aprovação: se alguém muda a arte ou o texto enquanto você revisa, o painel avisa e pede para conferir antes de aprovar.

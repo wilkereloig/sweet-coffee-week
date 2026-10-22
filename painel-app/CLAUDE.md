@@ -1220,6 +1220,15 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   sessão `remarcada` ocupa o horário na agenda de fotos; aprovar tema e "Gerar acessos" pedem confirmação; Biblioteca: a arte em uso não vira
   "Apagada" (`20261026_social_biblioteca_arte_em_uso.sql`, ordem do `distinct on (a.path)`). ⚠️ Toda variável nova num componente que usa
   `useRascunhoOrg` NÃO pode se chamar `r` (é o rascunho).
+- **Aprovar o que se VIU — aprovação da Eline** (21/10/2026, achado da auditoria; lote 2). Antes, trocar/acrescentar/reordenar/remover arte (ou mexer na
+  legenda) com a postagem em "Aguardando aprovação" NÃO subia a versão, e a tela de quem aprova se relê sozinha pelo sinal e passa a mandar a versão
+  nova: dava para aprovar uma arte que não se conferiu. Duas camadas: **banco** (`20261027_social_aprovacao_versao.sql`, ✅ aplicada; `redes_rever_etapa`
+  ganhou um ramo: em `aprovacao` + conteúdo mudou → `redes_carimbar` = versão +1 e "atualizado por/em" de quem mexeu, e `redes_avisar_aprovadores`, menos
+  se quem mexeu é aprovador; teste `supabase/testes/social-aprovacao-versao.sql`); **tela** (`RedesFicha.jsx`): `vistaRef` guarda o que a pessoa viu ao abrir
+  (`R.conteudoParaAprovar`: arte = id+versão na ordem, legenda, menções, formato, horário como instante, observações). Se outra pessoa muda isso e quem está
+  na ficha tem `redes.aprovar`, aparece "<quem> mudou <o quê> às hh:mm depois que você abriu" e o botão principal vira "Conferi as mudanças" (idem
+  "Aprovar direto" bloqueado); só depois volta "Aprovar", que manda a versão atual. Mudança da PRÓPRIA pessoa não pede conferência. O banco continua recusando
+  versão antiga (`redes_travar`). Teste no navegador: `node tests/painel-social-aprovacao-navegador.mjs`. Não cobre texto alternativo (`redes_arquivo_alt`).
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram

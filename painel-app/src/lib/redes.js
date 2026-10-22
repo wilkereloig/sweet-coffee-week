@@ -511,6 +511,31 @@ export function camposEmConflito(baseLida, salvo, meus) {
 /** Os campos de conteúdo de uma postagem, como texto (o que os formulários editam). */
 export const camposDoPost = (p) => Object.fromEntries(CAMPOS.map((k) => [k, norm(p ? p[k] : '')]))
 
+/*
+ * APROVAR O QUE SE VIU (21/10/2026, auditoria). A tela de quem aprova se relê sozinha quando outra pessoa mexe na
+ * postagem, e passa a mandar a versão nova — então só a versão não garante que a pessoa viu a arte que está
+ * aprovando. Estas funções dizem O QUE ela julga ao aprovar e O QUE MUDOU desde que ela viu; a ficha exige
+ * "Conferi" antes de liberar "Aprovar". Arte = id + versão de cada arquivo ativo, na ordem do carrossel.
+ */
+export const ROTULO_PARTE_APROVACAO = { arte: 'a arte', legenda: 'a legenda', mencoes: 'as menções', formato: 'o formato', horario: 'o horário', observacoes: 'as observações' }
+export function conteudoParaAprovar(post = {}, arquivos = []) {
+  const vivos = (arquivos || []).filter((a) => !a.removido_em).sort((a, b) => a.ordem - b.ordem)
+  const t = post.programado_para ? new Date(post.programado_para).getTime() : NaN
+  return {
+    arte: vivos.map((a) => a.id + ':' + (a.versao || 1)).join(','),
+    legenda: norm(post.legenda), mencoes: norm(post.mencoes), formato: norm(post.formato),
+    horario: Number.isFinite(t) ? String(t) : '', // o mesmo instante escrito de dois jeitos não é mudança
+    observacoes: norm(post.observacoes),
+  }
+}
+/** Chaves (de ROTULO_PARTE_APROVACAO) que são diferentes entre o que a pessoa viu e o que está agora. */
+export const partesMudadas = (visto, atual) => Object.keys(ROTULO_PARTE_APROVACAO).filter((k) => norm(visto && visto[k]) !== norm(atual && atual[k]))
+/** "a arte e a legenda" / "a arte, a legenda e o horário". */
+export function textoPartes(chaves = []) {
+  const t = chaves.map((k) => ROTULO_PARTE_APROVACAO[k]).filter(Boolean)
+  return t.length <= 1 ? t.join('') : t.slice(0, -1).join(', ') + ' e ' + t[t.length - 1]
+}
+
 /**
  * Chegou uma versão nova da postagem (sinal de outra pessoa, reconexão, depois de uma ação)
  * enquanto a ficha pode ter texto digitado. Mescla campo a campo em três vias:

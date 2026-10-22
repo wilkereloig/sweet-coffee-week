@@ -74,3 +74,37 @@ test('aprovar tema e criar acessos em lote pedem confirmação', () => {
   const m = ler('painel-app/src/components/vistas/Marcas.jsx')
   assert.equal((m.match(/confirmar\('Criar o acesso de '/g) || []).length, 2, 'botão do topo e ação em lote')
 })
+
+// ── Lote 2: aprovação da Eline — aprovar o que se VIU ─────────────────────────────────────────────────────────────
+test('aprovação: o que a pessoa julga (arte por id+versão na ordem, texto, formato, horário) e o que mudou desde que viu', async () => {
+  const R = await import('../painel-app/src/lib/redes.js')
+  const a = (id, ordem, extra = {}) => ({ id, ordem, versao: 1, removido_em: null, ...extra })
+  const post = { legenda: 'Oi', mencoes: '@a', formato: 'feed', programado_para: '2026-11-03T20:00:00+00:00', observacoes: '' }
+  const visto = R.conteudoParaAprovar(post, [a('x', 0), a('y', 1)])
+  assert.equal(visto.arte, 'x:1,y:1')
+  // O mesmo instante escrito de outro jeito, ou uma arte removida/antiga, não é mudança.
+  assert.deepEqual(R.partesMudadas(visto, R.conteudoParaAprovar({ ...post, programado_para: '2026-11-03T20:00:00.000Z' }, [a('y', 1), a('x', 0), a('z', 2, { removido_em: 'x' })])), [])
+  // Trocar a arte (nova versão), reordenar, acrescentar ou mexer no texto/horário é mudança — e diz o quê.
+  assert.deepEqual(R.partesMudadas(visto, R.conteudoParaAprovar(post, [a('x', 0, { versao: 2 }), a('y', 1)])), ['arte'])
+  assert.deepEqual(R.partesMudadas(visto, R.conteudoParaAprovar(post, [a('y', 0), a('x', 1)])), ['arte'])
+  assert.deepEqual(R.partesMudadas(visto, R.conteudoParaAprovar({ ...post, legenda: 'Oi!', programado_para: '2026-11-03T21:00:00Z' }, [a('x', 0), a('y', 1)])), ['legenda', 'horario'])
+  assert.equal(R.textoPartes(['arte']), 'a arte')
+  assert.equal(R.textoPartes(['arte', 'legenda']), 'a arte e a legenda')
+  assert.equal(R.textoPartes(['arte', 'legenda', 'horario']), 'a arte, a legenda e o horário')
+  assert.equal(R.textoPartes([]), '')
+  assert.deepEqual(R.partesMudadas(null, visto).length > 0, true, 'sem o que foi visto, tudo conta como mudança')
+})
+
+test('aprovação: o banco sobe a versão e avisa quem aprova; a tela exige "Conferi" antes de "Aprovar"', () => {
+  const sql = ler('supabase/migrations/20261027_social_aprovacao_versao.sql')
+  assert.match(sql, /elsif p\.situacao = 'aprovacao' and p_conteudo_mudou then\s+[\s\S]*redes_carimbar\(p_post\)/, 'a versão sobe em "aguardando aprovação"')
+  assert.match(sql, /not public\.pode_por_user\(auth\.uid\(\), 'redes\.aprovar'\)[\s\S]*redes_avisar_aprovadores/, 'avisa os aprovadores, menos se quem mexeu é um deles')
+  assert.doesNotMatch(sql, /drop |delete from/i)
+  assert.ok(sql.includes("p.situacao = 'pronto' and p_conteudo_mudou"), 'o ramo de "pronto" continua igual')
+  const f = ler('painel-app/src/components/vistas/RedesFicha.jsx')
+  assert.match(f, /principalBruta\.chave === 'aprovar' && mudouDepois \? \{ chave: 'conferir'/, 'com mudança não conferida, o botão principal é "Conferi as mudanças"')
+  assert.match(f, /if \(principal\.chave === 'conferir'\) return conferiMudancas\(\)/)
+  assert.match(f, /!!ocupado \|\| !!mudouDepois\} onClick=\{\(\) => situacao\('pronto'\)\}>Aprovar direto/, '"Aprovar direto" também espera a conferência')
+  assert.match(f, /podeRef\.current\('redes\.aprovar'\)/, 'só quem aprova vê o aviso')
+  assert.match(f, /R\.conteudoParaAprovar\(r\.post, r\.arquivos\)/)
+})
