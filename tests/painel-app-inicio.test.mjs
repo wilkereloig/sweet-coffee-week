@@ -8,7 +8,6 @@ import {
   textoProgresso, resumoDoGrupo, gruposDoInicio, resumoSolicitacoes, ordemDoInicio, vendaVisivel, dataBr, prazoDoCadastro,
 } from '../painel-app/src/lib/inicioMarca.js'
 import { existe } from './_icones.mjs'
-import { contarVisita } from '../painel-app/src/lib/instalar.js'
 
 /*
  * Nova ordem do Início da marca (22/10/2026): quem é o destaque, onde cada bloco entra conforme a fase da
@@ -92,9 +91,8 @@ test('o destaque sai da lista: guia.js entrega a MESMA pendência (identidade po
   const grupos = gruposDoInicio(p)
   const itensDosGrupos = grupos.flatMap((g) => g.itens)
   assert.ok(!itensDosGrupos.some((x) => mesma(x, p.destaque)), 'o destaque não está em nenhum grupo')
-  // Nada se perde: lista + destaque + "enviar" = todas as pendências.
-  const enviar = r.pendencias.filter((x) => x.tipo === 'enviar').length
-  assert.equal(itensDosGrupos.length + 1 + enviar, r.pendencias.length)
+  // Nada se perde: lista + destaque = todas as pendências (não há mais "enviar").
+  assert.equal(itensDosGrupos.length + 1, r.pendencias.length)
   const ids = itensDosGrupos
   assert.equal(new Set(ids).size, ids.length, 'nenhuma pendência em dois grupos')
 })
@@ -104,7 +102,7 @@ test('mensagem no destaque não tira nada da lista', () => {
   const p = plano(r, 1)
   assert.equal(p.fora, null)
   const total = gruposDoInicio(p).flatMap((g) => g.itens).length
-  assert.equal(total, r.pendencias.filter((x) => x.tipo !== 'enviar').length)
+  assert.equal(total, r.pendencias.length)
 })
 
 test('pendência sem destino (item que ainda não existe) vira "Falar com a organização" e a lista não a repete', () => {
@@ -194,37 +192,38 @@ test('tema em análise e fotos aguardando liberação também entram em "aguarda
 
 /* ── Texto de progresso ──────────────────────────────────────────────────── */
 
-test('progresso diz o alcance ("dos dados básicos") e nunca "Tudo pronto" com envio.pronto falso', () => {
+test('progresso diz o alcance ("dos dados básicos") e quantas informações faltam — nunca "enviar"', () => {
   const faltando = com({}, { faltandoEdicao: ['combo_nome', 'unidade:u1:modos', 'item:2:alimentar'] })
   const r = resumoMarca(faltando)
   assert.equal(r.progresso.pct, 100)
   assert.equal(r.envio.pronto, false)
   const t = textoProgresso(r)
   assert.equal(t.dados, '100% dos dados básicos')
-  assert.equal(t.envio.texto, 'Faltam 3 itens para enviar')
-  assert.doesNotMatch(JSON.stringify(t), /pronto|preenchido/i)
-  assert.equal(textoProgresso(resumoMarca(com({}, { faltandoEdicao: ['combo_nome'] }))).envio.texto, 'Falta 1 item para enviar')
+  assert.deepEqual(t.envio, { estado: 'falta', texto: 'Faltam 3 informações' })
+  assert.doesNotMatch([t.dados, t.contagem, t.envio.texto].join(' '), /pronto|preenchido|envi/i)
+  assert.equal(textoProgresso(resumoMarca(com({}, { faltandoEdicao: ['combo_nome'] }))).envio.texto, 'Falta 1 informação')
 })
 
-test('"Tudo pronto para enviar" só com a leitura do servidor, envio.pronto e uma ação de enviar aberta', () => {
-  const pronto = resumoMarca(com({}, { faltandoEdicao: [] }))
-  assert.equal(pronto.envio.pronto, true)
-  assert.equal(textoProgresso(pronto).envio.texto, 'Tudo pronto para enviar')
-  // Sem a leitura (migration ausente) não se afirma nada sobre o envio.
+test('situação do cadastro: completo vai para a organização; aprovado e alterado espera a atualização do site', () => {
+  const completo = resumoMarca(com({}, { faltandoEdicao: [] }))
+  assert.equal(completo.envio.pronto, true)
+  assert.deepEqual(textoProgresso(completo).envio, { estado: 'conferindo', texto: 'Completo · a organização vai conferir' })
+  // Sem a leitura (migration ausente) não se afirma nada.
   const desconhecido = resumoMarca(com({}))
   assert.equal(desconhecido.envio.conhecido, false)
   assert.equal(textoProgresso(desconhecido).envio, null)
   assert.equal(textoProgresso(desconhecido).dados, desconhecido.progresso.pct + '% dos dados básicos')
-  // Já enviado: não é "pronto para enviar".
   const analise = resumoMarca(com({ combo_status: 'em_analise' }, { faltandoEdicao: [] }))
-  assert.match(textoProgresso(analise).envio.texto, /analisando/)
-  assert.doesNotMatch(textoProgresso(analise).envio.texto, /Tudo pronto/)
-  // Aprovado: pronto só para as ALTERAÇÕES, e só se houve.
+  assert.equal(textoProgresso(analise).envio.texto, 'Completo · a organização está conferindo')
   const aprov = { combo_status: 'aprovado', status_cadastro: 'cadastro_completo' }
-  assert.match(textoProgresso(resumoMarca(com(aprov, { faltandoEdicao: [] }))).envio.texto, /sem alterações/)
-  assert.equal(textoProgresso(resumoMarca(com(aprov, { faltandoEdicao: [], publicacao: { alterado_apos_aprovacao: true } }))).envio.texto, 'Tudo pronto para enviar as alterações')
-  // A logo faltando não trava, mas o texto não a esconde.
-  assert.match(textoProgresso(resumoMarca(com({ logo_id: null }, { faltandoEdicao: [] }))).envio.texto, /logo pode ir depois/)
+  assert.deepEqual(textoProgresso(resumoMarca(com(aprov, { faltandoEdicao: [] }))).envio, { estado: 'ok', texto: 'Combo aprovado' })
+  assert.equal(textoProgresso(resumoMarca(com(aprov, { faltandoEdicao: [], publicacao: { alterado_apos_aprovacao: true } }))).envio.texto,
+    'Alterações salvas · a organização vai atualizar o site')
+  const ajuste = resumoMarca(com({ combo_status: 'correcao_solicitada' }, { faltandoEdicao: [] }))
+  assert.equal(textoProgresso(ajuste).envio.texto, 'Ajuste pedido · corrija e salve')
+  // todo estado tem ícone no Acompanhamento
+  const ac = readFileSync(new URL('../painel-app/src/components/vistas-marca/hoje/Acompanhamento.jsx', import.meta.url), 'utf8')
+  for (const e of ['falta', 'conferindo', 'ok']) assert.match(ac, new RegExp(e + ": '"), 'ícone de ' + e)
 })
 
 /* ── Acompanhamento: quem age e estados distintos ────────────────────────── */
@@ -246,24 +245,26 @@ test('tema aprovado, combo aprovado e página publicada são linhas DIFERENTES, 
   assert.match(l2.pagina.link, /casa$/)
 })
 
-test('"aprovado, com alterações a enviar" é vez da marca; a organização só espera o que está com ela', () => {
+test('aprovado e alterado depois: quem age é a organização (atualizar o site), não a marca', () => {
   const dados = com({ combo_status: 'aprovado', status_cadastro: 'cadastro_completo' }, { publicacao: { estado: 'publicado', alterado_apos_aprovacao: true } })
   const r = resumoMarca(dados)
   const an = linhasDeAcompanhamento({ resumo: r, dados }).organizacao.find((l) => l.chave === 'analise')
-  assert.match(an.detalhe, /aprovado, com alterações a enviar/i)
-  assert.equal(an.quem, 'marca')
-  assert.equal(an.etiqueta.texto, 'Sua vez')
-  assert.equal(esperandoOrganizacao({ resumo: r, dados }).includes('A análise do seu cadastro e do combo'), false)
+  assert.match(an.detalhe, /atualizar o site com as suas alterações/i)
+  assert.equal(an.quem, 'organizacao')
+  assert.equal(an.etiqueta.texto, 'Com a organização')
+  const esperas = esperandoOrganizacao({ resumo: r, dados })
+  assert.ok(esperas.includes('A atualização da sua página com as alterações salvas'))
+  assert.equal(esperas.includes('A análise do seu cadastro e do combo'), false)
 })
 
 test('quem age: ação da marca e espera da organização têm selos e textos diferentes', () => {
-  const ctx = { envioPronto: false, fotoLiberada: true, vagasAbertas: 2 }
+  const ctx = { fotoLiberada: true, vagasAbertas: 2 }
   assert.equal(quemDaEtapa({ chave: 'tema', estado: 'pendente' }, ctx), 'marca')
   assert.equal(quemDaEtapa({ chave: 'tema', estado: 'atencao' }, ctx), 'marca')
   assert.equal(quemDaEtapa({ chave: 'tema', estado: 'feito' }, ctx), 'feito')
   assert.equal(quemDaEtapa({ chave: 'analise', estado: 'andamento' }, ctx), 'organizacao')
   assert.equal(quemDaEtapa({ chave: 'analise', estado: 'pendente' }, ctx), 'depois')
-  assert.equal(quemDaEtapa({ chave: 'analise', estado: 'pendente' }, { ...ctx, envioPronto: true }), 'marca')
+  assert.equal(quemDaEtapa({ chave: 'analise', estado: 'pendente' }, { ...ctx, alteradoAposAprovacao: true }), 'organizacao')
   assert.equal(quemDaEtapa({ chave: 'fotos', estado: 'pendente' }, ctx), 'marca')
   assert.equal(quemDaEtapa({ chave: 'fotos', estado: 'pendente' }, { ...ctx, fotoLiberada: false }), 'organizacao')
   assert.equal(quemDaEtapa({ chave: 'fotos', estado: 'pendente' }, { ...ctx, vagasAbertas: 0 }), 'organizacao')
@@ -397,12 +398,15 @@ test('Arquivos.jsx: o botão confirma LEITURA (não "de acordo") e a falha de gr
   const a = ler('painel-app/src/components/vistas-marca/Arquivos.jsx')
   assert.doesNotMatch(a, /estou de acordo/)
   assert.match(a, /Li e confirmo a leitura/)
-  assert.match(a, /Conferi as fotos/)
-  assert.match(a, /Confirme que conferiu/)
-  assert.match(a, /Conferência confirmada em/)
-  // `setLidos` vem depois do `await api('arquivo_leitura'…)` e dentro do mesmo `try`: se a gravação falha, cai no catch.
+  // As palavras da conferência de foto moram nas fotos oficiais (o modo `fotos` de Arquivos saiu).
+  const fo = ler('painel-app/src/components/vistas-marca/fotos/FotosOficiais.jsx')
+  assert.match(fo, /Conferi as fotos/)
+  assert.match(fo, /Confirme que conferiu/)
+  assert.match(fo, /Conferência confirmada em/)
+  // `setLidos` vem depois do `await api('rpc/marca_confirmar_leitura'…)` e dentro do mesmo `try`: se a gravação falha, cai no catch.
   const f = a.slice(a.indexOf('async function confirmarLeitura'), a.indexOf('const visiveis'))
-  assert.ok(f.indexOf("await api('arquivo_leitura'") < f.indexOf('setLidos('), 'marca como lido só DEPOIS de gravar')
+  assert.ok(f.indexOf("await api('rpc/marca_confirmar_leitura'") > 0, 'a leitura é gravada pela RPC')
+  assert.ok(f.indexOf("await api('rpc/marca_confirmar_leitura'") < f.indexOf('setLidos('), 'marca como lido só DEPOIS de gravar')
   assert.ok(f.indexOf('setLidos(') < f.indexOf('} catch'), 'e dentro do try')
   assert.match(f.slice(f.indexOf('} catch')), /setAviso\(/, 'falha avisa em vez de confirmar')
 })
@@ -445,20 +449,21 @@ test('estilo do Início: só tokens (sem hex, raio ou fonte literal), sem caixa-
 
 const cron = (fim, chave = 'preenchimento') => [{ chave, tipo: 'prazo', fim, visivel_participante: true }]
 
-test('o envio que perde o destaque continua à vista (enviarAparte) — correção, pedido ou mensagem na frente', () => {
+test('não há "enviar" no Início: nem destaque, nem à parte (a marca só salva)', () => {
   const corrigindo = resumoMarca(com({ combo_status: 'correcao_solicitada' }, { correcoes: [{ campo: 'telefone', bloco: 0, estado: 'aberta', comentario: 'x' }] }))
   const a = plano(corrigindo, 0)
   assert.equal(a.destaque.tipo, 'correcao')
-  assert.equal(a.enviarAparte.tipo, 'enviar')
-  const comMensagem = plano(resumoMarca(com({})), 2)
-  assert.equal(comMensagem.tipoDestaque, 'mensagem')
-  assert.equal(comMensagem.enviarAparte.tipo, 'enviar', 'a mensagem tomou o destaque, o envio não some')
-  const soEnviar = plano(resumoMarca(com({})), 0)
-  assert.equal(soEnviar.destaque.tipo, 'enviar')
-  assert.equal(soEnviar.enviarAparte, null, 'quando é o destaque não se repete')
+  assert.ok(!('enviarAparte' in a))
+  const completo = plano(resumoMarca(com({})), 0)
+  assert.equal(completo.destaque, null, 'cadastro completo: nada a fazer, nada a enviar')
   const soLogo = plano(resumoMarca(com({ logo_id: null })), 0)
   assert.equal(soLogo.destaque.campo, 'logo')
-  assert.equal(soLogo.enviarAparte.tipo, 'enviar')
+  const d = apresentarDestaque(soLogo.destaque, { itens })
+  assert.doesNotMatch(d.motivo, /envi/i)
+  const campo = apresentarDestaque(plano(resumoMarca(com({}, { itens: semDescricao(1) })), 0).destaque, { itens })
+  assert.equal(campo.motivo, 'É obrigatório para a página no site.')
+  const agora = readFileSync(new URL('../painel-app/src/components/vistas-marca/hoje/Agora.jsx', import.meta.url), 'utf8')
+  assert.doesNotMatch(agora, /enviarAparte|data-tipo="enviar"/)
 })
 
 test('prazo de preenchimento do cronograma: acompanha a ação do cadastro e a torna crítica quando está perto', () => {
@@ -527,21 +532,9 @@ test('guardas de leitura: unidades em ordem (os ids dos campos dependem da posi�
   for (const d of ['publicacao', 'edicao']) assert.ok(dominios.includes("'" + d + "'"), 'o resumo lê ' + d + ' e tem que reler quando ela mudar')
 })
 
-test('convite de instalar/ligar avisos: só da 2ª visita em diante (a 1ª é da primeira tarefa)', () => {
-  const guarda = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) } }
-  const local = guarda()
-  // 1ª sessão: conta 1, e recarregar a página na mesma sessão não conta de novo
-  const s1 = guarda()
-  assert.equal(contarVisita('marca', 'p1', { local, sessao: s1 }), 1)
-  assert.equal(contarVisita('marca', 'p1', { local, sessao: s1 }), 1)
-  // outra sessão do navegador: 2ª visita
-  assert.equal(contarVisita('marca', 'p1', { local, sessao: guarda() }), 2)
-  // outra pessoa no mesmo aparelho começa do zero
-  assert.equal(contarVisita('marca', 'p2', { local, sessao: guarda() }), 1)
-  // sem armazenamento (aba privada): não esconde o convite para sempre
-  assert.equal(contarVisita('marca', 'p1', { local: null, sessao: null }), 2)
+test('convite de instalar/ligar avisos: abre já na 1ª visita, logo depois do tour (sem contador de visitas)', () => {
   const shell = readFileSync(new URL('../painel-app/src/components/PainelMarcaShell.jsx', import.meta.url), 'utf8')
-  assert.match(shell, /liberado=\{!tour\.aberto && visitas >= 2\}/, 'o shell da marca só libera o convite na 2ª visita')
+  assert.match(shell, /liberado=\{!tour\.aberto\}/, 'desde 23/10/2026 o convite abre já na 1ª visita, logo depois do tour (decisão do Wilker)')
 })
 
 test('botão de conversa: o nome acessível CONTÉM os dois textos visíveis (WCAG 2.5.3, comando de voz)', () => {

@@ -10,6 +10,7 @@ import { lerRota, montarRota } from '../painel-app/src/lib/rota.js'
 import { filtrados } from '../painel-app/src/lib/respostas.js'
 import { participaDaEdicao, resumoDaEdicao, encerradasNaEdicao, colunasMesa } from '../painel-app/src/lib/mesa.js'
 import { TOUR } from '../painel-app/src/lib/ajuda.js'
+import { DOMINIOS_VISTAS } from '../painel-app/src/lib/syncFichas.js'
 import {
   LEITURA, URGENCIA, JANELA_PRAZO_DIAS, acoesDaEquipe, agendaDaEquipe, aguardandoAprovacao, avisoDeLeitura, estadoDaEdicao, estadoDasAcoes, porExtenso,
   marcasComMensagem, ordenarAcoes, permitida, resumoNomes,
@@ -374,6 +375,32 @@ test('Mesa.jsx: o princípio está na tela — "nada precisa" só vem do estado 
   assert.match(a, /falhou \? 'Não deu para carregar os registros agora\.' : 'Nenhuma ação registrada ainda\.'/)
 })
 
+test('Social media com algo em aberto: "nada precisa da equipe" nunca ao lado de "2 atrasadas" (23/10/2026)', () => {
+  // O resumo do Social media não é cartão de contagem: sem ele no estado, a Mesa dizia "vazio" com atraso à vista.
+  const base = { lidas: true, falhas: [], contagens: 0, ocultas: 0 }
+  assert.equal(estadoDasAcoes({ ...base, redes: 2 }).tipo, 'redes')
+  assert.equal(estadoDasAcoes({ ...base, redes: 2 }).texto, '', 'sem frase: o resumo, logo abaixo, mostra os números')
+  assert.equal(estadoDasAcoes({ ...base, redes: 2, ocultas: 3 }).tipo, 'redes', '"nada que a sua função possa resolver" também seria falso')
+  assert.equal(estadoDasAcoes({ ...base, redes: 0 }).tipo, 'vazio')
+  assert.equal(estadoDasAcoes({ ...base, redes: 2, contagens: 1 }).tipo, 'abertas')
+  assert.equal(estadoDasAcoes({ ...base, redes: 2, falhas: [LEITURA.redes] }).tipo, 'incompleta')
+  assert.equal(estadoDasAcoes({ ...base, lidas: false, redes: 2 }).tipo, 'conferindo')
+  // A leitura do Social media é do bloco de ações: caiu, o aviso diz ali.
+  assert.equal(avisoDeLeitura([LEITURA.redes], 'acoes'), 'Faltou ler o planejamento do Social media. O que aparece aqui pode estar incompleto.')
+  assert.equal(avisoDeLeitura([LEITURA.redes], 'marcas'), null)
+  // A Mesa lê redes_resumo só com redes.ver, soma os alertas do perfil (a regra do topo do Planejamento) e relê com "redes".
+  const m = semComentarios(ler('painel-app/src/components/vistas/Mesa.jsx'))
+  tem(m, /pode && pode\('redes\.ver'\) \? pegar\('redes_resumo', \{\}, LEITURA\.redes\) : Promise\.resolve\(\{ ok: true, v: null \}\)/)
+  tem(m, /const nRedes = totalAlertas\(extra\.redes, \{ aprova: !!pode && pode\('redes\.aprovar'\) \}\)/)
+  tem(m, /estadoDasAcoes\(\{[^}]*redes: nRedes,[^}]*\}\)/)
+  tem(m, /\}, \[guarda, pode\]\)/, 'permissão nova relê (redes.ver pode chegar depois)')
+  // E relê quando o Social media muda — mas SÓ o resumo (redes_resumo), não as ~14 leituras da mesa a cada post salvo.
+  assert.ok(!DOMINIOS_VISTAS.mesa.includes('redes'), '"redes" fora do conjunto que refaz a mesa inteira')
+  tem(m, /rpc\('redes_resumo', \{ p_secret: lerSenha\(\) \}\)/)
+  tem(m, /useSincronizar\(\['redes'\], lerRedes\)/, 'a Mesa relê o resumo do Social media quando ele muda')
+  tem(m, /const guardaRedes = useGuarda\(\)/, 'guarda própria: a releitura curta não invalida a longa em andamento')
+})
+
 // ── 5 · Agenda e prazos ─────────────────────────────────────────────────────────────────────────────────────
 test('agenda: só prazos de 0 a 5 dias, do mais perto ao mais longe; data ausente nunca entra', () => {
   assert.equal(JANELA_PRAZO_DIAS, 5)
@@ -451,9 +478,11 @@ test('a tela: três áreas na ordem pedida, cartões pelo Modulo do painel, Soci
   const cartao = ler('painel-app/src/components/vistas/mesa/CartaoAcao.jsx')
   assert.match(cartao, /<Modulo [^>]*onClick=\{\(\) => navegar\(acao\.rota\)\}/, 'o cartão inteiro é o atalho da lista que conta')
   assert.match(cartao, /rotuloIr=\{'Abrir ' \+ acao\.destino\}/, 'o destino é dito')
-  // Social media: o resumo cuida da própria permissão (redes.ver) e fica sob o título certo.
-  tem(mc, /\{pode && \(\s*<NivelTitulo\.Provider value=\{3\}>\s*<ResumoRedes navegar=\{navegar\} pode=\{pode\} \/>/)
+  // Social media: a leitura é a da Mesa (entra no "nada precisa"); o resumo confere a permissão (redes.ver) e fica sob o título certo.
+  tem(mc, /\{pode && !\(extra\.lidas && !extra\.redes\) && \(\s*<NivelTitulo\.Provider value=\{3\}>\s*<ResumoRedes navegar=\{navegar\} pode=\{pode\} resumo=\{extra\.redes\} \/>/)
   assert.match(ler('painel-app/src/components/vistas/Redes.jsx'), /const ver = pode\('redes\.ver'\)[\s\S]*if \(!ver\) return null/)
+  // A função Social media (sem dado.ler) segue com o resumo que lê sozinho.
+  assert.match(ler('painel-app/src/components/Modulos.jsx'), /: <ResumoRedes navegar=\{props\.navegar\} pode=\{props\.pode\} \/>/)
   // Só leitura: nenhum controle de escrita nem caixa nativa.
   nao(mc, /window\.(confirm|prompt|alert)\(|setInterval|className="ui-chip"/)
   // Pedidos: o cartão só conta o que a tela de pedidos mostra e já foi publicado (não arquivado).

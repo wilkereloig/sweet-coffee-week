@@ -884,7 +884,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
   )
   const camposDetalhes = (
     <div className="rd-grade">
-      <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
+      <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required placeholder="Ex.: Carrossel do combo, lançamento" value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
       <Campo rotulo="Formato" nota={R.requisitoFormato(campos.formato)}>
         <select value={campos.formato} onChange={(e) => setCampo('formato', e.target.value)}>
           {R.FORMATOS.map((x) => <option key={x.chave} value={x.chave}>{x.rotulo}</option>)}
@@ -1027,7 +1027,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                   return <p className="rd-campo__nota">Vinculada a <b>{participante}</b>{veio.length ? ': ' + veio.join(' e ') + (veio.length > 1 ? ' já vieram preenchidos.' : ' já veio preenchido.') : '.'}</p>
                 })()}
                 <div className="rd-grade">
-                  <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required enterKeyHint="next" value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
+                  <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required enterKeyHint="next" placeholder="Ex.: Carrossel do combo, lançamento" value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
                   <Campo rotulo="Formato" nota={R.requisitoFormato(campos.formato)}>
                     <select value={campos.formato} onChange={(e) => setCampo('formato', e.target.value)}>
                       {R.FORMATOS.map((x) => <option key={x.chave} value={x.chave}>{x.rotulo}</option>)}

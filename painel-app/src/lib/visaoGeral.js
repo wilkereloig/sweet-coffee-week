@@ -35,11 +35,12 @@ export const LEITURA = Object.freeze({
   revisao: 'a revisão de dados',
   temas: 'os temas',
   edicao: 'a edição atual',
+  redes: 'o planejamento do Social media', // redes_resumo, só com redes.ver
 })
 
 // Quais leituras alimentam cada bloco da tela (a falha de uma não condena os outros blocos).
 const LEITURAS_DO_BLOCO = Object.freeze({
-  acoes: Object.freeze([LEITURA.marcas, LEITURA.apoiar, LEITURA.contato, LEITURA.pedidos, LEITURA.sessoes, LEITURA.conversas, LEITURA.revisao, LEITURA.temas, LEITURA.edicao]),
+  acoes: Object.freeze([LEITURA.marcas, LEITURA.apoiar, LEITURA.contato, LEITURA.pedidos, LEITURA.sessoes, LEITURA.conversas, LEITURA.revisao, LEITURA.temas, LEITURA.edicao, LEITURA.redes]),
   marcas: Object.freeze([LEITURA.marcas, LEITURA.edicao]),
   atividade: Object.freeze([LEITURA.atividade]),
 })
@@ -310,14 +311,18 @@ export function acoesDaEquipe({
 /**
  * O que dizer na área de ações. NUNCA "em dia" antes de ler tudo nem com leitura caída:
  *   tem cartão → 'abertas' · não leu ainda → 'conferindo' · alguma leitura falhou → 'incompleta' ·
+ *   o Social media tem algo para este perfil (`redes` = R.totalAlertas: atrasadas, ajuste, aprovação ou a
+ *   publicar) → 'redes' (sem texto: o resumo do Social media, logo abaixo, mostra os números — "nada
+ *   precisa" ao lado de "2 atrasadas" seria falso; e vem antes de 'outras-funcoes', que também seria) ·
  *   há pendência, mas de outra função → 'outras-funcoes' · prazo vencendo hoje/amanhã → 'agenda-urgente'
  *   (sem texto: o cartão da agenda, no topo, já diz o que fazer; "nada precisa" ao lado dele seria falso) ·
- *   leu tudo e não há nada → 'vazio'. A agenda não é cartão de contagem, por isso entra aqui à parte.
+ *   leu tudo e não há nada → 'vazio'. A agenda e o Social media não são cartões de contagem, por isso entram aqui à parte.
  */
-export function estadoDasAcoes({ lidas = false, falhas = [], contagens = 0, ocultas = 0, agendaUrgente = false } = {}) {
+export function estadoDasAcoes({ lidas = false, falhas = [], contagens = 0, ocultas = 0, agendaUrgente = false, redes = 0 } = {}) {
   if (contagens > 0) return { tipo: 'abertas', texto: '' }
   if (!lidas) return { tipo: 'conferindo', texto: 'Conferindo o que está pendente…' }
   if ((falhas || []).length) return { tipo: 'incompleta', texto: 'Não consegui ler tudo, então não dá para dizer que está em dia.' }
+  if (redes > 0) return { tipo: 'redes', texto: '' }
   if (ocultas > 0) return { tipo: 'outras-funcoes', texto: 'Nada que a sua função possa resolver agora.' }
   if (agendaUrgente) return { tipo: 'agenda-urgente', texto: '' }
   return { tipo: 'vazio', texto: 'Nada precisa da equipe agora.' }

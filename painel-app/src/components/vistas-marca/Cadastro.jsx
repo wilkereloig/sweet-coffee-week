@@ -1,15 +1,15 @@
 import React from 'react'
 import { Icone } from '../Icone'
 import { LogoEditor } from '../LogoEditor'
-import { api, registrarPendente, subirLogo, seFaltar } from '../../lib/marcaApi'
+import { api, registrarPendente, subirLogo, seFaltar, emVerComo } from '../../lib/marcaApi'
 import { registrarPendencia, sinalizarMudancaExterna, limparMudancaExterna } from '../../lib/pendencias'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import * as MC from '../../lib/cadastroMescla'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { camposObrigatorios, progressoCampos, vistaDoBloco } from '../../lib/guia'
-import { Carregando, Erro, Vazio, Selo } from '../ui'
+import { datasDoFestival, linhasCanonicas, mesmasLinhas } from '../../lib/horarioFestival'
+import { Carregando, Erro, Vazio, Selo, traduzirErro } from '../ui'
 import { VistaCabeca } from '../VistaCabeca'
-import { confirmar } from '../Confirmar'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import {
   TIPOS, ROTULO_TIPO, ROTULO_POSICAO, itensEmOrdem,
@@ -20,16 +20,22 @@ import { EstadoCampo, EstadoBloco, Correcao, GrupoPublico, Opcional, Contador } 
 import { Unidades } from './edicao/Unidades'
 import { Atendimento } from './edicao/Atendimento'
 import { Alimentar } from './edicao/Alimentar'
-import { Previa, ListaFaltando, EstadoPublicacao, Revisao } from './edicao/Envio'
+import { EstadoPublicacao } from './edicao/Envio'
+import { ConcluirSozinho } from './edicao/ConcluirSozinho'
 import '../../styles/edicao-marca.css'
 
 /*
  * Vista "Cadastro" da marca — porte de public/painel/index.html (#mvCadastro,
  * ~1504-1628) + carregar/carregarParticipacao/preencher/desenharItens/
  * desenharUnidades/desenharSessoes/desenharVagas/reservarVaga/progresso/
- * acordeão/autosave/concluir (~4855-5634). Sem DOM: todo campo é controlado
+ * acordeão/autosave (~4855-5634). Sem DOM: todo campo é controlado
  * por estado React; a lógica de completude vive em lib/cadastro.js e, para a
  * camada de edição (Cartoon 2026.2), em lib/edicaoMarca.js.
+ *
+ * A marca só SALVA (23/10/2026, pedido do Wilker): não há "enviar", revisão
+ * antes do envio nem prévia. O banco (migration 20261106_marca_salvar_avisa)
+ * avisa a organização de toda alteração salva e, quando o cadastro fica
+ * completo, o passa sozinho para a conferência dela.
  *
  * O resumo (situação, progresso e "salvo") fica preso ao topo da rolagem:
  * os blocos são longos, e quem preenche precisa ver o progresso e o
@@ -62,12 +68,15 @@ function Bloco({ indice, numero, aberto, completo, estado, resumo, proximo, onTo
       </button>
       <div className="mc-bloco__corpo" id={'bloco-' + indice} hidden={!aberto}>
         {children}
-        {/* Só navega: abre a próxima seção depois de gravar o que está na fila. Nunca envia. */}
-        <div className="em-continuar">
-          <button className="acao secundaria" type="button" onClick={onContinuar}>
-            {proximo ? 'Continuar: ' + proximo : 'Revisar e enviar'}<Icone nome="seta-direita" tamanho={16} />
-          </button>
-        </div>
+        {/* Só navega: abre a próxima seção depois de gravar o que está na fila. No último bloco o botão é o
+            "Salvar" do fim do formulário, logo abaixo (dois "Salvar" colados confundiriam). */}
+        {proximo && (
+          <div className="em-continuar">
+            <button className="acao secundaria" type="button" onClick={onContinuar}>
+              {'Continuar: ' + proximo}<Icone nome="seta-direita" tamanho={16} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -86,7 +95,7 @@ const COMBO_VAZIO = { combo_nome: '', combo_descricao: '', combo_condicoes: '' }
 // edição): viraram declarações por item (bloco 5) e modos por unidade (bloco 6).
 // "Para viagem" segue: decide se o custo da embalagem é pedido.
 const EXTRAS_VAZIO = { combo_para_viagem: null, combo_proposta: '' }
-const ROTULO_TEMA_STATUS = { proposto: 'Tema enviado — em análise pela organização.', aprovado: 'Tema aprovado pela organização.', recusado: 'A organização pediu outro tema.' }
+const ROTULO_TEMA_STATUS = { proposto: 'Tema recebido — em análise pela organização.', aprovado: 'Tema aprovado pela organização.', recusado: 'A organização pediu outro tema.' }
 const temTexto = (v) => String(v == null ? '' : v).trim() !== ''
 const ouNulo = (v) => String(v == null ? '' : v).trim() || null
 
@@ -162,18 +171,10 @@ const vazio = (l) => !l || !l.length
 const REPR = 'return=representation'
 const baseDeclaracao = (x) => E.corpoDeclaracao({ estado: x.estado, observacao: x.observacao || '' })
 const baseSubstituicao = (x) => E.corpoSubstituicao(E.substituicaoDeLinha(x))
-const baseDisponibilidade = (x) => E.corpoDisponibilidade(E.disponibilidadeDeLinha(x))
 const baseUnidade = (x) => E.corpoUnidade(E.unidadeDeLinhas(null, x))
 
-function recadoOperacao(e) {
-  const m = String((e && e.message) || '')
-  if (m.includes('data_fora_do_festival')) return 'Esse dia está fora das datas do festival.'
-  if (e && e.codigo === '23505') return 'Esse dia já tem um horário que começa nessa hora.'
-  return 'Não deu para gravar o horário agora. O que você digitou continua na tela. Tente de novo.'
-}
-
 // Foto do que o servidor confirmou (baseRef): uma por entidade, no espaço do corpo do PATCH.
-const baseVazia = () => ({ marca: null, participacao: null, itens: {}, un: {}, pu: {}, disp: {}, decl: {}, sub: {} })
+const baseVazia = () => ({ marca: null, participacao: null, itens: {}, un: {}, pu: {}, decl: {}, sub: {} })
 // Só o que a tela mostra das unidades guardadas (sugestões): atualizar o resto não precisa renderizar de novo.
 const assinaturaPermanentes = (rs) => JSON.stringify((rs || []).map((r) => [r.id, r.nome_unidade, r.bairro, r.logradouro, r.numero]))
 // As conversões acima (donas do contrato do grant) emprestadas à mesclagem pura.
@@ -207,22 +208,22 @@ async function lerSnapshot() {
   const listaItens = itensRows || []
   const listaPu = puRows || []
   const ids = (xs) => xs.map((x) => x.id).join(',')
-  const [dispRows, declRows, subRows] = novo
+  const [declRows, subRows] = novo
     ? await Promise.all([
-      listaPu.length ? api('unidade_disponibilidade?select=*&participacao_unidade_id=in.(' + ids(listaPu) + ')&order=data,abre') : [],
       listaItens.length ? api('declaracoes_alimentares?select=*&item_id=in.(' + ids(listaItens) + ')') : [],
       listaItens.length ? api('substituicoes?select=*&item_id=in.(' + ids(listaItens) + ')&order=ordem,criado_em') : [],
     ])
-    : [[], [], []]
+    : [[], []]
+  // O horário no festival já vem na linha da unidade da edição (participacao_unidades.horario_festival).
   return {
     tipo: 'ok', p, pa, edicao, tema, novo, itensRows: listaItens, puRows: listaPu, unRows: unRows || [],
-    dispRows: dispRows || [], declRows: declRows || [], subRows: subRows || [],
+    declRows: declRows || [], subRows: subRows || [],
   }
 }
 
 /*
  * Meu cadastro = blocos 0, 4 e 6; Meu combo = 1, 2, 3 e 5. Mesmo formulário,
- * mesmo salvamento automático, mesmo envio para análise. Os blocos 5 e 6
+ * mesmo salvamento automático, mesmo "Salvar". Os blocos 5 e 6
  * (camada de edição) entram na aba a que pertencem (vistaDoBloco) sem que
  * quem monta a vista precise listá-los.
  */
@@ -239,14 +240,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const ehCombo = !mostra(0)
   const [extras, setExtras] = React.useState(EXTRAS_VAZIO)
   const [revisao, setRevisao] = React.useState({ tema: null })
-  // Situação do combo vem do resumo (lido a cada minuto e a cada aviso da organização): aprovar
-  // ou pedir ajuste aparece aqui sem remontar a tela. `comboLocal` só cobre o instante entre
-  // enviar e o resumo novo chegar: guarda o resumo de quando foi posto e some assim que QUALQUER
-  // resumo novo chega (antes só sumia se o status mudasse — um segundo pedido de ajuste igual ao
-  // anterior ficava escondido para sempre atrás do "em análise" local).
-  const [comboLocal, setComboLocal] = React.useState(null) // { valor, resumo }
+  // Situação do combo vem do resumo (relido depois de cada salvamento e a cada aviso da organização): aprovar,
+  // pedir ajuste ou o banco passar o cadastro completo para a conferência aparece aqui sem remontar a tela.
   const comboResumo = resumo && resumo.combo ? resumo.combo : null
-  const comboStatus = (comboLocal && comboLocal.resumo === resumo ? comboLocal.valor : null) || (comboResumo && comboResumo.status) || 'rascunho'
+  const comboStatus = (comboResumo && comboResumo.status) || 'rascunho'
   const comboNota = comboResumo ? comboResumo.nota : null
   const [carregando, setCarregando] = React.useState(true)
   const [erroCarregar, setErroCarregar] = React.useState(null) // { titulo, texto, tentar }
@@ -266,6 +263,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const [festival, setFestival] = React.useState({ inicio: null, fim: null })
   const [itens, setItens] = React.useState([])
   const [unidades, setUnidades] = React.useState([])
+  // Para quem pergunta "há horário incompleto?" fora do render (registro de trabalho pela metade).
+  const horarioPendenteRef = React.useRef(false)
+  horarioPendenteRef.current = unidades.some((u) => u._horarioPendente)
   const [permanentes, setPermanentes] = React.useState([]) // unidades permanentes da marca
   const [declaracoes, setDeclaracoes] = React.useState({})
   const [substituicoes, setSubstituicoes] = React.useState([])
@@ -273,7 +273,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   // As tabelas da camada de edição só existem com as migrations de 14/10/2026.
   // Sem elas o cadastro antigo segue abrindo, e os blocos novos dizem por quê.
   const [modeloNovo, setModeloNovo] = React.useState(true)
-  const [previaAberta, setPreviaAberta] = React.useState(false)
   // Custos que se aplicam (cadastro.js · custosFaltando): embalagem se pode ser
   // para viagem; delivery se alguma unidade entrega O COMBO.
   const custos = {
@@ -284,14 +283,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const [blocoAberto, setBlocoAberto] = React.useState(0)
   const [salvoTexto, setSalvoTexto] = React.useState('')
   const [erroSalvar, setErroSalvar] = React.useState(null)
-  // Gravação em voo (salvamento automático ou operação imediata): só para o rótulo "Salvando…".
+  // Gravação em voo: só para o rótulo "Salvando…".
   const [salvando, setSalvando] = React.useState(false)
-  const [revisaoAberta, setRevisaoAberta] = React.useState(false)
-  const [concluindo, setConcluindo] = React.useState(false)
-  const [concluirAviso, setConcluirAviso] = React.useState(null)
 
   const timerRef = React.useRef(null)
-  const emVooRef = React.useRef(0) // quantas gravações estão em voo agora (salvarEmOrdem e operar)
+  const salvarJaRef = React.useRef(false) // "Salvar" mudou a tela (WhatsApp antigo): grava assim que ela renderizar
+  const emVooRef = React.useRef(0) // quantas gravações estão em voo agora (salvarEmOrdem)
   const resumoRef = React.useRef(resumo) // o resumo mais recente, para a abertura (efeito que não re-roda)
   const salvarRef = React.useRef(() => Promise.resolve())
   const tempSeqRef = React.useRef(0)
@@ -316,7 +313,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const vivoRef = React.useRef(null)                 // a tela agora (atribuída a cada render)
   const prontoRef = React.useRef(false)              // a abertura terminou
   const pedidoCargaRef = React.useRef(false)         // chegou aviso durante a abertura
-  const operandoRef = React.useRef(0)                // gravações imediatas (horário do combo) em curso
   const ciclosRef = React.useRef(0)                  // sobe no começo e no fim de toda gravação
   const adiadoRef = React.useRef(false)              // releitura descartada por causa de uma gravação
   const recarregarRef = React.useRef(null)
@@ -387,8 +383,8 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         baseRef.current.participacao = corpoParticipacao(daParticipacao)
         setRevisao({ tema: snap.tema || null })
 
-        const { novo, itensRows: listaItens, puRows: listaPu, unRows: listaUn, dispRows, declRows, subRows } = snap
-        const doBanco = listaPu.map((pu) => E.unidadeDeLinhas(pu, listaUn.find((u) => u.id === pu.unidade_id), dispRows))
+        const { novo, itensRows: listaItens, puRows: listaPu, unRows: listaUn, declRows, subRows } = snap
+        const doBanco = listaPu.map((pu) => E.unidadeDeLinhas(pu, listaUn.find((u) => u.id === pu.unidade_id)))
         // Sem unidade nesta edição: com unidades guardadas, elas viram sugestão;
         // sem nenhuma, a tela mostra uma em branco para preencher.
         const listaUnidades = doBanco.length || listaUn.length ? doBanco : [unidadeVazia()]
@@ -403,7 +399,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         base.itens = Object.fromEntries(listaItens.map((i) => [i.id, pedidoItem(i).corpo]))
         base.un = Object.fromEntries(listaUn.map((u) => [u.id, baseUnidade(u)]))
         base.pu = Object.fromEntries(listaPu.map((r) => [r.id, E.corpoParticipacaoUnidadeDeLinha(r)]))
-        base.disp = Object.fromEntries(dispRows.map((d) => [d.id, baseDisponibilidade(d)]))
         base.decl = Object.fromEntries(declRows.map((d) => [d.id, baseDeclaracao(d)]))
         base.sub = Object.fromEntries(subRows.map((s) => [s.id, baseSubstituicao(s)]))
         if (novo) carregarPub(pa.id)
@@ -504,7 +499,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         .then((id) => {
           if (removidasRef.current.has(k)) { removidasRef.current.delete(k); return null }
           return api('participacao_unidades', {
-            metodo: 'POST', corpo: { participacao_id: participacaoId, unidade_id: id, ...E.corpoParticipacaoUnidade(u, ordem) }, prefer: REPR,
+            metodo: 'POST', corpo: { participacao_id: participacaoId, unidade_id: id, ...E.corpoNovaParticipacaoUnidade(u, ordem) }, prefer: REPR,
           })
         })
         .then((l) => {
@@ -519,6 +514,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           idsPuRef.current.set(k, { puId: x.id, id_publico: x.id_publico })
           base.pu[x.id] = E.corpoParticipacaoUnidadeDeLinha(x)
           marcarUnidade(k, { puId: x.id, id_publico: x.id_publico })
+          // O horário não vai no INSERT (a coluna só tem grant de UPDATE). Se a tela já tem um — unidade que a organização tirou
+          // da edição e a pessoa manteve —, grava agora, num PATCH que só leva o que difere da linha recém-criada.
+          if (!mesmasLinhas(u.horario_festival, x.horario_festival)) {
+            return patchMudancas('participacao_unidades?id=eq.' + x.id, E.corpoParticipacaoUnidade(u, ordem), base.pu[x.id])
+              .then((m) => { const y = linha(m); if (y) base.pu[y.id] = E.corpoParticipacaoUnidadeDeLinha(y); return m })
+          }
           return l
         })
         .finally(() => postandoRef.current.delete(k))
@@ -567,16 +568,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         tarefas.push(patchMudancas(caminho, corpo, base.itens[i.id], bloq('item', i.id)).then((l) => { const x = linha(l); if (x) base.itens[x.id] = pedidoItem(x).corpo; return l }))
       }
     }
+    // O horário no festival é coluna da unidade da edição: vai junto com ela, só quando o seletor o entregou COMPLETO
+    // (`u.horario_festival`). O rascunho incompleto nunca é gravado — o salvamento só diz que ele ficou de fora.
     if (modeloNovo && (mostra(4) || mostra(6))) unidades.forEach((u, i) => tarefas.push(salvarUnidade(u, i)))
-    if (modeloNovo && mostra(6)) {
-      for (const u of unidades) {
-        for (const d of u.disponibilidade) {
-          if (E.erroFaixa(d.abre, d.fecha) || orfas.has('disp:' + d.id)) continue // o campo mostra o erro; grava quando corrigir
-          tarefas.push(patchMudancas('unidade_disponibilidade?id=eq.' + d.id, E.corpoDisponibilidade(d), base.disp[d.id], bloq('disp', d.id))
-            .then((l) => { const x = linha(l); if (x) base.disp[x.id] = baseDisponibilidade(x); return l }))
-        }
-      }
-    }
+    const horariosFora = modeloNovo && mostra(6) ? E.frasesHorarioNaoSalvo(unidades) : []
     if (modeloNovo && mostra(5)) {
       for (const [itemId, porAspecto] of Object.entries(declaracoes)) {
         for (const [aspecto, d] of Object.entries(porAspecto)) {
@@ -604,7 +599,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       const aguardando = Object.values(conflitosRef.current).some((c) => c.chave !== '__removida')
       const lista = [...omitidos]
       const faltou = lista.length ? 'Salvo, menos ' + (lista.length > 1 ? lista.slice(0, -1).join(', ') + ' e ' + lista[lista.length - 1] : lista[0]) + ' (corrija o campo para gravar).' : ''
-      if (!pendenteRef.current) setSalvoTexto(aguardando ? 'Salvo, menos o que aguarda a sua escolha.' : faltou || 'Informações salvas.')
+      // O que ficou de fora e por quê, numa voz só: campo inválido, conflito a escolher e horário ainda incompleto.
+      const dizer = [aguardando ? 'Salvo, menos o que aguarda a sua escolha.' : faltou, ...horariosFora].filter(Boolean)
+      if (!pendenteRef.current) setSalvoTexto(dizer.length ? dizer.join(' ') : 'Informações salvas.')
       setErroSalvar(null)
       // Pendências, progresso e números das abas acompanham o que foi gravado.
       if (recarregarResumo) recarregarResumo()
@@ -615,7 +612,11 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       pendenteRef.current = true
       if (e && e.message === 'sessao_expirada') return false
       setSalvoTexto('')
-      setErroSalvar('Não deu para salvar agora. O que você digitou continua na tela. Tente de novo.')
+      // O horário que o banco recusa (outra aba, dia que saiu do festival) diz o motivo; o resto segue a frase de sempre.
+      const horarioRecusado = /horario_invalido|data_fora_do_festival/.test(String((e && e.message) || ''))
+      setErroSalvar(horarioRecusado
+        ? 'Não deu para salvar o horário no festival. ' + traduzirErro(e.message) + ' O que você digitou continua na tela.'
+        : 'Não deu para salvar agora. O que você digitou continua na tela. Tente de novo.')
       return false
     } finally {
       // Cada PATCH trocou a base pelo que o servidor devolveu — inclusive a coluna em conflito, que não foi
@@ -628,7 +629,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   React.useEffect(() => { salvarRef.current = salvar }, [salvar])
 
   /*
-   * Uma gravação por vez. Timer, tela escondida, desmonte e "Enviar" podem
+   * Uma gravação por vez. Timer, tela escondida, desmonte e "Salvar" podem
    * pedir juntos, e a mais velha chegaria por último, desfazendo a nova.
    * Pedido durante o voo marca "de novo": roda mais uma vez no fim, com o
    * estado mais recente, e quem pediu recebe o resultado dessa última.
@@ -641,8 +642,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     setTimeout(() => { if (recarregarRef.current) recarregarRef.current({ dominios: [], refs: [], origens: ['local'] }).catch(() => {}) }, 0)
   }, [])
 
-  // "Salvando…" liga no começo de toda gravação e desliga quando a última termina (conta, não um liga/desliga:
-  // a gravação imediata do horário e o autosave podem se sobrepor).
+  // "Salvando…" liga no começo de toda gravação e desliga quando a última termina (um contador, não um liga/desliga).
   const emVoo = React.useCallback((delta) => {
     emVooRef.current = Math.max(0, emVooRef.current + delta)
     setSalvando(emVooRef.current > 0)
@@ -680,6 +680,11 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       ativo: () => !!pendenteRef.current || !!vooRef.current || Object.keys(conflitosRef.current).length > 0,
       salvar: async () => (await descarregar()) !== false,
     })
+    // Horário no festival montado só pela metade NÃO se grava (o banco recusa) e some ao sair da tela: conta como trabalho pela metade.
+    const tirarHorario = registrarPendencia('cadastro-horario', {
+      rotulo: 'Seu cadastro: o horário no festival está incompleto e não foi salvo',
+      ativo: () => horarioPendenteRef.current,
+    })
     function avisar(ev) { if (pendenteRef.current) { ev.preventDefault(); ev.returnValue = '' } }
     // No celular o beforeunload não dispara: trocar de app ou bloquear a tela
     // esconde a página, e é aí que o rascunho precisa ir para o servidor.
@@ -689,6 +694,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     return () => {
       tirar()
       tirarGeral()
+      tirarHorario()
       window.removeEventListener('beforeunload', avisar)
       document.removeEventListener('visibilitychange', aoEsconder)
       descarregar()
@@ -702,30 +708,28 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     timerRef.current = setTimeout(() => { salvarEmOrdem() }, 900)
   }
 
-  // Gravação imediata (horário do combo): primeiro descarrega o que está na
-  // fila, para nenhum PATCH velho chegar depois da operação.
-  async function operar(fn) {
+  /*
+   * "Salvar": grava agora o que está na fila (o salvamento automático continua). Tocar em Salvar é salvar as unidades
+   * também: o WhatsApp antigo, digitado quando era preciso autorizar, vai para o site (E.whatsappLegado). A mudança
+   * entra na TELA antes de gravar — o efeito abaixo grava depois do render, com o estado novo, e a base nunca vê
+   * diferença ao abrir.
+   */
+  function salvarAgora() {
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
-    await salvarEmOrdem()
-    operandoRef.current += 1
-    ciclosRef.current += 1
-    emVoo(1)
-    try {
-      await fn()
-      setErroSalvar(null)
-      if (!pendenteRef.current) setSalvoTexto('Informações salvas.')
-      if (recarregarResumo) recarregarResumo()
-      return true
-    } catch (e) {
-      if (!(e && e.message === 'sessao_expirada')) setErroSalvar(recadoOperacao(e))
-      return false
-    } finally {
-      operandoRef.current -= 1
-      ciclosRef.current += 1
-      emVoo(-1)
-      soltarAdiada()
+    if (modeloNovo && mostra(4) && unidades.some(E.whatsappLegado)) {
+      pendenteRef.current = true
+      salvarJaRef.current = true
+      setSalvoTexto('')
+      setUnidades((prev) => prev.map((u) => (E.whatsappLegado(u) ? { ...u, whatsapp_autorizado: true } : u)))
+      return
     }
+    salvarEmOrdem()
   }
+  React.useEffect(() => {
+    if (!salvarJaRef.current) return
+    salvarJaRef.current = false
+    salvarEmOrdem()
+  }, [unidades, salvarEmOrdem])
 
   // ── Sincronização: releitura silenciosa que MESCLA (19/10/2026) ──────────────
   const aplicarTela = React.useCallback((t) => {
@@ -763,7 +767,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     limparMudancaExterna('cadastro-marca')
     setExterno({ conflitos: {}, adotados: {} })
     setErroSalvar(null)
-    setConcluirAviso(null)
     setCarregando(true)
     setTentativa((n) => n + 1)
   }, [salvarEmOrdem])
@@ -772,20 +775,19 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     if (!prontoRef.current) { pedidoCargaRef.current = true; return } // a abertura ainda corre: ela relê no fim
     const vale = guarda()
     // Uma gravação por vez: espera a que está em voo (até ~4 s). Mesclar no meio dela leria metade.
-    for (let i = 0; i < 80 && (vooRef.current || operandoRef.current > 0); i += 1) {
+    for (let i = 0; i < 80 && vooRef.current; i += 1) {
       if (!vale()) return
-      if (vooRef.current) await vooRef.current.fim.catch(() => {})
-      else await new Promise((r) => setTimeout(r, 50))
+      await vooRef.current.fim.catch(() => {})
     }
     if (!vale()) return
-    if (vooRef.current || operandoRef.current > 0) { adiadoRef.current = true; return }
+    if (vooRef.current) { adiadoRef.current = true; return }
     const ciclo = ciclosRef.current
     let snap
     try { snap = await lerSnapshot() } catch (e) { if (e && e.message === 'sessao_expirada') return; throw e } // erro: o hook marca "sem sincronizar"
     if (!vale()) return
     // Uma gravação rodou durante a leitura: a foto pode ter pegado metade dela. A própria gravação anuncia
     // o que mudou e a releitura vem sozinha (e `soltarAdiada` cobre a gravação que falhou).
-    if (vooRef.current || operandoRef.current > 0 || ciclo !== ciclosRef.current) { adiadoRef.current = true; return }
+    if (vooRef.current || ciclo !== ciclosRef.current) { adiadoRef.current = true; return }
     if (snap.tipo !== 'ok') return // sem marca / sem participação: nada a mesclar
     const v = vivoRef.current
     if (!v.participacaoId || snap.pa.id !== v.participacaoId || snap.p.id !== v.participanteId || snap.novo !== v.modeloNovo) {
@@ -842,7 +844,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   }, [guarda, guardaPub, reiniciar, aplicarTela])
   recarregarRef.current = recarregarMesclando
   // O que este cadastro realmente lê: marca e participação (participantes), itens/declarações/trocas (cadastro),
-  // unidades e horários (unidades), tema em análise (temas), valor e datas (edicao), a página no ar (publicacao).
+  // unidades e o horário no festival (unidades), tema em análise (temas), valor e datas (edicao), a página no ar (publicacao).
   useSincronizar(['participantes', 'cadastro', 'unidades', 'temas', 'edicao', 'publicacao'], recarregarMesclando)
 
   // A pessoa escolheu num conflito. "Usar a nova" leva o valor da organização para a tela E para a base;
@@ -884,12 +886,18 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     setItens((prev) => prev.map((i) => (i.id === id ? { ...i, [campo]: valor } : i)))
     agendarSalvar()
   }
+  // Mexer numa unidade é salvá-la: E.editarUnidade também decide o WhatsApp da loja no site.
   function alterarUnidade(chave, campo, valor) {
-    setUnidades((prev) => prev.map((u) => (u._key === chave ? { ...u, [campo]: valor } : u)))
+    setUnidades((prev) => prev.map((u) => (u._key === chave ? E.editarUnidade(u, { [campo]: valor }) : u)))
+    agendarSalvar()
+  }
+  // Atendimento (bloco 6): mexer aqui NÃO publica o WhatsApp antigo (o aviso de que ele vai para o site só aparece no bloco 4).
+  function alterarAtendimento(chave, campo, valor) {
+    setUnidades((prev) => prev.map((u) => (u._key === chave ? E.editarUnidade(u, { [campo]: valor }, { liberaLegado: false }) : u)))
     agendarSalvar()
   }
   function alterarCanal(chave, tipo, valor) {
-    setUnidades((prev) => prev.map((u) => (u._key === chave ? { ...u, canais: { ...u.canais, [tipo]: valor } } : u)))
+    setUnidades((prev) => prev.map((u) => (u._key === chave ? E.editarUnidade(u, { canais: { ...u.canais, [tipo]: valor } }, { liberaLegado: false }) : u)))
     agendarSalvar()
   }
   function adicionarUnidade() {
@@ -919,48 +927,20 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     agendarSalvar() // a ordem das que ficaram muda
   }
 
-  const trocarDisponibilidade = (k, lista) => setUnidades((prev) => prev.map((u) => (u._key === k
-    ? { ...u, disponibilidade: lista.map(E.disponibilidadeDeLinha).sort((a, b) => (a.data + a.abre).localeCompare(b.data + b.abre)) }
-    : u)))
-  const horario = {
-    alterar(k, id, campo, valor) {
-      setUnidades((prev) => prev.map((u) => (u._key !== k ? u
-        : { ...u, disponibilidade: u.disponibilidade.map((d) => (d.id === id ? { ...d, [campo]: valor } : d)) })))
-      agendarSalvar()
-    },
-    async aplicarTodos(u, dias, r) {
-      const n = u.disponibilidade.length
-      if (n && !(await confirmar('Trocar o horário do combo nesta unidade? ' + (n === 1 ? 'O dia já informado dá' : 'Os ' + n + ' dias já informados dão') + ' lugar ao mesmo horário em todos os dias do festival.'))) return false
-      return operar(async () => {
-        await api('unidade_disponibilidade?participacao_unidade_id=eq.' + u.puId, { metodo: 'DELETE' })
-        for (const d of u.disponibilidade) { delete baseRef.current.disp[d.id]; esquecidasRef.current.add(String(d.id)) }
-        trocarDisponibilidade(u._key, [])
-        const linhas = await api('unidade_disponibilidade', { metodo: 'POST', corpo: E.linhasMesmoHorario(u.puId, dias, r.abre, r.fecha, r.observacao), prefer: REPR })
-        for (const x of linhas || []) baseRef.current.disp[x.id] = baseDisponibilidade(x)
-        trocarDisponibilidade(u._key, linhas || [])
-      })
-    },
-    incluir(u, novo) {
-      return operar(async () => {
-        const l = await api('unidade_disponibilidade', {
-          metodo: 'POST', corpo: { participacao_unidade_id: u.puId, data: novo.data, abre: novo.abre, fecha: novo.fecha }, prefer: REPR,
-        })
-        const x = linha(l)
-        if (!x) throw new Error('sem_confirmacao')
-        baseRef.current.disp[x.id] = baseDisponibilidade(x)
-        setUnidades((prev) => prev.map((y) => (y._key === u._key
-          ? { ...y, disponibilidade: [...y.disponibilidade, E.disponibilidadeDeLinha(x)].sort((a, b) => (a.data + a.abre).localeCompare(b.data + b.abre)) }
-          : y)))
-      })
-    },
-    remover(u, d) {
-      return operar(async () => {
-        esquecidasRef.current.add(String(d.id))
-        await api('unidade_disponibilidade?id=eq.' + d.id, { metodo: 'DELETE' })
-        delete baseRef.current.disp[d.id]
-        setUnidades((prev) => prev.map((y) => (y._key === u._key ? { ...y, disponibilidade: y.disponibilidade.filter((x) => x.id !== d.id) } : y)))
-      })
-    },
+  /*
+   * Horário no festival: o seletor (components/HorarioFestival.jsx) só entrega `linhas` quando o horário está COMPLETO.
+   * Completo → vira o horário da unidade e segue o salvamento de sempre (PATCH em participacao_unidades). Incompleto →
+   * `horario_festival` NÃO se mexe (mexer nele de fora refaria o rascunho do seletor): a unidade só ganha o marcador
+   * `_horarioPendente`, que o salvamento usa para avisar. Rascunho incompleto nunca é gravado; o marcador nunca vai ao banco.
+   */
+  function alterarHorario(chave, r) {
+    setUnidades((prev) => prev.map((u) => {
+      if (u._key !== chave) return u
+      return r.completo
+        ? E.editarUnidade(u, { horario_festival: linhasCanonicas(r.linhas), _horarioPendente: null }, { liberaLegado: false })
+        : { ...u, _horarioPendente: { faltando: r.faltando || [], semDiaAberto: !!r.semDiaAberto } }
+    }))
+    agendarSalvar()
   }
 
   function alterarDeclaracao(itemId, aspecto, campo, valor) {
@@ -1000,8 +980,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     },
   }
 
-  // Código do servidor → texto, com o ONDE: "Falta em Meu combo: …" quando o bloco é da outra aba.
-  const traduzir = (codigo) => E.comOnde(E.traduzirFaltando(codigo, { unidades, itens }), visiveis)
   function focarCampo(campo, bloco) {
     window.setTimeout(() => {
       const el = (campo && document.getElementById('campo-' + campo)) || document.getElementById('bloco-' + bloco)
@@ -1020,24 +998,15 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     else if (irPara) irPara(vistaDoBloco(f.bloco), { sub: String(f.bloco), campo: f.campo || '' })
   }
 
-  // "Continuar": SÓ navega. Grava o que está na fila (em ordem, como o resto) e abre a próxima seção da aba;
-  // na última, leva à revisão. Nunca envia para análise — isso é o botão de baixo.
+  // "Continuar": SÓ navega. Grava o que está na fila (em ordem, como o resto) e abre a próxima seção da aba.
+  // O último bloco não tem "Continuar": o botão dele é o "Salvar" do fim do formulário.
   async function continuar(n) {
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
     if (pendenteRef.current) await salvarEmOrdem() // se falhar, o aviso de erro já está na tela e o digitado continua
     const prox = visiveis[visiveis.indexOf(n) + 1]
+    if (prox === undefined) return
     // O botão que foi tocado fica dentro de um bloco que se recolhe (some do foco): o foco vai para o
     // cabeçalho de onde a pessoa continua, e o leitor de tela anuncia o título e "expandido".
-    if (prox === undefined) {
-      setRevisaoAberta(true)
-      window.setTimeout(() => {
-        const rev = document.getElementById('em-revisao')
-        rolarPara(rev)
-        const resumo = rev && rev.querySelector('summary')
-        if (resumo) resumo.focus({ preventScroll: true })
-      }, 60)
-      return
-    }
     setBlocoAberto(prox)
     window.setTimeout(() => {
       const alvo = document.querySelector('[data-bloco="' + prox + '"]')
@@ -1045,59 +1014,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       const cabeca = alvo && alvo.querySelector('.mc-bloco__cabeca')
       if (cabeca) cabeca.focus({ preventScroll: true })
     }, 60)
-  }
-
-  async function abrirPrevia() {
-    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
-    await salvarEmOrdem() // a prévia mostra o que está GRAVADO
-    setPreviaAberta(true)
-  }
-
-  async function concluir(ev) {
-    ev.preventDefault()
-    // A organização mexeu em algo que a marca também editou e ninguém escolheu ainda: o que está GRAVADO
-    // é a versão da organização. Enviar assim analisaria uma versão que a marca nem viu aprovada.
-    if (Object.values(conflitosRef.current).some((c) => c.chave !== '__removida')) {
-      setConcluirAviso({ tom: 'erro', texto: 'Antes de enviar, escolha qual versão vale nas informações que a organização alterou (aviso no topo do cadastro).' })
-      return
-    }
-    setConcluindo(true)
-    setConcluirAviso(null)
-    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
-    // Salva antes de concluir: quem valida é o servidor, sobre o que está
-    // GRAVADO — concluir com o autosave pendente reprovaria campo cheio.
-    if (!(await salvarEmOrdem())) { setConcluindo(false); return } // o erro de salvar já está na tela
-    try {
-      const r = await api('rpc/marca_concluir_cadastro', { metodo: 'POST', corpo: { p_participacao: participacaoId } })
-      if (!r || r.ok !== true) {
-        const faltando = ((r && r.faltando) || []).map(traduzir)
-        setConcluirAviso({ tom: 'erro', texto: 'Antes de enviar, ainda falta:', faltando })
-        // Abre o primeiro bloco pendente desta aba para a pessoa ver onde está a falta.
-        const daqui = faltando.find((f) => visiveis.includes(f.bloco))
-        if (daqui) setBlocoAberto(daqui.bloco)
-      } else {
-        const reenvio = comboStatus === 'correcao_solicitada'
-        const alteracao = !!(pub && pub.alterado_apos_aprovacao)
-        setStatusCadastro('cadastro_completo')
-        // O banco já passou o combo para análise: o pedido de ajuste sai da tela.
-        if (comboStatus === 'rascunho' || comboStatus === 'correcao_solicitada' || (comboStatus === 'aprovado' && alteracao)) setComboLocal({ valor: 'em_analise', resumo })
-        setConcluirAviso({
-          tom: 'ok',
-          texto: alteracao
-            ? 'Alterações enviadas em ' + new Date().toLocaleDateString('pt-BR') + '. A versão publicada continua no ar até a organização revisar.'
-            : (reenvio ? 'Alterações enviadas novamente' : 'Enviado para análise') + ' em ' + new Date().toLocaleDateString('pt-BR') +
-              '. A organização confere e avisa aqui. Mudou alguma coisa? É só editar e enviar de novo.',
-        })
-        if (recarregarResumo) recarregarResumo()
-        if (modeloNovo) carregarPub(participacaoId)
-      }
-    } catch (e) {
-      if (!(e && e.message === 'sessao_expirada')) {
-        setConcluirAviso({ tom: 'erro', texto: 'Não deu para concluir agora. Tente de novo em instantes.' })
-      }
-    } finally {
-      setConcluindo(false)
-    }
   }
 
   // Vindo de "escolher horário das fotos" (Hoje ou aviso): rola até a agenda.
@@ -1139,26 +1055,26 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     if (!vivo[id]) return { estado: 'falta' }
     return org && (org.estado === 'aprovado' || org.estado === 'analise') ? org : { estado: 'completo' }
   }
-  // "Faltam N itens para enviar": a regra de marca_concluir_cadastro — os
-  // campos obrigatórios (a logo não trava o envio) + o que a página pública
-  // precisa (pendencias_publicacao), sem contar "sem unidade" duas vezes.
+  // "Faltam N informações": a regra de marca_concluir_cadastro (que o banco roda sozinho a cada salvamento) — os
+  // campos obrigatórios (a logo não trava) + o que a página pública precisa (pendencias_publicacao), sem contar
+  // "sem unidade" duas vezes. É o mesmo número que decide quando o cadastro vai para a conferência da organização.
   const faltaCampos = obrigatorios.filter((c) => !c.ok && c.campo !== 'logo')
   const pendEd = modeloNovo ? E.pendenciasEdicao({ comboNome: combo.combo_nome, unidades, itens, declaracoes }) : []
   const pendEdicao = faltaCampos.some((c) => c.campo === 'unidade-endereco') ? pendEd.filter((c) => c !== 'sem_unidade') : pendEd
-  const faltamEnviar = faltaCampos.length + pendEdicao.length
+  const faltam = faltaCampos.length + pendEdicao.length
+  // O que falta, a da aba aberta primeiro: o primeiro é o destino de "Ir para o que falta" (mesmo na outra aba).
+  const proximaFalta = E.faltasDoCadastro({ faltaCampos, pendEdicao, unidades, itens, visiveis })[0] || null
   const contagem = E.contarPorBloco(pendEdicao)
   const faltamNo = (n) => faltaCampos.filter((c) => c.bloco === n).length + (contagem[n] || 0)
   const pronto = (n) => (n <= 4 ? blocoCompleto(n, dadosProgresso) : modeloNovo) && !contagem[n]
   const sugestoes = permanentes.filter((un) => !unidades.some((u) => (u.unId || idsUnRef.current.get(u._key)) === un.id))
-  const dias = E.diasDoFestival(festival.inicio, festival.fim)
+  const dias = datasDoFestival(festival.inicio, festival.fim)
   const erroWhats = validarWhatsApp(marca.telefone)
-  const reenviar = comboStatus === 'correcao_solicitada'
   const alterado = !!(pub && pub.alterado_apos_aprovacao)
   const semModelo = <p className="aviso">Esta etapa abre quando a organização liberar a nova versão do cadastro da edição.</p>
-  // Situação em palavras: ENVIO (statusCadastro) e APROVAÇÃO (comboStatus) são coisas diferentes; "preenchido" não é "aprovado".
-  const situacao = E.situacaoDaMarca({ semParticipacao, statusCadastro, comboStatus, alterado, publicada: !!(pub && pub.estado === 'publicado'), faltam: faltamEnviar })
+  // Situação em palavras: COMPLETO (statusCadastro) e APROVADO (comboStatus) são coisas diferentes; "preenchido" não é "aprovado".
+  const situacao = E.situacaoDaMarca({ semParticipacao, statusCadastro, comboStatus, alterado, publicada: !!(pub && pub.estado === 'publicado'), faltam })
   const salvamento = E.rotuloSalvamento({ salvando, erro: !!erroSalvar, texto: salvoTexto })
-  const conferencia = E.revisaoPorArea({ faltaCampos, pendEdicao, unidades, itens, visiveis })
   // Blocos com correção pedida (a organização apontou um campo, ou o tema foi recusado).
   const comCorrecao = new Set(((resumo && resumo.pendencias) || []).filter((p) => p.tipo === 'correcao').map((p) => Number(p.bloco)))
   const tituloDoProximo = (n) => { const p = visiveis[visiveis.indexOf(n) + 1]; return p === undefined ? null : E.TITULOS_BLOCO[p].titulo }
@@ -1172,13 +1088,11 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     proximo: tituloDoProximo(n), onContinuar: () => continuar(n),
     onToggle: () => setBlocoAberto((a) => (a === n ? null : n)),
   })
-  const rotuloEnviar = concluindo ? 'Enviando…' : alterado ? 'Enviar alterações' : reenviar ? 'Enviar novamente para análise'
-    : comboStatus === 'em_analise' ? 'Enviar de novo para análise' : 'Enviar para análise'
   // Alteração de fora: só o que pertence aos blocos DESTA aba (Meu cadastro × Meu combo).
   const confVisiveis = Object.entries(externo.conflitos).filter(([, c]) => visiveis.includes(c.bloco))
   const adotVisiveis = Object.entries(externo.adotados).filter(([, a]) => visiveis.includes(a.bloco))
   const registroExterno = {
-    conflitos: Object.fromEntries(confVisiveis.map(([ui, c]) => [ui, { meu: MC.valorLegivel(c.chave, c.meu), deles: MC.valorLegivel(c.chave, c.deles) }])),
+    conflitos: Object.fromEntries(confVisiveis.map(([ui, c]) => [ui, { meu: MC.valorLegivel(c.chave, c.meu, dias), deles: MC.valorLegivel(c.chave, c.deles, dias) }])),
     adotados: adotVisiveis.map(([ui]) => ui),
     dispensar: () => setExterno((e) => ({ ...e, adotados: {} })),
     adotar: (ui) => resolverConflito(ui, 'adotar'),
@@ -1188,8 +1102,14 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   }
   const rotulosExterno = Object.fromEntries([...confVisiveis, ...adotVisiveis].map(([ui, x]) => [ui, x.rotulo]))
 
+  // Tudo preenchido e ainda "em preenchimento" (ela completou antes de a marca só salvar): conclui sozinho, sem esperar uma escrita.
+  const concluirSozinho = modeloNovo && !semParticipacao && !!participacaoId && !emVerComo() && faltam === 0 && comboStatus === 'rascunho'
+    && ['aguardando_cadastro', 'em_preenchimento'].includes(statusCadastro) && !pendenteRef.current && !vooRef.current
+
   return (
     <>
+      <ConcluirSozinho ativo={concluirSozinho} participacaoId={participacaoId}
+        aoConcluir={(status) => { if (status) setStatusCadastro(status); if (recarregarResumo) recarregarResumo() }} />
       <VistaCabeca
         acento={ehCombo ? 'laranja' : 'cyan'} icone={ehCombo ? 'combo' : 'cadastro'}
         titulo={ehCombo ? 'Meu combo' : 'Meu cadastro'}
@@ -1205,8 +1125,8 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
       {!semParticipacao && (
         <div>
-          {/* Três coisas diferentes, uma em cada lugar: a SITUAÇÃO (selo), o PROGRESSO dos dados básicos (%) e o
-              que falta para ENVIAR (linha de baixo). O salvamento é outro assunto. Este é o único elemento preso ao topo. */}
+          {/* Três coisas diferentes, uma em cada lugar: a SITUAÇÃO (selo), o PROGRESSO dos dados básicos (%) e quantas
+              informações FALTAM no cadastro inteiro (linha de baixo). O salvamento é outro assunto. Este é o único elemento preso ao topo. */}
           <div className="mc-resumo">
             <Selo tom={situacao.tom}>{situacao.texto}</Selo>
             <div className="progresso">
@@ -1214,7 +1134,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
               <div className="trilha" role="progressbar" aria-label="Dados obrigatórios preenchidos" aria-valuemin={0} aria-valuemax={100} aria-valuenow={prog.pct}>
                 <i style={{ '--p': prog.pct / 100 }} />
               </div>
-              <span className="em-faltam">{E.textoEnvio({ faltam: faltamEnviar, chave: situacao.chave })}</span>
+              <span className="em-faltam">{E.textoFaltam({ faltam, chave: situacao.chave })}</span>
             </div>
             {/* "Salvando…" fica fora do leitor de tela (senão anuncia a cada pausa na digitação); o erro tem UMA voz: o aviso abaixo. */}
             <p className="salvo em-salvo" role="status" data-estado={salvamento.estado}>
@@ -1237,12 +1157,12 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           <EstadoPublicacao pub={pub} />
 
           {/* noValidate: campos obrigatórios moram em blocos fechados (hidden),
-              e o navegador travava o envio sem mostrar balão nenhum. Quem
-              valida é o servidor (marca_concluir_cadastro), que diz o que falta. */}
+              e o navegador travava o "Salvar" sem mostrar balão nenhum. O que
+              falta aparece em cada campo e na linha "Faltam N informações". */}
           <form
-            onSubmit={concluir} noValidate
+            onSubmit={(e) => { e.preventDefault(); salvarAgora() }} noValidate
             // Enter num campo de uma linha (o "Ir" do teclado do celular) não
-            // conclui o cadastro: concluir avisa a organização. Só o botão.
+            // dispara nada: o salvamento automático já cuida. Só o botão.
             onKeyDown={(e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault() }}
           >
             {mostra(0) && <Bloco {...blocoProps(0)}>
@@ -1315,7 +1235,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
               <p className="nota">Alergênicos, características (vegano, lactose…) e trocas de cada item ficam
                 em <b>Informações alimentares e trocas</b>, logo abaixo.</p>
               {comboStatus === 'correcao_solicitada' && (
-                <div className="aviso erro" role="alert">A organização pediu um ajuste no combo{comboNota ? ': “' + comboNota + '”' : '.'} Corrija os campos marcados e envie novamente para análise.</div>
+                <div className="aviso erro" role="alert">A organização pediu um ajuste no combo{comboNota ? ': “' + comboNota + '”' : '.'} Corrija os campos marcados e salve: a organização recebe a alteração.</div>
               )}
               {comboStatus === 'aprovado' && <div className="aviso" role="status">Combo aprovado pela organização.{comboNota ? ' “' + comboNota + '”' : ''}</div>}
               {itens.length < TIPOS.length && (
@@ -1391,7 +1311,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                       <Correcao e={est('custo_delivery')} />
                     </label>
                   )
-                  : <p className="nota">Custo do delivery: pedido só se alguma unidade entregar o combo (Meu cadastro › Atendimento e horários do combo).</p>}
+                  : <p className="nota">Custo do delivery: pedido só se alguma unidade entregar o combo (Meu cadastro › Atendimento e horário no festival).</p>}
                 <label><span>A proposta criativa: qual é a história do combo? <Opcional /></span>
                   <textarea value={extras.combo_proposta} onChange={(e) => alterarExtra('combo_proposta', e.target.value)} />
                 </label>
@@ -1414,37 +1334,28 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
             {mostra(6) && <Bloco {...blocoProps(6)}>
               {modeloNovo
-                ? <Atendimento unidades={unidades} dias={dias} est={est} alterar={alterarUnidade} alterarCanal={alterarCanal} horario={horario} />
+                ? <Atendimento unidades={unidades} dias={dias} est={est} alterar={alterarAtendimento} alterarCanal={alterarCanal} alterarHorario={alterarHorario} desabilitado={emVerComo()} />
                 : semModelo}
             </Bloco>}
 
-            {/* Conferência das duas áreas antes de enviar: leitura, sem tela nova. Quem decide é o servidor. */}
-            <Revisao revisao={conferencia} aberta={revisaoAberta} onToggle={setRevisaoAberta} onIr={irParaFalta} />
-            {modeloNovo && (
-              <button className="acao secundaria larga" type="button" onClick={abrirPrevia}>
-                <Icone nome="visao" tamanho={16} />Ver como fica no site
-              </button>
+            {/* A marca só salva (23/10/2026): não há envio nem revisão à parte. O que falta leva ao campo — mesmo na
+                outra aba — e o cadastro que fica completo vai sozinho para a conferência da organização. */}
+            {proximaFalta && (
+              <p className="nota em-salvar__falta">
+                <Icone nome="atencao" tamanho={16} />
+                <span>{E.textoFaltam({ faltam })} para completar o cadastro.{' '}
+                  <button className="link" type="button" onClick={() => irParaFalta(proximaFalta)}>
+                    {proximaFalta.naOutraAba ? 'Ir para ' + E.ROTULO_AREA[proximaFalta.area] : 'Ir para o que falta'}<Icone nome="seta-direita" tamanho={16} />
+                  </button>
+                </span>
+              </p>
             )}
-            {/* Salvar e enviar são coisas diferentes. Enviar vale para o cadastro inteiro (as duas abas): quem
-                confere o que falta é o servidor (marca_concluir_cadastro). */}
-            <p className="nota em-envio__nota" id="nota-envio">
+            <p className="nota em-salvar__nota" id="nota-salvar">
               <Icone nome="informacao" tamanho={16} />
-              <span><b>Os dados são salvos automaticamente.</b> Quando terminar as duas áreas (Meu cadastro e Meu combo), envie para
-                a organização conferir. O envio é um passo à parte e leva o cadastro inteiro, não só esta área.</span>
+              <span><b>Os dados são salvos automaticamente.</b> Tudo o que você salva chega para a organização, que atualiza o site.</span>
             </p>
-            <button className="acao larga" type="submit" disabled={concluindo} aria-describedby="nota-envio">{rotuloEnviar}</button>
+            <button className="acao larga" type="submit" aria-describedby="nota-salvar">Salvar</button>
           </form>
-
-          {concluirAviso && (
-            <div className={'aviso mc-concluir-aviso ' + concluirAviso.tom} role={concluirAviso.tom === 'erro' ? 'alert' : 'status'}>
-              {concluirAviso.texto}
-              <ListaFaltando itens={concluirAviso.faltando} onIr={irParaFalta} />
-            </div>
-          )}
-          {modeloNovo && (
-            <Previa aberta={previaAberta} onFechar={() => setPreviaAberta(false)} traduzir={traduzir} onIr={irParaFalta}
-              carregar={() => api('rpc/marca_previa_publica', { metodo: 'POST', corpo: { p_participacao: participacaoId } })} />
-          )}
         </div>
       )}
     </>

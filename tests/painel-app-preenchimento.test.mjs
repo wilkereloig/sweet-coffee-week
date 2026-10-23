@@ -10,12 +10,15 @@ import {
   codigoCurto, codigoLongo,
 } from '../painel-app/src/lib/preenchimento.js'
 import { ORIGEM_PUBLICA } from '../painel-app/src/lib/origem.js'
+import { resumoDeLinhas, datasDoFestival } from '../painel-app/src/lib/horarioFestival.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const PAGINA = ler('public/preencher/index.html')
 const SQL_BASE = ler('supabase/migrations/20261016_link_preenchimento.sql')
 const SQL_V2 = ler('supabase/migrations/20261016_link_preenchimento_alimentar.sql')
 const SQL = SQL_BASE + '\n' + SQL_V2
+const SQL_HORARIO = ler('supabase/migrations/20261107_horario_festival.sql')
+const SQL_HORARIO_FORM = ler('supabase/migrations/20261107_horario_festival_formulario.sql')
 const CODIGO = '0123456789abcdef0123456789abcdef'
 
 test('link leva o código no fragmento, nunca na busca, na forma curta (22 caracteres)', () => {
@@ -126,6 +129,29 @@ test('diferença: só o que muda, com máscara e dinheiro normalizados', () => {
   assert.deepEqual(d.find((x) => x.campo === 'Consumo no local' && x.grupo === 'Loja Tirol'), { grupo: 'Loja Tirol', campo: 'Consumo no local', de: '', para: 'Sim' })
 })
 
+test('WhatsApp da loja (23/10/2026): sem caixa de autorização; preenchido vai ao site e a revisão MOSTRA isso ("WhatsApp no site: Não → Sim")', () => {
+  const enviado = { unidades: [{ id: 'u1', logradouro: 'Rua A', numero: '10', bairro: 'Tirol', cep: '59000-000', whatsapp: '(84) 99999-0000', whatsapp_autorizado: true, consumo_local: 'nao_informado' }] }
+  // mesmo número, liberação de Não para Sim: tem que aparecer (senão o diálogo diz "Nada muda" e a equipe não vê que o número vai ao site)
+  assert.deepEqual(diferencasEnvio(ATUAL, enviado), [{ grupo: 'Loja Tirol', campo: 'WhatsApp no site', de: 'Não', para: 'Sim' }])
+  // número novo: o número e a liberação
+  const outro = diferencasEnvio(ATUAL, { unidades: [{ ...enviado.unidades[0], whatsapp: '(84) 98888-7777' }] })
+  assert.deepEqual(outro.map((x) => x.campo), ['WhatsApp da loja', 'WhatsApp no site'])
+  // já liberado e igual: nada muda; ausente conta como "não liberado"
+  assert.deepEqual(diferencasEnvio({ unidades: [{ ...ATUAL.unidades[0], whatsapp_autorizado: true }] }, enviado), [])
+  assert.deepEqual(diferencasEnvio({ unidades: [{ id: 'u1', whatsapp: '84999990000' }] }, { unidades: [{ id: 'u1', whatsapp: '(84) 99999-0000', whatsapp_autorizado: false }] }), [])
+  // número tirado: o site deixa de mostrar
+  assert.deepEqual(diferencasEnvio({ unidades: [{ ...ATUAL.unidades[0], whatsapp_autorizado: true }] }, { unidades: [{ id: 'u1', whatsapp: '', whatsapp_autorizado: false }] }).map((x) => x.campo + ': ' + x.de + ' → ' + x.para),
+    ['WhatsApp da loja: 84999990000 → ', 'WhatsApp no site: Sim → Não'])
+  // a página: nada de checkbox; o envio manda a liberação quando o número está preenchido
+  assert.doesNotMatch(PAGINA, /data-k="whatsapp_autorizado"|Pode aparecer no site/)
+  assert.match(PAGINA, /x\.whatsapp_autorizado = digitos\(x\.whatsapp \|\| ''\)\.length > 0;/)
+  assert.match(PAGINA, /WhatsApp da loja <em class="nota-curta">\(aparece no site/)
+  // e o banco aplica a liberação que vem no envio (o mesmo campo de sempre)
+  assert.match(SQL, /whatsapp_autorizado = \(un -> 'whatsapp_autorizado'\) = 'true'::jsonb and v_dig <> ''/)
+  // …e a definição vigente (a migração do horário a recria): preenchido vale, e só um "false" explícito de uma cópia antiga mantém fora
+  assert.match(SQL_HORARIO_FORM, /whatsapp_autorizado = v_dig <> '' and \(un -> 'whatsapp_autorizado'\) is distinct from 'false'::jsonb/)
+})
+
 test('diferença: loja removida e envio que só confirma', () => {
   assert.deepEqual(diferencasEnvio(ATUAL, { unidades: [{ id: 'u1', remover: true }] }),
     [{ grupo: 'Loja Tirol', campo: 'Participação', de: 'Participa', para: 'Não participa mais' }])
@@ -182,64 +208,55 @@ test('página: campos que o envio manda são os que o banco aplica', () => {
   for (const k of unidade) assert.ok(SQL.includes("'" + k + "'"), 'campo de item/loja sem par no banco: ' + k)
 })
 
-test('página: horário por seleção vira texto e volta igual', () => {
-  // Roda o próprio código da página (do DIAS até antes do montarHorario) num contexto isolado.
-  const js = SCRIPTS[0]
-  const trecho = js.slice(js.indexOf('var DIAS'), js.indexOf('function montarHorario'))
-  const ctx = { txt: (v) => (v == null ? '' : String(v)) }
-  vm.runInNewContext(trecho + ';this.diasTexto=diasTexto;this.horaTexto=horaTexto;this.lerHorario=lerHorario;this.lerHorarios=lerHorarios;this.textoHorarios=textoHorarios;this.diasDeFaixas=diasDeFaixas;this.faixasDeDias=faixasDeDias;this.diaCompleto=diaCompleto;', ctx)
-  assert.equal(ctx.diasTexto([0, 1, 2, 3, 4, 5, 6]), 'Todos os dias')
-  assert.equal(ctx.diasTexto([1, 2, 3, 4, 5, 6]), 'Ter a Dom')
-  assert.equal(ctx.diasTexto([0, 2, 4]), 'Seg, Qua, Sex')
-  assert.equal(ctx.horaTexto('14:30') + ' · ' + ctx.horaTexto('9:00') + ' · ' + ctx.horaTexto('1:30'), '14h30 · 9h · 1h30')
-  // Cada faixa lida volta idêntica: dias, períodos (até dois) e "fechado".
-  for (const t of ['Todos os dias, 14h às 21h', 'Ter a Dom, 10h às 22h30', 'Seg, Qua, Sex, 9h às 18h', 'Sáb e Dom, 8h às 0h',
-    'Seg a Sex, 11h às 14h e 18h às 22h', 'Dom, fechado', 'Seg a Sáb, 17h às 2h']) {
-    const l = ctx.lerHorario(t)
-    assert.ok(l, 'não leu: ' + t)
-    const volta = ctx.textoHorarios([l])
-    assert.equal(volta, t)
-  }
-  assert.equal(ctx.lerHorario('de terça a domingo, a partir das 14'), null, 'texto livre antigo fica como "Hoje está"')
-  assert.equal(ctx.lerHorario('Seg a Sex, 9h15 às 18h'), null, 'hora fora da lista de seleção não é lida pela metade')
-  // Horário diferente por dia: faixas separadas por ";", inclusive um dia que não abre.
-  const multi = 'Seg a Sex, 12h às 21h; Sáb, 10h às 22h30; Dom, fechado'
-  const faixas = ctx.lerHorarios(multi)
-  assert.equal(faixas.length, 3)
-  assert.equal(ctx.textoHorarios(faixas), multi)
-  assert.equal(ctx.lerHorarios('Seg a Sex, 12h às 21h; qualquer coisa'), null)
-  assert.equal(ctx.lerHorarios('Seg a Qua, 12h às 21h; Qua a Dom, 10h às 18h'), null, 'dia repetido em duas faixas não é lido')
+test('página: horário no festival é UMA pergunta; o envio manda os períodos dia a dia e o banco os aplica (23/10/2026)', () => {
+  // O seletor, a cópia do modelo e o envio têm teste próprio: tests/preencher-horario.test.mjs. Aqui só o contrato com o banco.
+  assert.match(PAGINA, /data-pergunta="horario_festival"/)
+  assert.doesNotMatch(PAGINA, /data-pergunta="horario_(combo|loja)"|data-loja-igual|loja_igual/)
+  assert.match(SCRIPTS[0], /if \(linhasH\) x\.horario_festival = linhasH;/)
+  // O banco lê o array do envio, valida e grava na coluna nova; o retrato devolve os períodos (e o texto antigo só para "Hoje está").
+  assert.match(SQL_HORARIO_FORM, /jsonb_typeof\(un -> 'horario_festival'\) = 'array'/)
+  assert.match(SQL_HORARIO_FORM, /horario_festival_normalizar\(un -> 'horario_festival', v_ini, v_fim\)/)
+  const estado = SQL_HORARIO.slice(SQL_HORARIO.indexOf('function public.preenchimento_estado'), SQL_HORARIO.indexOf('function public.montar_publico'))
+  assert.match(estado, /'horario_combo', pu\.horarios, 'horario_festival', pu\.horario_festival/)
+  assert.doesNotMatch(estado, /horario_loja/, 'o horário da loja não volta mais para a página')
 })
 
-test('página: uma resposta por dia vira faixas juntando os dias iguais', () => {
-  const js = SCRIPTS[0]
-  const trecho = js.slice(js.indexOf('var DIAS'), js.indexOf('function montarHorario'))
-  const ctx = { txt: (v) => (v == null ? '' : String(v)) }
-  vm.runInNewContext(trecho + ';this.diasDeFaixas=diasDeFaixas;this.faixasDeDias=faixasDeDias;this.textoHorarios=textoHorarios;this.lerHorarios=lerHorarios;this.diaCompleto=diaCompleto;', ctx)
-  const util = [['10:00', '22:00']]
-  const dias = [util, util, util, util, util, [['10:00', '18:00']], 'F']
-  assert.equal(ctx.textoHorarios(ctx.faixasDeDias(dias)), 'Seg a Sex, 10h às 22h; Sáb, 10h às 18h; Dom, fechado')
-  assert.equal(ctx.textoHorarios(ctx.faixasDeDias(Array(7).fill(util))), 'Todos os dias, 10h às 22h')
-  // Texto antigo só com a semana: sábado e domingo ficam SEM resposta (a marca precisa decidir).
-  const so = ctx.diasDeFaixas(ctx.lerHorarios('Seg a Sex, 12h às 21h'))
-  assert.deepEqual([so[4] !== null, so[5], so[6]], [true, null, null])
-  // Completo = fechado ou todo período com abre, fecha e abre ≠ fecha.
-  assert.ok(ctx.diaCompleto('F'))
-  assert.ok(ctx.diaCompleto(util))
-  assert.ok(!ctx.diaCompleto(null))
-  assert.ok(!ctx.diaCompleto([['10:00', '']]))
-  assert.ok(!ctx.diaCompleto([['10:00', '10:00']]))
-  assert.ok(!ctx.diaCompleto([['10:00', '14:00'], ['', '']]))
-})
+test('diferença: horário no festival lido como frase (a edição dá os dias); texto antigo continua legível; horário da loja nunca entra', () => {
+  const EDICAO = { inicio: '2026-11-05', fim: '2026-11-15' }
+  const DIAS = ['05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15'].map((d) => '2026-11-' + d)
+  const linhas = (abre, fecha, datas = DIAS) => datas.map((data) => ({ data, abre, fecha }))
+  const atual = { unidades: [{ id: 'u1', logradouro: 'Rua A', bairro: 'Tirol', horario_festival: [], horario_combo: 'Seg a Sex, 10h às 22h' }] }
+  const campo = (d) => d.map((x) => x.campo)
 
-test('página: horário nunca passa do limite do banco e a loja pode ser "igual ao combo"', () => {
-  assert.match(PAGINA, /data-pergunta="horario_combo" data-max="300"/)
-  assert.match(PAGINA, /data-pergunta="horario_loja" data-max="200"/)
-  // O banco corta em silêncio no limite; por isso a página recusa texto maior em vez de mandá-lo.
-  assert.match(SQL, /preenchimento_texto\(un, 'horario_loja', 200\)/)
-  assert.match(SQL, /preenchimento_texto\(un, 'horario_combo', 300\)/)
-  assert.match(SCRIPTS[0], /texto\.length > max/)
-  assert.match(SCRIPTS[0], /igual\.value === 'sim'\) x\.horario_loja = x\.horario_combo/)
+  // ainda sem horário gravado → o que a marca mandou, em palavras
+  assert.deepEqual(diferencasEnvio(atual, { unidades: [{ id: 'u1', horario_festival: linhas('10:00', '22:00') }] }, EDICAO),
+    [{ grupo: 'Loja Tirol', campo: 'Horário no festival', de: 'Não informado', para: 'Todos os dias, das 10h às 22h' }])
+
+  // o mesmo horário não é mudança, venha o banco com HH:MM:SS e as chaves em outra ordem
+  const gravado = { unidades: [{ id: 'u1', logradouro: 'Rua A', horario_festival: DIAS.map((data) => ({ fecha: '22:00:00', abre: '10:00:00', data })) }] }
+  assert.deepEqual(diferencasEnvio(gravado, { unidades: [{ id: 'u1', horario_festival: linhas('10:00', '22:00') }] }, EDICAO), [])
+
+  // domingo fechado: só a edição sabe que o dia 15 existe; sem ela, só os dias que as linhas citam — NUNCA "todos os dias"
+  const semDomingo = { unidades: [{ id: 'u1', horario_festival: linhas('10:00', '22:00', DIAS.slice(0, 10)) }] }
+  assert.equal(diferencasEnvio(atual, semDomingo, EDICAO)[0].para, 'Qui 5 a Sáb 14/11: das 10h às 22h · Dom 15/11: não abre')
+  assert.equal(diferencasEnvio(atual, semDomingo)[0].para, 'Qui 5 a Sáb 14/11: das 10h às 22h')
+  assert.equal(diferencasEnvio(atual, semDomingo, {})[0].para, 'Qui 5 a Sáb 14/11: das 10h às 22h', 'edição sem datas = sem edição')
+  // a frase é a do módulo (a única função que transforma linhas em frases): painel, site e revisão dizem o mesmo
+  assert.equal(diferencasEnvio(atual, semDomingo, EDICAO)[0].para, resumoDeLinhas(semDomingo.unidades[0].horario_festival, datasDoFestival('2026-11-05', '2026-11-15')))
+
+  // dois períodos no dia e meia-noite
+  const turnos = { unidades: [{ id: 'u1', horario_festival: [...linhas('10:00', '14:00'), ...linhas('18:00', '24:00')] }] }
+  assert.equal(diferencasEnvio(atual, turnos, EDICAO)[0].para, 'Todos os dias, das 10h às 14h e das 18h à meia-noite')
+
+  // loja nova: sem "de"
+  assert.deepEqual(diferencasEnvio(atual, { unidades: [{ id: null, logradouro: 'Av. B', horario_festival: linhas('09:00', '12:00') }] }, EDICAO)
+    .filter((x) => x.campo === 'Horário no festival'), [{ grupo: 'Loja nova', campo: 'Horário no festival', de: '', para: 'Todos os dias, das 9h às 12h' }])
+
+  // envio ANTIGO (texto): continua legível, com o nome certo; o horário da loja não é mostrado nem aplicado
+  const antigo = { unidades: [{ id: 'u1', horario_combo: 'Seg a Sex, 10h às 22h; Sáb e Dom, fechado', horario_loja: 'seg a sáb, 8h às 20h' }] }
+  assert.deepEqual(diferencasEnvio(atual, antigo, EDICAO),
+    [{ grupo: 'Loja Tirol', campo: 'Horário (texto antigo)', de: 'Seg a Sex, 10h às 22h', para: 'Seg a Sex, 10h às 22h; Sáb e Dom, fechado' }])
+  assert.ok(!campo(diferencasEnvio(atual, antigo, EDICAO)).includes('Horário da loja'))
 })
 
 test('página: máscaras e conferência de formato', () => {

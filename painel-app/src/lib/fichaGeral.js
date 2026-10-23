@@ -18,8 +18,8 @@
  * sem_participacao): erro nas fotos não apaga cadastro e combo, e erro nunca
  * vira "campo vazio".
  */
-import { ALERGENICOS, CARACTERISTICAS, formatarPreco, horarioResumido } from '../../../src/edicao/dados/modelo.js'
-import { estadoPublicacao, textoPublicacao, diferencas, traduzirPendencia, urlPublicaParticipante } from './publicacao.js'
+import { ALERGENICOS, CARACTERISTICAS, formatarPreco } from '../../../src/edicao/dados/modelo.js'
+import { estadoPublicacao, textoPublicacao, diferencas, traduzirPendencia, urlPublicaParticipante, textoHorarioFestival } from './publicacao.js'
 import { camposObrigatorios, dadosDeLinhas, blocoDoCampo, CAMPOS_APONTAVEIS } from './guia.js'
 import { rotulo } from './status.js'
 import { NOMES_PUBLICACAO } from './nomesPublicacao.js'
@@ -249,11 +249,17 @@ export const linkTrajeto = (q) => (q ? 'https://www.google.com/maps/dir/?api=1&d
  *                        cidade, coordenada e quem conferiu)
  *   linhas (360)       → condições DESTA edição (modos, canais, taxa, regiões,
  *                        observação) e os campos do cadastro anterior
- *   pub.atual.unidades → só as que participam: endereço completo, horário da
- *                        loja, horário do combo, WhatsApp autorizado
+ *   pub.atual.unidades → só as que participam: endereço completo, horário no
+ *                        festival (a mesma coluna das linhas), WhatsApp da loja (só o que vai ao site)
  * Sem get_publicacao (erro), cai nas linhas do 360, marcadas como cadastro anterior.
+ *
+ * Horário no festival (23/10/2026, uma pergunta só): `horarioFestival` é a frase do que está GRAVADO na unidade da edição
+ * (`participacao_unidades.horario_festival`, que vem nas linhas do 360). `datas` = os dias do festival, da edição
+ * (`datasDoFestival` de `edicaoDaFicha`): com elas a frase conta os dias que não abrem. null = a leitura não trouxe o horário ·
+ * '' = ainda não respondido. O texto antigo (`horarios`) só sobra em `anterior`, e só enquanto não há horário gravado.
+ * O horário comercial da loja deixou de ser pedido e não aparece em lugar nenhum.
  */
-export function unidadesDaFicha(linhas, pub) {
+export function unidadesDaFicha(linhas, pub, datas = []) {
   const porId = new Map((linhas || []).map((l) => [l.id, l]))
   const publicas = new Map(((pub && pub.atual && pub.atual.unidades) || []).map((u) => [u.id, u]))
   const base = pub && Array.isArray(pub.unidades)
@@ -273,6 +279,8 @@ export function unidadesDaFicha(linhas, pub) {
     const modosLinha = l ? { local: ll.consumo_local, retirada: ll.retirada, delivery: ll.delivery_combo } : null
     const modos = modosLinha || (p && p.combo && p.combo.modos) || { local: null, retirada: null, delivery: null }
     const canais = (l ? ll.canais_delivery : p && p.combo && p.combo.canais) || []
+    // A linha do 360 manda; sem ela (ou sem a coluna), a versão pública da mesma coluna.
+    const gravado = Array.isArray(ll.horario_festival) ? ll.horario_festival : p && p.combo ? p.combo.disponibilidade || [] : null
     const verificada = b && b.coordenada_verificada_em
     const coordenada = b && b.lat != null && b.lng != null
       ? { estado: verificada ? 'conferida' : 'a_conferir', lat: b.lat, lng: b.lng, por: txt(b.coordenada_verificada_por), em: b.coordenada_verificada_em }
@@ -281,9 +289,7 @@ export function unidadesDaFicha(linhas, pub) {
       id: b ? b.participacao_unidade_id : ll.id, unidadeId: b ? b.unidade_id : ll.unidade_id, idPublico: b ? b.id_publico : ll.id_publico,
       nome: txt(b && b.nome) || txt(p && p.nome) || 'Unidade ' + (i + 1),
       participa, endereco, enderecoTexto: enderecoEmTexto(endereco),
-      horarioLoja: txt(p && p.horario_loja),
-      // null = não se aplica (não participa) ou não lido; [] = participa e não informou.
-      horarioCombo: p ? horarioResumido((p.combo && p.combo.disponibilidade) || []) : null,
+      horarioFestival: gravado === null ? null : textoHorarioFestival(gravado, datas),
       modos: { local: modos.local || null, retirada: modos.retirada || null, delivery: modos.delivery || null },
       canais: (Array.isArray(canais) ? canais : []).filter((c) => c && (c.link || c.tipo)).map((c) => ({ rotulo: CANAL[c.tipo] || txt(c.tipo), link: txt(c.link) })),
       regioes: txt(ll.delivery_regioes) || txt(p && p.combo && p.combo.delivery_regioes),
@@ -292,7 +298,7 @@ export function unidadesDaFicha(linhas, pub) {
       whatsappPublico: txt(p && p.whatsapp),
       coordenada,
       // Campos do cadastro anterior à camada Cartoon (ainda gravados como espelho).
-      anterior: { horarios: txt(ll.horarios), mesas: txt(ll.mesas), fazDelivery: !!ll.faz_delivery, soDelivery: !!ll.so_delivery },
+      anterior: { horarios: gravado && gravado.length ? '' : txt(ll.horarios), mesas: txt(ll.mesas), fazDelivery: !!ll.faz_delivery, soDelivery: !!ll.so_delivery },
       origemCompleta: !!b,
     }
     const q = consultaMapa(u)
@@ -437,7 +443,7 @@ export function pendenciasDaFicha({ participante, fontes, naoLidas = 0 }) {
     if (tema.estado === 'proposto') add('tema:analise', 'Tema "' + tema.tema + '" aguardando análise', 'combo')
     if (tema.estado === 'divergente') add('tema:divergente', 'Tema mudou para "' + tema.tema + '" e a proposta registrada é "' + tema.temaProposta + '"', 'combo')
     if (tema.estado === 'recusado') add('tema:recusado', 'Outro tema pedido: aguardando a marca', 'combo')
-    if (pa.combo_status === 'em_analise') add('combo:revisao', 'Combo enviado, aguardando revisão', 'operacao')
+    if (pa.combo_status === 'em_analise') add('combo:revisao', 'Cadastro completo, aguardando conferência', 'operacao')
     if (pa.combo_status === 'correcao_solicitada') add('combo:ajuste', 'Ajuste pedido no combo: aguardando a marca', 'combo')
   }
 

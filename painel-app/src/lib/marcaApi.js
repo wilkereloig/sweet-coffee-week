@@ -14,6 +14,7 @@ import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess.js'
 import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
 import { comEnvio } from './pendencias.js'
 import { aoApiConfirmada } from './sync/anuncio.js'
+import { nomeArquivo } from './entrega.js'
 
 /* Rede que não responde não pode deixar "Conferindo sua sessão" para sempre: a chamada aborta e cai no tratamento
    de falha de rede de quem chamou. Navegador sem AbortSignal.timeout segue sem limite (como antes). */
@@ -323,7 +324,7 @@ export async function subirLogo(caminho, arquivo, tipo, fetchImpl = fetch) {
  * organização, que assina com a senha compartilhada).
  * @returns {Promise<string>} URL assinada, válida por 5 minutos
  */
-export async function assinarDownload(caminho, fetchImpl = fetch) {
+export async function assinarDownload(caminho, fetchImpl = fetch, sinal) {
   if (verComo) return verComo.baixar(caminho) // pela organização (arquivo-url), nunca com sessão da marca
   const atual = lerSessao()
   const viva = await renovarCompartilhado(atual, fetchImpl)
@@ -334,11 +335,29 @@ export async function assinarDownload(caminho, fetchImpl = fetch) {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + viva.access_token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ expiresIn: 300 }),
+    signal: sinal,
   })
   let dados = null
   try { dados = await r.json() } catch { /* sem corpo */ }
   if (!r.ok || !dados || !dados.signedURL) throw new Error('sem_link')
   return SUPABASE_URL + '/storage/v1' + dados.signedURL
+}
+
+/**
+ * O ORIGINAL de um arquivo da marca como `File`, para o ZIP/compartilhar de `useEntrega({ obter })` (BaixarArquivo.jsx).
+ * Assina por `assinarDownload` (sessão da marca; no "Ver como", pela organização) e busca os bytes na hora.
+ * Mesmo contrato de `obterArquivo` (redesArquivos.js): rede caída = 'rede', resposta ruim = 'download_<status>'.
+ * ponytail: sem 2ª assinatura em 400/403 — a URL acabou de ser assinada (vale 5 min); acrescentar se aparecer na prática.
+ */
+export async function obterArquivoMarca(x, nome, { mime = '', sinal } = {}, fetchImpl = fetch) {
+  const url = await assinarDownload(x.path, fetchImpl, sinal)
+  let r
+  try { r = await fetchImpl(url, { signal: sinal, cache: 'no-store' }) }
+  catch (e) { if (e && e.name === 'AbortError') throw e; throw new Error('rede') }
+  if (!r.ok) throw new Error('download_' + r.status)
+  const blob = await r.blob()
+  const tipo = (blob.type && blob.type !== 'application/octet-stream' ? blob.type : '') || mime || 'application/octet-stream'
+  return new File([blob], nomeArquivo(nome, tipo, x.path), { type: tipo })
 }
 
 /**
@@ -360,7 +379,8 @@ export function pushMarca(participanteId) {
       })
     },
     remover: (endpoint) => api(linha(endpoint), { metodo: 'DELETE' }),
-    conferir: async (endpoint) => ((await api(linha(endpoint).replace('?', '?select=id&'))) || []).length > 0,
+    // Só a linha ATIVA conta: assinatura que o servidor desativou (404/410, conta pausada) não é "ligados".
+    conferir: async (endpoint) => ((await api(linha(endpoint).replace('?', '?select=id&') + '&ativo=is.true')) || []).length > 0,
     // Estado e preferência DESTE aparelho no servidor (aviso de versão nova).
     estado: (endpoint) => api('rpc/push_aparelho', { metodo: 'POST', corpo: { p_secret: null, p_endpoint: endpoint } }),
     preferir: (endpoint, ligado) => api('rpc/push_aparelho', { metodo: 'POST', corpo: { p_secret: null, p_endpoint: endpoint, p_avisar_versao: ligado } }),

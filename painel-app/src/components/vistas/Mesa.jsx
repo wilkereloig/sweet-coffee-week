@@ -10,6 +10,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Erro, Secao, Selo, LogoMarca, MacroSecao, GradeModulos, Modulo, NivelTitulo } from '../ui'
 import { urlLogo } from '../../lib/logos'
 import { ResumoRedes } from './Redes'
+import { totalAlertas } from '../../lib/redes'
 import { CartaoAcao } from './mesa/CartaoAcao'
 import { ResumoEdicao } from './mesa/ResumoEdicao'
 import { AtividadeRecente } from './mesa/AtividadeRecente'
@@ -39,7 +40,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
   // `marcasLidas` / `edicaoLida`: a leitura funcionou ao menos uma vez (sem isso, lista vazia e "sem edição" são só o valor inicial, não um fato).
-  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, falhas: [], lidas: false, marcasLidas: false, edicaoLida: false })
+  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, redes: null, falhas: [], lidas: false, marcasLidas: false, edicaoLida: false })
   const [erro, setErro] = React.useState(null)
   const [etapaSel, setEtapaSel] = React.useState(null) // null = a primeira com gente
   const [logos, setLogos] = React.useState({}) // participante_id → logo oficial
@@ -77,13 +78,15 @@ export function Mesa({ abrirLink, navegar, pode }) {
     const part = await pegar('get_participantes', {}, LEITURA.marcas)
     if (!vale()) return true
     if (part.ok) setParticipantes(part.v || [])
-    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes, logos] = await Promise.all([
+    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes, logos, redes] = await Promise.all([
       pegar(ORIGENS.apoiar.rpc, {}, LEITURA.apoiar), pegar(ORIGENS.contato.rpc, {}, LEITURA.contato),
       pegar('get_solicitacoes_admin', {}, LEITURA.pedidos), pegar('get_sessoes_fotos', {}, LEITURA.sessoes),
       pegar('get_conversas', {}, LEITURA.conversas), pegar('get_atividade', { p_limite: 12 }, LEITURA.atividade),
       pegar('get_revisao', { p_status: 'aberta' }, LEITURA.revisao), pegar('get_temas', {}, LEITURA.temas), pegar('get_edicoes', {}, LEITURA.edicao),
       // Logo é enfeite do cartão: falhou, ficam as iniciais (e o que já estava) — não entra em `falhas`.
       pegar('get_logos', {}, null),
+      // Social media (só com redes.ver): o que ele tem em aberto entra na conta do "nada precisa da equipe".
+      pode && pode('redes.ver') ? pegar('redes_resumo', {}, LEITURA.redes) : Promise.resolve({ ok: true, v: null }),
     ])
     if (!vale()) return true
     if (logos.ok) setLogos(Object.fromEntries((logos.v || []).map((l) => [l.participante_id, l])))
@@ -95,14 +98,24 @@ export function Mesa({ abrirLink, navegar, pode }) {
       solicitacoes: ou(solicitacoes, x.solicitacoes), sessoes: ou(sessoes, x.sessoes), conversas: ou(conversas, x.conversas),
       atividade: ou(atividade, x.atividade || []), revisao: ou(revisao, x.revisao), temas: ou(temas, x.temas),
       edicao: ou(edicoes, x.edicao, (v) => (v || []).find((e) => e.atual) || null),
+      redes: ou(redes, x.redes, (v) => v || null),
     }))
     return falhas.length === 0 && logos.ok && part.ok
-  }, [guarda])
+  }, [guarda, pode])
 
   React.useEffect(() => { carregar() }, [carregar])
   // Qualquer coisa que a mesa resume (candidatura, marca, pedido, sessão, mensagem, revisão, tema, edição, atividade)
   // mudou — aqui ou em outra sessão: relê em silêncio. Sem poll e sem botão que só esta tela conheça.
   useSincronizar(DOMINIOS_VISTAS.mesa, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('mesa') })
+  // Salvar um post só muda o resumo do Social media: relê SÓ ele (e não as ~14 leituras da mesa a cada salvamento de quem agenda).
+  const guardaRedes = useGuarda()
+  const lerRedes = React.useCallback(async () => {
+    if (!pode || !pode('redes.ver')) return
+    const vale = guardaRedes()
+    const v = await rpc('redes_resumo', { p_secret: lerSenha() })
+    if (vale()) setExtra((x) => ({ ...x, redes: v || null }))
+  }, [guardaRedes, pode])
+  useSincronizar(['redes'], lerRedes)
   const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   const colunas = candidaturas ? colunasMesa({ candidaturas, participantes }) : ETAPAS.map((e) => ({ ...e, itens: [] }))
@@ -123,7 +136,9 @@ export function Mesa({ abrirLink, navegar, pode }) {
     temas: extra.temas, respostasSite: extra.dados, edicaoCodigo: edCodigo, agenda, pode: pode || (() => false),
   })
   const nContagens = cartoes.filter((c) => c.tipo === 'contagem').length
-  const estado = estadoDasAcoes({ lidas: extra.lidas, falhas: extra.falhas, contagens: nContagens, ocultas, agendaUrgente: agenda.urgente })
+  // O que o Social media tem para ESTE perfil (os mesmos alertas do topo do Planejamento): com algo, nada de "nada precisa".
+  const nRedes = totalAlertas(extra.redes, { aprova: !!pode && pode('redes.aprovar') })
+  const estado = estadoDasAcoes({ lidas: extra.lidas, falhas: extra.falhas, contagens: nContagens, ocultas, redes: nRedes, agendaUrgente: agenda.urgente })
   // Leitura que caiu é dita NO BLOCO que ela alimenta (a falha de uma não condena as outras áreas).
   const avisosDeLeitura = { acoes: avisoDeLeitura(extra.falhas, 'acoes'), marcas: avisoDeLeitura(extra.falhas, 'marcas'), atividade: avisoDeLeitura(extra.falhas, 'atividade') }
 
@@ -178,10 +193,11 @@ export function Mesa({ abrirLink, navegar, pode }) {
                   </Modulo>
                 ) : <CartaoAcao key={c.chave} acao={c} navegar={navegar} />))}
               </GradeModulos>
-              {/* Social media: o resumo cuida da própria leitura e da própria permissão (redes.ver); sem ela, não renderiza nada. */}
-              {pode && (
+              {/* Social media: a leitura é a da Mesa (entra no estado acima); a permissão (redes.ver), o resumo confere — sem ela,
+                  não renderiza nada. Leitura que nunca deu certo: o aviso do bloco ("Faltou ler o planejamento…") já diz. */}
+              {pode && !(extra.lidas && !extra.redes) && (
                 <NivelTitulo.Provider value={3}>
-                  <ResumoRedes navegar={navegar} pode={pode} />
+                  <ResumoRedes navegar={navegar} pode={pode} resumo={extra.redes} />
                 </NivelTitulo.Provider>
               )}
             </div>

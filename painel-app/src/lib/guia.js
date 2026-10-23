@@ -11,7 +11,7 @@ import { TIPOS, unidadeTemEndereco, itensEmOrdem, custosFaltando, custosDeLinhas
 import { interpretarLink } from './central.js'
 import { traduzirFaltando } from './edicaoMarca.js'
 
-// Meu cadastro = A marca (0) + Unidades (4) + Atendimento e horário do combo (6)
+// Meu cadastro = A marca (0) + Unidades (4) + Atendimento e horário no festival (6)
 // + Fotos (7); Meu combo = tema (1), itens (2), combo (3), alimentar e trocas (5).
 // Mesma divisão de link_campo_marca no banco (20261014_cartoon_03_revisao.sql).
 export function vistaDoBloco(bloco) {
@@ -46,10 +46,9 @@ export const CAMPOS_APONTAVEIS = [
   ['combo_nome', 'Combo · Nome do combo'], ['combo_descricao', 'Combo · Descrição'], ['combo_condicoes', 'Combo · Condições'],
   ['custo_embalagem', 'Custos · Embalagem para viagem'], ['custo_delivery', 'Custos · Delivery'],
   ...[1, 2, 3].flatMap((n) => [['item-' + n + '-alimentar', 'Item ' + n + ' · Alergênicos e características'], ['item-' + n + '-trocas', 'Item ' + n + ' · Trocas']]),
-  ['unidade-endereco', 'Unidades · Endereço'], ['unidade-whatsapp', 'Unidades · WhatsApp público'],
-  ['unidade-horario-loja', 'Unidades · Horário da loja'],
+  ['unidade-endereco', 'Unidades · Endereço'], ['unidade-whatsapp', 'Unidades · WhatsApp da loja'],
   ['atendimento-modos', 'Atendimento · Local, retirada e delivery'], ['atendimento-canais', 'Atendimento · Canais do delivery'],
-  ['atendimento-horario', 'Atendimento · Horário do combo'],
+  ['atendimento-horario', 'Atendimento · Horário no festival'],
 ]
 
 const ROTULO_ITEM = { doce: 'do doce', salgado: 'do salgado', bebida: 'da bebida' }
@@ -152,7 +151,7 @@ const ETAPAS = [
 export function resumoMarca(d = {}) {
   const participacao = d.participacao || null
   if (!participacao) {
-    return { semParticipacao: true, progresso: { feitos: 0, total: 13, pct: 0 }, envio: { faltam: 0, itens: [], pronto: false, conhecido: false, podeEnviar: false },
+    return { semParticipacao: true, progresso: { feitos: 0, total: 13, pct: 0 }, envio: { faltam: 0, itens: [], pronto: false, conhecido: false },
       etapas: [], pendencias: [], proxima: null, contagem: {}, campo: () => null, combo: null }
   }
   const dados = dadosDeLinhas(d)
@@ -174,7 +173,8 @@ export function resumoMarca(d = {}) {
   const duplicado = (x) => enderecoNoServidor && x.campo === 'unidade-endereco'
   const faltasEdicao = (conhecido ? d.faltandoEdicao : [])
     .map((c) => ({ codigo: c, ...traduzirFaltando(c, { unidades: d.unidades || [], itens: d.itens || [] }) }))
-  // A logo não trava o envio (marca_concluir_cadastro); o resto, sim.
+  // A logo não trava a conclusão (marca_concluir_cadastro, que o banco roda a cada salvamento); o resto, sim.
+  // `envio` guarda o nome antigo, mas não há mais "enviar": a marca só salva (23/10/2026).
   const faltasBasicas = campos.filter((x) => !x.ok && x.campo !== 'logo' && !duplicado(x))
   const envio = {
     faltam: faltasBasicas.length + faltasEdicao.length,
@@ -210,7 +210,7 @@ export function resumoMarca(d = {}) {
   }
   // O que a página pública exige e ainda falta (blocos 3 a 6): uma pendência por item, com o nome da unidade.
   for (const f of faltasEdicao) {
-    pendencias.push({ tipo: 'campo', titulo: f.texto, texto: 'Falta para enviar o cadastro.', acao: f.campo ? 'Completar agora' : null,
+    pendencias.push({ tipo: 'campo', titulo: f.texto, texto: 'É obrigatório para a página no site.', acao: f.campo ? 'Completar agora' : null,
       vista: vistaDoBloco(f.bloco), link: f.campo ? linkDoCampo(f.bloco, f.campo) : null, bloco: f.bloco, campo: f.campo, codigo: f.codigo })
   }
   for (const p of pedidos.filter((x) => x.prioridade !== 'importante')) pendencias.push(pedidoItem(p))
@@ -230,22 +230,8 @@ export function resumoMarca(d = {}) {
       texto: 'A organização pediu que você confirme que conferiu.', acao: 'Ver fotos', vista: 'fotos', link: 'fotos' })
   }
 
-  // Enviar para a organização: só quando o servidor aceitaria e há algo a analisar.
-  //  - em análise: quem age é a organização, não há o que cobrar;
-  //  - encerrada: a participação acabou;
-  //  - aprovado: só se mudou depois da aprovação (enviar alterações);
-  //  - rascunho/ajuste pedido: enquanto o cadastro não foi marcado como completo.
-  const reenvio = abertas.length > 0 || correcoes.some((c) => c.estado === 'corrigida') || comboStatus === 'correcao_solicitada'
-  const podeEnviar = statusCadastro !== 'encerrado' && comboStatus !== 'em_analise'
-    && (comboStatus === 'aprovado' ? alteradoAposAprovacao : (comboStatus === 'correcao_solicitada' || statusCadastro !== 'cadastro_completo'))
-  envio.podeEnviar = podeEnviar
-  if (podeEnviar && envio.pronto) {
-    const soLogo = campos.some((x) => !x.ok && x.campo === 'logo')
-    pendencias.push({ tipo: 'enviar',
-      titulo: comboStatus === 'aprovado' ? 'Enviar as alterações para análise' : reenvio ? 'Enviar novamente para análise' : 'Enviar o cadastro para análise',
-      texto: (reenvio ? 'Conferiu o que foi pedido? ' : 'O que a organização exige para analisar está pronto. ') + (soLogo ? 'A logo pode ser enviada depois.' : 'Falta só enviar.'),
-      acao: 'Enviar', vista: 'combo', link: 'combo' })
-  }
+  // Não há pendência de "enviar" (23/10/2026, pedido do Wilker): a marca só salva. O cadastro que fica completo vai
+  // sozinho para a conferência da organização (gatilho do banco), e toda alteração salva chega a ela.
 
   // O que cada etapa diz em palavras (nunca só "falta"): o Início escreve este texto ao lado do selo.
   const etapas = ETAPAS.map((e) => {
@@ -261,18 +247,20 @@ export function resumoMarca(d = {}) {
     estado: fotosFeitas ? 'feito' : sessao ? 'andamento' : 'pendente', faltam: 0,
     detalhe: fotosFeitas ? 'sessão realizada' : sessao ? 'sessão marcada'
       : !liberadoFotos ? 'aguardando liberação da organização' : Number(d.vagasAbertas) > 0 ? 'escolher um horário' : 'sem horários livres por enquanto' })
+  // Cadastro completo (status do banco) com o combo ainda em rascunho = dado de antes do gatilho: também está com a organização.
+  const comOrganizacao = comboStatus === 'em_analise' || (statusCadastro === 'cadastro_completo' && comboStatus === 'rascunho')
   etapas.push({ chave: 'analise', rotulo: 'Aprovação', vista: 'combo',
     estado: comboStatus === 'aprovado' ? 'feito' : comboStatus === 'correcao_solicitada' ? 'atencao'
-      : comboStatus === 'em_analise' ? 'andamento' : 'pendente', faltam: 0,
-    detalhe: comboStatus === 'aprovado' ? (alteradoAposAprovacao ? 'aprovado, com alterações a enviar' : 'aprovado')
+      : comOrganizacao ? 'andamento' : 'pendente', faltam: 0,
+    detalhe: comboStatus === 'aprovado' ? (alteradoAposAprovacao ? 'aprovado; a organização vai atualizar o site com as suas alterações' : 'aprovado')
       : comboStatus === 'correcao_solicitada' ? 'ajuste pedido pela organização'
-      : comboStatus === 'em_analise' ? 'em análise pela organização'
       : statusCadastro === 'encerrado' ? 'participação encerrada'
-      : podeEnviar && envio.pronto ? 'pronto para enviar' : 'depois de preencher e enviar' })
+      : comOrganizacao ? 'em análise pela organização'
+      : envio.conhecido && envio.pronto ? 'completo; vai para a conferência da organização' : 'depois de completar o cadastro' })
 
   // Por aba: cada pendência conta 1 (arquivos e fotos para ler contam quantos são).
   const contagem = { inicio: 0, cadastro: 0, combo: 0, fotos: 0, arquivos: 0 }
-  for (const p of pendencias) if (p.tipo !== 'enviar') contagem[p.vista in contagem ? p.vista : 'inicio'] += p.qtd || 1
+  for (const p of pendencias) contagem[p.vista in contagem ? p.vista : 'inicio'] += p.qtd || 1
 
   // Estado de cada campo para o formulário: ícone + texto, nunca só cor.
   const porCampo = {}
@@ -289,10 +277,10 @@ export function resumoMarca(d = {}) {
     return e
   }
 
-  // Próxima ação: correção pedida > pedido importante ou com prazo curto/vencido > campo que falta > enviar > o resto.
+  // Próxima ação: correção pedida > pedido importante ou com prazo curto/vencido > campo que falta > o resto.
   // `critica` = não pode ser coberta por um aviso só informativo (mensagem nova).
   const ordem = (p) => (p.tipo === 'correcao' ? 0 : p.tipo === 'pedido' && (p.urgente || p.prioridade === 'importante') ? 1
-    : p.tipo === 'campo' ? 2 : p.tipo === 'enviar' ? 3 : 4)
+    : p.tipo === 'campo' ? 2 : 3)
   // Mesma referência da pendência (agruparPendencias exclui o destaque por identidade).
   let proxima = null
   for (const p of pendencias) if (p.link && (!proxima || ordem(p) < ordem(proxima))) proxima = p
@@ -329,7 +317,7 @@ const areaDaPendencia = (p) => {
 export function agruparPendencias(pendencias = [], { fora = null, visiveis = 3 } = {}) {
   const mapa = new Map(AREAS.map((a) => [a.chave, { ...a, itens: [] }]))
   for (const p of pendencias) {
-    if (p === fora || p.tipo === 'enviar') continue
+    if (p === fora) continue
     mapa.get(areaDaPendencia(p)).itens.push(p)
   }
   return AREAS.map((a) => mapa.get(a.chave)).filter((g) => g.itens.length)

@@ -363,6 +363,8 @@ button.pn-sync{cursor:pointer;color:var(--scw-choco)}
    fixo mostra só o nome curto); no celular o cabeçalho fixo já diz tudo e
    este some — nada de título três vezes. */
 .pn-vista-cabeca{display:flex;align-items:center;gap:18px;margin:0 0 var(--espaco-secao);padding:0 0 var(--e-5);border-bottom:1px solid var(--scw-filete)}
+/* Módulo com abas: as abas são a continuação do título, não uma seção nova — o respiro é menor (23/10/2026). */
+.og-vista > .pn-vista-cabeca:has(+ .ui-abas){margin-bottom:var(--e-5)}
 .pn-acento-disco{width:44px;height:44px;border-radius:var(--r-2);flex:0 0 auto;display:grid;place-items:center;background:var(--scw-amarelo);color:var(--scw-choco)}
 /* O disco da página é maior que o de card: é a assinatura da tela. */
 .pn-vista-cabeca > .pn-acento-disco{width:60px;height:60px;box-shadow:var(--sombra-1)}
@@ -893,6 +895,10 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .ui-aviso__meta{font:400 12px/1.2 var(--f-ui);color:var(--scw-marrom)}
 .ui-aviso__ponto{flex:0 0 auto;width:9px;height:9px;margin-top:6px;border-radius:50%;background:var(--scw-magenta)}
 .ui-linha-acoes + .ui-avisos,.og-detalhe__rolo > .ui-linha-acoes{margin-bottom:12px}
+/* "Avisos neste aparelho" no topo da folha (23/10/2026): estado + ligar/desligar + o convite de instalar. */
+.ui-central-aparelho{display:flex;flex-direction:column;align-items:flex-start;gap:var(--e-2);margin:0 0 var(--e-5);padding:var(--e-4);border-radius:var(--r-2);background:var(--sup-2)}
+.ui-central-aparelho__titulo{margin:0;font:700 15px/1.3 var(--f-ui);color:var(--scw-choco)}
+.ui-central-aparelho .ui-avisos-aparelho{align-self:stretch}
 
 /* ═══ Folha (gaveta no desktop, folha no celular) ══════════════════════════ */
 .og-fundo{position:fixed;inset:0;background:rgba(43,14,6,.5);z-index:30;animation:ogVeu 200ms var(--scw-ease)}
@@ -1134,7 +1140,6 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .mc-bloco__corpo{padding:4px 20px 24px 76px}
 @media (max-width:760px){ .mc-bloco__corpo{padding-left:18px;padding-right:18px} }
 .pn-vista form > .acao.larga{max-width:980px;margin-top:18px}
-.pn-vista .mc-concluir-aviso{margin:12px 0 0;max-width:980px}
 .pn-vista .mc-campo-curto{max-width:220px}
 .pn-vista .mc-valor-combo{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 var(--e-4);padding:12px 16px;border-radius:var(--r-2);background:var(--sup-2)}
 .pn-vista .mc-valor-combo span{font:700 13px/1.2 var(--f-ui);color:var(--scw-marrom)}
@@ -1733,42 +1738,38 @@ p.fg-vazio{margin:0}
 .pr-lista__nome{flex:1 1 200px;text-align:left;font:700 15px/1.3 var(--f-ui)}
 .pr-lista__acoes{display:flex;align-items:center;gap:6px;margin-left:auto}
 
-/* ── Social media › Planejamento (16/10/2026; refinado em 17/10/2026) ─────────
-   Calendário do Instagram. Topo em três níveis — cabeçalho · período ·
-   ferramentas —, alertas discretos e a semana arrumada pela LARGURA DO
-   CONTEÚDO: `.rd-c` é container (`rd`), o menu lateral já descontado.
-   R.layoutSemana escolhe o arranjo (colunas · agenda · linhas); o CSS só
-   desenha. ⚠️ O container fica num invólucro que NÃO contém as folhas:
+/* ── Social media › Planejamento (16/10/2026; refinado em 17/10 e 23/10/2026) ─
+   Calendário do Instagram. Topo em DUAS linhas — período + alertas + ações ·
+   ferramentas (a aba já é o título; o h2 é só do leitor de tela) — e a semana
+   arrumada pela LARGURA DO CONTEÚDO: `.rd-c` é container (`rd`), o menu
+   lateral já descontado. R.layoutSemana escolhe o arranjo (colunas · agenda);
+   o CSS só desenha. ⚠️ O container fica num invólucro que NÃO contém as folhas:
    container-type contém posição fixa, e a folha ficaria presa nele.
-   Uma cor por situação, sempre com texto junto; atraso = laranja + ícone.
-   Miniatura CONTIDA (nunca esticada nem recortada). */
+   Uma cor por situação, sempre com texto junto; atraso = laranja + selo, UMA
+   vez por contexto. Miniatura CONTIDA (nunca esticada nem recortada). */
 .rd,.rd-c{display:flex;flex-direction:column;gap:12px}
 .rd-c{container:rd / inline-size}
+/* Ferramentas → calendário: um respiro a mais que entre as linhas do topo. */
+.rd-c > .rd-corpo{margin-top:var(--e-2)}
 .rd-falta{color:var(--scw-marrom);font-style:italic}
 /* Link no meio do texto: a área de toque cresce para cima e para baixo sem mexer na linha. */
 .rd-link{padding:10px 0;margin:-10px 0;border:0;background:none;color:var(--scw-choco);font:inherit;text-align:left;text-decoration:underline;text-decoration-color:rgba(61,19,8,.35);text-underline-offset:3px;cursor:pointer}
 @media (hover:hover){ .rd-link:hover{text-decoration-color:currentColor} }
 
-/* Nível 1 — cabeçalho: título, uma ação principal, ajuda discreta. */
-.rd-cabeca{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
-.rd-cabeca__titulo{margin:0;font:900 clamp(20px,2.2vw,26px)/1.1 var(--f-titulo);letter-spacing:-.02em;color:var(--scw-choco)}
-.rd-cabeca__acoes{display:flex;align-items:center;gap:6px;margin-left:auto}
+/* Linha 1 — período (anterior · intervalo que abre o calendário · próximo · hoje), alertas e, à direita,
+   as ações: "Como funciona", "Mais ações" (o raro) e "Nova postagem". No estreito, as ações sobem e
+   "Nova postagem" vem primeiro, larga. */
+.rd-faixa{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.rd-faixa > .rd-escopo{flex:1 1 100%}
+.rd-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto}
+/* O menu de "Mais ações" abre para a esquerda: preso à direita, nunca sai da tela. */
+.rd-acoes > .ui-mais-acoes{margin-left:auto}
 .rd-ajuda{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-marrom);font:700 14px/1 var(--f-ui);cursor:pointer}
 @media (hover:hover){ .rd-ajuda:hover{color:var(--scw-choco);background:var(--sup-toque)} }
-/* Estreito: a ajuda vira só o "i" (o nome continua para o leitor de tela). */
-/* Estreito: a aba "Planejamento" logo acima já é o título — ele fica só para o
-   leitor de tela, e "Nova postagem" + ajuda cabem numa linha; a ajuda vira o "i". */
 @container rd (max-width:520px){
-  .rd-cabeca__titulo{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  .rd-cabeca__acoes{flex:1 1 auto;margin:0}
-  .rd-cabeca__acoes > .og-btn{flex:1 1 auto;justify-content:center;min-height:48px}
-  .rd-ajuda{order:2;padding:0 6px}
+  .rd-acoes{order:-1;flex:1 1 100%;margin:0}
+  .rd-acoes > .rd-nova{order:-1;flex:1 1 auto;justify-content:center;min-height:48px}
 }
-
-/* Nível 2 — período: anterior · intervalo (abre o calendário) · próximo · hoje.
-   No largo, os alertas ocupam o resto desta linha; no estreito, descem. */
-.rd-faixa{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
-.rd-faixa > .rd-escopo{flex:1 1 100%}
 .rd-periodo{display:flex;align-items:center;gap:4px;min-width:0}
 .rd-periodo__intervalo{min-height:44px;min-width:0;display:inline-flex;align-items:center;gap:8px;padding:0 10px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-choco);font:900 clamp(17px,1.9vw,21px)/1.15 var(--f-titulo);letter-spacing:-.015em;text-align:left;cursor:pointer}
 .rd-periodo__intervalo svg{flex:0 0 auto;color:var(--scw-marrom)}
@@ -1783,17 +1784,19 @@ p.fg-vazio{margin:0}
   .rd-periodo__intervalo{flex:1 1 auto;justify-content:center;padding:0 4px;font-size:17px}
 }
 
-/* Nível 3 — ferramentas: visualização, sem data, busca, filtros. */
+/* Linha 2 — ferramentas: visualização (Semana · Mês · Dia · Lista · Sem data), busca e filtros juntos à direita. */
 .rd-ferramentas,.sb-ferramentas{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .rd-modos.og-agenda__modos{margin:0}
-.rd-semdata,.rd-filtros-btn{min-height:44px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border:0;border-radius:999px;background:var(--sup-trilho);color:var(--scw-choco);font:700 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
-.rd-semdata .og-aba__n,.rd-filtros-btn .og-aba__n{background:var(--sup-1)}
-.rd-semdata[aria-pressed="true"],.rd-filtros-btn[aria-expanded="true"]{background:var(--scw-choco);color:var(--scw-creme)}
-.rd-semdata[aria-pressed="true"] .og-aba__n,.rd-filtros-btn[aria-expanded="true"] .og-aba__n{background:var(--scw-amarelo);color:var(--scw-choco)}
-@media (hover:hover){ .rd-semdata:not([aria-pressed="true"]):hover,.rd-filtros-btn:not([aria-expanded="true"]):hover{background:var(--sup-toque)} }
-.rd-ferramentas .rd-busca,.sb-ferramentas .rd-busca{flex:1 1 200px;min-width:0}
+.rd-filtros-btn{min-height:44px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border:0;border-radius:999px;background:var(--sup-trilho);color:var(--scw-choco);font:700 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
+.rd-filtros-btn .og-aba__n{background:var(--sup-1)}
+.rd-filtros-btn[aria-expanded="true"]{background:var(--scw-choco);color:var(--scw-creme)}
+.rd-filtros-btn[aria-expanded="true"] .og-aba__n{background:var(--scw-amarelo);color:var(--scw-choco)}
+@media (hover:hover){ .rd-filtros-btn:not([aria-expanded="true"]):hover{background:var(--sup-toque)} }
+.sb-ferramentas .rd-busca{flex:1 1 200px;min-width:0}
+/* A busca não estica pela linha toda: ~320 px, colada em "Filtros". Sem ela (estreito), "Filtros" vai à direita. */
+.rd-ferramentas .rd-busca{flex:0 1 320px;min-width:0;margin-left:auto}
 .rd-ferramentas .rd-busca input,.sb-ferramentas .rd-busca input{min-height:44px;padding-top:0;padding-bottom:0}
-.rd-ferramentas > .rd-filtros-btn{margin-left:auto}
+.rd-ferramentas > .rd-ver + .rd-filtros-btn{margin-left:auto}
 /* Caixa de seleção compacta (visualização no celular, tipo na biblioteca). */
 .rd-ver select{min-height:44px;max-width:100%;padding:0 40px 0 14px;border:0;border-radius:999px;appearance:none;
   background:var(--sup-trilho) var(--icone-select) no-repeat right 14px center / 16px;color:var(--scw-choco);font:700 15px/1 var(--f-ui);cursor:pointer}
@@ -1807,20 +1810,21 @@ p.fg-vazio{margin:0}
 /* Atalho ligado: diz o escopo — não é mais a semana escolhida. */
 .rd-escopo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:10px 14px;border-radius:var(--r-2);background:var(--sup-2);box-shadow:inset 4px 0 0 var(--scw-choco)}
 .rd-escopo p{margin:0;flex:1 1 260px;font:400 14.5px/1.45 var(--f-ui);color:var(--scw-choco)}
-/* Alertas: só os do perfil e só com algo — texto curto com ícone, não blocos. */
-.rd-alertas{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
-.rd-alerta{min-height:44px;display:inline-flex;align-items:center;gap:5px;padding:0 10px;border:0;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1px var(--scw-filete);color:var(--scw-choco);font:400 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
-.rd-alerta b{font-weight:800}
+/* Alertas: só os do perfil e só com algo. "Em todas as datas:" diz na tela o escopo (não é o período
+   escolhido); a pílula cheia + a seta dizem que é um atalho (abre a lista). */
+.rd-alertas{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.rd-alertas__lista{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+.rd-alerta{min-height:44px;display:inline-flex;align-items:center;gap:5px;padding:0 10px 0 12px;border:0;border-radius:999px;background:var(--sup-trilho);color:var(--scw-choco);font:700 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
+.rd-alerta b{font-weight:900}
 .rd-alerta svg{color:var(--scw-marrom)}
-.rd-alerta[data-tom="atencao"] svg{color:var(--scw-laranja)}
+.rd-alerta[data-tom="atencao"] svg:first-child{color:var(--scw-laranja)}
 @media (hover:hover){ .rd-alerta:hover{background:var(--sup-toque)} }
-/* Celular: três alertas numa linha — o ícone sai, o texto fica. */
-@container rd (max-width:420px){ .rd-alerta svg{display:none} .rd-alerta{padding:0 9px} }
-/* Primeira visita: UMA linha de orientação (o passo a passo mora na folha). */
+/* Celular: três alertas numa linha — os ícones saem, o texto fica. */
+@container rd (max-width:420px){ .rd-alerta svg{display:none} .rd-alerta{padding:0 10px} }
+/* Primeira visita: UMA linha de orientação + "Entendi" (o passo a passo é o "Como funciona"). */
 .sg-inicio{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 14px;border-radius:var(--r-2);background:var(--sup-2)}
 .sg-inicio__texto{margin:0;flex:1 1 300px;font:400 14px/1.5 var(--f-texto);color:var(--scw-choco)}
 .sg-inicio__texto b{font-family:var(--f-ui)}
-.sg-inicio__acoes{display:flex;flex-wrap:wrap;gap:8px}
 
 /* Resumo da Visão geral (ResumoRedes) */
 .rd-resumo{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
@@ -1857,16 +1861,15 @@ p.fg-vazio{margin:0}
 .rd-cartao__meta{font:400 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
 .rd-cartao__estado{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
 .rd-cartao__resp{display:inline-flex;align-items:center;gap:6px;min-width:0;font:400 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
-.rd-cartao__sit{font:700 12.5px/1.25 var(--f-ui);color:var(--scw-choco)}
-.rd-cartao__alerta{display:inline-flex;align-items:center;gap:3px;font:700 12.5px/1.25 var(--f-ui);color:var(--scw-choco)}
-.rd-cartao__alerta svg{flex:0 0 auto;color:var(--scw-marrom)}
-.rd-cartao__alerta[data-tom="atencao"] svg{color:var(--scw-laranja)}
-/* Compacto (coluna da semana, ~140 px): miniatura em cima, o resto curto. */
+/* Participante: uma linha, abaixo do título. */
+.rd-cartao__part{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
+/* Compacto (coluna da semana, ~140 px): miniatura em cima, o resto curto; os selos podem quebrar a linha. */
 .rd-cartao--compacto{flex-direction:column;gap:6px;min-height:0;padding:8px 8px 9px 12px}
 .rd-cartao--compacto .rd-mini{width:100%;height:64px}
 .rd-cartao--compacto .rd-cartao__titulo{font-size:14px;line-height:1.25}
 .rd-cartao--compacto .rd-cartao__meta{font-size:13px}
-.rd-cartao--compacto .rd-cartao__estado{flex-direction:column;align-items:flex-start;gap:2px}
+.rd-cartao--compacto .rd-cartao__estado{flex-direction:column;align-items:flex-start;gap:4px}
+.rd-cartao--compacto .og-selo{max-width:100%;padding:3px 8px;font-size:12px;white-space:normal}
 @container rd (max-width:420px){ .rd-cartao__resp{display:none} }
 
 /* Mês */
@@ -1887,7 +1890,8 @@ p.fg-vazio{margin:0}
 .rd-item__hora{flex:0 0 auto;font-weight:700}
 .rd-item__titulo{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rd-item__alerta{flex:0 0 auto;margin-left:auto;color:var(--scw-laranja);display:inline-grid}
-.rd-mes__mais{min-height:28px;margin-top:2px;padding:0 6px;border:0;border-radius:var(--r-1);background:none;color:var(--scw-choco);font:700 12.5px/1 var(--f-ui);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* "Ver todos (N)" do mês e da coluna da semana: 44 px de toque (no mês, toma o lugar do último item). */
+.rd-mes__mais{min-height:44px;margin-top:2px;padding:0 6px;border:0;border-radius:var(--r-1);background:none;color:var(--scw-choco);font:700 12.5px/1 var(--f-ui);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* Estreito: o mês vira grade de números; o dia abre a agenda daquele dia. */
 @container rd (max-width:700px){
   .rd-mes{border-spacing:2px}
@@ -1898,7 +1902,8 @@ p.fg-vazio{margin:0}
   .rd-mes__n{min-width:20px;height:20px;background:var(--scw-amarelo)}
 }
 
-/* Semana (segunda a domingo) — três arranjos, escolhidos pela largura do conteúdo. */
+/* Semana (segunda a domingo) — dois arranjos, escolhidos pela largura do conteúdo.
+   Hoje: o fundo do card e o selo "hoje" (o contorno grosso pesava mais que o cartão atrasado). */
 .rd-sem{list-style:none;margin:0;padding:0}
 .rd-sem__cabeca{width:100%;min-height:48px;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;padding:6px 8px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-choco);text-align:left;cursor:pointer}
 @media (hover:hover){ .rd-sem__cabeca:hover{background:rgba(61,19,8,.07)} }
@@ -1909,38 +1914,41 @@ p.fg-vazio{margin:0}
 .rd-sem__n{font:400 13px/1.2 var(--f-ui);color:var(--scw-marrom)}
 .rd-sem__alerta{display:inline-flex;align-items:center;gap:3px;font:700 13px/1 var(--f-ui);color:var(--scw-choco)}
 .rd-sem__alerta svg{color:var(--scw-laranja)}
-.rd-sem__seta{margin-left:auto;color:var(--scw-marrom)}
-/* colunas — sete, só quando cada uma tem ~140 px */
+/* colunas — sete, só quando cada uma tem ~140 px. A coluna tem altura própria: o espaço livre
+   embaixo dos cartões é o "Adicionar" daquele dia (com postagem ou sem). */
 .rd-sem--colunas{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
-.rd-sem__coluna{min-width:0;display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:var(--r-2);background:var(--sup-2)}
-.rd-sem__coluna.is-hoje{box-shadow:inset 0 0 0 2px var(--scw-choco)}
+.rd-sem__coluna{min-width:0;min-height:clamp(220px,32vh,360px);display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:var(--r-2);background:var(--sup-2)}
+.rd-sem__coluna.is-hoje,.rd-sem__linha.is-hoje{background:var(--sup-1);box-shadow:var(--contorno)}
 .rd-sem__coluna.is-aberto{background:var(--scw-bege)}
-.rd-sem--colunas .rd-sem__seta{display:none}
 .rd-sem__itens{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.rd-sem__vazio{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px dashed var(--scw-borda-campo);border-radius:var(--r-1);background:transparent;color:var(--scw-marrom);font:700 13px/1 var(--f-ui);cursor:pointer}
+/* "Adicionar": discreto (borda transparente) até o ponteiro ou o foco do teclado. */
+.rd-sem__vazio{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px dashed transparent;border-radius:var(--r-1);background:transparent;color:var(--scw-marrom);font:700 13px/1 var(--f-ui);cursor:pointer}
 @media (hover:hover){ .rd-sem__vazio:hover{color:var(--scw-choco);border-color:var(--scw-choco)} }
+.rd-sem__vazio:focus-visible{color:var(--scw-choco);border-color:var(--scw-choco)}
+.rd-sem--colunas .rd-sem__vazio{flex:1 1 auto;width:100%;align-items:flex-start;padding-top:12px}
+/* Com mouse, a coluna fica limpa: o texto aparece sob o ponteiro (no toque, sempre à vista). */
+@media (hover:hover){ .rd-sem--colunas .rd-sem__vazio:not(:hover):not(:focus-visible){color:transparent} }
 .rd-agenda{margin-top:4px;padding:14px;border-radius:var(--r-2);display:flex;flex-direction:column;gap:12px}
 .rd-agenda__cabeca{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
 .rd-agenda__cabeca h3{margin:0;font:800 18px/1.2 var(--f-ui);color:var(--scw-choco)}
 .rd-agenda .rd-dia__lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
-/* agenda — largura intermediária: o dia à esquerda, as postagens ao lado */
-.rd-sem--agenda,.rd-sem--linhas{display:flex;flex-direction:column;gap:6px}
+/* agenda — abaixo das sete colunas, também no celular: o dia à esquerda, as postagens ao lado.
+   Dia vazio = uma linha baixa (44 px) com "Adicionar". */
+.rd-sem--agenda{display:flex;flex-direction:column;gap:6px}
 .rd-sem__linha{border-radius:var(--r-2);background:var(--sup-2)}
-.rd-sem__linha.is-hoje{box-shadow:inset 0 0 0 2px var(--scw-choco)}
 .rd-sem--agenda .rd-sem__linha{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;align-items:start;padding:10px 12px}
+.rd-sem--agenda .rd-sem__linha.is-vazio{align-items:center;padding-top:0;padding-bottom:0}
 .rd-sem__rotulo{margin:0;padding-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;font:inherit}
+.rd-sem__linha.is-vazio .rd-sem__rotulo{padding:4px 0}
 .rd-sem__posts{min-width:0;display:flex;flex-direction:column;gap:8px}
 .rd-sem--agenda .rd-dia__lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
 .rd-sem--agenda .rd-sem__vazio{width:100%;min-height:76px}
-.rd-sem__nada{margin:0;padding-top:12px}
-.rd-sem__mais-acao{display:flex}
-/* linhas — celular: dia, data, quantos e alerta; o dia escolhido abre ali mesmo */
-.rd-sem__linha.is-aberto{background:var(--scw-bege)}
-.rd-sem--linhas .rd-sem__cabeca{min-height:56px;flex-wrap:nowrap;gap:12px;padding:8px 14px}
-.rd-sem--linhas .rd-sem__quando{flex:0 0 auto;min-width:96px;flex-wrap:nowrap}
-.rd-sem--linhas .rd-sem__n{flex:1 1 auto}
-.rd-sem--linhas .rd-sem__seta{margin-left:0}
-.rd-sem__aberto{display:flex;flex-direction:column;gap:10px;padding:2px 10px 12px}
+.rd-sem--agenda .rd-sem__linha.is-vazio .rd-sem__vazio{min-height:44px;justify-content:flex-start;padding:0 8px}
+.rd-sem__nada{margin:0;padding:12px 0}
+@container rd (max-width:599px){
+  .rd-sem--agenda .rd-sem__linha{grid-template-columns:52px minmax(0,1fr);gap:8px;padding:8px}
+  .rd-sem--agenda .rd-sem__vazio{min-height:44px}
+}
 
 /* Dia e listas de postagens */
 .rd-dia{display:flex;flex-direction:column;gap:8px}

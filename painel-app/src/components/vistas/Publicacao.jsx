@@ -15,6 +15,7 @@ import '../../styles/edicao-org.css'
 import { comEnvio } from '../../lib/pendencias'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
+import { useDatasDoFestival } from '../../lib/festivalReact'
 import { soAlterados, aparar, impressaoDoArquivo } from '../../lib/leituraViva'
 import { NOMES_PUBLICACAO, ondeFica } from '../../lib/nomesPublicacao'
 
@@ -120,11 +121,11 @@ class Protegida extends React.Component {
 
 /* Prévia = a página do site desenhada pelo componente do site, sob demanda.
  * Usada aqui e na visão geral da ficha (15/10/2026). */
-export function PreviaPagina({ conteudo, nome }) {
+export function PreviaPagina({ conteudo, nome, periodo = null }) {
   return (
     <section className="eo-previa" aria-label={'Prévia da página de ' + nome}>
       <p className="eo-previa__faixa">Prévia, ainda não publicada</p>
-      <Protegida><React.Suspense fallback={<Carregando linhas={3} texto="Abrindo a prévia…" />}><PreviaPublica p={conteudo} /></React.Suspense></Protegida>
+      <Protegida><React.Suspense fallback={<Carregando linhas={3} texto="Abrindo a prévia…" />}><PreviaPublica p={conteudo} periodo={periodo} /></React.Suspense></Protegida>
     </section>
   )
 }
@@ -136,6 +137,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
   const [faltando, setFaltando] = React.useState(null)
   const [agindo, setAgindo] = React.useState(false)
   const [previa, setPrevia] = React.useState(false)
+  const festival = useDatasDoFestival(participante.edicao_codigo)   // o período da edição chega à prévia (o horário sai como no site)
 
   // A publicação da casa lê de muita coisa (publicações, cadastro, unidades, logo, marca, preço da
   // edição); relê sozinha quando qualquer uma muda. Outra participação = leitura nova: a ficha de
@@ -239,7 +241,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
       <MacroSecao rotulo="Conferir" titulo={v ? 'O que mudou desde a v' + v.versao : 'O que seria publicado'}
         acoes={<Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => setPrevia((x) => !x)}>{previa ? 'Fechar prévia' : 'Ver como no site'}</Botao>}>
         {v ? <Diferenca antes={v.conteudo} depois={pub.atual} /> : <p className="ui-nota">Nenhuma versão no ar ainda: a prévia mostra a página inteira como ficaria.</p>}
-        {previa && pub.atual && <PreviaPagina conteudo={pub.atual} nome={nome} />}
+        {previa && pub.atual && <PreviaPagina conteudo={pub.atual} nome={nome} periodo={festival.periodo} />}
       </MacroSecao>
 
       <MacroSecao rotulo="Mapa" titulo="Unidades e localização" nota="Só a organização grava a coordenada; o mapa público só usa a conferida.">

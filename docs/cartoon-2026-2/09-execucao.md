@@ -56,7 +56,7 @@ Depois de aplicar:
    - `enviar-formulario`: agora aceita a avaliação, com Turnstile;
    - `arquivo-url`: agora aceita o bucket `edicao-publico`, caminho `<edição>/<participação>/<uuid>.webp`, sem sobrescrever. Sem ela, o envio de foto oficial no painel mostra erro.
 
-**Efeito no painel atual:** a marca passa a precisar dos campos novos para enviar o cadastro. São eles: combo, endereço estruturado, modos de atendimento, horário do combo e alergênicos respondidos. Por isso a migration 3 só deve entrar junto com o painel da fase 3.
+**Efeito no painel atual:** a marca passa a precisar dos campos novos para enviar o cadastro. São eles: combo, endereço estruturado, modos de atendimento, horário no festival (era "horário do combo" até 23/10/2026) e alergênicos respondidos. Por isso a migration 3 só deve entrar junto com o painel da fase 3.
 
 ## 9.3 Testes
 
@@ -77,7 +77,7 @@ Depois de aplicar:
 - **Meu cadastro:**
   - apresentação pública;
   - unidades permanentes com endereço estruturado e WhatsApp autorizado;
-  - bloco 6, atendimento: local, retirada e delivery do combo em três estados, mais canais, região, taxa e horário do combo por dia do festival.
+  - bloco 6, atendimento: local, retirada e delivery do combo em três estados, mais canais, região, taxa e horário no festival por dia (uma pergunta só: como a unidade funciona em cada dia; 23/10/2026).
 - **Meu combo:**
   - nome, descrição e condições;
   - bloco 5, alimentar: 8 alergênicos, "outro" e 4 características, nada pré-marcado;

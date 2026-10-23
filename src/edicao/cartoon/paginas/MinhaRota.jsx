@@ -69,7 +69,7 @@ export function MinhaRota ({ navigate, dados }) {
                       <p className="ct-parada__nome"><Link href={`${EDICAO.caminho}/participantes/${pa.participante.slug}`} navigate={navigate}>{pa.participante.casa.nome}</Link>
                         {pa.unidade.nome ? ` · ${pa.unidade.nome}` : ''}</p>
                       <p>{M.enderecoEmLinha(pa.unidade.endereco)}</p>
-                      {pa.unidade.combo && M.textoEstado(M.estadoAgora(pa.unidade)) && <p className="ct-nota">{M.textoEstado(M.estadoAgora(pa.unidade))}</p>}
+                      {pa.unidade.combo && M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao)) && <p className="ct-nota">{M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao))}</p>}
                     </>
                   ) : <p className="ct-parada__nome">Esta unidade saiu da edição.</p>}
                 </div>

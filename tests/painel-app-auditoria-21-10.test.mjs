@@ -122,16 +122,20 @@ test('cadastro da marca: o "Salvo" diz o que ficou de fora por inválido (CEP, U
   assert.match(c, /'Salvo, menos ' \+ /)
 })
 
-test('cadastro da marca: remover unidade, troca e horário do dia pedem confirmação', () => {
+test('cadastro da marca: remover unidade e troca pedem confirmação; trocar um horário por dia por "igual todos os dias" também (no seletor)', () => {
   for (const [arq, re] of [
     ['painel-app/src/components/vistas-marca/edicao/Unidades.jsx', /await confirmar\('Remover ' \+ nome/],
     ['painel-app/src/components/vistas-marca/edicao/Alimentar.jsx', /await confirmar\('Remover esta troca\?'/],
-    ['painel-app/src/components/vistas-marca/edicao/Atendimento.jsx', /await confirmar\('Tirar o horário de '/],
   ]) {
     const s = ler(arq)
     assert.match(s, re, arq)
     assert.match(s, /import \{ confirmar \} from '\.\.\/\.\.\/Confirmar'/, arq + ' importa a confirmação')
   }
+  // O horário no festival (23/10/2026) é um seletor só: o que apagava dia a dia (Atendimento) saiu, e a pergunta mora nele.
+  const seletor = ler('painel-app/src/components/HorarioFestival.jsx')
+  assert.match(seletor, /await confirmar\('Usar o mesmo horário em todos os dias\?/)
+  assert.match(seletor, /import \{ confirmar \} from '\.\/Confirmar'/)
+  assert.doesNotMatch(ler('painel-app/src/components/vistas-marca/edicao/Atendimento.jsx'), /Tirar o horário de|Incluir dia|Aplicar aos/)
 })
 
 test('Visão geral: "Tudo em dia" e "Nada pendente" só depois de ler tudo', () => {

@@ -21,6 +21,7 @@
 import { mesclarExterno, igualValor } from './sync/mesclar.js'
 import * as E from './edicaoMarca.js'
 import { ROTULO_POSICAO } from './cadastro.js'
+import { resumoDeLinhas, linhasCanonicas, rotuloDia, periodoTexto } from './horarioFestival.js'
 
 export { igualValor }
 
@@ -51,7 +52,7 @@ export function mesclarCorpo({ base, local, servidor, chaves, espelho = [] }) {
   return { base: novaBase, adotados: m.adotados, conflitos: m.conflitos, mudouExterno: m.mudouExterno }
 }
 
-/* ── 2. Uma coleção de linhas (itens, unidades, horários, trocas, declarações) ── */
+/* ── 2. Uma coleção de linhas (itens, unidades, trocas, declarações) ── */
 /**
  * base:     { [id]: corpo }                                  o que baseRef guarda
  * locais:   [{ chave, id|null, corpo }]                      linhas da tela (id nulo = ainda não gravada)
@@ -92,8 +93,8 @@ export function mesclarColecao({ base = {}, locais, servidor, esquecidas = new S
 }
 
 /* ── 3. Base e conflitos ──────────────────────────────────────────────────── */
-const FATIA = { marca: 'marca', participacao: 'participacao', item: 'itens', un: 'un', pu: 'pu', disp: 'disp', decl: 'decl', sub: 'sub' }
-const FATIAS_LINHA = ['itens', 'un', 'pu', 'disp', 'decl', 'sub']
+const FATIA = { marca: 'marca', participacao: 'participacao', item: 'itens', un: 'un', pu: 'pu', decl: 'decl', sub: 'sub' }
+const FATIAS_LINHA = ['itens', 'un', 'pu', 'decl', 'sub']
 
 export function clonarBase(base) {
   const b = base || {}
@@ -149,14 +150,6 @@ export function aplicarItens(prev, p) {
   return mesmaLista(r, prev) ? prev : r
 }
 
-function aplicarDisp(prev, d) {
-  const fora = new Set((d.remover || []).map(String))
-  let r = prev.filter((x) => !fora.has(String(x.id))).map((x) => (d.porId && d.porId[x.id] ? { ...x, ...d.porId[x.id] } : x))
-  const novos = (d.novos || []).filter((n) => !r.some((x) => String(x.id) === String(n.id)))
-  if (novos.length) r = [...r, ...novos].sort((a, b) => (a.data + a.abre).localeCompare(b.data + b.abre))
-  return mesmaLista(r, prev) ? prev : r
-}
-
 // A unidade em branco que a tela mostra enquanto não há nenhuma: some quando chega uma de verdade.
 const forma = (u) => JSON.stringify([E.corpoUnidade(u), E.corpoParticipacaoUnidade(u, 0)])
 const FORMA_VAZIA = forma(E.unidadeDeLinhas(null, null))
@@ -168,9 +161,7 @@ export function aplicarUnidades(prev, p) {
   let r = prev.filter((u) => !fora.has(u._key))
   r = r.map((u) => {
     const campos = p.porChave && p.porChave[u._key]
-    const d = p.disp && p.disp[u._key]
-    if (!campos && !d) return u
-    return { ...u, ...(campos || {}), ...(d ? { disponibilidade: aplicarDisp(u.disponibilidade || [], d) } : {}) }
+    return campos ? { ...u, ...campos } : u
   })
   const novas = (p.novas || []).filter((n) => !r.some((u) => u._key === n.u._key || (n.u.puId && u.puId === n.u.puId)))
   if (novas.length) {
@@ -235,15 +226,17 @@ const ROT_PA = {
 const ROT_ITEM = { nome: 'Nome', descricao: 'Descrição', tipo: 'Doce ou salgado' }
 const ROT_UN = {
   nome_unidade: 'Nome da unidade', logradouro: 'Rua ou avenida', numero: 'Número', complemento: 'Complemento', referencia: 'Referência',
-  bairro: 'Bairro', cidade: 'Cidade', uf: 'Estado (UF)', cep: 'CEP', whatsapp_publico: 'WhatsApp da unidade',
-  whatsapp_autorizado: 'Autorização do WhatsApp no site', horario_loja_texto: 'Horário da loja',
+  bairro: 'Bairro', cidade: 'Cidade', uf: 'Estado (UF)', cep: 'CEP', whatsapp_publico: 'WhatsApp da loja',
+  // Não é campo que a pessoa preenche (acompanha o número): só aparece se os dois lados mudarem ao mesmo tempo.
+  whatsapp_autorizado: 'WhatsApp da loja no site',
 }
+// Acompanham o servidor sem entrar no aviso "atualizamos estes campos".
+const CALADOS_UN = new Set(['whatsapp_autorizado'])
 const ROT_PU = {
   participa: 'Participa da edição', consumo_local: 'Consumo no local', retirada: 'Retirada', delivery_combo: 'Delivery do combo',
   canais_delivery: 'Onde pedir o delivery', delivery_regioes: 'Regiões atendidas', delivery_taxa: 'Taxa de entrega',
-  observacao_combo: 'O que muda no combo nesta unidade',
+  observacao_combo: 'O que muda no combo nesta unidade', horario_festival: 'Horário no festival',
 }
-const ROT_DISP = { abre: 'abre', fecha: 'fecha', observacao: 'observação' }
 const ROT_SUB = {
   original: 'o que sai', alternativa: 'o que entra', disponibilidade: 'disponibilidade', acrescimo: 'acréscimo',
   como_solicitar: 'como pedir', modalidades: 'vale para', unidades: 'unidades',
@@ -259,10 +252,17 @@ const ENUM_POR_CHAVE = {
 }
 const MODALIDADE = new Map(E.MODALIDADES)
 
-/** O valor de um campo como a pessoa lê ("Sim", "Retirada"…), nunca o código do banco. */
-export function valorLegivel(chave, v) {
+/**
+ * O valor de um campo como a pessoa lê ("Sim", "Retirada"…), nunca o código do banco. `datas` = os dias do festival:
+ * o horário no festival só diz "todos os dias" e "não abre" com elas (sem elas, só os períodos que existem).
+ */
+export function valorLegivel(chave, v, datas) {
   if (v === true) return 'Sim'
   if (v === false) return 'Não'
+  if (chave === 'horario_festival' && Array.isArray(v)) {
+    if (datas && datas.length) return resumoDeLinhas(v, datas, 'Ainda sem horário')
+    return linhasCanonicas(v).map((l) => rotuloDia(l.data) + ': ' + periodoTexto([l.abre, l.fecha])).join(' · ') || 'Ainda sem horário'
+  }
   if (chave === 'canais_delivery' && Array.isArray(v)) return v.map((c) => (c && c.tipo ? c.tipo + ': ' + c.link : String(c))).join(' · ')
   if (chave === 'modalidades' && Array.isArray(v)) return v.map((m) => MODALIDADE.get(m) || m).join(', ')
   if (chave === 'unidades' && Array.isArray(v)) return v.length === 1 ? '1 unidade' : v.length + ' unidades'
@@ -289,6 +289,7 @@ function corpoUnidadeVivo(u) {
   if (!('cep' in c)) c.cep = texto(u.cep)
   if (!('uf' in c)) c.uf = texto(u.uf)
   if (!('whatsapp_publico' in c)) c.whatsapp_publico = texto(u.whatsapp_publico)
+  if (!('whatsapp_autorizado' in c)) c.whatsapp_autorizado = !!u.whatsapp_autorizado
   return c
 }
 
@@ -296,7 +297,7 @@ function corpoUnidadeVivo(u) {
  * @param {object} p
  *   vivo:  { marca, tema, combo, custosStr, extras, itens, unidades, declaracoes, substituicoes } — a tela agora
  *   base:  baseRef.current
- *   snap:  { p, pa, edicao, tema, novo, itensRows, puRows, unRows, dispRows, declRows, subRows } — o servidor agora
+ *   snap:  { p, pa, edicao, tema, novo, itensRows, puRows, unRows, declRows, subRows } — o servidor agora
  *   mapas: { marcaDeLinha, corpoMarca, participacaoDeLinha, corpoParticipacao, pedidoItem } — as do Cadastro.jsx (donas do contrato do grant)
  *   ids:   { unId(u), puId(u), declId(itemId, aspecto, d), subId(s) } — ids já devolvidos pelo servidor e ainda fora do estado
  *   esquecidas: Set de ids que a pessoa removeu
@@ -318,9 +319,9 @@ export function planejarMesclagem({ vivo, base, snap, mapas, ids = {}, esquecida
   const poe = (f) => { tela = juntar(tela, f) }
   const ui = (ent, id, chave) => ent + ':' + (id == null ? '' : id) + ':' + chave
 
-  const colher = (r, { ent, id, bloco, blocoDe, rotulo, telaDe }) => {
+  const colher = (r, { ent, id, bloco, blocoDe, rotulo, telaDe, calados }) => {
     for (const k of r.adotados) {
-      adotados[ui(ent, id, k)] = { rotulo: rotulo(k), bloco: blocoDe ? blocoDe(k) : bloco }
+      if (!(calados && calados.has(k))) adotados[ui(ent, id, k)] = { rotulo: rotulo(k), bloco: blocoDe ? blocoDe(k) : bloco }
       poe(telaDe(k))
     }
     for (const [k, c] of Object.entries(r.conflitos)) {
@@ -386,19 +387,18 @@ export function planejarMesclagem({ vivo, base, snap, mapas, ids = {}, esquecida
     removida({ ent: 'item', id: vi.id, bloco: 2, rotulo: nomeItem(vi) + ' · removido', meu: vi.nome || nomeItem(vi), tela: { itens: { remover: [vi.id] } } })
   }
 
-  /* ── unidades (4 e 6), horários do combo (6), declarações e trocas (5): só no modelo novo ── */
+  /* ── unidades (4 e 6, com o horário no festival), declarações e trocas (5): só no modelo novo ── */
   if (snap.novo) {
     const unRow = new Map(snap.unRows.map((r) => [String(r.id), r]))
     const puRow = new Map(snap.puRows.map((r) => [String(r.id), r]))
     for (const r of snap.puRows) servidorIds.add(String(r.id))
-    for (const r of snap.dispRows) servidorIds.add(String(r.id))
     for (const r of snap.subRows) servidorIds.add(String(r.id))
     const locais = vivo.unidades.map((u, idx) => ({ u, idx, unId: idDe.unId(u), puId: idDe.puId(u) }))
     const porPu = new Map(locais.filter((x) => x.puId).map((x) => [String(x.puId), x]))
     const nome = (x) => E.nomeDaUnidade(x.u, x.idx)
     const sujoUn = (x) => !!(x.unId && b.un[x.unId]) && Object.entries(corpoUnidadeVivo(x.u)).some(([k, v]) => !igualValor(v, b.un[x.unId][k]))
 
-    // 1. a unidade permanente (endereço, WhatsApp, horário da loja)
+    // 1. a unidade permanente (endereço e WhatsApp da loja)
     for (const x of locais) {
       if (!x.unId) continue
       const ur = unRow.get(String(x.unId))
@@ -408,7 +408,7 @@ export function planejarMesclagem({ vivo, base, snap, mapas, ids = {}, esquecida
       if (b.un[x.unId]) {
         const m = mesclarCorpo({ base: b.un[x.unId], local: corpoUnidadeVivo(x.u), servidor: E.corpoUnidade(su) })
         b.un[x.unId] = m.base
-        colher(m, { ent: 'un', id: x.unId, bloco: 4, rotulo: (k) => (ROT_UN[k] || k) + ' · ' + nome(x), telaDe: (k) => ({ unidades: { porChave: { [ch]: { [k]: su[k] } } } }) })
+        colher(m, { ent: 'un', id: x.unId, bloco: 4, rotulo: (k) => (ROT_UN[k] || k) + ' · ' + nome(x), telaDe: (k) => ({ unidades: { porChave: { [ch]: { [k]: su[k] } } } }), calados: CALADOS_UN })
       }
       const verificada = !!ur.coordenada_verificada_em
       if (verificada !== !!x.u.verificada) poe({ unidades: { porChave: { [ch]: { verificada } } } })
@@ -428,43 +428,19 @@ export function planejarMesclagem({ vivo, base, snap, mapas, ids = {}, esquecida
     for (const [chave, e] of Object.entries(rPu.existentes)) {
       const x = porPu.get(chave)
       const r = puRow.get(chave)
-      const su = E.unidadeDeLinhas(r, unRow.get(String(r.unidade_id)), snap.dispRows)
+      const su = E.unidadeDeLinhas(r, unRow.get(String(r.unidade_id)))
       const ch = x.u._key
       colher(e, {
         ent: 'pu', id: e.id, blocoDe: (k) => (k === 'participa' ? 4 : 6), rotulo: (k) => (ROT_PU[k] || k) + ' · ' + nome(x),
-        telaDe: (k) => { const c = CAMPO_PU[k] || k; return { unidades: { porChave: { [ch]: { [c]: su[c] } } } } },
+        // Horário novo da organização: o seletor se refaz a partir dele, então o aviso de "horário incompleto" cai junto.
+        telaDe: (k) => { const c = CAMPO_PU[k] || k; return { unidades: { porChave: { [ch]: { [c]: su[c], ...(k === 'horario_festival' ? { _horarioPendente: null } : {}) } } } } },
       })
       if (String(x.u.puId) !== String(r.id) || x.u.id_publico !== r.id_publico) poe({ unidades: { porChave: { [ch]: { puId: r.id, id_publico: r.id_publico } } } })
-
-      // 3. horários do combo desta unidade
-      const rDisp = mesclarColecao({
-        base: b.disp,
-        locais: (x.u.disponibilidade || []).map((d) => ({ chave: String(d.id), id: d.id, corpo: E.corpoDisponibilidade(d) })),
-        servidor: snap.dispRows.filter((d) => String(d.participacao_unidade_id) === chave)
-          .map((d) => ({ chave: String(d.id), id: d.id, corpo: E.corpoDisponibilidade(E.disponibilidadeDeLinha(d)) })),
-        esquecidas,
-      })
-      b.disp = rDisp.base
-      const dispTela = new Map(snap.dispRows.map((d) => [String(d.id), E.disponibilidadeDeLinha(d)]))
-      const dispVivo = new Map((x.u.disponibilidade || []).map((d) => [String(d.id), d]))
-      const rotDia = (id) => 'Horário do combo · ' + nome(x) + ' · ' + E.rotuloDia((dispVivo.get(String(id)) || dispTela.get(String(id)) || {}).data)
-      for (const [dchave, de] of Object.entries(rDisp.existentes)) {
-        colher(de, {
-          ent: 'disp', id: de.id, bloco: 6, rotulo: (k) => rotDia(dchave) + ' · ' + (ROT_DISP[k] || k),
-          telaDe: (k) => ({ unidades: { disp: { [ch]: { porId: { [de.id]: { [k]: dispTela.get(dchave)[k] } } } } } }),
-        })
-      }
-      for (const dchave of rDisp.novas) { poe({ unidades: { disp: { [ch]: { novos: [dispTela.get(dchave)] } } } }); aviso('disp', dchave, '__nova', 6, 'Novo dia de horário do combo · ' + nome(x)) }
-      for (const dchave of rDisp.removidas) { poe({ unidades: { disp: { [ch]: { remover: [dchave] } } } }); aviso('disp', dchave, '__saiu', 6, 'Dia de horário do combo removido · ' + nome(x)) }
-      for (const dchave of rDisp.removidasEditando) {
-        removida({ ent: 'disp', id: dchave, bloco: 6, rotulo: rotDia(dchave) + ' · removido', meu: 'Horário que você está editando', tela: { unidades: { disp: { [ch]: { remover: [dchave] } } } } })
-      }
     }
     for (const chave of rPu.novas) {
       const r = puRow.get(chave)
       const ur = unRow.get(String(r.unidade_id))
-      const su = E.unidadeDeLinhas(r, ur, snap.dispRows)
-      su.disponibilidade.forEach((d) => { b.disp[d.id] = E.corpoDisponibilidade(d) })
+      const su = E.unidadeDeLinhas(r, ur)
       poe({ unidades: { novas: [{ u: su, em: r.ordem }] } })
       aviso('pu', r.id, '__nova', 4, 'Nova unidade · ' + E.nomeDaUnidade(su, locais.length))
     }

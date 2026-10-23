@@ -3,8 +3,9 @@ import assert from 'node:assert/strict'
 import { resumoMarca, agruparPendencias } from '../painel-app/src/lib/guia.js'
 
 /*
- * Estados do resumo da marca (22/10/2026): enviar só quando faz sentido, requisitos da camada de edição no
- * Início, prazo crítico antes do preenchimento, agrupamento sem perder nem repetir pendência.
+ * Estados do resumo da marca (22/10/2026): requisitos da camada de edição no Início, prazo crítico antes do
+ * preenchimento, agrupamento sem perder nem repetir pendência. Desde 23/10/2026 a marca só SALVA: nenhuma pendência
+ * de "enviar" existe, em estado nenhum.
  */
 const itens = [
   { posicao: 1, tipo: 'doce', nome: 'Bolo', descricao: 'd' },
@@ -20,7 +21,20 @@ const completo = {
 const com = (participacao, extra = {}) => ({ ...completo, ...extra, participacao: { ...completo.participacao, ...participacao } })
 const tipos = (r) => r.pendencias.map((p) => p.tipo)
 
-test('T1 combo em análise: nenhuma cobrança de envio e quem age é a organização', () => {
+test('T0 nenhum estado cria pendência de "enviar" (a marca só salva)', () => {
+  const estados = [{}, { combo_status: 'em_analise' }, { status_cadastro: 'encerrado' }, { status_cadastro: 'aguardando_cadastro' },
+    { combo_status: 'correcao_solicitada', status_cadastro: 'em_preenchimento' }, { combo_status: 'aprovado', status_cadastro: 'cadastro_completo' }]
+  for (const pa of estados) {
+    for (const extra of [{}, { faltandoEdicao: [] }, { publicacao: { alterado_apos_aprovacao: true } }]) {
+      const r = resumoMarca(com(pa, extra))
+      assert.ok(!tipos(r).includes('enviar'), JSON.stringify(pa))
+      assert.ok(!('podeEnviar' in r.envio))
+      assert.doesNotMatch(JSON.stringify(r.pendencias) + JSON.stringify(r.etapas), /enviar|envie/i, JSON.stringify(pa))
+    }
+  }
+})
+
+test('T1 combo em análise: nenhuma cobrança e quem age é a organização', () => {
   const r = resumoMarca(com({ combo_status: 'em_analise' }))
   assert.ok(!tipos(r).includes('enviar'))
   assert.equal(r.proxima, null)
@@ -29,27 +43,27 @@ test('T1 combo em análise: nenhuma cobrança de envio e quem age é a organiza�
   assert.match(etapa.detalhe, /em análise/)
 })
 
-test('T2 participação encerrada não cobra envio; aguardando cadastro cobra', () => {
-  assert.ok(!tipos(resumoMarca(com({ status_cadastro: 'encerrado' }))).includes('enviar'))
-  assert.ok(tipos(resumoMarca(com({ status_cadastro: 'aguardando_cadastro' }))).includes('enviar'))
+test('T2 cadastro completo e em rascunho (antes do gatilho): está com a organização', () => {
+  const r = resumoMarca(com({ status_cadastro: 'cadastro_completo' }))
+  const etapa = r.etapas.find((e) => e.chave === 'analise')
+  assert.equal(etapa.estado, 'andamento')
+  assert.match(etapa.detalhe, /em análise pela organização/)
 })
 
-test('T3 ajuste pedido sem linha de correção: o título já diz "novamente"', () => {
-  const r = resumoMarca(com({ combo_status: 'correcao_solicitada', status_cadastro: 'cadastro_completo' }))
-  const p = r.pendencias.find((x) => x.tipo === 'enviar')
-  assert.ok(p, 'reenvio é a ação')
-  assert.match(p.titulo, /novamente/)
+test('T3 ajuste pedido: a etapa diz "ajuste pedido" e é a vez da marca', () => {
+  const r = resumoMarca(com({ combo_status: 'correcao_solicitada', status_cadastro: 'em_preenchimento' }))
+  const etapa = r.etapas.find((e) => e.chave === 'analise')
+  assert.equal(etapa.estado, 'atencao')
+  assert.match(etapa.detalhe, /ajuste pedido/)
 })
 
-test('T4 aprovado: só cobra envio se mudou depois da aprovação', () => {
+test('T4 aprovado e alterado depois: a organização vai atualizar o site (nada para a marca enviar)', () => {
   const aprovado = { combo_status: 'aprovado', status_cadastro: 'cadastro_completo' }
-  assert.ok(!tipos(resumoMarca(com(aprovado))).includes('enviar'))
-  assert.ok(!tipos(resumoMarca(com(aprovado, { publicacao: { alterado_apos_aprovacao: false } }))).includes('enviar'))
+  assert.equal(resumoMarca(com(aprovado)).pendencias.length, 0)
   const r = resumoMarca(com(aprovado, { publicacao: { alterado_apos_aprovacao: true } }))
-  const p = r.pendencias.find((x) => x.tipo === 'enviar')
-  assert.match(p.titulo, /alterações/)
+  assert.equal(r.pendencias.length, 0)
   assert.equal(r.combo.alteradoAposAprovacao, true)
-  assert.match(r.etapas.find((e) => e.chave === 'analise').detalhe, /alterações/)
+  assert.match(r.etapas.find((e) => e.chave === 'analise').detalhe, /atualizar o site com as suas alterações/)
 })
 
 test('T5 100% dos campos, mas a edição exige mais: sem "tudo pronto" nem "enviar"', () => {
@@ -58,8 +72,8 @@ test('T5 100% dos campos, mas a edição exige mais: sem "tudo pronto" nem "envi
   assert.equal(r.progresso.pct, 100, 'o % continua sendo só dos campos obrigatórios')
   assert.equal(r.envio.pronto, false)
   assert.equal(r.envio.faltam, 3)
-  assert.ok(!tipos(r).includes('enviar'))
   assert.equal(r.pendencias.filter((p) => p.codigo).length, 3)
+  assert.ok(r.pendencias.filter((p) => p.codigo).every((p) => p.texto === 'É obrigatório para a página no site.'))
   const nome = r.pendencias.find((p) => p.codigo === 'combo_nome')
   assert.equal(nome.link, 'combo/3/combo_nome')
   const modos = r.pendencias.find((p) => p.codigo === 'unidade:u1:modos')
@@ -73,7 +87,7 @@ test('T5b leitura da edição ausente: não afirma nada (conhecido = false), com
   const r = resumoMarca(com({}))
   assert.equal(r.envio.conhecido, false)
   assert.equal(r.envio.pronto, true)
-  assert.ok(tipos(r).includes('enviar'))
+  assert.equal(r.etapas.find((e) => e.chave === 'analise').detalhe, 'depois de completar o cadastro', 'sem a leitura, não diz "completo"')
   const lido = resumoMarca(com({}, { faltandoEdicao: [] }))
   assert.equal(lido.envio.conhecido, true)
   assert.equal(lido.envio.faltam, 0)
@@ -88,6 +102,9 @@ test('T5c a falta de endereço vem do servidor e do campo básico: conta UMA vez
   // Unidade participando sem endereço: o servidor aponta a unidade certa (não a "primeira").
   const u = resumoMarca(com({}, { unidades: [{ id_publico: 'u2', participa: true }], faltandoEdicao: ['unidade:u2:endereco', 'unidade:u2:horario'] }))
   assert.equal(u.envio.faltam, 2, 'endereço + horário, cada um uma vez')
+  const horario = u.pendencias.find((p) => p.codigo === 'unidade:u2:horario')
+  assert.match(horario.titulo, /^Informar o horário no festival de /, 'a falta do horário usa o nome novo, sem "da loja" nem "do combo"')
+  assert.equal(horario.link, 'cadastro/6/atendimento-horario', 'e leva ao seletor, no bloco 6 de Meu cadastro')
   assert.equal(u.pendencias.filter((p) => p.campo === 'unidade-endereco').length, 1)
   // Leitura da edição ausente: o campo básico continua contando (não há outra fonte).
   const sem = resumoMarca(com({}, { unidades: [] }))
@@ -95,24 +112,18 @@ test('T5c a falta de endereço vem do servidor e do campo básico: conta UMA vez
   assert.equal(sem.pendencias.filter((p) => p.campo === 'unidade-endereco').length, 1)
 })
 
-test('participação encerrada: a etapa de aprovação não diz "pronto para enviar" nem passa a vez para a marca', () => {
+test('participação encerrada: a etapa de aprovação diz "encerrada"; completo e lido vai para a conferência', () => {
   const r = resumoMarca(com({ status_cadastro: 'encerrado' }, { faltandoEdicao: [] }))
-  assert.ok(!tipos(r).includes('enviar'))
-  assert.equal(r.envio.podeEnviar, false)
   assert.match(r.etapas.find((e) => e.chave === 'analise').detalhe, /encerrada/)
   const livre = resumoMarca(com({}, { faltandoEdicao: [] }))
-  assert.equal(livre.envio.podeEnviar, true)
-  assert.match(livre.etapas.find((e) => e.chave === 'analise').detalhe, /pronto para enviar/)
+  assert.match(livre.etapas.find((e) => e.chave === 'analise').detalhe, /vai para a conferência da organização/)
 })
 
-test('T6 só a logo faltando: o envio é possível e a mensagem não diz "tudo preenchido"', () => {
+test('T6 só a logo faltando: o cadastro está completo e a logo é a próxima ação', () => {
   const r = resumoMarca(com({ logo_id: null }))
   assert.equal(r.envio.pronto, true)
-  const p = r.pendencias.find((x) => x.tipo === 'enviar')
-  assert.ok(p)
-  assert.match(p.texto, /logo pode ser enviada depois/)
-  assert.doesNotMatch(p.texto, /Tudo preenchido/)
-  assert.equal(r.proxima.campo, 'logo', 'a logo vem antes do envio na ordem')
+  assert.equal(r.proxima.campo, 'logo')
+  assert.deepEqual(tipos(r), ['campo'])
 })
 
 test('T7 correção aberta é a próxima ação; corrigida e em análise vira "em análise"', () => {
@@ -121,7 +132,6 @@ test('T7 correção aberta é a próxima ação; corrigida e em análise vira "e
   assert.equal(aberta.proxima.critica, true)
   const corrigida = resumoMarca(com({ combo_status: 'em_analise' }, { correcoes: [{ campo: 'telefone', bloco: 0, estado: 'corrigida' }] }))
   assert.deepEqual(corrigida.campo('telefone'), { estado: 'analise' })
-  assert.ok(!tipos(corrigida).includes('enviar'))
 })
 
 test('prazo curto ou vencido sobe na frente do preenchimento; prazo longo não', () => {
@@ -141,7 +151,7 @@ test('prazo curto ou vencido sobe na frente do preenchimento; prazo longo não',
   assert.equal(ambos.proxima.tipo, 'correcao')
 })
 
-test('T8 agrupar não perde nem repete: soma dos grupos = pendências, menos o destaque e o envio', () => {
+test('T8 agrupar não perde nem repete: soma dos grupos = pendências, menos o destaque', () => {
   const r = resumoMarca({
     ...com({}, { itens: [{ ...itens[0], descricao: '' }, { ...itens[1], descricao: '' }, { ...itens[2], descricao: '' }] }),
     arquivosParaLer: 2, fotosParaLer: 1, vagasAbertas: 2,
@@ -149,7 +159,7 @@ test('T8 agrupar não perde nem repete: soma dos grupos = pendências, menos o d
   })
   const grupos = agruparPendencias(r.pendencias, { fora: r.proxima })
   const total = grupos.reduce((n, g) => n + g.itens.length, 0)
-  assert.equal(total, r.pendencias.filter((p) => p !== r.proxima && p.tipo !== 'enviar').length)
+  assert.equal(total, r.pendencias.filter((p) => p !== r.proxima).length)
   const ids = grupos.flatMap((g) => g.itens)
   assert.equal(new Set(ids).size, ids.length, 'nenhuma pendência em dois grupos')
   assert.ok(!ids.includes(r.proxima), 'o destaque não se repete na lista')

@@ -87,7 +87,7 @@ export function PreenchimentoMarca({ participante: p, pode }) {
   const wa = link ? linkWhatsApp(p.telefone, mensagem) : null
   const sit = situacaoLink(l, d.pendente ? 1 : 0)
   const env = d.pendente
-  const difs = env ? diferencasEnvio(d.atual || {}, env.dados || {}) : []
+  const difs = env ? diferencasEnvio(d.atual || {}, env.dados || {}, d.edicao) : [] // a edição dá os dias do festival para o horário ser lido como frase
   const confirmados = env && Array.isArray(env.dados && env.dados.confirmados) ? env.dados.confirmados.map((b) => BLOCOS[b] || b) : []
   const obs = env && env.dados && typeof env.dados.observacao === 'string' ? env.dados.observacao.trim() : ''
 

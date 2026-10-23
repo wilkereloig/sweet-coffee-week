@@ -95,7 +95,7 @@ export function prazoDoCadastro(cronograma = [], hoje = '') {
     urgente: dias <= PRAZO_URGENTE_DIAS, vencido: dias < 0, dias,
   }
 }
-const TIPOS_DO_CADASTRO = ['campo', 'enviar', 'correcao']
+const TIPOS_DO_CADASTRO = ['campo', 'correcao']
 
 /**
  * Decide o destaque e o que sobra para a lista.
@@ -103,7 +103,7 @@ const TIPOS_DO_CADASTRO = ['campo', 'enviar', 'correcao']
  *    com prazo curto/vencido, ou cadastro pendente com o prazo de preenchimento em cima);
  *    com crítica, ela vira `mensagemAparte` e o prazo fica no destaque.
  *  - O destaque nunca se repete na lista: `fora` é a pendência ORIGINAL (a que está em `abertas`).
- *  - "Enviar" que não é o destaque não some: sai em `enviarAparte`, logo abaixo dele.
+ *  - Não há "enviar" (23/10/2026): a marca só salva, e o cadastro completo vai sozinho para a organização.
  */
 export function planejarAgora({ proxima = null, pendencias = [], msgsNovas = 0, momento = 'indefinido', prazoCadastro = null } = {}) {
   const abertas = pendenciasAbertas(pendencias, momento)
@@ -120,20 +120,17 @@ export function planejarAgora({ proxima = null, pendencias = [], msgsNovas = 0, 
   if (!prox) {
     // Pendência sem destino na tela (ex.: o combo ainda não tem os três itens): quem resolve é a organização.
     // Dizer "nada pendente" com isso aberto na lista seria mentir.
-    origem = abertas.find((p) => p.tipo !== 'enviar') || null
+    origem = abertas[0] || null
     prox = origem ? { ...origem, link: 'mensagens', vista: 'mensagens', acao: 'Falar com a organização', critica: false } : null
   }
   const mensagem = mensagemNova(msgsNovas)
   const mensagemEhDestaque = !!mensagem && !(prox && prox.critica)
   const destaque = mensagemEhDestaque ? mensagem : prox
   const fora = mensagemEhDestaque ? null : origem
-  // Só entra aqui o envio que NÃO é o destaque (a lista de grupos nunca o leva): senão o botão principal sumiria.
-  const enviarAparte = abertas.find((p) => p.tipo === 'enviar' && p !== fora && p.link) || null
   return {
     destaque,
     tipoDestaque: !destaque ? null : mensagemEhDestaque ? 'mensagem' : 'pendencia',
     mensagemAparte: mensagem && !mensagemEhDestaque ? mensagem : null,
-    enviarAparte,
     abertas,
     // A pendência ORIGINAL que o destaque ocupa (a lista não a repete); com mensagem no destaque, nenhuma sai.
     fora,
@@ -180,7 +177,7 @@ export function textoDoPrazo(iso, agora = new Date()) {
 // Só onde o texto da pendência NÃO diz o porquê (pedido tem o seu, abaixo; o resto já se explica).
 const MOTIVO = {
   correcao: 'A organização pediu um ajuste neste ponto.',
-  campo: 'É obrigatório para enviar o cadastro.',
+  campo: 'É obrigatório para a página no site.',
 }
 
 /** O destaque pronto para desenhar: título, prazo, por que está aí e o que fazer. */
@@ -188,11 +185,11 @@ export function apresentarDestaque(d, { itens = [], agora = new Date(), prazoCad
   if (!d) return null
   const pedido = d.tipo === 'pedido'
   let prazo = pedido && d.prazo_em ? { texto: cap(textoDoPrazo(d.prazo_em, agora)), urgente: !!(d.vencido || d.urgente) } : null
-  // Cadastro pendente (campo, correção, envio): o prazo de preenchimento da edição acompanha a ação.
+  // Cadastro pendente (campo, correção): o prazo de preenchimento da edição acompanha a ação.
   if (!prazo && prazoCadastro && TIPOS_DO_CADASTRO.includes(d.tipo)) prazo = { texto: prazoCadastro.texto, urgente: !!prazoCadastro.urgente }
   let motivo = MOTIVO[d.tipo] || ''
   if (pedido) motivo = d.prioridade === 'importante' ? 'A organização marcou esta solicitação como importante.' : d.vencido ? 'O prazo já passou.' : d.urgente ? 'O prazo está perto.' : 'A organização pediu uma resposta.'
-  if (d.tipo === 'campo' && d.campo === 'logo') motivo = 'A logo não trava o envio, mas a organização precisa dela.'
+  if (d.tipo === 'campo' && d.campo === 'logo') motivo = 'A logo não trava o cadastro, mas a organização precisa dela para o site.'
   else if (d.tipo === 'campo' && (d.codigo || !d.link)) motivo = ''   // o texto da pendência já diz
   return {
     tipo: d.tipo,
@@ -229,12 +226,14 @@ export function semAcao({ momento = 'indefinido', esperas = [], vendaFeita = tru
  * 'feito' · 'marca' (sua vez) · 'organizacao' (com a organização) · 'marcado' (agendado) · 'depois' · 'atencao'.
  * Se a etapa já vier com `quem` (guia.js), vale o dela. Senão se deduz do estado e dos dados — nunca do texto.
  */
-export function quemDaEtapa(e, { envioPronto = false, fotoLiberada = false, vagasAbertas = 0, alteradoAposAprovacao = false } = {}) {
+export function quemDaEtapa(e, { fotoLiberada = false, vagasAbertas = 0, alteradoAposAprovacao = false } = {}) {
   if (e.quem) return e.quem
-  if (e.chave === 'analise' && alteradoAposAprovacao) return 'marca'
+  // Aprovado e alterado depois: a marca já salvou; quem age é a organização (confere e atualiza o site).
+  if (e.chave === 'analise' && alteradoAposAprovacao) return 'organizacao'
   if (e.estado === 'feito') return 'feito'
   if (e.estado === 'atencao') return 'marca'
-  if (e.chave === 'analise') return e.estado === 'andamento' ? 'organizacao' : envioPronto ? 'marca' : 'depois'
+  // Não há "enviar": enquanto o cadastro não está completo, a aprovação é "mais adiante".
+  if (e.chave === 'analise') return e.estado === 'andamento' ? 'organizacao' : 'depois'
   if (e.chave === 'fotos') {
     if (e.estado === 'andamento') return 'marcado'
     return fotoLiberada && vagasAbertas > 0 ? 'marca' : 'organizacao'
@@ -259,7 +258,6 @@ export function etiquetaDeQuem(quem) {
 function contexto(resumo, dados) {
   const pa = (dados && dados.participacao) || {}
   return {
-    envioPronto: !!(resumo.envio.pronto && resumo.envio.podeEnviar),
     fotoLiberada: pa.foto_liberacao === 'liberado',
     vagasAbertas: Number(dados && dados.vagasAbertas) || 0,
     alteradoAposAprovacao: !!(resumo.combo && resumo.combo.alteradoAposAprovacao),
@@ -321,9 +319,10 @@ export function linhasDeAcompanhamento({ resumo, dados }) {
 export function esperandoOrganizacao({ resumo, dados, momento = 'indefinido' }) {
   if (!resumo || resumo.semParticipacao) return []
   const { organizacao } = linhasDeAcompanhamento({ resumo, dados })
+  const alterado = !!(resumo.combo && resumo.combo.alteradoAposAprovacao)
   const frase = {
     tema: 'A aprovação do tema escolhido',
-    analise: 'A análise do seu cadastro e do combo',
+    analise: alterado ? 'A atualização da sua página com as alterações salvas' : 'A análise do seu cadastro e do combo',
     fotos: (dados && dados.participacao && dados.participacao.foto_liberacao === 'liberado') ? 'Novos horários na agenda de fotos' : 'A liberação da sessão de fotos',
     pagina: 'A publicação da sua página no site',
   }
@@ -334,21 +333,21 @@ export function esperandoOrganizacao({ resumo, dados, momento = 'indefinido' }) 
 /* ── Progresso ───────────────────────────────────────────────────────────── */
 
 /**
- * "NN% dos dados básicos" (o alcance dito) + a situação do envio. "Tudo pronto para enviar" só com
- * `envio.pronto === true` E uma ação de enviar de fato aberta; sem a leitura do servidor, não afirma nada.
+ * "NN% dos dados básicos" (o alcance dito) + a situação do cadastro inteiro (23/10/2026: a marca só salva; completo,
+ * ele vai sozinho para a conferência da organização). Sem a leitura do servidor (`envio.conhecido` falso), não afirma nada.
  */
 export function textoProgresso(resumo) {
-  const { progresso, envio, combo, pendencias } = resumo
-  const enviar = pendencias.some((p) => p.tipo === 'enviar')
-  const logoFalta = pendencias.some((p) => p.tipo === 'campo' && p.campo === 'logo')
+  const { progresso, envio, combo } = resumo
   let linha = null
   if (envio.conhecido) {
-    if (!envio.pronto) linha = { estado: 'falta', texto: envio.faltam === 1 ? 'Falta 1 item para enviar' : 'Faltam ' + envio.faltam + ' itens para enviar' }
-    else if (combo.status === 'em_analise') linha = { estado: 'enviado', texto: 'Enviado: a organização está analisando' }
-    else if (combo.status === 'aprovado' && !combo.alteradoAposAprovacao) linha = { estado: 'enviado', texto: 'Aprovado, sem alterações a enviar' }
-    else if (enviar) {
-      linha = { estado: 'pronto', texto: combo.status === 'aprovado' ? 'Tudo pronto para enviar as alterações' : 'Tudo pronto para enviar' + (logoFalta ? ' (a logo pode ir depois)' : '') }
-    }
+    if (combo.status === 'correcao_solicitada') linha = { estado: 'falta', texto: 'Ajuste pedido · corrija e salve' }
+    else if (!envio.pronto) linha = { estado: 'falta', texto: envio.faltam === 1 ? 'Falta 1 informação' : 'Faltam ' + envio.faltam + ' informações' }
+    else if (combo.status === 'em_analise') linha = { estado: 'conferindo', texto: 'Completo · a organização está conferindo' }
+    else if (combo.status === 'aprovado') {
+      linha = combo.alteradoAposAprovacao
+        ? { estado: 'conferindo', texto: 'Alterações salvas · a organização vai atualizar o site' }
+        : { estado: 'ok', texto: 'Combo aprovado' }
+    } else linha = { estado: 'conferindo', texto: 'Completo · a organização vai conferir' }
   }
   return {
     pct: progresso.pct,

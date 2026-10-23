@@ -209,6 +209,8 @@ async function principal() {
     {
       const { ctx, page, modelosSalvos, erros } = await abrir(nav, [...PERMISSOES, 'redes.gerir'])
       await page.goto(`${BASE}/painel/#social/planejamento`, { waitUntil: 'domcontentloaded' })
+      // Configuração rara: mora em "Mais ações", na linha do período (23/10/2026).
+      await page.locator('.rd-acoes .ui-mais-acoes > summary').click()
       await page.getByRole('button', { name: 'Checklist padrão' }).click()
       await page.getByRole('heading', { name: 'Reel' }).waitFor({ timeout: 10000 }).catch(() => {})
       ok(await page.getByRole('heading', { name: 'Story' }).count() === 1 && await page.getByRole('heading', { name: 'Carrossel' }).count() === 1, 'a folha mostra um grupo por formato')
@@ -222,6 +224,7 @@ async function principal() {
       await sem.page.goto(`${BASE}/painel/#social/planejamento`, { waitUntil: 'domcontentloaded' })
       await dormir(1500)
       ok(await sem.page.getByRole('button', { name: 'Checklist padrão' }).count() === 0, 'sem redes.gerir o botão não existe')
+      ok(await sem.page.locator('.rd-acoes .ui-mais-acoes').count() === 0, 'nem o "Mais ações" (ficaria vazio)')
       await sem.ctx.close()
     }
 

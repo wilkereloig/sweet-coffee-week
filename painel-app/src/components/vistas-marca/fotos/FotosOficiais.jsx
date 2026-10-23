@@ -1,8 +1,9 @@
 import React from 'react'
-import { api } from '../../../lib/marcaApi'
+import { api, obterArquivoMarca } from '../../../lib/marcaApi'
 import { dataHoraExtensa } from '../../../lib/central'
 import { plataforma } from '../../../lib/instalar'
-import { acoesDoArquivo, notaDeAbertura } from '../../../lib/arquivosMarca'
+import { acoesDoArquivo, notaDeAbertura, leituraProvisoria, mapaDeLeituras } from '../../../lib/arquivosMarca'
+import { useEntrega, BotoesEntrega, EstadoEntrega } from '../../vistas/BaixarArquivo'
 import { situacaoDaLeitura, detalheDaFoto, situacaoDaConferencia } from '../../../lib/fotosMarca'
 import { MacroSecao, Carregando, Erro, Selo, Vazio, traduzirErro } from '../../ui'
 import { Icone } from '../../Icone'
@@ -15,7 +16,9 @@ import { useSincronizar, useGuarda } from '../../../lib/sync/react'
  * Bloco 3 da aba Fotos — FOTOS OFICIAIS: as que a organização entrega (categoria "combo"), com miniatura, Abrir e
  * Baixar (o MESMO caminho da aba Arquivos: `useAcessoArquivo` — o link assinado ganha `download` para baixar de verdade,
  * e a nota diz o que acontece em cada aparelho, inclusive "Compartilhar › Salvar imagem" no iPhone) e a confirmação
- * de que a marca conferiu.
+ * de que a marca conferiu. Com 2 fotos ou mais, "Baixar todas (ZIP)" e "Salvar ou compartilhar" — as MESMAS peças da
+ * equipe (vistas/BaixarArquivo.jsx), com o caminho de busca da marca (`obterArquivoMarca`, em lib/marcaApi.js).
+ * Foto SUBSTITUÍDA depois da conferência volta a pedir "Conferi as fotos" (`marca_confirmar_leitura` renova).
  *
  * Leitura e confirmação são as mesmas da aba Arquivos (que não as mostra mais aqui): `arquivos` (sem os arquivados,
  * como a contagem do Início) e `arquivo_leitura`, cada uma com o próprio resultado — uma falhar não apaga a outra.
@@ -34,6 +37,8 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
   const [aviso, setAviso] = React.useState(null)          // { id, tom: 'ok' | 'erro', texto } — id = a foto
   const [destaque, setDestaque] = React.useState(null)
   const { ocupado, acessar } = useAcessoArquivo(setAviso)
+  // Todas de uma vez (2 ou mais): o mesmo ZIP / "Salvar ou compartilhar" da equipe, buscando pela sessão DA MARCA.
+  const entrega = useEntrega({ obter: obterArquivoMarca, quem: 'marca' })
 
   const guarda = useGuarda()
   const temArquivos = React.useRef(false)
@@ -50,7 +55,7 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
     if (morta(rArq) || morta(rLeit)) return                   // o App leva ao login
     // A conferência entra antes da lista: a lista nunca aparece "sem conferência" por uma ordem de gravação.
     if (rLeit.status === 'fulfilled') {
-      setLidos(Object.fromEntries((rLeit.value || []).map((x) => [x.arquivo_id, x.lido_em])))
+      setLidos(mapaDeLeituras(rLeit.value))   // uma linha por participação: vale a leitura mais recente de cada foto
       setLeituraOk(true)
     }
     if (rArq.status === 'fulfilled') { setArquivos(rArq.value || []); setErro(null); temArquivos.current = true }
@@ -79,14 +84,14 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
     setConfirmando(a.id)
     setAviso(null)
     try {
-      await api('arquivo_leitura', {
+      // Também renova a conferência de uma foto substituída depois dela (o banco decide).
+      const r = await api('rpc/marca_confirmar_leitura', {
         metodo: 'POST',
-        prefer: 'return=minimal,resolution=ignore-duplicates',
-        corpo: { arquivo_id: a.id, participacao_id: participacao.id },
+        corpo: { p_arquivo: a.id, p_participacao: a.participacao_id || participacao.id },
       })
       guarda()                      // uma leitura em voo é anterior a esta confirmação: não pode desfazê-la
-      // Hora provisória (relógio deste aparelho): a releitura que o próprio registro dispara troca pela do servidor.
-      setLidos((l) => ({ ...l, [a.id]: new Date().toISOString() }))
+      // A hora que o banco gravou; sem ela, uma provisória (nunca antes da publicação) até a releitura que o registro dispara.
+      setLidos((l) => ({ ...l, [a.id]: (r && r.lido_em) || leituraProvisoria(a) }))
       setLeituraOk(true)
       setAviso({ id: a.id, tom: 'ok', texto: 'Conferência registrada.' })
       if (recarregarResumo) recarregarResumo()
@@ -112,6 +117,15 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
         <Erro titulo="Não deu para verificar suas conferências" texto="Não conseguimos ver quais fotos você já conferiu. Tente de novo antes de confirmar." onTentar={tentarDeNovo} />
       )}
       {situacao === 'pronto' && arquivos.length > 0 && <p className="ui-nota">{notaDeAbertura(plat, { fotos: true })}</p>}
+      {situacao === 'pronto' && arquivos.length > 1 && (
+        <>
+          <div className="ui-linha-acoes">
+            <BotoesEntrega entrega={entrega} nomeZip="Fotos oficiais" rotuloBaixar="Baixar todas (ZIP)"
+              itens={arquivos.map((a) => ({ path: a.path, nome: a.nome, mime: a.mime, tamanho: a.tamanho }))} />
+          </div>
+          <EstadoEntrega entrega={entrega} />
+        </>
+      )}
       {situacao === 'pronto' && arquivos.length > 0 && (
         <ul className="fm-fotos">
           {arquivos.map((a) => {
@@ -127,6 +141,7 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
                   <Selo tom={a.escopo === 'marca' ? 'andamento' : 'neutro'}>{a.escopo === 'marca' ? 'Só para você' : 'Para todos os participantes'}</Selo>
                   {conf === 'lido' && <span className="fm-foto__conf"><Icone nome="sucesso" tamanho={16} />Conferência confirmada em {dataHoraExtensa(lidos[a.id])}</span>}
                   {conf === 'pendente' && <Selo tom="atencao">Confirme que conferiu</Selo>}
+                  {conf === 'pendente' && lidos[a.id] && <span>Esta versão foi publicada depois da sua conferência de {dataHoraExtensa(lidos[a.id])}. Confira e confirme de novo.</span>}
                 </div>
                 <div className="ui-linha-acoes">
                   {acoesDoArquivo(a).abrir && (

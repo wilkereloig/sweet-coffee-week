@@ -108,8 +108,9 @@ export function gradeMes(chave) {
 }
 export const diasDaSemana = (chave) => Array.from({ length: 7 }, (_, i) => somarDias(inicioSemana(chave), i))
 
+// A ordem é a do seletor de visualização; "Sem data" (fila) é o quinto modo, com o mesmo nome em todo lugar.
 export const MODOS = ['semana', 'mes', 'dia', 'lista', 'fila']
-export const ROTULO_MODO = { mes: 'Mês', semana: 'Semana', dia: 'Dia', lista: 'Lista', fila: 'Fila sem data' }
+export const ROTULO_MODO = { mes: 'Mês', semana: 'Semana', dia: 'Dia', lista: 'Lista', fila: 'Sem data' }
 
 /** Avança/volta um período do modo. Lista anda de mês em mês, como o mês. */
 export function mover(modo, chave, delta) {
@@ -272,6 +273,8 @@ export function alertasDoPerfil(contagem, { aprova = false } = {}) {
   const ordem = aprova ? ['aprovacao', 'atrasadas', 'ajuste'] : ['ajuste', 'aprovadas', 'atrasadas']
   return ordem.filter((k) => Number(contagem[k]) > 0)
 }
+/** Quanto do Social media espera ESTE perfil agora (a soma dos alertas acima). A Visão geral usa: com algo, não diz "nada precisa". */
+export const totalAlertas = (contagem, opcoes) => (contagem ? alertasDoPerfil(contagem, opcoes).reduce((s, k) => s + Number(contagem[k]), 0) : 0)
 /** Rótulo curto do alerta (cabe três numa linha de celular); o escopo vai no rótulo acessível. */
 export function rotuloAlerta(k, n) {
   const um = Number(n) === 1
@@ -307,14 +310,11 @@ export const filtrosAtivos = (f = {}) => FILTROS.filter((k) => f[k]).length
 /**
  * Como a semana cabe na LARGURA DO CONTEÚDO (não na do aparelho: o menu
  * lateral come espaço). Sete colunas só quando cada uma fica legível (~140 px);
- * no meio, agenda (dias em linhas, postagens ao lado); estreito, linhas que abrem.
+ * abaixo disso, agenda (dias em linhas, postagens ao lado) — também no celular,
+ * onde o rótulo do dia estreita e as postagens aparecem sem precisar de um toque.
  */
 export const LARGURA_COLUNAS = 1040
-export const LARGURA_AGENDA = 600
-export function layoutSemana(largura) {
-  if (!largura || largura >= LARGURA_COLUNAS) return 'colunas'
-  return largura >= LARGURA_AGENDA ? 'agenda' : 'linhas'
-}
+export const layoutSemana = (largura) => (!largura || largura >= LARGURA_COLUNAS ? 'colunas' : 'agenda')
 
 /**
  * O alerta que o cartão mostra (um só, o mais urgente); o resto vai no rótulo

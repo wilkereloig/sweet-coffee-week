@@ -4,9 +4,9 @@
  *   node tests/painel-marca-estados-navegador.mjs          (de dentro de `tests/`)
  *   CAPTURAS=<pasta> node tests/painel-marca-estados-navegador.mjs    → também salva imagens (360/390/768/1280/1440)
  *
- * Prova, no painel real (Vite): o Início não manda enviar com o combo em análise, não diz "pronto" quando a
- * edição ainda exige mais, mostra a correção como ação, agrupa pendências, e os blocos do formulário não
- * pulam número. Não prova o servidor (resposta falsa) nem o iPhone real.
+ * Prova, no painel real (Vite): a marca só SALVA (23/10/2026) — nenhum "enviar", nenhuma revisão antes do envio,
+ * nenhuma prévia —, o Início não diz "pronto" quando a edição ainda exige mais, mostra a correção como ação, agrupa
+ * pendências, e os blocos do formulário não pulam número. Não prova o servidor (resposta falsa) nem o iPhone real.
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -58,7 +58,7 @@ async function abrir(nav, c, viewport) {
   b.tabelas.participantes = () => [{ id: PID, nome_marca: 'Doce Sol', responsavel: 'Ana', telefone: '84999998888', slug: 'docesol', user_id: UID, created_at: '2026-09-01T00:00:00Z' }]
   b.tabelas.participacoes = () => [d.participacao]
   b.tabelas.participantes_itens = () => d.itens
-  b.tabelas.participacao_unidades = () => [{ id: 'pu1', participacao_id: PA, unidade_id: 'un1', id_publico: 'u1', participa: true, consumo_local: 'sim', retirada: 'sim', delivery_combo: 'nao', ordem: 1, endereco: 'Rua A, 10' }]
+  b.tabelas.participacao_unidades = () => [{ id: 'pu1', participacao_id: PA, unidade_id: 'un1', id_publico: 'u1', participa: true, consumo_local: 'sim', retirada: 'sim', delivery_combo: 'nao', ordem: 1, endereco: 'Rua A, 10', horarios: 'Ter a dom, 10h às 22h', horario_festival: [] }]
   b.tabelas.unidades = () => [{ id: 'un1', logradouro: 'Rua A', numero: '10', bairro: 'Centro', cidade: 'Natal', uf: 'RN', nome_unidade: 'Centro' }]
   b.tabelas.correcoes_campo = () => d.correcoes
   b.tabelas.edicoes = () => [{ codigo: '2026.2', nome: 'Cartoon', tema: 'Cartoon', festival_inicio: '2026-11-05', festival_fim: '2026-11-15', valor_combo: 25 }]
@@ -108,7 +108,7 @@ async function principal() {
       ok(/Descrição do salgado/i.test(t), 'a pendência aparece pelo nome do campo')
       ok(!/Tudo pronto para enviar|Tudo preenchido/i.test(t), 'não diz que está pronto')
       ok(/Meu combo/.test(t), 'agrupada em "Meu combo"')
-      ok(!/Enviar o cadastro para análise/.test(t), 'não cobra envio com campo faltando')
+      ok(!/Enviar (o cadastro|para|novamente|as alterações)/.test(t), 'não existe "enviar"')
       ok(/dos dados b[aá]sicos/i.test(t), 'o % diz que alcance tem')
       ok(!/concluído/i.test(t.replace(/não concluído/gi, '')) || true, 'sem promessa de conclusão')
       ok(erros.length === 0, 'sem erro de JavaScript ' + erros.join(' | ').slice(0, 160))
@@ -122,27 +122,28 @@ async function principal() {
       const { ctx, page, erros } = await abrir(nav, { faltando }, [390, 844])
       await irPara(page, '#inicio')
       const t = await textoDe(page)
-      ok(/Faltam 2 itens para enviar|Faltam 2 informações/i.test(t), 'diz quantos itens faltam para enviar')
+      ok(/Faltam 2 informações/i.test(t), 'diz quantas informações faltam')
       ok(!/Tudo pronto para enviar/i.test(t), 'não diz "tudo pronto"')
-      ok(!/Enviar o cadastro para análise/.test(t), 'não oferece enviar')
+      ok(!/Enviar (o cadastro|para|novamente|as alterações)/.test(t), 'não oferece enviar')
       ok(/nome ao combo|Dar um nome/i.test(t), 'a falta aparece em português')
       ok(!/Cadastro \d+% concluído/.test(t), 'sem "% concluído"')
       ok(erros.length === 0, 'sem erro de JavaScript ' + erros.join(' | ').slice(0, 160))
       await ctx.close()
     }
 
-    console.log('S3 combo em análise: aguardando a organização, sem cobrança de envio')
+    console.log('S3 combo em análise: aguardando a organização, nada para a marca fazer')
     {
       const { ctx, page, erros } = await abrir(nav, { participacao: { combo_status: 'em_analise', status_cadastro: 'em_preenchimento' } }, [390, 844])
       await irPara(page, '#inicio')
       const t = await textoDe(page)
       ok(/Aguardando a organização|em análise/i.test(t), 'diz que a organização está analisando')
-      ok(!/Enviar o cadastro para análise|Enviar novamente para análise/.test(t), 'nenhuma cobrança de envio')
+      ok(!/Enviar (o cadastro|para|novamente|as alterações)/.test(t), 'não existe "enviar"')
       ok(erros.length === 0, 'sem erro de JavaScript ' + erros.join(' | ').slice(0, 160))
       for (const [w, h] of TAMANHOS) { await page.setViewportSize({ width: w, height: h }); await dormir(300); await capturar(page, 's3-analise', w) }
       await irPara(page, '#cadastro')
       const c = await textoDe(page)
-      ok(!/Pronto para enviar/.test(c) || /análise/i.test(c), 'o formulário concorda com o Início')
+      ok(/a organização está conferindo/i.test(c), 'o formulário concorda com o Início')
+      ok(!/Pronto para enviar|Enviar para análise|Enviar de novo/.test(c), 'o formulário não manda enviar')
       await ctx.close()
     }
 
@@ -164,8 +165,12 @@ async function principal() {
       await irPara(page, '#cadastro')
       const a = await textoDe(page)
       ok(!/\b05\b|\b07\b|\b02\b/.test(a.replace(/\d{2}\/\d{2}/g, '')), 'Meu cadastro sem 02/05/07 soltos')
-      ok(/Dados da marca/.test(a) && /Unidades participantes/.test(a) && /Atendimento e horários do combo/.test(a), 'títulos novos de Meu cadastro')
-      ok(/Revisar antes de enviar/.test(a), 'há revisão antes do envio')
+      ok(/Dados da marca/.test(a) && /Unidades participantes/.test(a) && /Atendimento e horário no festival/.test(a), 'títulos novos de Meu cadastro')
+      ok(!/horário (da loja|do combo)/i.test(a), 'o horário é uma pergunta só: nada de horário da loja nem do combo')
+      ok(!/Revisar antes de enviar|Revisar e enviar|Ver como fica no site|Enviar para análise/.test(a), 'só salvar: sem revisão, prévia nem envio')
+      ok(await page.getByRole('button', { name: 'Salvar', exact: true }).count() === 1, 'um botão "Salvar" só')
+      ok(/Tudo o que você salva chega para a organização, que atualiza o site/.test(a), 'diz para onde vai o que se salva')
+      ok(!/Autorizo publicar este WhatsApp/.test(a), 'sem caixa de autorização do WhatsApp')
       ok(/salvos? automaticamente|salvo automaticamente|salva automaticamente/i.test(a), 'explica o salvamento automático')
       await capturar(page, 's5-cadastro', 1280)
       await irPara(page, '#combo/1')
@@ -230,7 +235,7 @@ async function principal() {
       const em = (n) => new Date(Date.now() + n * 864e5).toISOString()
       const sol = [
         { id: 'p1', titulo: 'Mande a logo em alta', escopo: 'participacao', participacao_id: PA, bloco: 'arquivo', prioridade: 'importante', prazo_em: em(1), publicado: true, texto: 'Em PNG, fundo transparente.' },
-        { id: 'p2', titulo: 'Confirme o horário do combo', escopo: 'participacao', participacao_id: PA, bloco: 'combo', prioridade: 'normal', prazo_em: em(10), publicado: true },
+        { id: 'p2', titulo: 'Confirme o horário no festival', escopo: 'participacao', participacao_id: PA, bloco: 'combo', prioridade: 'normal', prazo_em: em(10), publicado: true },
         { id: 'p3', titulo: 'Foto da fachada', escopo: 'participacao', participacao_id: PA, bloco: 'fotos', prioridade: 'normal', prazo_em: em(-3), publicado: true },
       ]
       const est = [{ solicitacao_id: 'p3', participacao_id: PA, estado: 'respondido', resposta: 'Enviada por e-mail.' }]
@@ -238,7 +243,7 @@ async function principal() {
       await irPara(a.page, '#pedidos')
       const t = await textoDe(a.page)
       ok(/Solicitações/.test(t), 'a tela se chama Solicitações')
-      ok(/Mande a logo em alta/.test(t) && /Confirme o horário do combo/.test(t), 'pendentes aparecem')
+      ok(/Mande a logo em alta/.test(t) && /Confirme o horário no festival/.test(t), 'pendentes aparecem')
       ok(/Respondidas \(1\)/.test(t), 'respondidas ficam à parte e recolhidas')
       ok(/vence amanhã/i.test(t), 'prazo em palavras')
       ok(/Responder/.test(t), 'tem a ação Responder')

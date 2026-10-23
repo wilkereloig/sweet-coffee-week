@@ -52,6 +52,10 @@ const DADOS = {
   conversas: [{ participante_id: 'm1', nome_marca: 'Doce Sol', nao_lidas: 2 }],
 }
 
+// Resumo do Social media (redes_resumo) sem nada em aberto. O backend falso responde 404 ao que não está aqui —
+// e a Mesa lê o resumo (com redes.ver) para decidir o "nada precisa da equipe".
+const RESUMO_REDES_VAZIO = { hoje: 0, proximas: 0, atrasadas: 0, minhas: 0, sem_responsavel: 0, sem_data: 0, sem_arte: 0, sem_legenda: 0, aprovacao: 0, aprovadas: 0, ajuste: 0, proximos_itens: [] }
+
 // Nada a decidir e uma edição aberta: só a agenda pode pedir atenção (prazo do cadastro em `prazoEmDias`).
 const semPendencia = (prazoEmDias) => ({
   participantes: [], temas: [], solicitacoes: [], conversas: [],
@@ -75,6 +79,7 @@ async function abrir(nav, { permissoes = TODAS, viewport = [1280, 900], falhar =
   b.rpcs.get_conversas = () => dados.conversas
   b.rpcs.get_atividade = () => []
   b.rpcs.get_revisao = () => []
+  b.rpcs.redes_resumo = () => dados.redes || RESUMO_REDES_VAZIO
   for (const nome of falhar) b.falhas[nome] = 99
   await b.instalar(ctx); await rt.instalar(ctx)
   await ctx.addInitScript((s) => { if (!localStorage.getItem('scw_org_conta') && s) localStorage.setItem('scw_org_conta', s) }, sessaoGuardada(UID, EMAIL))
@@ -211,6 +216,25 @@ async function principal() {
       ok(/Não consegui ler a edição atual agora/.test(t), 'a caixa da edição diz que não leu')
       ok(!/Nenhuma edição está aberta/.test(t), 'não afirma que não há edição aberta')
       await ctx.close()
+    }
+
+    console.log('V8 Social media com atraso: "nada precisa da equipe" não aparece ao lado de "2 atrasadas"')
+    {
+      const { ctx, page, erros } = await abrir(nav, { dados: { ...semPendencia(20), redes: { ...RESUMO_REDES_VAZIO, atrasadas: 2 } } })
+      await irPara(page, '#visao')
+      const t = await textoDe(page)
+      ok(/2\s*atrasadas/.test(t), 'o resumo do Social media mostra as 2 atrasadas')
+      ok(!/Nada precisa da equipe agora/.test(t), 'e a área de ações não diz que nada precisa da equipe')
+      ok(!/\b0\s*(de hoje|nos próximos 7 dias|sem responsável)/.test(t), 'contador zerado não aparece no resumo')
+      ok(erros.length === 0, 'sem erro de JavaScript ' + erros.join(' | ').slice(0, 160))
+      await ctx.close()
+      // A leitura do Social media caiu: diz no bloco, sem "nada precisa".
+      const caiu = await abrir(nav, { dados: semPendencia(20), falhar: ['redes_resumo'] })
+      await irPara(caiu.page, '#visao')
+      const t2 = await textoDe(caiu.page)
+      ok(/Faltou ler o planejamento do Social media/.test(t2), 'leitura do Social media caída é dita no bloco')
+      ok(!/Nada precisa da equipe agora/.test(t2), 'e não afirma que nada precisa')
+      await caiu.ctx.close()
     }
   } finally {
     if (nav) await nav.close().catch(() => {})

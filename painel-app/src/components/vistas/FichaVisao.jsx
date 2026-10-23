@@ -10,6 +10,8 @@ import { mascaraWhatsApp } from '../../lib/participantes'
 import { linkWebSeguro } from '../../lib/cadastro'
 import { estadoLogoLista } from '../../lib/logos'
 import { BUCKET_EDICAO, traduzirPendencia } from '../../lib/publicacao'
+import { datasDoFestival } from '../../lib/horarioFestival'
+import { leituraNaFicha } from '../../lib/arquivosMarca'
 import { NOMES_PUBLICACAO } from '../../lib/nomesPublicacao'
 import { ROTULO_MATERIAL, ROTULO_MATERIAL_STATUS } from '../../lib/operacao'
 import {
@@ -177,7 +179,7 @@ function SecaoCadastro({ p, logo, fontes, recarregar, acoes, edicao }) {
       ]} />
       <h4 className="fg-sub">Dados fiscais</h4>
       <Dados itens={[['Razão social', m.razao_social], ['CNPJ', m.cnpj]]} />
-      <p className="fg-nota-fim">O contato de cada loja (WhatsApp público, canais de pedido) fica em Unidades.</p>
+      <p className="fg-nota-fim">O contato de cada loja (WhatsApp da loja, canais de pedido) fica em Unidades.</p>
     </SecaoFicha>
   )
 }
@@ -315,13 +317,13 @@ function Unidade({ u }) {
       <Dados itens={[
         ['Endereço', u.enderecoTexto && <>{u.enderecoTexto}{u.endereco.referencia && <span className="fg-texto-apoio"> Referência: {u.endereco.referencia}</span>}</>, { largo: true, vazio: 'Endereço não informado' }],
         ['Localização no mapa', <>{coord}{(u.mapa || u.trajeto) && <span className="fg-links">{u.mapa && <a className="og-link" href={u.mapa} target="_blank" rel="noreferrer">Abrir no mapa</a>}{u.trajeto && <a className="og-link" href={u.trajeto} target="_blank" rel="noreferrer">Trajeto</a>}</span>}</>, { largo: true }],
-        u.participa && ['Horário da loja', u.horarioLoja],
-        u.participa && ['Horário do combo', u.horarioCombo === null ? null : u.horarioCombo.length ? <ul className="fg-lista">{u.horarioCombo.map((h) => <li key={h.dias}><b>{h.dias}</b>{h.faixas}</li>)}</ul> : null, { largo: true, vazio: u.horarioCombo === null ? 'Não carregou' : 'Não informado' }],
+        // Uma pergunta só: como a unidade funciona nos dias do festival. Sem resposta é "ainda não respondido", nunca "fechada".
+        u.participa && ['Horário no festival', u.horarioFestival, { largo: true, vazio: u.horarioFestival === null ? 'Não carregou' : 'Ainda não respondido' }],
         u.participa && ['Atendimento do combo', modos, { largo: true }],
         u.participa && u.modos.delivery === 'sim' && ['Canais de pedido', u.canais.length ? u.canais.map((c, i) => <span key={i} className="fg-canal">{c.rotulo}{c.link && <>: {linkWebSeguro(c.link) ? <a className="og-link" href={linkWebSeguro(c.link)} target="_blank" rel="noreferrer">{c.link}</a> : <span>{c.link} (endereço inválido)</span>}</>}</span>) : null, { largo: true }],
         u.participa && u.modos.delivery === 'sim' && ['Regiões de entrega', u.regioes],
         u.participa && u.modos.delivery === 'sim' && ['Taxa de entrega', u.taxa],
-        u.participa && ['WhatsApp público da loja', u.whatsappPublico && mascaraWhatsApp(u.whatsappPublico), { vazio: 'Não divulgado no site' }],
+        u.participa && ['WhatsApp da loja', u.whatsappPublico && mascaraWhatsApp(u.whatsappPublico), { vazio: 'Não aparece no site' }],
         u.observacao && ['Condições nesta edição', u.observacao, { largo: true }],
         (u.anterior.horarios || u.anterior.mesas) && ['Cadastro anterior', [u.anterior.horarios && 'horário: ' + u.anterior.horarios, u.anterior.mesas && 'mesas: ' + u.anterior.mesas].filter(Boolean).join(' · '), { largo: true }],
       ]} />
@@ -329,7 +331,7 @@ function Unidade({ u }) {
   )
 }
 
-function SecaoUnidades({ fontes, recarregar, pode, onEditar, edicaoAberta }) {
+function SecaoUnidades({ p, fontes, recarregar, pode, onEditar, edicaoAberta }) {
   const nuc = fontes.nucleo
   const pub = fontes.publicacao
   const pubOk = pub.estado === 'ok' && pub.dados
@@ -337,7 +339,9 @@ function SecaoUnidades({ fontes, recarregar, pode, onEditar, edicaoAberta }) {
   if (nuc.estado !== 'ok' && !pubOk) {
     return <SecaoFicha id="unidades" titulo="Unidades"><EstadoFonte f={nuc.estado === 'carregando' || pub.estado === 'carregando' ? { estado: 'carregando' } : nuc} oQue="as unidades" onTentar={recarregar} /></SecaoFicha>
   }
-  const unidades = unidadesDaFicha(nuc.estado === 'ok' ? nuc.dados.unidades : [], pubOk ? pub.dados : null)
+  // Os dias do festival vêm do cadastro da edição (get_edicoes), nunca do código; sem eles a frase lista as datas das próprias linhas.
+  const ed = fontes.edicoes.estado === 'ok' ? edicaoDaFicha(p.edicao_codigo, fontes.edicoes.dados) : null
+  const unidades = unidadesDaFicha(nuc.estado === 'ok' ? nuc.dados.unidades : [], pubOk ? pub.dados : null, ed ? datasDoFestival(ed.inicio, ed.fim) : [])
   const n = unidades.filter((u) => u.participa).length
   return (
     <SecaoFicha id="unidades" titulo={'Unidades (' + unidades.length + ')'} acoes={acoes} edicao={edicaoAberta}
@@ -419,7 +423,7 @@ function SecaoOperacao({ p, fontes, recarregar, pode, onEditar, onIr, edicaoAber
           : correcoes.length ? <button type="button" className="ui-link" onClick={() => onIr('comunicacao')}>{correcoes.length} {correcoes.length === 1 ? 'aberta' : 'abertas'}: ver em Comunicação</button> : 'Nenhuma aberta'],
         ['Revisão de dados', (d.pendencias || []).length ? (d.pendencias || []).length + ' para conferir' : 'Nada para conferir'],
         ['Materiais', (d.materiais || []).length ? <ul className="fg-lista">{d.materiais.map((m) => <li key={m.id}><b>{(ROTULO_MATERIAL[m.item] || m.item) + (m.quantidade != null ? ' · ' + m.quantidade : '')}</b>{ROTULO_MATERIAL_STATUS[m.status]}{m.recebido_por ? ' · recebido por ' + m.recebido_por : ''}</li>)}</ul> : null, { largo: true, vazio: 'Nenhum material registrado' }],
-        ['Arquivos enviados à marca', (d.arquivos || []).length ? <ul className="fg-lista">{d.arquivos.map((a) => <li key={a.id}><b>{a.nome}</b>{a.exige_leitura ? (a.lido_em ? 'leu em ' + dataCurta(a.lido_em) : 'leitura não confirmada') : 'sem confirmação de leitura'}</li>)}</ul> : null, { largo: true, vazio: 'Nenhum arquivo' }],
+        ['Arquivos enviados à marca', (d.arquivos || []).length ? <ul className="fg-lista">{d.arquivos.map((a) => <li key={a.id}><b>{a.nome}</b>{leituraNaFicha(a, dataCurta, 'leitura não confirmada')}</li>)}</ul> : null, { largo: true, vazio: 'Nenhum arquivo' }],
         vendas.length > 0 && ['Vendas lançadas', totalVendas + (totalVendas === 1 ? ' combo' : ' combos') + ' em ' + vendas.length + (vendas.length === 1 ? ' dia' : ' dias')],
         // Pagamento só para quem gere pagamento — mesma regra da edição dele.
         pode('pagamento.gerir') && ['Pagamento da taxa', <Selo key="p" dominio="pagamento" valor={pa.pagamento_status} />],
@@ -432,6 +436,7 @@ function SecaoPublicacao({ p, fontes, recarregar, pode, onEditar, edicaoAberta, 
   const pub = fontes.publicacao
   if (pub.estado !== 'ok' || !pub.dados) return <SecaoFicha id="publicacao" titulo={NOMES_PUBLICACAO.marcas.pagina}><EstadoFonte f={pub} oQue="a publicação" onTentar={recarregar} /></SecaoFicha>
   const r = resumoPublicacao(pub.dados)
+  const ed = fontes.edicoes.estado === 'ok' ? edicaoDaFicha(p.edicao_codigo, fontes.edicoes.dados) : null   // o período da edição chega à prévia
   const ctx = { unidades: pub.dados.unidades, itens: pub.dados.atual && pub.dados.atual.combo && pub.dados.atual.combo.itens }
   const acoes = <>{botoesAcao("publicacao", pode, { temPublicacao: true }, onEditar)}
     {pub.dados.atual && <Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => onPrevia(!previa)}>{previa ? 'Fechar prévia' : 'Ver prévia pública'}</Botao>}</>
@@ -447,7 +452,7 @@ function SecaoPublicacao({ p, fontes, recarregar, pode, onEditar, edicaoAberta, 
         ['Revisão do combo', <><Selo key="c" dominio="combo" valor={r.comboStatus || 'rascunho'} />{r.alterado && <span className="fg-texto-apoio"> Alterado depois da aprovação</span>}</>],
         ['O que impede publicar o combo', r.pendencias ? <ul className="fg-lista">{pub.dados.pendencias.map((c) => <li key={c}>{traduzirPendencia(c, ctx)}</li>)}</ul> : 'Nada: tudo que a página pública pede está preenchido', { largo: true }],
       ]} />
-      {previa && pub.dados.atual && <PreviaPagina conteudo={pub.dados.atual} nome={p.nome_marca || 'esta casa'} />}
+      {previa && pub.dados.atual && <PreviaPagina conteudo={pub.dados.atual} nome={p.nome_marca || 'esta casa'} periodo={ed ? { inicio: ed.inicio, fim: ed.fim } : null} />}
     </SecaoFicha>
   )
 }

@@ -50,7 +50,8 @@ export const DOMINIOS_VISTAS = Object.freeze({
   importacoes: ['participantes'],
   equipe: ['perfis', 'configuracao'],
   historicoEquipe: ['atividade', 'perfis'],
-  // Mesa: candidaturas, marcas, pedidos, sessões de foto, conversas, atividade, revisão, temas e edição.
+  // Mesa: candidaturas, marcas, pedidos, sessões de foto, conversas, atividade, revisão, temas e edição. O resumo do Social media
+  // ('redes') NÃO entra aqui: a Mesa o relê à parte (Mesa.jsx › lerRedes), sem refazer as demais leituras.
   mesa: [...new Set([...LISTA_MARCAS, 'respostas', 'atividade', 'edicao', 'temas'])],
 })
 

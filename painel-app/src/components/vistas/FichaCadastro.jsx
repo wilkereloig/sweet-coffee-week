@@ -10,9 +10,15 @@ import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { CAMPOS_APONTAVEIS, blocoDoCampo } from '../../lib/guia'
 import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Chips, Botao, BotaoIcone, traduzirErro } from '../ui'
 import { LogoEditor } from '../LogoEditor'
+import { HorarioFestival } from '../HorarioFestival'
 import { MODULO_ICONE } from '../Icone'
 import { confirmar } from '../Confirmar'
-import { comEnvio } from '../../lib/pendencias'
+import { comEnvio, usePendencia } from '../../lib/pendencias'
+import { linhasCanonicas, mesmasLinhas } from '../../lib/horarioFestival'
+import { textoHorarioFestival } from '../../lib/publicacao'
+import { leituraNaFicha } from '../../lib/arquivosMarca'
+import { useLeitura } from '../../lib/leituraVivaReact'
+import { useDatasDoFestival } from '../../lib/festivalReact'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
@@ -27,7 +33,7 @@ import { useRascunhoOrg, avisarSalvo } from '../../lib/rascunhoOrg'
  *   Cadastro → situação, pedir alteração, dados da marca, logo
  *   Combo    → Produtos (doce, salgado, bebida) · Informações comerciais
  *              (tema, preço) · Aprovação e materiais
- *   Unidades → onde encontrar, pedidos e delivery
+ *   Unidades → onde encontrar (com o horário no festival de cada uma), pedidos e delivery
  */
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -35,6 +41,7 @@ const RECADO = {
   nome_com_conta: 'Esta marca já tem acesso: o nome é o login dela. Só dá para corrigir a grafia (acento, maiúscula), não trocar o nome.',
   nome_obrigatorio: 'O nome do estabelecimento não pode ficar vazio.',
   campo_invalido: 'Campo que o painel não sabe salvar — defeito do painel, não seu.',
+  unidade_nao_encontrada: 'Esta unidade não existe mais (foi removida). Feche o editor e abra de novo.',
 }
 const erroLegivel = (e) => {
   const m = String((e && e.message) || e || '')
@@ -252,7 +259,7 @@ function camposItem(posicao) {
 const CAMPOS_UNIDADE = [
   { chave: 'endereco', rotulo: 'Endereço' },
   { chave: 'bairro', rotulo: 'Bairro' },
-  { chave: 'horarios', rotulo: 'Horário no festival', tipo: 'area' },
+  // O horário no festival NÃO é campo deste formulário: tem o seletor próprio (HorarioDaUnidade) e a RPC própria.
   { chave: 'mesas', rotulo: 'Mesas' },
   { chave: 'faz_delivery', rotulo: 'Faz delivery', tipo: 'check' },
   { chave: 'so_delivery', rotulo: 'Só delivery (sem salão)', tipo: 'check' },
@@ -268,7 +275,7 @@ function valoresParaUnidade(id, v) {
   const canais = {}
   CANAIS.forEach((c) => { canais[c.tipo] = v['canal_' + c.tipo] || '' })
   return {
-    id, endereco: v.endereco, bairro: v.bairro, horarios: v.horarios, mesas: v.mesas,
+    id, endereco: v.endereco, bairro: v.bairro, mesas: v.mesas,
     faz_delivery: !!v.faz_delivery, so_delivery: !!v.so_delivery, canais_delivery: canaisParaArray(canais),
   }
 }
@@ -509,7 +516,7 @@ export function AbaCombo({ participante, pode, onMudou }) {
           </Modulo>
           <Modulo icone={MODULO_ICONE.arquivos} titulo="Arquivos enviados à marca" status={<Selo tom="neutro">{arqs.length === 1 ? '1 arquivo' : arqs.length + ' arquivos'}</Selo>}>
             {arqs.length > 0
-              ? <ul className="ui-lista-simples">{arqs.map((a) => <li key={a.id}><b>{a.nome}</b><span>{a.exige_leitura ? (a.lido_em ? 'leu em ' + dataCurta(a.lido_em) : 'ainda não confirmou a leitura') : 'sem confirmação de leitura'}</span></li>)}</ul>
+              ? <ul className="ui-lista-simples">{arqs.map((a) => <li key={a.id}><b>{a.nome}</b><span>{leituraNaFicha(a, dataCurta)}</span></li>)}</ul>
               : <p className="ui-nota">Nenhum arquivo para esta marca ainda.</p>}
           </Modulo>
         </GradeModulos>
@@ -518,10 +525,133 @@ export function AbaCombo({ participante, pode, onMudou }) {
   )
 }
 
+/* ── Horário no festival da unidade ─────────────────────────────────────────
+ * Pedido do Wilker (23/10/2026): UMA pergunta só — como a unidade funciona nos dias do festival. A divisão antiga entre horário
+ * de loja e de combo acabou, e o horário comercial padrão não é pedido. É o MESMO seletor do cadastro da marca
+ * (components/HorarioFestival); a equipe (`cadastro.editar`) o abre, quem não edita lê a frase. Fica FORA do formulário da
+ * unidade e salva sozinho, por `org_salvar_horario_unidade`: o banco valida de novo, guarda o antes e o depois e não faz nada
+ * se nada mudou.
+ *   · "Salvar horário" só acende com o horário COMPLETO e diferente do gravado (o próprio seletor diz o que falta);
+ *   · o rascunho é declarado (usePendencia) e o <form> avisa o editor da ficha (data-salva-por-evento): sair sem salvar pergunta;
+ *   · horário que muda por fora enquanto se edita (a marca confirmou, outra pessoa salvou) refaz o rascunho, e a tela diz.
+ * `unidade` = a linha de get_ficha_participacao (participacao_unidades); `datas` = os dias do festival, da edição.
+ */
+const LISTA_VAZIA = []
+
+/**
+ * O que o rascunho do horário permite. `rascunho` = null (nada mexido) ou { linhas, completo } como o seletor avisa; `gravadas` = o
+ * que o banco tem. Salvar só com o horário COMPLETO e diferente do gravado; "sujo" é tudo que difere ou está pela metade.
+ * Comparar com `mesmasLinhas`: o jsonb do banco volta com as chaves em outra ordem.
+ */
+export function estadoDoRascunho(rascunho, gravadas) {
+  const igual = !!rascunho && rascunho.completo && mesmasLinhas(rascunho.linhas, gravadas)
+  return { sujo: !!rascunho && !igual, salvavel: !!rascunho && rascunho.completo && !igual }
+}
+
+// Dentro do card da unidade: a frase (e "Editar horário" para quem pode); aberto, o seletor com "Salvar horário" e "Cancelar".
+export function HorarioDaUnidade({ unidade, rotuloUnidade, datas = LISTA_VAZIA, datasFalharam = false, datasCarregando = false, onTentarDatas, podeEditar, onSalvar, abertoInicial = false }) {
+  const linhas = Array.isArray(unidade.horario_festival) ? unidade.horario_festival : LISTA_VAZIA
+  const texto = textoHorarioFestival(linhas, datas)
+  // O texto de antes do horário por dia: só para a equipe ver o que a marca tinha dito. Some quando há horário gravado.
+  const antigo = texto ? '' : String(unidade.horarios || '').trim()
+  const id = 'hf-' + unidade.id
+  const [editando, setEditando] = React.useState(!!abertoInicial)
+  const [rascunho, setRascunho] = React.useState(null) // null = nada mexido · { linhas, completo }
+  const [salvando, setSalvando] = React.useState(false)
+  const [aviso, setAviso] = React.useState(null) // { erro, texto }
+  const gravando = React.useRef(false)
+
+  const { sujo, salvavel } = estadoDoRascunho(rascunho, linhas)
+  const podeSalvar = salvavel && !salvando
+
+  async function gravar(form) {
+    if (!podeSalvar) return false
+    gravando.current = true; setSalvando(true); setAviso(null)
+    try {
+      await onSalvar(unidade, rascunho.linhas)
+      avisarSalvo(form)
+      setRascunho(null); setEditando(false); setAviso({ erro: false, texto: 'Horário salvo.' })
+      return true
+    } catch (e) {
+      setAviso({ erro: true, texto: erroLegivel(e) })
+      return false
+    } finally { gravando.current = false; setSalvando(false) }
+  }
+  usePendencia(editando && sujo, { rotulo: rotuloUnidade + ': horário ainda não salvo', salvar: () => gravar(null) })
+
+  // O seletor refaz o rascunho quando o horário gravado (ou as datas) muda por fora. O botão não pode salvar o que a tela já não
+  // mostra, então o rascunho daqui vai junto — e quem estava editando fica sabendo. O eco da própria gravação não conta.
+  const chave = JSON.stringify(linhasCanonicas(linhas)) + '|' + datas.join(',')
+  const chaveAnterior = React.useRef(chave)
+  React.useEffect(() => {
+    if (chaveAnterior.current === chave) return
+    chaveAnterior.current = chave
+    if (gravando.current) return
+    setRascunho(null)
+    if (editando && sujo) setAviso({ erro: true, texto: 'Este horário mudou por fora enquanto você editava (a marca ou outra pessoa salvou). Mostramos o que está salvo agora; confira e refaça o que faltar.' })
+  }, [chave]) // eslint-disable-line react-hooks/exhaustive-deps -- só a mudança do gravado interessa; o resto é da mesma renderização
+
+  // Foco: ao abrir, no primeiro controle do seletor; ao fechar, de volta no botão que abriu (ele é recriado).
+  const abriu = React.useRef(false)
+  React.useEffect(() => {
+    if (editando) {
+      abriu.current = true
+      const alvo = document.getElementById(id)
+      const primeiro = alvo && alvo.querySelector('input, select, button')
+      if (primeiro) primeiro.focus()
+    } else if (abriu.current) {
+      abriu.current = false
+      const botao = document.getElementById('hf-editar-' + unidade.id)
+      if (botao) botao.focus()
+    }
+  }, [editando, id, unidade.id])
+
+  if (unidade.participa === false) return <p className="ui-nota">Esta unidade não participa desta edição, então não precisa de horário.</p>
+
+  const avisoJsx = aviso && <p className={'ui-nota ' + (aviso.erro ? 'ui-nota--erro' : 'ui-nota--ok')} role={aviso.erro ? 'alert' : 'status'}>{aviso.texto}</p>
+  const cancelar = () => { setEditando(false); setRascunho(null); setAviso(null) }
+  const acao = texto ? 'Editar horário' : 'Preencher horário'
+
+  if (editando) {
+    return (
+      <form className="ui-form" data-salva-por-evento="1" onSubmit={(ev) => { ev.preventDefault(); gravar(ev.currentTarget) }}>
+        {datasFalharam && !datas.length
+          ? <div className="ui-pilha"><p className="ui-nota ui-nota--erro" role="alert">Não consegui ler as datas do festival, então o horário não abre agora.</p>
+            {onTentarDatas && <div className="ui-linha-acoes"><Botao variante="secundario" icone="atualizar" onClick={onTentarDatas}>Tentar de novo</Botao></div>}</div>
+          : datasCarregando && !datas.length
+            ? <p className="ui-nota" role="status">Carregando as datas do festival…</p>
+            : <HorarioFestival id={id} datas={datas} valor={linhas} textoAntigo={antigo} desabilitado={salvando}
+              onChange={(e) => setRascunho({ linhas: e.linhas, completo: e.completo })} />}
+        {avisoJsx}
+        <div className="ui-linha-acoes">
+          <button className="og-btn og-btn--mini" type="submit" disabled={!podeSalvar}>{salvando ? 'Salvando…' : 'Salvar horário'}</button>
+          <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={salvando} onClick={cancelar}>Cancelar</button>
+        </div>
+      </form>
+    )
+  }
+  return (
+    <>
+      <dl className="ui-dados">
+        <div className="ui-dado"><dt>Horário no festival</dt><dd>{texto || <span className="fg-vazio">Ainda não respondido</span>}</dd></div>
+      </dl>
+      {antigo && <p className="ui-nota">Cadastro anterior, não confirmado: {antigo}</p>}
+      {avisoJsx}
+      {podeEditar && (
+        <div className="ui-linha-acoes">
+          <Botao id={'hf-editar-' + unidade.id} icone="editar" variante={texto ? 'secundario' : undefined} aria-label={acao + ' da ' + rotuloUnidade.toLowerCase()}
+            onClick={() => { setAviso(null); setEditando(true) }}>{acao}</Botao>
+        </div>
+      )}
+    </>
+  )
+}
+
 /* ── Aba Unidades: onde encontrar, pedidos e delivery ───────────────────── */
 export function AbaUnidades({ participante, pode, onMudou }) {
   const podeEditar = pode('cadastro.editar')
   const f = useFichaParticipacao(participante, onMudou)
+  const festival = useDatasDoFestival(participante.edicao_codigo)
   const [aviso, setAviso] = React.useState(null)
   if (!participante.participacao_id) return <Vazio icone="local" titulo="Sem edição aberta">A marca não tem participação na edição atual.</Vazio>
   if (f.carregando) return <Carregando linhas={3} />
@@ -530,6 +660,10 @@ export function AbaUnidades({ participante, pode, onMudou }) {
   const unidades = f.dados.unidades || []
   const solics = f.dados.solicitacoes || []
   const salvarParticipacao = async (v) => { await rpc('org_salvar_participacao', { p_secret: lerSenha(), p_participacao: pa.id, p_dados: v }); await f.depois() }
+  const salvarHorario = async (u, linhas) => {
+    await rpc('org_salvar_horario_unidade', { p_secret: lerSenha(), p_participacao: pa.id, p_unidade: u.id, p_linhas: linhas })
+    await f.depois()
+  }
 
   async function removerUnidade(u) {
     if (!await confirmar('Remover a unidade ' + (u.endereco || 'sem endereço') + '? O histórico guarda que ela existiu.')) return
@@ -560,7 +694,10 @@ export function AbaUnidades({ participante, pode, onMudou }) {
               <Bloco key={u.id} icone={MODULO_ICONE.unidades} titulo={'Unidade ' + (i + 1)} nota={[u.bairro, u.endereco].filter(Boolean).join(' · ') || 'Sem endereço'}
                 campos={CAMPOS_UNIDADE} valores={unidadeParaValores(u)} podeEditar={podeEditar} comStatus rotuloEditar={'Editar unidade ' + (i + 1)}
                 acoes={podeEditar && <BotaoIcone icone="lixeira" rotulo="Remover" alvo={'unidade ' + (i + 1)} perigo onClick={() => removerUnidade(u)} />}
-                onSalvar={async (v) => { await rpc('org_salvar_unidade', { p_secret: lerSenha(), p_participacao: pa.id, p_dados: valoresParaUnidade(u.id, v) }); await f.depois() }} />
+                onSalvar={async (v) => { await rpc('org_salvar_unidade', { p_secret: lerSenha(), p_participacao: pa.id, p_dados: valoresParaUnidade(u.id, v) }); await f.depois() }}>
+                <HorarioDaUnidade unidade={u} rotuloUnidade={'Unidade ' + (i + 1)} datas={festival.datas} datasFalharam={festival.falhou} datasCarregando={festival.carregando} onTentarDatas={festival.tentarDeNovo}
+                  podeEditar={podeEditar} onSalvar={salvarHorario} />
+              </Bloco>
             ))}
           </GradeModulos>
         )}

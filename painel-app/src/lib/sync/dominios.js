@@ -114,6 +114,8 @@ export const RPC_ESCRITA = Object.freeze({
   org_salvar_participacao: ['participantes', 'temas', 'cadastro', 'editorial', 'atividade'],
   org_salvar_item: ['cadastro', 'participantes', 'editorial'],
   org_salvar_unidade: ['unidades', 'participantes'],
+  // Horário no festival da unidade (23/10/2026): mesma tabela e mesmo gatilho de "alterado após aprovação" de org_salvar_unidade.
+  org_salvar_horario_unidade: ['unidades', 'participantes'],
   org_remover_unidade: ['unidades', 'participantes'],
   org_arquivar_participante: ['participantes'],
   org_preenchimento_decidir: ['preenchimento', 'participantes', 'cadastro', 'unidades', 'editorial'],
@@ -195,6 +197,7 @@ export const RPC_ESCRITA = Object.freeze({
   marca_ler_mensagens: ['mensagens', 'avisos'],
   marca_responder_solicitacao: ['pedidos', 'avisos'],
   marca_usar_voucher: ['vouchers'],
+  marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
   marcar_senha_trocada: ['perfis'],
 })
 
@@ -214,7 +217,6 @@ export const TABELA_ESCRITA = Object.freeze({
   participantes_itens: ['cadastro', 'participantes', 'editorial'],
   unidades: ['unidades', 'participantes'],
   participacao_unidades: ['unidades', 'participantes'],
-  unidade_disponibilidade: ['unidades'],
   declaracoes_alimentares: ['cadastro'],
   substituicoes: ['cadastro'],
   vendas_diarias: ['vendas'],

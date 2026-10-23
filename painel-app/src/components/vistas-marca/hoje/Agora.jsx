@@ -43,28 +43,18 @@ function SemAcao({ s }) {
   )
 }
 
-export function Agora({ destaque, semAcao, aparte, enviarAparte, ir }) {
+export function Agora({ destaque, semAcao, aparte, ir }) {
   return (
     <MacroSecao rotulo="Agora" titulo="O que fazer agora">
       {destaque ? <Destaque d={destaque} onClick={() => ir(destaque.link, destaque.vista)} /> : <SemAcao s={semAcao} />}
-      {(aparte || enviarAparte) && (
+      {/* Mensagem nova que NÃO é o destaque (há ação crítica): fica logo abaixo, uma vez só. */}
+      {aparte && (
         <ul className="gm-pendencias im-aparte">
-          {/* Mensagem nova que NÃO é o destaque (há ação crítica): fica logo abaixo, uma vez só. */}
-          {aparte && (
-            <li className="gm-pendencia" data-tipo="mensagens">
-              <span className="gm-pendencia__icone"><Icone nome="mensagens" tamanho={20} /></span>
-              <span className="gm-pendencia__corpo"><b>{aparte.titulo}</b><span>{aparte.texto}</span></span>
-              <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => ir(aparte.link, 'mensagens')}>{aparte.acao}</button>
-            </li>
-          )}
-          {/* O envio que perdeu o destaque (correção, pedido ou logo na frente) continua à vista. */}
-          {enviarAparte && (
-            <li className="gm-pendencia" data-tipo="enviar">
-              <span className="gm-pendencia__icone"><Icone nome="enviar" tamanho={20} /></span>
-              <span className="gm-pendencia__corpo"><b>{enviarAparte.titulo}</b><span>{enviarAparte.texto}</span></span>
-              <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => ir(enviarAparte.link, enviarAparte.vista)}>{enviarAparte.acao}</button>
-            </li>
-          )}
+          <li className="gm-pendencia" data-tipo="mensagens">
+            <span className="gm-pendencia__icone"><Icone nome="mensagens" tamanho={20} /></span>
+            <span className="gm-pendencia__corpo"><b>{aparte.titulo}</b><span>{aparte.texto}</span></span>
+            <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => ir(aparte.link, 'mensagens')}>{aparte.acao}</button>
+          </li>
         </ul>
       )}
     </MacroSecao>

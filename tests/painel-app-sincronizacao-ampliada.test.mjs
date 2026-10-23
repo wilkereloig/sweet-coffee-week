@@ -8,6 +8,7 @@ import { join } from 'node:path'
 import { rpc } from '../painel-app/src/lib/rpc.js'
 import { api } from '../painel-app/src/lib/marcaApi.js'
 import { barramento } from '../painel-app/src/lib/sync/barramento.js'
+import { DOMINIOS_VISTAS } from '../painel-app/src/lib/syncFichas.js'
 import {
   RPC_ESCRITA, RPC_LEITURA, RPC_SEM_SINAL, FUNCOES_ESCRITA, FUNCOES_SEM_SINAL, TABELA_ESCRITA, TABELA_SEM_SINAL,
   DOMINIOS, dominiosDeRpc, dominiosDeApi, foiConfirmada,
@@ -34,6 +35,22 @@ test('gravação confirmada chega ao OUVINTE de uma tela pelo barramento (mesma 
       assert.deepEqual([...recebidos[0].dominios].sort(), ['participantes', 'unidades'])
       assert.deepEqual(recebidos[0].origens, ['local'])
     } finally { desligar() }
+  })
+})
+
+test('horário no festival da unidade: org_salvar_horario_unidade é ESCRITA de unidades (devolve o nº de períodos, não {ok})', async () => {
+  assert.ok(!RPC_LEITURA.has('org_salvar_horario_unidade') && !RPC_SEM_SINAL.has('org_salvar_horario_unidade'))
+  // Mesma tabela e mesmo gatilho de "alterado após aprovação" de org_salvar_unidade: os mesmos domínios.
+  assert.deepEqual(dominiosDeRpc('org_salvar_horario_unidade'), dominiosDeRpc('org_salvar_unidade'))
+  assert.ok(dominiosDeRpc('org_salvar_horario_unidade').includes('unidades'))
+  // A ficha (o editor e a Visão do participante) relê ao receber o que esse salvamento anuncia — desta sessão ou de outra.
+  for (const vista of ['fichaParticipacao', 'fichaGeral']) {
+    assert.ok(dominiosDeRpc('org_salvar_horario_unidade').some((d) => DOMINIOS_VISTAS[vista].includes(d)), vista)
+  }
+  await comJanela(async (eventos) => {
+    await rpc('org_salvar_horario_unidade', { p_secret: null, p_participacao: 'p', p_unidade: 'u', p_linhas: [{ data: '2026-11-05', abre: '10:00', fecha: '22:00' }] }, ok(1))
+    assert.equal(eventos.length, 1)
+    assert.deepEqual([...eventos[0].dominios].sort(), ['participantes', 'unidades'])
   })
 })
 
@@ -141,5 +158,6 @@ test('todo domínio usado nas tabelas de classificação existe no vocabulário 
   const fora = [...usados].filter((d) => !DOMINIOS.includes(d))
   assert.deepEqual(fora, [])
   assert.equal(dominiosDeApi('participantes?id=eq.1', 'PATCH').includes('participantes'), true)
+  assert.deepEqual(dominiosDeApi('rpc/marca_confirmar_leitura', 'POST'), ['arquivos'], 'confirmar a leitura relê Arquivos, Fotos e o Início')
   assert.deepEqual(dominiosDeApi('participantes?id=eq.1', 'GET'), [])
 })

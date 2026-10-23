@@ -1,5 +1,6 @@
 import React from 'react'
 import { avisoSuportado, assinaturaDoAparelho, ligarAvisos, desligarAvisos, ehIOS, instalado } from '../lib/push'
+import { COMO_LIBERAR, plataforma } from '../lib/instalar'
 import { traduzirErro, Botao } from './ui'
 
 /*
@@ -13,6 +14,7 @@ import { traduzirErro, Botao } from './ui'
 const ONDE_ESTA_O_AVISO =
   'Se nada apareceu, o navegador pode ter recolhido o pedido: procure o ícone ' +
   'de sino ou de cadeado na barra de endereço e responda por lá.'
+const textoBloqueado = () => 'As notificações estão bloqueadas, e o painel não pode pedir de novo. Para liberar: ' + COMO_LIBERAR(plataforma(), instalado())
 
 export function AvisosAparelho({ registrar, remover, conferir, testar, explicacao, compacto = false, onMudou }) {
   const [assinatura, setAssinatura] = React.useState(null)
@@ -64,13 +66,15 @@ export function AvisosAparelho({ registrar, remover, conferir, testar, explicaca
     } catch (e) {
       clearTimeout(lembrete)
       const m = e && e.message
-      setAviso({
-        tom: 'erro',
-        texto: m === 'bloqueado'
-          ? 'O navegador está bloqueando avisos deste site. Libere nas configurações do navegador (ícone de cadeado ao lado do endereço) e tente de novo.'
-          : m === 'sem_resposta' ? 'Você fechou o pedido sem responder. Toque em "Ligar avisos" de novo.'
-          : 'Não consegui ligar: ' + traduzirErro(m),
-      })
+      // Bloqueado: a linha de estado logo acima já diz como liberar; repetir a frase em vermelho seria lê-la duas vezes.
+      if (m === 'bloqueado') setAviso(null)
+      else {
+        setAviso({
+          tom: 'erro',
+          texto: m === 'sem_resposta' ? 'Você fechou o pedido sem responder. Toque em "Ligar avisos" de novo.'
+            : 'Não consegui ligar: ' + traduzirErro(m),
+        })
+      }
       await atualizar()
     } finally {
       setOcupado(false)
@@ -112,13 +116,26 @@ export function AvisosAparelho({ registrar, remover, conferir, testar, explicaca
     )
   }
 
+  // Sem suporte também tem linha de estado: quem abre o sino sabe na hora se recebe ou não.
   if (!suportado) {
+    const ios = ehIOS()
+    const app = instalado()
+    // iOS abaixo de 16.4: instalar não adianta, então não manda instalar — manda atualizar.
+    const antigo = plataforma().iosAntigo
     return (
-      <p className="ui-nota">
-        {ehIOS() && !instalado()
-          ? <>No iPhone e no iPad os avisos só funcionam com o painel instalado: toque em <b>Compartilhar</b> no Safari → <b>Adicionar à Tela de Início</b>, abra pelo ícone e volte aqui.</>
-          : 'Este navegador não recebe avisos. Tente pelo Chrome, Edge, Firefox ou Safari atualizados.'}
-      </p>
+      <div className="ui-avisos-aparelho">
+        <p className="ui-estado-linha">
+          <span className="ui-ponto" data-tom="neutro" aria-hidden="true" />
+          <b>{ios && !app && !antigo ? 'Desligados neste aparelho' : 'Indisponíveis neste aparelho'}</b>
+        </p>
+        <p className="ui-nota">
+          {antigo ? 'Atualize o iPhone para iOS 16.4 ou mais novo para receber avisos. Com a versão atual, nem instalando o painel eles funcionam.'
+            : ios && !app
+            ? <>No iPhone e no iPad os avisos só funcionam com o painel instalado: toque em <b>Compartilhar</b> no Safari → <b>Adicionar à Tela de Início</b>, abra pelo ícone e volte aqui.</>
+            : ios ? 'Atualize o iPhone para iOS 16.4 ou mais novo para receber avisos.'
+            : 'Este navegador não recebe avisos. Tente pelo Chrome, Edge, Firefox ou Safari atualizados.'}
+        </p>
+      </div>
     )
   }
 
@@ -126,12 +143,13 @@ export function AvisosAparelho({ registrar, remover, conferir, testar, explicaca
     <div className="ui-avisos-aparelho">
       <p className="ui-estado-linha">
         <span className="ui-ponto" data-tom={assinatura ? 'ok' : (negado ? 'erro' : 'neutro')} aria-hidden="true" />
-        <b>{assinatura ? 'Ligados neste aparelho' : (negado ? 'Bloqueados no navegador' : 'Desligados neste aparelho')}</b>
+        <b>{assinatura ? 'Ligados neste aparelho' : (negado ? 'Bloqueados neste aparelho' : 'Desligados neste aparelho')}</b>
       </p>
       <p className="ui-nota">
         {assinatura ? 'Este aparelho recebe aviso mesmo com o painel fechado.'
-          : negado ? 'A permissão foi negada. Libere nas configurações do navegador para este site — o painel não consegue pedir de novo.'
-          : deOutraConta ? 'Este aparelho recebe os avisos de outra conta. Ligue para passar a receber os desta.'
+          : negado ? textoBloqueado()
+          // Linha de outra conta OU desativada pelo servidor (conferir só vê a ativa): nos dois casos, ligar resolve.
+          : deOutraConta ? 'Este aparelho não está recebendo os avisos desta conta. Toque em "Ligar avisos" para voltar a receber.'
           : Notification.permission === 'granted' ? 'O navegador já permite avisos, mas este aparelho ainda não está registrado. Toque em "Ligar avisos".'
           : explicacao}
       </p>

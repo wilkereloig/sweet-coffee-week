@@ -9,7 +9,8 @@ import { MacroSecao, GradeModulos, Modulo, Selo } from '../../ui'
  *    são estados DIFERENTES e aparecem em linhas diferentes.
  * Em cada linha, quem age vem em ícone + texto (Sua vez · Com a organização · Concluído…), nunca só cor.
  */
-const ICONE_ENVIO = { falta: 'atencao', pronto: 'sucesso', enviado: 'horario' }
+// Situação do cadastro inteiro (lib/inicioMarca · textoProgresso): falta · com a organização · aprovado.
+const ICONE_ENVIO = { falta: 'atencao', conferindo: 'horario', ok: 'sucesso' }
 
 function Linha({ l, irPara }) {
   const corpo = (

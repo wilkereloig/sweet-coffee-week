@@ -1,6 +1,6 @@
 import React from 'react'
 import { dataHoraExtensa } from '../../../lib/central'
-import { detalhesDoArquivo, publicadoEm, ehNovo, acoesDoArquivo, publicadoDepoisDaLeitura } from '../../../lib/arquivosMarca'
+import { detalhesDoArquivo, publicadoEm, ehNovo, acoesDoArquivo, leituraVale } from '../../../lib/arquivosMarca'
 import { Icone } from '../../Icone'
 import { Selo } from '../../ui'
 import { AvisoComFoco } from '../AvisoComFoco'
@@ -21,7 +21,9 @@ export function ItemArquivo({ a, lido, leituraConhecida, textos, agora, destacad
 
   const acoes = acoesDoArquivo(a)
   const pub = publicadoEm(a)
-  const pendente = !!a.exige_leitura && !lido && !!leituraConhecida
+  // Leitura de uma versão anterior (o arquivo foi substituído depois) não vale: pede confirmar de novo.
+  const vale = leituraVale(a, lido)
+  const pendente = !!a.exige_leitura && !vale && !!leituraConhecida
   const ocupadoAqui = ocupado && ocupado.id === a.id
   const meta = [...detalhesDoArquivo(a), pub ? 'publicado em ' + pub : ''].filter(Boolean).join(' · ')
 
@@ -33,14 +35,14 @@ export function ItemArquivo({ a, lido, leituraConhecida, textos, agora, destacad
         {a.descricao && <p className="am-item__desc">{a.descricao}</p>}
         <div className="am-item__selos">
           <Selo tom={a.escopo === 'marca' ? 'andamento' : 'neutro'}>{a.escopo === 'marca' ? 'Só para você' : 'Para todos os participantes'}</Selo>
-          {a.exige_leitura && (lido
+          {a.exige_leitura && (vale
             ? <span className="am-item__lido"><Icone nome="sucesso" tamanho={16} />{textos.lido}{dataHoraExtensa(lido)}</span>
             : leituraConhecida
               ? <Selo tom="atencao">{textos.pedeLer}</Selo>
               : <Selo tom="neutro">Confirmação não verificada</Selo>)}
         </div>
-        {lido && publicadoDepoisDaLeitura(a, lido) && (
-          <p className="am-item__dica">Esta versão foi publicada em {pub}, depois da sua leitura. Abra para conferir o que mudou.</p>
+        {a.exige_leitura && lido && !vale && (
+          <p className="am-item__dica">Esta versão foi publicada em {pub}, depois da sua leitura de {dataHoraExtensa(lido)}. Abra, confira o que mudou e confirme a leitura de novo.</p>
         )}
         {!acoes.abrir && <p className="am-item__dica">{acoes.dica}</p>}
       </div>

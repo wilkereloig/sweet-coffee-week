@@ -12,6 +12,8 @@
  * tests/painel-app-preenchimento.test.mjs.
  */
 
+import { datasDoFestival, resumoDeLinhas } from './horarioFestival.js'
+
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const texto = (v) => (v == null ? '' : String(v)).trim()
 
@@ -150,8 +152,12 @@ const ITENS = ['Doce', 'Salgado', 'Bebida']
 const ROTULOS_UNIDADE = [
   ['nome_unidade', 'Nome da loja'], ['logradouro', 'Rua / avenida'], ['numero', 'Número'], ['complemento', 'Complemento'],
   ['bairro', 'Bairro'], ['cidade', 'Cidade'], ['cep', 'CEP'], ['referencia', 'Referência'],
-  ['horario_loja', 'Horário da loja'], ['horario_combo', 'Horário do combo'],
+  // Horário no festival (23/10/2026): uma pergunta só. `horario_festival` chega como linhas {data, abre, fecha} e é comparado como
+  // frase (ver `comHorarioEmTexto`). O texto livre antigo (`horario_combo`) só existe em envio ANTIGO; o horário da loja não é mais
+  // pedido nem aplicado, então nem entra na revisão.
+  ['horario_festival', 'Horário no festival'], ['horario_combo', 'Horário (texto antigo)'],
   ['consumo_local', 'Consumo no local'], ['retirada', 'Retirada'], ['delivery_combo', 'Delivery do combo'],
+  // Preenchido, o WhatsApp da loja vai ao site (23/10/2026): a liberação acompanha o número, mas aparece na revisão ("Não → Sim") para o efeito ser visto.
   ['whatsapp', 'WhatsApp da loja'], ['whatsapp_autorizado', 'WhatsApp no site'],
 ]
 const ASPECTOS = [
@@ -188,7 +194,7 @@ function igual(campo, a, b) {
     const db = texto(b).replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')
     return da === db
   }
-  if (campo === 'whatsapp_autorizado') return !!a === !!b
+  if (campo === 'whatsapp_autorizado') return !!a === !!b // ausente = não liberado
   return normal(campo, a) === normal(campo, b)
 }
 
@@ -200,11 +206,22 @@ function comparar(grupo, rotulos, atual = {}, novo = {}, lista) {
   }
 }
 
+// Os dias do festival para ler as linhas do horário: os da edição, quando ela está à mão. Sem eles o módulo (frasesDeLinhas, a única
+// função que transforma linhas em frases) só fala dos dias que as próprias linhas citam — nunca "todos os dias".
+const datasDaEdicao = (edicao) => (edicao && edicao.inicio ? datasDoFestival(texto(edicao.inicio).slice(0, 10), texto(edicao.fim).slice(0, 10)) : [])
+// Troca as linhas de `horario_festival` pela frase que as descreve, para comparar e mostrar como os outros campos.
+function comHorarioEmTexto(u, datas) {
+  if (!u || !Array.isArray(u.horario_festival)) return u
+  return { ...u, horario_festival: resumoDeLinhas(u.horario_festival, datas) }
+}
+
 /**
  * Lista do que mudaria ao aplicar o envio: [{ grupo, campo, de, para }].
  * Campo que o envio não traz não entra (não é "apagar").
+ * `edicao` ({ inicio, fim }, opcional) dá os dias do festival para o horário ser lido como frase: sem ela, vale o intervalo
+ * entre o primeiro e o último dia que as linhas citam.
  */
-export function diferencasEnvio(atual = {}, enviado = {}) {
+export function diferencasEnvio(atual = {}, enviado = {}, edicao = null) {
   const lista = []
   comparar('Responsável e contato', ROTULOS_MARCA, atual.marca, enviado.marca, lista)
   comparar('Tema e combo', ROTULOS_COMBO, atual.combo, enviado.combo, lista)
@@ -228,6 +245,7 @@ export function diferencasEnvio(atual = {}, enviado = {}) {
     }
   }
   const unidadesAtuais = atual.unidades || []
+  const datas = datasDaEdicao(edicao)
   let nova = 0
   for (const u of Array.isArray(enviado.unidades) ? enviado.unidades : []) {
     const antes = u && u.id ? unidadesAtuais.find((x) => x.id === u.id) : null
@@ -239,9 +257,9 @@ export function diferencasEnvio(atual = {}, enviado = {}) {
     if (!antes) {
       nova += 1
       if (!texto(u && u.logradouro)) continue // o banco ignora loja nova sem endereço
-      comparar('Loja nova' + (nova > 1 ? ' ' + nova : ''), ROTULOS_UNIDADE, {}, u, lista)
+      comparar('Loja nova' + (nova > 1 ? ' ' + nova : ''), ROTULOS_UNIDADE, {}, comHorarioEmTexto(u, datas), lista)
     } else {
-      comparar('Loja ' + nome, ROTULOS_UNIDADE, antes, u, lista)
+      comparar('Loja ' + nome, ROTULOS_UNIDADE, comHorarioEmTexto(antes, datas), comHorarioEmTexto(u, datas), lista)
     }
   }
   return lista

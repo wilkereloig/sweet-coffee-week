@@ -6,7 +6,8 @@
  * _03_revisao.sql. O banco decide (pode(), CHECKs de edicao_publicacao); aqui
  * só se traduz, compara e explica antes de a pessoa clicar.
  */
-import { rotuloAspecto, formatarPreco, formatarDia } from '../../../src/edicao/dados/modelo.js'
+import { rotuloAspecto, formatarPreco } from '../../../src/edicao/dados/modelo.js'
+import { frasesDeLinhas } from './horarioFestival.js'
 
 export const URL_SITE_PARTICIPANTE = 'https://www.sweetcoffeeweek.com.br/cartoon/participantes/'
 export const urlPublicaParticipante = (slug) => (slug ? URL_SITE_PARTICIPANTE + slug : '')
@@ -81,13 +82,23 @@ export function traduzirPendencia(codigo, { unidades, itens } = {}) {
       endereco: 'endereço incompleto (rua, bairro e cidade).',
       modos: 'consumo no local, retirada e delivery do combo precisam de resposta (sim ou não).',
       canais: 'faz delivery do combo, mas nenhum canal de pedido foi informado.',
-      horario: 'sem horário do combo nos dias do festival.',
+      horario: 'sem horário no festival.',
     }[m[2]]
   }
   m = /^item:([^:]+):alimentar$/.exec(c)
   if (m) return nomeItem(m[1], itens) + ': faltam respostas sobre alergênicos (todos os 8 precisam de resposta, "não sei" vale).'
   return c.replace(/[_:]/g, ' ')
 }
+
+// ------------------------------------------------------------- horário no festival
+/**
+ * O horário no festival em frase — "Todos os dias, das 10h às 22h" · "Segunda a sexta, das 10h às 22h · Domingo, não abre" —
+ * a partir das linhas [{ data, abre, fecha }] (dia sem linha = não abre). Sem linhas devolve '' (ainda não respondido).
+ * `datas` = os dias do festival, da edição. Sem elas (o Social media não lê a edição), ou com linhas que não cabem nelas, só se
+ * sabe do primeiro ao último dia que tem linha: os dias de fora ficam "sem resposta" (`periodos: null`) e o texto lista as datas
+ * em vez de dizer "todos os dias". A observação por dia (legado) não é mais pedida e não entra na frase.
+ */
+export const textoHorarioFestival = (linhas, datas) => frasesDeLinhas(linhas, datas).join(' · ')
 
 // ------------------------------------------------------------- diferença vigente × atual
 const ESTADO_AL = { contem: 'contém', nao_contem: 'não contém', pode_conter: 'pode conter', nao_informado: 'não informado', sim: 'sim', nao: 'não' }
@@ -154,7 +165,6 @@ export function camposPublicos(c) {
     add(k + '.endereco', r + ' · endereço', endereco(u.endereco))
     add(k + '.coordenada', r + ' · localização no mapa', u.coordenada && u.coordenada.lat + ', ' + u.coordenada.lng)
     add(k + '.whatsapp', r + ' · WhatsApp', u.whatsapp)
-    add(k + '.horario_loja', r + ' · horário da loja', u.horario_loja)
     add(k + '.fotos', r + ' · fotos da loja', fotos(u.fotos))
     const cb = u.combo
     if (cb) {
@@ -165,8 +175,8 @@ export function camposPublicos(c) {
       add(k + '.delivery_regioes', r + ' · regiões de entrega', cb.delivery_regioes)
       add(k + '.delivery_taxa', r + ' · taxa de entrega', cb.delivery_taxa)
       add(k + '.observacao', r + ' · observação do combo', cb.observacao)
-      add(k + '.disponibilidade', r + ' · horário do combo', (cb.disponibilidade || [])
-        .map((d) => formatarDia(d.data) + ' ' + d.abre + '–' + d.fecha + (d.observacao ? ' (' + d.observacao + ')' : '')).join('; '))
+      // Uma pergunta só (23/10/2026): o horário no festival. A chave `disponibilidade` fica (é a do conteúdo publicado).
+      add(k + '.disponibilidade', r + ' · horário no festival', textoHorarioFestival(cb.disponibilidade))
     }
   }
   return out

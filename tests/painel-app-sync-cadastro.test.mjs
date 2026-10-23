@@ -6,6 +6,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as E from '../painel-app/src/lib/edicaoMarca.js'
 import { precoNumero, valorInformado } from '../painel-app/src/lib/cadastro.js'
+import { datasDoFestival } from '../painel-app/src/lib/horarioFestival.js'
 import * as M from '../painel-app/src/lib/cadastroMescla.js'
 
 /* ── espelhos de Cadastro.jsx (as colunas gravadas são conferidas em painel-infra) ── */
@@ -53,13 +54,14 @@ const fotoInicial = () => ({
   ],
   unRows: [{
     id: 'u1', nome_unidade: 'Lagoa', logradouro: 'Rua A', numero: '10', complemento: null, bairro: 'Lagoa Nova', cidade: 'Natal', uf: 'RN', cep: '59000000',
-    referencia: null, whatsapp_publico: null, whatsapp_autorizado: false, horario_loja_texto: null, coordenada_verificada_em: null,
+    referencia: null, whatsapp_publico: null, whatsapp_autorizado: false, coordenada_verificada_em: null,
   }],
   puRows: [{
     id: 'pu1', unidade_id: 'u1', participacao_id: 'pa1', id_publico: 'uabc', ordem: 0, participa: true, endereco: 'Rua A, 10', bairro: 'Lagoa Nova',
     consumo_local: 'sim', retirada: 'nao', delivery_combo: 'nao_informado', faz_delivery: false, canais_delivery: [], delivery_regioes: null, delivery_taxa: null, observacao_combo: null,
+    // o jsonb do banco volta com as chaves em outra ordem (abre, data, fecha); o texto antigo é só legado
+    horarios: 'Qui a sáb, 10h às 18h', horario_festival: [{ abre: '10:00', data: '2026-11-05', fecha: '18:00' }, { abre: '10:00', data: '2026-11-06', fecha: '18:00' }],
   }],
-  dispRows: [{ id: 'd1', participacao_unidade_id: 'pu1', data: '2026-11-05', abre: '10:00:00', fecha: '18:00:00', observacao: null }],
   declRows: [{ id: 'dc1', item_id: 'i1', aspecto: 'gluten', estado: 'contem', observacao: null }],
   subRows: [{ id: 's1', item_id: 'i1', original: 'leite', alternativa: 'aveia', disponibilidade: 'sempre', acrescimo: 2, como_solicitar: null, modalidades: [], unidades: [], ordem: 0 }],
 })
@@ -67,7 +69,7 @@ const fotoInicial = () => ({
 function abrir(snap) {
   const marca = marcaDeLinha(snap.p)
   const pa = participacaoDeLinha(snap.pa)
-  const unidades = snap.puRows.map((pu) => E.unidadeDeLinhas(pu, snap.unRows.find((u) => u.id === pu.unidade_id), snap.dispRows))
+  const unidades = snap.puRows.map((pu) => E.unidadeDeLinhas(pu, snap.unRows.find((u) => u.id === pu.unidade_id)))
   const vivo = {
     marca, tema: pa.tema, combo: pa.combo, custosStr: pa.custosStr, extras: pa.extras, itens: structuredClone(snap.itensRows), unidades,
     declaracoes: E.declaracoesPorItem(snap.declRows), substituicoes: snap.subRows.map(E.substituicaoDeLinha),
@@ -77,7 +79,6 @@ function abrir(snap) {
     itens: Object.fromEntries(snap.itensRows.map((i) => [i.id, pedidoItem(i).corpo])),
     un: Object.fromEntries(snap.unRows.map((u) => [u.id, E.corpoUnidade(E.unidadeDeLinhas(null, u))])),
     pu: Object.fromEntries(snap.puRows.map((r) => [r.id, E.corpoParticipacaoUnidadeDeLinha(r)])),
-    disp: Object.fromEntries(snap.dispRows.map((d) => [d.id, E.corpoDisponibilidade(E.disponibilidadeDeLinha(d))])),
     decl: Object.fromEntries(snap.declRows.map((d) => [d.id, E.corpoDeclaracao({ estado: d.estado, observacao: d.observacao || '' })])),
     sub: Object.fromEntries(snap.subRows.map((s) => [s.id, E.corpoSubstituicao(E.substituicaoDeLinha(s))])),
   }
@@ -118,7 +119,7 @@ test('repetir o mesmo aviso é idempotente: depois de aplicar o plano, a segunda
   novo.pa.combo_nome = 'Combo B'
   novo.itensRows[0].nome = 'Bolo de cenoura'
   novo.puRows[0].retirada = 'sim'
-  novo.dispRows[0].fecha = '20:00:00'
+  novo.puRows[0].horario_festival = [{ abre: '10:00', data: '2026-11-05', fecha: '20:00' }]
   novo.declRows[0].estado = 'nao_contem'
   novo.subRows[0].alternativa = 'amêndoas'
   const p1 = planejar(vivo, base, novo)
@@ -129,7 +130,7 @@ test('repetir o mesmo aviso é idempotente: depois de aplicar o plano, a segunda
   assert.equal(depois.combo.combo_nome, 'Combo B')
   assert.equal(depois.itens[0].nome, 'Bolo de cenoura')
   assert.equal(depois.unidades[0].retirada, 'sim')
-  assert.equal(depois.unidades[0].disponibilidade[0].fecha, '20:00')
+  assert.deepEqual(depois.unidades[0].horario_festival, [{ data: '2026-11-05', abre: '10:00', fecha: '20:00' }])
   assert.equal(depois.declaracoes.i1.gluten.estado, 'nao_contem')
   assert.equal(depois.substituicoes[0].alternativa, 'amêndoas')
   const p2 = planejar(depois, p1.base, novo)
@@ -363,22 +364,21 @@ test('CEP digitado pela metade é do digitador: não é trocado por um CEP novo 
   assert.equal(p.tela.unidades, undefined)
 })
 
-test('unidade nova da organização aparece (com horários) e a base a conhece; a unidade em branco da tela some', () => {
+test('unidade nova da organização aparece (com horário) e a base a conhece; a unidade em branco da tela some', () => {
   const snap = fotoInicial()
   snap.puRows = []
-  snap.dispRows = []
   const { vivo, base } = abrir(snap)
   const branco = { ...E.unidadeDeLinhas(null, null), _key: 'novo-1' }
   const comBranco = { ...vivo, unidades: [branco] }
   const novo = clone(fotoInicial())
   novo.unRows.push({ id: 'u2', nome_unidade: 'Midway', logradouro: 'Av. Roberto Freire', numero: '1', bairro: 'Capim Macio', cidade: 'Natal', uf: 'RN', cep: null, whatsapp_publico: null, whatsapp_autorizado: false, coordenada_verificada_em: null })
-  novo.puRows = [{ ...novo.puRows[0], id: 'pu9', unidade_id: 'u2', id_publico: 'uxyz', ordem: 0 }]
-  novo.dispRows = [{ id: 'd9', participacao_unidade_id: 'pu9', data: '2026-11-06', abre: '09:00:00', fecha: '17:00:00', observacao: null }]
+  novo.puRows = [{ ...novo.puRows[0], id: 'pu9', unidade_id: 'u2', id_publico: 'uxyz', ordem: 0, horario_festival: [{ abre: '09:00', data: '2026-11-06', fecha: '17:00' }] }]
   const p = planejar(comBranco, base, novo)
   assert.equal(p.tela.unidades.novas.length, 1)
   assert.equal(p.tela.unidades.novas[0].u._key, 'pu-pu9')
-  assert.equal(p.tela.unidades.novas[0].u.disponibilidade[0].abre, '09:00')
-  assert.ok(p.base.pu.pu9 && p.base.un.u2 && p.base.disp.d9, 'a base já conhece as linhas novas')
+  assert.deepEqual(p.tela.unidades.novas[0].u.horario_festival, [{ data: '2026-11-06', abre: '09:00', fecha: '17:00' }])
+  assert.ok(p.base.pu.pu9 && p.base.un.u2, 'a base já conhece as linhas novas')
+  assert.deepEqual(p.base.pu.pu9.horario_festival, [{ data: '2026-11-06', abre: '09:00', fecha: '17:00' }], 'e o horário, na forma canônica')
   assert.ok(Object.keys(p.adotados).some((k) => /^pu:pu9:__nova$/.test(k)))
   const depois = M.aplicarNoVivo(comBranco, p.tela)
   assert.deepEqual(depois.unidades.map((u) => u._key), ['pu-pu9'], 'a linha em branco foi embora')
@@ -395,7 +395,6 @@ test('unidade que a organização tirou da edição: some; se a pessoa a estava 
   const { vivo, base } = abrir(snap)
   const novo = clone(snap)
   novo.puRows = []
-  novo.dispRows = []
   const limpa = planejar(vivo, base, novo)
   assert.deepEqual(limpa.tela.unidades.remover, ['pu-pu1'])
   assert.equal(M.aplicarNoVivo(vivo, limpa.tela).unidades.length, 0)
@@ -410,41 +409,74 @@ test('unidade que a organização tirou da edição: some; se a pessoa a estava 
   assert.deepEqual(c.limparIds, { pu: ['pu-pu1'], un: [] })
 })
 
-test('horário do combo: dia alterado, dia novo e dia removido pela organização; o mesmo campo dos dois lados é conflito', () => {
-  const snap = fotoInicial()
-  snap.dispRows.push({ id: 'd2', participacao_unidade_id: 'pu1', data: '2026-11-06', abre: '10:00:00', fecha: '18:00:00', observacao: null })
-  const { vivo, base } = abrir(snap)
-  const novo = clone(snap)
-  novo.dispRows = [
-    { ...novo.dispRows[0], fecha: '20:00:00' },                                                         // d1 alterado
-    { id: 'd3', participacao_unidade_id: 'pu1', data: '2026-11-07', abre: '11:00:00', fecha: '19:00:00', observacao: 'até acabar' }, // d3 novo; d2 removido
-  ]
-  const p = planejar(vivo, base, novo)
-  const disp = p.tela.unidades.disp['pu-pu1']
-  assert.deepEqual(disp.porId, { d1: { fecha: '20:00' } })
-  assert.deepEqual(disp.remover, ['d2'])
-  assert.deepEqual(disp.novos.map((d) => d.id), ['d3'])
-  const depois = M.aplicarNoVivo(vivo, p.tela)
-  assert.deepEqual(depois.unidades[0].disponibilidade.map((d) => d.id), ['d1', 'd3'])
-  assert.equal(depois.unidades[0].disponibilidade[1].observacao, 'até acabar')
-  semMudanca(planejar(depois, p.base, novo))
+/* ── horário no festival (23/10/2026): coluna da unidade da edição, comparada como o resto ─────────────────── */
+const LINHAS_ORG = [{ abre: '12:00', data: '2026-11-05', fecha: '20:00' }]                // do jeito que o jsonb do banco devolve
+const CANON_ORG = [{ data: '2026-11-05', abre: '12:00', fecha: '20:00' }]
 
-  const editando = { ...vivo, unidades: vivo.unidades.map((u) => ({ ...u, disponibilidade: u.disponibilidade.map((d) => (d.id === 'd1' ? { ...d, fecha: '19:00' } : d)) })) }
-  const q = planejar(editando, base, novo)
-  assert.deepEqual(Object.keys(q.conflitos), ['disp:d1:fecha'])
-  assert.match(q.conflitos['disp:d1:fecha'].rotulo, /^Horário do combo · Lagoa · .+ · fecha$/)
+test('horário no festival: a organização troca e a tela acompanha (tela e base); o aviso diz qual e de qual unidade', () => {
+  const snap = fotoInicial()
+  const { vivo, base } = abrir(snap)
+  assert.deepEqual(vivo.unidades[0].horario_festival, [{ data: '2026-11-05', abre: '10:00', fecha: '18:00' }, { data: '2026-11-06', abre: '10:00', fecha: '18:00' }], 'a abertura já traz as linhas canônicas')
+  assert.equal(vivo.unidades[0].horarios_antigo, 'Qui a sáb, 10h às 18h')
+  const novo = clone(snap)
+  novo.puRows[0].horario_festival = LINHAS_ORG
+  const p = planejar(vivo, base, novo)
+  // o seletor se refaz a partir do horário novo, então o aviso de "horário incompleto" cai junto
+  assert.deepEqual(p.tela.unidades.porChave['pu-pu1'], { horario_festival: CANON_ORG, _horarioPendente: null })
+  assert.deepEqual(p.base.pu.pu1.horario_festival, CANON_ORG, 'a base acompanha, já canônica')
+  const a = p.adotados['pu:pu1:horario_festival']
+  assert.deepEqual([a.rotulo, a.bloco], ['Horário no festival · Lagoa', 6])
+  const depois = M.aplicarNoVivo(vivo, p.tela)
+  assert.deepEqual(depois.unidades[0].horario_festival, CANON_ORG)
+  semMudanca(planejar(depois, p.base, novo))
+  // organização limpa o horário (volta a "ainda não respondido"): a tela acompanha
+  const limpo = clone(snap)
+  limpo.puRows[0].horario_festival = []
+  assert.deepEqual(planejar(vivo, base, limpo).tela.unidades.porChave['pu-pu1'].horario_festival, [])
 })
 
-test('horário que a pessoa está digitando e a organização removeu: fica, órfão, avisado', () => {
+test('horário no festival: o mesmo horário editado dos dois lados é conflito, e o legível usa os dias do festival', () => {
   const snap = fotoInicial()
   const { vivo, base } = abrir(snap)
   const novo = clone(snap)
-  novo.dispRows = []
-  const editando = { ...vivo, unidades: vivo.unidades.map((u) => ({ ...u, disponibilidade: u.disponibilidade.map((d) => ({ ...d, abre: '09:30' })) })) }
-  const p = planejar(editando, base, novo)
-  assert.deepEqual(p.orfas, ['disp:d1'])
-  assert.ok(p.conflitos['disp:d1:__removida'])
-  assert.equal(p.tela.unidades, undefined)
+  novo.puRows[0].horario_festival = LINHAS_ORG
+  const meu = [{ data: '2026-11-05', abre: '09:00', fecha: '15:00' }]
+  const editando = { ...vivo, unidades: vivo.unidades.map((u) => ({ ...u, horario_festival: meu })) }
+  const q = planejar(editando, base, novo)
+  assert.deepEqual(Object.keys(q.conflitos), ['pu:pu1:horario_festival'])
+  const c = q.conflitos['pu:pu1:horario_festival']
+  assert.deepEqual(c.meu, meu)
+  assert.deepEqual(c.deles, CANON_ORG)
+  assert.equal(c.rotulo, 'Horário no festival · Lagoa')
+  assert.equal(c.bloco, 6)
+  assert.deepEqual([...M.bloqueadasDe(q.conflitos, 'pu', 'pu1')], ['horario_festival'], 'o salvamento pula a coluna até a pessoa escolher')
+  assert.deepEqual(q.base.pu.pu1.horario_festival, [{ data: '2026-11-05', abre: '10:00', fecha: '18:00' }, { data: '2026-11-06', abre: '10:00', fecha: '18:00' }], 'a base não anda')
+  assert.deepEqual(q.tela, {}, 'o digitado não é trocado')
+  // "usar a nova" leva o horário da organização para a tela
+  assert.deepEqual(M.aplicarNoVivo(editando, c.tela).unidades[0].horario_festival, CANON_ORG)
+  // ninguém lê código de banco: o legível sai em palavras, com os dias do festival (o "não abre" precisa deles)
+  const DIAS = datasDoFestival('2026-11-05', '2026-11-15')
+  assert.match(M.valorLegivel('horario_festival', meu, DIAS), /Qui 5\/11: das 9h às 15h/)
+  assert.match(M.valorLegivel('horario_festival', meu, DIAS), /não abre/)
+  assert.equal(M.valorLegivel('horario_festival', CANON_ORG, []), 'Qui 5/11: das 12h às 20h', 'sem as datas valem os dias que têm linha')
+  assert.equal(M.valorLegivel('horario_festival', [], DIAS), 'Ainda sem horário')
+})
+
+test('horário incompleto no seletor não entra na mesclagem: o marcador não é dado, e a releitura não o desfaz', () => {
+  const snap = fotoInicial()
+  const { vivo, base } = abrir(snap)
+  const marcador = { faltando: ['Sábado'], semDiaAberto: false }
+  const comMarcador = { ...vivo, unidades: vivo.unidades.map((u) => ({ ...u, _horarioPendente: marcador })) }
+  semMudanca(planejar(comMarcador, base, snap))
+  assert.deepEqual(Object.keys(planejar(comMarcador, base, snap).base.pu.pu1).filter((k) => /pendente/i.test(k)), [], 'a base não conhece o marcador')
+  // uma releitura que traz OUTRA coisa da unidade não mexe no marcador (só o horário novo da organização o apaga)
+  const outra = clone(snap)
+  outra.puRows[0].retirada = 'sim'
+  const depois = M.aplicarNoVivo(comMarcador, planejar(comMarcador, base, outra).tela)
+  assert.equal(depois.unidades[0].retirada, 'sim')
+  assert.deepEqual(depois.unidades[0]._horarioPendente, marcador)
+  // o horário completo que a pessoa já tinha continua o mesmo enquanto o seletor está incompleto
+  assert.deepEqual(depois.unidades[0].horario_festival, vivo.unidades[0].horario_festival)
 })
 
 /* ── declarações e trocas ──────────────────────────────────────────────────── */
@@ -601,7 +633,7 @@ test('cada campo avisa o bloco de onde veio, para a aba mostrar só o que é del
 })
 
 test('definirNaBase e apagarDaBase mexem só na linha certa; juntar une fragmentos sem perder lista', () => {
-  const base = { marca: { a: 1 }, participacao: { b: 2 }, itens: { i1: { nome: 'x' } }, un: {}, pu: {}, disp: {}, decl: {}, sub: { s1: { original: 'a' } } }
+  const base = { marca: { a: 1 }, participacao: { b: 2 }, itens: { i1: { nome: 'x' } }, un: {}, pu: {}, decl: {}, sub: { s1: { original: 'a' } } }
   M.definirNaBase(base, { ent: 'item', id: 'i1', chave: 'nome' }, 'y')
   M.definirNaBase(base, { ent: 'marca', id: '', chave: 'a' }, 9)
   M.definirNaBase(base, { ent: 'decl', id: 'dc1', chave: 'estado' }, 'contem')

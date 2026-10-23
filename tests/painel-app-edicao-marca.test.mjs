@@ -1,9 +1,11 @@
 // Cadastro da marca na camada de edição (Cartoon 2026.2) — painel-app/src/lib/edicaoMarca.js.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs'
 import * as E from '../painel-app/src/lib/edicaoMarca.js'
 import { vistaDoBloco } from '../painel-app/src/lib/guia.js'
+import { datasDoFestival } from '../painel-app/src/lib/horarioFestival.js'
+import { carregar, html } from './_renderizar.mjs'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const SQL_PUB = ler('supabase/migrations/20261014_cartoon_02_publicacao.sql')
@@ -11,7 +13,7 @@ const SQL_PUB = ler('supabase/migrations/20261014_cartoon_02_publicacao.sql')
 const MODOS_OK = { consumo_local: 'sim', retirada: 'nao', delivery_combo: 'nao' }
 const unidadeOk = (extra = {}) => ({
   _key: 'pu-1', id_publico: 'uabc123', participa: true, logradouro: 'Rua A', bairro: 'Tirol', cidade: 'Natal',
-  ...MODOS_OK, canais: { aplicativo: '', whatsapp: '', site: '' }, disponibilidade: [{ id: 'd1', data: '2026-11-05', abre: '10:00', fecha: '18:00' }],
+  ...MODOS_OK, canais: { aplicativo: '', whatsapp: '', site: '' }, horario_festival: [{ data: '2026-11-05', abre: '10:00', fecha: '18:00' }],
   ...extra,
 })
 const todas = (estado) => Object.fromEntries(E.ASPECTOS_ALERGENICOS.map((a) => [a, { id: a, estado }]))
@@ -29,7 +31,7 @@ test('pendências: tudo respondido não pede nada', () => {
 
 test('pendências: mesmos códigos e mesma ordem do servidor', () => {
   const itens = [{ id: 'i2', posicao: 2 }, { id: 'i1', posicao: 1 }]
-  const u = unidadeOk({ bairro: '', retirada: 'nao_informado', delivery_combo: 'sim', disponibilidade: [] })
+  const u = unidadeOk({ bairro: '', retirada: 'nao_informado', delivery_combo: 'sim', horario_festival: [] })
   const f = E.pendenciasEdicao({ comboNome: '  ', unidades: [u], itens, declaracoes: { i2: todas('contem') } })
   assert.deepEqual(f, ['combo_nome', 'unidade:uabc123:endereco', 'unidade:uabc123:modos', 'unidade:uabc123:canais', 'unidade:uabc123:horario', 'item:1:alimentar'])
 })
@@ -81,6 +83,8 @@ test('faltando traduzido: nome da unidade (nunca o id público) e o campo certo'
   assert.doesNotMatch(modos.texto, /u2/)
   assert.equal(modos.campo, 'atendimento-modos-2')
   assert.equal(t('unidade:u2:horario').campo, 'atendimento-horario-2')
+  assert.equal(t('unidade:u2:horario').texto, 'Informar o horário no festival de Ponta Negra')
+  assert.equal(t('unidade:u1:horario').campo, 'atendimento-horario')
   assert.equal(t('item:1:alimentar').texto, 'Responder os alergênicos do doce')
   assert.equal(t('item:1:alimentar').campo, 'item-1-alimentar')
   assert.deepEqual(t('responsavel'), { texto: 'Responsável', bloco: 0, campo: 'responsavel' })
@@ -124,21 +128,78 @@ test('unidade antiga: sem unidade permanente, o endereço vem da participação'
   assert.equal(u.verificada, false)
 })
 
-test('horário do combo: dias do festival, faixa válida e "mesmo horário todos os dias"', () => {
-  const dias = E.diasDoFestival('2026-11-05', '2026-11-15')
-  assert.equal(dias.length, 11)
-  assert.equal(dias[0], '2026-11-05')
-  assert.equal(dias[10], '2026-11-15')
-  assert.deepEqual(E.diasDoFestival(null, '2026-11-15'), [])
-  assert.equal(E.erroFaixa('10:00', '18:00'), '')
-  assert.match(E.erroFaixa('18:00', '10:00'), /depois/)
-  assert.match(E.erroFaixa('', '10:00'), /Informe/)
-  assert.equal(E.hhmm('10:00:00'), '10:00')
-  const l = E.linhasMesmoHorario('pu', dias.slice(0, 2), '10:00:00', '18:00', ' ')
-  assert.deepEqual(l, [
-    { participacao_unidade_id: 'pu', data: '2026-11-05', abre: '10:00', fecha: '18:00', observacao: null },
-    { participacao_unidade_id: 'pu', data: '2026-11-06', abre: '10:00', fecha: '18:00', observacao: null },
+/* ── Horário no festival (23/10/2026): uma pergunta só, coluna participacao_unidades.horario_festival ────── */
+const H = (data, abre, fecha) => ({ data, abre, fecha })
+
+test('horário no festival: a unidade na tela traz as linhas canônicas e o texto antigo; sem horário da loja nem tabela de dias', () => {
+  // jsonb/PostgREST devolvem as chaves em outra ordem e, às vezes, HH:MM:SS
+  const pu = { id: 'p1', participacao_id: 'pa', horarios: ' Seg a sáb 10h às 22h ', horario_festival: [
+    { fecha: '22:00:00', data: '2026-11-06', abre: '10:00:00' }, { abre: '10:00', data: '2026-11-05', fecha: '22:00' }] }
+  const u = E.unidadeDeLinhas(pu, { id: 'u1', logradouro: 'Rua A', horario_loja_texto: 'seg a sex' })
+  assert.deepEqual(u.horario_festival, [H('2026-11-05', '10:00', '22:00'), H('2026-11-06', '10:00', '22:00')])
+  assert.equal(u.horarios_antigo, 'Seg a sáb 10h às 22h')
+  assert.ok(!('horario_loja_texto' in u) && !('disponibilidade' in u), 'a unidade não carrega mais o horário da loja nem os dias da tabela antiga')
+  const vazia = E.unidadeDeLinhas(null, null)
+  assert.deepEqual([vazia.horario_festival, vazia.horarios_antigo], [[], ''])
+  // a unidade permanente não grava mais o horário da loja
+  assert.ok(!('horario_loja_texto' in E.corpoUnidade({ logradouro: 'Rua A', horario_loja_texto: 'x' })))
+})
+
+test('horário no festival: vai no corpo da unidade da edição, canônico — o jsonb do banco não vira "mudou"', () => {
+  const u = unidadeOk({ horario_festival: [H('2026-11-06', '18:00', '24:00'), H('2026-11-05', '10:00', '22:00')] })
+  const c = E.corpoParticipacaoUnidade(u, 0)
+  assert.deepEqual(c.horario_festival, [H('2026-11-05', '10:00', '22:00'), H('2026-11-06', '18:00', '24:00')], 'ordenado por dia e hora')
+  // o que o PostgREST devolve (chaves em outra ordem, HH:MM:SS) é o MESMO corpo, texto a texto: patchMudancas não manda nada
+  const doBanco = E.corpoParticipacaoUnidadeDeLinha({ id: 'p', ...c, horario_festival: [
+    { fecha: '22:00:00', data: '2026-11-05', abre: '10:00:00' }, { abre: '18:00', data: '2026-11-06', fecha: '24:00' }] })
+  assert.equal(JSON.stringify(doBanco.horario_festival), JSON.stringify(c.horario_festival))
+  assert.deepEqual(doBanco, c, 'ida e volta pela linha do banco não muda nada')
+  // outro horário é outro texto (é o que faz o PATCH levar a coluna)
+  const outro = E.corpoParticipacaoUnidade(unidadeOk({ horario_festival: [H('2026-11-05', '10:00', '23:00')] }), 0)
+  assert.notEqual(JSON.stringify(outro.horario_festival), JSON.stringify(c.horario_festival))
+  // INSERT: a coluna só tem grant de UPDATE, então o corpo de uma unidade nova não a leva
+  const novo = E.corpoNovaParticipacaoUnidade(u, 0)
+  assert.ok(!('horario_festival' in novo))
+  assert.deepEqual({ ...novo, horario_festival: c.horario_festival }, c)
+  // sem resposta ainda: lista vazia, e a linha do banco sem a coluna (migration não aplicada) também
+  assert.deepEqual(E.corpoParticipacaoUnidade(unidadeOk({ horario_festival: [] }), 0).horario_festival, [])
+  assert.deepEqual(E.corpoParticipacaoUnidadeDeLinha({ id: 'p', ordem: 0 }).horario_festival, [])
+})
+
+test('horário no festival: [] = ainda não respondido e pende; qualquer horário respondido (até um dia só) não pende', () => {
+  const itens = []
+  const pende = (u) => E.pendenciasEdicao({ comboNome: 'C', unidades: [u], itens }).includes('unidade:uabc123:horario')
+  assert.equal(pende(unidadeOk({ horario_festival: [] })), true)
+  assert.equal(pende(unidadeOk({ horario_festival: undefined })), true)
+  assert.equal(pende(unidadeOk({ horario_festival: [H('2026-11-05', '10:00', '22:00')] })), false)
+  // o texto antigo sozinho NÃO conta como resposta: a marca confirma pelo seletor
+  assert.equal(pende(unidadeOk({ horario_festival: [], horarios_antigo: 'Seg a sex 10h às 22h' })), true)
+})
+
+test('horário incompleto no seletor: o salvamento diz de qual unidade e o que falta, e o marcador nunca vai ao banco', () => {
+  const u1 = unidadeOk({ nome_unidade: 'Midway', _horarioPendente: { faltando: ['Sábado', 'Domingo'], semDiaAberto: false } })
+  const u2 = unidadeOk({ nome_unidade: '', bairro: 'Ponta Negra', _horarioPendente: { faltando: [], semDiaAberto: true } })
+  const u3 = unidadeOk({ _horarioPendente: null })
+  const u4 = unidadeOk({ participa: false, _horarioPendente: { faltando: ['Sábado'], semDiaAberto: false } })
+  assert.deepEqual(E.frasesHorarioNaoSalvo([u1, u2, u3, u4]), [
+    'O horário de Midway não foi salvo: falta responder Sábado e Domingo.',
+    'O horário de Ponta Negra não foi salvo: marque pelo menos um dia em que a unidade abre.',
   ])
+  assert.deepEqual(E.frasesHorarioNaoSalvo([]), [])
+  assert.deepEqual(E.frasesHorarioNaoSalvo([unidadeOk()]), [])
+  assert.equal(E.motivoHorarioIncompleto({ faltando: ['Segunda a sexta', 'Sábado', 'Domingo'] }), 'falta responder Segunda a sexta, Sábado e Domingo')
+  assert.equal(E.motivoHorarioIncompleto({ faltando: ['Todos os dias'] }), 'falta responder Todos os dias')
+  assert.equal(E.motivoHorarioIncompleto({}), '')
+  // rascunho incompleto nunca é gravado: o corpo é o do horário COMPLETO que a unidade já tem, com ou sem marcador
+  for (const corpo of [E.corpoParticipacaoUnidade(u1, 0), E.corpoNovaParticipacaoUnidade(u1, 0), E.corpoUnidade(u1)]) {
+    assert.ok(!JSON.stringify(corpo).includes('Pendente') && !JSON.stringify(corpo).includes('Sábado'))
+  }
+  assert.deepEqual(E.corpoParticipacaoUnidade(u1, 0), E.corpoParticipacaoUnidade(unidadeOk({ nome_unidade: 'Midway' }), 0))
+  // a voz do salvamento: não é "Alterações salvas"
+  const r = E.rotuloSalvamento({ texto: 'O horário de Midway não foi salvo: falta responder Sábado.' })
+  assert.deepEqual([r.estado, r.texto], ['corrigir', 'Há campos que precisam ser corrigidos'])
+  assert.match(r.detalhe, /falta responder Sábado/)
+  assert.equal(E.rotuloSalvamento({ texto: 'Salvo, menos o CEP (corrija o campo para gravar). O horário de Midway não foi salvo: falta responder Sábado.' }).estado, 'corrigir')
 })
 
 test('troca: acréscimo vazio = não informado, 0 = sem custo', () => {
@@ -167,8 +228,9 @@ test('publicação: publicada com link; retirada com motivo; nunca inventa link 
 // derruba o salvamento inteiro (mesma guarda de painel-infra para Cadastro.jsx).
 test('os corpos da unidade só levam colunas que o grant da marca concede', () => {
   const sql = ler('supabase/migrations/20261014_cartoon_01_estrutura.sql')
-  const grant = (tipo, tabela) => {
-    const m = new RegExp('grant ' + tipo + ' [(]([^)]+)[)]\\s+on public[.]' + tabela + ' to authenticated').exec(sql)
+  const sqlHorario = ler('supabase/migrations/20261107_horario_festival.sql')
+  const grant = (tipo, tabela, fonte = sql) => {
+    const m = new RegExp('grant ' + tipo + ' [(]([^)]+)[)]\\s+on public[.]' + tabela + ' to authenticated').exec(fonte)
     assert.ok(m, 'grant ' + tipo + ' de ' + tabela + ' não encontrado')
     return new Set(m[1].split(',').map((c) => c.trim()))
   }
@@ -176,7 +238,13 @@ test('os corpos da unidade só levam colunas que o grant da marca concede', () =
   const fora = (corpo, cols) => Object.keys(corpo).filter((k) => !cols.has(k))
   assert.deepEqual(fora(E.corpoUnidade(u), grant('update', 'unidades')), [])
   assert.deepEqual(fora({ participante_id: 'p', ...E.corpoUnidade(u) }, grant('insert', 'unidades')), [])
-  assert.deepEqual(fora(E.corpoParticipacaoUnidade(u, 0), grant('update', 'participacao_unidades')), [])
+  // participacao_unidades: as colunas de 14/10 + horario_festival (migration de 23/10, só UPDATE por coluna)
+  const updatePu = new Set([...grant('update', 'participacao_unidades'), ...grant('update', 'participacao_unidades', sqlHorario)])
+  assert.ok(updatePu.has('horario_festival'), 'o horário no festival precisa de grant de UPDATE para a marca')
+  assert.deepEqual(fora(E.corpoParticipacaoUnidade(u, 0), updatePu), [])
+  // INSERT: sem grant da coluna do horário, então o corpo de uma unidade nova não a leva (grava depois, por PATCH)
+  assert.doesNotMatch(sqlHorario, /grant insert[^;]*horario_festival/i)
+  assert.ok(!('horario_festival' in E.corpoNovaParticipacaoUnidade(u, 0)))
 })
 
 /* ── Clareza do formulário (22/10/2026) ─────────────────────────────────────── */
@@ -193,7 +261,8 @@ test('numeração LOCAL por aba: Meu cadastro 1·2·3, Meu combo 1·2·3·4 — 
 
 test('títulos claros por aba, sem número escrito à mão (o número vem da aba)', () => {
   const t = (n) => E.TITULOS_BLOCO[n].titulo
-  assert.deepEqual([0, 4, 6].map(t), ['Dados da marca', 'Unidades participantes', 'Atendimento e horários do combo'])
+  assert.deepEqual([0, 4, 6].map(t), ['Dados da marca', 'Unidades participantes', 'Atendimento e horário no festival'])
+  assert.doesNotMatch(E.TITULOS_BLOCO[6].titulo + ' ' + E.TITULOS_BLOCO[6].sub, /horário (da loja|do combo)/)
   assert.deepEqual([1, 2, 3, 5].map(t), ['Tema e inspiração', 'Itens do combo', 'Apresentação e condições do combo', 'Informações alimentares e trocas'])
   for (const x of E.TITULOS_BLOCO) assert.doesNotMatch(x.titulo, /^\d/)
 })
@@ -202,41 +271,35 @@ test('areaDoBloco é o mesmo corte de vistaDoBloco (guia.js)', () => {
   for (let b = 0; b <= 7; b++) assert.equal(E.areaDoBloco(b), vistaDoBloco(b), 'bloco ' + b)
 })
 
-test('revisão por área: a falta da OUTRA aba diz onde está ("Falta em Meu combo: …")', () => {
+test('o que falta no cadastro: a da aba aberta primeiro; a da OUTRA aba diz onde está ("Falta em Meu combo: …")', () => {
   const faltaCampos = [{ bloco: 0, campo: 'responsavel', rotulo: 'Responsável', ok: false }, { bloco: 2, campo: 'item-1-nome', rotulo: 'Nome do doce', ok: false }]
   const pendEdicao = ['combo_nome', 'unidade:u1:horario', 'item:2:alimentar']
   const unidades = [unidadeOk({ id_publico: 'u1', nome_unidade: 'Midway' })]
   const itens = [{ id: 'i1', posicao: 1, tipo: 'doce' }, { id: 'i2', posicao: 2, tipo: 'salgado' }]
   // Quem está em Meu cadastro (0 · 4 · 6)
-  const r = E.revisaoPorArea({ faltaCampos, pendEdicao, unidades, itens, visiveis: [0, 4, 6] })
-  assert.equal(r.faltam, 5)
-  assert.equal(r.pronto, false)
-  const [cad, com] = r.areas
-  assert.deepEqual([cad.chave, cad.faltam, cad.texto], ['cadastro', 2, 'Meu cadastro: 2 faltam'])
-  assert.deepEqual([com.chave, com.faltam, com.texto], ['combo', 3, 'Meu combo: 3 faltam'])
-  assert.equal(cad.itens[0].textoCompleto, 'Responsável', 'na mesma aba o texto é curto')
-  assert.equal(cad.itens[0].naOutraAba, false)
-  assert.equal(cad.itens[1].textoCompleto, 'Informar o horário do combo em Midway')
-  const nome = com.itens.find((f) => f.codigo === 'combo_nome')
+  const l = E.faltasDoCadastro({ faltaCampos, pendEdicao, unidades, itens, visiveis: [0, 4, 6] })
+  assert.equal(l.length, 5)
+  assert.deepEqual(l.map((f) => f.bloco), [0, 6, 2, 3, 5], 'primeiro o desta aba, depois o da outra, por bloco')
+  assert.equal(l[0].textoCompleto, 'Responsável', 'na mesma aba o texto é curto')
+  assert.equal(l[0].naOutraAba, false)
+  assert.equal(l[1].textoCompleto, 'Informar o horário no festival de Midway')
+  const nome = l.find((f) => f.codigo === 'combo_nome')
   assert.equal(nome.textoCompleto, 'Falta em Meu combo: Dar um nome ao combo')
   assert.equal(nome.naOutraAba, true)
-  assert.equal(nome.bloco, 3)
+  assert.equal(nome.area, 'combo')
   assert.equal(nome.campo, 'combo_nome', 'o botão ainda leva ao campo')
-  // ordem: por bloco dentro da área
-  assert.deepEqual(com.itens.map((f) => f.bloco), [2, 3, 5])
-  // A MESMA lista vista de Meu combo: o que é do cadastro passa a ser "da outra aba"
-  const vistoDoCombo = E.revisaoPorArea({ faltaCampos, pendEdicao, unidades, itens, visiveis: [1, 2, 3, 5] })
-  assert.equal(vistoDoCombo.areas[0].itens.find((f) => f.campo === 'responsavel').textoCompleto, 'Falta em Meu cadastro: Responsável')
-  assert.equal(vistoDoCombo.areas[1].itens.find((f) => f.codigo === 'combo_nome').textoCompleto, 'Dar um nome ao combo')
+  // A MESMA lista vista de Meu combo: o que é do cadastro passa a ser "da outra aba" e vai para o fim
+  const doCombo = E.faltasDoCadastro({ faltaCampos, pendEdicao, unidades, itens, visiveis: [1, 2, 3, 5] })
+  assert.equal(doCombo[0].campo, 'item-1-nome')
+  assert.equal(doCombo.find((f) => f.campo === 'responsavel').textoCompleto, 'Falta em Meu cadastro: Responsável')
+  assert.equal(doCombo.find((f) => f.codigo === 'combo_nome').textoCompleto, 'Dar um nome ao combo')
 })
 
-test('revisão por área: tudo pronto e item sem campo (só a organização cria)', () => {
-  const pronta = E.revisaoPorArea({ visiveis: [0, 4, 6] })
-  assert.equal(pronta.pronto, true)
-  assert.deepEqual(pronta.areas.map((a) => a.texto), ['Meu cadastro: pronto', 'Meu combo: pronto'])
-  const semItem = E.revisaoPorArea({ faltaCampos: [{ bloco: 2, campo: null, rotulo: 'Nome do item 3', ok: false }], visiveis: [1, 2, 3, 5] })
-  assert.equal(semItem.areas[1].itens[0].texto, 'Nome do item 3 (fale com a organização)')
-  assert.equal(semItem.areas[1].texto, 'Meu combo: 1 falta')
+test('o que falta: nada → lista vazia; item sem campo (só a organização cria) pede para falar com ela', () => {
+  assert.deepEqual(E.faltasDoCadastro({ visiveis: [0, 4, 6] }), [])
+  const semItem = E.faltasDoCadastro({ faltaCampos: [{ bloco: 2, campo: null, rotulo: 'Nome do item 3', ok: false }], visiveis: [1, 2, 3, 5] })
+  assert.equal(semItem[0].texto, 'Nome do item 3 (fale com a organização)')
+  assert.equal(semItem[0].campo, null)
 })
 
 test('comOnde nunca marca como "outra aba" o que não tem bloco', () => {
@@ -256,7 +319,7 @@ test('estado do bloco: correção > falta > análise/aprovado > preenchido; pree
   // com falta, nem "em análise" nem "aprovado": falta vence
   assert.equal(e({ bloco: 2, faltam: 1, comboStatus: 'aprovado' }).estado, 'falta')
   // aprovado + mexeu depois: não finge que o que mudou está aprovado
-  assert.deepEqual(e({ bloco: 2, comboStatus: 'aprovado', alterado: true }), { estado: 'completo', texto: 'Preenchido · alterações a enviar' })
+  assert.deepEqual(e({ bloco: 2, comboStatus: 'aprovado', alterado: true }), { estado: 'completo', texto: 'Preenchido · alterações salvas' })
   // tema aprovado ≠ combo aprovado
   assert.deepEqual(e({ bloco: 1, temaStatus: 'aprovado' }), { estado: 'aprovado', texto: 'Tema aprovado' })
   assert.equal(e({ bloco: 1, temaStatus: 'aprovado', comboStatus: 'aprovado' }).texto, 'Aprovado')
@@ -273,7 +336,7 @@ test('estado do bloco: correção > falta > análise/aprovado > preenchido; pree
 
 test('resumo do bloco recolhido: poucas palavras, e vazio quando não há o que dizer', () => {
   const r = E.resumoDoBloco
-  const unid = (x) => ({ participa: true, logradouro: 'Rua A', disponibilidade: [], ...x })
+  const unid = (x) => ({ participa: true, logradouro: 'Rua A', horario_festival: [], ...x })
   assert.equal(r(0, { marca: { nome_marca: 'Casa Doce', telefone: '(84) 99999-1234' } }), 'Casa Doce · (84) 99999-1234')
   assert.equal(r(0, { marca: { nome_marca: 'Casa Doce', telefone: '' } }), 'Casa Doce')
   assert.equal(r(1, { tema: { tema_combo: 'Moana' } }), 'Tema: Moana')
@@ -287,47 +350,73 @@ test('resumo do bloco recolhido: poucas palavras, e vazio quando não há o que 
   // a unidade em branco que a tela sempre mostra não conta, e a que não participa também não
   assert.equal(r(4, { unidades: [unid({ logradouro: '' }), unid({ participa: false })] }), '')
   assert.equal(r(5, { itens: [{ id: 'a' }, { id: 'b' }], declaracoes: { a: todas('nao_contem') } }), '1 de 2 itens respondidos')
-  assert.equal(r(6, { unidades: [unid({ disponibilidade: [{ id: 'd' }] }), unid()] }), 'Horário do combo em 1 de 2 unidades')
+  assert.equal(r(6, { unidades: [unid({ horario_festival: [H('2026-11-05', '10:00', '22:00')] }), unid()] }), 'Horário no festival em 1 de 2 unidades')
   assert.equal(r(6, { unidades: [] }), '')
   assert.equal(r(9, {}), '')
   assert.ok(r(1, { tema: { tema_combo: 'x'.repeat(200) } }).length <= 'Tema: '.length + 48)
 })
 
-test('situação da marca: envio e aprovação são coisas diferentes; "preenchido" não é "aprovado"', () => {
+test('situação da marca: só "salvar" — completo vai para a organização; "completo" não é "aprovado"', () => {
   const s = E.situacaoDaMarca
   const texto = (x) => s(x).texto
-  assert.equal(texto({ faltam: 3 }), 'Rascunho')
-  assert.equal(texto({ faltam: 0 }), 'Pronto para enviar')
-  assert.equal(texto({ statusCadastro: 'em_preenchimento', faltam: 0 }), 'Pronto para enviar')
-  assert.equal(texto({ statusCadastro: 'cadastro_completo', comboStatus: 'em_analise' }), 'Enviado · em análise')
-  assert.match(s({ comboStatus: 'em_analise' }).nota, /Aguardando a organização/)
-  assert.equal(texto({ comboStatus: 'correcao_solicitada', statusCadastro: 'cadastro_completo' }), 'Ajuste pedido')
+  assert.equal(texto({ faltam: 3 }), 'Em preenchimento')
+  assert.equal(texto({ faltam: 0 }), 'Completo · a organização vai conferir')
+  assert.equal(texto({ statusCadastro: 'cadastro_completo', comboStatus: 'em_analise' }), 'Completo · a organização está conferindo')
+  assert.match(s({ comboStatus: 'em_analise' }).nota, /É só salvar/)
+  assert.equal(texto({ comboStatus: 'correcao_solicitada', statusCadastro: 'em_preenchimento' }), 'Ajuste pedido · corrija e salve')
+  assert.match(s({ comboStatus: 'correcao_solicitada' }).nota, /salve/)
   assert.equal(texto({ comboStatus: 'aprovado' }), 'Combo aprovado')
-  assert.equal(texto({ comboStatus: 'aprovado', alterado: true }), 'Aprovado, com alterações a enviar')
+  assert.equal(texto({ comboStatus: 'aprovado', alterado: true }), 'Alterações salvas · a organização vai atualizar o site')
   assert.equal(texto({ comboStatus: 'aprovado', publicada: true }), 'Combo aprovado · página no ar')
   assert.equal(texto({ statusCadastro: 'encerrado', comboStatus: 'aprovado' }), 'Participação encerrada')
   assert.equal(texto({ semParticipacao: true }), 'Sem edição aberta')
-  // cadastro enviado sem aprovação NUNCA diz "completo" nem "aprovado"
-  const enviado = s({ statusCadastro: 'cadastro_completo' })
-  assert.equal(enviado.texto, 'Enviado para a organização')
-  assert.doesNotMatch(enviado.texto, /completo|aprovad/i)
-  // o tom é sempre um dos do <Selo>
-  for (const x of [{}, { faltam: 1 }, { comboStatus: 'aprovado' }, { comboStatus: 'em_analise' }, { comboStatus: 'correcao_solicitada' }, { statusCadastro: 'encerrado' }, { semParticipacao: true }]) {
+  // cadastro completo (dado de antes do gatilho, combo em rascunho) está com a organização, e não é "aprovado"
+  const completo = s({ statusCadastro: 'cadastro_completo' })
+  assert.equal(completo.chave, 'em_analise')
+  assert.doesNotMatch(completo.texto, /aprovad|Cadastro completo/i)
+  // nenhum texto manda "enviar"; o tom é sempre um dos do <Selo>
+  const todos = [{}, { faltam: 1 }, { comboStatus: 'aprovado' }, { comboStatus: 'aprovado', alterado: true }, { comboStatus: 'em_analise' },
+    { comboStatus: 'correcao_solicitada' }, { statusCadastro: 'cadastro_completo' }, { statusCadastro: 'encerrado' }, { semParticipacao: true }]
+  for (const x of todos) {
+    assert.doesNotMatch(s(x).texto + ' ' + s(x).nota, /envi/i, JSON.stringify(x))
     assert.ok(['neutro', 'andamento', 'atencao', 'ok', 'encerrado'].includes(s(x).tom), JSON.stringify(x))
   }
 })
 
-test('linha de envio: quanto falta; em análise mostra "Aguardando a organização" e não cobra envio', () => {
-  const t = E.textoEnvio
-  assert.equal(t({ faltam: 1 }), 'Falta 1 item para enviar')
-  assert.equal(t({ faltam: 4 }), 'Faltam 4 itens para enviar')
-  assert.equal(t({ faltam: 0, chave: 'pronto' }), 'Tudo pronto para enviar')
-  assert.equal(t({ faltam: 0, chave: 'em_analise' }), 'Aguardando a organização')
-  assert.equal(t({ faltam: 0, chave: 'enviado' }), 'Aguardando a organização')
-  assert.equal(t({ faltam: 0, chave: 'aprovado' }), 'Nada a enviar agora')
+test('linha do que falta: quantas informações; sem falta, diz isso (e nada de "enviar")', () => {
+  const t = E.textoFaltam
+  assert.equal(t({ faltam: 1 }), 'Falta 1 informação')
+  assert.equal(t({ faltam: 4 }), 'Faltam 4 informações')
+  assert.equal(t({ faltam: 0, chave: 'pronto' }), 'Nenhuma informação faltando')
+  assert.equal(t({ faltam: 0, chave: 'em_analise' }), 'Nenhuma informação faltando')
   assert.equal(t({ faltam: 0, chave: 'encerrada' }), '')
   // mesmo em análise, faltar dado obrigatório continua aparecendo
-  assert.equal(t({ faltam: 2, chave: 'em_analise' }), 'Faltam 2 itens para enviar')
+  assert.equal(t({ faltam: 2, chave: 'em_analise' }), 'Faltam 2 informações')
+})
+
+test('WhatsApp da loja: preenchido vai ao site; o antigo (sem autorização) só vai quando a marca mexe na unidade', () => {
+  const antigo = E.unidadeDeLinhas(null, { id: 'u1', logradouro: 'Rua A', whatsapp_publico: '84999991234', whatsapp_autorizado: false })
+  assert.equal(antigo.whatsapp_autorizado, false, 'abrir a tela não libera nada')
+  assert.equal(E.whatsappLegado(antigo), true)
+  // a foto do que está gravado bate com a tela recém-aberta: o salvamento não vê diferença
+  assert.equal(E.corpoUnidade(antigo).whatsapp_autorizado, false)
+  // mexer em outro campo da unidade libera o número antigo
+  const mexida = E.editarUnidade(antigo, { bairro: 'Tirol' })
+  assert.equal(mexida.whatsapp_autorizado, true)
+  assert.equal(mexida.bairro, 'Tirol')
+  assert.equal(E.whatsappLegado(mexida), false)
+  // digitar o número decide: preenchido = vai; apagado = não vai
+  assert.equal(E.editarUnidade(antigo, { whatsapp_publico: '(84) 98888-7777' }).whatsapp_autorizado, true)
+  assert.equal(E.editarUnidade({ ...antigo, whatsapp_autorizado: true }, { whatsapp_publico: '' }).whatsapp_autorizado, false)
+  // sem número, não há o que liberar
+  const sem = E.unidadeDeLinhas(null, { id: 'u2', logradouro: 'Rua B' })
+  assert.equal(E.whatsappLegado(sem), false)
+  assert.equal(E.editarUnidade(sem, { numero: '5' }).whatsapp_autorizado, false)
+  // número pela metade: nem ele nem a liberação vão no PATCH (senão o número antigo iria ao site)
+  const metade = E.editarUnidade(antigo, { whatsapp_publico: '(84) 9999' })
+  assert.equal(E.whatsappLegado(metade), false)
+  const corpo = E.corpoUnidade(metade)
+  assert.ok(!('whatsapp_publico' in corpo) && !('whatsapp_autorizado' in corpo))
 })
 
 test('rótulo do salvamento: "Salvando…" só em voo, "Alterações salvas" só depois do servidor, erro com uma voz só', () => {
@@ -349,10 +438,160 @@ test('Cadastro.jsx: sem "Cadastro completo" como aprovação, sem número escrit
   assert.doesNotMatch(c, /0[1-7] · /, 'o número do bloco é local (numeroLocalDoBloco)')
   assert.match(c, /E\.numeroLocalDoBloco\(n, visiveis\)/)
   assert.match(c, /E\.situacaoDaMarca\(/)
-  assert.match(c, /E\.revisaoPorArea\(/)
+  assert.match(c, /E\.faltasDoCadastro\(/)
   // "Salvando…" liga e desliga no mesmo voo do salvamento (sem segundo mecanismo)
   assert.match(c, /emVoo\(1\)[\s\S]*?finally \{[^}]*emVoo\(-1\)/)
-  // o botão de enviar fica explicado e é descrito pela nota
-  assert.match(c, /aria-describedby="nota-envio"/)
-  assert.match(c, /passo à parte e leva o cadastro inteiro/)
+  // um "Salvar" só, explicado pela nota
+  assert.match(c, /aria-describedby="nota-salvar">Salvar</)
+  assert.match(c, /Tudo o que você salva chega para a organização, que atualiza o site\./)
+})
+
+test('Cadastro.jsx: só "Salvar" — sem enviar, sem revisão antes do envio, sem "Ver como fica no site"', () => {
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  const sem = c.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')
+  assert.doesNotMatch(sem, /Enviar para|Enviar alterações|Enviar novamente|Revisar e enviar|Revisar antes de enviar|Ver como fica no site/)
+  assert.doesNotMatch(sem, /marca_concluir_cadastro|marca_previa_publica|FichaPrevia|<Previa|<Revisao/)
+  assert.match(c, /E\.editarUnidade\(u, \{ \[campo\]: valor \}\)/, 'mexer na unidade decide o WhatsApp da loja')
+  assert.match(c, /unidades\.some\(E\.whatsappLegado\)/, '"Salvar" leva o WhatsApp antigo ao site')
+  const envio = ler('painel-app/src/components/vistas-marca/edicao/Envio.jsx')
+  assert.doesNotMatch(envio, /Previa|Revisao|FichaPrevia|Enviar alterações/)
+  assert.ok(!existsSync(new URL('../painel-app/src/components/vistas-marca/edicao/FichaPrevia.jsx', import.meta.url)), 'a prévia saiu')
+  const unidades = ler('painel-app/src/components/vistas-marca/edicao/Unidades.jsx')
+  assert.doesNotMatch(unidades, /Autorizo publicar|whatsapp_autorizado/)
+  assert.match(unidades, /WhatsApp da loja/)
+  assert.match(unidades, /Este número vai para o site quando você salvar esta unidade\./)
+  const css = ler('painel-app/src/styles/edicao-marca.css')
+  assert.doesNotMatch(css, /em-previa|em-revisao|em-envio/)
+})
+
+/* ── Horário no festival na tela da marca (23/10/2026) ──────────────────────────────────────────────────────── */
+const { Atendimento } = carregar('painel-app/src/components/vistas-marca/edicao/Atendimento.jsx')
+const DIAS = datasDoFestival('2026-11-05', '2026-11-15')
+const desenharAtendimento = (u, extra = {}) =>
+  html(Atendimento, { unidades: [u], dias: DIAS, est: () => null, alterar() {}, alterarCanal() {}, alterarHorario() {}, ...extra })
+
+test('Atendimento: o seletor do horário no festival ocupa o lugar do horário do combo, com a âncora de sempre', () => {
+  const u = unidadeOk({ puId: 'pu1', horario_festival: [], horarios_antigo: 'Seg a sex, 10h às 18h' })
+  const h = desenharAtendimento(u)
+  assert.match(h, /id="campo-atendimento-horario"/, 'âncora para onde a pendência e a correção levam')
+  assert.match(h, /Como esta unidade funciona nos dias do festival\?/)
+  assert.match(h, /De 5 a 15 de novembro\./, 'as datas vêm do cadastro da edição')
+  assert.match(h, /Hoje está: <b>Seg a sex, 10h às 18h<\/b>/, 'o texto de antes só aparece enquanto não há horário')
+  assert.ok(!/horário (da loja|do combo)|Mesmo horário todos os dias|Incluir um dia/i.test(h), 'uma pergunta só')
+  // com horário gravado, abre já no modo certo e o texto antigo some
+  const gravado = desenharAtendimento({ ...u, horario_festival: DIAS.map((d) => H(d, '10:00', '22:00')) })
+  assert.match(gravado, /Fica assim: <b>Todos os dias, das 10h às 22h<\/b>/)
+  assert.ok(!/Hoje está/.test(gravado))
+  // a âncora da 2ª unidade leva o sufixo
+  const duas = html(Atendimento, { unidades: [u, { ...u, _key: 'pu-2', puId: 'pu2' }], dias: DIAS, est: () => null, alterar() {}, alterarCanal() {}, alterarHorario() {} })
+  assert.match(duas, /id="campo-atendimento-horario-2"/)
+})
+
+test('Atendimento: sem a linha da unidade no banco não há onde gravar — pede o endereço; sem datas, o seletor espera a organização', () => {
+  const sem = desenharAtendimento(unidadeOk({ puId: null }))
+  assert.match(sem, /Preencha o endereço da unidade para liberar o horário\./)
+  assert.ok(!/Como esta unidade funciona/.test(sem))
+  assert.match(sem, /id="campo-atendimento-horario"/, 'a âncora existe mesmo assim')
+  const semDatas = desenharAtendimento(unidadeOk({ puId: 'pu1' }), { dias: [] })
+  assert.match(semDatas, /As datas do festival ainda não foram definidas pela organização\./)
+})
+
+test('Atendimento: "Ver como participante" só lê — o seletor vem desabilitado', () => {
+  const u = unidadeOk({ puId: 'pu1' })
+  assert.match(desenharAtendimento(u, { desabilitado: true }), /<fieldset class="hf__modos" disabled=""/)
+  assert.ok(!/<fieldset class="hf__modos" disabled=""/.test(desenharAtendimento(u)))
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  assert.match(c, /desabilitado=\{emVerComo\(\)\}/, 'o Cadastro desabilita o seletor no modo de visualização')
+})
+
+// Varre os arquivos onde a marca lê: nenhum texto, comentário ou chave pode voltar a separar o horário da loja do horário do combo.
+function arquivosDe(dir, achados = []) {
+  for (const nome of readdirSync(new URL('../' + dir + '/', import.meta.url))) {
+    const rel = dir + '/' + nome
+    if (statSync(new URL('../' + rel, import.meta.url)).isDirectory()) arquivosDe(rel, achados)
+    else if (/\.(jsx?|css)$/.test(nome)) achados.push(rel)
+  }
+  return achados
+}
+test('o cadastro da marca não fala em "horário da loja" nem em "horário do combo", e não usa mais a tabela de dias', () => {
+  const alvos = [
+    ...arquivosDe('painel-app/src/components/vistas-marca'),
+    ...['edicaoMarca', 'guia', 'ajuda', 'inicioMarca', 'cadastroMescla'].map((n) => 'painel-app/src/lib/' + n + '.js'),
+    'painel-app/src/styles/edicao-marca.css',
+  ]
+  assert.ok(alvos.length > 20, 'a varredura achou os arquivos')
+  for (const rel of alvos) {
+    const src = ler(rel)
+    assert.doesNotMatch(src, /horário (da loja|do combo)|horarios? do combo|horario_loja|horario_combo|unidade-horario-loja/i, rel)
+    assert.doesNotMatch(src, /unidade_disponibilidade|dispRows|HorarioCombo|em-dias|em-dia__|em-horario__/, rel + ' (tabela e tela antigas)')
+  }
+  // as pontas do novo desenho estão ligadas
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  assert.match(c, /alterarHorario=\{alterarHorario\}/)
+  assert.match(c, /datasDoFestival\(festival\.inicio, festival\.fim\)/, 'os dias vêm de edicoes.festival_inicio/fim')
+  assert.match(c, /E\.corpoNovaParticipacaoUnidade\(u, ordem\)/, 'o INSERT da unidade não leva a coluna do horário')
+  assert.match(c, /E\.frasesHorarioNaoSalvo\(unidades\)/, 'o salvamento avisa do horário que ficou de fora')
+  assert.match(c, /E\.editarUnidade\(u, \{ horario_festival: linhasCanonicas\(r\.linhas\), _horarioPendente: null \}, \{ liberaLegado: false \}\)/, 'só o horário completo vira dado da unidade (e não publica o WhatsApp antigo)')
+  assert.match(c, /: \{ \.\.\.u, _horarioPendente: \{/, 'o incompleto só deixa o marcador (mexer em horario_festival refaria o rascunho)')
+})
+
+test('WhatsApp antigo (sem autorização): só a edição dos DADOS da unidade o libera; atendimento, canais e horário não', () => {
+  const antigo = { whatsapp_publico: '84999998888', whatsapp_autorizado: false, consumo_local: 'nao_informado', canais: {} }
+  assert.equal(E.whatsappLegado(antigo), true)
+  // bloco 4 (dados da unidade): salvar a unidade libera o número, como avisa a tela
+  assert.equal(E.editarUnidade(antigo, { bairro: 'Centro' }).whatsapp_autorizado, true)
+  // bloco 6 (atendimento, canais, horário): confirmar o horário NÃO publica um número que ela digitou sob a regra antiga
+  assert.equal(E.editarUnidade(antigo, { consumo_local: 'sim' }, { liberaLegado: false }).whatsapp_autorizado, false)
+  assert.equal(E.editarUnidade(antigo, { horario_festival: [] }, { liberaLegado: false }).whatsapp_autorizado, false)
+  // digitar o número continua decidindo a liberação, em qualquer bloco
+  assert.equal(E.editarUnidade(antigo, { whatsapp_publico: '' }, { liberaLegado: false }).whatsapp_autorizado, false)
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  assert.match(c, /alterar=\{alterarAtendimento\} alterarCanal=\{alterarCanal\}/, 'o Atendimento usa o handler que não libera')
+  assert.match(c, /function alterarCanal[\s\S]*?\{ liberaLegado: false \}/)
+})
+
+test('situação da marca: cadastro já com a organização mas com informação nova a preencher não diz "Completo"', () => {
+  const dentro = E.situacaoDaMarca({ statusCadastro: 'cadastro_completo', comboStatus: 'rascunho', faltam: 1 })
+  assert.equal(dentro.texto, 'A organização está conferindo · falta informação')
+  assert.equal(dentro.tom, 'atencao')
+  assert.equal(E.situacaoDaMarca({ comboStatus: 'em_analise', faltam: 2 }).texto, 'A organização está conferindo · falta informação')
+  // sem nada faltando, a frase de sempre
+  assert.equal(E.situacaoDaMarca({ statusCadastro: 'cadastro_completo', faltam: 0 }).texto, 'Completo · a organização está conferindo')
+  assert.equal(E.situacaoDaMarca({ comboStatus: 'em_analise', faltam: 0 }).tom, 'andamento')
+})
+
+test('conclusão sozinha: a marca que já estava completa é concluída ao abrir, sem esperar uma escrita', async () => {
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  assert.match(c, /import \{ ConcluirSozinho \} from '\.\/edicao\/ConcluirSozinho'/)
+  assert.match(c, /faltam === 0 && comboStatus === 'rascunho'\s*\n\s*&& \['aguardando_cadastro', 'em_preenchimento'\]\.includes\(statusCadastro\) && !pendenteRef\.current && !vooRef\.current/)
+  assert.match(c, /!emVerComo\(\) && faltam === 0/, '"Ver como" não escreve nada')
+  const cs = ler('painel-app/src/components/vistas-marca/edicao/ConcluirSozinho.jsx')
+  assert.match(cs, /tentou\.current/, 'uma tentativa por vez que fica verdadeiro')
+  // A decisão, com a API trocada por uma falsa (carregar() empacota o componente como os outros testes de tela).
+  const { concluirSeFaltar } = carregar('painel-app/src/components/vistas-marca/edicao/ConcluirSozinho.jsx')
+  const chamadas = []
+  const api = (status, ok = true, combo = 'rascunho') => async (caminho, o) => {
+    chamadas.push(caminho)
+    if (caminho.startsWith('participacoes')) return status === null ? [] : [{ status_cadastro: status, combo_status: combo }]
+    return { ok }
+  }
+  assert.equal(await concluirSeFaltar(api('em_preenchimento'), 'pa1'), 'cadastro_completo')
+  assert.deepEqual(chamadas, ['participacoes?select=status_cadastro,combo_status&id=eq.pa1', 'rpc/marca_concluir_cadastro'], 'lê o servidor e só então conclui')
+  chamadas.length = 0
+  assert.equal(await concluirSeFaltar(api('aguardando_cadastro'), 'pa1'), 'cadastro_completo')
+  chamadas.length = 0
+  assert.equal(await concluirSeFaltar(api('cadastro_completo'), 'pa1'), 'cadastro_completo', 'já concluída por fora (o gatilho): só a tela se atualiza')
+  assert.deepEqual(chamadas, ['participacoes?select=status_cadastro,combo_status&id=eq.pa1'], 'e NÃO chama a RPC de novo (cada chamada deixaria uma linha na auditoria)')
+  chamadas.length = 0
+  assert.equal(await concluirSeFaltar(api('em_preenchimento', true, 'correcao_solicitada'), 'pa1'), 'em_preenchimento', 'combo com ajuste pedido não é "rascunho": não conclui')
+  assert.equal(chamadas.length, 1)
+  assert.equal(await concluirSeFaltar(api('em_preenchimento', false), 'pa1'), null, 'o servidor diz que ainda falta algo: nada muda')
+  assert.equal(await concluirSeFaltar(api(null), 'pa1'), null, 'participação não encontrada')
+})
+
+test('horário incompleto conta como trabalho pela metade (atualizar versão, convite e fechar a aba perguntam)', () => {
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  assert.match(c, /horarioPendenteRef\.current = unidades\.some\(\(u\) => u\._horarioPendente\)/)
+  assert.match(c, /registrarPendencia\('cadastro-horario', \{[\s\S]*?ativo: \(\) => horarioPendenteRef\.current/)
+  assert.match(c, /tirarHorario\(\)/, 'sai do registro ao desmontar')
 })

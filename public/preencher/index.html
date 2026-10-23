@@ -25,6 +25,8 @@
    O código do link vem no fragmento (#): nunca vai ao servidor.
    Versão 2 (16/10, pedido do Wilker): menos texto, sem agenda,
    uma confirmação só, opcionais recolhidos.
+   Horário (23/10, pedido do Wilker): uma pergunta só por loja —
+   como ela funciona em cada dia do festival, dia a dia.
    ───────────────────────────────────────────────────────────── */
 @font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Regular.woff2') format('woff2');font-weight:500;font-display:swap}
 @font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
@@ -119,7 +121,14 @@ fieldset{border:0;padding:0;margin:0}
 .opcao--off{opacity:.4;cursor:not-allowed}
 .hrow{padding:12px 0;border-top:1px dashed var(--scw-borda-campo)}
 .hrow:first-of-type{border-top:0;padding-top:4px}
-.hrow__nome{display:block;margin-bottom:8px;font-family:var(--f-ui);font-weight:700}
+.hmodo,.hrow__grupo{min-width:0}
+.hmodo>legend,.hrow__nome{display:block;padding:0;margin-bottom:8px;font-family:var(--f-ui);font-weight:700}
+.hmodo>legend{font-size:15px;margin-bottom:6px}
+.hapoio{margin:0 0 8px}
+.haviso{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.haviso__texto{margin:0}
+.haviso__texto:not(:empty){margin-top:8px;padding:8px 12px;border-radius:var(--r);background:var(--scw-bege);font-family:var(--f-ui);font-size:14px;font-weight:700}
+.haviso .btn--mini{margin-top:8px}
 .hrow__horas{margin-top:2px}
 .hrow__horas .btn--mini{margin-top:8px}
 .hdetalhar{margin-top:8px}
@@ -390,21 +399,8 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
         <label class="campo oculto" data-outra-cidade style="margin:0;flex:1 1 160px"><span class="sr">Qual cidade</span><input data-k="cidade" maxlength="80" placeholder="Qual?"></label>
       </div>
     </div>
-    <div class="pergunta horario" data-horario data-pergunta="horario_combo" data-max="300">
-      <span>Dias e horário em que o combo é vendido no festival</span>
-      <input type="hidden" data-k="horario_combo">
-    </div>
-    <div class="pergunta" role="radiogroup" data-pergunta="loja_igual">
-      <span>A loja abre nesses mesmos dias e horários?</span>
-      <div class="opcoes">
-        <label class="opcao"><input type="radio" data-loja-igual value="sim">Sim, é o mesmo</label>
-        <label class="opcao"><input type="radio" data-loja-igual value="nao">Não, a loja abre em outro horário</label>
-      </div>
-    </div>
-    <div class="pergunta horario oculto" data-horario data-pergunta="horario_loja" data-max="200">
-      <span>Dias e horário de funcionamento da loja</span>
-      <input type="hidden" data-k="horario_loja">
-    </div>
+    <!-- Horário no festival (23/10/2026): UMA pergunta por unidade, montada pelo script (montarHorario). -->
+    <div class="pergunta horario" data-horario data-pergunta="horario_festival"></div>
     <div class="pergunta" role="group" data-pergunta="modos">
       <span>Como vende o combo?</span>
       <div class="opcoes">
@@ -421,8 +417,7 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
         <label class="campo"><span>Complemento</span><input data-k="complemento" maxlength="80"></label>
         <label class="campo"><span>Referência</span><input data-k="referencia" maxlength="120"></label>
       </div>
-      <label class="campo"><span>WhatsApp da loja</span><input data-k="whatsapp" type="tel" inputmode="tel" maxlength="20" placeholder="(84) 99999-9999"></label>
-      <label class="opcao" style="margin-top:8px;border-radius:var(--r)"><input type="checkbox" data-k="whatsapp_autorizado">Pode aparecer no site</label>
+      <label class="campo"><span>WhatsApp da loja <em class="nota-curta">(aparece no site para os clientes falarem com a loja)</em></span><input data-k="whatsapp" type="tel" inputmode="tel" maxlength="20" placeholder="(84) 99999-9999"></label>
     </details>
   </div>
 </template>
@@ -624,12 +619,15 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
       c.checked = c.value ? c.value.toLowerCase() === cidade.toLowerCase() : (!!cidade && !/^(natal|parnamirim)$/i.test(cidade));
     });
     if (/^(natal|parnamirim)$/i.test(cidade)) no.querySelector('[data-k="cidade"]').value = '';
-    // Horário da loja: "o mesmo do combo" é o caso comum (e o que já está salvo, se for igual).
-    var hLoja = txt(u && u.horario_loja).trim(), hCombo = txt(u && u.horario_combo).trim();
-    no.querySelectorAll('[data-loja-igual]').forEach(function (c) {
-      c.name = 'loja-igual-' + contadorLoja;
-      c.checked = c.value === (!hLoja || hLoja === hCombo ? 'sim' : 'nao');
-    });
+    // Horário no festival (23/10/2026): o que está gravado (dia a dia) entra no seletor, que abre já no modo certo.
+    // O texto antigo só serve à nota "Hoje está: …" enquanto não houver horário.
+    no.querySelector('[data-horario]').horarioInicial = {
+      linhas: u && Array.isArray(u.horario_festival) ? u.horario_festival : [],
+      antigo: textoAntigoDoHorario(u),
+      rascunho: u && u.horario_rascunho // o arranjo e as horas como estavam neste aparelho (só vem do rascunho local)
+    };
+    // WhatsApp já cadastrado e ainda sem liberação: abre a seção para a marca ver que, preenchido, ele vai ao site.
+    if (u && digitos(txt(u.whatsapp)).length > 0 && u.whatsapp_autorizado === false) no.querySelector('details.mais').open = true;
     [['logradouro', 'Rua / avenida'], ['bairro', 'Bairro']].forEach(function (p) {
       no.querySelector('[data-k="' + p[0] + '"]').dataset.obrigatorio = p[1];
     });
@@ -653,10 +651,29 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     titulosLojas();
     return reg;
   }
+  // O texto livre que a marca mandou antes (envio ou rascunho antigo) ou que está no cadastro: aparece só como "Hoje está: …".
+  function textoAntigoDoHorario(u) {
+    var proprio = txt(u && u.horario_combo).trim();
+    if (proprio || !u || !u.id || !info || !info.dados) return proprio;
+    var doBanco = (info.dados.unidades || []).filter(function (x) { return x.id === u.id; })[0];
+    return txt(doBanco && doBanco.horario_combo).trim();
+  }
+  // As datas do festival vêm do cadastro da edição (nunca escritas aqui).
+  var datasEdicao = null;
+  function datasFestival() {
+    if (!datasEdicao) {
+      var ed = (info && info.edicao) || {};
+      datasEdicao = datasDoFestival(txt(ed.inicio).slice(0, 10), txt(ed.fim).slice(0, 10));
+    }
+    return datasEdicao;
+  }
   function titulosLojas() {
     lojas.forEach(function (u, i) {
       var nome = u.no.querySelector('[data-k="nome_unidade"]').value.trim() || u.no.querySelector('[data-k="bairro"]').value.trim();
-      u.no.querySelector('[data-titulo]').textContent = lojas.length > 1 || nome ? 'Loja ' + (i + 1) + (nome ? ' · ' + nome : '') : 'Endereço';
+      var titulo = lojas.length > 1 || nome ? 'Loja ' + (i + 1) + (nome ? ' · ' + nome : '') : 'Endereço';
+      u.no.querySelector('[data-titulo]').textContent = titulo;
+      var hf = u.no.querySelector('[data-horario]').horario;
+      if (hf) hf.rotular(titulo === 'Endereço' ? '' : titulo);
     });
   }
 
@@ -685,247 +702,574 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     outro.classList.toggle('fechado', !caixa.querySelector('input[value="outro"]:checked'));
   }
 
-  /* ── Horário por toque ──────────────────────────────────────────────────────
-     Uma pergunta primeiro: os horários são iguais todos os dias, ou mudam?
-     Se mudam: três linhas (Segunda a sexta · Sábado · Domingo) e, se precisar,
-     dia a dia. Cada dia tem UMA resposta: abre (1 ou 2 períodos) ou não abre.
-     O input escondido é a fonte e guarda o texto, p.ex.
-     "Seg a Sex, 10h às 22h; Sáb, 10h às 18h; Dom, fechado". ── */
-  var DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-  var DIAS_LONGO = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-  var HORAS = (function () {
+  /* ── horarioFestival (cópia de src/edicao/dados/horarioFestival.js) ── */
+  // Horário no festival (23/10/2026): uma pergunta só — como a unidade funciona em cada dia do festival.
+  // A página é estática e não importa módulo: esta é a MESMA lógica do painel e do site, copiada à mão (ES5).
+  // tests/preencher-horario.test.mjs roda este bloco em node:vm e compara com o módulo oficial. Mudou o módulo, mude aqui.
+  // dias = [{ data, periodos }]   periodos: null = sem resposta · [] = não abre · [[abre, fecha], …] = abre
+  var NOMES_CURTOS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  var MESES_LONGOS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  function doisDigitos(n) { return ('0' + n).slice(-2); }
+  // De meia em meia hora, das 5h às 23h30. Fechar também pode ser à meia-noite (24:00).
+  var HORAS_ABRE = (function () {
     var l = [];
-    for (var h = 5; h <= 23; h++) { l.push(h + ':00'); l.push(h + ':30'); }
-    ['0:00', '0:30', '1:00', '1:30', '2:00'].forEach(function (x) { l.push(x); });
+    for (var h = 5; h <= 23; h++) { l.push(doisDigitos(h) + ':00'); l.push(doisDigitos(h) + ':30'); }
     return l;
   })();
-  function horaTexto(v) { var p = v.split(':'); return Number(p[0]) + 'h' + (p[1] === '00' ? '' : p[1]); }
-  function diasTexto(idx) {
-    if (idx.length === 7) return 'Todos os dias';
-    var seguidos = idx.every(function (d, k) { return k === 0 || d === idx[k - 1] + 1; });
-    if (seguidos && idx.length >= 3) return DIAS[idx[0]] + ' a ' + DIAS[idx[idx.length - 1]];
-    var nomes = idx.map(function (d) { return DIAS[d]; });
-    return nomes.length === 2 ? nomes.join(' e ') : nomes.join(', ');
+  var HORAS_FECHA = HORAS_ABRE.slice(1).concat(['24:00']);
+  var MAX_PERIODOS_POR_DIA = 2;
+  var GRUPOS = [
+    { chave: 'semana', rotulo: 'Segunda a sexta', dias: [0, 1, 2, 3, 4] },
+    { chave: 'sab', rotulo: 'Sábado', dias: [5] },
+    { chave: 'dom', rotulo: 'Domingo', dias: [6] }
+  ];
+  function IGUAL(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  function ordenarPeriodos(ps) { return ps.slice().sort(function (a, b) { return a[0] < b[0] ? -1 : 1; }); }
+
+  // 'HH:MM:SS' (PostgREST) ou 'HH:MM' → 'HH:MM'. Entrada ilegível devolve ''.
+  function normalizarHora(x) {
+    var m = /^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/.exec(String(x == null ? '' : x).trim());
+    return m ? doisDigitos(Number(m[1])) + ':' + m[2] : '';
   }
+  // '10:00' → '10h' · '10:30' → '10h30' · '24:00' → 'meia-noite'.
+  function horaTexto(hhmm) {
+    var h = normalizarHora(hhmm);
+    if (!h) return '';
+    if (h === '24:00') return 'meia-noite';
+    var p = h.split(':');
+    return Number(p[0]) + 'h' + (p[1] === '00' ? '' : p[1]);
+  }
+  // [abre, fecha] → 'das 10h às 22h' · 'das 18h à meia-noite'.
+  function periodoTexto(p) {
+    if (!p || !p[0] || !p[1]) return '';
+    return 'das ' + horaTexto(p[0]) + (normalizarHora(p[1]) === '24:00' ? ' à meia-noite' : ' às ' + horaTexto(p[1]));
+  }
+  // [[a, f], [a2, f2]] → 'das 12h às 15h e das 18h às 22h'.
   function periodosTexto(ps) {
-    return ps.map(function (p) { return horaTexto(p[0]) + ' às ' + horaTexto(p[1]); }).join(' e ');
+    return (ps || []).map(periodoTexto).filter(Boolean).join(' e ');
   }
-  var PERIODO = '\\d{1,2}h(?:\\d{2})? às \\d{1,2}h(?:\\d{2})?';
-  var RE_FAIXA = new RegExp('^(.*), (fechado|' + PERIODO + '(?: e ' + PERIODO + ')*)$', 'i');
-  function lerPeriodo(t) {
-    var m = /^(\d{1,2})h(\d{2})? às (\d{1,2})h(\d{2})?$/.exec(t.trim());
-    if (!m) return null;
-    var a = Number(m[1]) + ':' + (m[2] || '00'), f = Number(m[3]) + ':' + (m[4] || '00');
-    return HORAS.indexOf(a) > -1 && HORAS.indexOf(f) > -1 ? [a, f] : null;
+
+  function partes(data) { return String(data || '').split('-').map(Number); }
+  // Dia da semana de 'AAAA-MM-DD' com segunda = 0 … domingo = 6 (sem fuso: conta em UTC).
+  function diaDaSemana(data) {
+    var p = partes(data);
+    return (new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay() + 6) % 7;
   }
-  // Uma faixa: "Seg a Sex, 10h às 14h e 18h às 22h" ou "Dom, fechado". Que não lê = null.
-  function lerHorario(t) {
-    var m = RE_FAIXA.exec(txt(t).trim());
-    if (!m) return null;
-    var nomes = DIAS.map(function (d) { return d.toLowerCase(); });
-    function ix(n) { return nomes.indexOf(n.trim().toLowerCase().replace('sab', 'sáb')); }
-    var dias = [], parte = m[1].trim(), r = /^(\S+) a (\S+)$/.exec(parte);
-    if (/^todos os dias$/i.test(parte)) dias = [0, 1, 2, 3, 4, 5, 6];
-    else if (r) { var a = ix(r[1]), b = ix(r[2]); if (a < 0 || b < a) return null; for (var d = a; d <= b; d++) dias.push(d); }
-    else { dias = parte.replace(/ e /g, ',').split(',').map(ix); if (dias.some(function (d) { return d < 0; })) return null; }
-    var fechado = /^fechado$/i.test(m[2]), periodos = [];
-    if (!fechado) {
-      periodos = m[2].split(' e ').map(lerPeriodo);
-      if (periodos.some(function (p) { return !p; })) return null;
-    }
-    return { dias: dias, fechado: fechado, periodos: periodos };
+  // 'AAAA-MM-DD' de início a fim, em ordem (no máximo 31). Datas ilegíveis devolvem [].
+  function datasDoFestival(inicio, fim) {
+    var i = partes(inicio), f = partes(fim);
+    var todos = [i[0], i[1], i[2], f[0], f[1], f[2]];
+    for (var k = 0; k < todos.length; k++) if (!Number.isFinite(todos[k])) return [];
+    if (!i[0] || !f[0]) return [];
+    var out = [];
+    var fimMs = Date.UTC(f[0], f[1] - 1, f[2]);
+    for (var t = Date.UTC(i[0], i[1] - 1, i[2]); t <= fimMs && out.length < 31; t += 86400000) out.push(new Date(t).toISOString().slice(0, 10));
+    return out;
   }
-  // Várias faixas separadas por ";". Uma que não lê, ou um dia repetido = null.
-  function lerHorarios(t) {
-    var partes = txt(t).split(';').map(function (x) { return x.trim(); }).filter(Boolean);
-    if (!partes.length) return null;
-    var faixas = partes.map(lerHorario);
-    if (faixas.some(function (f) { return !f; })) return null;
-    return diasDeFaixas(faixas) ? faixas : null;
+  // 'Qui 5/11'.
+  function rotuloDia(data) {
+    var p = partes(data);
+    return NOMES_CURTOS[diaDaSemana(data)] + ' ' + p[2] + '/' + p[1];
   }
-  function textoHorarios(faixas) {
-    return faixas.map(function (f) { return diasTexto(f.dias) + ', ' + (f.fechado ? 'fechado' : periodosTexto(f.periodos)); }).join('; ');
+  // 'de 5 a 15 de novembro' · 'de 30 de outubro a 2 de novembro' · 'em 5 de novembro' (um dia só) · '' sem datas.
+  function periodoDoFestivalTexto(datas) {
+    var l = datas || [];
+    if (!l.length) return '';
+    var a = partes(l[0]), b = partes(l[l.length - 1]);
+    if (l.length === 1) return 'em ' + a[2] + ' de ' + MESES_LONGOS[a[1] - 1];
+    return a[1] === b[1] ? 'de ' + a[2] + ' a ' + b[2] + ' de ' + MESES_LONGOS[b[1] - 1]
+      : 'de ' + a[2] + ' de ' + MESES_LONGOS[a[1] - 1] + ' a ' + b[2] + ' de ' + MESES_LONGOS[b[1] - 1];
   }
-  // Uma resposta por dia: null (sem resposta), 'F' (não abre) ou [[abre, fecha], ...].
-  function diasDeFaixas(faixas) {
-    var d = [null, null, null, null, null, null, null];
-    for (var k = 0; k < faixas.length; k++) {
-      for (var j = 0; j < faixas[k].dias.length; j++) {
-        var i = faixas[k].dias[j];
-        if (d[i] !== null) return null;
-        d[i] = faixas[k].fechado ? 'F' : faixas[k].periodos;
-      }
-    }
-    return d;
+  // Qual dos grupos (semana · sab · dom) a data pertence.
+  function grupoDaData(data) {
+    var dia = diaDaSemana(data);
+    var g = GRUPOS.filter(function (x) { return x.dias.indexOf(dia) > -1; })[0];
+    return g ? g.chave : ''; // data ilegível: grupo nenhum, nunca erro
   }
-  // Dias com a mesma resposta viram uma faixa só (na ordem em que aparecem).
-  function faixasDeDias(d) {
-    var ordem = [], por = {};
-    d.forEach(function (v, i) {
-      var k = JSON.stringify(v);
-      if (!por[k]) { por[k] = { dias: [], fechado: v === 'F', periodos: v === 'F' ? [] : v }; ordem.push(k); }
-      por[k].dias.push(i);
+
+  // Linhas do banco → um item por dia do festival. Sem NENHUMA linha = nada respondido ainda (todos null); com linhas,
+  // o dia sem linha é "não abre" ([]). Linhas fora das datas dadas são ignoradas.
+  function diasDeLinhas(linhas, datas) {
+    var lista = Array.isArray(linhas) ? linhas : [];
+    if (!lista.length) return (datas || []).map(function (data) { return { data: data, periodos: null }; });
+    return (datas || []).map(function (data) {
+      return {
+        data: data,
+        periodos: lista
+          .filter(function (l) { return l && l.data === data; })
+          .map(function (l) { return [normalizarHora(l.abre), normalizarHora(l.fecha)]; })
+          .filter(function (p) { return p[0] && p[1]; })
+          .sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; })
+      };
     });
-    return ordem.map(function (k) { return por[k]; });
   }
-  function periodoCompleto(p) { return !!p[0] && !!p[1] && p[0] !== p[1]; }
-  function diaCompleto(v) { return v === 'F' || (Array.isArray(v) && v.length > 0 && v.every(periodoCompleto)); }
-  function chaveDia(v) { return JSON.stringify(v); }
+  // O que se grava: um objeto por período, só dos dias que abrem, em ordem. Dia sem resposta (null) não entra.
+  function linhasDeDias(dias) {
+    var out = [];
+    (dias || []).forEach(function (d) {
+      if (!Array.isArray(d.periodos)) return;
+      ordenarPeriodos(d.periodos).forEach(function (p) { out.push({ data: d.data, abre: normalizarHora(p[0]), fecha: normalizarHora(p[1]) }); });
+    });
+    return out.sort(function (a, b) { return a.data === b.data ? (a.abre < b.abre ? -1 : 1) : a.data < b.data ? -1 : 1; });
+  }
 
-  function montarHorario(caixa) {
-    if (caixa.dataset.pronto) return;
-    caixa.dataset.pronto = '1';
-    contadorGrupo += 1;
-    var uid = contadorGrupo;
-    var input = caixa.querySelector('input[type="hidden"]');
-    var max = Number(caixa.dataset.max) || 300;
-    var original = input.value.trim(), lidas = lerHorarios(original);
-    var dias = (lidas && diasDeFaixas(lidas)) || [null, null, null, null, null, null, null];
-    var modo = null, linhas = [];
-    if (lidas) {
-      var iguais = dias.every(function (v) { return v !== null && chaveDia(v) === chaveDia(dias[0]); });
-      var semana = dias[0] !== null && dias.slice(0, 5).every(function (v) { return chaveDia(v) === chaveDia(dias[0]); });
-      modo = iguais ? 'todos' : semana ? 'grupos' : 'dias';
+  function periodoValido(p) {
+    return Array.isArray(p) && HORAS_ABRE.indexOf(normalizarHora(p[0])) > -1 && HORAS_FECHA.indexOf(normalizarHora(p[1])) > -1 && normalizarHora(p[1]) > normalizarHora(p[0]);
+  }
+  // Um dia está respondido: "não abre" ([]) ou 1–2 períodos válidos, em ordem e sem se sobrepor. null não está.
+  function diaCompleto(periodos) {
+    if (!Array.isArray(periodos)) return false;
+    if (!periodos.length) return true;
+    if (periodos.length > MAX_PERIODOS_POR_DIA || !periodos.every(periodoValido)) return false;
+    var ord = ordenarPeriodos(periodos);
+    return ord.every(function (p, i) { return i === 0 || normalizarHora(p[0]) >= normalizarHora(ord[i - 1][1]); });
+  }
+  // Pelo menos um dia abre e todos estão respondidos — o que a casa precisa para ser publicada.
+  function horarioCompleto(dias) {
+    return Array.isArray(dias) && dias.length > 0 && dias.every(function (d) { return diaCompleto(d.periodos); }) && dias.some(function (d) { return d.periodos.length > 0; });
+  }
+
+  function chaveDia(periodos) { return periodos === null || periodos === undefined ? 'null' : JSON.stringify(ordenarPeriodos(periodos)); }
+  // Como os dias se arrumam: 'todos' · 'semana' (iguais dentro de segunda a sexta, de sábado e de domingo) · 'dias' · null (nada respondido).
+  function modoDeDias(dias) {
+    var lista = dias || [];
+    if (!lista.length || lista.every(function (d) { return d.periodos === null; })) return null;
+    // "Sem resposta" conta como um valor como outro: segunda a sexta respondidas com sábado e domingo em branco é "por semana".
+    var chaves = lista.map(function (d) { return chaveDia(d.periodos); });
+    if (chaves.every(function (c) { return c === chaves[0]; })) return 'todos';
+    var porGrupo = {};
+    for (var i = 0; i < lista.length; i++) {
+      var g = grupoDaData(lista[i].data);
+      if (porGrupo[g] === undefined) porGrupo[g] = chaveDia(lista[i].periodos);
+      else if (porGrupo[g] !== chaveDia(lista[i].periodos)) return 'dias';
     }
-    if (original && !lidas) caixa.insertBefore(el('p', { 'class': 'atual' }, 'Hoje está: ' + original + '. Escolha abaixo para trocar.'), input);
+    return 'semana';
+  }
+  // Dá para voltar ao arranjo "Segunda a sexta · Sábado · Domingo" sem perder nada.
+  function podeAgrupar(dias) { return ['todos', 'semana'].indexOf(modoDeDias(dias)) > -1; }
+  // Põe o mesmo horário em todos os dias do grupo ('todos' · 'semana' · 'sab' · 'dom') ou numa data só ('AAAA-MM-DD').
+  function aplicar(dias, alvo, periodos) {
+    var copia = periodos === null ? null : periodos.map(function (p) { return [p[0], p[1]]; });
+    return (dias || []).map(function (d) {
+      var vale = alvo === 'todos' || alvo === d.data || grupoDaData(d.data) === alvo;
+      return vale ? { data: d.data, periodos: copia === null ? null : copia.map(function (p) { return [p[0], p[1]]; }) } : d;
+    });
+  }
+  // Ao escolher "Igual todos os dias", o primeiro dia respondido vale para todos. Os outros modos mantêm os valores.
+  function trocarModo(dias, novo) {
+    if (novo !== 'todos') return dias;
+    var base = (dias || []).filter(function (d) { return d.periodos !== null; })[0];
+    return aplicar(dias, 'todos', base ? base.periodos : null);
+  }
+  // Linhas da tela para cada modo: o que o seletor desenha (um item por linha editável).
+  function linhasDoModo(dias, modo) {
+    if (modo === 'todos') return [{ chave: 'todos', rotulo: 'Todos os dias', alvo: 'todos', periodos: (dias[0] || {}).periodos }];
+    if (modo === 'semana') {
+      return GRUPOS.filter(function (g) { return dias.some(function (d) { return grupoDaData(d.data) === g.chave; }); }).map(function (g) {
+        return { chave: g.chave, rotulo: g.rotulo, alvo: g.chave, periodos: dias.filter(function (d) { return grupoDaData(d.data) === g.chave; })[0].periodos };
+      });
+    }
+    if (modo === 'dias') return dias.map(function (d) { return { chave: d.data, rotulo: rotuloDia(d.data), alvo: d.data, periodos: d.periodos }; });
+    return [];
+  }
+  // Rótulos do que falta responder, no arranjo em uso.
+  function rotulosFaltando(dias, modo) {
+    return linhasDoModo(dias, modo).filter(function (l) { return !diaCompleto(l.periodos); }).map(function (l) { return l.rotulo; });
+  }
+  // O que a tela precisa saber do rascunho: dá para gravar (completo)? o que falta? semDiaAberto: tudo respondido, mas nenhum dia abre.
+  function estadoDoHorario(dias, modo) {
+    var completo = horarioCompleto(dias);
+    return {
+      completo: completo,
+      faltando: completo ? [] : rotulosFaltando(dias, modo),
+      semDiaAberto: !completo && (dias || []).length > 0 && dias.every(function (d) { return diaCompleto(d.periodos); })
+    };
+  }
 
-    // Pergunta inicial: iguais todos os dias, ou mudam?
-    var inicio = el('div', { 'class': 'opcoes', role: 'radiogroup', 'aria-label': 'Os horários mudam durante a semana?' });
+  // O que o seletor faz com os períodos de UMA linha (puras: a tela só liga os botões a elas).
+  function abrirDia(periodos) { return Array.isArray(periodos) && periodos.length ? periodos : [['', '']]; }
+  function fecharDia() { return []; }
+  // "+ Intervalo" só cabe com UM período já completo e que não feche à meia-noite (depois dela não há hora para abrir de novo).
+  function podeAcrescentarIntervalo(periodos) { return Array.isArray(periodos) && periodos.length === 1 && periodoValido(periodos[0]) && normalizarHora(periodos[0][1]) !== '24:00'; }
+  function acrescentarIntervalo(periodos) { return podeAcrescentarIntervalo(periodos) ? periodos.concat([['', '']]) : periodos; }
+  function tirarIntervalo(periodos) { return Array.isArray(periodos) ? periodos.slice(0, 1) : periodos; }
+  // Troca uma hora: indice = qual período, qual = 0 (abre) ou 1 (fecha). Se o fim deixou de ser depois do início, o fim volta a
+  // "sem escolha"; se o 1º período passou a invadir o 2º, o 2º volta a "sem escolha".
+  function trocarHora(periodos, indice, qual, hora) {
+    var novo = (periodos || []).map(function (p) { return [p[0], p[1]]; });
+    if (!novo[indice]) return novo;
+    novo[indice][qual] = hora;
+    var par = novo[indice].map(normalizarHora), ini = par[0], fim = par[1];
+    if (qual === 0 && fim && ini && fim <= ini) novo[indice][1] = '';
+    var prox = novo[indice + 1];
+    var fimAtual = normalizarHora(novo[indice][1]);
+    if (prox && fimAtual && normalizarHora(prox[0]) && normalizarHora(prox[0]) < fimAtual) novo[indice + 1] = ['', ''];
+    return novo;
+  }
+  // Horas que se pode escolher em "abre" do período indice (a partir do fim do anterior) e em "fecha" (depois do início do próprio).
+  function opcoesAbre(periodos, indice) {
+    var ant = indice > 0 && periodos && periodos[indice - 1] ? normalizarHora(periodos[indice - 1][1]) : '';
+    return HORAS_ABRE.filter(function (h) { return !ant || h >= ant; });
+  }
+  function opcoesFecha(periodos, indice) {
+    var ini = normalizarHora(((periodos || [])[indice] || [])[0]);
+    return HORAS_FECHA.filter(function (h) { return !ini || h > ini; });
+  }
+
+  function textoDoDia(periodos) { return periodos && periodos.length ? periodosTexto(periodos) : 'não abre'; }
+  function diasEntre(a, b) {
+    var x = partes(a), y = partes(b);
+    return Math.round((Date.UTC(y[0], y[1] - 1, y[2]) - Date.UTC(x[0], x[1] - 1, x[2])) / 86400000);
+  }
+  function rotuloIntervalo(a, b) {
+    if (a === b) return rotuloDia(a);
+    var ma = partes(a)[1], mb = partes(b)[1];
+    function curto(data) { return NOMES_CURTOS[diaDaSemana(data)] + ' ' + partes(data)[2]; }
+    return ma === mb ? curto(a) + ' a ' + curto(b) + '/' + mb : rotuloDia(a) + ' a ' + rotuloDia(b);
+  }
+  // O horário em frases curtas, uma por arranjo: 'Todos os dias, das 10h às 22h' · 'Segunda a sexta, …' · 'Qui 5 a Sex 6/11: …'
+  // (só dias seguidos com o mesmo horário se juntam). Dia sem resposta (null) não entra; sem nenhum dia respondido devolve [].
+  function resumoDias(dias) {
+    var lista = (dias || []).filter(function (d) { return d.periodos !== null; });
+    if (!lista.length) return [];
+    var modo = modoDeDias(dias);
+    if (modo === 'todos') return ['Todos os dias, ' + textoDoDia(lista[0].periodos)];
+    if (modo === 'semana') {
+      var juntos = [];
+      linhasDoModo(dias, 'semana').filter(function (g) { return g.periodos !== null; }).forEach(function (g) {
+        var ult = juntos[juntos.length - 1];
+        if (ult && chaveDia(ult.periodos) === chaveDia(g.periodos)) ult.chaves.push(g.chave);
+        else juntos.push({ chaves: [g.chave], periodos: g.periodos });
+      });
+      var nome = { semana: 'Segunda a sexta', 'semana,sab': 'Segunda a sábado', sab: 'Sábado', 'sab,dom': 'Sábado e domingo', dom: 'Domingo' };
+      return juntos.map(function (j) { return (nome[j.chaves.join(',')] || j.chaves.join(' e ')) + ', ' + textoDoDia(j.periodos); });
+    }
+    return resumoDiaADia(dias);
+  }
+  // Só os dias que dias cita, um a um — nunca "todos os dias" nem "por semana". Dias seguidos com o mesmo horário se juntam.
+  function resumoDiaADia(dias) {
+    var runs = [];
+    (dias || []).filter(function (x) { return x.periodos !== null; }).forEach(function (d) {
+      var ult = runs[runs.length - 1];
+      var seguido = ult && IGUAL(ult.chave, chaveDia(d.periodos)) && diasEntre(ult.fim, d.data) === 1;
+      if (seguido) ult.fim = d.data;
+      else runs.push({ ini: d.data, fim: d.data, chave: chaveDia(d.periodos), periodos: d.periodos });
+    });
+    return runs.map(function (r) { return rotuloIntervalo(r.ini, r.fim) + ': ' + textoDoDia(r.periodos); });
+  }
+  // Resumo numa linha só.
+  function textoResumo(dias, sep) { return resumoDias(dias).join(sep === undefined ? ' · ' : sep); }
+  /* ── fim horarioFestival ── */
+
+  /* ── Seletor do horário no festival ─────────────────────────────────────────────────────────────────
+     Uma pergunta só por unidade (pedido do Wilker, 23/10/2026): "Igual todos os dias" → uma linha; "Muda conforme o dia" →
+     Segunda a sexta · Sábado · Domingo e, se precisar, dia a dia. Cada linha: abre (até 2 períodos) ou não abre.
+     Só o bloco horarioFestival decide o que vale; aqui a tela apenas liga os botões a ele. Incompleto nunca grava.
+     Devolve um objeto com linhas, completo, motivo, alvo, estado e rotular (a página lê os seis).
+     ctx = { uid, datas, linhas, antigo, rascunho, avisar } — rascunho é o { modo, dias } que o seletor guardou neste aparelho. */
+
+  // O estado guardado no rascunho ({ modo, dias }, mesmo incompleto) só vale para os mesmos dias da edição e na forma esperada;
+  // senão é ignorado e vale o que está gravado. Devolve { modo, dias } já limpo, ou null.
+  function horarioDeRascunho(r, datas) {
+    if (!r || !Array.isArray(r.dias) || r.dias.length !== datas.length) return null;
+    var dias = [];
+    for (var i = 0; i < datas.length; i++) {
+      var d = r.dias[i];
+      if (!d || d.data !== datas[i]) return null;
+      var ps = d.periodos;
+      if (ps !== null && (!Array.isArray(ps) || ps.length > MAX_PERIODOS_POR_DIA)) return null;
+      dias.push({
+        data: d.data,
+        periodos: ps === null ? null : ps.map(function (p) { return [p && p[0] != null ? String(p[0]) : '', p && p[1] != null ? String(p[1]) : '']; })
+      });
+    }
+    var real = modoDeDias(dias), modo = r.modo;
+    var coerente = modo === 'dias' || (modo === 'todos' && (real === 'todos' || real === null)) ||
+      (modo === 'semana' && (real === 'todos' || real === 'semana' || real === null));
+    return { modo: coerente ? modo : real, dias: dias };
+  }
+  function copiaDias(dias) {
+    return dias.map(function (d) { return { data: d.data, periodos: d.periodos === null ? null : d.periodos.map(function (p) { return [p[0], p[1]]; }) }; });
+  }
+
+  function montarHorario(caixa, ctx) {
+    var datas = ctx.datas || [];
+    var uid = ctx.uid;
+    var dias = diasDeLinhas(ctx.linhas, datas);
+    var modo = modoDeDias(dias);
+    var guardado = horarioDeRascunho(ctx.rascunho, datas); // o rascunho vale mais que o gravado, como o resto do formulário
+    if (guardado) { dias = guardado.dias; modo = guardado.modo; }
+    var linhasUi = [];     // as linhas desenhadas agora, na ordem de linhasDoModo(dias, modo)
+    var seq = 0;           // nome único dos grupos de rádio de cada linha
+    var loja = '';         // "Loja 2 · Tirol": distingue esta pergunta das das outras lojas para quem usa leitor de tela
+    var desfazer = null;   // { dias, modo } de antes do último "Igual todos os dias" que trocou o que estava digitado
+
+    caixa.textContent = '';
+    if (!datas.length) {
+      caixa.appendChild(el('p', { 'class': 'atual' }, 'O horário no festival não pode ser preenchido agora: as datas da edição não chegaram. Recarregue a página ou fale com a organização.'));
+      return {
+        linhas: function () { return null; }, completo: function () { return true; }, motivo: function () { return ''; },
+        alvo: function () { return caixa; }, estado: function () { return null; }, rotular: function () {}
+      };
+    }
+
+    // A pergunta, o apoio, a nota "Hoje está" (só enquanto nada está respondido) e as duas opções.
+    var modoCx = el('fieldset', { 'class': 'hmodo' });
+    var legenda = el('legend', null, 'Como esta unidade funciona nos dias do festival?');
+    var legendaLoja = el('span', { 'class': 'sr' });
+    legenda.appendChild(legendaLoja);
+    modoCx.appendChild(legenda);
+    var periodo = periodoDoFestivalTexto(datas);
+    modoCx.appendChild(el('p', { 'class': 'nota-curta hapoio' },
+      (periodo ? periodo.charAt(0).toUpperCase() + periodo.slice(1) + '. ' : '') + 'Se for diferente do horário normal da loja, vale o do festival. Fecha depois da meia-noite? Escolha “meia-noite”.'));
+    var antigo = txt(ctx.antigo).trim().replace(/[.\s]+$/, '');
+    if (antigo && modo === null) {
+      modoCx.appendChild(el('p', { 'class': 'atual' }, 'Hoje está: ' + antigo + '. Escolha abaixo para confirmar ou trocar.'));
+    }
+    var opcoes = el('div', { 'class': 'opcoes' });
     function opcaoModo(valor, rotulo) {
       var lab = el('label', { 'class': 'opcao' });
       var r = el('input', { type: 'radio', name: 'hmodo-' + uid, value: valor });
-      lab.appendChild(r); lab.appendChild(document.createTextNode(rotulo));
-      inicio.appendChild(lab);
+      lab.appendChild(r);
+      lab.appendChild(el('span', null, rotulo));
+      opcoes.appendChild(lab);
       return r;
     }
     var rTodos = opcaoModo('todos', 'Igual todos os dias');
     var rMuda = opcaoModo('muda', 'Muda conforme o dia');
+    modoCx.appendChild(opcoes);
+    // Aviso de que "Igual todos os dias" trocou o que estava digitado, com saída. O parágrafo de status existe sempre (vazio) para o leitor de tela anunciá-lo.
+    var aviso = el('div', { 'class': 'haviso' });
+    var avisoTxt = el('p', { 'class': 'haviso__texto', role: 'status' });
+    var desfazerBtn = el('button', { type: 'button', 'class': 'btn btn--mini oculto' }, 'Desfazer');
+    aviso.appendChild(avisoTxt);
+    aviso.appendChild(desfazerBtn);
+    modoCx.appendChild(aviso);
     var caixaLinhas = el('div', { 'class': 'hlinhas' });
     var detalhar = el('button', { type: 'button', 'class': 'btn btn--mini hdetalhar oculto' }, 'Detalhar dia a dia');
     var resumo = el('p', { 'class': 'hresumo oculto', role: 'status' });
-    caixa.insertBefore(inicio, input);
-    caixa.insertBefore(caixaLinhas, input);
-    caixa.insertBefore(detalhar, input);
-    caixa.insertBefore(resumo, input);
+    caixa.appendChild(modoCx);
+    caixa.appendChild(caixaLinhas);
+    caixa.appendChild(detalhar);
+    caixa.appendChild(resumo);
 
-    function seletor(rotulo, valor, onde, nome) {
-      var lab = el('label', null, rotulo + ' ');
-      var sel = el('select', { 'aria-label': nome });
-      sel.appendChild(el('option', { value: '' }, '—'));
-      HORAS.forEach(function (h) { var o = el('option', { value: h }, horaTexto(h)); if (h === valor) o.selected = true; sel.appendChild(o); });
-      lab.appendChild(sel); onde.appendChild(lab);
-      return sel;
+    // Nome acessível dos botões que se repetem (por linha ou por loja): o texto que se vê + de qual linha/loja é.
+    function comLoja(texto) { return texto + (loja ? ' — ' + loja : ''); }
+    function rotular(texto) {
+      texto = txt(texto).trim();
+      if (texto === loja) return;
+      loja = texto;
+      legendaLoja.textContent = loja ? ' — ' + loja : '';
+      detalhar.setAttribute('aria-label', comLoja(detalhar.textContent));
+      desfazerBtn.setAttribute('aria-label', comLoja('Desfazer'));
     }
-    function agrupavel() { return dias.slice(0, 5).every(function (v) { return chaveDia(v) === chaveDia(dias[0]); }); }
+    function limparAviso() {
+      desfazer = null;
+      avisoTxt.textContent = '';
+      desfazerBtn.classList.add('oculto');
+    }
 
-    function linha(grupo, nome) {
-      contadorGrupo += 1;
-      var rid = contadorGrupo;
-      var v = dias[grupo[0]];
-      var r = { grupo: grupo, nome: nome, no: el('div', { 'class': 'hrow' }), dois: Array.isArray(v) && v.length > 1 };
-      r.no.appendChild(el('b', { 'class': 'hrow__nome' }, nome));
-      var op = el('div', { 'class': 'opcoes', role: 'radiogroup', 'aria-label': nome + ': abre ou não abre' });
-      function radio(rotulo, valor) {
+    // Os períodos da linha como estão no modelo agora (a tela nunca guarda cópia própria).
+    function periodosDe(r) {
+      var l = linhasDoModo(dias, modo).filter(function (x) { return x.chave === r.chave; })[0];
+      return l ? l.periodos : null;
+    }
+    function mudar(r, periodos) { limparAviso(); dias = aplicar(dias, r.alvo, periodos); atualizar(); }
+
+    function criarPeriodo(r, i) {
+      var no = el('div', { 'class': 'horas' });
+      var p = { no: no };
+      function seletor(qual, rotulo, nomeAria) {
+        var lab = el('label');
+        lab.appendChild(el('span', null, rotulo));
+        var sel = el('select', { 'aria-label': r.rotulo + ': ' + nomeAria });
+        sel.addEventListener('change', function () { mudar(r, trocarHora(periodosDe(r), i, qual, sel.value)); });
+        lab.appendChild(sel);
+        no.appendChild(lab);
+        return sel;
+      }
+      p.abre = seletor(0, i === 0 ? 'Das' : 'e das', i === 0 ? 'abre às' : 'segundo período, abre às');
+      p.fecha = seletor(1, 'às', i === 0 ? 'fecha às' : 'segundo período, fecha às');
+      r.horas.appendChild(no);
+      return p;
+    }
+
+    function criarLinha(l) {
+      seq += 1;
+      var r = { chave: l.chave, alvo: l.alvo, rotulo: l.rotulo, per: [] };
+      r.no = el('div', { 'class': 'hrow' });
+      var grupo = el('fieldset', { 'class': 'hrow__grupo' });
+      grupo.appendChild(el('legend', { 'class': 'hrow__nome' }, l.rotulo));
+      var op = el('div', { 'class': 'opcoes' });
+      function radio(valor, rotulo) {
         var lab = el('label', { 'class': 'opcao' });
-        var c = el('input', { type: 'radio', name: 'hdia-' + rid, value: valor });
-        lab.appendChild(c); lab.appendChild(document.createTextNode(rotulo)); op.appendChild(lab);
+        var c = el('input', { type: 'radio', name: 'hdia-' + uid + '-' + seq, value: valor });
+        lab.appendChild(c);
+        lab.appendChild(el('span', null, rotulo));
+        op.appendChild(lab);
         return c;
       }
-      r.abre = radio('Abre', 'abre');
-      r.fecha = radio('Não abre', 'fecha');
-      r.no.appendChild(op);
+      r.abre = radio('abre', 'Abre');
+      r.fecha = radio('fecha', 'Não abre');
+      grupo.appendChild(op);
+      r.no.appendChild(grupo);
       r.horas = el('div', { 'class': 'hrow__horas' });
-      var h1 = el('div', { 'class': 'horas' }), h2 = el('div', { 'class': 'horas' });
-      r.a1 = seletor('Das', Array.isArray(v) && v[0] ? v[0][0] : '', h1, nome + ': abre às');
-      r.f1 = seletor('às', Array.isArray(v) && v[0] ? v[0][1] : '', h1, nome + ': fecha às');
-      r.a2 = seletor('e das', Array.isArray(v) && v[1] ? v[1][0] : '', h2, nome + ': segundo período, abre às');
-      r.f2 = seletor('às', Array.isArray(v) && v[1] ? v[1][1] : '', h2, nome + ': segundo período, fecha às');
-      r.h2 = h2;
-      r.mais = el('button', { type: 'button', 'class': 'btn btn--mini' }, '+ Intervalo (ex.: fecha para o almoço)');
-      r.tirar = el('button', { type: 'button', 'class': 'btn btn--mini' }, 'Tirar este intervalo');
-      r.horas.appendChild(h1); r.horas.appendChild(h2); r.horas.appendChild(r.mais); r.horas.appendChild(r.tirar);
+      for (var i = 0; i < MAX_PERIODOS_POR_DIA; i++) r.per.push(criarPeriodo(r, i));
+      r.mais = el('button', { type: 'button', 'class': 'btn btn--mini', 'aria-label': '+ Intervalo (ex.: fecha para o almoço) — ' + l.rotulo }, '+ Intervalo (ex.: fecha para o almoço)');
+      r.tirar = el('button', { type: 'button', 'class': 'btn btn--mini', 'aria-label': 'Tirar este intervalo — ' + l.rotulo }, 'Tirar este intervalo');
+      r.horas.appendChild(r.mais);
+      r.horas.appendChild(r.tirar);
       r.no.appendChild(r.horas);
-      if (v === 'F') r.fecha.checked = true;
-      else if (Array.isArray(v)) r.abre.checked = true;
-
-      function ler() {
-        var val = null;
-        if (r.fecha.checked) val = 'F';
-        else if (r.abre.checked) {
-          val = [[r.a1.value, r.f1.value]];
-          if (r.dois) val.push([r.a2.value, r.f2.value]);
-        }
-        grupo.forEach(function (i) { dias[i] = val; });
-        mostrar(); compor();
-      }
-      function mostrar() {
-        r.horas.classList.toggle('oculto', !r.abre.checked);
-        r.h2.classList.toggle('oculto', !r.dois);
-        r.mais.classList.toggle('oculto', r.dois);
-        r.tirar.classList.toggle('oculto', !r.dois);
-      }
-      [r.abre, r.fecha, r.a1, r.f1, r.a2, r.f2].forEach(function (c) { c.addEventListener('change', ler); });
-      r.mais.addEventListener('click', function () { r.dois = true; ler(); r.a2.focus(); caixa.dispatchEvent(new Event('change', { bubbles: true })); });
-      r.tirar.addEventListener('click', function () { r.dois = false; r.a2.value = ''; r.f2.value = ''; ler(); caixa.dispatchEvent(new Event('change', { bubbles: true })); });
-      mostrar();
+      r.abre.addEventListener('change', function () { if (r.abre.checked) mudar(r, abrirDia(periodosDe(r))); });
+      r.fecha.addEventListener('change', function () { if (r.fecha.checked) mudar(r, fecharDia()); });
+      r.mais.addEventListener('click', function () {
+        mudar(r, acrescentarIntervalo(periodosDe(r)));
+        r.per[1].abre.focus();
+        ctx.avisar();
+      });
+      r.tirar.addEventListener('click', function () {
+        mudar(r, tirarIntervalo(periodosDe(r)));
+        (podeAcrescentarIntervalo(periodosDe(r)) ? r.mais : r.per[0].abre).focus();
+        ctx.avisar();
+      });
       return r;
     }
 
+    // As horas de uma lista: só refaz as opções quando a lista muda (o seletor que a pessoa acabou de usar nunca muda a própria lista).
+    function opcoesDoSeletor(sel, lista, valor) {
+      var assinatura = lista.join('|');
+      if (sel.assinatura !== assinatura) {
+        sel.textContent = '';
+        sel.appendChild(el('option', { value: '' }, '—'));
+        lista.forEach(function (h) { sel.appendChild(el('option', { value: h }, horaTexto(h))); });
+        sel.assinatura = assinatura;
+      }
+      sel.value = lista.indexOf(valor) > -1 ? valor : '';
+    }
+    function pintarLinha(r, periodos) {
+      var abre = Array.isArray(periodos) && periodos.length > 0;
+      r.abre.checked = abre;
+      r.fecha.checked = Array.isArray(periodos) && periodos.length === 0;
+      r.horas.classList.toggle('oculto', !abre);
+      r.per.forEach(function (p, i) {
+        var existe = abre && !!periodos[i];
+        p.no.classList.toggle('oculto', !existe);
+        if (!existe) return;
+        opcoesDoSeletor(p.abre, opcoesAbre(periodos, i), normalizarHora(periodos[i][0]));
+        opcoesDoSeletor(p.fecha, opcoesFecha(periodos, i), normalizarHora(periodos[i][1]));
+      });
+      r.mais.classList.toggle('oculto', !podeAcrescentarIntervalo(periodos));
+      r.tirar.classList.toggle('oculto', !(abre && periodos.length > 1));
+    }
+    function pintarResumo() {
+      var e = estadoDoHorario(dias, modo);
+      resumo.classList.toggle('oculto', modo === null);
+      resumo.classList.toggle('hresumo--falta', e.semDiaAberto);
+      resumo.textContent = modo === null ? ''
+        : e.completo ? 'Fica assim: ' + textoResumo(dias) + '.'
+        : e.semDiaAberto ? 'Pelo menos um dia precisa abrir. Se esta loja não vende no festival, use “Não vende aqui”.'
+        : e.faltando.length ? 'Falta responder: ' + e.faltando.join(', ') + '.'
+        : 'Confira os horários acima.';
+    }
+    function atualizar() {
+      var linhas = linhasDoModo(dias, modo);
+      linhasUi.forEach(function (r, k) { pintarLinha(r, linhas[k].periodos); });
+      rTodos.checked = modo === 'todos';
+      rMuda.checked = modo === 'semana' || modo === 'dias';
+      var detalhe = modo === 'semana', volta = modo === 'dias' && podeAgrupar(dias);
+      detalhar.classList.toggle('oculto', !(detalhe || volta));
+      detalhar.textContent = detalhe ? 'Detalhar dia a dia' : 'Voltar a Segunda a sexta';
+      detalhar.setAttribute('aria-label', comLoja(detalhar.textContent));
+      pintarResumo();
+    }
+    // Refaz as linhas quando o arranjo muda (todos · semana · dias); mudança de hora só repinta.
     function desenhar() {
       caixaLinhas.textContent = '';
-      linhas = [];
-      var grupos = modo === 'todos' ? [[[0, 1, 2, 3, 4, 5, 6], 'Todos os dias']]
-        : modo === 'grupos' ? [[[0, 1, 2, 3, 4], 'Segunda a sexta'], [[5], 'Sábado'], [[6], 'Domingo']]
-        : modo === 'dias' ? DIAS_LONGO.map(function (n, i) { return [[i], n]; }) : [];
-      grupos.forEach(function (g) { var r = linha(g[0], g[1]); linhas.push(r); caixaLinhas.appendChild(r.no); });
-      rTodos.checked = modo === 'todos';
-      rMuda.checked = modo === 'grupos' || modo === 'dias';
-      var podeDetalhar = modo === 'grupos', podeVoltar = modo === 'dias' && agrupavel();
-      detalhar.classList.toggle('oculto', !(podeDetalhar || podeVoltar));
-      detalhar.textContent = podeDetalhar ? 'Detalhar dia a dia' : 'Voltar a Segunda a sexta';
+      linhasUi = linhasDoModo(dias, modo).map(function (l) { var r = criarLinha(l); caixaLinhas.appendChild(r.no); return r; });
+      atualizar();
     }
-    function compor() {
-      if (modo === null) { input.value = original; caixa.dataset.faltam = ''; resumo.classList.add('oculto'); return; }
-      var falta = linhas.filter(function (r) { return !diaCompleto(dias[r.grupo[0]]); }).map(function (r) { return r.nome; });
-      resumo.classList.remove('oculto');
-      resumo.classList.remove('hresumo--falta');
-      if (falta.length) {
-        input.value = '';
-        caixa.dataset.faltam = falta.join(', ');
-        resumo.textContent = 'Falta responder: ' + falta.join(', ') + '.';
-        return;
+
+    rTodos.addEventListener('change', function () {
+      if (!rTodos.checked) return;
+      var real = modoDeDias(dias);
+      var base = dias.filter(function (d) { return d.periodos !== null; })[0];
+      if ((real === 'semana' || real === 'dias') && base) {
+        // O que estava digitado vira o horário do 1º dia respondido: diz qual foi e deixa desfazer (a seta do teclado já marca a opção).
+        desfazer = { dias: copiaDias(dias), modo: modo };
+        var grupo = GRUPOS.filter(function (g) { return g.chave === grupoDaData(base.data); })[0];
+        avisoTxt.textContent = 'Usei o horário de ' + (modo === 'semana' && grupo ? grupo.rotulo : rotuloDia(base.data)) + ' em todos os dias.';
+        desfazerBtn.classList.remove('oculto');
       }
-      var texto = textoHorarios(faixasDeDias(dias));
-      if (texto.length > max) {
-        input.value = '';
-        caixa.dataset.faltam = 'junte os dias com o mesmo horário';
-        resumo.classList.add('hresumo--falta');
-        resumo.textContent = 'Está detalhado demais. Junte os dias que têm o mesmo horário.';
-        return;
-      }
-      input.value = texto;
-      caixa.dataset.faltam = '';
-      resumo.textContent = 'Fica assim: ' + texto.replace(/; /g, ' · ') + '.';
-    }
-    function trocarModo(novo) {
-      if (novo === 'todos') {
-        var base = dias[0] !== null ? dias[0] : (dias.filter(function (v) { return v !== null; })[0] || null);
-        for (var i = 0; i < 7; i++) dias[i] = base;
-      }
-      modo = novo;
+      dias = trocarModo(dias, 'todos');
+      modo = 'todos';
       desenhar();
-      compor();
-      caixa.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    rTodos.addEventListener('change', function () { if (rTodos.checked) trocarModo('todos'); });
-    rMuda.addEventListener('change', function () { if (rMuda.checked) trocarModo('grupos'); });
-    detalhar.addEventListener('click', function () { trocarModo(modo === 'grupos' ? 'dias' : 'grupos'); });
+    });
+    rMuda.addEventListener('change', function () {
+      if (!rMuda.checked) return;
+      modo = 'semana';
+      desenhar();
+    });
+    desfazerBtn.addEventListener('click', function () {
+      if (!desfazer) return;
+      dias = desfazer.dias;
+      modo = desfazer.modo;
+      limparAviso();
+      desenhar();
+      rMuda.focus();
+      ctx.avisar();
+    });
+    detalhar.addEventListener('click', function () {
+      limparAviso();
+      if (modo === 'semana') modo = 'dias';
+      else if (modo === 'dias' && podeAgrupar(dias)) modo = 'semana';
+      desenhar();
+      ctx.avisar();
+    });
     desenhar();
-    compor();
+
+    return {
+      // As linhas para gravar, ou null enquanto não estiver completo (o banco recusa o resto).
+      linhas: function () { return horarioCompleto(dias) ? linhasDeDias(dias) : null; },
+      completo: function () { return horarioCompleto(dias); },
+      // Em palavras, o que ainda não foi respondido (entra na lista "Faltam N itens").
+      motivo: function () {
+        if (modo === null) return 'escolha uma das opções';
+        var e = estadoDoHorario(dias, modo);
+        return e.completo ? '' : e.semDiaAberto ? 'pelo menos um dia precisa abrir'
+          : e.faltando.length ? 'falta responder: ' + e.faltando.join(', ') : 'confira os horários';
+      },
+      // Onde levar o foco quando a pessoa toca no item da lista. A página chama isto NO CLIQUE: as linhas são refeitas ao trocar o arranjo.
+      alvo: function () {
+        if (modo === null) return rTodos;
+        var linhas = linhasDoModo(dias, modo);
+        for (var k = 0; k < linhasUi.length; k++) {
+          if (diaCompleto(linhas[k].periodos)) continue;
+          var r = linhasUi[k], per = linhas[k].periodos;
+          if (!Array.isArray(per) || !per.length) return r.abre;
+          for (var i = 0; i < per.length && i < r.per.length; i++) {
+            if (!normalizarHora(per[i][0])) return r.per[i].abre;
+            if (!normalizarHora(per[i][1])) return r.per[i].fecha;
+          }
+          return r.per[0].abre;
+        }
+        return linhasUi.length ? linhasUi[0].abre : rTodos;
+      },
+      // O que o rascunho local guarda: o arranjo e as horas como estão (mesmo incompletos). Nunca vai no envio.
+      estado: function () { return { modo: modo, dias: copiaDias(dias) }; },
+      // A página diz como a loja se chama ("Loja 2 · Tirol"); vazio quando há uma loja só e sem nome.
+      rotular: rotular
+    };
   }
+  /* ── fim seletor ── */
+
   function prepararSelecoes(raiz) {
     raiz.querySelectorAll('.valores').forEach(montarValores);
-    raiz.querySelectorAll('[data-horario]').forEach(montarHorario);
+    raiz.querySelectorAll('[data-horario]').forEach(function (caixa) {
+      if (caixa.horario) return;
+      var ini = caixa.horarioInicial || {};
+      contadorGrupo += 1;
+      caixa.horario = montarHorario(caixa, { uid: contadorGrupo, datas: datasFestival(), linhas: ini.linhas, antigo: ini.antigo, rascunho: ini.rascunho, avisar: reavaliar });
+    });
   }
 
   function preencher(dados) {
@@ -945,7 +1289,7 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
   }
 
   /* ── Ler (mesma forma de preenchimento_estado) ── */
-  function coletar() {
+  function coletar(paraRascunho) {
     var d = { marca: {}, combo: {}, itens: [], unidades: [], confirmados: [] };
     form.querySelectorAll('[name^="marca."]').forEach(function (c) { d.marca[c.name.slice(6)] = c.value.trim(); });
     ['tema_combo', 'tema_justificativa', 'combo_nome', 'combo_descricao', 'custo_embalagem', 'custo_delivery'].forEach(function (k) {
@@ -960,12 +1304,18 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
       if (u.remover) { if (u.id) d.unidades.push({ id: u.id, remover: true }); return; }
       var x = { id: u.id };
       u.no.querySelectorAll('[data-k]').forEach(function (c) { x[c.dataset.k] = c.type === 'checkbox' ? c.checked : c.value.trim(); });
+      // WhatsApp da loja preenchido = vai para o site (23/10/2026): não há mais caixa de autorização.
+      x.whatsapp_autorizado = digitos(x.whatsapp || '').length > 0;
       u.no.querySelectorAll('[data-modo]').forEach(function (c) { x[c.dataset.modo] = c.checked ? 'sim' : 'nao'; });
       var cid = u.no.querySelector('[data-cidade]:checked');
       if (cid && cid.value) x.cidade = cid.value;
       else if (!cid) x.cidade = '';
-      var igual = u.no.querySelector('[data-loja-igual]:checked');
-      if (igual && igual.value === 'sim') x.horario_loja = x.horario_combo;
+      // Horário no festival: dia a dia, só quando está completo (o seletor nunca grava pela metade).
+      var hf = u.no.querySelector('[data-horario]').horario;
+      var linhasH = hf ? hf.linhas() : null;
+      if (linhasH) x.horario_festival = linhasH;
+      // Só no rascunho deste aparelho: o arranjo e as horas como estão, mesmo incompletos (o envio nunca leva isto).
+      if (paraRascunho && hf) { var estadoH = hf.estado(); if (estadoH) x.horario_rascunho = estadoH; }
       d.unidades.push(x);
     });
     if (document.getElementById('pr-confirma').checked) d.confirmados = BLOCOS.slice();
@@ -1062,15 +1412,11 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
       }
       formato(u.no.querySelector('[data-k="cep"]'), 'cep', rot + 'CEP com 8 números');
       formato(u.no.querySelector('[data-k="whatsapp"]'), 'tel', rot + 'WhatsApp da loja (DDD + número)');
-      var hc = u.no.querySelector('[data-pergunta="horario_combo"]');
-      if (!hc.querySelector('input[type="hidden"]').value.trim()) {
-        marca(hc, 'pergunta--falta');
-        lista.push({ texto: rot + 'dias e horário do combo' + (hc.dataset.faltam ? ' (falta: ' + hc.dataset.faltam + ')' : ''), alvo: hc.querySelector('input[type="radio"]') || hc });
-      }
-      var hl = u.no.querySelector('[data-pergunta="horario_loja"]');
-      if (u.no.querySelector('[data-loja-igual][value="nao"]:checked') && !hl.querySelector('input[type="hidden"]').value.trim()) {
-        marca(hl, 'pergunta--falta');
-        lista.push({ texto: rot + 'dias e horário da loja' + (hl.dataset.faltam ? ' (falta: ' + hl.dataset.faltam + ')' : ''), alvo: hl.querySelector('input[type="radio"]') || hl });
+      // Horário no festival: tudo respondido e pelo menos um dia abre; senão diz o que falta e leva o foco ao ponto certo.
+      var hf = u.no.querySelector('[data-horario]');
+      if (hf.horario && !hf.horario.completo()) {
+        marca(hf, 'pergunta--falta');
+        lista.push({ texto: rot + 'horário no festival (' + hf.horario.motivo() + ')', alvo: function () { return hf.horario.alvo(); } });
       }
       if (u.no.querySelector('[data-modo]:checked')) return;
       marca(u.no.querySelector('[data-pergunta="modos"]'), 'pergunta--falta');
@@ -1109,7 +1455,6 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     lojas.forEach(function (u) {
       var c = u.no.querySelector('[data-cidade]:checked');
       u.no.querySelector('[data-outra-cidade]').classList.toggle('oculto', !(c && !c.value));
-      u.no.querySelector('[data-pergunta="horario_loja"]').classList.toggle('oculto', !u.no.querySelector('[data-loja-igual][value="nao"]:checked'));
     });
     titulosLojas();
     guardarRascunho();
@@ -1117,7 +1462,7 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
   }
 
   function guardarRascunho() {
-    try { localStorage.setItem(chaveRascunho, JSON.stringify({ em: Date.now(), dados: coletar() })); } catch (e) { /* sem armazenamento */ }
+    try { localStorage.setItem(chaveRascunho, JSON.stringify({ em: Date.now(), dados: coletar(true) })); } catch (e) { /* sem armazenamento */ }
   }
   function lerRascunho() {
     try {
@@ -1141,10 +1486,12 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
         var a = el('a', { href: '#' }, f.texto);
         a.addEventListener('click', function (ev) {
           ev.preventDefault();
-          var det = f.alvo.closest('details');
+          // O seletor de horário refaz as linhas ao trocar Igual/Muda/Detalhar: o alvo dele é achado agora, não no envio.
+          var alvo = typeof f.alvo === 'function' ? f.alvo() : f.alvo;
+          var det = alvo.closest('details');
           if (det) det.open = true;
-          f.alvo.focus();
-          f.alvo.scrollIntoView({ block: 'center' });
+          alvo.focus();
+          alvo.scrollIntoView({ block: 'center' });
         });
         li.appendChild(a);
         ul.appendChild(li);
@@ -1161,7 +1508,10 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     link_invalido: 'Este link não vale mais. Peça um novo para a organização.',
     dados_invalidos: 'Não consegui ler o formulário. Recarregue a página e tente de novo.',
     limite: 'Este link já recebeu envios demais. Fale com a organização.',
-    aguarde: 'Você acabou de enviar. Espere alguns segundos e tente de novo.'
+    aguarde: 'Você acabou de enviar. Espere alguns segundos e tente de novo.',
+    // O horário é conferido aqui antes de enviar; se o servidor ainda assim recusar, a mensagem é a mesma do painel.
+    horario_invalido: 'Confira os horários: o fim tem que ser depois do início e os períodos do mesmo dia não podem se sobrepor.',
+    data_fora_do_festival: 'Esse dia não está no festival.'
   };
 
   form.addEventListener('input', function (ev) {

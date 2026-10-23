@@ -10,6 +10,7 @@ import {
   A_CONFIRMAR, TEXTO_CONCORRENCIA, capitalizar, minuscula, fraseDaSessao, notaDoAgendamento,
 } from '../painel-app/src/lib/fotosMarca.js'
 import { notaDeAbertura } from '../painel-app/src/lib/arquivosMarca.js'
+import { ativarVerComo, obterArquivoMarca } from '../painel-app/src/lib/marcaApi.js'
 import { resumoMarca, fotosDaParticipacao } from '../painel-app/src/lib/guia.js'
 import { TONS } from '../painel-app/src/lib/status.js'
 import { existe } from './_icones.mjs'
@@ -383,6 +384,71 @@ test('sem a leitura da conferência não se afirma que a pessoa ainda não confe
   assert.equal(situacaoDaConferencia(null, {}, true), 'nao_exige')
 })
 
+test('foto substituída depois da conferência: a conferência antiga não vale (pede de novo), com a mesma regra dos Arquivos', () => {
+  const a = { id: 'f1', exige_leitura: true, publicado_em: '2026-10-22T12:00:00Z' }
+  assert.equal(situacaoDaConferencia(a, { f1: '2026-10-20T10:00:00Z' }, true), 'pendente', 'conferiu a versão anterior')
+  assert.equal(situacaoDaConferencia(a, { f1: '2026-10-20T10:00:00Z' }, false), 'desconhecida')
+  assert.equal(situacaoDaConferencia(a, { f1: '2026-10-22T11:59:30Z' }, true), 'lido', 'dentro do minuto de tolerância (o do banco)')
+  assert.equal(situacaoDaConferencia(a, { f1: '2026-10-22T13:00:00Z' }, true), 'lido')
+  // A tela diz por que pede de novo, e só nesse caso.
+  const fo = ler(PASTA + 'FotosOficiais.jsx')
+  assert.match(fo, /\{conf === 'pendente' && lidos\[a\.id\] && <span>Esta versão foi publicada depois da sua conferência/)
+})
+
+test('fotos oficiais: "Baixar todas (ZIP)" e "Salvar ou compartilhar" com 2+ fotos, pelas peças da equipe e o caminho da marca', () => {
+  const fo = ler(PASTA + 'FotosOficiais.jsx')
+  assert.match(fo, /const entrega = useEntrega\(\{ obter: obterArquivoMarca, quem: 'marca' \}\)/, 'a marca passa o próprio caminho de busca e diz quem é (mensagens sem \"escolha menos\")')
+  assert.match(fo, /import \{ useEntrega, BotoesEntrega, EstadoEntrega \} from '\.\.\/\.\.\/vistas\/BaixarArquivo'/)
+  assert.match(fo, /import \{ api, obterArquivoMarca \} from '\.\.\/\.\.\/\.\.\/lib\/marcaApi'/)
+  const bloco = fo.slice(fo.indexOf("arquivos.length > 1 && ("), fo.indexOf('<ul className="fm-fotos">'))
+  assert.match(bloco, /<BotoesEntrega entrega=\{entrega\} nomeZip="Fotos oficiais" rotuloBaixar="Baixar todas \(ZIP\)"/)
+  assert.match(bloco, /itens=\{arquivos\.map\(\(a\) => \(\{ path: a\.path, nome: a\.nome, mime: a\.mime, tamanho: a\.tamanho \}\)\)\}/)
+  assert.match(bloco, /<EstadoEntrega entrega=\{entrega\} \/>/)
+  // A equipe segue com o caminho de sempre (arquivo-url); o rótulo próprio é o nome acessível (WCAG 2.5.3).
+  const ent = ler('painel-app/src/components/vistas/BaixarArquivo.jsx')
+  assert.match(ent, /export function useEntrega\(\{ obter = obterDaEquipe, quem = 'equipe' \} = \{\}\)/)
+  assert.match(ent, /const obterDaEquipe = \(x, nome, opcoes\) => obterArquivo\(fonteDe\(x\), nome, opcoes\)/)
+  assert.match(ent, /arq = await obter\(x, nomes\[i\], \{ mime: x\.mime, sinal: ctl\.signal \}\)/)
+  // Nome final do arquivo só existe depois do download: repetidos ("Foto" e "Foto.jpg") são renomeados ali, antes de entrar no ZIP.
+  assert.match(ent, /const nome = nomeLivre\(arq\.name, usados\)/)
+  assert.doesNotMatch(ent, /nomesUnicos/, 'a deduplicação por nome pedido deixava dois arquivos com o mesmo nome dentro do ZIP')
+  // Esperar a rede não prende a pessoa: tem Cancelar, e cancelar não entrega nada depois.
+  assert.match(ent, /e\.fase === 'preparando' && e\.cancelavel && <Botao variante="secundario" onClick=\{entrega\.cancelar\}>Cancelar<\/Botao>/)
+  assert.match(ent, /if \(ctl\.signal\.aborted\) throw cancelado\(\)/)
+  assert.match(ent, /if \(e && e\.name === 'AbortError'\) return/)
+  // O erro diz QUAL arquivo falhou; a marca (que não escolhe o conjunto) não lê "escolha menos".
+  assert.match(ent, /e\.arquivo = x\.nome/)
+  assert.match(ent, /planejarLote\(itens, \{ modo: 'zip', movel: movel\(\), escolhe: quem !== 'marca' \}\)/)
+  // iPhone sem toque ativo: pede um toque novo em vez de dizer "download iniciado" sem ter baixado.
+  assert.match(ent, /plataforma\(\)\.ios && !temGestoAtivo\(\)/)
+  assert.match(ent, /Baixar agora/)
+  // O resultado leva o foco (o botão tocado fica desativado enquanto prepara).
+  assert.match(ent, /ref\.current\.focus\(\)/)
+  assert.match(ent, /aria-label=\{n > 1 && !rotuloBaixar \?/)
+})
+
+test('obterArquivoMarca: assina pela sessão da marca (no "Ver como", pela organização), devolve o File com nome e tipo; erros com o contrato da equipe', async () => {
+  ativarVerComo({ ler: async () => [], baixar: async (p) => 'https://assinado.test/' + p })
+  try {
+    const chamadas = []
+    const sinal = new AbortController().signal
+    const ok = async (url, op) => { chamadas.push([url, op]); return { ok: true, status: 200, blob: async () => new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' }) } }
+    const f = await obterArquivoMarca({ path: 'geral/combo/foto-1.jpg' }, 'Foto do combo', { mime: 'image/jpeg', sinal }, ok)
+    assert.ok(f instanceof File)
+    assert.equal(f.name, 'Foto do combo.jpg', 'o nome legível com a extensão do tipo real')
+    assert.equal(f.type, 'image/jpeg')
+    assert.equal(f.size, 3)
+    assert.deepEqual(chamadas, [['https://assinado.test/geral/combo/foto-1.jpg', { signal: sinal, cache: 'no-store' }]])
+    // Tipo genérico do Storage: vale o do cadastro.
+    const generico = async () => ({ ok: true, status: 200, blob: async () => new Blob([new Uint8Array([1])], { type: 'application/octet-stream' }) })
+    assert.equal((await obterArquivoMarca({ path: 'x/a' }, 'Guia', { mime: 'application/pdf' }, generico)).name, 'Guia.pdf')
+    await assert.rejects(obterArquivoMarca({ path: 'x/a.jpg' }, 'a', {}, async () => { throw new TypeError('Failed to fetch') }), /^Error: rede$/)
+    await assert.rejects(obterArquivoMarca({ path: 'x/a.jpg' }, 'a', {}, async () => ({ ok: false, status: 404 })), /download_404/)
+    const abortado = Object.assign(new Error('parou'), { name: 'AbortError' })
+    await assert.rejects(obterArquivoMarca({ path: 'x/a.jpg' }, 'a', {}, async () => { throw abortado }), (e) => e === abortado, 'cancelar não vira "rede"')
+  } finally { ativarVerComo(null) }
+})
+
 /* ── Fotos oficiais ──────────────────────────────────────────────────────── */
 
 test('miniatura só para imagem; detalhe mostra formato e tamanho quando o dado existe', () => {
@@ -433,7 +499,10 @@ test('fotos oficiais: usa só as leituras e o endereço assinado que já existia
   const fo = ler(PASTA + 'FotosOficiais.jsx')
   const mini = ler(PASTA + 'Miniatura.jsx')
   assert.match(fo, /useSincronizar\(\['arquivos', 'participantes'\], carregar\)/)
-  assert.match(fo, /api\('arquivo_leitura'/)
+  assert.match(fo, /api\('arquivo_leitura\?select=arquivo_id,lido_em'\)/)
+  assert.match(fo, /await api\('rpc\/marca_confirmar_leitura', \{\s*metodo: 'POST',\s*corpo: \{ p_arquivo: a\.id, p_participacao: a\.participacao_id \|\| participacao\.id \},/)
+  assert.doesNotMatch(fo, /ignore-duplicates/, 'a gravação direta (que não renovava a conferência) saiu')
+  assert.match(fo, /\[a\.id\]: \(r && r\.lido_em\) \|\| leituraProvisoria\(a\)/, 'a hora do banco; a provisória nunca antes da publicação')
   // O endereço assinado vem do mesmo hook da aba Arquivos (que chama `assinarDownload(a.path)`).
   assert.match(fo, /useAcessoArquivo\(setAviso\)/)
   assert.match(ler('painel-app/src/components/vistas-marca/arquivos/useAcessoArquivo.js'), /assinarDownload\(a\.path\)/)
@@ -445,7 +514,8 @@ test('fotos oficiais: usa só as leituras e o endereço assinado que já existia
   assert.match(fo, /Conferência confirmada em/)
   // `setLidos` só DEPOIS da gravação confirmada, dentro do mesmo try (falha de gravação não marca como conferido).
   const c = fo.slice(fo.indexOf('async function conferir'), fo.indexOf('const situacao'))
-  assert.ok(c.indexOf("await api('arquivo_leitura'") < c.indexOf('setLidos('))
+  assert.ok(c.indexOf("await api('rpc/marca_confirmar_leitura'") > 0)
+  assert.ok(c.indexOf("await api('rpc/marca_confirmar_leitura'") < c.indexOf('setLidos('))
   assert.ok(c.indexOf('setLidos(') < c.indexOf('} catch'))
   assert.match(c.slice(c.indexOf('} catch')), /setAviso\(/)
   // Falha de leitura: erro com "tentar de novo"; vazio só dentro de "pronto".
@@ -521,7 +591,8 @@ test('fotos oficiais, acessibilidade: nome nos dois botões, resultado dentro do
   assert.doesNotMatch(fo, /setAviso\('/, 'o aviso sempre leva o id da foto')
   // O resultado de "Conferi as fotos" é dito (o botão some depois de gravar).
   assert.match(fo, /setAviso\(\{ id: a\.id, tom: 'ok', texto: 'Conferência registrada\.' \}\)/)
-  assert.ok(fo.indexOf("await api('arquivo_leitura'") < fo.indexOf("tom: 'ok', texto: 'Conferência registrada.'"), 'só diz depois de gravar')
+  assert.ok(fo.indexOf("await api('rpc/marca_confirmar_leitura'") > 0)
+  assert.ok(fo.indexOf("await api('rpc/marca_confirmar_leitura'") < fo.indexOf("tom: 'ok', texto: 'Conferência registrada.'"), 'só diz depois de gravar')
 })
 
 test('fotos oficiais em "Ver como participante": a gravação recusada diz a frase do modo, não "tente de novo"', () => {

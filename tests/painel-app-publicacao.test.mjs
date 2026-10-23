@@ -7,8 +7,9 @@ import {
   estadoPublicacao, textoPublicacao, filtrarPublicacoes, podePublicarCombo, traduzirPendencia,
   camposPublicos, diferencas, problemaChaves, bloqueioMudanca, paraLocalFortaleza, deLocalFortaleza,
   lerCoordenada, linkMapa, validarSlug, caminhoMidia, motivoNaoAprovar, traduzirErroPublicacao,
-  criteriosDe, rotuloCriterio, media, urlPublicaParticipante,
+  criteriosDe, rotuloCriterio, media, urlPublicaParticipante, textoHorarioFestival,
 } from '../painel-app/src/lib/publicacao.js'
+import { datasDoFestival } from '../painel-app/src/lib/horarioFestival.js'
 
 const vigente = {
   slug: 'cafe-da-praca', nivel: 'marca_e_combo',
@@ -60,7 +61,8 @@ test('pendências traduzidas com o nome da unidade e do componente', () => {
   assert.match(traduzirPendencia('unidade:u1a2b3c:endereco', ctx), /^Unidade Lagoa Nova: endereço incompleto/)
   assert.match(traduzirPendencia('unidade:u1a2b3c:modos', ctx), /sim ou não/)
   assert.match(traduzirPendencia('unidade:u1a2b3c:canais', ctx), /canal/)
-  assert.match(traduzirPendencia('unidade:u1a2b3c:horario', ctx), /horário do combo/)
+  // Uma pergunta só (23/10/2026): a pendência diz "horário no festival", não "do combo".
+  assert.equal(traduzirPendencia('unidade:u1a2b3c:horario', ctx), 'Unidade Lagoa Nova: sem horário no festival.')
   assert.match(traduzirPendencia('unidade:uzzz:horario', ctx), /^Unidade uzzz:/)
   assert.match(traduzirPendencia('item:1:alimentar', ctx), /^Doce "Bolo": faltam respostas sobre alergênicos/)
   assert.match(traduzirPendencia('item:2:alimentar', ctx), /^Componente 2:/)
@@ -73,8 +75,53 @@ test('campos públicos legíveis: preço, alergênicos, endereço e horário', (
   assert.equal(c['item.1.alimentar'], 'glúten: contém; leite: não informado')
   assert.equal(c['unidade.u1a2b3c.endereco'], 'Rua A, 10 — Lagoa Nova, Natal/RN')
   assert.equal(c['unidade.u1a2b3c.modos'], 'Consumo no local: sim · Retirada: não · Delivery: não')
-  assert.match(c['unidade.u1a2b3c.disponibilidade'], /6\/11 14:00–20:00/)
+  assert.equal(c['unidade.u1a2b3c.disponibilidade'], 'Sex 6/11: das 14h às 20h')
   assert.deepEqual(camposPublicos(null), [])
+})
+
+test('horário no festival nos campos públicos: um campo só, "horário no festival"; o horário da loja saiu', () => {
+  const comLoja = structuredClone(vigente)
+  comLoja.unidades[0].horario_loja = 'seg a sáb, 8h–20h' // versão antiga ou projeção velha: não vira campo
+  const lista = camposPublicos(comLoja)
+  assert.ok(!lista.some((x) => /horario_loja/.test(x.chave) || /horário da loja|horário do combo/i.test(x.rotulo)))
+  const h = lista.filter((x) => /horário/i.test(x.rotulo))
+  assert.deepEqual(h.map((x) => x.rotulo), ['Unidade Lagoa Nova · horário no festival'])
+  assert.equal(h[0].chave, 'unidade.u1a2b3c.disponibilidade')
+  // Mudar o horário aparece na diferença com antes e depois legíveis (não a lista crua de linhas).
+  const atual = structuredClone(vigente)
+  atual.unidades[0].combo.disponibilidade = [
+    { data: '2026-11-06', abre: '14:00', fecha: '20:00' }, { data: '2026-11-07', abre: '12:00', fecha: '15:00' }, { data: '2026-11-07', abre: '18:00', fecha: '24:00' },
+  ]
+  const d = diferencas(vigente, atual).find((x) => x.chave === 'unidade.u1a2b3c.disponibilidade')
+  assert.equal(d.antes, 'Sex 6/11: das 14h às 20h')
+  assert.equal(d.depois, 'Sex 6/11: das 14h às 20h · Sáb 7/11: das 12h às 15h e das 18h à meia-noite')
+  // Tirar todos os períodos: o campo fica vazio do lado novo (volta a ser "sem horário").
+  atual.unidades[0].combo.disponibilidade = undefined
+  assert.equal(diferencas(vigente, atual).find((x) => x.chave === 'unidade.u1a2b3c.disponibilidade').depois, '')
+})
+
+test('textoHorarioFestival: com os dias da edição conta os que não abrem; sem eles lista as datas e nunca diz "todos os dias"', () => {
+  const FESTIVAL = datasDoFestival('2026-11-05', '2026-11-15')
+  const todos = FESTIVAL.map((data) => ({ data, abre: '10:00', fecha: '22:00' }))
+  assert.equal(textoHorarioFestival(todos, FESTIVAL), 'Todos os dias, das 10h às 22h')
+  assert.equal(textoHorarioFestival([], FESTIVAL), '', 'sem linhas = ainda não respondido')
+  assert.equal(textoHorarioFestival(undefined, FESTIVAL), '')
+  assert.equal(textoHorarioFestival(null), '')
+  // Sábado e domingo diferentes; domingo fecha. (Dia sem linha = não abre.)
+  const semana = FESTIVAL.flatMap((data) => {
+    const dow = new Date(data + 'T12:00:00Z').getUTCDay()
+    return dow === 0 ? [] : [dow === 6 ? { data, abre: '12:00', fecha: '20:00' } : { data, abre: '10:00', fecha: '22:00' }]
+  })
+  assert.equal(textoHorarioFestival(semana, FESTIVAL), 'Segunda a sexta, das 10h às 22h · Sábado, das 12h às 20h · Domingo, não abre')
+  // O jsonb do banco volta com as chaves em outra ordem e a hora com segundos.
+  assert.equal(textoHorarioFestival(todos.map((l) => ({ fecha: l.fecha + ':00', abre: l.abre + ':00', data: l.data })), FESTIVAL), 'Todos os dias, das 10h às 22h')
+  // Sem os dias do festival (o Social media não lê a edição): só do primeiro ao último dia com linha.
+  assert.equal(textoHorarioFestival(todos), 'Qui 5 a Dom 15/11: das 10h às 22h')
+  assert.ok(!/todos os dias/i.test(textoHorarioFestival(todos, [])))
+  const buraco = [{ data: '2026-11-06', abre: '10:00', fecha: '22:00' }, { data: '2026-11-08', abre: '10:00', fecha: '22:00' }]
+  assert.equal(textoHorarioFestival(buraco), 'Sex 6/11: das 10h às 22h · Sáb 7/11: não abre · Dom 8/11: das 10h às 22h')
+  // Linhas fora dos dias dados também não viram "todos os dias, não abre": cai na lista das datas.
+  assert.equal(textoHorarioFestival(todos, ['2026-12-01', '2026-12-02']), 'Qui 5 a Dom 15/11: das 10h às 22h')
 })
 
 test('diferença campo a campo entre a versão no ar e a atual', () => {

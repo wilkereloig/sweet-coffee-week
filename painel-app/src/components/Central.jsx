@@ -4,6 +4,10 @@ import { Folha } from './Folha'
 import { Carregando, Erro, Vazio } from './ui'
 import { tempoRelativo, contarNaoLidas } from '../lib/central'
 import { Autor } from './Avatar'
+import { abrirConviteAparelho } from './AppNoAparelho'
+
+// A folha leva 260 ms para sair (Folha.jsx › SAIDA): o convite (outro <dialog>, com o próprio foco preso) só abre depois.
+const DEPOIS_DA_FOLHA = 300
 
 /*
  * Central de avisos — o sino do cabeçalho e a lista, IGUAL nos dois painéis.
@@ -20,9 +24,13 @@ const ICONE_TIPO = { mensagem: 'mensagem', pedido: 'pedido', arquivo: 'arquivo',
 const ICONE_NIVEL = { informacao: 'informacao', atencao: 'atencao-circulo', pendencia: 'pedido', alteracao: 'alteracao', aprovado: 'ok-circulo', arquivo: 'arquivo' }
 
 // `niveis` (opcional): { nivelDe(aviso) → chave, NIVEIS[chave] → { rotulo, acao } }.
-export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarregar, aberto, onAbrirCentral, onFecharCentral, niveis = null }) {
+// `aparelho` (opcional): o <AvisosAparelho> desta conta — vira "Avisos neste aparelho" no topo da folha. A casca não
+// passa no "Ver como" (o aparelho é do administrador, não da marca).
+export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarregar, aberto, onAbrirCentral, onFecharCentral, niveis = null, aparelho = null }) {
   const naoLidas = contarNaoLidas(itens)
   const lista = itens || []
+  const idAparelho = React.useId()
+  const comoInstalar = () => { onFecharCentral(); setTimeout(abrirConviteAparelho, DEPOIS_DA_FOLHA) }
 
   return (
     <>
@@ -41,6 +49,13 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
         sub={naoLidas ? naoLidas + (naoLidas === 1 ? ' não lido' : ' não lidos') : 'Tudo em dia'}
         onFechar={onFecharCentral}
       >
+        {aparelho && (
+          <section className="ui-central-aparelho" aria-labelledby={idAparelho}>
+            <h3 id={idAparelho} className="ui-central-aparelho__titulo">Avisos neste aparelho</h3>
+            {aparelho}
+            <button type="button" className="ui-link" onClick={comoInstalar}>Como instalar e ligar os avisos</button>
+          </section>
+        )}
         {naoLidas > 0 && (
           <div className="ui-linha-acoes">
             <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={onLerTodas}>Marcar todos como lidos</button>

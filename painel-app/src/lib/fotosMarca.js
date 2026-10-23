@@ -15,6 +15,7 @@
  */
 import { tipoLegivel, tamanhoLegivel } from './arquivos.js'
 import { dataCurta } from './respostas.js'
+import { leituraVale } from './arquivosMarca.js'
 
 export const A_CONFIRMAR = 'A organização ainda vai confirmar'
 export const TEXTO_CONCORRENCIA = 'Esse horário acabou de ser escolhido por outra marca. Escolha outro.'
@@ -238,11 +239,11 @@ export function situacaoDaLeitura({ dados, erro } = {}) {
 /**
  * As pendências da aba Fotos que `resumoMarca` (guia.js) já produz: marcar a sessão, conferir fotos oficiais e as
  * solicitações da organização sobre as fotos (`bloco: 'fotos'`). É a MESMA regra que dá o número do selo da aba
- * (guia.js › `contagem`: toda pendência da vista, menos "enviar"): lista e selo não podem divergir.
+ * (guia.js › `contagem`: toda pendência da vista): lista e selo não podem divergir.
  */
 export function pendenciasDeFotos(resumo) {
   if (!resumo || !Array.isArray(resumo.pendencias)) return []
-  return resumo.pendencias.filter((p) => p.vista === 'fotos' && p.tipo !== 'enviar')
+  return resumo.pendencias.filter((p) => p.vista === 'fotos')
 }
 
 /* ── Fotos oficiais ────────────────────────────────────────────────────── */
@@ -259,9 +260,10 @@ export function detalheDaFoto(a) {
  * A conferência de uma foto: 'nao_exige' · 'lido' · 'pendente' · 'desconhecida'.
  * `leituraOk` = a leitura de `arquivo_leitura` chegou. Sem ela NÃO se sabe se a pessoa já conferiu: dizer "pendente"
  * seria afirmar o que não se sabe (e oferecer o botão de novo para quem já conferiu).
+ * Conferência anterior à versão atual (a foto foi substituída) não vale: volta a ser pedida (`leituraVale`).
  */
 export function situacaoDaConferencia(a, lidos, leituraOk) {
   if (!a || !a.exige_leitura) return 'nao_exige'
-  if (lidos && lidos[a.id]) return 'lido'
+  if (leituraVale(a, lidos && lidos[a.id])) return 'lido'
   return leituraOk ? 'pendente' : 'desconhecida'
 }

@@ -7,6 +7,7 @@
  *  2. "Sem lactose" ≠ "sem leite": são aspectos diferentes, lidos separados.
  *  3. Modo de atendimento só conta quando a unidade declarou "sim" para o COMBO.
  */
+import { datasDoFestival, frasesDeLinhas, horaTexto } from './horarioFestival.js'
 
 export const ALERGENICOS = [
   ['gluten', 'glúten'], ['leite', 'leite'], ['ovo', 'ovo'], ['amendoim', 'amendoim'],
@@ -92,18 +93,26 @@ function partesLocais (agora) {
   return { data: `${p.year}-${p.month}-${p.day}`, hora: `${p.hour}:${p.minute}` }
 }
 
+const diaIso = (v) => { const s = String(v || '').slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '' }
+
 /**
  * Estado do combo numa unidade agora:
- * aberto · abre_hoje · encerrado_hoje · sem_horario_hoje · sem_horario (nunca cadastrou).
+ * aberto · abre_hoje · encerrado_hoje · sem_horario_hoje · fora_do_periodo · sem_horario (nunca cadastrou).
+ * Dia sem linha = a unidade NÃO abre (domingo fechado, por exemplo). `periodo` ({ inicio, fim }, o da edição) diz onde o festival
+ * começa e termina: dentro dele, dia sem linha é "sem combo hoje"; "fora do período" é só fora dele. Sem `periodo`, os limites são
+ * o primeiro e o último dia que a própria unidade cita.
  */
-export function estadoAgora (unidade, agora = new Date()) {
+export function estadoAgora (unidade, agora = new Date(), periodo = null) {
   const faixas = unidade?.combo?.disponibilidade || []
   if (!faixas.length) return { estado: 'sem_horario' }
   const { data, hora } = partesLocais(agora)
   const hoje = faixas.filter((f) => f.data === data).sort((a, b) => a.abre.localeCompare(b.abre))
   if (!hoje.length) {
-    const datas = faixas.map((f) => f.data).sort()
-    return data < datas[0] || data > datas[datas.length - 1] ? { estado: 'fora_do_periodo' } : { estado: 'sem_horario_hoje' }
+    const citados = faixas.map((f) => f.data).sort()
+    const comEdicao = diaIso(periodo?.inicio) && diaIso(periodo?.fim)
+    const de = comEdicao ? diaIso(periodo.inicio) : citados[0]
+    const ate = comEdicao ? diaIso(periodo.fim) : citados[citados.length - 1]
+    return data < de || data > ate ? { estado: 'fora_do_periodo' } : { estado: 'sem_horario_hoje' }
   }
   const atual = hoje.find((f) => hora >= f.abre && hora < f.fecha)
   if (atual) return { estado: 'aberto', ate: atual.fecha }
@@ -114,12 +123,12 @@ export function estadoAgora (unidade, agora = new Date()) {
 
 export function textoEstado (e) {
   switch (e.estado) {
-    case 'aberto': return `Combo disponível agora, até ${e.ate}`
-    case 'abre_hoje': return `Combo disponível hoje a partir das ${e.as}`
+    case 'aberto': return `Combo disponível agora, até ${horaTexto(e.ate) || e.ate}`
+    case 'abre_hoje': return `Combo disponível hoje a partir das ${horaTexto(e.as) || e.as}`
     case 'encerrado_hoje': return 'Combo encerrado por hoje'
     case 'sem_horario_hoje': return 'Sem combo hoje'
     case 'fora_do_periodo': return ''
-    default: return 'Horário do combo a confirmar com a loja'
+    default: return 'Horário no festival a confirmar com a loja'
   }
 }
 
@@ -198,21 +207,15 @@ export function formatarDia (iso) {
   return `${DIAS[dt.getUTCDay()]} ${d}/${m}`
 }
 
-/** Faixas agrupadas: dias com o mesmo horário viram uma linha só. */
-export function horarioResumido (disponibilidade = []) {
-  const porDia = new Map()
-  for (const f of disponibilidade) {
-    const k = f.data
-    porDia.set(k, [...(porDia.get(k) || []), `${f.abre}–${f.fecha}`])
-  }
-  const grupos = []
-  for (const [data, faixas] of [...porDia.entries()].sort()) {
-    const chave = faixas.join(' · ')
-    const ultimo = grupos[grupos.length - 1]
-    if (ultimo && ultimo.chave === chave) ultimo.fim = data
-    else grupos.push({ chave, inicio: data, fim: data })
-  }
-  return grupos.map((g) => ({ dias: g.inicio === g.fim ? formatarDia(g.inicio) : `${formatarDia(g.inicio)} a ${formatarDia(g.fim)}`, faixas: g.chave }))
+/**
+ * Como a unidade funciona nos dias do festival, em frases curtas ("Segunda a sexta, das 10h às 22h" · "Domingo, não abre"):
+ * as mesmas linhas {data, abre, fecha} de `combo.disponibilidade`, lidas pelo módulo do horário. Dia sem período = não abre.
+ * `periodo` ({ inicio, fim }, o da edição) dá os dias do festival; sem ele (ou se nenhuma linha cai nele), vale do primeiro ao
+ * último dia que as linhas citam — e então os dias de fora dessas pontas não são citados. Sem horário nenhum: [].
+ */
+export function horarioNoFestival (disponibilidade = [], periodo = null) {
+  const datas = periodo ? datasDoFestival(String(periodo.inicio || '').slice(0, 10), String(periodo.fim || '').slice(0, 10)) : []
+  return frasesDeLinhas(Array.isArray(disponibilidade) ? disponibilidade : [], datas)
 }
 
 export function enderecoEmLinha (e = {}) {

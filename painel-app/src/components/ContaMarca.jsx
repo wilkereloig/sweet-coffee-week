@@ -55,7 +55,9 @@ function AlterarSenha() {
   )
 }
 
-export function ContaMarca({ aberto, onFechar, onSair }) {
+// `verComo`: o administrador vendo como a marca. O aparelho na mão é DELE — nada de ler a assinatura dele como se fosse
+// da marca (o `conferir` falha ali e a tela diria "Ligados") nem de pedir permissão no aparelho dele.
+export function ContaMarca({ aberto, onFechar, onSair, verComo = false }) {
   const [marca, setMarca] = React.useState(null)
   const guarda = useGuarda()
   // Nome da marca no cabeçalho da folha. Relê a cada abertura e, com a folha aberta, quando 'participantes'
@@ -80,8 +82,14 @@ export function ContaMarca({ aberto, onFechar, onSair }) {
   return (
     <Folha aberto={aberto} titulo="Sua conta" sub={marca ? marca.nome_marca : 'Painel SCW · Participante'} onFechar={onFechar}>
       <div className="ui-pilha">
-        <AplicativoENotificacoes push={marca ? push : null}
-          explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer um pedido, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado." />
+        {verComo ? (
+          <Secao titulo="Aplicativo e notificações">
+            <p className="ui-nota">No “Ver como”, esta parte fica de fora: ela é do aparelho da marca, não deste.</p>
+          </Secao>
+        ) : (
+          <AplicativoENotificacoes papel="marca" push={marca ? push : null}
+            explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer uma solicitação, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado." />
+        )}
         <Secao titulo="Alterar minha senha" nota="Mínimo 10 caracteres.">
           <AlterarSenha />
         </Secao>

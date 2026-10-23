@@ -62,33 +62,29 @@ export function adiarConvite(papel, conta, agora = Date.now()) {
   try { localStorage.setItem(chaveConvite(papel, conta), String(agora)) } catch { /* segue sem lembrar */ }
 }
 
-/*
- * Visitas ao painel por conta e aparelho (22/10/2026): conta UMA por sessão do navegador. O convite de instalar/ligar
- * avisos só abre a partir da 2ª — na primeira a pessoa está aprendendo o painel (o tour, dispensável, já cobre isso) e a
- * primeira tarefa não pode disputar atenção com um diálogo. Guarda só um número. Sem armazenamento: devolve 2 (o convite
- * não fica escondido para sempre por causa de uma aba privada).
- */
-export function contarVisita(papel, conta, { local = typeof localStorage === 'undefined' ? null : localStorage, sessao = typeof sessionStorage === 'undefined' ? null : sessionStorage } = {}) {
-  try {
-    const k = 'scw_visitas_' + papel + '_' + (conta || 'sem-conta')
-    const s = 'scw_visita_contada_' + papel + '_' + (conta || 'sem-conta')
-    let n = Number(local.getItem(k)) || 0
-    if (sessao.getItem(s) !== '1') { n += 1; local.setItem(k, String(n)); sessao.setItem(s, '1') }
-    return n
-  } catch { return 2 }
-}
-
 /** Que aparelho é este (só o que muda a instrução). */
 export function plataforma(ua = typeof navigator === 'undefined' ? '' : navigator.userAgent, toque = typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints) {
   const ios = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && toque > 1)
+  const v = /(?:iPhone )?OS (\d+)[_.](\d+)/.exec(ua)
   return {
     ios,
+    // iOS/iPadOS abaixo de 16.4 não recebe aviso nenhum, nem com o painel instalado. O iPad que se apresenta como Mac não diz a versão: fica false.
+    iosAntigo: ios && !!v && (Number(v[1]) < 16 || (Number(v[1]) === 16 && Number(v[2]) < 4)),
     // No iPhone só o Safari adiciona à Tela de Início com o painel como app.
     safari: ios && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua),
     android: /Android/.test(ua),
     movel: ios || /Android|Mobile/.test(ua),
   }
 }
+
+/**
+ * Como liberar notificações BLOQUEADAS neste aparelho (o painel não pode pedir de novo). `p` = plataforma(),
+ * `app` = aberto pelo ícone. No iPhone só existe bloqueio com o painel instalado (fora dele não há push).
+ */
+export const COMO_LIBERAR = (p, app) => p.ios ? 'Ajustes do iPhone › Notificações › Painel SCW › Permitir Notificações.'
+  : p.android && app ? 'Configurações do aparelho › Apps › Painel SCW › Notificações › Permitir.'
+  : p.android ? 'Toque no cadeado ao lado do endereço › Permissões › Notificações › Permitir.'
+  : 'Clique no cadeado ao lado do endereço do site › Notificações › Permitir. Depois, recarregue o painel.'
 
 /**
  * Qual etapa o convite mostra (ou nenhuma):

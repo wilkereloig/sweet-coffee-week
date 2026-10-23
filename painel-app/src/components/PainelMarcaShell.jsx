@@ -11,7 +11,6 @@ import { lerRota, montarRota } from '../lib/rota'
 import { ContaMarca } from './ContaMarca'
 import { Tour, useTour } from './Tour'
 import { InstalarApp, ConviteAparelho } from './AppNoAparelho'
-import { contarVisita } from '../lib/instalar'
 import { PontoVersao } from './Conexao'
 import { pushMarca } from '../lib/marcaApi'
 import { AvisosAparelho } from './AvisosAparelho'
@@ -56,6 +55,9 @@ function aplicarAcento(vista) {
   document.body.style.setProperty('--pn-acento-tinta', 'var(--scw-' + (escura ? 'creme' : 'choco') + ')')
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')
 }
+
+// Avisos deste aparelho: o mesmo texto no sino e no tour.
+const EXPLICACAO_AVISOS = 'Ligue para saber na hora quando a organização escrever, fizer uma solicitação ou marcar as fotos.'
 
 // O que o resumo da marca lê (useResumoMarca): qualquer um destes mudou → relê, sem poll.
 const DOMINIOS_RESUMO = ['participantes', 'cadastro', 'unidades', 'correcoes', 'pedidos', 'fotos', 'arquivos', 'temas', 'logos', 'publicacao', 'edicao']
@@ -231,8 +233,8 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
   const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial && !verComo })
   const idParticipante = (dadosMarca && dadosMarca.participante && dadosMarca.participante.id) || null
   const pushDaMarca = React.useMemo(() => pushMarca(idParticipante), [idParticipante])
-  // O convite de instalar/ligar avisos só a partir da 2ª visita: a primeira é da primeira tarefa (e do tour, dispensável).
-  const visitas = React.useMemo(() => (idParticipante ? contarVisita('marca', idParticipante) : 0), [idParticipante])
+  // Avisos deste aparelho (sino, tour). Nunca no "Ver como": o aparelho é do administrador, e ligar pediria permissão nele.
+  const comAparelho = !verComo && !!idParticipante
 
   const Vista = vistas[vista]
   // Números das abas = pendências daquela seção (+ mensagens não lidas no Início).
@@ -320,6 +322,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
             onLerTodas={lerTodas}
             onRecarregar={carregar}
             niveis={{ nivelDe: nivelDoAviso, NIVEIS }}
+            aparelho={comAparelho ? <AvisosAparelho explicacao={EXPLICACAO_AVISOS} {...pushDaMarca} /> : null}
           />
           {/* Conta (avisos do aparelho e sair) — no celular fica aqui; no
               desktop, no pé da rail. */}
@@ -368,11 +371,10 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
         onIr={(d) => irPara(d)}
       />
       {tour.aberto && <Tour etapas={tour.etapas} onFechar={tour.fechar} onIr={(l) => abrirLink(l)}
-        aparelho={<><InstalarApp compacto />{dadosMarca && dadosMarca.participante && <AvisosAparelho compacto
-          explicacao="Ligue para saber na hora quando a organização escrever, pedir algo ou marcar as fotos."
-          {...pushMarca(dadosMarca.participante.id)} />}</>} />}
-      <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={verComo ? verComo.onSair : onSair} />
-      {!verComo && <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto && visitas >= 2} />}
+        aparelho={comAparelho ? <><InstalarApp compacto papel="marca" /><AvisosAparelho compacto explicacao={EXPLICACAO_AVISOS} {...pushDaMarca} /></> : null} />}
+      <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={verComo ? verComo.onSair : onSair} verComo={!!verComo} />
+      {/* Já na 1ª visita, logo depois do tour (decisão do Wilker, 23/10/2026); no app instalado, enquanto os avisos estiverem desligados. */}
+      {!verComo && <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto} />}
     </div>
   )
 }

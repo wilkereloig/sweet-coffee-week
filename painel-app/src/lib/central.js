@@ -182,7 +182,7 @@ export function descreverAtividade(a, { comMarca = true } = {}) {
       return 'Acesso compartilhado ' + (d.ativa ? 'ligado' : 'desligado')
     case 'cadastro.editado': {
       // Etapa 3: o administrador editou um bloco do cadastro.
-      const BLOCO = { marca: 'dados da marca', participacao: 'dados da participação', item: 'item do combo', unidade: 'unidade' }
+      const BLOCO = { marca: 'dados da marca', participacao: 'dados da participação', item: 'item do combo', unidade: 'unidade', horario_festival: 'horário no festival' }
       const campos = d.campos ? Object.keys(d.campos).join(', ').replace(/_/g, ' ') : ''
       const nome = d.bloco === 'item' && d.nome_para ? ' "' + d.nome_para + '"' : d.bloco === 'unidade' && d.endereco ? ' ' + d.endereco : ''
       return 'Cadastro editado pela organização' + marca + ' · ' + (BLOCO[d.bloco] || 'cadastro') + nome + (campos ? ' (' + campos + ')' : '')

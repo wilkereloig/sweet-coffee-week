@@ -3,6 +3,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import React from 'react'
+import { carregar, html } from './_renderizar.mjs'
+import { datasDoFestival } from '../painel-app/src/lib/horarioFestival.js'
 import {
   FONTES_FICHA, criarCarregadorFicha, lerResposta, lerFalha, situacaoTema, textoCusto, textoAcrescimo,
   alimentarDoItem, componentesDaFicha, unidadesDaFicha, fotosDaFicha, fotosIniciais, fotosPublicadas,
@@ -19,9 +22,12 @@ const ITENS = [
   { id: 'i1', posicao: 1, tipo: 'doce', nome: 'Brigadeiro', descricao: 'Brigadeiro de pote', ingredientes: 'leite condensado, cacau', vegano: true },
   { id: 'i2', posicao: 2, tipo: 'doce', nome: 'Bolo', descricao: 'Bolo de rolo', ingredientes: 'trigo, ovos, goiabada', tem_substituicao: true, substituicao: 'sem goiabada' },
 ]
+// Os dias do festival vêm do cadastro da edição (get_edicoes); aqui, os da Cartoon 2026.2 como dado de teste.
+const FESTIVAL = datasDoFestival('2026-11-05', '2026-11-15')
+const TODOS_OS_DIAS = FESTIVAL.map((data) => ({ data, abre: '10:00', fecha: '22:00' }))
 const LINHAS_UNIDADES = [
   { id: 'pu1', unidade_id: 'u1', id_publico: 'a1', participa: true, consumo_local: 'sim', retirada: 'sim', delivery_combo: 'sim',
-    canais_delivery: [{ tipo: 'aplicativo', link: 'https://ifood.com.br/x' }], delivery_taxa: 'R$ 5', delivery_regioes: 'Zona Sul', observacao_combo: '', endereco: 'Rua A', bairro: 'Tirol', horarios: '10h às 22h' },
+    canais_delivery: [{ tipo: 'aplicativo', link: 'https://ifood.com.br/x' }], delivery_taxa: 'R$ 5', delivery_regioes: 'Zona Sul', observacao_combo: '', endereco: 'Rua A', bairro: 'Tirol', horarios: '10h às 22h', horario_festival: TODOS_OS_DIAS },
   { id: 'pu2', unidade_id: 'u2', id_publico: 'a2', participa: false, consumo_local: 'nao_informado', retirada: 'nao_informado', delivery_combo: 'nao_informado', canais_delivery: [] },
 ]
 const PUB = {
@@ -39,7 +45,7 @@ const PUB = {
       { posicao: 2, tipo: 'doce', alimentar: [] },
     ] },
     unidades: [{ id: 'a1', nome: 'Loja Tirol', endereco: { logradouro: 'Rua A', numero: '10', bairro: 'Tirol', cidade: 'Natal', uf: 'RN', referencia: 'ao lado da praça' },
-      horario_loja: 'seg a sáb, 8h–20h', whatsapp: '84999990000',
+      whatsapp: '84999990000',
       combo: { modos: { local: 'sim', retirada: 'sim', delivery: 'sim' }, disponibilidade: [
         { data: '2026-11-05', abre: '10:00', fecha: '18:00' }, { data: '2026-11-06', abre: '10:00', fecha: '18:00' }] } }],
   },
@@ -196,22 +202,23 @@ test('trocas: acréscimo zero, ausente, modalidades e unidades', () => {
 
 /* ── Unidades ─────────────────────────────────────────────────────────────── */
 test('várias unidades: todas aparecem, inclusive a que não participa, cada dado da sua origem', () => {
-  const u = unidadesDaFicha(LINHAS_UNIDADES, PUB)
+  const u = unidadesDaFicha(LINHAS_UNIDADES, PUB, FESTIVAL)
   assert.equal(u.length, 2)
   const [tirol, centro] = u
   assert.equal(tirol.participa, true)
   assert.match(tirol.enderecoTexto, /Rua A, 10 — Tirol, Natal\/RN/)
   assert.equal(tirol.endereco.referencia, 'ao lado da praça')
-  assert.equal(tirol.horarioLoja, 'seg a sáb, 8h–20h')
-  assert.equal(tirol.horarioCombo.length, 1) // dois dias iguais viram uma faixa
+  // Uma pergunta só (23/10/2026): como a unidade funciona nos dias do festival. Nada de horário da loja × do combo.
+  assert.equal(tirol.horarioFestival, 'Todos os dias, das 10h às 22h')
+  assert.ok(!('horarioLoja' in tirol) && !('horarioCombo' in tirol))
   assert.deepEqual(tirol.modos, { local: 'sim', retirada: 'sim', delivery: 'sim' })
   assert.equal(tirol.canais[0].rotulo, 'Aplicativo de entrega')
   assert.equal(tirol.coordenada.estado, 'conferida')
   assert.match(tirol.mapa, /query=-5\.8%2C-35\.2/)
   assert.match(tirol.trajeto, /dir\/\?api=1&destination=/)
-  assert.equal(tirol.anterior.horarios, '10h às 22h')
+  assert.equal(tirol.anterior.horarios, '', 'com horário gravado, o texto antigo não aparece mais')
   assert.equal(centro.participa, false)
-  assert.equal(centro.horarioCombo, null) // não se aplica
+  assert.equal(centro.horarioFestival, null) // não participa e a leitura não trouxe: não se aplica
   assert.equal(centro.coordenada.estado, 'sem')
   assert.match(centro.mapa, /Rua%20B/) // endereço com rua e bairro abre o mapa
 })
@@ -220,7 +227,7 @@ test('unidade sem rua não ganha link de mapa; sem get_publicacao cai no cadastr
   const u = unidadesDaFicha([{ id: 'x', participa: true, endereco: '', bairro: 'Tirol' }], null)
   assert.equal(u[0].mapa, '')
   assert.equal(u[0].origemCompleta, false)
-  assert.equal(u[0].horarioCombo, null)
+  assert.equal(u[0].horarioFestival, null, 'nenhuma fonte trouxe o horário: não é "não respondido"')
 })
 
 /* ── Fotos ────────────────────────────────────────────────────────────────── */
@@ -344,4 +351,125 @@ test('cabeçalho: cadastro, tema, combo e site são quatro processos, não um st
   const lendo = processosDaFicha(P, { nucleo: { estado: 'carregando' }, publicacao: { estado: 'erro' } })
   assert.equal(lendo[1].texto, 'Carregando…')
   assert.equal(lendo[3].texto, 'Não verificado')
+})
+
+/* ── Horário no festival (23/10/2026): uma pergunta só, na ficha da equipe ─────────────────────────────────────────────── */
+const SEMANA_COM_DOMINGO_FECHADO = FESTIVAL.flatMap((data) => {
+  const dow = new Date(data + 'T12:00:00Z').getUTCDay() // 0 = domingo · 6 = sábado
+  if (dow === 0) return []
+  return [dow === 6 ? { data, abre: '12:00', fecha: '20:00' } : { data, abre: '10:00', fecha: '22:00' }]
+})
+
+test('horário na ficha: a frase do que está GRAVADO; sem resposta é vazio (nunca "fechada"); o texto antigo só sobra até haver resposta', () => {
+  const unico = (linha, pub = null, datas = FESTIVAL) => unidadesDaFicha([{ id: 'x', participa: true, ...linha }], pub, datas)[0]
+  assert.equal(unico({ horario_festival: SEMANA_COM_DOMINGO_FECHADO }).horarioFestival,
+    'Segunda a sexta, das 10h às 22h · Sábado, das 12h às 20h · Domingo, não abre')
+  const sem = unico({ horario_festival: [], horarios: 'Seg a sáb 10h às 22h' })
+  assert.equal(sem.horarioFestival, '', 'sem resposta não é "não abre"')
+  assert.equal(sem.anterior.horarios, 'Seg a sáb 10h às 22h', 'o que a marca disse antes aparece para ela confirmar')
+  assert.equal(unico({ horario_festival: TODOS_OS_DIAS, horarios: 'Seg a sáb 10h às 22h' }).anterior.horarios, '', 'com resposta, o texto antigo some')
+  // Dois períodos no dia e meia-noite; os dias sem linha não abrem.
+  const dois = unico({ horario_festival: [{ data: '2026-11-05', abre: '12:00', fecha: '15:00' }, { data: '2026-11-05', abre: '18:00', fecha: '24:00' }] })
+  assert.match(dois.horarioFestival, /Qui 5\/11: das 12h às 15h e das 18h à meia-noite · Sex 6 a Dom 15\/11: não abre/)
+})
+
+test('sem a coluna na linha vale a versão pública; sem as datas do festival a frase lista as datas (nunca "todos os dias")', () => {
+  const daPublica = unidadesDaFicha([{ id: 'pu1', participa: true }], PUB, FESTIVAL)[0]
+  assert.match(daPublica.horarioFestival, /Qui 5 a Sex 6\/11: das 10h às 18h/)
+  const semDatas = unidadesDaFicha(LINHAS_UNIDADES, PUB)[0]
+  assert.equal(semDatas.horarioFestival, 'Qui 5 a Dom 15/11: das 10h às 22h')
+  assert.ok(!/todos os dias/i.test(semDatas.horarioFestival))
+})
+
+/* ── O card da unidade na edição da ficha: o seletor da marca, com "Salvar horário" próprio ─────────────────────────── */
+const { HorarioDaUnidade, Bloco, estadoDoRascunho } = carregar('painel-app/src/components/vistas/FichaCadastro.jsx')
+const propsHorario = (unidade, extra = {}) => ({ unidade, rotuloUnidade: 'Unidade 1', datas: FESTIVAL, podeEditar: true, onSalvar: async () => {}, ...extra })
+const desenharHorario = (unidade, extra) => html(HorarioDaUnidade, propsHorario(unidade, extra))
+
+test('card da unidade: a frase, "Editar horário" só com cadastro.editar, e nada de horário da loja × do combo', () => {
+  const unidade = { id: 'pu1', horario_festival: TODOS_OS_DIAS }
+  const lido = desenharHorario(unidade)
+  assert.match(lido, /<dt>Horário no festival<\/dt><dd>Todos os dias, das 10h às 22h<\/dd>/)
+  assert.match(lido, /aria-label="Editar horário da unidade 1"/)
+  assert.match(lido, />Editar horário<\/button>/)
+  const soLeitura = desenharHorario(unidade, { podeEditar: false })
+  assert.match(soLeitura, /Todos os dias, das 10h às 22h/)
+  assert.ok(!/<button|<form|<select|type="radio"/.test(soLeitura), 'quem não tem cadastro.editar só lê')
+  for (const h of [lido, soLeitura]) assert.ok(!/horário da loja|horário do combo/i.test(h))
+})
+
+test('card da unidade: sem resposta diz isso, oferece "Preencher horário" e mostra o texto de antes sem tratá-lo como resposta', () => {
+  const h = desenharHorario({ id: 'pu1', horario_festival: [], horarios: 'Seg a sáb 10h às 22h' })
+  assert.match(h, /Ainda não respondido/)
+  assert.match(h, />Preencher horário<\/button>/)
+  assert.match(h, /Cadastro anterior, não confirmado: Seg a sáb 10h às 22h/)
+  assert.ok(!/Todos os dias/.test(h))
+  const fora = desenharHorario({ id: 'pu1', participa: false, horario_festival: [] })
+  assert.match(fora, /não participa desta edição/)
+  assert.ok(!/<button|<form/.test(fora), 'unidade que não participa não pede horário')
+})
+
+test('card da unidade aberto: o seletor num formulário PRÓPRIO, com "Salvar horário" parado até haver mudança completa', () => {
+  const h = desenharHorario({ id: 'pu1', horario_festival: TODOS_OS_DIAS }, { abertoInicial: true })
+  assert.match(h, /^<form class="ui-form" data-salva-por-evento="1">/, 'o editor da ficha sabe que há digitação não salva')
+  assert.match(h, /data-hf/)
+  assert.match(h, /Como esta unidade funciona nos dias do festival\?/)
+  assert.match(h, /id="hf-pu1"/)
+  assert.match(h, /<button class="og-btn og-btn--mini" type="submit" disabled="">Salvar horário<\/button>/)
+  assert.match(h, />Cancelar<\/button>/)
+  // Datas que não vieram (leitura que falhou): não há seletor para preencher, e o erro diz por quê.
+  const semDatas = desenharHorario({ id: 'pu1', horario_festival: [] }, { abertoInicial: true, datas: [], datasFalharam: true })
+  assert.match(semDatas, /Não consegui ler as datas do festival/)
+  assert.ok(!/data-hf/.test(semDatas))
+})
+
+test('no card da unidade o horário fica FORA do formulário da unidade: dois formulários irmãos, nunca aninhados', () => {
+  const card = html(Bloco, {
+    titulo: 'Unidade 1', campos: [{ chave: 'endereco', rotulo: 'Endereço' }], valores: { endereco: 'Rua A' }, podeEditar: true, abertoInicial: true,
+    onSalvar: async () => {}, children: React.createElement(HorarioDaUnidade, propsHorario({ id: 'pu1', horario_festival: TODOS_OS_DIAS }, { abertoInicial: true })),
+  })
+  assert.equal((card.match(/<form/g) || []).length, 2)
+  assert.ok(!/<form[^>]*>(?:(?!<\/form>)[\s\S])*<form/.test(card), 'formulário dentro de formulário')
+  assert.ok(card.indexOf('data-salva-por-evento="1"', card.indexOf('</form>')) > 0, 'o do horário vem depois do da unidade')
+})
+
+test('Salvar horário: só com o horário COMPLETO e diferente do gravado; pela metade é "sujo" mas não salva', () => {
+  const gravado = [{ data: '2026-11-05', abre: '10:00', fecha: '22:00' }]
+  assert.deepEqual(estadoDoRascunho(null, gravado), { sujo: false, salvavel: false })
+  assert.deepEqual(estadoDoRascunho({ linhas: null, completo: false }, gravado), { sujo: true, salvavel: false })
+  // O banco devolve o jsonb com as chaves em outra ordem (e a hora com segundos): é o mesmo horário.
+  const eco = [{ fecha: '22:00:00', abre: '10:00:00', data: '2026-11-05' }]
+  assert.deepEqual(estadoDoRascunho({ linhas: gravado, completo: true }, eco), { sujo: false, salvavel: false })
+  assert.deepEqual(estadoDoRascunho({ linhas: [{ ...gravado[0], fecha: '23:00' }], completo: true }, gravado), { sujo: true, salvavel: true })
+  assert.deepEqual(estadoDoRascunho({ linhas: gravado, completo: true }, []), { sujo: true, salvavel: true }, 'a primeira resposta')
+})
+
+test('ficha da equipe: grava só por org_salvar_horario_unidade, com os dias da edição, e o texto livre antigo não é mais enviado', () => {
+  const fonte = ler('painel-app/src/components/vistas/FichaCadastro.jsx')
+  assert.match(fonte, /rpc\('org_salvar_horario_unidade', \{ p_secret: lerSenha\(\), p_participacao: pa\.id, p_unidade: u\.id, p_linhas: linhas \}\)/)
+  const semComentario = (t) => t.replace(/\/\/.*$/gm, '')
+  const campos = semComentario(fonte.slice(fonte.indexOf('const CAMPOS_UNIDADE'), fonte.indexOf('function unidadeParaValores')))
+  assert.ok(!/horarios/.test(campos), 'o horário não é campo do formulário da unidade')
+  const valores = semComentario(fonte.slice(fonte.indexOf('function valoresParaUnidade'), fonte.indexOf('export function useFichaParticipacao')))
+  assert.ok(!/horarios/.test(valores), 'o PATCH da unidade não manda o texto antigo (o banco guarda o que já estava)')
+  // Os dias do festival são do cadastro da edição, nunca escritos no código.
+  assert.match(fonte, /import \{ useDatasDoFestival \} from '\.\.\/\.\.\/lib\/festivalReact'/)
+  const hook = readFileSync(new URL('../painel-app/src/lib/festivalReact.js', import.meta.url), 'utf8')
+  assert.match(hook, /rpc\('get_edicoes'/)
+  assert.ok(!/2026-1[01]-\d\d/.test(fonte) && !/2026-1[01]-\d\d/.test(hook))
+  // Enquanto as datas carregam, não diz "não foram definidas"; se falharem, há "Tentar de novo" (fechar e abrir não relê).
+  assert.match(fonte, /datasCarregando && !datas\.length/)
+  assert.match(fonte, /onTentarDatas/)
+})
+
+test('Visão do participante: UM item "Horário no festival" por unidade, com os dias da edição; e ninguém mais fala em horário da loja ou do combo', () => {
+  const visao = ler('painel-app/src/components/vistas/FichaVisao.jsx')
+  assert.equal((visao.match(/\['Horário no festival'/g) || []).length, 1)
+  assert.match(visao, /unidadesDaFicha\([^)]*datasDoFestival\(ed\.inicio, ed\.fim\)/)
+  const social = ler('painel-app/src/components/vistas/SocialParticipantes.jsx')
+  assert.match(social, /Horário no festival: \{textoHorarioFestival\(u\.combo && u\.combo\.disponibilidade\) \|\| 'pendente'\}/)
+  const obsoleto = /horário (da loja|do combo)|horario_loja|horario_combo|horarioLoja|horarioCombo/i
+  for (const a of ['components/vistas/FichaCadastro.jsx', 'components/vistas/FichaVisao.jsx', 'components/vistas/SocialParticipantes.jsx', 'lib/fichaGeral.js', 'lib/publicacao.js']) {
+    assert.ok(!obsoleto.test(ler('painel-app/src/' + a)), a)
+  }
 })

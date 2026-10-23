@@ -10,13 +10,13 @@ Princípio: **estender o que existe, não duplicar.** Toda mudança é aditiva (
 | Unidade (permanente) | **não existe**: endereço é redigitado a cada edição em `participacao_unidades` | nova `unidades` (marca, nome da unidade, endereço estruturado, coordenadas verificadas, WhatsApp público) |
 | Edição | `edicoes` | mantém; o estado de publicação vai em `edicao_publicacao` (1:1) |
 | Participação da marca na edição | `participacoes` | mantém; ganha `slug_publico`, `combo_nome`, `combo_descricao`, `combo_condicoes` e a marcação de alteração depois da aprovação |
-| Participação da unidade na edição | `participacao_unidades` | mantém; ganha `unidade_id`, modos de atendimento tri-estado e o id público. A disponibilidade estruturada vai em tabela filha |
+| Participação da unidade na edição | `participacao_unidades` | mantém; ganha `unidade_id`, modos de atendimento tri-estado e o id público. O horário no festival mora numa coluna jsonb da própria participação da unidade (`horario_festival`, 23/10/2026); a tabela filha `unidade_disponibilidade` ficou sem uso |
 | Combo | campos em `participacoes` e, por legado, em `participantes.combo_nome/combo_descricao` | **combo = participação (1:1)**. Nome e descrição passam para `participacoes`. Sem tabela `combos` nova |
 | Componentes do combo | `participantes_itens` (posição 1–3) | mantém; os selos booleanos são substituídos por declarações tri-estado |
 | Declarações alimentares | 3 booleanos `NOT NULL default false` por item | nova `declaracoes_alimentares` |
 | Substituições | `tem_substituicao` + texto até 500 | nova `substituicoes` |
 | Fotos | foto oficial em `arquivos` (privado), `foto_path` do item nunca usado, logo em `logos_marca` (público) | nova `midias_participacao` com papel, item, aprovação e cópia pública |
-| Condições de atendimento | `faz_delivery`, `canais_delivery`, `so_delivery`, `mesas`, `combo_para_viagem`, `combo_delivery` (texto) | colunas tri-estado por unidade + `unidade_disponibilidade` |
+| Condições de atendimento | `faz_delivery`, `canais_delivery`, `so_delivery`, `mesas`, `combo_para_viagem`, `combo_delivery` (texto) | colunas tri-estado por unidade; o horário vai em `participacao_unidades.horario_festival` (jsonb) |
 | Revisão | `combo_status`, `status_cadastro`, `correcoes_campo`, `solicitacoes`, `auditoria` | mantém; ganha `alterado_apos_aprovacao` |
 | Publicação | **não existe** | nova `publicacoes` (versão pública congelada) + `edicao_publicacao` |
 
@@ -28,7 +28,7 @@ Princípio: **estender o que existe, não duplicar.** Toda mudança é aditiva (
 | Todas as unidades participam | só as unidades com linha em `participacao_unidades` e `participa = true` entram |
 | Todas oferecem o mesmo combo | o combo é da participação; diferença por unidade vai em `observacao_combo` da unidade e no escopo das substituições. Combo inteiro diferente por unidade fica fora (**[Decisão D-11]**) |
 | Delivery da loja implica delivery do combo | `delivery_combo` é da participação da unidade, separado de qualquer dado da loja; não existe "loja faz delivery" no modelo |
-| Horário da loja implica disponibilidade do combo | `unidade_disponibilidade` guarda o horário **do combo** por dia do festival; o horário geral da loja é texto opcional e nunca é usado como disponibilidade |
+| Horário da loja implica disponibilidade do combo | **Decisão de 23/10/2026 (Wilker): não existe mais "horário da loja" × "horário do combo".** Pergunta-se UMA coisa: como a unidade funciona em cada dia do festival (`participacao_unidades.horario_festival`). O horário comercial da loja não é pedido, guardado de novo nem publicado |
 | Um contato atende todas as unidades | `whatsapp_publico` é por unidade; o telefone da marca (`participantes.telefone`) é do responsável e **privado** |
 
 ## 3.3 Dicionário de campos
@@ -63,8 +63,8 @@ Legenda das colunas da tabela:
 | `referencia` | "dentro do shopping, piso L2" | text ≤ 120 | — | M | O | sim | — | omite |
 | `lat`, `lng` | posição no mapa | numeric(9,6) | P (para o mapa) | O | O | sim | dentro da região de Natal (**[Decisão D-16]** caixa limite) | unidade só na lista, com aviso "localização em conferência" |
 | `coordenada_verificada_em`, `_por` | quem conferiu | timestamptz, text | P | O | — | não | — | não publica no mapa |
-| `whatsapp_publico` | pedido e contato da unidade | text | — | M | O | sim | celular BR, 11 dígitos; autorização expressa da marca para publicar (caixa no painel) | sem botão WhatsApp |
-| `horario_loja_texto` | horário geral, informativo | text | — | M | O | sim, rotulado "horário da loja" | — | omite |
+| `whatsapp_publico` | pedido e contato da unidade | text | — | M | O | sim | celular BR, 11 dígitos. É o WhatsApp **da loja** (um por unidade): preenchido = vai ao site (`whatsapp_autorizado` acompanha o número; desde 23/10/2026 não há caixa de autorização). O contato pessoal do responsável continua privado | sem botão WhatsApp |
+| `horario_loja_texto` | **legado (23/10/2026)**: horário geral antigo, só leitura | text | — | — | — | não | nada novo grava nem mostra | — |
 
 `participacao_unidades.endereco/bairro` passa a ser preenchido a partir de `unidades` na criação da participação. É uma cópia de conveniência que não é mais editada. Backfill: uma `unidades` por endereço distinto já cadastrado.
 
@@ -99,11 +99,28 @@ Os campos `participantes.combo_nome/combo_descricao` (legado, por marca) são co
 | `delivery_regioes` **(nova)** | onde entrega | text ≤ 200 | — | M | O | sim | — | "consulte a loja sobre a região" |
 | `delivery_taxa` **(nova)** | taxa | text ≤ 120 | — | M | O | sim | — | "taxa conforme a plataforma ou a loja" (nunca "grátis") |
 | `observacao_combo` **(nova)** | diferença desta unidade | text ≤ 200 | — | M | O | sim | — | omite |
-| `mesas`, `so_delivery`, `horarios` | operação e legado | — | — | O / M | — | não | — | `horarios` texto vira `horario_loja_texto` |
+| `mesas`, `so_delivery`, `horarios` | operação e legado | — | — | O / M | — | não | — | `horarios` texto é o horário antigo do combo: só aparece como "Hoje está: …" até a marca confirmar o horário no festival |
 
 `estado_servico` = enum `sim` · `nao` · `nao_informado` (default `nao_informado`). Motivo: um booleano `false` não distingue "não oferece" de "não respondeu".
 
-### Disponibilidade do combo (`unidade_disponibilidade`, nova)
+### Horário no festival (`participacao_unidades.horario_festival`, 23/10/2026)
+
+Substitui a tabela `unidade_disponibilidade` (planejada abaixo, nunca usada em produção: ficou vazia, com comentário de legado). Decisão do Wilker:
+**uma pergunta só — como a unidade funciona em cada dia do festival.** Sem "horário da loja" × "horário do combo", sem horário comercial padrão.
+
+| Campo | Tipo | Observação |
+|---|---|---|
+| `participacao_unidades.horario_festival` | jsonb, default `[]` | lista de `{ data, abre, fecha }`; `data` entre `festival_inicio` e `festival_fim` (hoje 05 a 15/11/2026, 11 dias) |
+| `abre`, `fecha` | `HH:MM` | de 05:00 a 23:30 em passos de 30 min; `fecha` também pode ser `24:00` (meia-noite); `fecha > abre`; até **2 períodos por dia** (fecha para o almoço) e sem sobreposição |
+
+Regras: **dia sem período = não abre**; **`[]` = ainda não respondido** (vira pendência `unidade:<id>:horario`, nunca "fechado"). O banco valida em qualquer gravação
+(gatilho `horario_festival_validar` → `horario_festival_normalizar`; erros `horario_invalido` e `data_fora_do_festival`). A marca confirma e a equipe edita
+(`org_salvar_horario_unidade`, com auditoria antes/depois). O texto antigo (`participacao_unidades.horarios`) vira linhas só quando a marca confirma, ou pelo
+`/preencher` (`horario_festival_de_texto`); em 23/10/2026 14 das 38 unidades foram convertidas, as outras chegam vazias com "Hoje está: …".
+A página pública lê as mesmas linhas em `unidades[].combo.disponibilidade` (`montar_publico`); sem horário, "horário a confirmar com a loja" e sem "aberto agora".
+Telas: seletor único (`painel-app/src/components/HorarioFestival.jsx`; regra em `src/edicao/dados/horarioFestival.js`) na marca, na ficha da equipe e, em versão estática, em `/preencher`.
+
+#### Plano original (superado): tabela `unidade_disponibilidade`
 
 | Campo | Tipo | Observação |
 |---|---|---|
@@ -112,7 +129,7 @@ Os campos `participantes.combo_nome/combo_descricao` (legado, por marca) são co
 | `abre`, `fecha` | time | `fecha > abre`; um dia pode ter mais de uma faixa |
 | `observacao` | text ≤ 120 | "até acabar o estoque do dia" |
 
-Preenchida pela marca com atalho "mesmo horário em todos os dias" e ajuste por dia. É obrigatória para publicar o combo (P). Sem ela, a página mostra "horário do combo a confirmar com a loja" e o estado "aberto agora" não aparece.
+Era preenchida com atalho "mesmo horário em todos os dias" e ajuste por dia. A observação por dia saiu com a troca (o seletor novo não a tem).
 
 ### Componentes (`participantes_itens`)
 

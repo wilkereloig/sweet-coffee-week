@@ -93,7 +93,7 @@ export function Mapa ({ navigate, dados }) {
                     <button type="button" className="ct-mapa__sel" aria-pressed={sel === u.id} onClick={() => setSel(sel === u.id ? '' : u.id)}>
                       <strong>{titulo}</strong>
                       <span>{M.enderecoEmLinha(u.endereco)}</span>
-                      {u.combo && M.textoEstado(M.estadoAgora(u)) && <span className="ct-nota">{M.textoEstado(M.estadoAgora(u))}</span>}
+                      {u.combo && M.textoEstado(M.estadoAgora(u, undefined, dados?.edicao)) && <span className="ct-nota">{M.textoEstado(M.estadoAgora(u, undefined, dados?.edicao))}</span>}
                       {dist != null && <span className="ct-nota">{dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1).replace('.', ',')} km`} em linha reta</span>}
                       {!u.coordenada && <span className="ct-nota">Localização no mapa em conferência.</span>}
                     </button>

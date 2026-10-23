@@ -427,13 +427,18 @@ test('filtros: só os filtros contam (período, visualização e item não)', ()
   for (const k of ['modo', 'data', 'dia', 'resp', 'sit', 'fmt', 'ed', 'part', 'q', 'atalho', 'volta']) assert.ok(R.CHAVES_FILTRO.includes(k), k)
 })
 
-test('semana pela largura do CONTEÚDO: sete colunas só quando cabem; agenda no meio; linhas no estreito', () => {
+test('semana pela largura do CONTEÚDO: sete colunas só quando cabem; agenda abaixo disso, também no celular', () => {
   assert.equal(R.layoutSemana(1280), 'colunas')
   assert.equal(R.layoutSemana(R.LARGURA_COLUNAS), 'colunas')
   assert.equal(R.layoutSemana(R.LARGURA_COLUNAS - 1), 'agenda', '1024 de tela com menu lateral não força sete colunas')
   assert.equal(R.layoutSemana(700), 'agenda')
-  assert.equal(R.layoutSemana(R.LARGURA_AGENDA - 1), 'linhas')
-  assert.equal(R.layoutSemana(328), 'linhas')
+  // 23/10/2026: o celular deixou de ter "linhas que abrem com um toque" — as postagens aparecem ao lado do dia.
+  assert.equal(R.layoutSemana(599), 'agenda')
+  assert.equal(R.layoutSemana(328), 'agenda')
+  assert.equal(R.LARGURA_AGENDA, undefined, 'não há mais terceiro arranjo')
+  assert.doesNotMatch(VISTA, /'linhas'|rd-sem--linhas/)
+  assert.doesNotMatch(CSS_PAINEL, /rd-sem--linhas|rd-sem__aberto|rd-sem__seta/)
+  assert.match(CSS_PAINEL, /@container rd \(max-width:599px\)\{\s*\.rd-sem--agenda \.rd-sem__linha\{grid-template-columns:52px minmax\(0,1fr\)/, 'no celular, o rótulo do dia estreita')
   assert.equal(R.layoutSemana(0), 'colunas', 'antes de medir: o arranjo largo (a medida chega antes de pintar)')
   assert.match(VISTA, /new ResizeObserver/)
   assert.match(VISTA, /useLayoutEffect/)
@@ -536,7 +541,7 @@ test('celular: campos com 16 px, toque de 44 px, nada que dependa de passar o mo
     const antes = social.slice(Math.max(0, m.index - 200), m.index)
     assert.match(antes, /@media \(hover:hover\)\{[^}]*$/, 'hover fora de @media (hover:hover)')
   }
-  for (const sel of ['.rd-ajuda', '.rd-periodo__intervalo', '.rd-semdata', '.rd-alerta', '.rd-pendencia', '.rd-sem__vazio']) {
+  for (const sel of ['.rd-ajuda', '.rd-periodo__intervalo', '.rd-mes__mais', '.rd-alerta', '.rd-pendencia', '.rd-sem__vazio']) {
     assert.match(social, new RegExp(sel.replace('.', '\\.') + '[,.a-z_-]*\\{[^}]*min-height:(44|48)px'), sel)
   }
 })
@@ -570,6 +575,82 @@ test('período: rótulo curto no celular e nome dos botões pelo modo', () => {
   assert.equal(R.rotuloMover('semana', 1), 'Próxima semana')
   assert.equal(R.rotuloMover('mes', 1), 'Próximo mês')
   assert.match(VISTA, /showPicker/, 'o intervalo abre o calendário do aparelho')
+})
+
+// ── Planejamento refeito (23/10/2026): topo, cartão, semana e o resumo da Visão geral ─────────────
+test('topo: a aba é o título; ações na linha do período; o raro em "Mais ações"; ajuda uma vez só', () => {
+  assert.match(VISTA, /<h2 className="ui-oculto">Planejamento<\/h2>/, 'o h2 fica para o leitor de tela')
+  assert.doesNotMatch(VISTA + CSS_PAINEL, /rd-cabeca/, 'o cabeçalho de três títulos saiu')
+  const faixa = VISTA.slice(VISTA.indexOf('<div className="rd-faixa">'), VISTA.indexOf('<div className="rd-ferramentas">'))
+  assert.match(faixa, /<div className="rd-acoes">[\s\S]*Como funciona[\s\S]*<MaisAcoes itens=\{\[pode\('redes\.gerir'\) && \{ rotulo: 'Checklist padrão'[\s\S]*Nova postagem/)
+  assert.match(CSS_PAINEL, /@container rd \(max-width:520px\)\{\s*\.rd-acoes\{order:-1;flex:1 1 100%;margin:0\}\s*\.rd-acoes > \.rd-nova\{order:-1/, 'no estreito, "Nova postagem" vem primeiro')
+  // "Ver o passo a passo" abria a mesma folha do "Como funciona" ao lado.
+  assert.doesNotMatch(GUIA, /Ver o passo a passo|onAbrirPassos/)
+  assert.match(GUIA, /Entendi/)
+  // Módulo com abas: o título e as abas ficam perto (vale para todo módulo com abas).
+  assert.match(CSS_PAINEL, /\.og-vista > \.pn-vista-cabeca:has\(\+ \.ui-abas\)\{margin-bottom:var\(--e-5\)\}/)
+})
+
+test('alertas: o escopo (todas as datas) está NA TELA e a pílula parece um atalho; nunca contador zerado', () => {
+  assert.match(VISTA, /<span className="ui-nota" aria-hidden="true">Em todas as datas:<\/span>/)
+  assert.match(VISTA, /R\.rotuloAlerta\(k, contagem\[k\]\)\}<Icone nome="seta-direita"/)
+  assert.match(CSS_PAINEL, /\.rd-alerta\{[^}]*background:var\(--sup-trilho\)[^}]*font:700/, 'pílula cheia, como os outros atalhos')
+  assert.deepEqual(R.alertasDoPerfil({ atrasadas: 0, ajuste: 0, aprovadas: 0 }), [])
+  assert.equal(R.totalAlertas({ aprovacao: 2, atrasadas: '1', ajuste: 0, aprovadas: 4, hoje: 9 }, { aprova: true }), 3, 'quem aprova: aprovação + atraso + ajuste')
+  assert.equal(R.totalAlertas({ aprovacao: 2, atrasadas: '1', ajuste: 0, aprovadas: 4, hoje: 9 }, { aprova: false }), 5, 'quem publica: ajuste + a publicar + atraso')
+  assert.equal(R.totalAlertas(null, { aprova: true }), 0)
+})
+
+test('visualização: "Sem data" é o quinto modo, com o mesmo nome em todo lugar', () => {
+  assert.deepEqual(R.MODOS, ['semana', 'mes', 'dia', 'lista', 'fila'])
+  assert.equal(R.ROTULO_MODO.fila, 'Sem data')
+  assert.doesNotMatch(VISTA, /fila sem data|rd-semdata|MODOS_VISTA/i)
+  assert.doesNotMatch(CSS_PAINEL, /rd-semdata/)
+  assert.match(VISTA, /\{R\.MODOS\.map\(\(m\) => \(\s*<button key=\{m\}/, 'segmentado com os cinco')
+  assert.match(VISTA, /\{R\.MODOS\.map\(\(m\) => <option key=\{m\}/, 'caixa de seleção com os cinco')
+  // Busca com largura própria, junto de "Filtros" (não estica pela linha toda).
+  assert.match(CSS_PAINEL, /\.rd-ferramentas \.rd-busca\{flex:0 1 320px;min-width:0;margin-left:auto\}/)
+})
+
+test('cartão: situação e alerta em selo (também no compacto), participante quando há', () => {
+  const cartao = VISTA.slice(VISTA.indexOf('export function CartaoPost'), VISTA.indexOf('// Item curto do mês'))
+  assert.match(cartao, /<Selo dominio="post_redes" valor=\{p\.situacao\}>\{compacto \? sit\.curto : null\}<\/Selo>/)
+  assert.match(cartao, /\{alerta && <Selo tom=\{alerta\.tom\}>\{alerta\.texto\}<\/Selo>\}/)
+  assert.match(cartao, /p\.participante_nome && <span className="rd-cartao__part">/)
+  assert.doesNotMatch(VISTA + CSS_PAINEL, /rd-cartao__sit|rd-cartao__alerta/, 'selo à mão saiu')
+  assert.match(VISTA, /return \[p\.titulo, p\.participante_nome,/, 'o participante também no rótulo acessível')
+  assert.equal((FICHA.match(/placeholder="Ex\.: Carrossel do combo, lançamento"/g) || []).length, 2, 'o título interno tem exemplo nos dois formulários')
+})
+
+test('semana: atraso dito UMA vez por contexto; "Adicionar" em todo dia; hoje sem contorno pesado', () => {
+  // Na coluna, a cabeça só avisa o que está escondido (o cartão à vista já tem filete + selo).
+  assert.match(VISTA, /const oculto = resumoDia\(itens\.slice\(MAX_COLUNA\), ctx\.agora\)/)
+  assert.match(VISTA, /\(oculto\.atrasadas \|\| oculto\.pendentes\) > 0/)
+  assert.doesNotMatch(VISTA, /: 'Nada'\)/, 'coluna vazia não escreve "Nada"')
+  assert.doesNotMatch(VISTA, /podeCriar && !itens\.length/, '"Adicionar" também nos dias com postagem')
+  assert.match(VISTA, /!itens\.length && !podeCriar && <li className="rd-sem__nada/, '"Nada programado." só para quem não cria')
+  assert.match(CSS_PAINEL, /\.rd-sem__coluna\{[^}]*min-height:clamp\(220px,32vh,360px\)/)
+  assert.match(CSS_PAINEL, /\.rd-sem--colunas \.rd-sem__vazio\{flex:1 1 auto/, 'o espaço livre da coluna é o botão')
+  assert.match(CSS_PAINEL, /\.rd-sem__vazio\{[^}]*border:1px dashed transparent/, 'discreto até o ponteiro ou o foco')
+  assert.match(CSS_PAINEL, /\.rd-sem__vazio:focus-visible\{/)
+  assert.doesNotMatch(CSS_PAINEL, /\.rd-sem__(coluna|linha)\.is-hoje\{box-shadow:inset 0 0 0 2px/)
+  // "Ver todos (N)" do mês e da semana: um texto só e 44 px de toque.
+  assert.doesNotMatch(VISTA, /Ver mais |>Recolher</)
+  assert.equal((VISTA.match(/>Ver todos \(/g) || []).length, 2)
+  assert.match(CSS_PAINEL, /\.rd-mes__mais\{min-height:44px/)
+})
+
+test('resumo da Visão geral: sem contador zerado; laranja só o que é do perfil; leitura da Mesa ou a própria', () => {
+  const resumo = VISTA.slice(VISTA.indexOf('const ITENS_RESUMO'))
+  assert.match(resumo, /const itens = ITENS_RESUMO\.filter\(\(\[k\]\) => n\(k\) > 0\)/)
+  assert.match(resumo, /data-tom=\{k !== 'aprovadas' && doPerfil\.includes\(k\) \? 'atencao' : undefined\}/, '"aprovadas, a publicar" é boa notícia: neutro, como no chip do Planejamento')
+  assert.match(resumo, /const doPerfil = R\.alertasDoPerfil\(r, \{ aprova: pode\('redes\.aprovar'\) \}\)/)
+  assert.match(resumo, /\['aprovadas', 'aprovadas, a publicar'\]/, 'quem publica vê o que conta no alerta dela')
+  assert.match(resumo, /\['sem_data', 'sem data'\]/)
+  assert.match(resumo, /\{R\.atrasada\(p\) && <Selo/, 'atraso pela regra única')
+  assert.doesNotMatch(resumo, /getTime\(\) < Date\.now\(\)/)
+  assert.match(resumo, /const proprio = resumo === undefined/)
+  assert.match(resumo, /\{ ativo: ver && proprio \}/, 'na Mesa, a releitura é a da Mesa')
 })
 
 // ── Biblioteca com pastas e entrega de arquivos (17/10/2026) ─────────────────
@@ -766,4 +847,30 @@ test('revisão da entrega: nada falha calado, resposta velha não sobrescreve, p
   assert.doesNotMatch(ARQ, /\.catch\(\(\) => \{\}\), \[bucket\]\)/, 'renovar não engole o erro')
   const FOLHA = ler('painel-app/src/components/Folha.jsx')
   assert.match(FOLHA, /React\.useEffect\(\(\) => \(\) => \{\s*const o = origemRef\.current/, 'folha desmontada devolve o foco')
+})
+
+test('entrega: nome livre no conjunto (depois da extensão e da troca de caracteres) e recusas sem "escolha" para quem não escolhe', () => {
+  // Sem olhar caixa; o 3º repetido pula o "(2)" que já existe.
+  const usados = new Set()
+  assert.equal(EN.nomeLivre('Foto.jpg', usados), 'Foto.jpg')
+  assert.equal(EN.nomeLivre('foto.JPG', usados), 'foto (2).JPG')
+  assert.equal(EN.nomeLivre('Foto.jpg', usados), 'Foto (3).jpg')
+  assert.equal(EN.nomeLivre('Sem extensão', usados), 'Sem extensão')
+  assert.equal(EN.nomeLivre('Sem extensão', usados), 'Sem extensão (2)')
+  // O caso do revisor: "Foto" e "Foto.jpg" só colidem DEPOIS de nomeArquivo dar a extensão; "a/b" e "a:b" viram o mesmo nome.
+  const final = [EN.nomeArquivo('Foto', 'image/jpeg', 'x/1.jpg'), EN.nomeArquivo('Foto.jpg', 'image/jpeg', 'x/2.jpg'), EN.nomeArquivo('a/b', 'image/png'), EN.nomeArquivo('a:b', 'image/png')]
+  const u = new Set()
+  const unicos = final.map((n) => EN.nomeLivre(n, u))
+  assert.equal(new Set(unicos.map((n) => n.toLowerCase())).size, 4, 'quatro arquivos, quatro nomes: ' + unicos.join(' | '))
+  assert.deepEqual(EN.nomesUnicos(['a.png', 'A.png', 'b.png', 'a.png']), ['a.png', 'A (2).png', 'b.png', 'a (3).png'])
+
+  const mb = 1048576
+  const escolhe = EN.planejarLote(Array(3).fill({ tamanho: 45 * mb }), { modo: 'zip', movel: true })
+  assert.match(escolhe.motivo, /Escolha menos arquivos/)
+  const marca = EN.planejarLote(Array(3).fill({ tamanho: 45 * mb }), { modo: 'zip', movel: true, escolhe: false })
+  assert.equal(marca.ok, false)
+  assert.match(marca.motivo, /Baixe uma de cada vez/)
+  assert.doesNotMatch(marca.motivo, /Escolha/, 'quem não escolhe o conjunto não pode ler "escolha"')
+  assert.doesNotMatch(EN.planejarLote(Array(61).fill({ tamanho: 1 }), { modo: 'zip', escolhe: false }).motivo, /Escolha/)
+  assert.doesNotMatch(EN.planejarLote(Array(11).fill({ tamanho: 1 }), { modo: 'compartilhar', escolhe: false }).motivo, /escolha até/)
 })

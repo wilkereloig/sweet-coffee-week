@@ -29,8 +29,48 @@ export function ehNovo(a, agora = new Date()) {
   return Number.isFinite(t) && Number.isFinite(n) && n - t >= 0 && n - t <= DIAS_NOVO * DIA
 }
 
-/** Exige leitura e a marca ainda não confirmou. A MESMA regra do Início (`arquivosParaLer`/`fotosParaLer`). */
-export const precisaLeitura = (a, lidos) => !!(a && a.exige_leitura) && !(lidos && lidos[a.id])
+/**
+ * Exige leitura e a marca ainda não confirmou ESTA versão: sem leitura, ou leitura anterior à publicação atual (o
+ * arquivo foi substituído depois — `publicadoDepoisDaLeitura`). A MESMA regra do Início (`arquivosParaLer`/`fotosParaLer`)
+ * e da conferência das fotos oficiais (fotosMarca.js › `situacaoDaConferencia`).
+ */
+export const leituraVale = (a, lidoEm) => !!lidoEm && !publicadoDepoisDaLeitura(a, lidoEm)
+export const precisaLeitura = (a, lidos) => !!(a && a.exige_leitura) && !leituraVale(a, lidos && lidos[a.id])
+
+/**
+ * `arquivo_leitura` da marca → { arquivo_id: lido_em mais recente }. A RLS devolve as linhas de TODAS as participações dela
+ * (uma por participação), em ordem nenhuma: o mesmo arquivo geral pode vir mais de uma vez, e vale a leitura mais recente —
+ * com "o último ganha", uma leitura antiga reabriria a pendência de um arquivo já confirmado.
+ */
+export function mapaDeLeituras(linhas) {
+  const o = {}
+  for (const l of linhas || []) {
+    if (!l || !l.arquivo_id) continue
+    if (!(l.arquivo_id in o) || (ms(l.lido_em) || 0) > (ms(o[l.arquivo_id]) || 0)) o[l.arquivo_id] = l.lido_em
+  }
+  return o
+}
+
+/**
+ * O que a ficha da EQUIPE diz sobre a leitura de um arquivo (`a` = item de `get_ficha_participacao`, com `publicado_em` e `lido_em`):
+ * a mesma regra da marca — leitura anterior à versão atual não vale, e a ficha não pode dizer "leu" enquanto a marca vê "pendente".
+ */
+export function leituraNaFicha(a, formatarData, semLeitura = 'ainda não confirmou a leitura') {
+  if (!a || !a.exige_leitura) return 'sem confirmação de leitura'
+  if (!a.lido_em) return semLeitura
+  return leituraVale(a, a.lido_em)
+    ? 'leu em ' + formatarData(a.lido_em)
+    : 'leu a versão anterior em ' + formatarData(a.lido_em) + '; falta confirmar a atual'
+}
+
+/**
+ * As solicitações da organização sobre arquivos (`solicitacoes.bloco = 'arquivo'`) que `resumoMarca` (guia.js) já conta
+ * no selo da aba Arquivos. Só `pedido`: o que pede leitura (`tipo: 'arquivo'`) a tela já mostra em "Para ler e confirmar".
+ */
+export function pendenciasDeArquivos(resumo) {
+  if (!resumo || !Array.isArray(resumo.pendencias)) return []
+  return resumo.pendencias.filter((p) => p.tipo === 'pedido' && p.vista === 'arquivos')
+}
 
 /**
  * Lista → o que vai no topo (para ler) + as categorias de sempre com o resto.
@@ -70,9 +110,10 @@ export const detalhesDoArquivo = (a) => [formatoLegivel(a), tamanhoLegivel(a && 
 export const publicadoEm = (a) => dataBr(quando(a))
 
 /**
- * A versão atual foi publicada DEPOIS de a marca confirmar a leitura (o arquivo foi substituído).
- * Só informa: a confirmação não volta a ser pedida (isso é decisão da organização e do banco).
- * Tolerância de 1 min para não acusar o relógio do aparelho contra o do servidor.
+ * A versão atual foi publicada DEPOIS de a marca confirmar a leitura (o arquivo foi substituído): a confirmação
+ * volta a ser pedida (`precisaLeitura`), e `marca_confirmar_leitura` renova a hora da leitura.
+ * Tolerância de 1 min para não acusar o relógio do aparelho contra o do servidor — o banco usa a MESMA
+ * (migration 20261105_marca_confirmar_leitura.sql: renovar e "N confirmaram").
  */
 export function publicadoDepoisDaLeitura(a, lidoEm) {
   const p = ms(quando(a))

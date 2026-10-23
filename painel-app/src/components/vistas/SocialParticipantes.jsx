@@ -9,6 +9,7 @@ import { Autor } from '../Avatar'
 import { urlLogo } from '../../lib/logos'
 import { baixarArquivo } from '../../lib/redesArquivos'
 import * as R from '../../lib/redes'
+import { textoHorarioFestival } from '../../lib/publicacao'
 import { traduzirRedes } from './RedesFicha'
 import { usePendencia } from '../../lib/pendencias'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
@@ -291,9 +292,9 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
                   <li key={u.id || i}>
                     <p><b>{u.nome || 'Unidade ' + (i + 1)}</b></p>
                     <p className="rd-campo__nota">{[[e.logradouro, e.numero].filter(Boolean).join(', '), e.bairro, e.cidade].filter(Boolean).join(' · ') || 'Endereço pendente'}</p>
-                    {u.horario_loja && <p className="rd-campo__nota">Horário da loja: {u.horario_loja}</p>}
+                    <p className="rd-campo__nota">Horário no festival: {textoHorarioFestival(u.combo && u.combo.disponibilidade) || 'pendente'}</p>
                     {modos.length > 0 && <p className="rd-campo__nota">Combo: {modos.join(', ')}</p>}
-                    {u.whatsapp && <p className="rd-campo__nota">WhatsApp autorizado: {u.whatsapp}</p>}
+                    {u.whatsapp && <p className="rd-campo__nota">WhatsApp da loja: {u.whatsapp}</p>}
                   </li>
                 )
               })}

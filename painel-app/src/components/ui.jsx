@@ -68,6 +68,10 @@ const ERROS = {
   conta_ja_existe: 'Já existe uma conta com esse e-mail.',
   marca_sem_acesso: 'Esta marca ainda não tem acesso criado.',
   sem_marca: 'Sua conta ainda não está ligada a uma marca. Fale com a organização.',
+  // Horário no festival: o banco recusa o que o seletor já não deixa montar (outra aba, página antiga).
+  horario_invalido: 'Confira os horários: o fim tem que ser depois do início e os períodos do mesmo dia não podem se sobrepor.',
+  data_fora_do_festival: 'Esse dia não está no festival.',
+  participacao_nao_encontrada: 'Não encontrei essa participação. Atualize a ficha e tente de novo.',
 }
 export function traduzirErro(msg) {
   const m = String(msg || '')

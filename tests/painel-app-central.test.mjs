@@ -75,6 +75,10 @@ test('descreverAtividade cobre a edição de cadastro pela organização (etapa 
     descreverAtividade({ acao: 'cadastro.editado', marca: 'Bolomania', detalhe: { bloco: 'participacao', campos: { combo_preco: {}, status_cadastro: {} } } }),
     'Cadastro editado pela organização · Bolomania · dados da participação (combo preco, status cadastro)')
   assert.equal(descreverAtividade({ acao: 'participante.arquivado', marca: 'X' }), 'Marca arquivada · X')
+  // Horário no festival (23/10/2026): org_salvar_horario_unidade audita o bloco 'horario_festival' com antes e depois.
+  assert.equal(
+    descreverAtividade({ acao: 'cadastro.editado', marca: 'Bolomania', detalhe: { bloco: 'horario_festival', antes: [], depois: [{ data: '2026-11-05', abre: '10:00', fecha: '22:00' }] } }),
+    'Cadastro editado pela organização · Bolomania · horário no festival')
 })
 
 test('descreverAtividade cobre vouchers, Press Kit e arquivos (etapas 4–6)', async () => {

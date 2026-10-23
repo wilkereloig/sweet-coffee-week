@@ -145,7 +145,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
         <Identificacao nome={participante.nome_marca} edicao={edicaoNome} fase={fase}
           logoUrl={urlLogo(dadosMarca.logo && dadosMarca.logo.atual && dadosMarca.logo.atual.path)} />
       ),
-      agora: <Agora destaque={destaque} semAcao={semAcao} aparte={plano.mensagemAparte} enviarAparte={plano.enviarAparte} ir={ir} />,
+      agora: <Agora destaque={destaque} semAcao={semAcao} aparte={plano.mensagemAparte} ir={ir} />,
       venda: vendaVisivel(momento) && (vendas !== null || !erroLocal) ? (
         <Secao id="venda-do-dia" titulo="Combos vendidos" nota={notaVenda}>
           {vendas === null

@@ -2,15 +2,14 @@ import React from 'react'
 import { Icone } from '../../Icone'
 import { confirmar } from '../../Confirmar'
 import { mascaraWhatsApp } from '../../../lib/participantes'
-import { nomeDaUnidade, idCampoUnidade, erroCep, erroUf, erroWhatsappUnidade } from '../../../lib/edicaoMarca'
+import { nomeDaUnidade, idCampoUnidade, erroCep, erroUf, erroWhatsappUnidade, whatsappLegado } from '../../../lib/edicaoMarca'
 import { EstadoCampo, Correcao, Publico, GrupoPublico, Opcional } from './campos'
 
 /*
- * Bloco 4 · Unidades. A unidade é PERMANENTE (`unidades`: endereço, WhatsApp,
- * horário da loja) e participa da edição por `participacao_unidades`
- * (`participa`). Coordenada do mapa é só da organização: a marca vê se já foi
- * conferida, nunca a edita. Uma unidade cadastrada em outra edição aparece como
- * sugestão, sem ser copiada sozinha (04-painel.md §4.2).
+ * Bloco 4 · Unidades. A unidade é PERMANENTE (`unidades`: endereço e WhatsApp da loja) e participa da
+ * edição por `participacao_unidades` (`participa`). Coordenada do mapa é só da organização: a marca vê se já
+ * foi conferida, nunca a edita. Uma unidade cadastrada em outra edição aparece como sugestão, sem ser copiada
+ * sozinha (04-painel.md §4.2). O horário da unidade nos dias do festival é do bloco 6 (Atendimento).
  */
 function Campo({ rotulo, opcional, publico = true, id, erro, children, nota }) {
   const idErro = erro && id ? 'erro-' + id : undefined
@@ -29,7 +28,7 @@ export function Unidades({ unidades, sugestoes, est, alterar, adicionar, remover
   return (
     <>
       <p className="nota">Uma por endereço. Rede com várias lojas cadastra cada uma — continua contando como
-        uma marca só. O endereço fica guardado para as próximas edições. Para enviar, só rua, bairro e cidade são necessários.</p>
+        uma marca só. O endereço fica guardado para as próximas edições. Do endereço, só rua, bairro e cidade são obrigatórios.</p>
       <GrupoPublico>
         {sugestoes.length > 0 && (
           <div className="em-sugestoes">
@@ -95,25 +94,21 @@ export function Unidades({ unidades, sugestoes, est, alterar, adicionar, remover
                   ? 'Localização no mapa: conferida pela organização.'
                   : 'Localização no mapa: em conferência. A organização confere o ponto no mapa a partir do endereço — mudar o endereço pede conferência nova.'}
               </p>
+              {/* O WhatsApp DA LOJA, um por unidade, vai para o site quando preenchido. O contato do responsável
+                  (Dados da marca) é outro: fica só com a organização. */}
               <label>
-                <span>WhatsApp da unidade <Opcional /> {i === 0 && <EstadoCampo e={est('unidade-whatsapp')} />}</span>
+                <span>WhatsApp da loja <Opcional /> {i === 0 && <EstadoCampo e={est('unidade-whatsapp')} />}</span>
                 <input id={i === 0 ? 'campo-unidade-whatsapp' : undefined} type="tel" inputMode="tel" autoComplete="off"
                   aria-invalid={erroWhatsappUnidade(u.whatsapp_publico) ? true : undefined}
                   aria-describedby={erroWhatsappUnidade(u.whatsapp_publico) ? 'erro-whats-' + k : undefined}
                   value={u.whatsapp_publico} onChange={(e) => alterar(k, 'whatsapp_publico', mascaraWhatsApp(e.target.value))} />
                 {erroWhatsappUnidade(u.whatsapp_publico) && <span className="gm-campo-erro" id={'erro-whats-' + k}>{erroWhatsappUnidade(u.whatsapp_publico)}</span>}
+                <span className="nota">
+                  Aparece no site para os clientes falarem com esta loja. Cada unidade tem o seu. Para falar com você, a organização usa o
+                  WhatsApp do responsável, em Dados da marca.
+                  {whatsappLegado(u) && <b> Este número vai para o site quando você salvar esta unidade.</b>}
+                </span>
                 {i === 0 && <Correcao e={est('unidade-whatsapp')} />}
-              </label>
-              <label className="marcar">
-                <input type="checkbox" checked={u.whatsapp_autorizado} onChange={(e) => alterar(k, 'whatsapp_autorizado', e.target.checked)} />
-                <span>Autorizo publicar este WhatsApp no site</span>
-              </label>
-              {u.whatsapp_publico && !u.whatsapp_autorizado && <p className="nota">Sem a autorização, o número fica só com a organização.</p>}
-              <label>
-                <span>Horário da loja <Opcional>opcional, informativo</Opcional> {i === 0 && <EstadoCampo e={est('unidade-horario-loja')} />}</span>
-                <input id={i === 0 ? 'campo-unidade-horario-loja' : undefined} maxLength={200} value={u.horario_loja_texto} onChange={campo('horario_loja_texto')} />
-                <span className="nota">Ex.: seg a sáb, 10h às 22h. O horário em que o combo está à venda é outro: fica em Atendimento e horários do combo.</span>
-                {i === 0 && <Correcao e={est('unidade-horario-loja')} />}
               </label>
             </div>
           )

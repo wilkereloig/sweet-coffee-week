@@ -5,6 +5,9 @@
  * Nenhuma animação nova.
  */
 
+/* Solicitações da organização sobre arquivos (a peça de fotos/PendenciasFotos.jsx), acima da lista. */
+.am-pendencias.ui-bloco-interno{margin:0 0 var(--e-6)}
+
 .am-lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
 .am-item{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--e-3) var(--e-4);
   padding:var(--e-4) var(--e-1);border-bottom:1px solid var(--scw-filete)}

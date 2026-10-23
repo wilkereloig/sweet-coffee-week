@@ -61,9 +61,9 @@ function Trocas ({ lista, unidades }) {
   )
 }
 
-function Unidade ({ u, casa, navigate, comCombo, rota }) {
-  const est = M.estadoAgora(u)
-  const horario = comCombo ? M.horarioResumido(u.combo?.disponibilidade) : []
+function Unidade ({ u, casa, navigate, comCombo, rota, periodo }) {
+  const est = M.estadoAgora(u, undefined, periodo)
+  const horario = comCombo ? M.horarioNoFestival(u.combo?.disponibilidade, periodo) : []
   const naRota = !!rota && rota.tem(u.id)
   const titulo = u.nome || u.endereco?.bairro || casa.nome
   return (
@@ -72,14 +72,13 @@ function Unidade ({ u, casa, navigate, comCombo, rota }) {
       <p className="ct-unidade__endereco">{M.enderecoEmLinha(u.endereco)}{u.endereco?.referencia ? ` (${u.endereco.referencia})` : ''}</p>
       {comCombo && (
         <div className="ct-unidade__horario">
-          <p className="ct-rotulo">{T.horarioCombo}</p>
+          <p className="ct-rotulo">{T.horarioFestival}</p>
           {horario.length
-            ? <ul>{horario.map((h) => <li key={h.dias}>{h.dias}: {h.faixas}</li>)}</ul>
+            ? <ul>{horario.map((h) => <li key={h}>{h}</li>)}</ul>
             : <p>{M.textoEstado({ estado: 'sem_horario' })}</p>}
           {horario.length > 0 && M.textoEstado(est) && <p className={`ct-agora ct-agora--${est.estado}`}>{M.textoEstado(est)}</p>}
         </div>
       )}
-      {u.horario_loja && <p className="ct-unidade__loja"><span className="ct-rotulo">{T.horarioLoja}</span> {u.horario_loja}</p>}
       {comCombo && u.combo?.observacao && <p className="ct-unidade__obs">{u.combo.observacao}</p>}
       {!u.coordenada && <p className="ct-unidade__obs">{T.localizacaoConferencia}</p>}
       <div className="ct-acoes">
@@ -130,7 +129,7 @@ export function Participante ({ slug, foco, navigate, edicao }) {
   }
 
   return (
-    <FichaParticipante p={p} fase={res.fase || edicao?.fase} avaliacaoAberta={!!edicao?.avaliacao?.aberta}
+    <FichaParticipante p={p} fase={res.fase || edicao?.fase} avaliacaoAberta={!!edicao?.avaliacao?.aberta} periodo={edicao?.edicao}
       navigate={navigate} rota={rota} desatualizado={res.desatualizado} demo={res.demo} />
   )
 }
@@ -141,7 +140,7 @@ export function Participante ({ slug, foco, navigate, edicao }) {
  * enviar é o que o site mostraria. Sem `navigate`, os links internos somem
  * (prévia); sem `rota`, o botão da Minha rota some.
  */
-export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota = null, desatualizado = false, demo = false }) {
+export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota = null, desatualizado = false, demo = false, periodo = null }) {
   const encerrada = fase === 'encerrada'
   const combo = p.combo
   const itens = [...(combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
@@ -264,7 +263,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
       <section className="ct-bloco" aria-labelledby="un-titulo">
         <h2 id="un-titulo" className="ct-h2">{T.unidadesTitulo(p.unidades.length)}</h2>
         <div className="ct-unidades">
-          {p.unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={!!combo && !encerrada} rota={rota} />)}
+          {p.unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={!!combo && !encerrada} rota={rota} periodo={periodo} />)}
         </div>
       </section>
 

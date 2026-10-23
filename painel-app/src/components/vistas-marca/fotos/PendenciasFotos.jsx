@@ -6,6 +6,8 @@ import { Icone } from '../../Icone'
  * selo da aba: marcar a sessão (tipo `fotos`), conferir fotos oficiais (tipo `arquivo`) e responder uma solicitação
  * da organização sobre as fotos (tipo `pedido`, que leva à tela Solicitações). Nada é recalculado aqui; cada linha
  * só leva até o bloco (ou a tela) que resolve. Sem pendência, o bloco nem aparece.
+ * A aba Arquivos usa a mesma peça para as solicitações dela (`titulo` e `classe` próprios: o estilo de cada aba mora
+ * no CSS dela — fotos-marca.css não é carregado lá).
  */
 const ALVO = { fotos: 'fm-agendamento', arquivo: 'fm-oficiais' }
 const ICONE = { fotos: 'camera', arquivo: 'imagem', pedido: 'pedido' }
@@ -19,11 +21,11 @@ function irAte(id) {
   if (titulo) { titulo.setAttribute('tabindex', '-1'); titulo.focus({ preventScroll: true }) }
 }
 
-export function PendenciasFotos({ itens, abrirLink }) {
+export function PendenciasFotos({ itens, abrirLink, titulo = 'O que falta nas fotos', classe = 'fm-pendencias' }) {
   if (!itens || itens.length === 0) return null
   return (
-    <section className="fm-pendencias ui-bloco-interno" aria-label="O que falta nas fotos">
-      <b>O que falta nas fotos</b>
+    <section className={classe + ' ui-bloco-interno'} aria-label={titulo}>
+      <b>{titulo}</b>
       <ul className="gm-pendencias">
         {itens.map((p, i) => (
           <li key={i} className="gm-pendencia" data-tipo={p.tipo}>
@@ -32,7 +34,8 @@ export function PendenciasFotos({ itens, abrirLink }) {
               <b>{p.titulo}</b>
               {p.texto && <span>{p.texto}</span>}
             </span>
-            <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => (ALVO[p.tipo] ? irAte(ALVO[p.tipo]) : abrirLink && p.link && abrirLink(p.link))}>
+            <button type="button" className="og-btn og-btn--mini og-btn--vazado" aria-label={(BOTAO[p.tipo] || p.acao || 'Abrir') + ': ' + p.titulo}
+              onClick={() => (ALVO[p.tipo] ? irAte(ALVO[p.tipo]) : abrirLink && p.link && abrirLink(p.link))}>
               {BOTAO[p.tipo] || p.acao || 'Abrir'}
             </button>
           </li>

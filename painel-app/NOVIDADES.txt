@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Mais claro: Início, cadastro, Fotos, Arquivos e Solicitações do participante, e a Visão geral da equipe.
+Agora é só salvar: a organização é avisada de cada alteração. Horário do festival por dia, mais fácil de preencher. Instale o app e ligue os avisos.

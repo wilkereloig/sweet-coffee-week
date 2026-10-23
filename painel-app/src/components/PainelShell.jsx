@@ -47,6 +47,9 @@ export const TITULOS = {
   admin: ['Administração', 'equipe, revisão e importações'],
 }
 
+// Avisos deste aparelho: o mesmo texto no sino e no tour.
+const EXPLICACAO_AVISOS = 'Receba os avisos da organização no celular ou no computador, mesmo com o painel fechado.'
+
 // Rótulo da barra de abas do celular (célula de ~80px).
 const ROTULO_CURTO = { visao: 'visão', participantes: 'participantes', contatos: 'contatos', operacao: 'operação', social: 'social', arquivos: 'arquivos', edicao: 'edição', admin: 'admin' }
 
@@ -332,6 +335,7 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
             onAbrir={abrirAviso}
             onLerTodas={lerTodas}
             onRecarregar={carregarAvisos}
+            aparelho={<AvisosAparelho explicacao={EXPLICACAO_AVISOS} {...PUSH_ORGANIZACAO} />}
           />
           {/* Sair no topo só sem o botão de perfil (no celular ele mora dentro de "Meu perfil"; no desktop, na rail). */}
           {!quem && (
@@ -364,9 +368,7 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
         onIr={(d) => navegar({ vista: d })}
       />
       {tour.aberto && <Tour etapas={tour.etapas} onFechar={tour.fechar} onIr={abrirLink}
-        aparelho={<><InstalarApp compacto /><AvisosAparelho compacto
-          explicacao="Receba os avisos da organização no celular ou no computador, mesmo com o painel fechado."
-          {...PUSH_ORGANIZACAO} /></>} />}
+        aparelho={<><InstalarApp compacto /><AvisosAparelho compacto explicacao={EXPLICACAO_AVISOS} {...PUSH_ORGANIZACAO} /></>} />}
       <MeuPerfil aberto={perfilAberto} onFechar={() => setPerfilAberto(false)} onSair={onSair} />
       {/* Depois do login, com a conta carregada e sem o tour na frente: instalar, depois notificações. */}
       <ConviteAparelho papel="organizacao" conta={eu ? eu.user_id : quem ? 'compartilhada' : null} push={PUSH_ORGANIZACAO} liberado={!tour.aberto} />
