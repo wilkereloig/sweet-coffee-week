@@ -1230,8 +1230,6 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
             </Bloco>}
 
             {mostra(2) && <Bloco {...blocoProps(2)}>
-              <p className="nota">Cada item é julgado na sua categoria, e a média dos três é o
-                Melhor Combo. Descreva como cada um conversa com o tema.</p>
               <p className="nota">Alergênicos, características (vegano, lactose…) e trocas de cada item ficam
                 em <b>Informações alimentares e trocas</b>, logo abaixo.</p>
               {comboStatus === 'correcao_solicitada' && (
