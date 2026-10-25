@@ -32,8 +32,11 @@ async function esperarServidor(url, ms = 60000) {
   throw new Error('servidor de desenvolvimento não respondeu')
 }
 
-const hojeISO = () => new Date().toISOString().slice(0, 10)
-const emDias = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10)
+// Data LOCAL (a tela conta "amanhã" no fuso de quem abre). Com toISOString (UTC), depois das 21h em Natal o
+// "amanhã" do teste já era depois de amanhã para a tela, e o V5 falhava só à noite (24/10/2026).
+const diaLocal = (d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
+const hojeISO = () => diaLocal(new Date())
+const emDias = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return diaLocal(d) }
 const DADOS = {
   participantes: [
     { id: 'm1', nome_marca: 'Doce Sol', edicao_codigo: '2026.2', combo_status: 'em_analise', status_cadastro: 'em_preenchimento', user_id: 'u1' },
