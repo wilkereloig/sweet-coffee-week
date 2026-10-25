@@ -6,6 +6,7 @@ import {
 } from '../../lib/respostas'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
+import { useNomeDaTela } from '../Trilha'
 import { Credenciais } from '../Credenciais'
 import { registrarEnvio } from './AcessoMarca'
 import { Carregando, Vazio, Erro, Selo } from '../ui'
@@ -290,6 +291,7 @@ export function Respostas({ reportarEstado, pode = () => true, rota, navegar, or
     }
     return null
   }, [f.item, f.origem, dados]) // eslint-disable-line react-hooks/exhaustive-deps
+  useNomeDaTela(rota && rota.vista, f.item, selecionado ? ORIGENS[selecionado.origem].titulo(selecionado.reg) : null)
   const setSelecionado = (s) => mudar(s ? { item: s.reg.id, origem: s.origem } : { item: '', origem: origens.length === 1 ? '' : (aba === 'tudo' ? '' : aba) }, false)
 
   const itens = dados ? filtrados(dados, { aba, status, dias, termo }) : []

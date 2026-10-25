@@ -1,6 +1,7 @@
 import React from 'react'
 import { Icone } from './Icone'
 import { NivelTitulo } from './ui'
+import { historico } from '../lib/historico'
 
 /*
  * Painel deslizante genérico (gaveta no desktop, folha no celular) — usado
@@ -10,6 +11,12 @@ import { NivelTitulo } from './ui'
  *
  * Acessibilidade (auditoria 28/09/2026): Esc fecha, o foco entra na folha ao
  * abrir, Tab não sai dela enquanto aberta, e o foco volta para quem abriu.
+ *
+ * Voltar do sistema (24/10/2026, Android): aberta, a folha ganha uma entrada no
+ * histórico com o mesmo endereço (lib/historico.js › abrirCamada). O Voltar do
+ * aparelho tira essa entrada e chama `onFechar` — fecha a FOLHA, não a tela de
+ * baixo. Se a tela não fechar (a pessoa desistiu de descartar), a entrada volta.
+ * Fechar pela tela (X, Esc, salvar) tira a entrada sem chamar nada.
  */
 const SAIDA = 260 // espelha .og-detalhe.is-fechando (260ms) em painel.css
 
@@ -26,6 +33,27 @@ export function Folha({ aberto, titulo, sub, onFechar, children, larga = false, 
   const tituloId = React.useId()
   const caixaRef = React.useRef(null)
   const origemRef = React.useRef(null)
+
+  const fecharRef = React.useRef(onFechar)
+  fecharRef.current = onFechar
+  const abertoRef = React.useRef(aberto)
+  abertoRef.current = aberto
+  const vivaRef = React.useRef(true)
+  React.useEffect(() => { vivaRef.current = true; return () => { vivaRef.current = false } }, [])
+  const [reabrir, setReabrir] = React.useState(0)
+  React.useEffect(() => {
+    if (!aberto) return undefined
+    const token = historico.abrirCamada(() => {
+      const g = historico.geracao()
+      let r = null
+      try { r = fecharRef.current ? fecharRef.current() : null } catch { /* segue */ }
+      // Ficou aberta (a pergunta de descartar disse "Voltar") e ninguém navegou: a entrada volta.
+      Promise.resolve(r).catch(() => {}).then(() => historico.quandoLivre(() => {
+        if (vivaRef.current && abertoRef.current && historico.geracao() === g) setReabrir((n) => n + 1)
+      }))
+    })
+    return () => historico.fecharCamada(token)
+  }, [aberto, reabrir])
 
   React.useEffect(() => {
     if (aberto) {

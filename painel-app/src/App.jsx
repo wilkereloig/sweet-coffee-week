@@ -27,6 +27,7 @@ import { useSincronizar } from './lib/sync/react'
 import { lerGuardada, apagarGuardada } from './lib/sessaoGuardada'
 import { limparRascunhosSocial } from './lib/rascunhosSocial'
 import { limparRascunhosPedidos } from './lib/pedidosMarca'
+import { historico } from './lib/historico'
 import { Icone } from './components/Icone'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
@@ -270,6 +271,7 @@ export function App() {
     sessionStorage.removeItem(CHAVE_SESSAO_ORG)
     apagarGuardada(CHAVE_SESSAO_ORG_CONTA)
     limparRascunhosSocial()
+    historico.limpar('org') // as telas recentes eram desta pessoa
     setAcoesPermitidas(null)
     setFuncaoRotulo(null)
     setFuncaoCodigo(null)
@@ -284,6 +286,8 @@ export function App() {
   function trocaLocal() {
     limparRascunhosSocial()
     limparRascunhosPedidos()
+    historico.limpar('org')
+    historico.limpar('marca')
     setAcoesPermitidas(null)
     setFuncaoRotulo(null)
     setFuncaoCodigo(null)
@@ -303,6 +307,7 @@ export function App() {
     if (sessao) auth('logout?scope=local', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
     apagarGuardada(CHAVE_SESSAO_MARCA)
     limparRascunhosPedidos()
+    historico.limpar('marca')
     setDestino(null)
     setEstado('boas-vindas')
   }

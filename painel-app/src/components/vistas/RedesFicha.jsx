@@ -2,6 +2,7 @@ import React from 'react'
 import { rpc } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
+import { useNomeDaTela } from '../Trilha'
 import { Icone } from '../Icone'
 import { Carregando, Erro, Selo, Botao, BotaoIcone, MaisAcoes, traduzirErro } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
@@ -730,6 +731,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
 
   // ── Render ──
   const titulo = novo ? 'Nova postagem' : (post.titulo || 'Postagem')
+  useNomeDaTela('social', id, novo || carga ? titulo : null)
   if (!novo && !carga) {
     return (
       <Folha aberto titulo={titulo} sub="Carregando…" onFechar={onFechar} larga="ampla" cheia>

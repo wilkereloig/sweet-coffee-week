@@ -17,6 +17,8 @@ import { useSincronizar, useGuarda } from '../lib/sync/react'
 import { iniciarSincronizacao, pararSincronizacao } from '../lib/sync'
 import { barramento } from '../lib/sync/barramento'
 import { IndicadorSync } from './IndicadorSync'
+import { historico } from '../lib/historico'
+import { Trilha, useHistorico } from './Trilha'
 
 // Oito módulos (reestruturação 29/09/2026, docs/superpowers/specs/
 // 2026-09-29-painel-reestruturacao-design.md; Social media em 17/10/2026).
@@ -70,6 +72,12 @@ const GRUPOS = [
   ['Administração', ['edicao', 'admin']],
 ]
 
+// Mesma tela para as Recentes: módulo + aba + item (a seção da ficha e os filtros não contam).
+function chaveDaTela(h) {
+  const r = migrarRota(lerRota(h))
+  return [r.vista, r.aba || ABA_INICIAL[r.vista] || '', r.filtros.item || ''].join('|')
+}
+
 function aplicarAcento(vista) {
   const cor = ACENTO_VISTA[vista] || 'amarelo'
   // Magenta entra aqui também: sobre chocolate dá 3,8:1 e não segura o
@@ -121,16 +129,19 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
   // O endereço de partida entra no histórico como está (sem empilhar nada);
-  // Voltar/Avançar e link colado na barra mudam a rota por aqui.
+  // Voltar/Avançar (o do cabeçalho, o do sistema no Android) e link colado mudam a rota por aqui.
+  // Quem mexe no histórico é lib/historico.js: as voltas internas das folhas não chegam aqui.
+  // Antes de qualquer folha (o efeito do filho roda antes do do pai; layout roda antes de todos).
+  React.useLayoutEffect(() => { historico.iniciar('org', { chaveDe: chaveDaTela }) }, [])
   React.useEffect(() => {
     const h = montarRota(rota)
-    if (location.hash !== h) history.replaceState(history.state, '', h)
+    if (location.hash !== h) historico.irPara(h, { substituir: true })
     function mudou() {
       const nova = normalizar(lerRota(location.hash))
       // Endereço traduzido (link antigo, módulo sem permissão): a barra mostra
       // onde a pessoa está de fato, sem empilhar histórico.
       const h2 = montarRota(nova)
-      if (location.hash !== h2) history.replaceState(history.state, '', h2)
+      if (location.hash !== h2) historico.irPara(h2, { substituir: true })
       setRota((ant) => {
         // Voltar/Avançar para outra aba: o "atualizar" da aba anterior sai.
         if (nova.vista !== ant.vista || nova.aba !== ant.aba) atualizarRef.current = null
@@ -138,8 +149,8 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
       })
     }
     window.addEventListener('hashchange', mudou)
-    window.addEventListener('popstate', mudou)
-    return () => { window.removeEventListener('hashchange', mudou); window.removeEventListener('popstate', mudou) }
+    const parar = historico.aoMudarEndereco(mudou)
+    return () => { window.removeEventListener('hashchange', mudou); parar() }
   }, [normalizar]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [titulo, sub] = TITULOS[vista] || TITULOS.visao
@@ -171,10 +182,11 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
     if (destino.vista !== vista || destino.aba !== rota.aba) atualizarRef.current = null
     setRota(destino)
     if (h === location.hash) return
-    const estado = history.state || {}
-    if (substituir) history.replaceState(estado, '', h)
-    else if (estado.voltarPara === h) history.back()
-    else history.pushState({ voltarPara: location.hash }, '', h)
+    // Sair do item (ficha, postagem, contato, resposta) para a lista do mesmo lugar nunca empilha a lista por cima
+    // do item — o Voltar reabriria o item (lib/historico.js › irPara `fechar`).
+    const daqui = normalizar(lerRota(location.hash))
+    const fechar = !!daqui.filtros.item && !destino.filtros.item && daqui.vista === destino.vista && daqui.aba === destino.aba
+    historico.irPara(h, { substituir, fechar })
   }, [vista, rota.aba, normalizar])
 
   const abrirLink = React.useCallback((link) => navegar(rotaDoLink(link)), [navegar])
@@ -263,6 +275,26 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
     }
   }
 
+  // Voltar + telas recentes (components/Trilha.jsx): como cada rota se chama no cabeçalho.
+  const fotoHistorico = useHistorico()
+  const comTrilha = !!(fotoHistorico.anterior || fotoHistorico.recentes.length)
+  const descrever = React.useCallback((h) => {
+    const r = normalizar(lerRota(h))
+    const [modulo, frase] = TITULOS[r.vista] || TITULOS.visao
+    // A aba que abre o módulo não aparece ("‹ Participantes", não "‹ Marcas"); as outras sim ("‹ Fotos").
+    const abaPadrao = (r.aba || '') === (ABA_INICIAL[r.vista] || '')
+    const nomeAba = abaPadrao ? null : historico.nome('a:' + r.vista + '|' + (r.aba || ''))
+    const aba = nomeAba && nomeAba !== modulo ? nomeAba : null
+    const item = r.filtros.item ? historico.nome('i:' + r.vista + '|' + r.filtros.item) : null
+    return {
+      titulo: item || aba || modulo,
+      caminho: item ? [modulo, aba].filter(Boolean).join(' › ') : aba ? modulo : frase,
+      falado: [modulo, aba, item].filter(Boolean).join(', '),
+      icone: ICONE_DESTINO[r.vista], acento: ACENTO_VISTA[r.vista],
+    }
+  }, [normalizar, fotoHistorico]) // eslint-disable-line react-hooks/exhaustive-deps
+  const abrirHash = React.useCallback((h) => navegar(lerRota(h)), [navegar])
+
   const eu = equipe.eu
   return (
     <EquipeContexto.Provider value={equipe}>
@@ -298,12 +330,12 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
         </button>
       </nav>
 
-      <header className="pn-cabeca">
+      <header className={'pn-cabeca' + (comTrilha ? ' pn-cabeca--trilha' : '')}>
         <img className="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         <div className="pn-cabeca__texto">
-          <p className="pn-cabeca__contexto">Painel SCW · Organização</p>
+          {!comTrilha && <p className="pn-cabeca__contexto">Painel SCW · Organização</p>}
           <h1 className="pn-cabeca__titulo">{titulo}</h1>
-          <p className="pn-cabeca__sub">{sub}</p>
+          {comTrilha ? <Trilha foto={fotoHistorico} descrever={descrever} onIr={abrirHash} /> : <p className="pn-cabeca__sub">{sub}</p>}
         </div>
         <div className="pn-cabeca__dir">
           {quem && (

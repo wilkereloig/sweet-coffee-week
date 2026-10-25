@@ -7,6 +7,7 @@ import { rotulo, rotulos } from '../../lib/status'
 import { vouchersPorEdicao } from '../../lib/vouchers'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
+import { useNomeDaTela } from '../Trilha'
 import { Bloco } from './FichaCadastro'
 import { Carregando, Vazio, Erro, Secao, Selo, traduzirErro, Escolha, BotaoIcone } from '../ui'
 import { confirmar } from '../Confirmar'
@@ -83,6 +84,7 @@ export function FichaContato({ id, pode, onFechar }) {
   const [destino, setDestino] = React.useState({ participacao: '', quantidade: 1 })
   const podeMudar = pode('relacionamento.gerir')
   const viva = !!id && id !== 'novo'
+  useNomeDaTela('contatos', viva ? id : null, c && c.nome)
 
   // true = leu (ou não havia o que ler). Releitura silenciosa mantém a ficha se falhar; perda de permissão aparece sempre.
   const ler = React.useCallback(async ({ silencioso = false } = {}) => {

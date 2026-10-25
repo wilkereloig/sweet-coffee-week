@@ -1245,6 +1245,39 @@ gente precisa ser notificado para atualizar no sistema e atualizar nas informaç
   o cartão "Um arquivo para ler" é a pendência calculada de arquivos que exigem leitura, então sumiu sozinho.
 - ⚠️ Sobras conhecidas: `lib/hoje.js › proximosPassos` não foi apagado (dois testes de outras áreas o importam); o aviso de "tema informado" duplica.
 
+#### Voltar + Telas recentes e o Voltar do sistema — 24/10/2026 (pedido do Wilker)
+"Às vezes eu tô em algum canto e para voltar… preciso ir para o início de tudo" — no app instalado do iPhone não há botão Voltar
+do navegador, e no Android o Voltar do SISTEMA anda pelo histórico. Teste `tests/painel-app-historico.test.mjs` (janela falsa com
+`go()` assíncrono) e `node tests/painel-voltar-navegador.mjs` (de dentro de `tests/`; iPhone e Android EMULADOS, `page.goBack()` = o
+Voltar do sistema; não prova o aparelho real).
+- **Um dono do histórico: `lib/historico.js`.** ⛔ `history.pushState/back/go` fora dele não passa no teste. Cada tela é uma entrada
+  com `scwId` no `history.state`; o modelo (entradas, posição, telas recentes, nomes) vive no sessionStorage por painel
+  (`scw_historico_org` / `_marca`; `historico.limpar` no Sair e na troca de conta). `irPara(h, { substituir })` decide: substitui
+  (filtro/busca), volta (se `h` é a tela de onde veio — o antigo `voltarPara`) ou empilha.
+- **As cascas não ouvem `popstate`**: ouvem `historico.aoMudarEndereco` (só quando o endereço muda de fato) + `hashchange`.
+- **Camadas:** `Folha` e `Confirmar` empilham uma entrada com o MESMO endereço ao abrir (`abrirCamada`). O Voltar do sistema tira essa
+  entrada e chama o `onFechar` (fecha a folha, não a tela de baixo); se a folha continuar aberta (a pessoa desistiu de descartar) e
+  ninguém navegou, a entrada volta. Fechar pela tela tira a entrada sem chamar nada (`fecharCamada`) — sem "voltar morto".
+  ⚠️ Navegar com camada aberta primeiro tira as entradas das camadas (`history.go(-k)`) e SÓ ENTÃO empilha: a operação espera o
+  popstate numa fila (senão o go() atrasado desfaria o push). Folha que mora no endereço (postagem, contato, resposta): o X navega
+  para a lista e o histórico volta direto, sem passar pela ficha.
+- **Sair do item para a lista do mesmo lugar nunca empilha** (`irPara(h, { fechar: true })`, que o `navegar` da organização marca
+  sozinho quando só o `item` some): se a lista é de onde veio, volta; senão a entrada do item VIRA a lista. Empilhar a lista por cima
+  fazia o Voltar reabrir o item — e, com a folha da ficha aberta de FORA da lista (aviso, link), o Voltar do sistema entrava em laço
+  (achado da revisão independente, 24/10/2026).
+- **Recarga com folha aberta** ("Atualizar agora", F5): a entrada da folha volta sem a folha. `iniciar` desce para a página gêmea
+  (`scwN` = quantas camadas até a página) em vez de criar uma página duplicada (Voltar morto); o Avançar do computador que cai numa
+  camada que já fechou faz o mesmo. `iniciar` roda em `useLayoutEffect` nas cascas e só uma vez por carga (`iniciado`): a folha que
+  abre antes dele espera na fila (`antesDoInicio`).
+- **Tela:** `components/Trilha.jsx` + `styles/trilha.css`. "‹ <tela anterior>" (um toque volta um passo) e a seta "Telas recentes"
+  (folha com até 8 telas da sessão, a atual marcada, "há N min"). Computador: no lugar de "Painel SCW · …" na barra creme. Celular: no
+  chocolate, abaixo do título, no lugar da descrição — o selo sai quando o Voltar aparece (`.pn-cabeca--trilha`), a altura do cabeçalho
+  não muda, o toque tem 44 px por fora (`::before`). Trabalho pela metade (`lib/pendencias.js`, menos o que guarda rascunho) pergunta antes.
+- **Nomes:** `useNomeDaTela(vista, item, nome)` nas fichas (marca, contato, postagem, resposta, participante do Social media) e
+  `useRotulosDasAbas` no `Modulo`. A aba que abre o módulo não aparece ("‹ Participantes", não "‹ Marcas"); as outras sim ("‹ Fotos").
+  Item sem nome registrado cai no nome da aba/módulo. Tela nova com item no endereço: chamar `useNomeDaTela` com o nome que ela mostra.
+- **Mesma tela nas Recentes** = módulo + aba + item (a seção da ficha e os filtros não contam); marca = a vista.
+
 #### "Ver como participante" — 22/10/2026 (pedido do Wilker)
 O administrador vê o painel da marca EXATAMENTE como ela vê, sem gravar e sem usar nem tocar a sessão dela. Ficha › Mais ações ›
 "Ver como participante" (só `acesso.gerir`) abre `/painel/?ver_como=<participante>` numa aba nova (`VerComoParticipante.jsx`, estado

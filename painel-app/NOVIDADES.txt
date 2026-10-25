@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Agora é só salvar: a organização é avisada de cada alteração. Horário do festival por dia, mais fácil de preencher. Instale o app e ligue os avisos.
+Agora tem Voltar: no topo, o nome da tela de onde você veio e as telas recentes. No Android, o Voltar do celular fecha a janela aberta primeiro.

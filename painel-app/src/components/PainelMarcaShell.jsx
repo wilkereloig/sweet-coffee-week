@@ -17,6 +17,8 @@ import { AvisosAparelho } from './AvisosAparelho'
 import { useSincronizar, useGuarda } from '../lib/sync/react'
 import { iniciarSincronizacao, pararSincronizacao } from '../lib/sync'
 import { IndicadorSync } from './IndicadorSync'
+import { historico } from '../lib/historico'
+import { Trilha, useHistorico } from './Trilha'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (celular), avisos
@@ -42,6 +44,8 @@ const SUBS = {
   guia: 'como preparar o combo para as fotos',
 }
 
+// Ícone de cada vista (registro único): as do menu têm o nome da vista; as abertas de outra, o seu.
+const ICONE_VISTA = { pedidos: 'pedido', mensagens: 'mensagens', guia: 'camera' }
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3).
 const ACENTO_VISTA = { inicio: 'amarelo', cadastro: 'cyan', combo: 'laranja', fotos: 'magenta', arquivos: 'marrom', pedidos: 'laranja', mensagens: 'roxo', guia: 'magenta' }
 
@@ -95,14 +99,17 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
-  // Voltar/Avançar do navegador e endereço colado.
+  // Voltar/Avançar (o do cabeçalho, o do sistema no Android) e endereço colado. Quem mexe no
+  // histórico é lib/historico.js: as voltas internas das folhas não chegam aqui.
+  // Antes de qualquer folha (o efeito do filho roda antes do do pai; layout roda antes de todos).
+  React.useLayoutEffect(() => { historico.iniciar('marca', { chaveDe: (h) => normalizar(lerRota(h)).vista }) }, [])
   React.useEffect(() => {
     const h = montarRota(rota)
-    if (location.hash !== h) history.replaceState(history.state, '', h)
+    if (location.hash !== h) historico.irPara(h, { substituir: true })
     const mudou = () => setRota(normalizar(lerRota(location.hash)))
     window.addEventListener('hashchange', mudou)
-    window.addEventListener('popstate', mudou)
-    return () => { window.removeEventListener('hashchange', mudou); window.removeEventListener('popstate', mudou) }
+    const parar = historico.aoMudarEndereco(mudou)
+    return () => { window.removeEventListener('hashchange', mudou); parar() }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const navegar = React.useCallback((r, { substituir = false } = {}) => {
@@ -110,13 +117,11 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
     const h = montarRota(destino)
     setRota(destino)
     if (h === location.hash) return
-    if (substituir) history.replaceState(history.state, '', h)
-    // `interno`: a entrada nasceu dentro do painel, então "Voltar" pode
-    // usar o histórico sem sair do app (link colado ou push abrem sem ele).
-    else history.pushState({ interno: true }, '', h)
+    historico.irPara(h, { substituir })
   }, [])
+  // "Voltar" de dentro de uma vista: a tela anterior desta sessão, ou o Início (link colado, push).
   const voltar = React.useCallback(() => {
-    if (history.state && history.state.interno) history.back()
+    if (historico.podeVoltar()) historico.voltar()
     else navegar({ vista: 'inicio' })
   }, [navegar])
 
@@ -236,6 +241,15 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
   // Avisos deste aparelho (sino, tour). Nunca no "Ver como": o aparelho é do administrador, e ligar pediria permissão nele.
   const comAparelho = !verComo && !!idParticipante
 
+  // Voltar + telas recentes (components/Trilha.jsx).
+  const fotoHistorico = useHistorico()
+  const comTrilha = !!(fotoHistorico.anterior || fotoHistorico.recentes.length)
+  const descrever = React.useCallback((h) => {
+    const v = normalizar(lerRota(h)).vista
+    return { titulo: TITULOS[v], caminho: SUBS[v], falado: TITULOS[v], icone: ICONE_VISTA[v] || v, acento: ACENTO_VISTA[v] }
+  }, [])
+  const abrirHash = React.useCallback((h) => irPara(normalizar(lerRota(h)).vista), [irPara])
+
   const Vista = vistas[vista]
   // Números das abas = pendências daquela seção (+ mensagens não lidas no Início).
   const cont = (resumo && resumo.contagem) || {}
@@ -278,12 +292,12 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeCont
         </button>
       </nav>
 
-      <header className="pn-cabeca">
+      <header className={'pn-cabeca' + (comTrilha ? ' pn-cabeca--trilha' : '')}>
         <img className="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="" />
         <div className="pn-cabeca__texto">
-          <p className="pn-cabeca__contexto">Painel SCW · Participante</p>
+          {!comTrilha && <p className="pn-cabeca__contexto">Painel SCW · Participante</p>}
           <h1 className="pn-cabeca__titulo">{TITULOS[vista]}</h1>
-          <p className="pn-cabeca__sub">{SUBS[vista]}</p>
+          {comTrilha ? <Trilha foto={fotoHistorico} descrever={descrever} onIr={abrirHash} /> : <p className="pn-cabeca__sub">{SUBS[vista]}</p>}
         </div>
         {/* A marca se reconhece no topo: logo, nome, edição e quanto falta. */}
         {dadosMarca && dadosMarca.participante && (

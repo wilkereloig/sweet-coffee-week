@@ -2,6 +2,7 @@ import React from 'react'
 import { rpc, SUPABASE_URL } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
+import { useNomeDaTela } from '../Trilha'
 import { Icone } from '../Icone'
 import { Carregando, Erro, Vazio, Selo, Botao, Secao, LogoMarca } from '../ui'
 import { confirmar } from '../Confirmar'
@@ -412,6 +413,7 @@ export function SocialParticipantes({ rota, navegar, pode }) {
   if (!f.item) memoAberta.current = { chave: '', p: null }
   else if (doItem) memoAberta.current = { chave: chaveAberta, p: doItem }
   const aberta = f.item ? doItem || (memoAberta.current.chave === chaveAberta ? memoAberta.current.p : null) : null
+  useNomeDaTela('social', f.item, aberta && aberta.marca)
 
   return (
     <div className="sp">

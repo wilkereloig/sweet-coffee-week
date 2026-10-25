@@ -12,6 +12,7 @@ import { Conversa } from '../Conversa'
 import { Atividade } from '../Atividade'
 import { Icone, MODULO_ICONE } from '../Icone'
 import { Carregando, Vazio, Erro, Abas, painelDaAba, Selo, Modulo, MacroSecao, GradeModulos, Botao, MaisAcoes, LogoMarca, traduzirErro, Escolha, NivelTitulo } from '../ui'
+import { useNomeDaTela } from '../Trilha'
 import { confirmar } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS, mensagensAMarcar } from '../../lib/syncFichas'
@@ -254,6 +255,7 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
   const titulo = React.useRef(null)
   const idAbas = React.useId()
   const id = p && p.id
+  useNomeDaTela('participantes', id, p && p.nome_marca) // "‹ Sabor de Pão" no Voltar e nas Telas recentes
 
   // Outra marca: fecha editor e prévia da anterior; o foco vai ao nome.
   React.useEffect(() => { setEditando(null); setPrevia(false) }, [id])

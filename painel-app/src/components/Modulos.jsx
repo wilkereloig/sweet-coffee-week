@@ -22,6 +22,7 @@ import { SocialBiblioteca } from './vistas/SocialBiblioteca'
 import { SocialCampanhas } from './vistas/SocialCampanhas'
 import { SocialParticipantes } from './vistas/SocialParticipantes'
 import { NOMES_PUBLICACAO } from '../lib/nomesPublicacao'
+import { useRotulosDasAbas } from './Trilha'
 
 /*
  * Os sete módulos da organização (reestruturação 29/09/2026 — spec em
@@ -36,6 +37,8 @@ function Modulo({ id, rota, navegar, abas, nota }) {
   const ativa = visiveis.find((a) => a.chave === rota.aba) || visiveis[0]
   const idAbas = React.useId()
   const comAbas = visiveis.length > 1
+  // O Voltar e as Telas recentes dizem "Operação › Fotos" com o nome que a aba mostra.
+  useRotulosDasAbas(id, visiveis)
   return (
     <section className="og-vista">
       <VistaCabeca acento={ACENTO_VISTA[id]} icone={ICONE_DESTINO[id]} titulo={TITULOS[id][0]} nota={nota || TITULOS[id][1]} />
