@@ -202,11 +202,11 @@ test('horário incompleto no seletor: o salvamento diz de qual unidade e o que f
   assert.equal(E.rotuloSalvamento({ texto: 'Salvo, menos o CEP (corrija o campo para gravar). O horário de Midway não foi salvo: falta responder Sábado.' }).estado, 'corrigir')
 })
 
-test('troca: acréscimo vazio = não informado, 0 = sem custo', () => {
+test('troca: não muda o valor do combo — o acréscimo vai sempre 0 (24/10/2026)', () => {
   const s = { original: 'Leite', alternativa: 'Bebida de aveia', disponibilidade: 'sempre', acrescimo: '', como_solicitar: '', modalidades: [], unidades: [] }
-  assert.equal(E.corpoSubstituicao(s).acrescimo, null)
+  assert.equal(E.corpoSubstituicao(s).acrescimo, 0)
   assert.equal(E.corpoSubstituicao({ ...s, acrescimo: '0' }).acrescimo, 0)
-  assert.equal(E.corpoSubstituicao({ ...s, acrescimo: '2,50' }).acrescimo, 2.5)
+  assert.equal(E.corpoSubstituicao({ ...s, acrescimo: '2,50' }).acrescimo, 0)
   assert.equal(E.substituicaoGravavel({ ...s, alternativa: ' ' }), false)
   const linha = { id: 's1', item_id: 'i', ...E.corpoSubstituicao({ ...s, acrescimo: '0' }) }
   assert.deepEqual(E.corpoSubstituicao(E.substituicaoDeLinha(linha)), E.corpoSubstituicao({ ...s, acrescimo: '0' }))
@@ -594,4 +594,27 @@ test('horário incompleto conta como trabalho pela metade (atualizar versão, co
   assert.match(c, /horarioPendenteRef\.current = unidades\.some\(\(u\) => u\._horarioPendente\)/)
   assert.match(c, /registrarPendencia\('cadastro-horario', \{[\s\S]*?ativo: \(\) => horarioPendenteRef\.current/)
   assert.match(c, /tirarHorario\(\)/, 'sai do registro ao desmontar')
+})
+
+test('troca na tela da marca: sem campo de acréscimo, passos 1-2-3 e "não muda o valor do combo"', () => {
+  const src = ler('painel-app/src/components/vistas-marca/edicao/Alimentar.jsx')
+  assert.doesNotMatch(src, /Acréscimo em reais|campo\('acrescimo'\)/)
+  assert.match(src, /A troca não muda o valor do combo/)
+  assert.match(src, /1\. O que pode ser trocado\?/)
+  assert.match(src, /Mais detalhes/)
+})
+
+test('troca renderizada: passos, "Mais detalhes" recolhido quando vazio e aberto quando há detalhe', () => {
+  const { Alimentar } = carregar('painel-app/src/components/vistas-marca/edicao/Alimentar.jsx')
+  const itens = [{ id: 'i1', posicao: 1, tipo: 'doce', nome: 'Croissant' }]
+  const vazia = { _key: 'k1', item_id: 'i1', original: '', alternativa: '', disponibilidade: 'sob_consulta', acrescimo: '', como_solicitar: '', modalidades: [], unidades: [] }
+  const sub = { alterar() {}, remover() {}, adicionar() {} }
+  const props = (lista) => ({ itens, declaracoes: {}, substituicoes: lista, unidades: [], est: () => ({}), alterarDeclaracao() {}, sub })
+  const h = html(Alimentar, props([vazia]))
+  assert.match(h, /1\. O que pode ser trocado\?/)
+  assert.match(h, /3\. Está disponível/)
+  assert.match(h, /A troca não muda o valor do combo/)
+  assert.doesNotMatch(h, /Acréscimo/)
+  assert.match(h, /<details class="em-troca__mais">/)
+  assert.match(html(Alimentar, props([{ ...vazia, como_solicitar: 'Peça no caixa' }])), /<details class="em-troca__mais" open="">/)
 })

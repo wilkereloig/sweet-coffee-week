@@ -44,66 +44,71 @@ function Declaracoes({ it, decl, alterar }) {
   )
 }
 
+/*
+ * Troca, no mesmo desenho do /preencher (24/10/2026, pedido do Wilker: "mais claro e fácil"): o que sai, o que entra e
+ * se está sempre disponível — o resto (como pedir, formas de atendimento, unidades) fica recolhido em "Mais detalhes".
+ * Sem acréscimo: a troca não muda o valor do combo (corpoSubstituicao grava 0).
+ */
 function Trocas({ it, lista, unidades, sub }) {
   const participam = unidades.filter((u) => u.participa && u.puId)
+  const nomeItem = it.nome ? '“' + it.nome + '”' : 'este item'
   return (
     <div id={'campo-item-' + it.posicao + '-trocas'} tabIndex={-1}>
-      <h4 className="em-sub">Trocas <Opcional /></h4>
-      <p className="nota">Uma troca por linha: o que sai e o que entra. Ex.: leite integral por bebida de aveia.</p>
-      {lista.map((s) => {
+      <h4 className="em-sub">Troca <Opcional /></h4>
+      <p className="nota">O cliente pode trocar algo de {nomeItem}? Ex.: leite integral por bebida de aveia, pão comum por pão
+        sem glúten. <b>A troca não muda o valor do combo.</b></p>
+      {lista.map((s, i) => {
         const k = s._key
         const campo = (c) => (e) => sub.alterar(k, c, e.target.value)
+        const detalhes = !!(s.como_solicitar || s.modalidades.length || s.unidades.length)
         return (
           <div className="em-troca" key={k}>
+            {lista.length > 1 && <b>Troca {i + 1}</b>}
             <div className="dupla">
-              <label><span>Troca o quê?</span><input maxLength={80} value={s.original} onChange={campo('original')} /></label>
-              <label><span>Por o quê?</span><input maxLength={200} value={s.alternativa} onChange={campo('alternativa')} /></label>
+              <label><span>1. O que pode ser trocado?</span>
+                <input maxLength={80} value={s.original} onChange={campo('original')} placeholder="Ex.: leite integral" /></label>
+              <label><span>2. Trocar por</span>
+                <input maxLength={200} value={s.alternativa} onChange={campo('alternativa')} placeholder="Ex.: bebida de aveia" /></label>
             </div>
-            {!substituicaoGravavel(s) && <span className="gm-campo-erro">Preencha o que sai e o que entra para a troca ser gravada.</span>}
-            <div className="dupla">
-              <label><span>Disponibilidade</span>
-                <select value={s.disponibilidade} onChange={campo('disponibilidade')}>
-                  {DISPONIBILIDADES.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
-                </select>
+            {!substituicaoGravavel(s) && <span className="gm-campo-erro">Preencha os passos 1 e 2 para a troca ser gravada.</span>}
+            <Escolhas nome={'disp-' + k} legenda="3. Está disponível…" opcoes={DISPONIBILIDADES} valor={s.disponibilidade}
+              onMudar={(v) => sub.alterar(k, 'disponibilidade', v)} />
+            <details className="em-troca__mais" open={detalhes || undefined}>
+              <summary>Mais detalhes <Opcional /></summary>
+              <label><span>Como o cliente pede a troca?</span>
+                <input maxLength={160} value={s.como_solicitar} onChange={campo('como_solicitar')} placeholder="Ex.: peça no caixa" />
               </label>
-              <label><span>Acréscimo em reais <Opcional /></span>
-                <input inputMode="decimal" value={s.acrescimo} onChange={campo('acrescimo')} />
-                <span className="nota">Em branco = não informado (“consulte a loja”). 0 = sem custo.</span>
-              </label>
-            </div>
-            <label><span>Como pedir a troca <Opcional /></span>
-              <input maxLength={160} value={s.como_solicitar} onChange={campo('como_solicitar')} />
-              <span className="nota">Ex.: peça no caixa; escreva na observação do aplicativo.</span>
-            </label>
-            <fieldset className="marcar-grupo mc-restricoes">
-              <legend className="marcar-grupo__pergunta">Vale para</legend>
-              {MODALIDADES.map(([v, r]) => (
-                <label className="marcar" key={v}>
-                  <input type="checkbox" checked={s.modalidades.includes(v)}
-                    onChange={() => sub.alterar(k, 'modalidades', alternar(s.modalidades, v, MODALIDADES.map(([x]) => x)))} />
-                  <span>{r}</span>
-                </label>
-              ))}
-              <span className="em-ajuda">Nada marcado = todas as formas que a unidade oferece.</span>
-            </fieldset>
-            {participam.length > 1 && (
               <fieldset className="marcar-grupo mc-restricoes">
-                <legend className="marcar-grupo__pergunta">Em quais unidades</legend>
-                {participam.map((u) => (
-                  <label className="marcar" key={u.puId}>
-                    <input type="checkbox" checked={s.unidades.includes(u.puId)}
-                      onChange={() => sub.alterar(k, 'unidades', alternar(s.unidades, u.puId, participam.map((x) => x.puId)))} />
-                    <span>{nomeDaUnidade(u, unidades.indexOf(u))}</span>
+                <legend className="marcar-grupo__pergunta">Vale para</legend>
+                {MODALIDADES.map(([v, r]) => (
+                  <label className="marcar" key={v}>
+                    <input type="checkbox" checked={s.modalidades.includes(v)}
+                      onChange={() => sub.alterar(k, 'modalidades', alternar(s.modalidades, v, MODALIDADES.map(([x]) => x)))} />
+                    <span>{r}</span>
                   </label>
                 ))}
-                <span className="em-ajuda">Nada marcado = todas as unidades.</span>
+                <span className="em-ajuda">Nada marcado = vale em todas as formas de atendimento.</span>
               </fieldset>
-            )}
+              {participam.length > 1 && (
+                <fieldset className="marcar-grupo mc-restricoes">
+                  <legend className="marcar-grupo__pergunta">Em quais unidades</legend>
+                  {participam.map((u) => (
+                    <label className="marcar" key={u.puId}>
+                      <input type="checkbox" checked={s.unidades.includes(u.puId)}
+                        onChange={() => sub.alterar(k, 'unidades', alternar(s.unidades, u.puId, participam.map((x) => x.puId)))} />
+                      <span>{nomeDaUnidade(u, unidades.indexOf(u))}</span>
+                    </label>
+                  ))}
+                  <span className="em-ajuda">Nada marcado = vale em todas as unidades.</span>
+                </fieldset>
+              )}
+            </details>
             <button className="link" type="button" onClick={async () => { if (await confirmar('Remover esta troca?' + '\n\n' + 'O que você preencheu nela será apagado.', { acao: 'Remover troca', perigo: true })) sub.remover(k) }}>Remover esta troca</button>
           </div>
         )
       })}
-      <button className="acao secundaria" type="button" onClick={() => sub.adicionar(it.id)}><Icone nome="mais" tamanho={16} />Adicionar troca</button>
+      <button className="acao secundaria" type="button" onClick={() => sub.adicionar(it.id)}>
+        <Icone nome="mais" tamanho={16} />{lista.length ? 'Adicionar outra troca' : 'Adicionar uma troca'}</button>
     </div>
   )
 }

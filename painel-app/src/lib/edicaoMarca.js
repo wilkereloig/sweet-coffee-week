@@ -14,7 +14,7 @@
  * mesma ordem). Mudou lá, muda cá — o teste confere contra o SQL.
  */
 import { ALERGENICOS, CARACTERISTICAS } from '../../../src/edicao/dados/modelo.js'
-import { canaisParaObjeto, canaisParaArray, precoNumero, valorInformado, NOMES_FALTANDO } from './cadastro.js'
+import { canaisParaObjeto, canaisParaArray, NOMES_FALTANDO } from './cadastro.js'
 import { mascaraWhatsApp, validarWhatsApp, whatsappNormalizado } from './participantes.js'
 import { linhasCanonicas } from './horarioFestival.js'
 
@@ -241,11 +241,12 @@ export function substituicaoDeLinha(s) {
     modalidades: [...(s.modalidades || [])], unidades: [...(s.unidades || [])],
   }
 }
-/** Acréscimo vazio = não informado (null); "0" = sem custo. Nunca confundir os dois. */
+/** A troca não muda o valor do combo (24/10/2026, decisão do Wilker): o acréscimo sai da tela e vai sempre 0
+ *  — o mesmo que o /preencher grava. A coluna fica no banco só pelo dado antigo. */
 export function corpoSubstituicao(s) {
   return {
     original: texto(s.original), alternativa: texto(s.alternativa), disponibilidade: s.disponibilidade,
-    acrescimo: valorInformado(s.acrescimo) ? precoNumero(s.acrescimo) : null,
+    acrescimo: 0,
     como_solicitar: ouNulo(s.como_solicitar), modalidades: [...s.modalidades], unidades: [...s.unidades],
   }
 }

@@ -519,17 +519,17 @@ test('declaração respondida na tela e ainda sem id, que a organização també
   assert.equal(M.valorLegivel('estado', 'nao_contem'), 'Não contém')
 })
 
-test('troca: acréscimo mudado (número vira texto da tela), troca nova, troca removida', () => {
+test('troca: disponibilidade mudada, troca nova, troca removida (acréscimo não conta: a troca não muda o valor)', () => {
   const snap = fotoInicial()
   snap.subRows.push({ id: 's2', item_id: 'i1', original: 'açúcar', alternativa: 'mel', disponibilidade: 'sob_consulta', acrescimo: null, como_solicitar: null, modalidades: [], unidades: [], ordem: 1 })
   const { vivo, base } = abrir(snap)
   const novo = clone(snap)
   novo.subRows = [
-    { ...novo.subRows[0], acrescimo: 3.5 },
+    { ...novo.subRows[0], acrescimo: 3.5, disponibilidade: 'limitada' },
     { id: 's3', item_id: 'i1', original: 'farinha', alternativa: 'de arroz', disponibilidade: 'limitada', acrescimo: 0, como_solicitar: null, modalidades: ['local'], unidades: [], ordem: 2 },
   ]
   const p = planejar(vivo, base, novo)
-  assert.deepEqual(p.tela.substituicoes.porKey['sub-s1'], { id: 's1', acrescimo: '3,5' })
+  assert.deepEqual(p.tela.substituicoes.porKey['sub-s1'], { id: 's1', disponibilidade: 'limitada' })
   assert.deepEqual(p.tela.substituicoes.remover, ['sub-s2'])
   assert.deepEqual(p.tela.substituicoes.novas.map((s) => s.id), ['s3'])
   const depois = M.aplicarNoVivo(vivo, p.tela)

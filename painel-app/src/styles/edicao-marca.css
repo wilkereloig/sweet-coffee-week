@@ -40,6 +40,9 @@
 /* Trocas por item. */
 .em-troca{margin:0 0 var(--e-3);padding:var(--e-3) 0;border-top:1px solid rgba(61,19,8,.14)}
 .em-troca .link{min-height:44px}
+.em-troca__mais{margin-top:var(--e-2)}
+.em-troca__mais > summary{min-height:44px;display:flex;align-items:center;gap:6px;cursor:pointer;font:700 15px/1.3 var(--f-ui)}
+.em-troca__mais[open] > summary{margin-bottom:var(--e-2)}
 
 
 /* Estado da publicação, separado do estado da revisão. */
