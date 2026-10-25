@@ -160,16 +160,16 @@ function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, podeApagar, onMo
             : !url ? <span className="rd-previa__espera">Carregando…</span>
             : video ? <video src={url} controls preload="metadata" playsInline aria-label={'Vídeo: ' + x.nome} />
             : imagem && !falhou ? <img src={url} alt={x.nome} onError={() => { setFalhou(true); if (!tentou.current) { tentou.current = true; renovar(fonteItem(x)).then(() => setFalhou(false)) } }} />
-            : imagem ? <span className="rd-previa__espera"><Icone nome="documento" tamanho={24} /> A prévia não abriu — use Baixar para conferir o arquivo.</span>
-            : <span className="rd-previa__espera"><Icone nome="documento" tamanho={24} /> Sem prévia para este formato — use Baixar.</span>}
+            : imagem ? <span className="rd-previa__espera"><Icone nome="documento" tamanho={24} /> A prévia não abriu — use o botão de baixar para conferir o arquivo.</span>
+            : <span className="rd-previa__espera"><Icone nome="documento" tamanho={24} /> Sem prévia para este formato — use o botão de baixar.</span>}
         </div>
         <div className="bb-previa__acoes">
           <BotoesEntrega entrega={entrega} itens={[itemEntrega(x)]} />
-          {podeOrganizar && <Botao variante="secundario" icone="pasta" onClick={onMover}>Mover para…</Botao>}
+          {podeOrganizar && <Botao variante="secundario" icone="mover-pasta" soIcone onClick={onMover}>Mover para…</Botao>}
           {x.post_id && <Botao variante="secundario" icone="seta-direita" onClick={onVerPostagem}>Ver postagem</Botao>}
           {podeApagar && x.tipo === 'arte' && (x.situacao === 'removida'
-            ? <Botao variante="secundario" icone="atualizar" onClick={onRestaurar}>Restaurar</Botao>
-            : x.situacao !== 'substituida' && <Botao variante="secundario" icone="apagar" className="og-btn--perigo" onClick={onApagar}>Apagar</Botao>)}
+            ? <Botao variante="secundario" icone="restaurar" onClick={onRestaurar}>Restaurar</Botao>
+            : x.situacao !== 'substituida' && <Botao variante="secundario" icone="apagar" soIcone className="og-btn--perigo" onClick={onApagar}>Apagar</Botao>)}
         </div>
         <EstadoEntrega entrega={entrega} />
         <dl className="rd-dados">
@@ -512,7 +512,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
     { rotulo: 'Renomear', icone: 'editar', onClick: () => renomear(p) },
     { rotulo: 'Cor da pasta…', icone: 'estrela', onClick: () => setCorDe(p) },
     { rotulo: 'Vincular a edição ou participante', icone: 'ficha', onClick: () => setVincular(p) },
-    { rotulo: 'Mover para…', icone: 'pasta', onClick: () => setMover({ pasta: p }) },
+    { rotulo: 'Mover para…', icone: 'mover-pasta', onClick: () => setMover({ pasta: p }) },
     { rotulo: 'Arquivar', icone: 'arquivar', perigo: true, onClick: () => arquivar(p) },
   ]
   const tituloLocal = buscando ? 'Busca em toda a biblioteca' : soDoParticipante ? 'Deste participante' : local === 'sem' ? 'Sem pasta' : local === 'recentes' ? 'Recentes' : pastaAtual ? pastaAtual.nome : 'Biblioteca'
@@ -523,7 +523,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
       {/* Onde estou: voltar + caminho; atalhos fixos. */}
       <div className="bb-topo">
         {comPastas && !buscando && pastaAtual && (
-          <Botao variante="secundario" icone="seta-esquerda" onClick={voltar} aria-label={'Voltar para ' + (trilha.length > 1 ? trilha[trilha.length - 2].nome : 'Biblioteca')}>Voltar</Botao>
+          <Botao variante="secundario" icone="voltar" soIcone onClick={voltar} aria-label={'Voltar para ' + (trilha.length > 1 ? trilha[trilha.length - 2].nome : 'Biblioteca')}>Voltar</Botao>
         )}
         {(local || buscando) && <nav className="bb-caminho" aria-label="Caminho da pasta">
           <ol>
@@ -591,8 +591,8 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
               onMudar={(v) => mudar({ sit: v === 'disponivel' ? undefined : v })} />
           </div>
           <div className="ui-acoes">
-            {nFiltros > 0 && <Botao variante="secundario" icone="fechar" onClick={() => mudar({ ed: undefined, part: undefined, sit: undefined })}>Limpar filtros</Botao>}
-            <Botao variante="secundario" onClick={() => setFiltrosAbertos(false)}>Fechar filtros</Botao>
+            {nFiltros > 0 && <Botao variante="secundario" onClick={() => mudar({ ed: undefined, part: undefined, sit: undefined })}>Limpar filtros</Botao>}
+            <Botao variante="secundario" icone="fechar" soIcone onClick={() => setFiltrosAbertos(false)}>Fechar filtros</Botao>
           </div>
         </div>
       )}
@@ -613,7 +613,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
               <input type="file" multiple accept={R.ACEITE} className="ui-oculto" onChange={(e) => { if (e.target.files.length) envio.adicionar(e.target.files); e.target.value = '' }} />
             </label>
           )}
-          {podeOrganizar && pastaAtual && <MaisAcoes itens={acoesPasta(pastaAtual)} rotulo={<>Pasta<span className="ui-oculto"> {pastaAtual.nome}: opções</span></>} />}
+          {podeOrganizar && pastaAtual && <MaisAcoes itens={acoesPasta(pastaAtual)} rotulo={'Opções da pasta ' + pastaAtual.nome} />}
         </div>
       </div>
 
@@ -636,7 +636,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
                     </>}
                 </span>
                 {it.estado === 'erro' && (
-                  <span className="ui-acoes bb-envio__acoes"><Botao onClick={() => envio.tentar(it)}>Tentar de novo</Botao><Botao variante="secundario" onClick={() => envio.descartar(it)}>Descartar</Botao></span>
+                  <span className="ui-acoes bb-envio__acoes"><Botao onClick={() => envio.tentar(it)}>Tentar de novo</Botao><Botao variante="secundario" icone="fechar" soIcone aria-label={'Descartar o envio de ' + it.nome} onClick={() => envio.descartar(it)}>Descartar</Botao></span>
                 )}
               </li>
             ))}
@@ -662,7 +662,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
                     </span>
                   </span>
                 </button>
-                {podeOrganizar && <MaisAcoes itens={acoesPasta(p)} rotulo={<span className="ui-oculto">Opções da pasta {p.nome}</span>} />}
+                {podeOrganizar && <MaisAcoes itens={acoesPasta(p)} rotulo={'Opções da pasta ' + p.nome} />}
               </li>
             ))}
           </ul>
@@ -700,7 +700,7 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
                   onAbrir={(it) => { if (!seletor) mudar({ ver: P.chaveItem(it) }, { empilhar: true }) }}
                   acao={seletor
                     ? <Botao variante={usado ? 'secundario' : 'destaque'} icone={usado ? 'feito' : 'mais'} disabled={usado || ocupado} onClick={() => onEscolher(x)}>{usado ? 'Já na postagem' : 'Usar nesta postagem'}</Botao>
-                    : <Botao variante="secundario" icone="baixar" disabled={entrega.ocupado} aria-label={'Baixar ' + x.nome} onClick={() => entrega.baixar([itemEntrega(x)])}>Baixar</Botao>} />
+                    : <Botao variante="secundario" icone="baixar" soIcone disabled={entrega.ocupado} aria-label={'Baixar ' + x.nome} onClick={() => entrega.baixar([itemEntrega(x)])}>Baixar</Botao>} />
               )
             })}
           </ul>
@@ -721,12 +721,12 @@ function NavegadorBiblioteca({ modo = 'pagina', estado, mudar, abrirPasta, pode,
               {marcadosLista.length > 0 && (
                 <div className="bb-barra__acoes">
                   <BotoesEntrega entrega={entrega} itens={marcadosLista.map(itemEntrega)} nomeZip={tituloLocal} compacto />
-                  {podeOrganizar && <Botao variante="secundario" icone="pasta" onClick={() => setMover({ itens: marcadosLista })}>Mover…</Botao>}
+                  {podeOrganizar && <Botao variante="secundario" icone="mover-pasta" soIcone aria-label="Mover os selecionados para…" onClick={() => setMover({ itens: marcadosLista })}>Mover…</Botao>}
                   {podeApagar && marcadosLista.some((x) => x.tipo === 'arte' && x.situacao !== 'removida' && x.situacao !== 'substituida') && (
-                    <Botao variante="secundario" icone="apagar" className="og-btn--perigo" onClick={() => apagar(marcadosLista)}>Apagar…</Botao>
+                    <Botao variante="secundario" icone="apagar" soIcone className="og-btn--perigo" aria-label="Apagar os selecionados…" onClick={() => apagar(marcadosLista)}>Apagar…</Botao>
                   )}
                   {podeApagar && marcadosLista.some((x) => x.tipo === 'arte' && x.situacao === 'removida') && (
-                    <Botao variante="secundario" icone="atualizar" onClick={() => restaurar(marcadosLista)}>Restaurar</Botao>
+                    <Botao variante="secundario" icone="restaurar" onClick={() => restaurar(marcadosLista)}>Restaurar</Botao>
                   )}
                 </div>
               )}
@@ -763,7 +763,7 @@ export function SeletorBiblioteca({ participanteId, jaUsados = [], ocupado, onEs
     <div className="sb-seletor" role="region" aria-label="Escolher da biblioteca">
       <div className="sb-seletor__cabeca">
         <p className="sb-seletor__titulo">Escolher da biblioteca</p>
-        {onFechar && <Botao variante="secundario" icone="fechar" onClick={onFechar}>Fechar</Botao>}
+        {onFechar && <Botao variante="secundario" icone="fechar" soIcone aria-label="Fechar a biblioteca" onClick={onFechar}>Fechar</Botao>}
       </div>
       <NavegadorBiblioteca modo="seletor" estado={estado} mudar={mudar} abrirPasta={(p) => mudar({ pasta: p || undefined, q: undefined })} pode={() => false}
         participanteId={participanteId} jaUsados={jaUsados} ocupado={ocupado} onEscolher={onEscolher} />

@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Agora tem Voltar: no topo, o nome da tela de onde você veio e as telas recentes. No Android, o Voltar do celular fecha a janela aberta primeiro.
+Botões mais limpos: baixar, compartilhar, mover, editar e apagar viraram ícones. No computador, o nome aparece ao passar o mouse.

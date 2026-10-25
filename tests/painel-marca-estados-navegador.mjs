@@ -224,7 +224,7 @@ async function principal() {
       ok(/Li e confirmo a leitura/.test(t), 'botão de leitura com o texto honesto')
       ok(!/Li e estou de acordo/.test(t), 'sem "de acordo"')
       ok(/2,4 MB|2,5 MB/.test(t), 'tamanho legível')
-      ok(/Baixar/.test(t), 'tem Baixar')
+      ok(await a.page.locator('button[aria-label^="Baixar "]').count() > 0, 'tem o botão de baixar (só a seta; o nome no aria-label)')
       ok(a.erros.length === 0, 'sem erro de JavaScript ' + a.erros.join(' | ').slice(0, 160))
       for (const [w, h] of TAMANHOS) { await a.page.setViewportSize({ width: w, height: h }); await dormir(300); await capturar(a.page, 's8-arquivos', w) }
       await a.ctx.close()

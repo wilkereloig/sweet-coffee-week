@@ -1,6 +1,5 @@
 import React from 'react'
-import { Selo, LogoMarca, Botao, Carregando, Erro, traduzirErro } from './ui'
-import { Icone } from './Icone'
+import { Selo, LogoMarca, Botao, LinkIcone, Carregando, Erro, traduzirErro } from './ui'
 import { validarLogo, validarVetor, caminhoLogo, mimeDe, urlLogo, extensao, ACEITA_EXIBICAO, ACEITA_VETOR } from '../lib/logos'
 import { dataCurta } from '../lib/respostas'
 import { confirmar } from './Confirmar'
@@ -167,7 +166,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
             <p className="ui-nota">Arquivo que o festival já usa para {sug.nome}.</p>
             {podeEditar && <div className="ui-acoes">
               <Botao icone="feito" disabled={ocupado} onClick={() => executar(adaptador.usarAcervo, 'Logo do acervo confirmada.')}>Usar esta logo</Botao>
-              <Botao icone="baixar" variante="secundario" onClick={() => setEnviando(true)}>Enviar outro arquivo</Botao>
+              <Botao icone="subir" variante="secundario" onClick={() => setEnviando(true)}>Enviar outro arquivo</Botao>
             </div>}
           </div>
         </div>
@@ -180,7 +179,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
           <p className="ui-nota">Mesma logo? Confirme ou envie a nova.</p>
           <div className="ui-acoes">
             <Botao icone="feito" disabled={ocupado} onClick={() => executar(adaptador.manter || (() => adaptador.restaurar(atual.id)), 'Logo mantida para esta edição.')}>Manter esta logo</Botao>
-            <Botao icone="baixar" variante="secundario" onClick={() => setEnviando(true)}>Enviar uma nova versão</Botao>
+            <Botao icone="subir" variante="secundario" onClick={() => setEnviando(true)}>Enviar uma nova versão</Botao>
           </div>
         </div>
       )}
@@ -198,7 +197,7 @@ export function LogoEditor({ participanteId, nomeMarca, adaptador, podeEditar = 
               {estado === 'confirmada' ? 'Trocar logo' : 'Selecionar arquivo'}
             </Botao>
             {enviando && <Botao variante="secundario" onClick={() => setEnviando(false)}>Cancelar</Botao>}
-            {modo === 'org' && atual && <a className="og-btn og-btn--mini og-btn--vazado" href={urlLogo(atual.path)} target="_blank" rel="noreferrer" download><Icone nome="baixar" tamanho={16} />Baixar</a>}
+            {modo === 'org' && atual && <LinkIcone icone="baixar" rotulo="Baixar" aria-label="Baixar a logo" href={urlLogo(atual.path)} target="_blank" rel="noreferrer" download />}
           </div>
         </div>
       )}

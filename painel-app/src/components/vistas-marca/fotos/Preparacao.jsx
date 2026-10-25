@@ -1,6 +1,5 @@
 import React from 'react'
-import { Icone } from '../../Icone'
-import { MacroSecao, Modulo, Botao } from '../../ui'
+import { MacroSecao, Modulo, Botao, LinkIcone } from '../../ui'
 import { PDF_PARTICIPANTES } from '../../vistas/GuiaFotos'
 import { fraseDaSessao } from '../../../lib/fotosMarca'
 
@@ -18,7 +17,7 @@ export function Preparacao({ irPara, estado }) {
         acoes={(
           <>
             <Botao icone="guia" onClick={() => irPara('guia')}>Abrir o guia de fotos</Botao>
-            <a className="og-btn og-btn--mini og-btn--vazado" href={PDF_PARTICIPANTES} download><Icone nome="baixar" tamanho={16} />Baixar o guia (PDF)</a>
+            <LinkIcone icone="baixar" rotulo="Baixar o guia (PDF)" href={PDF_PARTICIPANTES} download />
           </>
         )}>
         <p className="ui-nota">O guia mostra como a sua foto vira arte, o que fazer e o que evitar, e o que levar no dia da sessão.{quando}</p>

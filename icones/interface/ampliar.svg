@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Ampliar</title>
+  <path d="M14 4.5h5.5V10"/>
+  <path d="M19.5 4.5 14 10"/>
+  <path d="M10 19.5H4.5V14"/>
+  <path d="M4.5 19.5 10 14"/>
+</svg>

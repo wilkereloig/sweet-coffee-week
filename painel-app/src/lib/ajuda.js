@@ -35,7 +35,7 @@ export const TOUR = {
         + 'A ficha de cada marca tem quatro vistas: Visão do participante (tudo o que foi preenchido, só para ler), Comunicação, Histórico e Gestão.'
         + bloqueado(pode, 'triagem.editar', 'Sua função vê as candidaturas, mas não muda a triagem.') },
     { id: 'acoes', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', titulo: 'Ver, revisar, aprovar, corrigir, editar',
-      texto: (pode) => 'Visualizar não muda nada: a Visão do participante só lê, e Ver como participante (em Mais ações, só do Administrador) abre o painel da marca como ela vê, sem gravar. Revisar é triar a candidatura. Aprovar aceita o combo ou o tema. Solicitar correção devolve um campo à marca com o motivo, e ela corrige. Editar é a organização mudar o dado da marca, com antes e depois no histórico.'
+      texto: (pode) => 'Visualizar não muda nada: a Visão do participante só lê, e Ver como participante (em Mais ações, os três pontos; só do Administrador) abre o painel da marca como ela vê, sem gravar. Revisar é triar a candidatura. Aprovar aceita o combo ou o tema. Solicitar correção devolve um campo à marca com o motivo, e ela corrige. Editar é a organização mudar o dado da marca, com antes e depois no histórico.'
         + (pode('curadoria.decidir') ? '' : ' Sua função não aprova nem pede correção.')
         + (pode('cadastro.editar') ? '' : ' Editar o cadastro é só do Administrador.') },
     { id: 'conversa', alvos: ['menu-participantes', 'menu-mais'], link: 'participantes/lista', exige: 'mensagem.enviar', titulo: 'Conversa com a marca',

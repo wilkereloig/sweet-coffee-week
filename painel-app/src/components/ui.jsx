@@ -283,15 +283,40 @@ export function Escolha({ rotulo, valor, opcoes, onMudar, disabled, className = 
   )
 }
 
-// Botão com ícone + texto (ação importante nunca é só ícone).
-export function Botao({ icone, children, variante, mini = true, className = '', ...resto }) {
-  const cls = 'og-btn' + (mini ? ' og-btn--mini' : '') + (variante === 'secundario' ? ' og-btn--vazado' : '') + (variante === 'destaque' ? ' og-btn--amarelo' : '') + (className ? ' ' + className : '')
+/*
+ * Botão com ícone + texto. `soIcone` (pedido do Wilker, 25/10/2026: "só deixa o que realmente precisa do texto"):
+ * o texto (string) vira o nome do botão (aria-label) e a dica do mouse e do teclado; o desenho de 20px fica num
+ * círculo de 44px, com a mesma variante. Só para ação secundária de desenho universal (baixar, compartilhar, mover,
+ * apagar, editar, copiar, fechar…): a ação principal, a decisão, o que tem número e o WhatsApp seguem com texto.
+ */
+export function Botao({ icone, children, variante, mini = true, soIcone = false, className = '', ...resto }) {
+  const cls = 'og-btn' + (mini ? ' og-btn--mini' : '') + (variante === 'secundario' ? ' og-btn--vazado' : '') + (variante === 'destaque' ? ' og-btn--amarelo' : '') + (soIcone ? ' og-btn--icone' : '') + (className ? ' ' + className : '')
+  if (soIcone) {
+    // `aria-label` de quem chama (mais longo: "Baixar a logo de X") vale; vazio, o nome é o texto.
+    const { 'aria-label': nome, ...outros } = resto
+    return (
+      <button type="button" className={cls} {...outros} aria-label={nome || children} data-rotulo={children}>
+        {outros['aria-busy'] ? <Icone nome="carregando" tamanho={20} className="scw-gira" /> : <Icone nome={icone} tamanho={20} />}
+      </button>
+    )
+  }
   return <button type="button" className={cls} {...resto}>{icone && <Icone nome={icone} tamanho={16} />}{children}</button>
+}
+
+/** Link só com ícone (baixar, abrir fora): as mesmas regras do `Botao soIcone`. */
+export function LinkIcone({ icone, rotulo, className = '', ...resto }) {
+  const { 'aria-label': nome, ...outros } = resto
+  return (
+    <a className={'og-btn og-btn--mini og-btn--vazado og-btn--icone' + (className ? ' ' + className : '')} {...outros} aria-label={nome || rotulo} data-rotulo={rotulo}>
+      <Icone nome={icone} tamanho={20} />
+    </a>
+  )
 }
 
 /*
  * "Mais ações": o que é raro não disputa espaço com a ação principal.
  * <details> nativo — teclado e leitor de tela de graça; fecha ao escolher.
+ * Só os três pontos (25/10/2026); `rotulo` (string) é o nome lido e a dica: "Opções da pasta X".
  */
 export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
   const ref = React.useRef(null)
@@ -300,7 +325,7 @@ export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
   function escolher(fn) { if (ref.current) ref.current.open = false; fn() }
   return (
     <details className="ui-mais-acoes" ref={ref}>
-      <summary className="og-btn og-btn--mini og-btn--vazado"><Icone nome="mais-acoes" tamanho={16} />{rotulo}</summary>
+      <summary className="og-btn og-btn--mini og-btn--vazado og-btn--icone" data-rotulo={rotulo}><Icone nome="mais-acoes" tamanho={20} /><span className="ui-oculto">{rotulo}</span></summary>
       <ul className="ui-mais-acoes__menu">
         {lista.map((a, i) => (
           <li key={i}>

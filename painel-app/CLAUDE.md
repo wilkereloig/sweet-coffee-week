@@ -749,7 +749,9 @@ conferido). O que passou a valer:
   assunto → ícone; `ICONE_TOM` dá ícone a todo tom de status. `<Selo>` sempre
   com ícone + texto + cor — ⛔ nada de `<span className="og-selo">` à mão.
 - **Ação sempre nomeada** ("Editar bebida", "Adicionar unidade"); uma
-  principal, secundárias contornadas, o raro em `MaisAcoes`.
+  principal, secundárias contornadas, o raro em `MaisAcoes`. ⚠️ Desde 25/10/2026 o NOME
+  pode estar só no aria-label e na dica: secundária de desenho universal é só ícone
+  (ver "Botões só com ícone", abaixo).
 - **Ficha do participante é PÁGINA** (decisão do Wilker), no mesmo endereço
   (`#participantes/lista?item=…&sub=…`): cabeçalho-resumo e subnavegação
   Resumo · Cadastro · Combo · Unidades · Operação · Mensagens · Trajetória ·
@@ -1245,6 +1247,29 @@ gente precisa ser notificado para atualizar no sistema e atualizar nas informaç
   o cartão "Um arquivo para ler" é a pendência calculada de arquivos que exigem leitura, então sumiu sozinho.
 - ⚠️ Sobras conhecidas: `lib/hoje.js › proximosPassos` não foi apagado (dois testes de outras áreas o importam); o aviso de "tema informado" duplica.
 
+#### Botões só com ícone — 25/10/2026 (pedido do Wilker)
+"Simplifica todos esses botões com textos e deixa o ícone apropriado… Só deixa o que realmente precisa do texto." Teste
+`tests/painel-app-botoes-icone.test.mjs`.
+- **A regra.** Vira só ícone a ação SECUNDÁRIA de desenho UNIVERSAL: baixar, compartilhar, mover para pasta, apagar,
+  editar (lápis), copiar, fechar/descartar/limpar (X), abrir fora, ampliar, mais ações (⋯), ajuda (?), voltar, "›" que
+  abre o item, "+" repetido em lista/célula, arquivar/restaurar em linha de lista. **Fica com texto:** a ação principal
+  da tela, decisão (Aprovar, Publicar, Pedir ajuste, Bloquear…), confirmação, o Cancelar de formulário, WhatsApp (sem
+  glifo oficial), botão com número ("Baixar ZIP (12)", "Filtros (2)"), login/convite/tour e o "Tentar de novo" de erro.
+  Na marca, mais conservador: só o Baixar virou seta. ⚠️ No toque não há dica — por isso só o desenho universal.
+- **As peças (`ui.jsx`):** `Botao soIcone` (o texto, string, vira `aria-label` e `data-rotulo`; `aria-label` de quem
+  chama, mais longo, vale; `aria-busy` troca pelo "carregando"), `LinkIcone` (o mesmo para `<a>`: baixar, abrir fora) e
+  `MaisAcoes` (sempre só os três pontos; `rotulo` é string). Mesma variante de antes (contorno, amarelo, laranja), num
+  círculo de 44 px (`.og-btn--icone`; `max-width` segura a fileira que estica botões com `flex:1`). Dica em cima, no
+  mouse (`@media (hover:hover)`) e no foco do teclado; nas pontas da fileira ela encosta na borda. `BotaoIcone` (sem
+  contorno) segue nas listas que já o usavam.
+- **`BotoesEntrega`:** um arquivo = só os ícones; vários = o texto diz ZIP e quantos. `EstadoEntrega`: Cancelar e Fechar
+  viraram X.
+- **Ícones novos:** `mover-pasta`, `ampliar`, `subir` (enviar arquivo; o envio de logo usava a seta de baixar), `olho`
+  (Ver prévia; usava o desenho de "Visão geral") e `compartilhar-ios`. ⚠️ Compartilhar abre as opções DO APARELHO:
+  `ICONE_COMPARTILHAR` (`Icone.jsx`) = quadrado com seta no iPhone/iPad, três pontos no resto.
+- Texto que citava o botão pelo nome passou a dizer o desenho ("use o botão de baixar", "“Baixar” (a seta para baixo)",
+  "Mais ações (os três pontos)"). Botão novo: siga a regra acima; com `soIcone`, escreva o nome entre as tags.
+
 #### Voltar + Telas recentes e o Voltar do sistema — 24/10/2026 (pedido do Wilker)
 "Às vezes eu tô em algum canto e para voltar… preciso ir para o início de tudo" — no app instalado do iPhone não há botão Voltar
 do navegador, e no Android o Voltar do SISTEMA anda pelo histórico. Teste `tests/painel-app-historico.test.mjs` (janela falsa com
@@ -1443,8 +1468,8 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   ao campo (`ONDE_PENDENCIA`). A ÚNICA ação em destaque mora no rodapé (`R.proximaAcao`): criar · salvar (com
   alteração não salva é sempre salvar — nenhuma etapa anda com a versão antiga) · enviar para aprovação · aprovar (só
   `redes.aprovar`) · confirmar publicação. O raro fica em "Mais ações". Prévia: arte inteira (contain), altura
-  controlada, posição "2 de 7", anterior/próximo e miniaturas (nada depende de gesto), "Ampliar", "Baixar arte"/"Baixar
-  as N" com texto; falha de download aparece com "Tentar de novo" (nunca `.catch(() => {})`).
+  controlada, posição "2 de 7", anterior/próximo e miniaturas (nada depende de gesto), "Ampliar" e "Baixar arte" só
+  com ícone (25/10/2026), "Baixar as N (ZIP)" com texto; falha de download aparece com "Tentar de novo" (nunca `.catch(() => {})`).
   `Folha` ganhou duas props OPCIONAIS, só o Social media usa: `rodape` (barra fora da rolagem — sem sticky nem margem
   negativa; substituiu o `.rd-rodape` preso com `bottom:-40px`) e `cheia` (tela inteira no celular). As outras folhas
   não mudam.

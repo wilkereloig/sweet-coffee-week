@@ -87,7 +87,7 @@ export function Trilha({ foto, descrever, onIr }) {
     <nav className="pn-trilha" aria-label="Voltar e telas recentes">
       {ant && (
         <button type="button" className="pn-trilha__voltar" onClick={voltar} aria-label={'Voltar para ' + ant.falado}>
-          <Icone nome="voltar" tamanho={18} />
+          <Icone nome="voltar" tamanho={16} />
           {/* `key`: o nome novo entra com um deslize curto; o botão (e o foco) ficam. */}
           <span className="pn-trilha__nome" key={foto.anterior.id}>{ant.titulo}</span>
         </button>

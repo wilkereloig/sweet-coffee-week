@@ -158,7 +158,7 @@ test('ficha: "Visão do participante" (leitura) e "Ver como participante" (açã
   assert.equal((FICHA.match(/Ver como participante/g) || []).length >= 3, true, 'rótulo, nota e comentário')
   // A nota sob as abas diz as duas coisas; a sobre "como a marca vê" só aparece para quem tem a permissão da ação.
   tem(FICHA, /<b>\{VISTAS\[0\]\[1\]\}:<\/b> \{FRASE_VISAO\}/)
-  tem(FICHA, /\{pode\('acesso\.gerir'\) && <> <b>Mais ações › Ver como participante<\/b> — \{FRASE_VER_COMO\}<\/>\}/)
+  tem(FICHA, /\{pode\('acesso\.gerir'\) && <> <b>Mais ações \(os três pontos\) › Ver como participante<\/b> — \{FRASE_VER_COMO\}<\/>\}/)
   tem(FICHA, /const FRASE_VISAO = '[^']*só para ler[^']*'/)
   tem(FICHA, /const FRASE_VER_COMO = '[^']*[Ss]ó leitura[^']*nada é gravado[^']*'/)
   // Nenhum botão de gravar entrou por causa da frase: a visão continua sem escrita.

@@ -8,7 +8,7 @@ import { rotulo } from '../../lib/status'
 import { CATEGORIAS_ARQUIVO, caminhoSubstituto } from '../../lib/arquivos'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
-import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone } from '../ui'
+import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone, Botao } from '../ui'
 import { confirmar } from '../Confirmar'
 import { comEnvio } from '../../lib/pendencias'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
@@ -917,9 +917,10 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
                               </button>
                             : <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => setFolha({ tipo: 'quemFalta', solicitacao: s })}>Quem falta</button>}
                           {podeGerir && (
-                            <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => arquivarPedido(s, !s.arquivada)}>
+                            <Botao variante="secundario" icone={s.arquivada ? 'restaurar' : 'arquivar'} soIcone
+                              aria-label={(s.arquivada ? 'Restaurar' : 'Arquivar') + ' o pedido ' + s.titulo} onClick={() => arquivarPedido(s, !s.arquivada)}>
                               {s.arquivada ? 'Restaurar' : 'Arquivar'}
-                            </button>
+                            </Botao>
                           )}
                         </span>
                       </div>
@@ -960,14 +961,15 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
                       </p>
                       <span className="og-item__dir">
                         <Selo dominio="sessao" valor={f.status} />
-                        <button
-                          className="og-btn og-btn--vazado og-btn--mini" type="button"
+                        <Botao
+                          variante="secundario" icone="editar" soIcone
                           disabled={!podeGerir}
                           title={podeGerir ? undefined : SEM_PERMISSAO_PRODUCAO}
+                          aria-label={'Mudar a sessão de ' + (f.nome_marca || 'marca')}
                           onClick={() => setFolha({ tipo: 'sessaoEditar', sessao: f })}
                         >
                           Mudar
-                        </button>
+                        </Botao>
                       </span>
                     </div>
                   </li>

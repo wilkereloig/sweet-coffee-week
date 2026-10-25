@@ -541,7 +541,8 @@ test('celular: campos com 16 px, toque de 44 px, nada que dependa de passar o mo
     const antes = social.slice(Math.max(0, m.index - 200), m.index)
     assert.match(antes, /@media \(hover:hover\)\{[^}]*$/, 'hover fora de @media (hover:hover)')
   }
-  for (const sel of ['.rd-ajuda', '.rd-periodo__intervalo', '.rd-mes__mais', '.rd-alerta', '.rd-pendencia', '.rd-sem__vazio']) {
+  // "Como funciona" virou BotaoIcone (25/10/2026): os 44 px vêm de .ui-icone-btn.
+  for (const sel of ['.rd-periodo__intervalo', '.rd-mes__mais', '.rd-alerta', '.rd-pendencia', '.rd-sem__vazio']) {
     assert.match(social, new RegExp(sel.replace('.', '\\.') + '[,.a-z_-]*\\{[^}]*min-height:(44|48)px'), sel)
   }
 })

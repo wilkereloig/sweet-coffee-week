@@ -350,8 +350,8 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
         </div>
         <div className="fg-cabeca__acoes">
           {wa && <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noreferrer" aria-label={'WhatsApp de ' + destinoWa} title={destinoWa}><Icone nome={MODULO_ICONE.whatsapp} tamanho={16} />WhatsApp{nome1 ? ' · ' + nome1 : ''}</a>}
-          {pode('cadastro.editar') && <Botao icone="editar" variante="secundario" onClick={() => abrirEditor({ secao: 'cadastro', editor: 'cadastro' })}>Editar dados</Botao>}
-          {pub && pub.atual && <Botao icone="visao" variante="secundario" onClick={() => { setPrevia(true); irPara('publicacao') }}>Ver prévia pública</Botao>}
+          {pode('cadastro.editar') && <Botao icone="editar" variante="secundario" soIcone aria-label="Editar dados da marca" onClick={() => abrirEditor({ secao: 'cadastro', editor: 'cadastro' })}>Editar dados</Botao>}
+          {pub && pub.atual && <Botao icone="olho" variante="secundario" onClick={() => { setPrevia(true); irPara('publicacao') }}>Ver prévia pública</Botao>}
           <MaisAcoes itens={[
             { rotulo: 'Comunicação e alterações pedidas', icone: 'alteracao', onClick: () => mudarVista('comunicacao') },
             { rotulo: 'Registrar observação interna', icone: 'historico', onClick: () => mudarVista('historico') },
@@ -373,7 +373,7 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
           <>
             <p className="ui-nota">
               <b>{VISTAS[0][1]}:</b> {FRASE_VISAO}
-              {pode('acesso.gerir') && <> <b>Mais ações › Ver como participante</b> — {FRASE_VER_COMO}</>}
+              {pode('acesso.gerir') && <> <b>Mais ações (os três pontos) › Ver como participante</b> — {FRASE_VER_COMO}</>}
             </p>
             {secoes.length > 1 && (
               <nav className="fg-ancoras" aria-label="Seções da visão do participante">

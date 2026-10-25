@@ -479,27 +479,28 @@ export function pendenciasDaFicha({ participante, fontes, naoLidas = 0 }) {
  */
 export function acoesDaSecao(secao, pode, ctx = {}) {
   const p = typeof pode === 'function' ? pode : () => false
-  const a = (editor, rotuloAcao, principal = false) => ({ editor, rotulo: rotuloAcao, principal })
+  // `icone`: o desenho do que a ação faz; o lápis ("Editar…") aparece só como ícone, com o rótulo no nome e na dica.
+  const a = (editor, rotuloAcao, principal = false, icone = 'editar') => ({ editor, rotulo: rotuloAcao, principal, icone })
   if (secao === 'cadastro') return p('cadastro.editar') ? [a('cadastro', 'Editar dados da marca', true)] : []
   if (secao === 'combo') {
     return [
       p('cadastro.editar') && a('combo', 'Editar tema e componentes', true),
-      p('curadoria.decidir') && ctx.temaEstado === 'proposto' && a('operacao', 'Analisar tema'),
-      p('curadoria.decidir') && ctx.comboStatus === 'em_analise' && a('operacao', 'Revisar combo'),
+      p('curadoria.decidir') && ctx.temaEstado === 'proposto' && a('operacao', 'Analisar tema', false, 'tema'),
+      p('curadoria.decidir') && ctx.comboStatus === 'em_analise' && a('operacao', 'Revisar combo', false, 'combo'),
     ].filter(Boolean)
   }
   if (secao === 'unidades') {
     return [
       p('cadastro.editar') && a('unidades', 'Editar unidades', true),
-      p('producao.gerir') && ctx.temPublicacao && a('coordenadas', 'Conferir localização'),
+      p('producao.gerir') && ctx.temPublicacao && a('coordenadas', 'Conferir localização', false, 'local'),
     ].filter(Boolean)
   }
-  if (secao === 'fotos') return (p('producao.gerir') || p('curadoria.decidir')) && ctx.temPublicacao ? [a('fotos', 'Revisar fotos', true)] : []
+  if (secao === 'fotos') return (p('producao.gerir') || p('curadoria.decidir')) && ctx.temPublicacao ? [a('fotos', 'Revisar fotos', true, 'camera')] : []
   if (secao === 'operacao') {
     const gere = p('pagamento.gerir') || p('producao.gerir') || p('curadoria.decidir')
-    return [a('operacao', gere ? 'Gerenciar operação' : 'Ver detalhes da operação', gere)]
+    return [a('operacao', gere ? 'Gerenciar operação' : 'Ver detalhes da operação', gere, 'operacao')]
   }
-  if (secao === 'publicacao') return ctx.temPublicacao ? [a('publicacao', p('curadoria.decidir') ? 'Gerenciar publicação' : 'Ver publicação e diferenças', p('curadoria.decidir'))] : []
+  if (secao === 'publicacao') return ctx.temPublicacao ? [a('publicacao', p('curadoria.decidir') ? 'Gerenciar publicação' : 'Ver publicação e diferenças', p('curadoria.decidir'), 'loja')] : []
   return []
 }
 

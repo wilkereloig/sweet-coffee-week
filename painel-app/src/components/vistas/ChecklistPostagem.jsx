@@ -141,7 +141,7 @@ export function ChecklistModelos({ onFechar, onSalvou }) {
             ))}
           </ul>
           <div className="ui-acoes">
-            <Botao variante="secundario" icone="mais" disabled={grupos[fm.chave].length >= 20} onClick={() => editar(fm.chave, (arr) => [...arr, { texto: '', ativo: true }])}>Acrescentar item</Botao>
+            <Botao variante="secundario" icone="mais" soIcone aria-label={'Acrescentar item em ' + fm.curto} disabled={grupos[fm.chave].length >= 20} onClick={() => editar(fm.chave, (arr) => [...arr, { texto: '', ativo: true }])}>Acrescentar item</Botao>
             <Botao variante="destaque" disabled={!sujos.has(fm.chave) || salvando === fm.chave} onClick={() => salvar(fm.chave)}>{salvando === fm.chave ? 'Salvando…' : 'Salvar ' + fm.curto}</Botao>
           </div>
         </section>

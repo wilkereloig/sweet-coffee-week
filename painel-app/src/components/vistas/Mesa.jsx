@@ -7,7 +7,7 @@ import { ETAPAS, colunasMesa, resumoDaEdicao, encerradasNaEdicao } from '../../l
 import { notificacoesOrg } from '../../lib/notificacoes'
 import { acoesDaEquipe, agendaDaEquipe, avisoDeLeitura, estadoDaEdicao, estadoDasAcoes, LEITURA, ROTA_AGENDA_FOTOS } from '../../lib/visaoGeral'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Erro, Secao, Selo, LogoMarca, MacroSecao, GradeModulos, Modulo, NivelTitulo } from '../ui'
+import { Carregando, Erro, Secao, Selo, LogoMarca, MacroSecao, GradeModulos, Modulo, NivelTitulo, Botao, LinkIcone } from '../ui'
 import { urlLogo } from '../../lib/logos'
 import { ResumoRedes } from './Redes'
 import { totalAlertas } from '../../lib/redes'
@@ -328,10 +328,11 @@ export function Formularios() {
                       <>
                         <p className="og-forms__url">{url}</p>
                         <div className="ui-linha-acoes">
-                          <a className="og-btn og-btn--mini" href={o.form} target="_blank" rel="noopener noreferrer">Abrir</a>
-                          <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={() => copiarLink(chave, url)}>
+                          <LinkIcone icone="link-externo" rotulo="Abrir" aria-label={'Abrir o formulário ' + o.rotulo + ' (abre em outra aba)'} href={o.form} target="_blank" rel="noopener noreferrer" />
+                          {/* Sem acesso à área de transferência, a instrução tem que ficar À VISTA: aí o botão volta a ter texto. */}
+                          <Botao variante="secundario" icone={copiado === chave ? 'feito' : 'copiar'} soIcone={copiado !== chave + ':manual'} onClick={() => copiarLink(chave, url)}>
                             {copiado === chave ? 'Link copiado' : copiado === chave + ':manual' ? 'Copie da linha acima' : 'Copiar link'}
-                          </button>
+                          </Botao>
                         </div>
                       </>
                     ) : (

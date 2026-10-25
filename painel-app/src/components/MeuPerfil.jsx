@@ -90,7 +90,7 @@ export function EditorFoto({ alvo, nome, proprio = false, temFoto = false, onMud
           <Avatar id={alvo} rotulo={nome} tamanho={96} rotuloVisivel={false} />
           <div className="ui-linha-acoes">
             <Botao icone="camera" onClick={() => input.current && input.current.click()} disabled={ocupado}>{temFoto ? 'Trocar foto' : 'Escolher foto'}</Botao>
-            {temFoto && <Botao variante="secundario" icone="excluir" onClick={remover} disabled={ocupado}>Remover foto</Botao>}
+            {temFoto && <Botao variante="secundario" icone="excluir" soIcone onClick={remover} disabled={ocupado}>Remover foto</Botao>}
           </div>
         </div>
       )}

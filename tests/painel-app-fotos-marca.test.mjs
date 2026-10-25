@@ -413,7 +413,8 @@ test('fotos oficiais: "Baixar todas (ZIP)" e "Salvar ou compartilhar" com 2+ fot
   assert.match(ent, /const nome = nomeLivre\(arq\.name, usados\)/)
   assert.doesNotMatch(ent, /nomesUnicos/, 'a deduplicação por nome pedido deixava dois arquivos com o mesmo nome dentro do ZIP')
   // Esperar a rede não prende a pessoa: tem Cancelar, e cancelar não entrega nada depois.
-  assert.match(ent, /e\.fase === 'preparando' && e\.cancelavel && <Botao variante="secundario" onClick=\{entrega\.cancelar\}>Cancelar<\/Botao>/)
+  // (Desde 25/10/2026 é o X, com "Cancelar" no nome e na dica.)
+  assert.match(ent, /e\.fase === 'preparando' && e\.cancelavel && <Botao variante="secundario" icone="fechar" soIcone onClick=\{entrega\.cancelar\}>Cancelar<\/Botao>/)
   assert.match(ent, /if \(ctl\.signal\.aborted\) throw cancelado\(\)/)
   assert.match(ent, /if \(e && e\.name === 'AbortError'\) return/)
   // O erro diz QUAL arquivo falhou; a marca (que não escolhe o conjunto) não lê "escolha menos".

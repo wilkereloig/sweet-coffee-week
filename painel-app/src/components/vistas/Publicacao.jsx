@@ -239,7 +239,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
       </MacroSecao>
 
       <MacroSecao rotulo="Conferir" titulo={v ? 'O que mudou desde a v' + v.versao : 'O que seria publicado'}
-        acoes={<Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => setPrevia((x) => !x)}>{previa ? 'Fechar prévia' : 'Ver como no site'}</Botao>}>
+        acoes={<Botao icone="olho" variante="secundario" aria-expanded={previa} onClick={() => setPrevia((x) => !x)}>{previa ? 'Fechar prévia' : 'Ver como no site'}</Botao>}>
         {v ? <Diferenca antes={v.conteudo} depois={pub.atual} /> : <p className="ui-nota">Nenhuma versão no ar ainda: a prévia mostra a página inteira como ficaria.</p>}
         {previa && pub.atual && <PreviaPagina conteudo={pub.atual} nome={nome} periodo={festival.periodo} />}
       </MacroSecao>

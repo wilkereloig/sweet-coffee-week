@@ -5,7 +5,7 @@ import { plataforma } from '../../../lib/instalar'
 import { acoesDoArquivo, notaDeAbertura, leituraProvisoria, mapaDeLeituras } from '../../../lib/arquivosMarca'
 import { useEntrega, BotoesEntrega, EstadoEntrega } from '../../vistas/BaixarArquivo'
 import { situacaoDaLeitura, detalheDaFoto, situacaoDaConferencia } from '../../../lib/fotosMarca'
-import { MacroSecao, Carregando, Erro, Selo, Vazio, traduzirErro } from '../../ui'
+import { MacroSecao, Carregando, Erro, Selo, Vazio, traduzirErro, Botao } from '../../ui'
 import { Icone } from '../../Icone'
 import { Miniatura } from './Miniatura'
 import { AvisoComFoco } from '../AvisoComFoco'
@@ -149,9 +149,9 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
                       <Icone nome="link-externo" tamanho={16} />{ocupadoAqui && ocupado.modo === 'abrir' ? 'Abrindo…' : 'Abrir'}
                     </button>
                   )}
-                  <button className="og-btn og-btn--vazado og-btn--mini" type="button" aria-label={'Baixar ' + a.nome} disabled={ocupadoAqui} onClick={() => acessar(a, 'baixar')}>
-                    <Icone nome="baixar" tamanho={16} />{ocupadoAqui && ocupado.modo === 'baixar' ? 'Preparando…' : 'Baixar'}
-                  </button>
+                  <Botao variante="secundario" icone="baixar" soIcone aria-label={'Baixar ' + a.nome} aria-busy={ocupadoAqui && ocupado.modo === 'baixar' ? 'true' : undefined} disabled={ocupadoAqui} onClick={() => acessar(a, 'baixar')}>
+                    {ocupadoAqui && ocupado.modo === 'baixar' ? 'Preparando…' : 'Baixar'}
+                  </Botao>
                   {conf === 'pendente' && (
                     <button className="og-btn og-btn--mini" type="button" aria-label={'Conferi as fotos: ' + a.nome} disabled={confirmando === a.id} onClick={() => conferir(a)}>
                       {confirmando === a.id ? 'Registrando…' : 'Conferi as fotos'}

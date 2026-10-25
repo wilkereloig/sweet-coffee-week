@@ -135,7 +135,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
                         ? <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noopener noreferrer" onClick={() => registrar([r.p.id], 'whatsapp_aberto')}>WhatsApp</a>
                         : <span className="ui-nota">Sem WhatsApp</span>}
                       <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={envio === 'enviado_manual'} onClick={() => registrar([r.p.id], 'enviado_manual')}>{envio === 'enviado_manual' ? 'Enviado' : 'Marcar enviado'}</button>
-                      {onGerenciar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={async () => { if (await podeSair()) onGerenciar(r.p) }}>Gerenciar</button>}
+                      {onGerenciar && <Botao variante="secundario" icone="avancar" soIcone aria-label={'Gerenciar o acesso de ' + ((r.p && r.p.nome_marca) || 'marca')} onClick={async () => { if (await podeSair()) onGerenciar(r.p) }}>Gerenciar</Botao>}
                     </div>
                   </>
                 ) : <p className="ui-nota ui-nota--erro" role="alert">{r.erro}</p>}

@@ -40,9 +40,9 @@ function CartaoCampanha({ c, podeEditar, onVer, onEditar, onArquivar, onRestaura
       </p>
       <div className="sc-cartao__acoes">
         <Botao variante="secundario" icone="calendario" onClick={() => onVer(c)}>Ver no calendário</Botao>
-        {podeEditar && !c.arquivada && <Botao variante="secundario" icone="editar" onClick={() => onEditar(c)}>Editar</Botao>}
-        {podeEditar && !c.arquivada && <MaisAcoes itens={[{ rotulo: 'Arquivar campanha', icone: 'pasta', onClick: () => onArquivar(c) }]} rotulo={<span className="ui-oculto">Mais ações de {c.nome}</span>} />}
-        {podeEditar && c.arquivada && <Botao variante="secundario" icone="ciclo" onClick={() => onRestaurar(c)}>Restaurar</Botao>}
+        {podeEditar && !c.arquivada && <Botao variante="secundario" icone="editar" soIcone aria-label={'Editar ' + c.nome} onClick={() => onEditar(c)}>Editar</Botao>}
+        {podeEditar && !c.arquivada && <MaisAcoes itens={[{ rotulo: 'Arquivar campanha', icone: 'arquivar', onClick: () => onArquivar(c) }]} rotulo={'Mais ações de ' + c.nome} />}
+        {podeEditar && c.arquivada && <Botao variante="secundario" icone="restaurar" onClick={() => onRestaurar(c)}>Restaurar</Botao>}
       </div>
     </li>
   )

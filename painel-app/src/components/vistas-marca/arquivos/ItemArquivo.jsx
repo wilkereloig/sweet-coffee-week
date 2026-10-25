@@ -2,7 +2,7 @@ import React from 'react'
 import { dataHoraExtensa } from '../../../lib/central'
 import { detalhesDoArquivo, publicadoEm, ehNovo, acoesDoArquivo, leituraVale } from '../../../lib/arquivosMarca'
 import { Icone } from '../../Icone'
-import { Selo } from '../../ui'
+import { Selo, Botao } from '../../ui'
 import { AvisoComFoco } from '../AvisoComFoco'
 
 /*
@@ -52,9 +52,9 @@ export function ItemArquivo({ a, lido, leituraConhecida, textos, agora, destacad
             <Icone nome="link-externo" tamanho={16} />{ocupadoAqui && ocupado.modo === 'abrir' ? 'Abrindo…' : 'Abrir'}
           </button>
         )}
-        <button className="og-btn og-btn--vazado og-btn--mini" type="button" aria-label={'Baixar ' + a.nome} disabled={ocupadoAqui} onClick={() => aoAcessar(a, 'baixar')}>
-          <Icone nome="baixar" tamanho={16} />{ocupadoAqui && ocupado.modo === 'baixar' ? 'Preparando…' : 'Baixar'}
-        </button>
+        <Botao variante="secundario" icone="baixar" soIcone aria-label={'Baixar ' + a.nome} aria-busy={ocupadoAqui && ocupado.modo === 'baixar' ? 'true' : undefined} disabled={ocupadoAqui} onClick={() => aoAcessar(a, 'baixar')}>
+          {ocupadoAqui && ocupado.modo === 'baixar' ? 'Preparando…' : 'Baixar'}
+        </Botao>
         {pendente && (
           <button className="og-btn og-btn--mini" type="button" aria-label={textos.botaoLer + ': ' + a.nome} disabled={confirmando === a.id} onClick={() => aoConfirmar(a)}>
             <Icone nome="feito" tamanho={16} />{confirmando === a.id ? 'Registrando…' : textos.botaoLer}

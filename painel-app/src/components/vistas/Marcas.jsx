@@ -345,7 +345,7 @@ export function Marcas({ pode = () => true, rota, navegar }) {
         <button className="og-btn" type="button" disabled={!pode('marca.liberar')} onClick={() => setCadastroAberto(true)}>Cadastrar marca</button>
       </div>
       {f.edicao && (
-        <p className="ui-filtro-ativo">Só a edição {f.edicao} <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => mudar({ edicao: '' })}>Ver todas</button></p>
+        <p className="ui-filtro-ativo">Só a edição {f.edicao} <Botao variante="secundario" icone="fechar" soIcone aria-label="Ver todas as edições" onClick={() => mudar({ edicao: '' })}>Ver todas</Botao></p>
       )}
       {!pode('marca.liberar') && <p className="ui-nota">Sua função não cadastra marca.</p>}
 
@@ -370,12 +370,12 @@ export function Marcas({ pode = () => true, rota, navegar }) {
             <div className="ac-barra-lote" role="toolbar" aria-label="Ações nas marcas selecionadas">
               <button className="og-btn og-btn--mini" type="button" onClick={() => emLote('gerar')}>Gerar acessos{selSemConta.length ? ' (' + selSemConta.length + ')' : ''}</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('regerar')}>Gerar novas senhas{selComConta.length ? ' (' + selComConta.length + ')' : ''}</button>
-              <Botao icone="copiar" variante="secundario" onClick={() => emLote('copiar')}>Copiar acessos</Botao>
+              <Botao icone="copiar" variante="secundario" soIcone aria-label="Copiar os acessos das selecionadas" onClick={() => emLote('copiar')}>Copiar acessos</Botao>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('enviado')}>Marcar como enviados</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('bloquear')}>Bloquear</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('desbloquear')}>Desbloquear</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('forcar_troca')}>Forçar troca de senha</button>
-              <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => setSel(new Set())}>Limpar seleção</button>
+              <Botao variante="secundario" icone="fechar" soIcone onClick={() => setSel(new Set())}>Limpar seleção</Botao>
             </div>
           )}
           {loteAviso && <p className="ui-nota" role="status">{loteAviso}</p>}

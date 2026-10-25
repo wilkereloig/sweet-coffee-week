@@ -128,9 +128,10 @@ function SecaoFicha({ id, titulo, nota, acoes, edicao, children }) {
 // Ações da seção pela função de quem lê; null quando não há nenhuma (a seção fica sem barra).
 function botoesAcao(secao, pode, ctx, onEditar) {
   const lista = acoesDaSecao(secao, pode, ctx)
-  return lista.length ? lista.map((a) => (
-    <Botao key={a.editor + a.rotulo} icone="editar" variante={a.principal ? undefined : 'secundario'} onClick={() => onEditar({ secao, editor: a.editor })}>{a.rotulo}</Botao>
-  )) : null
+  return lista.length ? lista.map((a) => {
+    const lapis = a.icone === 'editar'
+    return <Botao key={a.editor + a.rotulo} icone={a.icone} soIcone={lapis} variante={a.principal && !lapis ? undefined : 'secundario'} onClick={() => onEditar({ secao, editor: a.editor })}>{a.rotulo}</Botao>
+  }) : null
 }
 
 /* ── Pendências (coluna auxiliar) ──────────────────────────────────────── */
@@ -439,7 +440,7 @@ function SecaoPublicacao({ p, fontes, recarregar, pode, onEditar, edicaoAberta, 
   const ed = fontes.edicoes.estado === 'ok' ? edicaoDaFicha(p.edicao_codigo, fontes.edicoes.dados) : null   // o período da edição chega à prévia
   const ctx = { unidades: pub.dados.unidades, itens: pub.dados.atual && pub.dados.atual.combo && pub.dados.atual.combo.itens }
   const acoes = <>{botoesAcao("publicacao", pode, { temPublicacao: true }, onEditar)}
-    {pub.dados.atual && <Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => onPrevia(!previa)}>{previa ? 'Fechar prévia' : 'Ver prévia pública'}</Botao>}</>
+    {pub.dados.atual && <Botao icone="olho" variante="secundario" aria-expanded={previa} onClick={() => onPrevia(!previa)}>{previa ? 'Fechar prévia' : 'Ver prévia pública'}</Botao>}</>
   return (
     <SecaoFicha id="publicacao" titulo={NOMES_PUBLICACAO.marcas.pagina} acoes={acoes} edicao={edicaoAberta}
       nota="O que está no ar é uma cópia congelada: o cadastro pode mudar sem mudar o site, até a próxima publicação.">

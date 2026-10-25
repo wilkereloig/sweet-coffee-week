@@ -8,7 +8,7 @@ import {
 import { chaveDia } from '../../lib/hoje'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha, BotaoIcone } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha, BotaoIcone, Botao } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
@@ -256,7 +256,7 @@ function AbaTemas({ edicao, pode, irPara }) {
               <div className="ui-linha-acoes">
                 {pode('curadoria.decidir') && t.status === 'proposto' && !g.aprovado && <button className="og-btn og-btn--mini" type="button" onClick={() => decidir(t, 'aprovado')}>Aprovar</button>}
                 {pode('curadoria.decidir') && t.status === 'proposto' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => decidir(t, 'recusado')}>Pedir outro tema</button>}
-                <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => irPara('participantes', { vista: 'participantes', id: t.participante_id, sub: 'tema' })}>Abrir ficha</button>
+                <Botao variante="secundario" icone="avancar" soIcone aria-label={'Abrir a ficha de ' + (t.marca || 'marca')} onClick={() => irPara('participantes', { vista: 'participantes', id: t.participante_id, sub: 'tema' })}>Abrir ficha</Botao>
               </div>
             </li>
           ))}</ol>
@@ -406,7 +406,7 @@ function AbaRevisao({ pode, irPara }) {
               <span className="og-item__dir">
                 {r.participante_id && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => irPara('participantes', { vista: 'participantes', id: r.participante_id, sub: r.tipo === 'possivel_correspondencia' ? 'trajetoria' : 'operacao' })}>Abrir marca</button>}
                 {r.contato_id && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => irPara('contatos', { vista: 'contatos', id: r.contato_id })}>Abrir contato</button>}
-                {podeResolver && r.status === 'aberta' && r.participante_id && ['nome_marca', 'razao_social', 'cnpj', 'telefone', 'email'].includes(r.campo) && <button className="og-btn og-btn--mini" type="button" onClick={() => corrigir(r)}>Corrigir</button>}
+                {podeResolver && r.status === 'aberta' && r.participante_id && ['nome_marca', 'razao_social', 'cnpj', 'telefone', 'email'].includes(r.campo) && <Botao variante="secundario" icone="editar" soIcone aria-label={'Corrigir: ' + r.titulo} onClick={() => corrigir(r)}>Corrigir</Botao>}
                 {podeResolver && r.status === 'aberta' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => resolver(r, 'resolvida')}>Resolvida</button>}
                 {podeResolver && r.status === 'aberta' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => resolver(r, 'descartada')}>Descartar</button>}
               </span>

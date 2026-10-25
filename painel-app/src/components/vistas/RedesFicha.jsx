@@ -174,8 +174,8 @@ function Previa({ arquivos, urls, erroUrls = null, renovar, formato, entrega, no
       )}
       {/* Entregar: esta arte (original) e, em sequência, todas na ordem da postagem (nomes numerados). */}
       <div className="rd-previa__acoes">
-        <Botao variante="secundario" icone="busca" disabled={!url} onClick={() => dialogo.current && dialogo.current.showModal()}>Ampliar</Botao>
-        <BotoesEntrega entrega={entrega} itens={[itemDe(a)]} rotuloBaixar={n > 1 ? 'Baixar esta' : 'Baixar arte'} />
+        <Botao variante="secundario" icone="ampliar" soIcone disabled={!url} aria-label="Ampliar a arte" onClick={() => dialogo.current && dialogo.current.showModal()}>Ampliar</Botao>
+        <BotoesEntrega entrega={entrega} itens={[itemDe(a)]} rotuloBaixar={n > 1 ? 'Baixar esta arte' : 'Baixar arte'} />
         {n > 1 && <BotoesEntrega entrega={entrega} itens={arquivos.map(itemDe)} numerar nomeZip={nomeConjunto} rotuloBaixar={'Baixar as ' + n + ' (ZIP)'} />}
       </div>
       <EstadoEntrega entrega={entrega} />
@@ -924,7 +924,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
               <span className="rd-campo__nota rd-campo__nota--erro" role="alert">{it.erro}</span>
               <span className="ui-acoes">
                 <Botao onClick={() => tentarDeNovo(it)}>Tentar de novo</Botao>
-                <Botao variante="secundario" onClick={() => setEnvios((l) => l.filter((x) => x.chave !== it.chave))}>Descartar</Botao>
+                <Botao variante="secundario" icone="fechar" soIcone aria-label={'Descartar o envio de ' + it.nome} onClick={() => setEnvios((l) => l.filter((x) => x.chave !== it.chave))}>Descartar</Botao>
               </span>
             </>
           ) : (
@@ -1075,8 +1075,8 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                 {/* Legenda: leitura confortável; editar no lugar. */}
                 <Bloco titulo={story ? 'Legenda (opcional no Story)' : 'Legenda'} className="rd-legenda"
                   acoes={!emEdicao('legenda') && <>
-                    {texto && <Botao variante="secundario" icone={copiado ? 'feito' : 'copiar'} onClick={() => copiar(texto, 'Legenda')}>{copiado ? 'Copiada' : 'Copiar legenda'}</Botao>}
-                    {podeEditar && <Botao variante="secundario" icone="editar" onClick={() => editar('legenda', idCampo('legenda'))}>Editar</Botao>}
+                    {texto && <Botao variante="secundario" icone={copiado ? 'feito' : 'copiar'} soIcone onClick={() => copiar(texto, 'Legenda')}>{copiado ? 'Legenda copiada' : 'Copiar legenda'}</Botao>}
+                    {podeEditar && <Botao variante="secundario" icone="editar" soIcone onClick={() => editar('legenda', idCampo('legenda'))}>Editar legenda</Botao>}
                   </>}>
                   {emEdicao('legenda') ? (
                     <div className="rd-bloco__form">
@@ -1088,7 +1088,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                       {campos.legenda.trim() ? <div className="rd-legenda__texto">{campos.legenda}</div> : <p className="rd-falta">{story ? 'Sem legenda (o Story não exige).' : 'Sem legenda ainda.'}</p>}
                       {texto && (
                         <p className={'rd-legenda__conta' + (nLegenda > R.LIMITE_LEGENDA_INSTAGRAM ? ' rd-campo__nota--erro' : '')}>
-                          {nLegenda} de {R.LIMITE_LEGENDA_INSTAGRAM} caracteres{campos.mencoes ? ' (legenda + menções, que “Copiar legenda” leva junto)' : ''}
+                          {nLegenda} de {R.LIMITE_LEGENDA_INSTAGRAM} caracteres{campos.mencoes ? ' (legenda + menções, que o botão de copiar leva junto)' : ''}
                         </p>
                       )}
                     </>
@@ -1115,7 +1115,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
 
                 {/* Programação: data, horário e responsável à vista. */}
                 <Bloco titulo="Programação" className="rd-prog-bloco"
-                  acoes={!emEdicao('programacao') && podeEditar && <Botao variante="secundario" icone="editar" onClick={() => editar('programacao', idCampo('data'))}>Editar</Botao>}>
+                  acoes={!emEdicao('programacao') && podeEditar && <Botao variante="secundario" icone="editar" soIcone onClick={() => editar('programacao', idCampo('data'))}>Editar programação</Botao>}>
                   {emEdicao('programacao') ? (
                     <div className="rd-bloco__form">
                       <div className="rd-grade">
@@ -1298,7 +1298,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                         {campos.referencias && <div><dt>Referências</dt><dd className="rd-pre">{campos.referencias}</dd></div>}
                       </dl>
                       <div className="ui-acoes">
-                        {podeEditar && <Botao variante="secundario" icone="editar" onClick={() => editar('detalhes', idCampo('titulo'))}>Editar detalhes</Botao>}
+                        {podeEditar && <Botao variante="secundario" icone="editar" soIcone onClick={() => editar('detalhes', idCampo('titulo'))}>Editar detalhes</Botao>}
                         {campos.participante_id && onVerParticipante && pode('editorial.ler') && (
                           <Botao variante="secundario" icone="ficha" onClick={() => onVerParticipante(campos.participante_id, campos.edicao_codigo)}>Ver participante e combo</Botao>
                         )}
@@ -1367,7 +1367,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                     <div className="ui-acoes">
                       {ativos.length > 0 && (
                         <label className="og-btn og-btn--mini og-btn--vazado rd-enviar-mais">
-                          <Icone nome="mais" tamanho={16} />Enviar mais arquivos
+                          <Icone nome="subir" tamanho={16} />Enviar mais arquivos
                           <input type="file" multiple accept={R.ACEITE} className="ui-oculto" id={idCampo('arte')} onChange={(e) => { if (e.target.files.length) adicionarEnvios(e.target.files); e.target.value = '' }} />
                         </label>
                       )}

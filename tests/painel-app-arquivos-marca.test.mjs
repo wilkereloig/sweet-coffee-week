@@ -180,12 +180,12 @@ test('a tela diz o que acontece em cada aparelho — e nunca promete "salvo"', (
   const nota = (ua, o) => notaDeAbertura(plataforma(ua, 0), o)
 
   assert.match(nota(UA.iphone), /No iPhone, “Abrir” mostra o arquivo em outra aba; para guardá-lo, toque em Compartilhar › Salvar em Arquivos\./)
-  assert.match(nota(UA.iphone), /“Baixar” pede ao Safari para baixar o arquivo; ele pode perguntar antes\./)
+  assert.match(nota(UA.iphone), /“Baixar” \(a seta para baixo\) pede ao Safari para baixar o arquivo; ele pode perguntar antes\./)
   assert.match(nota(UA.chromeIos), /pede ao navegador para baixar/, 'no Chrome do iPhone não se fala em Safari')
   assert.match(nota(UA.iphone, { fotos: true }), /mostra a foto em outra aba; para levá-la à galeria, toque em Compartilhar › Salvar imagem\./)
   assert.match(nota(UA.android), /alguns navegadores baixam o PDF em vez de mostrá-lo/)
   assert.doesNotMatch(nota(UA.desktop), /iPhone|Compartilhar|celular/)
-  assert.match(nota(UA.desktop), /^“Abrir” mostra o arquivo em outra aba\. “Baixar” pede ao navegador para baixar o arquivo\.$/)
+  assert.match(nota(UA.desktop), /^“Abrir” mostra o arquivo em outra aba\. “Baixar” \(a seta para baixo\) pede ao navegador para baixar o arquivo\.$/)
 
   const todas = [...Object.values(UA).flatMap((ua) => [nota(ua), nota(ua, { fotos: true })]), retornoDaAcao('abrir', 'Guia'), retornoDaAcao('baixar', 'Guia')]
   for (const t of todas) assert.doesNotMatch(t.replace(/Salvar (em Arquivos|imagem)/g, ''), /salv(o|a|os|as|ou|amos)\b|guardad/i, 'promessa de "salvo": ' + t)
@@ -335,10 +335,12 @@ test('ícones, botões e estilos seguem as regras do painel', () => {
   const mapa = [...ARQUIVOS.slice(ARQUIVOS.indexOf('const ICONE_CATEGORIA')).split('\n')[0].matchAll(/:\s*'([a-z0-9/-]+)'/g)].map((m) => m[1])
   assert.ok(nomes.length >= 4 && mapa.length === 5)
   for (const n of [...nomes, ...mapa]) assert.ok(existe(n), 'ícone inexistente: ' + n)
-  // Alvo de toque ≥ 44px: todo botão da linha é og-btn--mini (min-height 44 no painel.css).
+  // Alvo de toque ≥ 44px: todo botão da linha é og-btn--mini (min-height 44 no painel.css). O "Baixar" é o Botao
+  // só com a seta (25/10/2026; mini por padrão, círculo de 44 px), com o nome do arquivo no aria-label.
   const botoes = [...ITEM.matchAll(/<button\b[^>]*className="([^"]*)"/g)].map((m) => m[1])
-  assert.equal(botoes.length, 3)
+  assert.equal(botoes.length, 2)
   for (const c of botoes) assert.match(c, /og-btn--mini/)
+  assert.match(ITEM, /<Botao variante="secundario" icone="baixar" soIcone aria-label=\{'Baixar ' \+ a\.nome\}/)
   // Selo sempre com ícone + texto (a peça <Selo>); nada de span de selo à mão.
   assert.doesNotMatch(ARQUIVOS + ITEM, /className="og-selo"/)
   // CSS: só prefixo am-, só tokens (sem cor/raio/fonte literal), sem caixa-alta, sem fundo/borda/sombra de card.

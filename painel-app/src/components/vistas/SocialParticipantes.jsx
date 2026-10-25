@@ -178,7 +178,7 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
         <header className="sp-cabeca">
           <div className="sp-logo">
             <LogoMarca url={casa.logo ? urlLogo(casa.logo.path) : null} nome={f.marca} tamanho={72} />
-            {casa.logo && casa.logo.path && <Botao variante="secundario" icone="baixar" aria-label={'Baixar a logo de ' + f.marca}
+            {casa.logo && casa.logo.path && <Botao variante="secundario" icone="baixar" soIcone aria-label={'Baixar a logo de ' + f.marca}
               onClick={() => baixar({ bucket: 'logos', path: casa.logo.path }, (f.marca + '-logo.' + (casa.logo.path.split('.').pop() || 'png')).replace(/\s+/g, '-').toLowerCase())}>Baixar logo</Botao>}
           </div>
           <div>
@@ -201,7 +201,7 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
             <p>Não consegui baixar “{falhaBaixa.nome}”. Confira a conexão.</p>
             <div className="ui-acoes">
               <Botao icone="atualizar" onClick={() => baixar(falhaBaixa.fonte, falhaBaixa.nome)}>Tentar de novo</Botao>
-              <Botao variante="secundario" onClick={() => setFalhaBaixa(null)}>Fechar</Botao>
+              <Botao variante="secundario" icone="fechar" soIcone aria-label="Fechar o aviso" onClick={() => setFalhaBaixa(null)}>Fechar</Botao>
             </div>
           </div>
         )}
@@ -217,7 +217,7 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
         )}
 
         <Secao titulo="Combo" nota="O que está no cadastro agora. A versão do site só muda quando a curadoria publica de novo."
-          acoes={podeEditar && !editando ? <Botao variante="secundario" icone="editar" onClick={editar}>Editar textos</Botao> : null}>
+          acoes={podeEditar && !editando ? <Botao variante="secundario" icone="editar" soIcone aria-label="Editar os textos do combo" onClick={editar}>Editar textos</Botao> : null}>
           {editando ? (
             <form className="sp-form" onSubmit={(e) => { e.preventDefault(); salvar() }}>
               {campoCombo('combo_nome')}
@@ -272,7 +272,7 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
                     <img src={fotoUrl(x.path)} alt={x.alt || PAPEL_FOTO[x.papel]} loading="lazy" />
                   </span>
                   <span className="rd-campo__nota">{PAPEL_FOTO[x.papel]} · {x.estado === 'aprovada' ? 'aprovada' : 'sem aprovação'}{x.credito ? ' · ' + x.credito : ''}</span>
-                  <Botao variante="secundario" icone="baixar" aria-label={'Baixar foto: ' + PAPEL_FOTO[x.papel]} onClick={() => baixar({ bucket: 'edicao-publico', path: x.path }, (f.marca + ' ' + PAPEL_FOTO[x.papel]).replace(/\s+/g, '-').toLowerCase() + '.webp')}>Baixar</Botao>
+                  <Botao variante="secundario" icone="baixar" soIcone aria-label={'Baixar foto: ' + PAPEL_FOTO[x.papel]} onClick={() => baixar({ bucket: 'edicao-publico', path: x.path }, (f.marca + ' ' + PAPEL_FOTO[x.papel]).replace(/\s+/g, '-').toLowerCase() + '.webp')}>Baixar</Botao>
                 </li>
               ))}
             </ul>

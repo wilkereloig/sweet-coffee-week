@@ -141,7 +141,7 @@ export function tipoDeAbertura(a) {
 /** Todo arquivo baixa; só o que o navegador mostra também abre. `dica` explica a ausência do "Abrir". */
 export function acoesDoArquivo(a) {
   const abrir = tipoDeAbertura(a) !== 'outro'
-  return { abrir, baixar: true, dica: abrir ? '' : 'Este formato não abre no navegador: use “Baixar” e abra o arquivo depois, no aparelho.' }
+  return { abrir, baixar: true, dica: abrir ? '' : 'Este formato não abre no navegador: use “Baixar” (a seta para baixo) e abra o arquivo depois, no aparelho.' }
 }
 
 /**
@@ -159,7 +159,8 @@ export function urlParaBaixar(url, nome) {
 /** O que acontece em cada aparelho, em uma frase que cabe sob o título da lista. `plat` = plataforma() de instalar.js. */
 export function notaDeAbertura(plat = {}, { fotos = false } = {}) {
   const coisa = fotos ? 'a foto' : 'o arquivo'
-  const baixar = '“Baixar” pede ao ' + (plat.ios && plat.safari ? 'Safari' : 'navegador') + ' para baixar ' + coisa + (plat.ios ? '; ele pode perguntar antes' : '') + '.'
+  // O botão de baixar é só a seta (25/10/2026): a nota diz o desenho junto do nome.
+  const baixar = '“Baixar” (a seta para baixo) pede ao ' + (plat.ios && plat.safari ? 'Safari' : 'navegador') + ' para baixar ' + coisa + (plat.ios ? '; ele pode perguntar antes' : '') + '.'
   if (plat.ios) {
     return 'No iPhone, “Abrir” mostra ' + coisa + ' em outra aba; ' + (fotos
       ? 'para levá-la à galeria, toque em Compartilhar › Salvar imagem. '

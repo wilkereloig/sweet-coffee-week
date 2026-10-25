@@ -440,6 +440,19 @@ button.pn-sync{cursor:pointer;color:var(--scw-choco)}
    chocolate sobre laranja, 4,78:1 em 14,5px/700. */
 .og-btn--perigo{background:var(--scw-laranja);color:var(--scw-choco)}
 .acao.larga{width:100%}
+/* Só o ícone (Botao soIcone, LinkIcone, MaisAcoes — 25/10/2026): a MESMA variante, num círculo de 44px. O nome vai
+   no aria-label e numa dica em cima, no mouse e no foco do teclado. No toque não há dica: por isso só vira ícone o
+   desenho universal. max-width segura o círculo onde a fileira estica os botões (flex:1). */
+.og-btn--icone{position:relative;width:44px;min-width:44px;max-width:44px;height:44px;min-height:44px;padding:0;gap:0;flex-shrink:0}
+.og-btn--icone::after{content:attr(data-rotulo);position:absolute;bottom:calc(100% + 6px);left:50%;translate:-50% 0;
+  padding:6px 10px 5px;border-radius:999px;background:var(--scw-choco);color:var(--scw-creme);font:700 12px/1 var(--f-ui);
+  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--scw-transicao);z-index:5}
+/* Nas pontas da fileira a dica encosta na borda do botão: centrada, passaria da borda da folha, que corta. */
+.og-btn--icone:first-child::after{left:0;translate:none}
+.og-btn--icone:last-child:not(:first-child)::after,.ui-mais-acoes:last-child > .og-btn--icone::after{left:auto;right:0;translate:none}
+.og-btn--icone:focus-visible::after{opacity:1}
+@media (hover:hover){ .og-btn--icone:hover::after{opacity:1} }
+.ui-mais-acoes[open] > .og-btn--icone::after{opacity:0}
 /* Link: UMA família (eram três). Tinta chocolate, sublinhado marrom-claro
    que escurece sob o ponteiro. */
 .og-link,.link,.ui-link{
@@ -1766,8 +1779,6 @@ p.fg-vazio{margin:0}
 .rd-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto}
 /* O menu de "Mais ações" abre para a esquerda: preso à direita, nunca sai da tela. */
 .rd-acoes > .ui-mais-acoes{margin-left:auto}
-.rd-ajuda{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-marrom);font:700 14px/1 var(--f-ui);cursor:pointer}
-@media (hover:hover){ .rd-ajuda:hover{color:var(--scw-choco);background:var(--sup-toque)} }
 @container rd (max-width:520px){
   .rd-acoes{order:-1;flex:1 1 100%;margin:0}
   .rd-acoes > .rd-nova{order:-1;flex:1 1 auto;justify-content:center;min-height:48px}

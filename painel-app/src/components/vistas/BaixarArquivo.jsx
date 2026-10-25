@@ -1,5 +1,6 @@
 import React from 'react'
 import { Botao } from '../ui'
+import { ICONE_COMPARTILHAR } from '../Icone'
 import { obterArquivo } from '../../lib/redesArquivos'
 import { plataforma } from '../../lib/instalar'
 import { entregar, compartilhar, suportaCompartilhar, temGestoAtivo, planejarLote, zipArmazenado, nomeNumerado, nomeLivre, LIMITES } from '../../lib/entrega'
@@ -110,7 +111,7 @@ export function useEntrega({ obter = obterDaEquipe, quem = 'equipe' } = {}) {
     if (r === 'ok') definir({ fase: 'compartilhado', texto: 'Opções do aparelho usadas. O destino (Fotos, Arquivos ou outro app) é o que você escolheu no aparelho.' })
     else if (r === 'cancelado') definir({ fase: 'cancelado', texto: 'Cancelado. Nada foi baixado.' })
     else if (r === 'sem_gesto' && !porToque) definir({ fase: 'pronto', texto: arquivos.length > 1 ? arquivos.length + ' arquivos prontos.' : '“' + arquivos[0].name + '” pronto.', arquivos })
-    else definir({ fase: 'erro', texto: 'Este navegador não abriu as opções de compartilhamento para este arquivo. Use “Baixar”.', semRepetir: true })
+    else definir({ fase: 'erro', texto: 'Este navegador não abriu as opções de compartilhamento para este arquivo. Use o botão de baixar.', semRepetir: true })
   }
 
   async function salvar(itens, { numerar = false } = {}) {
@@ -164,10 +165,10 @@ export function EstadoEntrega({ entrega, className = '' }) {
       {dica && <p className="ent__dica">No celular: abra o arquivo baixado e use Compartilhar › Salvar imagem para levá-lo à galeria.</p>}
       <div className="ent__acoes">
         {e.fase === 'pronto' && e.baixarDepois && <Botao variante="destaque" icone="baixar" onClick={entrega.baixarAgora}>Baixar agora</Botao>}
-        {e.fase === 'pronto' && !e.baixarDepois && <Botao variante="destaque" icone="compartilhar" onClick={entrega.abrirOpcoes}>Abrir opções para salvar</Botao>}
+        {e.fase === 'pronto' && !e.baixarDepois && <Botao variante="destaque" icone={ICONE_COMPARTILHAR} onClick={entrega.abrirOpcoes}>Abrir opções para salvar</Botao>}
         {erro && !e.semRepetir && <Botao icone="atualizar" onClick={entrega.tentarDeNovo}>Tentar de novo</Botao>}
-        {e.fase === 'preparando' && e.cancelavel && <Botao variante="secundario" onClick={entrega.cancelar}>Cancelar</Botao>}
-        {e.fase !== 'preparando' && <Botao variante="secundario" onClick={entrega.fechar}>Fechar</Botao>}
+        {e.fase === 'preparando' && e.cancelavel && <Botao variante="secundario" icone="fechar" soIcone onClick={entrega.cancelar}>Cancelar</Botao>}
+        {e.fase !== 'preparando' && <Botao variante="secundario" icone="fechar" soIcone onClick={entrega.fechar}>Fechar</Botao>}
       </div>
     </div>
   )
@@ -176,22 +177,24 @@ export function EstadoEntrega({ entrega, className = '' }) {
 /**
  * Os botões de um conjunto: "Baixar" (um) ou "Baixar ZIP (N)" (vários), e
  * "Salvar ou compartilhar" quando o aparelho aceita compartilhar arquivo.
+ * Um arquivo = só os ícones (o nome vai no aria-label e na dica); vários = o texto diz que é ZIP e quantos.
  */
 export function BotoesEntrega({ entrega, itens, numerar = false, nomeZip, rotuloBaixar, compacto = false }) {
   const n = itens.length
   const mime = (itens[0] && itens[0].mime) || 'image/jpeg'
   const pode = React.useMemo(() => suportaCompartilhar(mime), [mime])
   if (!n) return null
+  const um = n === 1
   return (
     <>
-      <Botao variante="secundario" icone="baixar" disabled={entrega.ocupado} onClick={() => entrega.baixar(itens, { numerar, nomeZip })}
+      <Botao variante="secundario" icone="baixar" soIcone={um} disabled={entrega.ocupado} onClick={() => entrega.baixar(itens, { numerar, nomeZip })}
         aria-label={n > 1 && !rotuloBaixar ? 'Baixar ' + n + ' arquivos num ZIP (arquivo compactado)' : undefined}>
         {rotuloBaixar || (n > 1 ? (compacto ? 'ZIP (' + n + ')' : 'Baixar ZIP (' + n + ')') : 'Baixar')}
       </Botao>
       {pode && n <= LIMITES.compartilharArquivos && (
-        <Botao variante="secundario" icone="compartilhar" disabled={entrega.ocupado} onClick={() => entrega.salvar(itens, { numerar })}
-          aria-label={compacto ? 'Salvar ou compartilhar' + (n > 1 ? ' ' + n + ' arquivos' : '') : undefined}>
-          {compacto ? (n > 1 ? 'Salvar (' + n + ')' : 'Salvar') : n > 1 ? 'Salvar ou compartilhar (' + n + ')' : 'Salvar ou compartilhar'}
+        <Botao variante="secundario" icone={ICONE_COMPARTILHAR} soIcone={um} disabled={entrega.ocupado} onClick={() => entrega.salvar(itens, { numerar })}
+          aria-label={compacto && !um ? 'Salvar ou compartilhar ' + n + ' arquivos' : undefined}>
+          {um ? 'Salvar ou compartilhar' : compacto ? 'Salvar (' + n + ')' : 'Salvar ou compartilhar (' + n + ')'}
         </Botao>
       )}
     </>

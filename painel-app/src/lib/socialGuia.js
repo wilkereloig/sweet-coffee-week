@@ -10,7 +10,7 @@ export function passosDoGuia({ aprovador = 'quem aprova', aprova = false } = {})
     { titulo: aprova ? 'Aprove ou peça ajuste' : 'Aguarde a aprovação', texto: aprova
       ? 'Toque no alerta “para aprovar”, no alto do Planejamento. Aprove, ou peça ajuste dizendo o que mudar: a postagem volta para quem cuida dela.'
       : 'Aprovada, ela aparece no alerta “a publicar”. Se pedirem ajuste, ela volta para você com o comentário.' },
-    { titulo: 'Publique no Instagram', texto: 'Na hora marcada, abra a postagem aprovada: “Copiar legenda” e “Baixar arte” (ou “Salvar ou compartilhar”, no celular). Publique pelo Instagram.' },
+    { titulo: 'Publique no Instagram', texto: 'Na hora marcada, abra a postagem aprovada: copie a legenda e baixe a arte pelos botões da postagem (no celular, o de compartilhar leva a arte para a galeria). Publique pelo Instagram.' },
     { titulo: 'Confirme aqui', texto: 'Volte e toque em “Confirmar publicação”. Só assim ela fica como Publicada — o painel não publica sozinho.' },
   ]
 }

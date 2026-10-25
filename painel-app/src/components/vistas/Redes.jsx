@@ -222,7 +222,7 @@ function VistaSemana({ data, dias, hojeK, ctx, diaAberto, onAlternar, onNova, po
   const idDia = (d) => 'rd-dia-' + d
   const adicionar = (d) => podeCriar && (
     <button type="button" className="rd-sem__vazio" onClick={() => onNova(d)} aria-label={'Adicionar postagem em ' + nomeDia(d)}>
-      <Icone nome="mais" tamanho={16} /> Adicionar
+      <Icone nome="mais" tamanho={20} />
     </button>
   )
 
@@ -281,7 +281,7 @@ function VistaSemana({ data, dias, hojeK, ctx, diaAberto, onAlternar, onNova, po
             <h3 id={idDia(aberto) + '-t'}>{R.tituloPeriodo('dia', aberto)}</h3>
             <div className="ui-acoes">
               {podeCriar && <Botao variante="secundario" icone="mais" onClick={() => onNova(aberto)} aria-label={'Adicionar postagem em ' + nomeDia(aberto)}>Adicionar postagem</Botao>}
-              <Botao variante="secundario" icone="recolher" onClick={() => onAlternar('')}>Fechar o dia</Botao>
+              <Botao variante="secundario" icone="fechar" soIcone aria-label={'Fechar o dia ' + nomeDia(aberto)} onClick={() => onAlternar('')}>Fechar o dia</Botao>
             </div>
           </header>
           {(dias[aberto] || []).length ? <ListaDoDia itens={dias[aberto]} ctx={ctx} /> : <p className="ui-nota">Nada programado neste dia.</p>}
@@ -638,9 +638,7 @@ export function Redes({ rota, navegar, pode }) {
         </div>
       )}
       <div className="rd-acoes">
-        <button type="button" className="rd-ajuda" onClick={() => setGuia(true)} aria-haspopup="dialog">
-          <Icone nome="informacao" tamanho={20} /><span>Como funciona</span>
-        </button>
+        <BotaoIcone icone="duvida" rotulo="Como funciona" aria-haspopup="dialog" onClick={() => setGuia(true)} />
         {/* Configuração rara (só o administrador): não disputa espaço com "Nova postagem". */}
         <MaisAcoes itens={[pode('redes.gerir') && { rotulo: 'Checklist padrão', icone: 'feito', onClick: () => setModelosAbertos(true) }]} />
         {podeCriar && <Botao icone="mais" variante="destaque" className="rd-nova" onClick={() => abrir('novo')}>Nova postagem</Botao>}
@@ -685,8 +683,8 @@ export function Redes({ rota, navegar, pode }) {
             <Escolha rotulo="Lista rápida (todas as datas)" valor={atalho} opcoes={opAtalho} onMudar={(v) => { if (v) setFiltrosAbertos(false); mudar({ atalho: v || undefined, modo: v ? 'lista' : undefined }) }} />
           </div>
           <div className="ui-acoes">
-            {nFiltros > 0 && <Botao variante="secundario" icone="fechar" onClick={limparFiltros}>Limpar filtros</Botao>}
-            <Botao variante="secundario" onClick={() => setFiltrosAbertos(false)}>Fechar filtros</Botao>
+            {nFiltros > 0 && <Botao variante="secundario" onClick={limparFiltros}>Limpar filtros</Botao>}
+            <Botao variante="secundario" icone="fechar" soIcone onClick={() => setFiltrosAbertos(false)}>Fechar filtros</Botao>
           </div>
         </div>
       )}

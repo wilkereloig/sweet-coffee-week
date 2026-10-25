@@ -85,8 +85,12 @@ import { Icone } from './Icone'                          // painel — mesmo reg
 - **Decorativo por padrão** (`aria-hidden`). Com texto ao lado, não ponha `titulo` —
   duplicaria o anúncio. Ícone que informa sozinho recebe `titulo`.
 - **Botão só com ícone:** o nome vai no botão (`aria-label`); o desenho de 20px fica num
-  alvo de 44px (`.scw-icone-rotulo` no site, `BotaoIcone` no painel). Tooltip complementa,
-  não substitui.
+  alvo de 44px (`.scw-icone-rotulo` no site; no painel, `BotaoIcone` sem contorno e
+  `Botao soIcone`/`LinkIcone`/`MaisAcoes` com a variante do botão). Tooltip complementa,
+  não substitui — no toque ela não existe, então só vira ícone o desenho universal.
+- **Compartilhar tem dois desenhos, de propósito:** o botão abre as opções DO APARELHO, e
+  o desenho é o dele (`ICONE_COMPARTILHAR` no painel): `compartilhar-ios` (quadrado com
+  seta) no iPhone/iPad, `compartilhar` (três pontos) no resto.
 - **Estado nunca só por cor:** selo = desenho distinto + texto + cor (`ICONE_TOM`).
 - **Carregando:** `nome="carregando"` + `className="scw-gira"` (para sozinho com
   movimento reduzido). `BotaoIcone` com `aria-busy` troca sozinho.

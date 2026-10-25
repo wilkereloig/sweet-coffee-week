@@ -1,6 +1,7 @@
 import INTERFACE from '../../../src/components/scw-icons/gerado/interface'
 import EXPRESSIVA from '../../../src/components/scw-icons/gerado/expressiva'
 import { criarIcone, canonico } from '../../../src/components/scw-icons/registro'
+import { plataforma } from '../lib/instalar'
 
 /*
  * Ícones do painel — adaptador do registro ÚNICO do site (v3, 14/10/2026).
@@ -26,6 +27,12 @@ export const MODULO_ICONE = {
   presskit: 'imprensa', contatos: 'contatos', participantes: 'pessoas', config: 'configuracoes',
   edicao: 'edicao', instagram: 'instagram', email: 'email', estabelecimento: 'loja',
 }
+
+/**
+ * Compartilhar abre as opções do APARELHO, então o desenho é o dele (25/10/2026): no iPhone/iPad o quadrado com a
+ * seta; no Android e no computador os três pontos ligados.
+ */
+export const ICONE_COMPARTILHAR = plataforma().ios ? 'compartilhar-ios' : 'compartilhar'
 
 /** A cor do selo diz a natureza; o ícone repete a natureza sem depender da cor. */
 export const ICONE_TOM = { neutro: 'neutro', andamento: 'horario', atencao: 'atencao', ok: 'sucesso', encerrado: 'arquivar' }

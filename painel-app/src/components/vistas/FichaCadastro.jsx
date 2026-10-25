@@ -74,7 +74,7 @@ const ehSimNao = (c) => c.tipo === 'check' || c.tipo === 'sim_nao'
  * Um bloco = um MÓDULO: lê em <dl> (sim/não viram chips na mesma linha) e
  * edita no lugar. `onSalvar(valores)` recebe só os campos do bloco, já no
  * formato do banco. `comStatus`: mostra Preenchido/Pendente. `rotuloEditar`:
- * a ação diz o que faz ("Editar bebida").
+ * o nome do lápis, lido e na dica ("Editar bebida").
  *
  * Edição com alteração externa (19/10/2026): enquanto o formulário está aberto,
  * `valores` pode mudar por fora (outra pessoa salvou, releitura por sinal). O que
@@ -96,9 +96,10 @@ export function Bloco({
   const vazio = !textos.length
   const selo = status !== undefined ? status
     : comStatus ? (vazio ? <Selo tom="atencao">Pendente</Selo> : <Selo tom="ok">Preenchido</Selo>) : null
-  const acaoEditar = podeEditar && !editando && (
-    <Botao icone="editar" variante={vazio ? undefined : 'secundario'} onClick={() => setEditando(true)}>{vazio ? 'Preencher agora' : (rotuloEditar || 'Editar ' + titulo.toLowerCase())}</Botao>
-  )
+  // Vazio: "Preencher agora", com texto (é a ação do card). Preenchido: só o lápis; "Editar bebida" vira o nome e a dica.
+  const acaoEditar = podeEditar && !editando && (vazio
+    ? <Botao icone="editar" onClick={() => setEditando(true)}>Preencher agora</Botao>
+    : <Botao icone="editar" variante="secundario" soIcone onClick={() => setEditando(true)}>{rotuloEditar || 'Editar ' + titulo.toLowerCase()}</Botao>)
 
   return (
     <Modulo icone={icone} titulo={titulo} sub={nota} status={selo} largo={largo} id={id}
