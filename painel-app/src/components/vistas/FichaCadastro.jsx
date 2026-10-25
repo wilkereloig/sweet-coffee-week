@@ -370,7 +370,7 @@ export function CorrecoesCampo({ participacaoId, pode, onMudou }) {
   }
   const abertas = (lista || []).filter((c) => c.estado !== 'resolvida')
   return (
-    <Modulo icone="alteracao" titulo="Alterações pedidas à marca" sub="Aponte o campo e diga o motivo; a marca corrige e envia de novo."
+    <Modulo icone="alteracao" titulo="Alterações pedidas à marca" sub="Aponte o campo e diga o motivo; a marca corrige e salva."
       status={lista === null ? (erroLista ? <Selo tom="atencao">Não carregou</Selo> : null) : abertas.length ? <Selo tom="atencao">{abertas.length === 1 ? '1 aberta' : abertas.length + ' abertas'}</Selo> : <Selo tom="ok">Nenhuma aberta</Selo>}
       acoes={podeDecidir && !aberto && <Botao icone="alteracao" variante="secundario" onClick={() => setAberto(true)}>Pedir alteração em um campo</Botao>}>
       {!podeDecidir && <p className="ui-nota">Sua função não pede alteração de cadastro.</p>}
