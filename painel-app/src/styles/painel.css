@@ -911,8 +911,9 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .ui-aviso__ponto{flex:0 0 auto;width:9px;height:9px;margin-top:6px;border-radius:50%;background:var(--scw-magenta)}
 .ui-linha-acoes + .ui-avisos,.og-detalhe__rolo > .ui-linha-acoes{margin-bottom:12px}
 /* "Avisos neste aparelho" no topo da folha (23/10/2026): estado + ligar/desligar + o convite de instalar. */
-.ui-central-aparelho{display:flex;flex-direction:column;align-items:flex-start;gap:var(--e-2);margin:0 0 var(--e-5);padding:var(--e-4);border-radius:var(--r-2);background:var(--sup-2)}
-.ui-central-aparelho__titulo{margin:0;font:700 15px/1.3 var(--f-ui);color:var(--scw-choco)}
+.ui-central-aparelho{margin:0 0 var(--e-5);padding:0 var(--e-4);border-radius:var(--r-2);background:var(--sup-2)}
+.ui-central-aparelho > summary{display:flex;color:var(--scw-choco)}
+.ui-central-aparelho__corpo{display:flex;flex-direction:column;align-items:flex-start;gap:var(--e-2);padding:0 0 var(--e-4)}
 .ui-central-aparelho .ui-avisos-aparelho{align-self:stretch}
 
 /* ═══ Folha (gaveta no desktop, folha no celular) ══════════════════════════ */

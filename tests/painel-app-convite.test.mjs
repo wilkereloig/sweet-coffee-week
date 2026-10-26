@@ -55,6 +55,7 @@ test('o convite mostra os passos direto quando o navegador não oferece instalar
 test('sino: "Avisos neste aparelho" no topo, e "Como instalar" fecha a folha antes de abrir o convite', () => {
   const central = ler('painel-app/src/components/Central.jsx')
   assert.match(central, /Avisos neste aparelho/)
+  assert.match(central, /<details className="ui-central-aparelho ui-recolhe">\s*<summary>Avisos neste aparelho<\/summary>/, 'caixa que abre e fecha, fechada por padrão')
   assert.ok(central.indexOf('{aparelho && (') < central.indexOf('{naoLidas > 0 && ('), 'a seção vem antes da lista')
   assert.match(central, /const comoInstalar = \(\) => \{ onFecharCentral\(\); setTimeout\(abrirConviteAparelho, DEPOIS_DA_FOLHA\) \}/)
   const saida = Number(/const SAIDA = (\d+)/.exec(ler('painel-app/src/components/Folha.jsx'))[1])

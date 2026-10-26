@@ -1709,7 +1709,8 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   computador), sem pedir de novo. "Agora não"/fechar adia 7 dias POR CONTA e aparelho
   (`scw_convite_aparelho_<papel>_<conta>`, só a data). Uma vez por sessão. Meu perfil / Sua conta › "Aplicativo e
   notificações" reabre, mostra o estado deste aparelho e a preferência de aviso de versão.
-  **O sino** (`Central › aparelho`) ganha no topo "Avisos neste aparelho": o estado (Ligados · Desligados · Bloqueados ·
+  **O sino** (`Central › aparelho`) ganha no topo "Avisos neste aparelho" (desde 25/10/2026 numa caixa que abre e
+  fecha, `<details class="ui-central-aparelho ui-recolhe">`, fechada por padrão): o estado (Ligados · Desligados · Bloqueados ·
   Indisponíveis, sempre com a linha de estado), o botão de ligar e o link "Como instalar e ligar os avisos" (fecha a folha e
   abre o convite 300 ms depois, porque a folha leva 260 ms para sair). ⛔ Nunca no "Ver como participante": o aparelho na mão
   é do administrador, então o sino, a etapa do tour e a seção da Conta não mostram os controles de aviso lá. O

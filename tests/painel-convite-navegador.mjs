@@ -102,8 +102,11 @@ async function principal() {
       await page.locator('[data-tour="sino"]').click()
       const folha = page.getByRole('dialog').first()
       await folha.waitFor({ timeout: 8000 })
+      ok(/Avisos neste aparelho/.test(await folha.innerText()), 'a folha do sino abre com "Avisos neste aparelho" no topo')
+      // Caixa recolhida: fechada não mostra o estado; um toque abre.
+      ok(!/(Desligados|Indisponíveis|Ligados|Bloqueados) neste aparelho/.test(await folha.innerText()), 'a caixa do aparelho começa fechada')
+      await folha.locator('details.ui-central-aparelho > summary').click()
       const t = await folha.innerText()
-      ok(/Avisos neste aparelho/.test(t), 'a folha do sino abre com "Avisos neste aparelho" no topo')
       ok(/(Desligados|Indisponíveis|Ligados|Bloqueados) neste aparelho/.test(t), 'diz se os avisos estão ligados ou não: ' + (t.match(/(Desligados|Indisponíveis|Ligados|Bloqueados) neste aparelho/) || [''])[0])
       // O Chromium sem interface começa com a permissão negada: é o caso "bloqueado" — a frase de como liberar aparece UMA vez só.
       ok((t.match(/não pode pedir de novo/g) || []).length <= 1, 'a frase "bloqueado" não se repete (estado + aviso)')

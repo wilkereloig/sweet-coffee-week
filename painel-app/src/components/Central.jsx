@@ -29,7 +29,6 @@ const ICONE_NIVEL = { informacao: 'informacao', atencao: 'atencao-circulo', pend
 export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarregar, aberto, onAbrirCentral, onFecharCentral, niveis = null, aparelho = null }) {
   const naoLidas = contarNaoLidas(itens)
   const lista = itens || []
-  const idAparelho = React.useId()
   const comoInstalar = () => { onFecharCentral(); setTimeout(abrirConviteAparelho, DEPOIS_DA_FOLHA) }
 
   return (
@@ -50,11 +49,14 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
         onFechar={onFecharCentral}
       >
         {aparelho && (
-          <section className="ui-central-aparelho" aria-labelledby={idAparelho}>
-            <h3 id={idAparelho} className="ui-central-aparelho__titulo">Avisos neste aparelho</h3>
-            {aparelho}
-            <button type="button" className="ui-link" onClick={comoInstalar}>Como instalar e ligar os avisos</button>
-          </section>
+          // Recolhida (25/10/2026, pedido do Wilker): a lista de avisos é o que se abre o sino para ver; o aparelho fica a um toque.
+          <details className="ui-central-aparelho ui-recolhe">
+            <summary>Avisos neste aparelho</summary>
+            <div className="ui-central-aparelho__corpo">
+              {aparelho}
+              <button type="button" className="ui-link" onClick={comoInstalar}>Como instalar e ligar os avisos</button>
+            </div>
+          </details>
         )}
         {naoLidas > 0 && (
           <div className="ui-linha-acoes">
