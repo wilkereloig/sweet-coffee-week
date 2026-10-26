@@ -424,6 +424,8 @@ export function ordenar(posts, ord = 'data') {
     : k === 'responsavel' ? semAcento(p.responsavel_nome || '~')
     : semAcento(p[k] || '')
   return [...(posts || [])].sort((a, b) => {
+    // Sem data vai para o fim também na ordem invertida: decide antes do sinal.
+    if (k === 'data' && !a.programado_para !== !b.programado_para) return a.programado_para ? -1 : 1
     const x = val(a), y = val(b)
     const c = x < y ? -1 : x > y ? 1 : 0
     return (desc ? -c : c) || String(a.id).localeCompare(String(b.id))

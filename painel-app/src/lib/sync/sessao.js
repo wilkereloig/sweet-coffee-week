@@ -63,6 +63,7 @@ export function criarSincronizacao({
   let tLaco = null
   let cargas = 0
   let falhaCarga = false
+  let geracao = 0 // muda a cada iniciar/parar: carga de antes não mexe na contagem da sessão nova
   let ultimaEm = null
   let escondidoDesde = null
   const ouvintes = new Set()
@@ -74,7 +75,8 @@ export function criarSincronizacao({
     const t = transporte ? transporte.estado() : null
     const tempoRealAtivo = !!(t && t.ativo)
     let modo = 'parado'
-    if (identidade) modo = identidade.tipo === 'legado' || !t || !tempoRealAtivo ? 'periodico' : 'tempo_real'
+    // canal negado: o que só ele traria não chega em tempo real → conferência curta (45 s)
+    if (identidade) modo = identidade.tipo === 'legado' || !t || !tempoRealAtivo || t.negados.length ? 'periodico' : 'tempo_real'
     const transporteComProblema = !!(t && (t.negados.length > 0 || t.tentativas >= 3))
     let situacao = 'atualizado'
     if (!ambiente.online()) situacao = 'sem_conexao'
@@ -101,10 +103,12 @@ export function criarSincronizacao({
 
   /** Registra uma carga em andamento (para "atualizando") e o desfecho dela. */
   function rastrear(promessa) {
+    const g = geracao
     cargas += 1; avisarEstado()
     return Promise.resolve(promessa).then(
-      (v) => { cargas -= 1; falhaCarga = false; ultimaEm = agora(); avisarEstado(); return v },
+      (v) => { if (g !== geracao) return v; cargas -= 1; falhaCarga = false; ultimaEm = agora(); avisarEstado(); return v },
       (e) => {
+        if (g !== geracao) throw e
         cargas -= 1
         // Sessão que morreu não é "falha de sincronização": o App já leva ao login.
         if (!e || e.message !== 'sessao_expirada') falhaCarga = true
@@ -171,7 +175,7 @@ export function criarSincronizacao({
   }
   function voltouAoApp(ficouForaMs) {
     if (!identidade) return
-    if (transporte && !transporte.estado().ativo) transporte.conectarAgora()
+    if (transporte && transporte.estado().conexao !== 'aberto') transporte.conectarAgora() // socket aberto não se derruba
     if (ficouForaMs >= voltaMinimaMs) reconciliar()
     agendarLaco()
     avisarEstado()
@@ -203,7 +207,7 @@ export function criarSincronizacao({
     }
     if (identidade) parar()
     identidade = { ...quem }
-    cargas = 0; falhaCarga = false
+    cargas = 0; falhaCarga = false; geracao++
     ligarAmbiente()
     if (quem.tipo !== 'legado') {
       transporte = criarTransporte({ aoSinal, aoReconectar })
@@ -227,7 +231,7 @@ export function criarSincronizacao({
     if (desligaTransporte) { desligaTransporte(); desligaTransporte = null }
     if (transporte) { transporte.parar(); transporte = null }
     identidade = null
-    cargas = 0; falhaCarga = false; escondidoDesde = null
+    cargas = 0; falhaCarga = false; escondidoDesde = null; geracao++
     barramento.reiniciar()
     atual = null
     avisarEstado()

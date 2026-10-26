@@ -305,6 +305,7 @@ export async function subirLogo(caminho, arquivo, tipo, fetchImpl = fetch) {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + viva.access_token, 'Content-Type': tipo, 'x-upsert': 'false' },
     body: arquivo,
+    signal: comTempoLimite(60000),
   }))
   if (r.status === 401) sessaoMorta()
   if (!r.ok) {
@@ -335,7 +336,8 @@ export async function assinarDownload(caminho, fetchImpl = fetch, sinal) {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + viva.access_token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ expiresIn: 300 }),
-    signal: sinal,
+    // o "Cancelar" de quem chamou E o tempo-limite; sem AbortSignal.any, só o de quem chamou (como antes)
+    signal: sinal && typeof AbortSignal.any === 'function' ? AbortSignal.any([sinal, comTempoLimite(20000)].filter(Boolean)) : (sinal || comTempoLimite(20000)),
   })
   let dados = null
   try { dados = await r.json() } catch { /* sem corpo */ }

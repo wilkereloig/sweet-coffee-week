@@ -187,7 +187,10 @@ export function camposPublicos(c) {
  * (`depois`), campo a campo. Campo vazio dos dois lados não aparece.
  * @returns {{chave:string, rotulo:string, antes:string, depois:string}[]}
  */
-export function diferencas(antes, depois) {
+// No ar só a casa (nível 'marca'): o combo do cadastro atual não entra na comparação (senão tudo do combo "mudou").
+const semCombo = (c) => c && { ...c, combo: undefined, unidades: (c.unidades || []).map((u) => ({ ...u, combo: undefined })) }
+export function diferencas(antes, depois, nivel) {
+  if (nivel === 'marca') depois = semCombo(depois)
   const velhos = new Map(camposPublicos(antes).map((c) => [c.chave, c]))
   const res = []
   for (const c of camposPublicos(depois)) {

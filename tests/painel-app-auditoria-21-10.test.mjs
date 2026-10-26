@@ -122,6 +122,13 @@ test('cadastro da marca: o "Salvo" diz o que ficou de fora por inválido (CEP, U
   assert.match(c, /'Salvo, menos ' \+ /)
 })
 
+test('cadastro da marca: remover unidade esquece o id da linha apagada (a sugestão aceita de novo não faz PATCH nela)', () => {
+  const c = ler('painel-app/src/components/vistas-marca/Cadastro.jsx')
+  const remover = c.slice(c.indexOf('function removerUnidade('), c.indexOf('agendarSalvar() // a ordem das que ficaram muda'))
+  assert.match(remover, /idsPuRef\.current\.delete\(chave\)/)
+  assert.match(remover, /delete baseRef\.current\.pu\[pu\]/)
+})
+
 test('cadastro da marca: remover unidade e troca pedem confirmação; trocar um horário por dia por "igual todos os dias" também (no seletor)', () => {
   for (const [arq, re] of [
     ['painel-app/src/components/vistas-marca/edicao/Unidades.jsx', /await confirmar\('Remover ' \+ nome/],
@@ -265,6 +272,20 @@ test('Edição › Configuração: leitura que falhou não diz "nenhuma edição
   const e = ler('painel-app/src/components/vistas/Edicao.jsx')
   assert.match(e, /Esta mudança vale para todas as marcas da edição: /)
   assert.match(e, /String\(enviado\.valor_combo \?\? ''\) !== String\(servidor\.valor_combo \?\? ''\)/)
+  // Cronograma: o campo que o tipo esconde não vai com o valor de antes da troca de tipo.
+  assert.match(e, /enviado\.tipo === 'prazo' \? \{ inicio: '' \} : enviado\.tipo === 'marco' \? \{ fim: '' \}/)
+  assert.match(e, /\.\.\.enviado, \.\.\.ocultos, edicao_codigo/)
+  // Agenda de fotos: leitura da edição que falhou é erro, não "Abra uma edição".
+  assert.match(p, /leituraFalhou \? \(\s*<Erro texto=\{cfg\.erro\} onTentar=\{cfg\.recarregar\} \/>/)
+})
+
+test('Vouchers: "Destinar" não chama destinar_vouchers duas vezes (duplo clique) e o destino não vaza entre marcas', () => {
+  const v = ler('painel-app/src/components/vistas/Vouchers.jsx')
+  const corpo = v.slice(v.indexOf('async function destinar('), v.indexOf('async function mudar('))
+  assert.ok(corpo.indexOf('if (destinando) return') < corpo.indexOf("rpc('destinar_vouchers'"))
+  assert.match(corpo, /finally \{ setDestinando\(false\) \}/)
+  assert.match(v, /type="submit" disabled=\{destinando\} aria-busy=\{destinando\}>Destinar/)
+  assert.match(v, /React\.useEffect\(\(\) => \{ setDestino\(\{ contato: '', quantidade: 1 \}\) \}, \[aberta\]\)/)
 })
 
 test('Publicar arquivo ganha carimbo no nome (o Storage sobrescreve o mesmo caminho); publicar só a casa avisa que o combo sai', () => {

@@ -133,6 +133,14 @@ test('voltar ao app: relê se ficou fora ≥ 3 s; pisca rápido não relê; reco
   await c.rel.avancar(300)
   assert.equal(rec.length, 1)
   assert.ok(t.agora >= 1, 'canal não estava ativo: reconecta já em vez de esperar o recuo')
+  // socket aberto com um canal negado (nunca fica "todos ativos"): voltar ao app NÃO derruba a conexão
+  t.mudar({ conexao: 'aberto', ativo: false, negados: ['scw:org'], canais: { 'scw:org': 'negado' } })
+  const antes = t.agora
+  c.visivel = false; c.emitir('visibilitychange')
+  await c.rel.avancar(VOLTA_MINIMA_MS + 500)
+  c.visivel = true; c.emitir('visibilitychange')
+  await c.rel.avancar(300)
+  assert.equal(t.agora, antes, 'socket aberto não é reconectado')
 })
 
 test('rede voltou: reconecta e relê; sem rede a situação é "sem_conexao"', async () => {
@@ -165,6 +173,24 @@ test('rastrear: atualizando → atualizado; falha de leitura aparece; sessão ex
   await c.sync.rastrear(Promise.resolve(1))
   assert.equal(c.sync.estado().situacao, 'atualizado', 'uma leitura boa limpa a falha')
   await assert.rejects(c.sync.rastrear(Promise.reject(new Error('sessao_expirada'))))
+  assert.equal(c.sync.estado().situacao, 'atualizado')
+})
+
+test('rastrear: carga da sessão anterior que termina depois da troca não mexe na contagem nem marca falha', async () => {
+  const c = montar()
+  c.sync.iniciar({ tipo: 'org', uid: 'u1' })
+  let falhar
+  const velha = c.sync.rastrear(new Promise((_r, j) => { falhar = j }))
+  c.sync.parar()
+  c.sync.iniciar({ tipo: 'org', uid: 'u2' })
+  ativar(c.transportes[1])
+  falhar(new Error('HTTP 500'))
+  await assert.rejects(velha)
+  assert.equal(c.sync.estado().situacao, 'atualizado', 'falha da sessão antiga não marca a nova')
+  let soltar
+  const nova = c.sync.rastrear(new Promise((r) => { soltar = r }))
+  assert.equal(c.sync.estado().situacao, 'atualizando', 'contagem não ficou negativa')
+  soltar(1); await nova
   assert.equal(c.sync.estado().situacao, 'atualizado')
 })
 

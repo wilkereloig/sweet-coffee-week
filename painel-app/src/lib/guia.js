@@ -10,6 +10,7 @@
 import { TIPOS, unidadeTemEndereco, itensEmOrdem, custosFaltando, custosDeLinhas } from './cadastro.js'
 import { interpretarLink } from './central.js'
 import { traduzirFaltando } from './edicaoMarca.js'
+import { diasCalendario } from './painelFormat.js'
 
 // Meu cadastro = A marca (0) + Unidades (4) + Atendimento e horário no festival (6)
 // + Fotos (7); Meu combo = tema (1), itens (2), combo (3), alimentar e trocas (5).
@@ -194,7 +195,8 @@ export function resumoMarca(d = {}) {
   }
   const pedidos = (d.pedidos || []).filter((p) => p.estado !== 'respondido')
   const pedidoItem = (p) => {
-    const dias = p.prazo_em ? (new Date(p.prazo_em).getTime() - agora.getTime()) / 86400000 : null
+    // dias de calendário, como descreverPrazo/resumoSolicitacoes: o prazo de hoje às 23h59 não é "vencido"
+    const dias = diasCalendario(p.prazo_em, agora.getTime())
     return { tipo: 'pedido', titulo: p.titulo,
       texto: p.prazo_em ? (dias < 0 ? 'Prazo vencido em ' : 'Prazo: ') + new Date(p.prazo_em).toLocaleDateString('pt-BR') : 'Solicitação da organização',
       acao: 'Responder', vista: vistaDoPedido(p.bloco), link: 'pedidos/' + p.id, prioridade: p.prioridade || 'normal',

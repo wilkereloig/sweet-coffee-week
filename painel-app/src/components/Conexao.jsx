@@ -2,7 +2,7 @@ import React from 'react'
 import {
   versaoDaPagina, criarMonitor, atualizarAgora, resultadoDaAtualizacao, INTERVALO,
 } from '../lib/versao'
-import { pendencias, ouvirPendencias } from '../lib/pendencias'
+import { pendencias, ouvirPendencias, liberarSaida } from '../lib/pendencias'
 import { confirmar } from './Confirmar'
 
 /*
@@ -47,6 +47,7 @@ export function useVersao() {
 
 /* Recarga única: na 2ª tentativa vai por endereço novo (foge de cache teimoso). */
 function recarregar(forcarId) {
+  liberarSaida() // a confirmação já foi feita aqui; o navegador não pergunta de novo
   if (forcarId) {
     const u = new URL(location.href)
     u.searchParams.set('atualizar', forcarId)

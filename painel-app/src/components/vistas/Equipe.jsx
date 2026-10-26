@@ -63,10 +63,15 @@ function FolhaNovaConta({ aberto, funcoes, onFechar }) {
     setFuncao((funcoes.find((f) => f.codigo === 'producao') || funcoes[0] || {}).codigo || '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto])
+  // As funções chegaram depois de abrir (rede lenta): o select mostrava a 1ª opção, mas `funcao` ficava ''.
+  React.useEffect(() => {
+    if (aberto && funcoes.length) setFuncao((atual) => atual || (funcoes.find((f) => f.codigo === 'producao') || funcoes[0]).codigo)
+  }, [aberto, funcoes])
 
   async function criar(ev) {
     ev.preventDefault()
     if (!nome.trim()) { setErro('Informe o nome: é ele que aparece no histórico.'); return }
+    if (!funcao) { setErro('As funções ainda não carregaram. Feche e abra de novo em instantes.'); return }
     // Login padrão: nome e sobrenome + sigla da função (wilkereloi.adm), gerado, não digitado.
     const u = usuarioDaEquipe(nome, funcao)
     if (u.length < 3 || !USUARIO_VALIDO.test(u)) { setErro('O nome precisa ter letras para virar o login.'); return }

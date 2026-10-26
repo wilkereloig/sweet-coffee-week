@@ -117,9 +117,17 @@ export function ChecklistModelos({ onFechar, onSalvou }) {
       if (onSalvou) onSalvou()
     } catch (e) { setErro(textoErro(e.message)) } finally { setSalvando('') }
   }
+  // Fechar (X / Esc) com alteração não salva pergunta antes; pelo Esc, a pergunta abre DEPOIS da tecla (senão o próprio Esc a fecha).
+  async function fechar() {
+    if (sujos.size) {
+      await new Promise((ok) => setTimeout(ok, 30))
+      if (!(await confirmar('Descartar as alterações do checklist padrão?', { acao: 'Descartar', perigo: true }))) return
+    }
+    onFechar()
+  }
 
   return (
-    <Folha aberto titulo="Checklist padrão" sub="Os itens que cada postagem nova recebe, por formato. As postagens que já existem não mudam." onFechar={onFechar}>
+    <Folha aberto titulo="Checklist padrão" sub="Os itens que cada postagem nova recebe, por formato. As postagens que já existem não mudam." onFechar={fechar}>
       {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
       {aviso && <p className="ui-nota" role="status">{aviso}</p>}
       {!grupos && !erro && <p className="ui-nota">Carregando…</p>}

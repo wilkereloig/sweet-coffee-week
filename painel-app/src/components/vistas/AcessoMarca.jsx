@@ -219,7 +219,8 @@ export function AbaAcesso({ participante, pode, onFechar }) {
     executar(async (mesma) => {
       const [r] = await emitirCredenciais([participante], 'regerar')
       if (r.erro) throw new Error(r.erro)
-      if (mesma()) setCred({ login: r.login, senha: r.senha })
+      // A senha mudou, mas um passo de limpeza pode ter falhado (sessões antigas seguem abertas): dizer.
+      if (mesma()) { setCred({ login: r.login, senha: r.senha }); if (r.aviso) setAviso(r.aviso) }
     })
   }
   const acao = async (a, pergunta, ok, comMotivo = false) => {

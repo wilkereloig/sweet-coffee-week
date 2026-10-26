@@ -69,7 +69,10 @@ export function criarTempoReal({
 
   function estado() {
     const lista = [...canais.entries()]
-    const todosAtivos = lista.length > 0 && lista.every(([, c]) => c.estado === 'ativo')
+    // Canal NEGADO não volta sozinho: conta só os que podem ficar ativos (senão um negado
+    // deixava `ativo` falso para sempre e cada volta ao app reconectava um socket saudável).
+    const possiveis = lista.filter(([, c]) => c.estado !== 'negado')
+    const todosAtivos = possiveis.length > 0 && possiveis.every(([, c]) => c.estado === 'ativo')
     return {
       conexao,
       erro,

@@ -141,6 +141,7 @@ test('filtros, atalhos e ordem sobre a mesma lista', () => {
   const c = R.contarAtalhos(lista, { eu: 'eu', agora: AGORA })
   assert.deepEqual(c, { hoje: 1, proximas: 1, atrasadas: 1, minhas: 1, aprovacao: 0, ajuste: 0, aprovadas: 0, sem_resp: 1, sem_arte: 0, sem_legenda: 0, sem_data: 1 })
   assert.deepEqual(R.ordenar(lista, 'data').map((p) => p.id), ['3', '1', '2', '4'])
+  assert.deepEqual(R.ordenar(lista, '-data').map((p) => p.id), ['2', '1', '3', '4']) // sem data no fim também invertido
   assert.deepEqual(R.ordenar(lista, '-titulo').map((p) => p.id), ['4', '1', '2', '3'])
   assert.deepEqual(Object.keys(R.porDia(lista)), ['2026-10-15', '2026-10-16', '2026-10-18'])
 })

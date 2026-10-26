@@ -191,10 +191,11 @@ export function Marcas({ pode = () => true, rota, navegar }) {
 
   const porMarca = React.useMemo(() => Object.fromEntries(conversas.map((c) => [c.participante_id, c])), [conversas])
   const lista = React.useMemo(() => {
-    const t = termo.trim().toLowerCase()
+    // Sem acento, espaço nem pontuação dos dois lados: "sao jose" acha "São José", "8499999" acha "(84) 99999-…".
+    const t = compacto(termo)
     return (participantes || [])
       .map((p) => ({ ...p, _naoLidas: Number((porMarca[p.id] || {}).nao_lidas || 0), _ultimaMsg: (porMarca[p.id] || {}).ultima_em }))
-      .filter((p) => !t || [p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ').toLowerCase().includes(t))
+      .filter((p) => !t || compacto([p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ')).includes(t))
       .filter((p) => !f.edicao || p.edicao_codigo === f.edicao)
       .filter((p) => !status || status === 'arquivadas' || (status === 'mensagens' ? p._naoLidas > 0
         : status === 'pendencias' ? Number(p.pendencias) > 0

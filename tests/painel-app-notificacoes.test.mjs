@@ -32,8 +32,11 @@ test('pedidos publicados com pendentes viram alerta de produção, um por pedido
   assert.match(fila[0].texto, /"Fotos": 3 marcas ainda não responderam\.$/)
 })
 
-test('vaga aberta na agenda de fotos', () => {
-  const fila = notificacoesOrg({ sessoes: [{ status: 'aberto' }] })
+test('vaga aberta na agenda de fotos (só as futuras)', () => {
+  const fila = notificacoesOrg({ sessoes: [
+    { status: 'aberto', data_hora: new Date(Date.now() + 864e5).toISOString() },
+    { status: 'aberto', data_hora: new Date(Date.now() - 864e5).toISOString() },
+  ] })
   assert.equal(fila.length, 1)
   assert.equal(fila[0].tipo, 'agenda')
   assert.match(fila[0].texto, /^1 vaga aberta /)
@@ -49,6 +52,9 @@ test('sessão agendada dentro de 7 dias entra, fora da janela e já passada não
   const fila = notificacoesOrg({ sessoes })
   assert.equal(fila.length, 1)
   assert.match(fila[0].texto, /^Sessão de fotos de Bocaditos: /)
+  // 'remarcada' também é sessão ativa (como no banco).
+  const remarcada = notificacoesOrg({ sessoes: [{ status: 'remarcada', data_hora: new Date(Date.now() + dia).toISOString(), nome_marca: 'Nova data' }] })
+  assert.match(remarcada[0].texto, /^Sessão de fotos de Nova data: /)
 })
 
 test('marcas com cadastro completo geram aviso "ok" para participantes', () => {

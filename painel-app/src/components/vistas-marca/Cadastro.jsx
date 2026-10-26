@@ -919,6 +919,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     if (pu) esquecidasRef.current.add(String(pu))
     // Sai DESTA edição; a unidade permanente fica guardada (volta como sugestão).
     if (pu) {
+      // A sugestão aceita de novo usa a mesma chave ('un-<id>'): sem isto o próximo salvamento faria PATCH na linha apagada.
+      idsPuRef.current.delete(chave)
+      delete baseRef.current.pu[pu]
       api('participacao_unidades?id=eq.' + pu, { metodo: 'DELETE' }).catch((e) => {
         if (e && e.message === 'sessao_expirada') return
         setErroSalvar('Não deu para remover a unidade agora. Recarregue a página.')

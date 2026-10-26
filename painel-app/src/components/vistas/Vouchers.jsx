@@ -31,6 +31,9 @@ export function Vouchers({ pode, rota, navegar }) {
   const [aberta, setAberta] = React.useState(null) // participacao_id expandida
   const [destino, setDestino] = React.useState({ contato: '', quantidade: 1 })
   const [gerando, setGerando] = React.useState(false)
+  const [destinando, setDestinando] = React.useState(false)
+  // O formulário é um só: trocar de marca não leva o destino escolhido na outra.
+  React.useEffect(() => { setDestino({ contato: '', quantidade: 1 }) }, [aberta])
   const podeMudar = pode('relacionamento.gerir')
   const aberto = rota.filtros.item || null
 
@@ -72,14 +75,15 @@ export function Vouchers({ pode, rota, navegar }) {
     } catch (e) { setAviso(erroContato(e.message)) } finally { setGerando(false) }
   }
   async function destinar(participacao) {
+    if (destinando) return // duplo clique destinaria duas vezes
     if (!destino.contato) { setAviso('Escolha para quem vai o voucher.'); return }
-    setAviso(null)
+    setAviso(null); setDestinando(true)
     try {
       const cods = await rpc('destinar_vouchers', { p_secret: lerSenha(), p_participacao: participacao, p_contato: destino.contato, p_quantidade: Number(destino.quantidade) || 1, p_obs: null })
       setAviso({ ok: 'Destinado: ' + (cods || []).join(', ') + '.' })
       setDestino({ contato: '', quantidade: 1 })
       await carregar({ silencioso: true })
-    } catch (e) { setAviso(erroContato(e.message)) }
+    } catch (e) { setAviso(erroContato(e.message)) } finally { setDestinando(false) }
   }
   async function mudar(v, status) {
     if (status === 'cancelado' && !await confirmar('Cancelar o voucher ' + v.codigo + '? Ele deixa de valer na marca.')) return
@@ -155,7 +159,7 @@ export function Vouchers({ pode, rota, navegar }) {
                       <label className="og-campo"><span>Quantidade</span>
                         <input type="number" min="1" max={m.disponiveis} inputMode="numeric" value={destino.quantidade} onChange={(e) => setDestino({ ...destino, quantidade: e.target.value })} />
                       </label>
-                      <button className="og-btn og-btn--mini" type="submit">Destinar</button>
+                      <button className="og-btn og-btn--mini" type="submit" disabled={destinando} aria-busy={destinando}>Destinar</button>
                     </form>
                   )}
                 </div>

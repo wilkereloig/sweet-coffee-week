@@ -292,7 +292,7 @@ function textoHistorico(h) {
 const ENVIOS_PENDENTES = new Map()
 
 function lerNovoGuardado() {
-  try { const g = JSON.parse(sessionStorage.getItem(CHAVE_NOVO) || 'null'); return g && (g.titulo || g.legenda) ? g : null } catch { return null }
+  try { const g = JSON.parse(sessionStorage.getItem(CHAVE_NOVO) || 'null'); return g && typeof g === 'object' ? g : null } catch { return null }
 }
 
 export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inicial = null, onVerParticipante = null, voltaParticipante = false }) {
@@ -402,7 +402,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
         if (m.mudouFora && m.adotados.length && !deMim) {
           setExternoAdotado((x) => ({ campos: [...new Set([...x.campos, ...m.adotados])], quem: r.post.atualizado_por_rotulo || '' }))
         }
-        if (m.mudouFora && velha.situacao !== r.post.situacao && !propria.current) {
+        if (m.mudouFora && velha.situacao !== r.post.situacao && !propria.current && !deMim) {
           setAviso('A situação mudou para “' + ((R.SITUACAO[r.post.situacao] || {}).rotulo || r.post.situacao) + '”.')
         }
         // O salvamento falhou por versão: se nenhum campo dela conflita, nada a decidir — a base já é a nova.
@@ -467,8 +467,8 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
       if (novo) {
         if (anterior) return // decidir antes: a guardada não é sobrescrita
         const mudou = R.CAMPOS.some((k) => norm(campos[k]) !== norm(inicioNovo.current[k]))
-        if (mudou && (campos.titulo || campos.legenda)) sessionStorage.setItem(CHAVE_NOVO, JSON.stringify(Object.fromEntries(R.CAMPOS.map((k) => [k, campos[k]]))))
-        else if (mudou) sessionStorage.removeItem(CHAVE_NOVO)
+        // Qualquer alteração fica guardada ("Fechar sem salvar?" promete isso), não só título/legenda.
+        if (mudou) sessionStorage.setItem(CHAVE_NOVO, JSON.stringify(Object.fromEntries(R.CAMPOS.map((k) => [k, campos[k]]))))
         return
       }
       if (!base) return
@@ -589,13 +589,13 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
     catch (e) { await tratarConflito(e) } // salvaram de novo no meio: compara outra vez
     finally { setSalvando(false) }
   }
+  // Volta só os campos em conflito; o resto do que a pessoa digitou (e os blocos abertos) fica.
   function usarSalva() {
-    definirBase(conflito.salvo)
-    setCampos(camposDe(conflito.salvo))
-    setDhLocal(null)
+    const salvos = camposDe(conflito.salvo)
+    const ks = conflito.campos
+    setCampos((c) => ({ ...c, ...Object.fromEntries(ks.map((k) => [k, salvos[k]])) }))
+    if (ks.includes('programado_para')) setDhLocal(null)
     setConflitoChaves([])
-    setExternoAdotado({ campos: [], quem: '' })
-    setEditando(new Set())
   }
   function descartar() {
     if (novo) {

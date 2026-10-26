@@ -329,6 +329,20 @@ test('cada painel tem o seu histórico e Sair limpa o desta sessão', async () =
   assert.equal(H.foto().recentes.length, 0)
 })
 
+test('Voltar para entrada do painel que o modelo não conhece: recomeça nela (a tela de onde saiu não vira "anterior")', async () => {
+  const w = janela('#visao')
+  const H = criarHistorico(w)
+  H.iniciar('org', { chaveDe })
+  H.irPara('#a')
+  H.irPara('#b')
+  H.limpar('org') // o modelo perde as entradas, o navegador não
+  H.iniciar('org', { chaveDe })
+  w._voltarSistema()
+  await esperar()
+  assert.equal(w.location.hash, '#a')
+  assert.equal(H.foto().anterior, null, '#b fica à FRENTE no navegador; não pode ser o Voltar')
+})
+
 test('nomes das telas ficam na sessão (a ficha diz "Sabor de Pão")', () => {
   const w = janela('#visao')
   const H = criarHistorico(w)

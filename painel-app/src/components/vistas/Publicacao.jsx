@@ -197,7 +197,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
   return (
     <div className="ui-pilha">
       {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={traduzirErroPublicacao(leitura.erro)} onTentar={leitura.recarregar} />}
-      <MacroSecao rotulo={NOMES_PUBLICACAO.marcas.pagina + (ed ? ' · edição ' + ed : '')} titulo={textoPublicacao(pub)}
+      <MacroSecao rotulo={NOMES_PUBLICACAO.marcas.pagina + (ed ? ' · edição ' + ed : '')} titulo={textoPublicacao({ ...pub, versao: v ? v.versao : pub.ultima && pub.ultima.versao, nivel: v && v.nivel })}
         nota={v ? 'No ar desde ' + dataHoraCurta(v.publicado_em) + (v.publicado_por ? ', por ' + v.publicado_por : '') + '.'
           : pub.ultima && pub.ultima.retirado_em ? 'Retirada em ' + dataHoraCurta(pub.ultima.retirado_em) + (pub.ultima.retirado_por ? ' por ' + pub.ultima.retirado_por : '') + (pub.ultima.motivo ? '. Motivo: ' + pub.ultima.motivo : '') + '.'
             : 'Nada desta casa está no site ainda.'}>
@@ -240,7 +240,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
 
       <MacroSecao rotulo="Conferir" titulo={v ? 'O que mudou desde a v' + v.versao : 'O que seria publicado'}
         acoes={<Botao icone="olho" variante="secundario" aria-expanded={previa} onClick={() => setPrevia((x) => !x)}>{previa ? 'Fechar prévia' : 'Ver como no site'}</Botao>}>
-        {v ? <Diferenca antes={v.conteudo} depois={pub.atual} /> : <p className="ui-nota">Nenhuma versão no ar ainda: a prévia mostra a página inteira como ficaria.</p>}
+        {v ? <Diferenca antes={v.conteudo} depois={pub.atual} nivel={v.nivel} /> : <p className="ui-nota">Nenhuma versão no ar ainda: a prévia mostra a página inteira como ficaria.</p>}
         {previa && pub.atual && <PreviaPagina conteudo={pub.atual} nome={nome} periodo={festival.periodo} />}
       </MacroSecao>
 
@@ -256,8 +256,8 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
 }
 
 /* ── Diferença vigente × atual ─────────────────────────────────────────── */
-function Diferenca({ antes, depois }) {
-  const d = React.useMemo(() => diferencas(antes, depois), [antes, depois])
+function Diferenca({ antes, depois, nivel }) {
+  const d = React.useMemo(() => diferencas(antes, depois, nivel), [antes, depois, nivel])
   if (!d.length) return <p className="ui-nota ui-nota--ok">Nada mudou: o que está no ar é igual ao cadastro atual.</p>
   return (
     <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Diferença entre a versão no ar e a atual">

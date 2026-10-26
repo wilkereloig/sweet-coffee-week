@@ -46,8 +46,18 @@ test('o círculo de 44 px segura a fileira que estica, e a dica só aparece no m
   const css = ler('painel-app/src/styles/painel.css')
   assert.match(css, /\.og-btn--icone\{[^}]*width:44px;min-width:44px;max-width:44px;height:44px;min-height:44px;padding:0/)
   assert.match(css, /\.og-btn--icone::after\{content:attr\(data-rotulo\)/)
-  assert.match(css, /\.og-btn--icone:focus-visible::after\{opacity:1\}/)
-  assert.match(css, /@media \(hover:hover\)\{ \.og-btn--icone:hover::after\{opacity:1\} \}/)
+  assert.match(css, /\.og-btn--icone:focus-visible::after\{display:block\}/)
+  assert.match(css, /@media \(hover:hover\)\{ \.og-btn--icone:hover::after\{display:block\} \}/)
+})
+
+test('dica oculta sai do layout e a do botão sozinho cresce para a esquerda (sem rolagem lateral no celular)', () => {
+  const css = ler('painel-app/src/styles/painel.css')
+  // opacity:0 deixava a dica invisível mas ainda contando na rolagem da vista
+  assert.match(css, /\.og-btn--icone::after\{[^}]*display:none/)
+  assert.doesNotMatch(css, /\.og-btn--icone[^{]*::after\{[^}]*opacity/)
+  // sozinho (first + last) ancora à direita, como o último da fileira
+  assert.match(css, /\.og-btn--icone:first-child:not\(:last-child\)::after\{left:0/)
+  assert.match(css, /\.og-btn--icone:last-child::after[^{]*\{left:auto;right:0/)
 })
 
 test('a prévia da Biblioteca (a da foto): baixar, compartilhar, mover e apagar só com ícone', () => {

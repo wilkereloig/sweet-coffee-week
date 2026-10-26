@@ -370,7 +370,7 @@ export function App() {
             <button
               className="pn-link--porta"
               type="button"
-              onClick={() => { apagarGuardada(CHAVE_SESSAO_ORG_CONTA); setEstado('boas-vindas') }}
+              onClick={() => sairOrg({ expirou: true, semAviso: true }) /* limpa também telas recentes e rascunhos desta conta */}
             >
               <Icone nome="voltar" tamanho={16} />Voltar
             </button>

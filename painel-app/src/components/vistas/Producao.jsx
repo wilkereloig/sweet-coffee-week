@@ -593,6 +593,7 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
 
   const solicitacoes = principal.dados ? principal.dados.solicitacoes : null // null = carregando
   const sessoes = principal.dados ? principal.dados.sessoes : null
+  const pedidosVisiveis = solicitacoes && solicitacoes.filter((s) => !!s.arquivada === verArquivados)
   // undefined = ainda não leu; null = leu e não há (ou não deu para ler).
   const config = cfg.dados !== undefined ? cfg.dados : cfg.erro ? null : undefined
   // Leitura que FALHOU não é "nenhuma edição aberta": a tela não pode afirmar isso nem deixar abrir uma às cegas.
@@ -820,6 +821,8 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
             <div className="og-agenda__dias">
               {config === undefined ? (
                 <Carregando linhas={2} texto="Carregando a agenda…" />
+              ) : leituraFalhou ? (
+                <Erro texto={cfg.erro} onTentar={cfg.recarregar} />
               ) : !edicaoAtual ? (
                 <p className="og-forms__nota">Abra uma edição acima antes de montar a agenda.</p>
               ) : (
@@ -880,19 +883,21 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
                 Novo pedido
               </button>
             </div>
-            {solicitacoes && solicitacoes.length === 0 && (
+            {pedidosVisiveis && pedidosVisiveis.length === 0 && (solicitacoes.length === 0 ? (
               <EstadoVazio
                 titulo="Nenhum pedido ainda"
                 texto="Um pedido é o que aparece no painel da marca com prazo. Aviso para todas ou cobrança de uma só."
               />
-            )}
+            ) : (
+              <EstadoVazio titulo={verArquivados ? 'Nenhum pedido arquivado' : 'Nenhum pedido ativo'} texto="Use “Mostrar” para ver os outros." />
+            ))}
             {solicitacoes && (verArquivados || solicitacoes.some((s) => s.arquivada)) && (
               <Escolha rotulo="Mostrar" valor={verArquivados ? '1' : '0'} onMudar={(v) => setVerArquivados(v === '1')}
                 opcoes={[['0', 'Pedidos ativos'], ['1', 'Arquivados (' + solicitacoes.filter((s) => s.arquivada).length + ')']]} />
             )}
-            {solicitacoes && solicitacoes.length > 0 && (
+            {pedidosVisiveis && pedidosVisiveis.length > 0 && (
               <ul className="og-lista">
-                {solicitacoes.filter((s) => !!s.arquivada === verArquivados).map((s) => {
+                {pedidosVisiveis.map((s) => {
                   const rascunho = !s.publicada_em
                   const alvo = s.escopo === 'geral' ? 'todas as marcas' : (s.marca || 'uma marca')
                   const feitas = Number(s.respondidas || 0)

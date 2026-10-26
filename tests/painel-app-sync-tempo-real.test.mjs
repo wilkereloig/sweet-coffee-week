@@ -79,10 +79,14 @@ test('canal negado por permissão não é repetido em laço e não vira "ativo"'
   await iniciarAtivo(c)
   assert.equal(c.t.estado().canais['scw:org'], 'negado')
   assert.deepEqual(c.t.estado().negados, ['scw:org'])
-  assert.equal(c.t.estado().ativo, false)
+  // `ativo` conta só os canais que podem ficar ativos: o negado não prende o outro em "inativo" para sempre.
+  assert.equal(c.t.estado().ativo, true, 'scw:pessoa:u1 está ativo')
   const joinsAntes = c.srv.joins.length
   await c.rel.avancar(120000)
   assert.equal(c.srv.joins.length, joinsAntes, 'não tenta de novo')
+  const tudoNegado = montar({ servidor: { aceitar: () => ({ ok: false, motivo: 'Unauthorized' }) } })
+  await iniciarAtivo(tudoNegado)
+  assert.equal(tudoNegado.t.estado().ativo, false, 'todos negados: nada ativo')
 })
 
 test('heartbeat a cada 25 s; sem resposta ao anterior derruba, reconecta e AVISA para reler', async () => {

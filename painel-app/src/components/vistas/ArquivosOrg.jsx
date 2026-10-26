@@ -68,13 +68,17 @@ export function ArquivosOrg({ pode, aba = 'gerais' }) {
     setAviso(null); setOcupado(a.id)
     let registrando = false
     try {
-      const path = caminhoSubstituto(a.path, nomeSeguro(file.name))
+      // Nova tentativa do MESMO arquivo no MESMO registro reaproveita o caminho já enviado: o caminho leva a hora,
+      // e recalculado ele nunca casava, subia de novo e deixava o primeiro órfão.
+      const anterior = substituindo.current
+      const path = anterior && anterior.id === a.id && anterior.impressao === impressaoDoArquivo(file)
+        ? anterior.path : caminhoSubstituto(a.path, nomeSeguro(file.name))
       if (!envioReaproveitavel(substituindo.current, path, file)) {
         // Os bytes vão direto ao Storage (a função só assina) — mesma regra de publicar.
         const assinatura = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: 'arquivos', path })
         const envio = await comEnvio('Envio de “' + file.name + '”', () => fetch(assinatura.url, { method: 'PUT', body: file }))
         if (!envio.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + envio.status + ')')
-        substituindo.current = { path, impressao: impressaoDoArquivo(file) }
+        substituindo.current = { id: a.id, path, impressao: impressaoDoArquivo(file) }
       }
       registrando = true
       await rpc('substituir_arquivo', { p_secret: lerSenha(), p_id: a.id, p_path: path, p_mime: file.type || null, p_tamanho: file.size, p_versao: null })

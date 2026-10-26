@@ -446,13 +446,15 @@ button.pn-sync{cursor:pointer;color:var(--scw-choco)}
 .og-btn--icone{position:relative;width:44px;min-width:44px;max-width:44px;height:44px;min-height:44px;padding:0;gap:0;flex-shrink:0}
 .og-btn--icone::after{content:attr(data-rotulo);position:absolute;bottom:calc(100% + 6px);left:50%;translate:-50% 0;
   padding:6px 10px 5px;border-radius:999px;background:var(--scw-choco);color:var(--scw-creme);font:700 12px/1 var(--f-ui);
-  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--scw-transicao);z-index:5}
-/* Nas pontas da fileira a dica encosta na borda do botão: centrada, passaria da borda da folha, que corta. */
-.og-btn--icone:first-child::after{left:0;translate:none}
-.og-btn--icone:last-child:not(:first-child)::after,.ui-mais-acoes:last-child > .og-btn--icone::after{left:auto;right:0;translate:none}
-.og-btn--icone:focus-visible::after{opacity:1}
-@media (hover:hover){ .og-btn--icone:hover::after{opacity:1} }
-.ui-mais-acoes[open] > .og-btn--icone::after{opacity:0}
+  white-space:nowrap;pointer-events:none;display:none;z-index:5}
+/* Nas pontas da fileira a dica encosta na borda do botão: centrada, passaria da borda da folha, que corta.
+   Botão sozinho mora no canto direito (ui-secao__acoes): a dica cresce para a esquerda. Oculta é display:none,
+   não opacity:0 — invisível, ela ainda contava na rolagem e abria rolagem lateral no celular. */
+.og-btn--icone:first-child:not(:last-child)::after{left:0;translate:none}
+.og-btn--icone:last-child::after,.ui-mais-acoes:last-child > .og-btn--icone::after{left:auto;right:0;translate:none}
+.og-btn--icone:focus-visible::after{display:block}
+@media (hover:hover){ .og-btn--icone:hover::after{display:block} }
+.ui-mais-acoes[open] > .og-btn--icone::after{display:none}
 /* Link: UMA família (eram três). Tinta chocolate, sublinhado marrom-claro
    que escurece sob o ponteiro. */
 .og-link,.link,.ui-link{

@@ -375,7 +375,7 @@ export function resumoPublicacao(pub) {
     publicadoPor: v ? txt(v.publicado_por) : '',
     link: v ? urlPublicaParticipante(pub.slug) : '',
     reservado: !v && pub.slug ? urlPublicaParticipante(pub.slug) : '',
-    diferencas: v ? diferencas(v.conteudo, pub.atual).length : null,
+    diferencas: v ? diferencas(v.conteudo, pub.atual, v.nivel).length : null,
     pendencias: (pub.pendencias || []).length,
     alterado: !!pub.alterado_apos_aprovacao,
     retirada: pub.estado === 'retirado' && pub.ultima ? { em: pub.ultima.retirado_em, por: txt(pub.ultima.retirado_por), motivo: txt(pub.ultima.motivo) } : null,

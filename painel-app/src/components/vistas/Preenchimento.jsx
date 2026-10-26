@@ -303,6 +303,7 @@ export function ListaPreenchimento({ pode, irPara }) {
         setAviso(ok.length + (ok.length === 1 ? ' senha gerada. ' : ' senhas geradas. ') + 'As mensagens estão na janela aberta, já com usuário e senha temporária. A senha não aparece de novo depois que você sair desta tela.' + (registrou ? '' : ' O histórico do acesso não registrou a cópia.'))
       }
       const falhas = feitos.filter((f) => f.erro).map((f) => f.p.nome_marca + ': ' + f.erro)
+        .concat(feitos.filter((f) => !f.erro && f.aviso).map((f) => f.p.nome_marca + ': ' + f.aviso))
       if (falhas.length) setErro(falhas.join(' · '))
       await lerAcesso({ silencioso: true })
     } finally { setOcupado(false) }

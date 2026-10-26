@@ -147,6 +147,11 @@ export function criarHistorico(win) {
       if (idx >= 0) {
         m.pos = idx
         m.entradas[idx].h = hashAtual()
+      } else if (id) {
+        // Entrada do painel que o modelo perdeu (de outra carga/sessão): não dá para saber onde fica
+        // em relação à atual, então o modelo recomeça nela — acrescentar depois inverteria a ordem.
+        m.entradas = [{ id, h: hashAtual() }]
+        m.pos = 0
       } else {
         // Entrada que o painel não conhece (link com #, endereço digitado): nasce no lugar, depois da atual.
         const nid = novoId()

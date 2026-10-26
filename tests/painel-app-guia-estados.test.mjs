@@ -146,6 +146,12 @@ test('prazo curto ou vencido sobe na frente do preenchimento; prazo longo não',
   const vencido = resumoMarca({ ...parcial, pedidos: [{ id: 'p3', titulo: 'Atrasado', bloco: 'livre', prioridade: 'normal', estado: 'pendente', prazo_em: '2026-10-20T12:00:00Z' }] })
   assert.equal(vencido.proxima.link, 'pedidos/p3')
   assert.match(vencido.pendencias.find((p) => p.link === 'pedidos/p3').texto, /vencido/)
+  // Dias de CALENDÁRIO (como descreverPrazo): prazo de hoje, já passada a hora, ainda não está vencido.
+  const hoje = resumoMarca({ ...parcial, agora: '2026-10-22T20:00:00', pedidos: [{ id: 'p4', titulo: 'Hoje', bloco: 'livre', prioridade: 'normal', estado: 'pendente', prazo_em: '2026-10-22T08:00:00' }] })
+  const p4 = hoje.pendencias.find((p) => p.link === 'pedidos/p4')
+  assert.equal(p4.vencido, false)
+  assert.equal(p4.urgente, true)
+  assert.doesNotMatch(p4.texto, /vencido/)
   // Correção ainda vem antes de qualquer prazo.
   const ambos = resumoMarca({ ...parcial, correcoes: [{ campo: 'telefone', bloco: 0, estado: 'aberta', comentario: 'x' }], pedidos: [{ id: 'p2', titulo: 'Amanhã', bloco: 'livre', prioridade: 'normal', estado: 'pendente', prazo_em: '2026-10-23T12:00:00Z' }] })
   assert.equal(ambos.proxima.tipo, 'correcao')

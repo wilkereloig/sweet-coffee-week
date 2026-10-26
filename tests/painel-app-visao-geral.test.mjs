@@ -88,12 +88,14 @@ function filtroRealDeMarcas() {
   const src = ler('painel-app/src/components/vistas/Marcas.jsx')
   const m = /const lista = React\.useMemo\(\(\) => \{([\s\S]*?)\n  \}, \[[^\]]*\]\)/.exec(src)
   assert.ok(m, 'Marcas.jsx mudou de forma: ajuste a extração da lista filtrada neste teste (e confira se o filtro `situacao` ainda bate com os cartões)')
-  const corpo = new Function('participantes', 'porMarca', 'termo', 'status', 'ordem', 'f', 'ORDENS', 'participaDaEdicao', 'pendenciasDe', m[1])
+  // A busca usa o `compacto` do próprio arquivo (sem acento nem pontuação): vem junto, extraído do fonte.
+  const compacto = new Function('return ' + /const compacto = (\(s\) => [^\n]+)/.exec(src)[1])()
+  const corpo = new Function('participantes', 'porMarca', 'termo', 'status', 'ordem', 'f', 'ORDENS', 'participaDaEdicao', 'pendenciasDe', 'compacto', m[1])
   const ORDENS = { recentes: () => 0, nome: () => 0, mensagens: () => 0 }
   const pendenciasDe = (p) => Number(p.campos_faltando || 0) + Number(p.correcoes_abertas || 0) + Number(p.pedidos_abertos || 0)
   return (participantes, conversas, filtros) => corpo(
     participantes, Object.fromEntries(conversas.map((c) => [c.participante_id, c])), filtros.busca || '', filtros.situacao || '',
-    filtros.ordem || 'recentes', filtros, ORDENS, participaDaEdicao, pendenciasDe)
+    filtros.ordem || 'recentes', filtros, ORDENS, participaDaEdicao, pendenciasDe, compacto)
 }
 
 test('cartão que abre a lista de Marcas: o número É o tamanho da lista filtrada (filtro real de Marcas.jsx)', () => {
@@ -550,4 +552,15 @@ test('texto que descreve o cartão não promete "o mesmo número" onde a lista m
   const corpo = rpc.slice(0, rpc.indexOf('$$;', rpc.indexOf('as $$')))
   assert.match(corpo, /order by e\.estado, p\.nome_marca/)
   assert.doesNotMatch(corpo.slice(corpo.indexOf('where')), /e\.estado\s*(=|<>|!=|\bin\b)/, 'a RPC não filtra por estado: devolve respondidas também')
+})
+
+test('busca de Marcas ignora acento, espaço e a formatação do telefone', () => {
+  const filtrar = filtroRealDeMarcas()
+  const lista = [
+    { id: 'a', nome_marca: 'Padaria São José', telefone: '(84) 99999-1234', participacao_id: 'pa' },
+    { id: 'b', nome_marca: 'Doce Lar', telefone: '(84) 98888-0000', participacao_id: 'pb' },
+  ]
+  assert.deepEqual(filtrar(lista, [], { busca: 'padaria sao jose' }).map((p) => p.id), ['a'])
+  assert.deepEqual(filtrar(lista, [], { busca: '8499999' }).map((p) => p.id), ['a'])
+  assert.deepEqual(filtrar(lista, [], { busca: 'doce' }).map((p) => p.id), ['b'])
 })

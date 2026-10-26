@@ -55,9 +55,18 @@ export function mudancasExternas() {
   return [...itens.values()].filter((x) => x.externo).map((x) => ({ rotulo: x.rotulo }))
 }
 
+/*
+ * Recarga PEDIDA pelo painel ("Atualizar sem salvar" já confirmou): o "beforeunload" não pergunta
+ * de novo. Sem isso o navegador abria o "Sair do site?" por cima, e cancelar deixava o botão
+ * travado em "Abrindo…" com a tentativa já contada.
+ */
+let saidaLiberada = false
+export function liberarSaida() { saidaLiberada = true }
+export const deveAvisarSaida = () => !saidaLiberada && temPendencia()
+
 if (typeof window !== 'undefined') {
   // Um "beforeunload" só, para todo o painel: fechar a aba com algo pela metade pergunta.
-  window.addEventListener('beforeunload', (e) => { if (temPendencia()) { e.preventDefault(); e.returnValue = '' } })
+  window.addEventListener('beforeunload', (e) => { if (deveAvisarSaida()) { e.preventDefault(); e.returnValue = '' } })
 }
 
 /** Registra enquanto `ativo`. `salvar` pode mudar a cada render (fica num ref). */

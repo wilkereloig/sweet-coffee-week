@@ -210,13 +210,21 @@ export async function prepararArquivo(file) {
   }
 }
 
+// Envio parado (sem progresso por este tempo) é abortado: a fila é sequencial e um envio travado prenderia todos.
+export const ENVIO_PARADO_MS = 60000
 export function enviarPut(url, corpo, aoProgredir) {
   return new Promise((ok, falha) => {
     const x = new XMLHttpRequest()
+    let parado = null
+    const vigiar = () => { clearTimeout(parado); parado = setTimeout(() => x.abort(), ENVIO_PARADO_MS) }
     x.open('PUT', url)
-    x.upload.onprogress = (e) => { if (e.lengthComputable && aoProgredir) aoProgredir(e.loaded / e.total) }
+    x.upload.onprogress = (e) => { vigiar(); if (e.lengthComputable && aoProgredir) aoProgredir(e.loaded / e.total) }
+    x.upload.onload = vigiar // corpo enviado: o prazo recomeça para a resposta
     x.onload = () => (x.status >= 200 && x.status < 300 ? ok() : falha(new Error('O envio falhou (HTTP ' + x.status + '). Tente de novo.')))
     x.onerror = () => falha(new Error('Sem conexão durante o envio. Tente de novo.'))
+    x.onabort = x.ontimeout = () => falha(new Error('O envio parou de avançar. Tente de novo.'))
+    x.onloadend = () => clearTimeout(parado)
+    vigiar()
     x.send(corpo)
   })
 }

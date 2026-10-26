@@ -57,9 +57,11 @@ function FormItemCronograma({ edicao, inicial, onSalvo, onCancelar }) {
     if (Object.keys(r.conflitos).length) { setAviso('Há campos que mudaram enquanto você editava. Escolha qual versão vale, acima, antes de salvar.'); return }
     setAviso(null); setSalvando(true)
     const enviado = r.local
+    // O campo que o tipo esconde (prazo: início; marco: fim) não vai com o valor de antes da troca de tipo.
+    const ocultos = enviado.tipo === 'prazo' ? { inicio: '' } : enviado.tipo === 'marco' ? { fim: '' } : {}
     try {
       // Os campos que o formulário não mostra (ordem, obrigatório) vêm do item como está AGORA no servidor.
-      await rpc('salvar_cronograma_item', { p_secret: lerSenha(), p_item: { ...(noServidor || inicial), ...enviado, edicao_codigo: edicao.codigo } })
+      await rpc('salvar_cronograma_item', { p_secret: lerSenha(), p_item: { ...(noServidor || inicial), ...enviado, ...ocultos, edicao_codigo: edicao.codigo } })
       r.salvou(enviado)
       onSalvo()
     } catch (e) { setAviso(traduzirErro(e.message)) } finally { setSalvando(false) }

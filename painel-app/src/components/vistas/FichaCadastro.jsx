@@ -4,7 +4,7 @@ import { dataCurta } from '../../lib/respostas'
 import { dataHoraCurta, preco, prazoSelo } from '../../lib/painelFormat'
 import { rotulo, rotulos } from '../../lib/status'
 import { tempoRelativo } from '../../lib/central'
-import { CANAIS, canaisParaObjeto, canaisParaArray } from '../../lib/cadastro'
+import { CANAIS, canaisParaObjeto, canaisParaArray, erroLinkCanal, precoNumero } from '../../lib/cadastro'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
 import { CAMPOS_APONTAVEIS, blocoDoCampo } from '../../lib/guia'
@@ -42,6 +42,7 @@ const RECADO = {
   nome_obrigatorio: 'O nome do estabelecimento não pode ficar vazio.',
   campo_invalido: 'Campo que o painel não sabe salvar — defeito do painel, não seu.',
   unidade_nao_encontrada: 'Esta unidade não existe mais (foi removida). Feche o editor e abra de novo.',
+  canal_invalido: 'Um link de delivery não é endereço web (use https://…, ou algo como wa.me/…). Corrija antes de salvar: do jeito que está, ele seria apagado.',
 }
 const erroLegivel = (e) => {
   const m = String((e && e.message) || e || '')
@@ -65,7 +66,10 @@ function paraCampo(campo, v) {
   return v == null ? '' : String(v)
 }
 function doCampo(campo, v) {
-  if (campo.tipo === 'preco') return String(v || '').replace(/\./g, '').replace(',', '.').trim()
+  // Mesma leitura da marca: "2.50" (teclado do Android só tem ponto) é decimal, não 250.
+  if (campo.tipo === 'preco') return String(v || '').trim() ? String(precoNumero(v)) : ''
+  // "Não informado" fica fora do envio: '' quebraria o ::boolean do banco e o campo segue como está.
+  if (campo.tipo === 'sim_nao' && v === '') return undefined
   return v
 }
 const ehSimNao = (c) => c.tipo === 'check' || c.tipo === 'sim_nao'
@@ -275,6 +279,8 @@ function unidadeParaValores(u) {
 function valoresParaUnidade(id, v) {
   const canais = {}
   CANAIS.forEach((c) => { canais[c.tipo] = v['canal_' + c.tipo] || '' })
+  // canaisParaArray descarta o que não é link web: sem esta trava, um canal antigo ("@lojax") sumia e a tela dizia "Salvo".
+  if (CANAIS.some((c) => erroLinkCanal(canais[c.tipo]))) throw new Error('canal_invalido')
   return {
     id, endereco: v.endereco, bairro: v.bairro, mesas: v.mesas,
     faz_delivery: !!v.faz_delivery, so_delivery: !!v.so_delivery, canais_delivery: canaisParaArray(canais),

@@ -78,7 +78,12 @@ export function useRegistroEditavel(servidor, campos, { chave = null } = {}) {
   React.useEffect(() => {
     const agora = instantaneo(servidor)
     if (chave !== ultimaChave.current) { ultimaChave.current = chave; ultimoServidor.current = agora; despachar({ tipo: 'reiniciar', servidor: servidor || {} }); return }
-    if (agora !== ultimoServidor.current) { ultimoServidor.current = agora; if (servidor) despachar({ tipo: 'servidor', servidor }) }
+    if (agora !== ultimoServidor.current) {
+      // Primeira chegada do dado (antes só vazio, ex.: config carregando): não é mudança externa.
+      const antesVazio = JSON.parse(ultimoServidor.current).every((v) => v === null || v === '')
+      ultimoServidor.current = agora
+      if (servidor) despachar(antesVazio && !registroSujo(estado) ? { tipo: 'reiniciar', servidor } : { tipo: 'servidor', servidor })
+    }
   }, [servidor, chave]) // eslint-disable-line react-hooks/exhaustive-deps
   return React.useMemo(() => ({
     ...estado,
