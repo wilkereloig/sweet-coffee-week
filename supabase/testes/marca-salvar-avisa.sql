@@ -5,20 +5,22 @@
 -- Usa uma participação ativa da edição atual: a conta de teste assume a marca dentro da transação (desfeita no fim).
 --
 -- Confere, nesta ordem:
---   A. rajada de salvamentos na MESMA área = 1 aviso, sem UPDATE a mais (n_agrupadas = 1)
---   B. área nova acumula no MESMO aviso ("Dados da marca · Tema", n_agrupadas = 2)
+--   A. rajada de salvamentos no MESMO campo = 1 aviso, sem UPDATE a mais; campo novo acumula ("Instagram · Site"), com link para o 1º campo
+--   B. campo novo acumula no MESMO aviso ("Instagram · Site · Justificativa do tema", n_agrupadas = 3)
 --   C. depois que alguém da organização lê, a próxima alteração abre um aviso NOVO
 --   D. organização (editor e org_salvar_*) e gravação sem sessão (importação, pg_cron) não avisam
 --   E. o salvamento que completa o cadastro passa para cadastro_completo + combo em_analise (e "concluiu o cadastro")
 --   F. ajuste pedido não volta sozinho para análise
 --   G. combo aprovado alterado continua aprovado, com alterado_apos_aprovacao
---   H. troca de logo avisa UMA vez (área "Logo") e não há mais "enviou uma nova logo"
+--   H. troca de logo avisa UMA vez (campo "Logo") e não há mais "enviou uma nova logo"
+--   I. item do combo: "<Tipo>: descrição · <Tipo>: nome", link marcas/<id>/combo/item-<posição>
+--   J. unidade: "<nome>: condições na edição", link marcas/<id>/unidades/uni-<id da unidade na edição>
 -- =============================================================================
 do $$
 declare
   ua uuid := gen_random_uuid(); uo uuid := gen_random_uuid();
   part uuid; pa uuid; pu uuid; un uuid; dia date; v_item record; asp text; chave text;
-  n int; abertos int; t text; k int; v_st text; v_cb text; v_alt boolean;
+  n int; abertos int; t text; k int; v_st text; v_cb text; v_alt boolean; v_link text;
   marca_jwt text; org_jwt text;
 begin
   insert into auth.users (id, email, aud, role) values
@@ -81,7 +83,10 @@ begin
   update participantes set site = 'https://teste.example' where id = part;
   reset role;
   select count(*), max(texto), max(n_agrupadas) into n, t, k from notificacoes where chave_grupo = chave and criada_em = now();
-  if n <> 1 or t <> 'Dados da marca' or k <> 1 then raise exception 'A rajada: avisos=% texto=% agrupadas=%', n, t, k; end if;
+  if n <> 1 or t <> 'Instagram · Site' or k <> 2 then raise exception 'A rajada: avisos=% texto=% agrupadas=%', n, t, k; end if;
+  if (select link from notificacoes where chave_grupo = chave and criada_em = now()) <> 'marcas/' || part || '/cadastro/instagram' then
+    raise exception 'A link: %', (select link from notificacoes where chave_grupo = chave and criada_em = now());
+  end if;
   if (select titulo from notificacoes where chave_grupo = chave and criada_em = now()) not like '% alterou o cadastro' then
     raise exception 'A título errado';
   end if;
@@ -94,7 +99,7 @@ begin
   update participacoes set tema_justificativa = 'Nova justificativa' where id = pa;
   reset role;
   select count(*), max(texto), max(n_agrupadas) into n, t, k from notificacoes where chave_grupo = chave and criada_em = now();
-  if n <> 1 or t <> 'Dados da marca · Tema' or k <> 2 then raise exception 'B acumular: avisos=% texto=% agrupadas=%', n, t, k; end if;
+  if n <> 1 or t <> 'Instagram · Site · Justificativa do tema' or k <> 3 then raise exception 'B acumular: avisos=% texto=% agrupadas=%', n, t, k; end if;
 
   -- ── C. lido pela organização → a próxima alteração abre outro ─────────────
   insert into notificacao_leitura (notificacao_id, leitor) select id, uo::text from notificacoes where chave_grupo = chave and criada_em = now();
@@ -162,6 +167,28 @@ begin
   if abertos <> 1 or t <> 'Logo' then raise exception 'H logo: abertos=% texto=%', abertos, t; end if;
   if exists (select 1 from notificacoes where titulo like '% enviou uma nova logo' and criada_em = now()) then
     raise exception 'H a logo avisou duas vezes (sobrou o notificar de marca_definir_logo)';
+  end if;
+
+  -- ── I. item do combo: nome do campo e link para o item ───────────────────
+  insert into notificacao_leitura (notificacao_id, leitor) select id, uo::text from notificacoes where chave_grupo = chave on conflict do nothing;
+  set local role authenticated;
+  update participantes_itens set nome = 'Doce alterado', descricao = 'Descrição alterada' where participacao_id = pa and posicao = 1;
+  reset role;
+  select count(*), max(texto), max(link) into abertos, t, v_link from notificacoes n_
+   where n_.chave_grupo = chave and not exists (select 1 from notificacao_leitura l where l.notificacao_id = n_.id);
+  if abertos <> 1 or t <> 'Doce: descrição · Doce: nome' or v_link <> 'marcas/' || part || '/combo/item-1' then
+    raise exception 'I item: abertos=% texto=% link=%', abertos, t, v_link;
+  end if;
+
+  -- ── J. unidade: nome da unidade no campo e link para o bloco dela ────────
+  insert into notificacao_leitura (notificacao_id, leitor) select id, uo::text from notificacoes where chave_grupo = chave on conflict do nothing;
+  set local role authenticated;
+  update participacao_unidades set observacao_combo = 'Condição alterada pelo teste' where id = pu;
+  reset role;
+  select count(*), max(texto), max(link) into abertos, t, v_link from notificacoes n_
+   where n_.chave_grupo = chave and not exists (select 1 from notificacao_leitura l where l.notificacao_id = n_.id);
+  if abertos <> 1 or t not like '%: condições na edição' or v_link <> 'marcas/' || part || '/unidades/uni-' || pu then
+    raise exception 'J unidade: abertos=% texto=% link=%', abertos, t, v_link;
   end if;
 
   raise exception 'TESTE_OK';

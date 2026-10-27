@@ -125,13 +125,13 @@ export function Marcas({ pode = () => true, rota, navegar }) {
   const f = rota.filtros
   const status = f.situacao || ''
   const ordem = f.ordem || 'recentes'
-  const ficha = f.item ? { id: f.item, aba: f.sub } : null
+  const ficha = f.item ? { id: f.item, aba: f.sub, campo: f.campo } : null
   const mudar = (novos, substituir = true) => navegar({ filtros: { ...f, ...novos } }, { substituir })
   const setStatus = (v) => mudar({ situacao: v })
   const setOrdem = (v) => mudar({ ordem: v === 'recentes' ? '' : v })
   // Arquivadas é outra leitura (o banco só devolve arquivadas quando pedidas).
   const arquivadas = status === 'arquivadas'
-  const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'resumo' ? x.aba : '' } : { item: '', sub: '' }, false)
+  const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'resumo' ? x.aba : '', campo: '' } : { item: '', sub: '', campo: '' }, false)
   // A busca também mora no endereço (15/10/2026): abrir uma ficha e voltar
   // devolve a lista como estava. Digitar troca a entrada, não empilha Voltar.
   const termo = f.busca || ''
@@ -308,7 +308,8 @@ export function Marcas({ pode = () => true, rota, navegar }) {
             participante={participanteFicha && { ...participanteFicha, _naoLidas: Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) }}
             logo={participanteFicha && logos[participanteFicha.id]}
             sub={ficha.aba || ''}
-            onSub={(s, o = {}) => mudar({ sub: s }, !!o.substituir)}
+            campo={ficha.campo || ''}
+            onSub={(s, o = {}) => mudar({ sub: s, campo: '' }, !!o.substituir)}
             onVoltar={() => setFicha(null)}
             pode={pode}
             naoLidas={participanteFicha ? Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) : 0}

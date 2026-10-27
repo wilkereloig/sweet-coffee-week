@@ -1889,3 +1889,27 @@ dizia o nome da marca e abria a lista; a decisão morava em ficha › Operação
 - **Nunca meia lista:** o cartão só mostra o combo se `get_combos_em_analise` trouxe TODOS os que ele conta (`cobreAsMarcas`);
   leitura que caiu (ou sem `curadoria.decidir`) volta ao texto simples e à lista de marcas. A leitura não entra em `falhas`.
 - ⚠️ `auditoria.alvo_id` é TEXTO: comparar com `pa.id::text` (a primeira versão da função quebrava no uso).
+
+#### Aviso de alteração com o CAMPO e o toque que leva até ele — 27/10/2026 (pedido do Wilker)
+"Quero saber na notificação o que a marca alterou, e que ao clicar me leve ao campo." Muda o R7 de "A marca só salva" (acima): o
+aviso "<Marca> alterou o cadastro" deixou de listar ÁREAS ("Logo", "Combo e custos") e passou a listar **campos**. Migration
+`20261118_alteracao_marca_campos.sql` (✅ aplicada pelo MCP; teste `supabase/testes/marca-salvar-avisa.sql` → `TESTE_OK`, com os
+passos I e J novos; reversão em `supabase/reverter/`), testes `tests/painel-app-alteracao-campos.test.mjs` e
+`tests/painel-aviso-campo-navegador.mjs` (porta 5247; ficha de mentira, sino, rolagem e destaque).
+- **Texto = os nomes dos campos**, como a ficha os chama: "Nome do combo · Doce: descrição · Logo · Unidade 1: endereço". Só o
+  NOME, não o valor (decisão do Wilker): o salvamento automático grava a cada ~1 s e o aviso, um só e sem UPDATE a cada letra,
+  guardaria o valor pela metade. O valor certo está na ficha, destacado. Campo novo acumula no mesmo aviso (sem push novo);
+  campo repetido não grava nada.
+- **O catálogo mora no banco:** `campo_alterado_marca(tabela, coluna, linha, participação)` devolve `{rótulo, seção, âncora}`;
+  coluna fora dele não gera aviso (status, progresso e carimbos). `marca_alterou` (gatilho) e `avisar_alteracao_marca_campo`
+  usam ele. As funções por área (`avisar_alteracao_marca`) ficam sem uso (o painel não deixa apagar função).
+- **Link = `marcas/<participante>/<seção>/<campo>`** (seção: `cadastro` · `combo` · `unidades`). Com vários campos o toque leva ao
+  PRIMEIRO (ordem alfabética das colunas que mudaram no mesmo salvamento); os outros estão no texto. `rotaDoLink` põe o 3º
+  segmento em `filtros.campo`; `lerIrDaUrl` aceita até 4 segmentos (o push `?ir=`); `interpretarLink` devolve `campo`.
+- **A ficha rola até o campo e o destaca por 6 s** (`rolarParaCampo` em `FichaMarcaPagina.jsx`, classe `.fg-alvo`, sem animação):
+  linha de dados = `#fg-campo-<chave>` (o `Dados` de `FichaVisao.jsx` aceita `{ id }`); item = bloco `#fg-item-<posição>`;
+  unidade = bloco `#fg-uni-<id da unidade na edição>`. Chave desconhecida cai na seção, sem erro. Trocar de seção na ficha solta
+  o campo do endereço (`onSub` limpa `campo`). ⚠️ **Campo novo no catálogo do banco precisa de âncora na ficha** — o teste
+  confere cada chave do SQL contra os `id: '…'` de `FichaVisao.jsx`.
+- ⚠️ Painel antigo (sem esta versão) abre a ficha na seção, sem o campo; o toque no PUSH (`?ir=` com 4 segmentos) só chega ao
+  destino com o painel novo (a regra antiga recusava).

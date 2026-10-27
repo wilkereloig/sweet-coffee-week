@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Combos para aprovar: o cartão da Visão geral mostra qual combo espera e deixa aprovar ou pedir ajuste ali mesmo.
+Avisos de alteração da marca: a notificação diz quais campos mudaram e o toque leva ao campo, já destacado na ficha.

@@ -86,7 +86,7 @@ function Dados({ itens }) {
   return (
     <dl className="fg-dados">
       {lista.map(([r, v, op = {}], i) => (
-        <div key={i} className={'fg-dado' + (op.largo ? ' fg-dado--largo' : '')}>
+        <div key={i} className={'fg-dado' + (op.largo ? ' fg-dado--largo' : '')} id={op.id ? 'fg-campo-' + op.id : undefined} tabIndex={op.id ? -1 : undefined}>
           <dt>{r}</dt>
           <dd>{v == null || v === '' || v === false ? <Vazio_>{op.vazio}</Vazio_> : v}</dd>
         </div>
@@ -199,20 +199,20 @@ function SecaoCadastro({ p, logo, fontes, recarregar, acoes, edicao }) {
     <SecaoFicha id="cadastro" titulo="Cadastro" nota="Dados da marca, válidos para todas as edições." acoes={acoes} edicao={edicao}>
       <h4 className="fg-sub">Contato interno <small>só a equipe vê</small></h4>
       <Dados itens={[
-        ['Responsável', m.responsavel],
-        ['WhatsApp do responsável', m.telefone && mascaraWhatsApp(m.telefone)],
-        ['E-mail', m.email],
+        ['Responsável', m.responsavel, { id: 'responsavel' }],
+        ['WhatsApp do responsável', m.telefone && mascaraWhatsApp(m.telefone), { id: 'telefone' }],
+        ['E-mail', m.email, { id: 'email' }],
       ]} />
       <h4 className="fg-sub">No site <small>o que o público lê</small></h4>
       <Dados itens={[
-        ['Nome oficial', m.nome_marca],
-        ['Apresentação', nuc.estado === 'ok' ? m.apresentacao_publica && <TextoLongo texto={m.apresentacao_publica} /> : <EstadoFonte f={nuc} oQue="a apresentação" onTentar={recarregar} linhas={1} />, { largo: true }],
-        ['Instagram', m.instagram],
-        ['Site', m.site],
-        ['Logo', <Selo key="l" dominio="logo" valor={estadoLogoLista(logo)} />],
+        ['Nome oficial', m.nome_marca, { id: 'nome_marca' }],
+        ['Apresentação', nuc.estado === 'ok' ? m.apresentacao_publica && <TextoLongo texto={m.apresentacao_publica} /> : <EstadoFonte f={nuc} oQue="a apresentação" onTentar={recarregar} linhas={1} />, { largo: true, id: 'apresentacao_publica' }],
+        ['Instagram', m.instagram, { id: 'instagram' }],
+        ['Site', m.site, { id: 'site' }],
+        ['Logo', <Selo key="l" dominio="logo" valor={estadoLogoLista(logo)} />, { id: 'logo' }],
       ]} />
       <h4 className="fg-sub">Dados fiscais</h4>
-      <Dados itens={[['Razão social', m.razao_social], ['CNPJ', m.cnpj]]} />
+      <Dados itens={[['Razão social', m.razao_social, { id: 'razao_social' }], ['CNPJ', m.cnpj, { id: 'cnpj' }]]} />
       <p className="fg-nota-fim">O contato de cada loja (WhatsApp da loja, canais de pedido) fica em Unidades.</p>
     </SecaoFicha>
   )
@@ -245,7 +245,7 @@ function Componente({ c, fotos, f, onTentar }) {
   const doItem = fotos.filter((x) => x.papel === 'item' && c.id && x.itemId === c.id)
   const foto = doItem.find((x) => x.estado === 'aprovada') || doItem[0]
   return (
-    <article className="fg-bloco" aria-labelledby={'fg-item-' + c.posicao}>
+    <article className="fg-bloco" aria-labelledby={'fg-item-' + c.posicao} tabIndex={-1}>
       <h4 className="fg-bloco__titulo" id={'fg-item-' + c.posicao}><span className="fg-bloco__tipo">{c.posicao}º · {c.rotuloTipo}</span>{c.nome || <Vazio_>Sem nome</Vazio_>}</h4>
       <div className={foto ? 'fg-bloco__com-foto' : ''}>
         {foto && <Miniatura foto={foto} pequena />}
@@ -304,29 +304,29 @@ function SecaoCombo({ p, fontes, recarregar, pode, onEditar, edicaoAberta }) {
     <SecaoFicha id="combo" titulo="Tema e combo" acoes={botoesAcao("combo", pode, ctx, onEditar)} edicao={edicaoAberta}>
       <Dados itens={[
         ['Tema geral da edição', ed && ed.temaGeral ? ed.temaGeral + (ed.nome ? ' (' + ed.nome + ')' : '') : fontes.edicoes.estado === 'carregando' ? 'Carregando…' : null, { vazio: 'Não definido' }],
-        ['Tema escolhido pela marca', tema.tema && <>{tema.tema} <Selo tom={TOM_TEMA[tema.estado]}>{TEXTO_TEMA[tema.estado]}</Selo></>, { vazio: TEXTO_TEMA.sem_tema }],
+        ['Tema escolhido pela marca', tema.tema && <>{tema.tema} <Selo tom={TOM_TEMA[tema.estado]}>{TEXTO_TEMA[tema.estado]}</Selo></>, { vazio: TEXTO_TEMA.sem_tema, id: 'tema_combo' }],
         tema.estado === 'divergente' && ['Última proposta registrada', tema.temaProposta + ' (' + rotulo('tema', tema.proposta.status) + ')'],
         tema.proposta && tema.proposta.decidido_em && ['Análise do tema', 'Por ' + (tema.proposta.decidido_rotulo || 'organização') + ' ' + tempoRelativo(tema.proposta.decidido_em) + (tema.proposta.observacao ? ': "' + tema.proposta.observacao + '"' : '')],
-        ['Justificativa do tema', tema.justificativa && <TextoLongo texto={tema.justificativa} />, { largo: true }],
+        ['Justificativa do tema', tema.justificativa && <TextoLongo texto={tema.justificativa} />, { largo: true, id: 'tema_justificativa' }],
       ]} />
       <h4 className="fg-sub">O combo</h4>
       <div className={principal ? 'fg-bloco__com-foto' : ''}>
         {principal && <Miniatura foto={principal} />}
         <Dados itens={[
-          ['Nome do combo', pa.combo_nome],
+          ['Nome do combo', pa.combo_nome, { id: 'combo_nome' }],
           ['Situação da revisão', <Selo key="c" dominio="combo" valor={pa.combo_status || 'rascunho'} />],
           pa.combo_revisao_nota && ['Nota da revisão para a marca', pa.combo_revisao_nota, { largo: true }],
-          ['Descrição', pa.combo_descricao && <TextoLongo texto={pa.combo_descricao} />, { largo: true }],
-          ['Proposta criativa', pa.combo_proposta && <TextoLongo texto={pa.combo_proposta} />, { largo: true }],
-          ['Condições', pa.combo_condicoes, { largo: true }],
+          ['Descrição', pa.combo_descricao && <TextoLongo texto={pa.combo_descricao} />, { largo: true, id: 'combo_descricao' }],
+          ['Proposta criativa', pa.combo_proposta && <TextoLongo texto={pa.combo_proposta} />, { largo: true, id: 'combo_proposta' }],
+          ['Condições', pa.combo_condicoes, { largo: true, id: 'combo_condicoes' }],
         ]} />
       </div>
       <h4 className="fg-sub">Preço e condições</h4>
       <Dados itens={[
         ['Preço do combo na edição', valorCombo != null ? formatarPreco(Number(valorCombo)) : fontes.edicoes.estado === 'carregando' ? 'Carregando…' : null, { vazio: 'Não definido pela organização' }],
-        ['Sai para viagem', sim(pa.combo_para_viagem)],
-        ['Custo da embalagem para viagem', pa.combo_para_viagem === false ? 'Não se aplica' : textoCusto(pa.custo_embalagem)],
-        ['Custo do delivery', !entrega && participam.length ? 'Não se aplica (nenhuma unidade entrega o combo)' : textoCusto(pa.custo_delivery)],
+        ['Sai para viagem', sim(pa.combo_para_viagem), { id: 'combo_para_viagem' }],
+        ['Custo da embalagem para viagem', pa.combo_para_viagem === false ? 'Não se aplica' : textoCusto(pa.custo_embalagem), { id: 'custo_embalagem' }],
+        ['Custo do delivery', !entrega && participam.length ? 'Não se aplica (nenhuma unidade entrega o combo)' : textoCusto(pa.custo_delivery), { id: 'custo_delivery' }],
         ['Retirada', participam.length ? nModo('retirada') + ' de ' + participam.length + (participam.length === 1 ? ' unidade' : ' unidades') : null, { vazio: 'Sem unidade participando' }],
         ['Delivery do combo', participam.length ? nModo('delivery') + ' de ' + participam.length + (participam.length === 1 ? ' unidade' : ' unidades') : null, { vazio: 'Sem unidade participando' }],
       ]} />
@@ -343,7 +343,7 @@ function Unidade({ u }) {
   const coord = u.coordenada.estado === 'conferida' ? 'Conferida' + (u.coordenada.por ? ' por ' + u.coordenada.por : '') + (u.coordenada.em ? ' em ' + dataCurta(u.coordenada.em) : '')
     : u.coordenada.estado === 'a_conferir' ? 'Ponto informado, a conferir' : 'Sem ponto no mapa'
   return (
-    <article className="fg-bloco" aria-labelledby={'fg-uni-' + u.id}>
+    <article className="fg-bloco" aria-labelledby={'fg-uni-' + u.id} tabIndex={-1}>
       <h4 className="fg-bloco__titulo" id={'fg-uni-' + u.id}>
         {u.nome}
         {u.participa ? <Selo tom="ok">Participa desta edição</Selo> : <Selo tom="encerrado">Não participa desta edição</Selo>}

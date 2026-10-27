@@ -97,13 +97,14 @@ export function rotaDoLink(link) {
 
 function rotaCrua(link) {
   if (!link || typeof link !== 'string') return null
-  const [seg, a, b] = link.split('/').filter(Boolean)
+  const [seg, a, b, c] = link.split('/').filter(Boolean)
   if (!seg) return null
   switch (seg) {
     case 'mesa': case 'visao': return { vista: 'visao', aba: '', filtros: {} }
     case 'marcas': case 'participantes':
       if (seg === 'participantes' && a && ABA_PARTICIPANTES.has(a)) return { vista: 'participantes', aba: a, filtros: b ? { item: b } : {} }
-      return { vista: 'participantes', aba: 'lista', filtros: { item: a, sub: b } }
+      // marcas/<id>/<seção>/<campo>: o aviso de alteração da marca leva ao CAMPO na ficha (27/10/2026).
+      return { vista: 'participantes', aba: 'lista', filtros: { item: a, sub: b, campo: c } }
     case 'respostas': return rotaResposta(a, b)
     case 'producao': case 'operacao': {
       // Avisos e links antigos do calendário (operacao/redes/<id>) → Social media.

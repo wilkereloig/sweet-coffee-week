@@ -191,6 +191,6 @@ test('abrir uma ficha e voltar devolve a lista com busca, situação e ordem (j�
   assert.deepEqual(r(fechada), lista)
   // O código faz exatamente isso: espalha os filtros do endereço e só troca item/sub.
   tem(MARCAS, /const mudar = \(novos, substituir = true\) => navegar\(\{ filtros: \{ \.\.\.f, \.\.\.novos \} \}, \{ substituir \}\)/)
-  tem(MARCAS, /const setFicha = \(x\) => mudar\(x \? \{ item: x\.id, sub: [^}]+\} : \{ item: '', sub: '' \}, false\)/)
+  tem(MARCAS, /const setFicha = \(x\) => mudar\(x \? \{ item: x\.id, sub: [^}]+\} : \{ item: '', sub: '', campo: '' \}, false\)/)
   tem(MARCAS, /const setTermo = \(v\) => mudar\(\{ busca: v \}\)/)
 })

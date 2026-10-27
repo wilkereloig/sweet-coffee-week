@@ -248,7 +248,26 @@ function rolarPara(secao) {
 }
 const depoisDoQuadro = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn))
 
-export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, pode, naoLidas = 0 }) {
+/*
+ * Alvo de um aviso de alteração da marca (link marcas/<id>/<seção>/<campo>, 27/10/2026): rola até o campo e o destaca
+ * por alguns segundos. A âncora é a chave do campo (`fg-campo-<chave>` nas linhas de dados) ou a do bloco de um item/unidade
+ * (`fg-item-N`, `fg-uni-<id>`, que destaca o bloco inteiro). Devolve false se não achou (a tela cai na seção).
+ */
+let destaque = null
+function rolarParaCampo(chave) {
+  const el = document.getElementById('fg-campo-' + chave) || document.getElementById('fg-' + chave)
+  if (!el) return false
+  const alvo = el.classList.contains('fg-dado') ? el : el.closest('.fg-bloco') || el
+  const reduzir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  alvo.scrollIntoView({ block: 'center', behavior: reduzir ? 'auto' : 'smooth' })
+  alvo.focus({ preventScroll: true })
+  if (destaque) { clearTimeout(destaque.t); destaque.el.classList.remove('fg-alvo') }
+  alvo.classList.add('fg-alvo')
+  destaque = { el: alvo, t: setTimeout(() => { alvo.classList.remove('fg-alvo'); destaque = null }, 6000) }
+  return true
+}
+
+export function FichaMarcaPagina({ participante: p, logo, sub, campo = '', onSub, onVoltar, pode, naoLidas = 0 }) {
   const { vista, secao } = destinoNaFicha(sub)
   const { fontes, recarregar } = useFichaGeral(p && p.participacao_id)
   const [editando, setEditando] = React.useState(null) // { secao, editor }
@@ -266,7 +285,11 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
   // Link para uma seção (aba antiga, pendência, recarga): rola até ela quando o
   // conteúdo de cima já tem altura — senão a seção "fugiria" ao carregar.
   const pronto = fontes.nucleo.estado !== 'carregando' && fontes.publicacao.estado !== 'carregando'
-  React.useEffect(() => { if (vista === 'visao' && secao) depoisDoQuadro(() => rolarPara(secao)) }, [vista, secao, id, pronto])
+  React.useEffect(() => { if (vista === 'visao' && secao && !campo) depoisDoQuadro(() => rolarPara(secao)) }, [vista, secao, id, pronto]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Link para um CAMPO (aviso "<marca> alterou o cadastro"): rola até ele e o destaca; sem achar, cai na seção.
+  React.useEffect(() => {
+    if (vista === 'visao' && campo && pronto) depoisDoQuadro(() => { if (!rolarParaCampo(campo) && secao) rolarPara(secao) })
+  }, [vista, campo, id, pronto]) // eslint-disable-line react-hooks/exhaustive-deps
   React.useEffect(() => { if (vista === 'historico' && secao === 'trajetoria') depoisDoQuadro(() => rolarPara('trajetoria')) }, [vista, secao, id])
 
   if (!p) return <Carregando linhas={4} />

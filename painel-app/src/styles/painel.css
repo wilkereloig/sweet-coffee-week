@@ -1681,6 +1681,8 @@ button.ui-modulo:active{transform:translateY(0)}
 
 .fg-dados{margin:0;display:grid;gap:14px 28px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
 .fg-dado{min-width:0}
+/* O campo (ou o bloco do item/da unidade) que o aviso de alteração da marca apontou: destaque parado, sem animação. */
+.fg-alvo{border-radius:var(--r-1);background:color-mix(in srgb,var(--scw-amarelo) 24%,transparent);box-shadow:0 0 0 3px var(--scw-amarelo);scroll-margin-top:var(--e-8)}
 .fg-dado--largo{grid-column:1 / -1}
 .fg-dado dt{font:700 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
 .fg-dado dd{margin:4px 0 0;font:400 15.5px/1.5 var(--f-texto);color:var(--scw-choco);overflow-wrap:anywhere;max-width:72ch}
