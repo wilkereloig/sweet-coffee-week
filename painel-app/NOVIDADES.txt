@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Logo das marcas nos avisos e nas listas. Na ficha, cada pendência pode ser resolvida ali ou cobrada do participante, uma, várias ou em lote.
+Arquivos com prévia: as imagens aparecem em miniatura e abrem grandes com um toque, antes de baixar.

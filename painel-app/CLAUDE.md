@@ -1363,6 +1363,21 @@ teste `tests/painel-app-pendencias-aviso.test.mjs`.
   vez (barra "Conferindo N de M"), e a folha mostra por marca o que cobrar, com um recado comum opcional. Um aviso por marca.
   ⚠️ Não calcular as pendências no banco: a regra mora em `pendenciasDaFicha`, e o lote tem que bater com a ficha.
 
+#### Prévia das imagens em Arquivos — 27/10/2026 (pedido do Wilker)
+"Mostra a prévia desses arquivos de download." Migration `20261116_arquivos_previa.sql` (✅ aplicada; reversão em
+`supabase/reverter/`), lógica em `lib/arquivosPrevia.js`, peça `components/PreviaArquivo.jsx` (`PreviaArquivo` + `AmpliarPrevia`),
+teste `tests/painel-app-arquivos-previa.test.mjs`.
+- **Prévia ≠ original.** A logo Cartoon em alta tem 16 MB; a miniatura usa `arquivos.previa_path`: WEBP de até 960 px na MESMA
+  pasta do bucket privado `arquivos` (CHECK). Sem prévia, o original só vira miniatura até 3 MB; acima, ícone. Baixar continua
+  entregando o original. Tocar na miniatura abre a imagem grande (a própria prévia) numa folha, com "Baixar o original".
+- **Quem gera é a equipe** (`producao.gerir`, `arquivo_definir_previa`): ao publicar (Producao › FolhaNovoArquivo) e ao
+  substituir (ArquivosOrg), do arquivo na mão; o que já estava publicado, uma vez, ao abrir Arquivos num navegador que codifica
+  WEBP (`useGerarPreviasFaltando`, uma por vez, até 60 MB). Trocar o arquivo limpa a prévia antiga (gatilho
+  `arquivos_previa_do_arquivo`).
+- **Quem lê:** a marca assina a prévia com a própria sessão (policy `arquivos_marca_le` aceita `previa_path` do arquivo que ela
+  já lê); a equipe pela `arquivo-url`, uma por miniatura, só quando chega perto da tela. A equipe lê as prévias por
+  `get_arquivos_previas` (à parte: `get_arquivos_admin` tem formato fixo e mudar exigiria recriá-la).
+
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
 `/preencher/#<código>` (página estática `public/preencher/index.html`, mesmo padrão do `/quero-participar`):

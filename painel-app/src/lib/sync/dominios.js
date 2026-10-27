@@ -74,6 +74,8 @@ export const RPC_SEM_SINAL = new Set([
   'org_ver_como_iniciar',
   // Miniatura da logo: dado derivado; o gatilho de logos_marca já avisa as outras telas.
   'logo_definir_mini',
+  // Prévia de imagem em Arquivos: idem (o gatilho de arquivos avisa; a tela que gerou já mostra).
+  'arquivo_definir_previa',
 ])
 const ehLeituraPorNome = (n) => /^get_/.test(n)
 

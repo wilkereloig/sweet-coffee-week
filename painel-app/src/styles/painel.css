@@ -257,6 +257,20 @@ button.pn-sync{cursor:pointer;color:var(--scw-choco)}
 .pn-sync--falha .pn-sync__rotulo{font-weight:700}
 .pn-sync__sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @keyframes pn-sync-pulso{50%{opacity:.35}}
+/* ── Prévia de arquivo de imagem (PreviaArquivo.jsx, 27/10/2026): miniatura e imagem ampliada, nos dois painéis ── */
+.ui-previa{--previa-t:64px;position:relative;flex:0 0 auto;width:var(--previa-t);height:var(--previa-t);border-radius:var(--r-1);overflow:hidden;
+  background:var(--sup-trilho);display:inline-grid;place-items:center;color:var(--scw-marrom);box-shadow:inset 0 0 0 1px var(--scw-filete)}
+.ui-previa img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.ui-previa__espera{opacity:.5}
+.ui-previa--botao{padding:0;border:0;cursor:zoom-in;font:inherit}
+.ui-previa--botao:focus-visible{outline:3px solid var(--scw-choco);outline-offset:2px}
+@media (hover:hover){ .ui-previa--botao:hover{box-shadow:inset 0 0 0 2px var(--scw-choco)} }
+.ui-previa--lista{--previa-t:44px}
+.og-item__nome--previa{display:flex;align-items:center;gap:10px;min-width:0}
+.og-item__nome--previa > span:last-child{min-width:0;overflow-wrap:anywhere}
+.ui-ampliada{display:grid;place-items:center;min-height:200px;background:var(--sup-trilho);border-radius:var(--r-2);padding:var(--e-3);margin-bottom:var(--e-4)}
+.ui-ampliada img{display:block;max-width:100%;max-height:min(70vh,960px);width:auto;height:auto;object-fit:contain}
+
 /* ── Cobrar pendências e avisar o participante (CobrarPendencias.jsx, 26/10/2026) ── */
 .cp-caixa{margin:0;padding:14px 16px;border:0;border-radius:var(--r-2);background:var(--sup-2);display:flex;flex-direction:column;gap:12px;min-width:0}
 .cp-caixa__marcar{display:flex;align-items:center;gap:10px;min-height:44px;font:700 14.5px/1.3 var(--f-ui);color:var(--scw-choco);cursor:pointer}

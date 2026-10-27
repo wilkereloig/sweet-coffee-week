@@ -1,5 +1,7 @@
 import React from 'react'
-import { api } from '../../lib/marcaApi'
+import { api, assinarDownload } from '../../lib/marcaApi'
+import { AmpliarPrevia } from '../PreviaArquivo'
+import { caminhoDaMiniatura } from '../../lib/arquivosPrevia'
 import { plataforma } from '../../lib/instalar'
 import { ehNovo, organizarArquivos, precisaLeitura, notaDeAbertura, leituraProvisoria, pendenciasDeArquivos, mapaDeLeituras } from '../../lib/arquivosMarca'
 import { VistaCabeca } from '../VistaCabeca'
@@ -51,6 +53,7 @@ export function Arquivos({ alvo, consumirAlvo, irPara, recarregarResumo, resumo,
   const [recemLidos, setRecemLidos] = React.useState(() => new Set())   // ids confirmados nesta visita: ficam no bloco "Para ler"
   const [aviso, setAviso] = React.useState(null)          // { id, tom: 'ok' | 'erro', texto } — id = o arquivo, ou null para a lista inteira
   const [destaque, setDestaque] = React.useState(null)
+  const [ampliada, setAmpliada] = React.useState(null) // { a, url } — a prévia grande de uma imagem
   const { ocupado, acessar } = useAcessoArquivo(setAviso)
 
   const guarda = useGuarda()
@@ -134,7 +137,8 @@ export function Arquivos({ alvo, consumirAlvo, irPara, recarregarResumo, resumo,
   const item = (a) => (
     <ItemArquivo key={a.id} a={a} lido={lidos[a.id]} leituraConhecida={leituraConhecida} textos={TEXTO} agora={agora}
       destacado={destaque === a.id} ocupado={ocupado} confirmando={confirmando}
-      retorno={aviso && aviso.id === a.id ? aviso : null} aoAcessar={acessar} aoConfirmar={confirmarLeitura} />
+      retorno={aviso && aviso.id === a.id ? aviso : null} aoAcessar={acessar} aoConfirmar={confirmarLeitura}
+      aoAmpliar={(url) => setAmpliada({ a, url })} />
   )
   const plural = (n, um, varios) => (n === 1 ? um : n + ' ' + varios)
 
@@ -177,6 +181,9 @@ export function Arquivos({ alvo, consumirAlvo, irPara, recarregarResumo, resumo,
       <VistaCabeca acento="marrom" icone="arquivos" titulo="Arquivos" nota="Marca do festival, guias e documentos" />
       <PendenciasFotos itens={pendenciasDeArquivos(resumo)} abrirLink={abrirLink} titulo="Solicitações sobre arquivos" classe="am-pendencias" />
       {lista}
+      <AmpliarPrevia aberto={!!ampliada} nome={ampliada && ampliada.a.nome} caminho={ampliada && caminhoDaMiniatura(ampliada.a)} url={ampliada && ampliada.url}
+        assinar={assinarDownload} onFechar={() => setAmpliada(null)}
+        acoes={ampliada && <button className="og-btn og-btn--mini" type="button" onClick={() => acessar(ampliada.a, 'baixar')}>Baixar o original</button>} />
     </section>
   )
 }

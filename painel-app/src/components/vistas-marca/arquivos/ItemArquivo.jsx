@@ -4,6 +4,9 @@ import { detalhesDoArquivo, publicadoEm, ehNovo, acoesDoArquivo, leituraVale } f
 import { Icone } from '../../Icone'
 import { Selo, Botao } from '../../ui'
 import { AvisoComFoco } from '../AvisoComFoco'
+import { PreviaArquivo } from '../../PreviaArquivo'
+import { caminhoDaMiniatura, ehImagemRaster } from '../../../lib/arquivosPrevia'
+import { assinarDownload } from '../../../lib/marcaApi'
 
 /*
  * Uma linha de arquivo da marca: nome, formato · tamanho · versão (só o que o dado tem), o que a leitura pede e as
@@ -13,7 +16,7 @@ import { AvisoComFoco } from '../AvisoComFoco'
  * aparece (quem talvez já confirmou não é convidado a confirmar de novo, e o clique cairia em "participação não aberta").
  * `retorno` = o resultado da ação neste item; ele recebe o foco (o botão tocado pode ter sumido).
  */
-export function ItemArquivo({ a, lido, leituraConhecida, textos, agora, destacado, ocupado, confirmando, retorno, aoAcessar, aoConfirmar }) {
+export function ItemArquivo({ a, lido, leituraConhecida, textos, agora, destacado, ocupado, confirmando, retorno, aoAcessar, aoConfirmar, aoAmpliar }) {
   const ref = React.useRef(null)
   React.useEffect(() => {
     if (destacado && ref.current) ref.current.scrollIntoView({ block: 'center' })
@@ -28,7 +31,10 @@ export function ItemArquivo({ a, lido, leituraConhecida, textos, agora, destacad
   const meta = [...detalhesDoArquivo(a), pub ? 'publicado em ' + pub : ''].filter(Boolean).join(' · ')
 
   return (
-    <li ref={ref} className={'am-item' + (destacado ? ' is-destaque' : '')}>
+    <li ref={ref} className={'am-item am-item--previa' + (destacado ? ' is-destaque' : '')}>
+      {/* Prévia (27/10/2026): imagem leve de 960 px, assinada com a sessão da marca; tocar amplia. Sem imagem, o ícone do tipo. */}
+      <PreviaArquivo nome={a.nome} caminho={caminhoDaMiniatura(a)} assinar={assinarDownload} aoAmpliar={aoAmpliar}
+        icone={ehImagemRaster(a) ? 'imagem' : 'documento'} className="am-item__previa" />
       <div className="am-item__corpo">
         <p className="am-item__nome"><b>{a.nome}</b>{ehNovo(a, agora) && <Selo tom="andamento">Novo</Selo>}</p>
         {meta && <p className="am-item__meta">{meta}</p>}

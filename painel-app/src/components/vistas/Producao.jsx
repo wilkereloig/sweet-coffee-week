@@ -1,4 +1,5 @@
 import React from 'react'
+import { ehImagemRaster, enviarPrevia } from '../../lib/arquivosPrevia'
 import { CAMPOS_APONTAVEIS } from '../../lib/guia'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { dataHoraCurta, prazoSelo } from '../../lib/painelFormat'
@@ -303,7 +304,7 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
       // Só DEPOIS do arquivo estar lá é que a linha nasce. Ao contrário, a
       // marca veria um download que dá 404.
       registrando = true
-      await rpc('publicar_arquivo', {
+      const idNovo = await rpc('publicar_arquivo', {
         p_secret: lerSenha(),
         p_nome: nome.trim() || file.name,
         p_path: path,
@@ -317,6 +318,8 @@ export function FolhaNovoArquivo({ aberto, opcoesMarcas, marcaPadrao, podeGerir,
         p_categoria: categoria,
       })
       subido.current = null
+      // Imagem ganha a prévia leve (lib/arquivosPrevia.js) do arquivo na mão; falhar aqui não desfaz a publicação.
+      if (idNovo && ehImagemRaster({ mime: file.type, nome: file.name })) enviarPrevia({ id: idNovo, path }, file).catch(() => {})
       // A lista de Arquivos se atualiza sozinha (domínio "arquivos").
       setAviso({ texto: 'Publicado.', tom: 'ok' })
     } catch (e) {

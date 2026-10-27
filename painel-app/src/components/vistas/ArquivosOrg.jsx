@@ -13,6 +13,8 @@ import { confirmar } from '../Confirmar'
 import { comEnvio } from '../../lib/pendencias'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
+import { PreviaArquivo, AmpliarPrevia } from '../PreviaArquivo'
+import { caminhoDaMiniatura, ehImagemRaster, enviarPrevia, assinarArquivoOrg, useGerarPreviasFaltando } from '../../lib/arquivosPrevia'
 import { renovarDaLista, CAMPOS_ARQUIVO, formularioDoArquivo, soAlterados, aparar, impressaoDoArquivo, envioReaproveitavel } from '../../lib/leituraViva'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
@@ -39,7 +41,14 @@ export function ArquivosOrg({ pode, aba = 'gerais' }) {
   // leitura à parte e opcional (função sem permissão não derruba os arquivos).
   const arq = useLeitura(async () => (await rpc('get_arquivos_admin', { p_secret: lerSenha() })) || [], ['arquivos', 'participantes'])
   const part = useLeitura(async () => (await rpc('get_participantes', { p_secret: lerSenha() })) || [], ['participantes'], { opcional: true })
-  const arquivos = arq.dados === undefined ? null : arq.dados
+  // Prévias (27/10/2026): leitura à parte e opcional — sem ela a tabela abre com os ícones de sempre.
+  const prev = useLeitura(async () => (await rpc('get_arquivos_previas', { p_secret: lerSenha() })) || [], ['arquivos'], { opcional: true })
+  const [gerados, setGerados] = React.useState({}) // id → prévia gerada nesta tela (antes da releitura chegar)
+  const [ampliada, setAmpliada] = React.useState(null) // { a, url }
+  const previas = React.useMemo(() => Object.fromEntries((prev.dados || []).filter((x) => x.previa_path).map((x) => [x.id, x.previa_path])), [prev.dados])
+  const arquivos = arq.dados === undefined ? null : arq.dados.map((a) => ({ ...a, previa_path: gerados[a.id] || previas[a.id] || null }))
+  // O que já estava publicado sem prévia ganha a sua, uma por vez, só depois de saber quais já têm.
+  useGerarPreviasFaltando(arquivos, { ativo: podeGerir && prev.dados !== undefined && !prev.erro, aoGerar: (id, path) => setGerados((g) => ({ ...g, [id]: path })) })
   const participantes = part.dados || []
   // A folha de edição mostra o arquivo de AGORA (a lista se relê); se sumiu, fica o que foi clicado.
   const arquivoAberto = folha && folha.tipo === 'editar' ? renovarDaLista(folha.arquivo, arquivos) : null
@@ -83,6 +92,9 @@ export function ArquivosOrg({ pode, aba = 'gerais' }) {
       registrando = true
       await rpc('substituir_arquivo', { p_secret: lerSenha(), p_id: a.id, p_path: path, p_mime: file.type || null, p_tamanho: file.size, p_versao: null })
       substituindo.current = null
+      // A troca apagou a prévia antiga (gatilho no banco); a nova sai do arquivo na mão, sem esperar.
+      setGerados((g) => { const n = { ...g }; delete n[a.id]; return n })
+      if (ehImagemRaster({ mime: file.type, nome: file.name })) enviarPrevia({ id: a.id, path }, file).then((p) => { if (p) setGerados((g) => ({ ...g, [a.id]: p })) }).catch(() => {})
       // A lista se atualiza sozinha (domínio "arquivos"): não há releitura a esperar.
       setAviso({ ok: '"' + a.nome + '" substituído. A marca já baixa a versão nova.' })
     } catch (e) {
@@ -141,7 +153,11 @@ export function ArquivosOrg({ pode, aba = 'gerais' }) {
             <li key={a.id}>
               <div className="og-item og-item--info">
                 <span className="og-item__cor" data-chave="arquivo" aria-hidden="true" />
-                <span className="og-item__nome">{a.nome}{a.versao > 1 && <span className="og-item__versao"> · v{a.versao}</span>}</span>
+                <span className="og-item__nome og-item__nome--previa">
+                  <PreviaArquivo nome={a.nome} caminho={caminhoDaMiniatura(a)} assinar={assinarArquivoOrg} aoAmpliar={(url) => setAmpliada({ a, url })}
+                    icone={ehImagemRaster(a) ? 'imagem' : 'documento'} className="ui-previa--lista" />
+                  <span>{a.nome}{a.versao > 1 && <span className="og-item__versao"> · v{a.versao}</span>}</span>
+                </span>
                 <span className="og-item__cel"><span className="ui-oculto">Para: </span>{a.escopo === 'geral' ? 'Todas as marcas' : (a.marca || 'Uma marca')}</span>
                 <span className="og-item__cel"><span className="ui-oculto">Categoria: </span>{categoria}</span>
                 <span className="og-item__cel"><span className="ui-oculto">Formato: </span>{[tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho)].filter(Boolean).join(' · ')}</span>
@@ -162,6 +178,9 @@ export function ArquivosOrg({ pode, aba = 'gerais' }) {
         </ul>
       )}
 
+      <AmpliarPrevia aberto={!!ampliada} nome={ampliada && ampliada.a.nome} caminho={ampliada && caminhoDaMiniatura(ampliada.a)} url={ampliada && ampliada.url}
+        assinar={assinarArquivoOrg} onFechar={() => setAmpliada(null)}
+        acoes={ampliada && <button className="og-btn og-btn--mini" type="button" onClick={() => baixar(ampliada.a)}>Baixar o original</button>} />
       <FolhaNovoArquivo
         aberto={!!folha && folha.tipo === 'novo'}
         opcoesMarcas={opcoesMarcas}

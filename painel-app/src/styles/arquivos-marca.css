@@ -31,3 +31,8 @@
   .am-item__acoes{flex:1 1 100%}
   .am-item__acoes .og-btn{flex:1 1 auto}
 }
+
+/* Prévia (27/10/2026): a miniatura antes do nome; no celular, fica ao lado do nome e as ações descem. */
+.am-item--previa{flex-wrap:wrap}
+.am-item__previa{--previa-t:64px;align-self:flex-start}
+.am-item--previa > .am-item__corpo{flex:1 1 200px}
