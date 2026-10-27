@@ -101,7 +101,10 @@ export function painelDaMarca({ origem, slug, acesso, cred }) {
   if (cred && cred.senha) return { origem, login: cred.login, senha: cred.senha }
   if (!acesso) return { origem }
   if (!acesso.user_id) return { origem, sem_acesso: true }
-  return { origem, login: slug, situacao: acesso.senha_trocada_em ? 'definida' : 'temporaria' }
+  // "Definida" só vale se a marca trocou a senha DEPOIS da última emitida: senha reemitida por cima da que ela criou
+  // volta a ser temporária (era o texto "a que você criou" indo para quem tinha a senha trocada em 22/10).
+  const trocou = acesso.senha_trocada_em && (!acesso.senha_emitida_em || new Date(acesso.senha_trocada_em) > new Date(acesso.senha_emitida_em))
+  return { origem, login: slug, situacao: trocou ? 'definida' : 'temporaria' }
 }
 
 /*
