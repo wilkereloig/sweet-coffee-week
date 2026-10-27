@@ -20,7 +20,8 @@
  */
 import { ALERGENICOS, CARACTERISTICAS, formatarPreco } from '../../../src/edicao/dados/modelo.js'
 import { estadoPublicacao, textoPublicacao, diferencas, traduzirPendencia, urlPublicaParticipante, textoHorarioFestival } from './publicacao.js'
-import { camposObrigatorios, dadosDeLinhas, blocoDoCampo, CAMPOS_APONTAVEIS } from './guia.js'
+import { camposObrigatorios, dadosDeLinhas, blocoDoCampo, CAMPOS_APONTAVEIS, linkDoCampo } from './guia.js'
+import { traduzirFaltando } from './edicaoMarca.js'
 import { rotulo } from './status.js'
 import { NOMES_PUBLICACAO } from './nomesPublicacao.js'
 
@@ -394,6 +395,16 @@ const secaoDaPendencia = (c) => (/^unidade:|^sem_unidade$/.test(c) ? 'unidades' 
 
 // ------------------------------------------------------------------ pendências
 const ROTULO_CAMPO = Object.fromEntries(CAMPOS_APONTAVEIS)
+// Editor que resolve, na ficha, a falta de campos de cada seção (o mesmo do lápis da seção).
+const EDITOR_DA_SECAO = { cadastro: 'cadastro', combo: 'combo', unidades: 'unidades' }
+// Quem pode abrir cada editor de "Resolver" (o banco decide de novo em cada RPC).
+export const PERMISSAO_DO_EDITOR = {
+  cadastro: ['cadastro.editar'], combo: ['cadastro.editar'], unidades: ['cadastro.editar'], nomeCombo: ['cadastro.editar'],
+  coordenadas: ['producao.gerir'], fotos: ['producao.gerir', 'curadoria.decidir'],
+}
+export const podeResolver = (item, pode) => !!(item && item.resolver && (PERMISSAO_DO_EDITOR[item.resolver] || []).some((a) => pode(a)))
+/** Pendência que dá para cobrar da marca: tem o que dizer a ela e para onde levar. */
+export const cobravel = (item) => !!(item && !item.erro && item.paraMarca && item.link)
 
 /*
  * Lista curta e concreta do que falta: o quê, em qual seção. Cada pendência
@@ -431,30 +442,44 @@ export function pendenciasDaFicha({ participante, fontes, naoLidas = 0 }) {
       if (c.ok) continue
       if (c.campo === 'unidade-endereco' && cartoonCobraUnidade) continue
       const s = secaoDoBloco(c.bloco)
-      ;(faltas[s] = faltas[s] || []).push(c.rotulo)
+      ;(faltas[s] = faltas[s] || []).push(c)
     }
-    for (const [s, nomes] of Object.entries(faltas)) {
+    for (const [s, cs] of Object.entries(faltas)) {
+      const nomes = cs.map((c) => c.rotulo)
       const mostra = nomes.length > 4 ? nomes.slice(0, 3).join(', ') + ' e mais ' + (nomes.length - 3) : nomes.join(', ')
-      add('campos:' + s, (nomes.length === 1 ? 'Falta preencher: ' : 'Faltam ' + nomes.length + ' campos: ') + mostra, s, { campos: nomes })
+      const primeiro = cs.find((c) => c.campo) || cs[0]
+      add('campos:' + s, (nomes.length === 1 ? 'Falta preencher: ' : 'Faltam ' + nomes.length + ' campos: ') + mostra, s, {
+        campos: nomes, paraMarca: 'Preencher: ' + nomes.join(', '), link: linkDoCampo(primeiro.bloco, primeiro.campo), resolver: EDITOR_DA_SECAO[s] || null,
+      })
     }
-    for (const s of d.solicitacoes || []) if (s.estado !== 'respondido') add('pedido:' + s.id, 'Pedido sem resposta: ' + txt(s.titulo), 'operacao')
+    for (const s of d.solicitacoes || []) if (s.estado !== 'respondido') add('pedido:' + s.id, 'Pedido sem resposta: ' + txt(s.titulo), 'operacao', { paraMarca: 'Responder a solicitação “' + txt(s.titulo) + '”', link: 'pedidos/' + s.id })
     for (const r of d.pendencias || []) add('revisao:' + r.id, 'Dado para conferir: ' + txt(r.titulo), 'operacao')
     const tema = situacaoTema(pa, d.temas)
     if (tema.estado === 'proposto') add('tema:analise', 'Tema "' + tema.tema + '" aguardando análise', 'combo')
     if (tema.estado === 'divergente') add('tema:divergente', 'Tema mudou para "' + tema.tema + '" e a proposta registrada é "' + tema.temaProposta + '"', 'combo')
-    if (tema.estado === 'recusado') add('tema:recusado', 'Outro tema pedido: aguardando a marca', 'combo')
+    if (tema.estado === 'recusado') add('tema:recusado', 'Outro tema pedido: aguardando a marca', 'combo', { paraMarca: 'Escolher outro tema para o combo', link: linkDoCampo(1) })
     if (pa.combo_status === 'em_analise') add('combo:revisao', 'Cadastro completo, aguardando conferência', 'operacao')
-    if (pa.combo_status === 'correcao_solicitada') add('combo:ajuste', 'Ajuste pedido no combo: aguardando a marca', 'combo')
+    if (pa.combo_status === 'correcao_solicitada') add('combo:ajuste', 'Ajuste pedido no combo: aguardando a marca', 'combo', { paraMarca: 'Fazer o ajuste pedido no combo', link: linkDoCampo(3) })
   }
 
   if (pubOk) {
     const p = pub.dados
     const ctx = { unidades: p.unidades, itens: p.atual && p.atual.combo && p.atual.combo.itens }
-    for (const c of codigos) add('pub:' + c, traduzirPendencia(c, ctx), secaoDaPendencia(c))
+    for (const c of codigos) {
+      const m = traduzirFaltando(c, ctx)
+      const extra = m.bloco == null ? {} : { paraMarca: m.texto, link: linkDoCampo(m.bloco, m.campo) }
+      if (c === 'combo_nome') extra.resolver = 'nomeCombo'
+      else if (/^unidade:.+:endereco$|^sem_unidade$/.test(c)) extra.resolver = 'unidades'
+      add('pub:' + c, traduzirPendencia(c, ctx), secaoDaPendencia(c), extra)
+    }
     const recebidas = (p.midias || []).filter((m) => m.estado === 'enviada').length
-    if (recebidas) add('fotos:revisao', plural(recebidas, 'foto aguardando revisão', 'fotos aguardando revisão'), 'fotos')
+    if (recebidas) add('fotos:revisao', plural(recebidas, 'foto aguardando revisão', 'fotos aguardando revisão'), 'fotos', { resolver: 'fotos' })
     for (const u of p.unidades || []) {
-      if (u.participa && !u.coordenada_verificada_em && txt(u.logradouro)) add('coord:' + u.participacao_unidade_id, 'Unidade ' + (u.nome || u.bairro || u.id_publico) + ': localização no mapa a conferir', 'unidades')
+      const nomeU = u.nome || u.bairro || u.id_publico
+      if (u.participa && !u.coordenada_verificada_em && txt(u.logradouro)) add('coord:' + u.participacao_unidade_id, 'Unidade ' + nomeU + ': localização no mapa a conferir', 'unidades', {
+        resolver: 'coordenadas', unidade: nomeU, link: linkDoCampo(4),
+        paraMarca: 'Confirmar o endereço de ' + nomeU + ' (é por ele que marcamos a loja no mapa do site)',
+      })
     }
     const r = resumoPublicacao(p)
     if (r.estado === 'alteracao_em_analise') add('pub:alterado', 'Alteração feita depois da versão no ar (v' + r.versao + ')', 'publicacao')
@@ -464,7 +489,11 @@ export function pendenciasDaFicha({ participante, fontes, naoLidas = 0 }) {
   if (cor.estado === 'ok') {
     for (const c of cor.dados || []) {
       if (c.estado === 'resolvida') continue
-      add('correcao:' + c.id, 'Alteração pedida em ' + (ROTULO_CAMPO[c.campo] || c.campo) + ': aguardando a marca', secaoDoBloco(blocoDoCampo(c.campo)))
+      const b = blocoDoCampo(c.campo)
+      add('correcao:' + c.id, 'Alteração pedida em ' + (ROTULO_CAMPO[c.campo] || c.campo) + ': aguardando a marca', secaoDoBloco(b), {
+        paraMarca: 'Corrigir ' + (ROTULO_CAMPO[c.campo] || c.campo) + (txt(c.comentario) ? ': ' + txt(c.comentario) : ''),
+        link: b == null ? null : linkDoCampo(b, c.campo),
+      })
     }
   }
   if (naoLidas > 0) add('mensagens', plural(naoLidas, 'mensagem nova da marca', 'mensagens novas da marca'), 'comunicacao')

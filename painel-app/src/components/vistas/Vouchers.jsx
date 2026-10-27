@@ -126,7 +126,7 @@ export function Vouchers({ pode, rota, navegar }) {
           <ul className="og-lista">{porMarca.map((m) => (
             <li key={m.participacao_id}>
               <button type="button" className="og-item og-item--logo" aria-expanded={aberta === m.participacao_id} onClick={() => setAberta(aberta === m.participacao_id ? null : m.participacao_id)}>
-                <LogoMarca url={urlLogo(logos[m.participante_id])} nome={m.marca} tamanho={36} />
+                <LogoMarca url={urlLogo(logos[m.participante_id])} participanteId={m.participante_id} nome={m.marca} tamanho={36} />
                 <span className="og-item__nome">{m.marca}</span>
                 <span className="og-item__meta">{m.gerados} de {m.cota} gerados · {m.disponiveis} disponíveis · {m.destinados} destinados · {m.enviados} enviados · {m.utilizados} usados</span>
                 <span className="og-item__dir">{m.faltaGerar > 0 && <Selo tom="atencao">Faltam gerar {m.faltaGerar}</Selo>}</span>

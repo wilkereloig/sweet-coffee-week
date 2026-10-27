@@ -3,7 +3,7 @@ import { rpc } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Icone } from '../Icone'
 import { Folha } from '../Folha'
-import { Carregando, Erro, Vazio, Selo, Botao, Escolha, MaisAcoes } from '../ui'
+import { Carregando, Erro, Vazio, Selo, Botao, Escolha, MaisAcoes, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import { Autor } from '../Avatar'
 import * as R from '../../lib/redes'
@@ -90,7 +90,7 @@ function CartaoMaterial({ x, urls, renovar, onAbrir, selecionando, marcado, onMa
         <Miniatura path={miniItem(x)} formato={formatoDe(x)} urls={urls} renovar={renovar} grande />
         <span className="bb-arq__corpo" aria-hidden="true">
           <span className="bb-arq__nome">{x.nome}</span>
-          {x.participante_nome && <span className="bb-arq__part">{x.participante_nome}</span>}
+          {x.participante_nome && <span className="bb-arq__part"><MarcaComLogo nome={x.participante_nome} participanteId={x.participante_id} tamanho={18} /></span>}
           <span className="bb-arq__tipo"><Icone nome={t.icone || 'imagem'} tamanho={16} />{detalhes}</span>
           {ondeEsta && <span className="bb-arq__onde"><Icone nome="pasta" tamanho={16} />{ondeEsta}</span>}
           {(!SITUACAO_NORMAL.has(x.situacao) || !ACEITA_POST.has(x.mime)) && (
@@ -175,7 +175,7 @@ function PreviaMaterial({ x, pastasIdx, entrega, podeOrganizar, podeApagar, onMo
         <dl className="rd-dados">
           <div><dt>Pasta</dt><dd>{x.pasta_id ? P.textoCaminho(pastasIdx.porId, x.pasta_id) : 'Sem pasta'}</dd></div>
           <div><dt>Tipo</dt><dd>{t.rotulo}{x.vinculo ? ' · ' + x.vinculo : ''}</dd></div>
-          {x.participante_nome && <div><dt>Participante</dt><dd>{x.participante_nome}</dd></div>}
+          {x.participante_nome && <div><dt>Participante</dt><dd><MarcaComLogo nome={x.participante_nome} participanteId={x.participante_id} /></dd></div>}
           {x.largura && x.altura && <div><dt>Tamanho</dt><dd>{x.largura}×{x.altura}{x.tamanho ? ' · ' + Math.max(1, Math.round(x.tamanho / 1024)) + ' KB' : ''}</dd></div>}
           <div><dt>Situação</dt><dd>{sit}{x.versao > 1 ? ' · versão ' + x.versao : ''}</dd></div>
           {x.credito && <div><dt>Crédito</dt><dd>{x.credito}</dd></div>}

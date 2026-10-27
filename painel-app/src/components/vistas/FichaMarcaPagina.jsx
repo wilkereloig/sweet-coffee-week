@@ -23,6 +23,7 @@ import { AbaAcesso } from './AcessoMarca'
 import { PreenchimentoMarca } from './Preenchimento'
 import { AbaPublicacao, PreviaPagina, ConferirLocalizacao, RevisarFotos } from './Publicacao'
 import { useFichaGeral, VisaoParticipante } from './FichaVisao'
+import { FolhaCobrar, NomeDoCombo } from './CobrarPendencias'
 import { NOMES_PUBLICACAO } from '../../lib/nomesPublicacao'
 
 /*
@@ -228,10 +229,11 @@ function EdicaoNaSecao({ titulo, onConcluir, sujoRef, children }) {
 const TITULO_EDITOR = {
   cadastro: 'Editando os dados da marca', combo: 'Editando tema e componentes', unidades: 'Editando as unidades',
   coordenadas: 'Conferindo a localização das unidades', fotos: 'Revisando as fotos', operacao: 'Operação da participação',
+  nomeCombo: 'Definindo o nome do combo',
   publicacao: NOMES_PUBLICACAO.marcas.pagina,
 }
 // Editores que mexem no que é DA EDIÇÃO (não no cadastro permanente da marca): o título diz qual edição.
-const EDITOR_DA_EDICAO = new Set(['combo', 'unidades', 'coordenadas', 'fotos', 'operacao', 'publicacao'])
+const EDITOR_DA_EDICAO = new Set(['combo', 'unidades', 'coordenadas', 'fotos', 'operacao', 'publicacao', 'nomeCombo'])
 
 const VISTAS = [['visao', 'Visão do participante'], ['comunicacao', 'Comunicação'], ['historico', 'Histórico'], ['gestao', 'Gestão']]
 const FRASE_VISAO = 'tudo o que foi preenchido, só para ler. Nada é gravado ao abrir.'
@@ -251,6 +253,7 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
   const { fontes, recarregar } = useFichaGeral(p && p.participacao_id)
   const [editando, setEditando] = React.useState(null) // { secao, editor }
   const [previa, setPrevia] = React.useState(false)
+  const [cobrar, setCobrar] = React.useState(null) // pendências escolhidas para cobrar da marca
   const sujoRef = React.useRef(() => false)
   const titulo = React.useRef(null)
   const idAbas = React.useId()
@@ -258,7 +261,7 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
   useNomeDaTela('participantes', id, p && p.nome_marca) // "‹ Sabor de Pão" no Voltar e nas Telas recentes
 
   // Outra marca: fecha editor e prévia da anterior; o foco vai ao nome.
-  React.useEffect(() => { setEditando(null); setPrevia(false) }, [id])
+  React.useEffect(() => { setEditando(null); setPrevia(false); setCobrar(null) }, [id])
   React.useEffect(() => { if (titulo.current && !secao) titulo.current.focus({ preventScroll: true }) }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
   // Link para uma seção (aba antiga, pendência, recarga): rola até ela quando o
   // conteúdo de cima já tem altura — senão a seção "fugiria" ao carregar.
@@ -312,8 +315,12 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
     if (chave === 'unidades') return <AbaUnidades participante={p} pode={pode} />
     if (chave === 'operacao') return <AbaOperacao participante={p} pode={pode} />
     if (chave === 'publicacao') return <AbaPublicacao participante={p} pode={pode} />
+    if (chave === 'nomeCombo') {
+      const pa = fontes.nucleo.estado === 'ok' && fontes.nucleo.dados ? fontes.nucleo.dados.participacao || {} : {}
+      return <NomeDoCombo participante={p} atual={pa.combo_nome || ''} pode={pode} onSalvo={aposSalvarPublicacao} />
+    }
     if (!pub) return <p className="ui-nota">Os dados desta edição não carregaram. Feche o editor e tente de novo.</p>
-    if (chave === 'coordenadas') return <ConferirLocalizacao unidades={pub.unidades} pode={pode} onSalvo={aposSalvarPublicacao} />
+    if (chave === 'coordenadas') return <ConferirLocalizacao unidades={pub.unidades} pode={pode} onSalvo={aposSalvarPublicacao} participante={p} />
     if (chave === 'fotos') return <RevisarFotos pub={pub} participacaoId={p.participacao_id} edicao={p.edicao_codigo} pode={pode} onSalvo={aposSalvarPublicacao} />
     return null
   }
@@ -387,7 +394,9 @@ export function FichaMarcaPagina({ participante: p, logo, sub, onSub, onVoltar, 
             )}
             <VisaoParticipante p={p} logo={logo} fontes={fontes} recarregar={recarregar} pode={pode}
               pendencias={pendencias} carregandoPend={carregandoPend} editando={editando} renderEditor={renderEditor}
-              onEditar={abrirEditor} onIr={irPara} previa={previa} onPrevia={setPrevia} PreviaPagina={PreviaPagina} />
+              onEditar={abrirEditor} onIr={irPara} previa={previa} onPrevia={setPrevia} PreviaPagina={PreviaPagina}
+              onCobrar={setCobrar} onResolver={(x) => abrirEditor({ secao: x.secao, editor: x.resolver })} />
+            <FolhaCobrar aberto={!!cobrar} destinos={cobrar ? [{ participante: p, itens: cobrar }] : []} onFechar={() => setCobrar(null)} />
           </>
         )}
         {vista === 'comunicacao' && (

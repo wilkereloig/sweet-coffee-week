@@ -8,7 +8,7 @@ import { rotulo } from '../../lib/status'
 import { CATEGORIAS_ARQUIVO, caminhoSubstituto } from '../../lib/arquivos'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
-import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone, Botao } from '../ui'
+import { Carregando, Erro, Vazio, Selo, Escolha, BotaoIcone, Botao, MarcaComLogo } from '../ui'
 import { confirmar } from '../Confirmar'
 import { comEnvio } from '../../lib/pendencias'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
@@ -960,7 +960,7 @@ export function Producao({ pode = () => true, rota, navegar, secao = 'pedidos', 
                   <li key={f.id}>
                     <div className="og-item">
                       <span className="og-item__cor" data-chave="sessao" aria-hidden="true" />
-                      <p className="og-item__nome">{f.nome_marca || '(marca)'}</p>
+                      <p className="og-item__nome"><MarcaComLogo nome={f.nome_marca || '(marca)'} participanteId={f.participante_id} /></p>
                       <p className="og-item__meta">
                         {dataHoraCurta(f.data_hora) + (f.local ? ' · ' + f.local : '') + (f.edicao_codigo ? ' · edição ' + f.edicao_codigo : '')}
                       </p>

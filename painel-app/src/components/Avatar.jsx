@@ -1,6 +1,7 @@
 import React from 'react'
 import { Icone } from './Icone'
 import { useEquipe, tipoAutor, nomeAutor, iniciais } from '../lib/equipe'
+import { useLogosMini } from '../lib/logosMini'
 
 /*
  * Avatar da EQUIPE (não é logo de participante — essa é LogoMarca, em ui.jsx).
@@ -15,6 +16,7 @@ import { useEquipe, tipoAutor, nomeAutor, iniciais } from '../lib/equipe'
  */
 export function Avatar({ id, rotulo, tamanho = 32, rotuloVisivel = true, className = '' }) {
   const { pessoas, fotos } = useEquipe()
+  const minis = useLogosMini()
   const p = id ? pessoas[id] : null
   const tipo = tipoAutor(id, rotulo)
   const nome = nomeAutor(id, rotulo, p)
@@ -36,6 +38,11 @@ export function Avatar({ id, rotulo, tamanho = 32, rotuloVisivel = true, classNa
           onError={() => { if (!tentou.current && fotos) { tentou.current = true; fotos.renovar({ bucket: 'equipe', path: p.avatar_path }) } else setFalhou(true) }} />
       </span>
     )
+  }
+  // Marca: a logo (miniatura) pela conta que gravou o registro; sem ela, iniciais.
+  const logo = tipo === 'marca' && id ? minis.porConta[id] : null
+  if (logo && logo.mini && !falhou) {
+    return <span className={cls} style={estilo} data-tipo="marca-logo" {...acessivel}><img src={logo.mini} alt="" decoding="async" onError={() => setFalhou(true)} /></span>
   }
   if (tipo === 'pessoa' || tipo === 'marca') {
     const texto = tipo === 'marca' ? nome.replace(/^Marca ·\s*/, '') : nome

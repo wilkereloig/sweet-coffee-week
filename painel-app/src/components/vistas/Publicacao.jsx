@@ -9,7 +9,7 @@ import {
 } from '../../lib/publicacao'
 import { urlPublica } from '../../../../src/edicao/dados/modelo.js'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Botao, Escolha, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Botao, Escolha, traduzirErro, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import '../../styles/edicao-org.css'
 import { comEnvio } from '../../lib/pendencias'
@@ -18,6 +18,8 @@ import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
 import { useDatasDoFestival } from '../../lib/festivalReact'
 import { soAlterados, aparar, impressaoDoArquivo } from '../../lib/leituraViva'
 import { NOMES_PUBLICACAO, ondeFica } from '../../lib/nomesPublicacao'
+import { avisoLocalizacao } from '../../lib/pendenciasAviso'
+import { CaixaAviso, caixaDe, enviarAvisoMarca } from './CobrarPendencias'
 
 /*
  * Publicação da edição — lado da organização (Cartoon 2026.2, plano em
@@ -89,7 +91,7 @@ export function ListaPublicacao({ edicao, rota, navegar }) {
             <li key={l.participacao_id}>
               <button type="button" className="og-item" onClick={() => abrir(l)}>
                 <span className="og-item__cor" aria-hidden="true" />
-                <span className="og-item__nome">{l.nome_marca || '(sem nome)'}</span>
+                <span className="og-item__nome"><MarcaComLogo nome={l.nome_marca || '(sem nome)'} participanteId={l.participante_id} /></span>
                 <span className="og-item__dir">
                   <Selo dominio="publicacao" valor={estadoPublicacao(l)} />
                   {l.combo_status && <Selo dominio="combo" valor={l.combo_status} />}
@@ -324,17 +326,17 @@ function Endereco({ pub, participacaoId, pode, onSalvo }) {
 // Exportadas para os editores da visão geral da ficha (15/10/2026).
 export { Unidades as ConferirLocalizacao, Fotos as RevisarFotos }
 
-function Unidades({ unidades, pode, onSalvo }) {
+function Unidades({ unidades, pode, onSalvo, participante = null }) {
   const lista = unidades || []
   if (!lista.length) return <Vazio titulo="Nenhuma unidade">A marca ainda não escolheu as unidades desta edição.</Vazio>
   return (
     <GradeModulos>
-      {lista.map((u) => <Unidade key={u.participacao_unidade_id} u={u} pode={pode} onSalvo={onSalvo} />)}
+      {lista.map((u) => <Unidade key={u.participacao_unidade_id} u={u} pode={pode} onSalvo={onSalvo} participante={participante} />)}
     </GradeModulos>
   )
 }
 
-function Unidade({ u, pode, onSalvo }) {
+function Unidade({ u, pode, onSalvo, participante }) {
   // Latitude e longitude digitadas resistem à releitura (e acompanham o banco enquanto a pessoa
   // não mexeu): outra pessoa conferir a mesma unidade não apaga o que está sendo colado aqui.
   const servidor = React.useMemo(() => ({ lat: u.lat == null ? '' : String(u.lat), lng: u.lng == null ? '' : String(u.lng) }), [u.lat, u.lng])
@@ -344,6 +346,10 @@ function Unidade({ u, pode, onSalvo }) {
   const podeGravar = pode('producao.gerir') && !!u.unidade_id
   const endereco = [[u.logradouro, u.numero].filter(Boolean).join(', '), u.bairro, u.cidade].filter(Boolean).join(' · ')
   const conferida = !!u.coordenada_verificada_em
+  // Da ficha do participante (Resolver agora): ao conferir, avisa a marca — caixa marcada, texto editável.
+  const nomeU = u.nome || u.bairro || 'Unidade ' + u.id_publico
+  const [caixa, setCaixa] = React.useState(() => (participante ? caixaDe(avisoLocalizacao({ responsavel: participante.responsavel, unidade: nomeU })) : null))
+  const avisa = !!(participante && caixa && caixa.marcado && pode('mensagem.enviar'))
 
   async function salvar(ev) {
     ev.preventDefault()
@@ -355,7 +361,12 @@ function Unidade({ u, pode, onSalvo }) {
       await rpc('org_verificar_coordenada', { p_secret: lerSenha(), p_unidade: u.unidade_id, p_lat: c.lat, p_lng: c.lng })
       // O par colado num campo só vira dois números limpos (a menos que a pessoa já tenha digitado mais).
       reg.confirmarSalvo({ lat: String(c.lat), lng: String(c.lng) }, brutos)
-      setAviso({ ok: 'Localização conferida.' }); avisarSalvo(onSalvo)
+      let extra = ''
+      if (avisa) {
+        try { await enviarAvisoMarca(participante.id, caixa, 'ajuste'); extra = ' O participante foi avisado.'; setCaixa({ ...caixa, marcado: false }) }
+        catch (e2) { extra = ' O aviso ao participante não foi: ' + traduzirErro(e2 && e2.message) }
+      }
+      setAviso({ ok: 'Localização conferida.' + extra }); avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
 
@@ -374,7 +385,8 @@ function Unidade({ u, pode, onSalvo }) {
             <label className="og-campo"><span>Longitude</span><input type="text" inputMode="decimal" value={lng} onChange={(e) => reg.editar('lng', e.target.value)} placeholder="-35.2012" /></label>
           </div>
           <AvisoMudancaExterna registro={reg} rotulos={{ lat: 'Latitude', lng: 'Longitude' }} />
-          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={reg.conflito}>Conferir localização</button></div>
+          {participante && caixa && <CaixaAviso pode={pode} valor={caixa} onMudar={setCaixa} />}
+          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={reg.conflito}>{avisa ? 'Conferir e avisar' : 'Conferir localização'}</button></div>
         </form>
       )}
       {!pode('producao.gerir') && <p className="ui-nota">Conferir a localização é da produção.</p>}

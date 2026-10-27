@@ -1328,6 +1328,41 @@ questionar. No painel elas entram como logo **do acervo** (`logos_marca.origem =
 registrada por `registrar_logo`), que `urlLogo` (`lib/logos.js`) já serve como arquivo do site. Fluxo para trocar uma logo: ver
 `src/CLAUDE.md` §6.12 (script `scripts/sincronizar-logos-oficiais.py` + `scripts/acervo-logos-para-sql.mjs`).
 
+#### Logo da marca em todo lugar + miniatura — 26/10/2026 (pedido do Wilker)
+"Onde aparece a marca tem que acompanhar a logo." Migration `20261113_logos_mini.sql` (✅ aplicada; reversão em `supabase/reverter/`),
+lógica em `lib/logosMini.js`, teste `tests/painel-app-logos-mini.test.mjs`.
+- **Miniatura no banco, não no Storage:** `logos_marca.mini` = WEBP 96 × 96 (recorte central, o `cover` de `.ui-logo`) em data URI, ~1 KB
+  (a original pesa 200 KB a 4 MB). `get_logos_mini` (`membro_org`) traz todas numa leitura só; o `PainelShell` põe no `LogosMiniContexto`.
+- **Quem gera é o painel da equipe**, uma vez por logo: logo sem `mini` é baixada, recortada e gravada por `logo_definir_mini` (só grava onde
+  está vazio, então abas simultâneas não brigam). Uma de cada vez, até 60 por sessão; não roda no Safari (não codifica WEBP) nem com economia
+  de dados. Logo nova = linha nova em `logos_marca` = miniatura gerada na próxima abertura num computador.
+- **`LogoMarca` com `participanteId` (ou `conta`)** usa a miniatura até 48 px (`TAMANHO_MINI`) e a original acima; miniatura que falha cai
+  na original; sem nada, iniciais. `MarcaComLogo` = nome + logo decorativa (alt vazio: o nome visível identifica). O `Avatar` de autor
+  "Marca · …" (sino, Atividade, históricos) acha a logo pela conta (`ator_user_id`).
+- ⚠️ Ficam sem logo: listas que só trazem `participacao_id` (Arquivos › Para, Materiais, vouchers do contato, quem respondeu uma
+  solicitação, Avaliações) e `get_solicitacoes_admin` (só o nome). Resolver = a RPC devolver `participante_id`. O painel da MARCA continua
+  com a logo original (uma só, 36 px).
+
+#### Pendências: resolver ou cobrar do participante — 26/10/2026 (pedido do Wilker)
+"Ou eu mesmo resolvo e notifico o participante do que fiz, ou envio a pendência como notificação — uma, várias, ou de
+várias marcas." Migration `20261114_avisar_marca_pendencias.sql` (✅ aplicada; teste `supabase/testes/avisar-marca-pendencias.sql`
+→ `TESTE_OK`; reversão em `supabase/reverter/`), lógica em `lib/pendenciasAviso.js`, telas em `vistas/CobrarPendencias.jsx`,
+teste `tests/painel-app-pendencias-aviso.test.mjs`.
+- **Um aviso = `org_avisar_marca`** (`mensagem.enviar`): sino + push no painel da marca com o toque levando ao CAMPO
+  (`link` no formato do `?ir=`), e o mesmo texto na conversa. A mensagem entra com `scw.silencioso` para não sair também o
+  genérico "Nova mensagem da organização". Tipos: `pendencia` (nível "pendência" no sino da marca) e `ajuste` ("fizemos por você").
+- **Cada pendência de `pendenciasDaFicha` pode ter** `paraMarca` (a frase escrita PARA a marca), `link` (`linkDoCampo`) e
+  `resolver` (editor da ficha). `cobravel` = tem os dois primeiros; erro de leitura e o que é da equipe (tema em análise,
+  foto a revisar, publicar) não são cobráveis. `podeResolver` confere a permissão do editor (`PERMISSAO_DO_EDITOR`).
+- **Cartão Pendências:** o texto leva à seção (como antes); lápis = "Resolver agora" (abre o editor no lugar da seção); sino =
+  cobrar essa; com 2+ cobráveis, caixas + "Cobrar N marcadas"/"Cobrar todas" — UM aviso, link da primeira.
+- **Resolver com aviso:** "Nome do combo" (editor `nomeCombo`, `org_salvar_dados_publicos`) e a conferência de localização
+  aberta pela ficha (`ConferirLocalizacao participante={p}`) mostram a `CaixaAviso` já marcada com o texto pronto
+  (`avisoNomeCombo`/`avisoLocalizacao`), editável ou desmarcável. Salvar não depende do aviso: se o aviso falha, a tela diz.
+- **Lote (Marcas › selecionar › "Cobrar pendências")**: `lerPendenciasLote` lê as MESMAS quatro fontes da ficha, 4 marcas por
+  vez (barra "Conferindo N de M"), e a folha mostra por marca o que cobrar, com um recado comum opcional. Um aviso por marca.
+  ⚠️ Não calcular as pendências no banco: a regra mora em `pendenciasDaFicha`, e o lote tem que bater com a ficha.
+
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
 `/preencher/#<código>` (página estática `public/preencher/index.html`, mesmo padrão do `/quero-participar`):

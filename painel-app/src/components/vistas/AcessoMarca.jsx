@@ -7,7 +7,7 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { Atividade } from '../Atividade'
-import { Secao, traduzirErro, Selo, BotaoIcone, Botao } from '../ui'
+import { Secao, traduzirErro, Selo, BotaoIcone, Botao, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
@@ -118,7 +118,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
             return (
               <li key={r.p.id} className="ac-linha">
                 <div className="ac-linha__quem">
-                  <b>{r.p.nome_marca}</b>
+                  <b><MarcaComLogo nome={r.p.nome_marca} participanteId={r.p.id} /></b>
                   <span>{r.p.responsavel || 'sem responsável'}{r.p.telefone ? ' · ' + r.p.telefone : ' · sem WhatsApp'}</span>
                 </div>
                 {r.senha ? (

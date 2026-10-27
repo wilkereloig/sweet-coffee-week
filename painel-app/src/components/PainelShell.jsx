@@ -9,6 +9,7 @@ import { AvisosAparelho } from './AvisosAparelho'
 import { rpc } from '../lib/rpc'
 import { lerRota, montarRota, rotaDoLink, linkDeAlvo, ABA_INICIAL, migrarRota } from '../lib/rota'
 import { EquipeContexto, useCarregarEquipe } from '../lib/equipe'
+import { LogosMiniContexto, useCarregarLogosMini } from '../lib/logosMini'
 import { Avatar } from './Avatar'
 import { MeuPerfil } from './MeuPerfil'
 import { CHAVE_SESSAO } from '../../../src/lib/adminAccess'
@@ -97,6 +98,8 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
   const pode = React.useCallback((acao) => permissoes === null || permissoes.includes(acao), [permissoes])
   const visiveis = DESTINOS.filter((d) => vistas[d] && podeModulo(d, pode))
   const equipe = useCarregarEquipe(nominal)
+  // Logo de cada marca em miniatura (sino, Atividade, listas): uma leitura só.
+  const logosMini = useCarregarLogosMini()
   const [perfilAberto, setPerfilAberto] = React.useState(false)
   const chaveVisiveis = visiveis.join()
   // Barra do celular: escolha da pessoa neste aparelho, ou o padrão.
@@ -298,6 +301,7 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
   const eu = equipe.eu
   return (
     <EquipeContexto.Provider value={equipe}>
+    <LogosMiniContexto.Provider value={logosMini}>
     <div id="painel">
       <nav className="pn-rail" aria-label="Seções do painel" data-tour="menu">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
@@ -405,6 +409,7 @@ export function PainelShell({ vistas, onSair, onTrocaDeConta = null, permissoes 
       {/* Depois do login, com a conta carregada e sem o tour na frente: instalar, depois notificações. */}
       <ConviteAparelho papel="organizacao" conta={eu ? eu.user_id : quem ? 'compartilhada' : null} push={PUSH_ORGANIZACAO} liberado={!tour.aberto} />
     </div>
+    </LogosMiniContexto.Provider>
     </EquipeContexto.Provider>
   )
 }

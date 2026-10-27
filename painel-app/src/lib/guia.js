@@ -342,6 +342,8 @@ const NIVEL_DO_TIPO = {
   correcao: 'alteracao', aprovado: 'aprovado', arquivo: 'arquivo',
   pedido: 'pendencia', prazo: 'pendencia', venda: 'pendencia',
   fotos: 'atencao', tema: 'atencao', combo: 'atencao', mensagem: 'informacao',
+  // Cobrança da organização (org_avisar_marca): pendência pede ação; ajuste só informa.
+  pendencia: 'pendencia', ajuste: 'informacao',
 }
 export function nivelDoAviso(n) {
   let nivel = NIVEL_DO_TIPO[n && n.tipo] || 'informacao'

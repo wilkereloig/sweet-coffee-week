@@ -4,7 +4,7 @@ import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { useNomeDaTela } from '../Trilha'
 import { Icone } from '../Icone'
-import { Carregando, Erro, Selo, Botao, BotaoIcone, MaisAcoes, traduzirErro } from '../ui'
+import { Carregando, Erro, Selo, Botao, BotaoIcone, MaisAcoes, traduzirErro, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import * as R from '../../lib/redes'
 import { useUrlsAssinadas, prepararArquivo, enviarArquivo, fonteDe, chaveFonte, urlDe } from '../../lib/redesArquivos'
@@ -1026,7 +1026,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
               <section className="rd-novo" aria-label="Dados essenciais">
                 {inicial && inicial.doParticipante && participante && (() => {
                   const veio = [inicial.campos.legenda && 'a legenda', inicial.campos.mencoes && 'o @ da casa (em “Mais detalhes”)'].filter(Boolean)
-                  return <p className="rd-campo__nota">Vinculada a <b>{participante}</b>{veio.length ? ': ' + veio.join(' e ') + (veio.length > 1 ? ' já vieram preenchidos.' : ' já veio preenchido.') : '.'}</p>
+                  return <p className="rd-campo__nota">Vinculada a <b><MarcaComLogo nome={participante} participanteId={campos.participante_id} tamanho={20} /></b>{veio.length ? ': ' + veio.join(' e ') + (veio.length > 1 ? ' já vieram preenchidos.' : ' já veio preenchido.') : '.'}</p>
                 })()}
                 <div className="rd-grade">
                   <Campo rotulo="Título (só a equipe vê)" largo id={idCampo('titulo')}><input type="text" maxLength={120} required enterKeyHint="next" placeholder="Ex.: Carrossel do combo, lançamento" value={campos.titulo} onChange={(e) => setCampo('titulo', e.target.value)} /></Campo>
@@ -1294,7 +1294,7 @@ export function RedesFicha({ id, pode, opcoes, onFechar, onMudou, onAbrir, inici
                         <div><dt>Perfil</dt><dd>{campos.perfil || R.PERFIL_PADRAO}</dd></div>
                         <div><dt>Edição</dt><dd>{campos.edicao_codigo || 'Institucional (sem edição)'}</dd></div>
                         <div><dt>Campanha</dt><dd>{(campanhaDaPostagem(post) && campos.campanha_id === post.campanha_id ? post.campanha_nome : (listaCampanhas.find((c) => c.id === campos.campanha_id) || {}).nome) || 'Nenhuma'}</dd></div>
-                        <div><dt>Participante</dt><dd>{participante || 'Nenhum'}</dd></div>
+                        <div><dt>Participante</dt><dd>{participante ? <MarcaComLogo nome={participante} participanteId={campos.participante_id} /> : 'Nenhum'}</dd></div>
                         {campos.referencias && <div><dt>Referências</dt><dd className="rd-pre">{campos.referencias}</dd></div>}
                       </dl>
                       <div className="ui-acoes">

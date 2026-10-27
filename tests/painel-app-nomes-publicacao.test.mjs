@@ -169,7 +169,7 @@ test('a edição que a ação afeta aparece na ficha e nas telas de publicação
   // Cabeçalho da ficha.
   tem(FICHA, /'Edição ' \+ p\.edicao_codigo/)
   // Editores de coisa da edição levam o código no título (cadastro, que vale para todas, não).
-  tem(FICHA, /EDITOR_DA_EDICAO = new Set\(\['combo', 'unidades', 'coordenadas', 'fotos', 'operacao', 'publicacao'\]\)/)
+  tem(FICHA, /EDITOR_DA_EDICAO = new Set\(\['combo', 'unidades', 'coordenadas', 'fotos', 'operacao', 'publicacao', 'nomeCombo'\]\)/)
   nao(FICHA, /EDITOR_DA_EDICAO = new Set\([^)]*'cadastro'/)
   // Página da marca: confirmações, título da seção e lista.
   tem(PUBLICACAO, /const naEd = ed \? ' \(edição ' \+ ed \+ '\)' : ''/)

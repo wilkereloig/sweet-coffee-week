@@ -2,6 +2,7 @@ import React from 'react'
 import { rotulo as rotuloDe, tom as tomDe } from '../lib/status'
 import { Icone, ICONE_TOM } from './Icone'
 import { iniciais } from '../lib/logos'
+import { useLogosMini, fonteDaLogo } from '../lib/logosMini'
 
 /*
  * Peças de estado e de estrutura usadas pelas vistas dos dois painéis — uma
@@ -344,15 +345,33 @@ export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
  * margem interna, nunca recortada (exceção do PAINEL à §6.12 do site: aqui a
  * logo é enviada pela marca, com proporção qualquer). Sem logo: iniciais —
  * nunca imagem genérica.
+ * `participanteId` (ou `conta`, a conta da marca) busca a logo no mapa de
+ * miniaturas (lib/logosMini.js): até TAMANHO_MINI px usa a miniatura de ~1 KB;
+ * sem `url`, a original vem do mesmo mapa. Miniatura que falha cai na original.
  */
-export function LogoMarca({ url, nome, tamanho = 40, className = '' }) {
-  const [falhou, setFalhou] = React.useState(false)
-  React.useEffect(() => { setFalhou(false) }, [url])
+export function LogoMarca({ url, nome, tamanho = 40, className = '', participanteId, conta, decorativa = false }) {
+  const minis = useLogosMini()
+  const reg = (participanteId && minis.porParticipante[participanteId]) || (conta && minis.porConta[conta]) || null
+  const { mini, original } = fonteDaLogo(reg, tamanho, url)
+  const [falhas, setFalhas] = React.useState(0)
+  React.useEffect(() => { setFalhas(0) }, [mini, original])
+  const src = [mini, original].filter(Boolean)[falhas]
   const estilo = { '--logo-t': tamanho + 'px' }
-  if (url && !falhou) {
-    return <span className={'ui-logo ' + className} style={estilo}><img src={url} alt={'Logo de ' + (nome || 'marca')} loading="lazy" onError={() => setFalhou(true)} /></span>
+  if (src) {
+    return <span className={'ui-logo ' + className} style={estilo}><img src={src} alt={decorativa ? '' : 'Logo de ' + (nome || 'marca')} loading="lazy" decoding="async" onError={() => setFalhas((n) => n + 1)} /></span>
   }
-  return <span className={'ui-logo ui-logo--iniciais ' + className} style={estilo} role="img" aria-label={'Sem logo: ' + (nome || 'marca')}>{iniciais(nome)}</span>
+  const leitura = decorativa ? { 'aria-hidden': true } : { role: 'img', 'aria-label': 'Sem logo: ' + (nome || 'marca') }
+  return <span className={'ui-logo ui-logo--iniciais ' + className} style={estilo} {...leitura}>{iniciais(nome)}</span>
+}
+
+/** Nome da marca com a logo pequena ao lado (listas, tabelas, cartões). O nome visível é quem identifica: a logo é decorativa. */
+export function MarcaComLogo({ nome, participanteId, tamanho = 24, className = '', children }) {
+  return (
+    <span className={'ui-com-logo ' + className}>
+      <LogoMarca participanteId={participanteId} nome={nome} tamanho={tamanho} decorativa />
+      <span className="ui-com-logo__nome">{children || nome}</span>
+    </span>
+  )
 }
 
 // Ajuda recolhida: a regra fica a um toque, não ocupando a tela (<details>

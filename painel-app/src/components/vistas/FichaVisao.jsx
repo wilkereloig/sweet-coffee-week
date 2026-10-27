@@ -16,7 +16,7 @@ import { NOMES_PUBLICACAO } from '../../lib/nomesPublicacao'
 import { ROTULO_MATERIAL, ROTULO_MATERIAL_STATUS } from '../../lib/operacao'
 import {
   criarCarregadorFicha, situacaoTema, TEXTO_TEMA, TOM_TEMA, textoCusto, componentesDaFicha, unidadesDaFicha,
-  textoResposta, fotosDaFicha, fotosIniciais, resumoPublicacao, acoesDaSecao, edicaoDaFicha,
+  textoResposta, fotosDaFicha, fotosIniciais, resumoPublicacao, acoesDaSecao, edicaoDaFicha, cobravel, podeResolver,
 } from '../../lib/fichaGeral'
 import { Carregando, Erro, Vazio, Selo, Botao } from '../ui'
 import { Icone } from '../Icone'
@@ -135,7 +135,19 @@ function botoesAcao(secao, pode, ctx, onEditar) {
 }
 
 /* ── Pendências (coluna auxiliar) ──────────────────────────────────────── */
-export function Pendencias({ itens, carregando, onIr }) {
+/*
+ * Cada pendência: o texto leva à seção; "Resolver" (lápis) abre o editor que resolve ali mesmo; o sino
+ * cobra da marca (aviso + conversa). As que dá para cobrar têm caixa: marque várias e mande UM aviso só.
+ */
+export function Pendencias({ itens, carregando, onIr, pode = () => false, onCobrar, onResolver }) {
+  const [sel, setSel] = React.useState(() => new Set())
+  const podeCobrar = !!onCobrar && pode('mensagem.enviar')
+  const cobraveis = podeCobrar ? itens.filter(cobravel) : []
+  const chaves = cobraveis.map((x) => x.chave).join('|')
+  // Pendência que sumiu (resolvida, releitura) sai da seleção.
+  React.useEffect(() => { setSel((s) => new Set([...s].filter((c) => chaves.split('|').includes(c)))) }, [chaves])
+  const marcadas = cobraveis.filter((x) => sel.has(x.chave))
+  const alternar = (c) => setSel((s) => { const n = new Set(s); n.has(c) ? n.delete(c) : n.add(c); return n })
   return (
     <section className="fg-pend" aria-labelledby="fg-pend-t">
       <h3 className="fg-pend__titulo" id="fg-pend-t">Pendências{!carregando && itens.length > 0 ? ' (' + itens.length + ')' : ''}</h3>
@@ -143,15 +155,36 @@ export function Pendencias({ itens, carregando, onIr }) {
       {!carregando && itens.length === 0 && <p className="ui-nota ui-nota--ok">Nada pendente no que foi possível verificar.</p>}
       {itens.length > 0 && (
         <ul className="fg-pend__lista">
-          {itens.map((x) => (
-            <li key={x.chave} className={x.erro ? 'is-erro' : ''}>
-              <button type="button" className="fg-pend__item" onClick={() => onIr(x.secao)}>
-                <span>{x.texto}</span>
-                <span className="fg-pend__onde">{ONDE[x.secao] || 'Ver'} <Icone nome="ir" tamanho={16} /></span>
-              </button>
-            </li>
-          ))}
+          {itens.map((x) => {
+            const cobra = podeCobrar && cobravel(x)
+            const resolve = !!onResolver && podeResolver(x, pode)
+            return (
+              <li key={x.chave} className={'fg-pend__linha' + (x.erro ? ' is-erro' : '')}>
+                {cobraveis.length > 1 && (cobra
+                  ? <label className="fg-pend__sel"><input type="checkbox" checked={sel.has(x.chave)} onChange={() => alternar(x.chave)} /><span className="ui-oculto">Incluir na cobrança: {x.texto}</span></label>
+                  : <span className="fg-pend__sel" aria-hidden="true" />)}
+                <button type="button" className="fg-pend__item" onClick={() => onIr(x.secao)}>
+                  <span>{x.texto}</span>
+                  <span className="fg-pend__onde">{ONDE[x.secao] || 'Ver'} <Icone nome="ir" tamanho={16} /></span>
+                </button>
+                {(resolve || cobra) && (
+                  <span className="fg-pend__acoes">
+                    {resolve && <Botao variante="secundario" icone="editar" soIcone aria-label={'Resolver agora: ' + x.texto} onClick={() => onResolver(x)}>Resolver agora</Botao>}
+                    {cobra && <Botao variante="secundario" icone="sino" soIcone aria-label={'Cobrar do participante: ' + x.texto} onClick={() => onCobrar([x])}>Cobrar do participante</Botao>}
+                  </span>
+                )}
+              </li>
+            )
+          })}
         </ul>
+      )}
+      {cobraveis.length > 1 && (
+        <div className="fg-pend__rodape">
+          <Botao icone="sino" variante={marcadas.length ? undefined : 'secundario'} onClick={() => onCobrar(marcadas.length ? marcadas : cobraveis)}>
+            {marcadas.length ? 'Cobrar ' + marcadas.length + (marcadas.length === 1 ? ' marcada' : ' marcadas') : 'Cobrar todas (' + cobraveis.length + ')'}
+          </Botao>
+          <span className="ui-nota">Vai num aviso só, com o toque levando à primeira.</span>
+        </div>
       )}
     </section>
   )
@@ -459,13 +492,13 @@ function SecaoPublicacao({ p, fontes, recarregar, pode, onEditar, edicaoAberta, 
 }
 
 /* ── A visão ───────────────────────────────────────────────────────────── */
-export function VisaoParticipante({ p, logo, fontes, recarregar, pode, pendencias, carregandoPend, editando, renderEditor, onEditar, onIr, previa, onPrevia, PreviaPagina }) {
+export function VisaoParticipante({ p, logo, fontes, recarregar, pode, pendencias, carregandoPend, editando, renderEditor, onEditar, onIr, previa, onPrevia, PreviaPagina, onCobrar, onResolver }) {
   const comum = { p, fontes, recarregar, pode, onEditar, onIr }
   const ed = (id) => (editando && editando.secao === id ? renderEditor(editando) : null)
   return (
     <div className="fg-visao">
       <aside className="fg-lado" aria-label="Pendências desta participação">
-        <Pendencias itens={pendencias} carregando={carregandoPend} onIr={onIr} />
+        <Pendencias itens={pendencias} carregando={carregandoPend} onIr={onIr} pode={pode} onCobrar={onCobrar} onResolver={onResolver} />
       </aside>
       <div className="fg-principal">
         <SecaoCadastro {...comum} logo={logo} acoes={botoesAcao("cadastro", pode, {}, onEditar)} edicao={ed('cadastro')} />

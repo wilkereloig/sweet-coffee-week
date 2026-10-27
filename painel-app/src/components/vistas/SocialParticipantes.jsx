@@ -447,7 +447,7 @@ export function SocialParticipantes({ rota, navegar, pode }) {
             <li key={p.participacao_id}>
               <button type="button" className="sp-cartao" onClick={() => mudar({ item: p.participante_id })}
                 aria-label={p.marca + (p.tema ? ', tema ' + p.tema : '') + (p.combo_nome ? ', combo ' + p.combo_nome : '') + ', ' + p.n_posts + ' postagens'}>
-                <LogoMarca url={p.logo ? urlLogo(p.logo) : null} nome={p.marca} tamanho={48} />
+                <LogoMarca url={p.logo ? urlLogo(p.logo) : null} participanteId={p.participante_id} nome={p.marca} tamanho={48} />
                 <span className="sp-cartao__corpo" aria-hidden="true">
                   <span className="sp-cartao__marca">{p.marca}</span>
                   <span className="rd-campo__nota">{p.tema || 'Tema pendente'} · {p.combo_nome || 'combo sem nome'}</span>

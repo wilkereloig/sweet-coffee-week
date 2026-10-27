@@ -14,6 +14,8 @@ import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 import { participaDaEdicao } from '../../lib/mesa'
 import { ORIGEM_PUBLICA } from '../../lib/origem'
+import { lerPendenciasLote } from '../../lib/pendenciasAviso'
+import { FolhaCobrar } from './CobrarPendencias'
 
 // Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
 const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Mn}/gu, '').replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '')
@@ -115,6 +117,9 @@ export function Marcas({ pode = () => true, rota, navegar }) {
   const [sel, setSel] = React.useState(() => new Set())
   const [lote, setLote] = React.useState(null) // { modo: 'gerar'|'regerar', marcas }
   const [loteAviso, setLoteAviso] = React.useState(null)
+  // Cobrar pendências em lote: lê as pendências de cada selecionada (a mesma regra da ficha) e abre a folha.
+  const [cobrarLote, setCobrarLote] = React.useState(null) // { destinos, carregando: { feitas, total } | null }
+  const loteCancelado = React.useRef(false)
   // Filtros e ficha aberta moram no endereço (reestruturação 29/09/2026):
   // um contador da Visão geral chega aqui já filtrado, e Voltar fecha a ficha.
   const f = rota.filtros
@@ -223,6 +228,20 @@ export function Marcas({ pode = () => true, rota, navegar }) {
   const alternar = (id) => setSel((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
   const todasVisiveis = lista.length > 0 && lista.every((p) => sel.has(p.id))
 
+  async function cobrarSelecionadas() {
+    setLoteAviso(null)
+    const marcas = selecionadas.filter((p) => p.participacao_id)
+    if (!marcas.length) { setLoteAviso('Nenhuma das selecionadas tem participação aberta: não há pendência de edição para cobrar.'); return }
+    loteCancelado.current = false
+    setCobrarLote({ destinos: [], carregando: { feitas: 0, total: marcas.length } })
+    const destinos = await lerPendenciasLote(marcas, (nome, args) => rpc(nome, { p_secret: lerSenha(), ...args }), {
+      aoAvancar: (feitas, total) => { if (!loteCancelado.current) setCobrarLote((x) => x && { ...x, carregando: { feitas, total } }) },
+      cancelado: () => loteCancelado.current,
+    })
+    if (!loteCancelado.current) setCobrarLote({ destinos, carregando: null })
+  }
+  const fecharCobrarLote = () => { loteCancelado.current = true; setCobrarLote(null) }
+
   // Ações em lote. Toda ação que muda conta pede confirmação.
   async function emLote(acao) {
     setLoteAviso(null)
@@ -274,6 +293,8 @@ export function Marcas({ pode = () => true, rota, navegar }) {
         onFechar={() => { setLote(null); setSel(new Set()) }}
         onGerenciar={(m) => { setLote(null); setFicha({ id: m.id, aba: 'acesso' }) }} />
       <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} />
+      <FolhaCobrar aberto={!!cobrarLote} destinos={cobrarLote ? cobrarLote.destinos : []} carregando={cobrarLote && cobrarLote.carregando}
+        onFechar={fecharCobrarLote} />
     </>
   )
   if (ficha) {
@@ -367,8 +388,10 @@ export function Marcas({ pode = () => true, rota, navegar }) {
               <span>{lista.length} {lista.length === 1 ? 'marca' : 'marcas'}{selecionadas.length ? ' · ' + selecionadas.length + (selecionadas.length === 1 ? ' selecionada' : ' selecionadas') : ' · selecionar todas'}</span>
             </label>
           </div>
-          {selecionadas.length > 0 && pode('marca.liberar') && (
+          {selecionadas.length > 0 && (pode('marca.liberar') || pode('mensagem.enviar')) && (
             <div className="ac-barra-lote" role="toolbar" aria-label="Ações nas marcas selecionadas">
+              {pode('mensagem.enviar') && <Botao icone="sino" variante="secundario" onClick={cobrarSelecionadas}>Cobrar pendências ({selecionadas.length})</Botao>}
+              {pode('marca.liberar') && <>
               <button className="og-btn og-btn--mini" type="button" onClick={() => emLote('gerar')}>Gerar acessos{selSemConta.length ? ' (' + selSemConta.length + ')' : ''}</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('regerar')}>Gerar novas senhas{selComConta.length ? ' (' + selComConta.length + ')' : ''}</button>
               <Botao icone="copiar" variante="secundario" soIcone aria-label="Copiar os acessos das selecionadas" onClick={() => emLote('copiar')}>Copiar acessos</Botao>
@@ -376,6 +399,7 @@ export function Marcas({ pode = () => true, rota, navegar }) {
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('bloquear')}>Bloquear</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('desbloquear')}>Desbloquear</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('forcar_troca')}>Forçar troca de senha</button>
+              </>}
               <Botao variante="secundario" icone="fechar" soIcone onClick={() => setSel(new Set())}>Limpar seleção</Botao>
             </div>
           )}
@@ -393,7 +417,7 @@ export function Marcas({ pode = () => true, rota, navegar }) {
                 <li key={p.id} className="ac-item">
                   <label className="ac-item__sel"><input type="checkbox" checked={sel.has(p.id)} onChange={() => alternar(p.id)} /><span className="ui-oculto">Selecionar {p.nome_marca}</span></label>
                   <button type="button" className="og-item og-item--marca" onClick={() => abrirFicha(p.id)}>
-                    <LogoMarca url={urlLogo(l && l.path)} nome={p.nome_marca} tamanho={40} />
+                    <LogoMarca url={urlLogo(l && l.path)} participanteId={p.id} nome={p.nome_marca} tamanho={40} />
                     <span className="og-item__nome-bloco">
                       <span className="og-item__nome">{p.nome_marca || '(sem nome)'}{p._naoLidas > 0 && <span className="og-item__novas" title={p._naoLidas + (p._naoLidas === 1 ? ' mensagem nova' : ' mensagens novas')}>{p._naoLidas}</span>}</span>
                       <span className="og-item__meta">{[pct != null && 'Cadastro ' + pct + '%', p.tema_combo, p.edicao_codigo && 'edição ' + p.edicao_codigo].filter(Boolean).join(' · ') || resumoParticipante(p)}</span>

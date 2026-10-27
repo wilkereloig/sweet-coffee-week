@@ -72,6 +72,8 @@ export const RPC_SEM_SINAL = new Set([
   'registrar_push_organizacao', 'remover_push_organizacao', 'push_aparelho',
   // Abrir o modo "Ver como participante" só registra na auditoria.
   'org_ver_como_iniciar',
+  // Miniatura da logo: dado derivado; o gatilho de logos_marca já avisa as outras telas.
+  'logo_definir_mini',
 ])
 const ehLeituraPorNome = (n) => /^get_/.test(n)
 
@@ -137,6 +139,7 @@ export const RPC_ESCRITA = Object.freeze({
   remover_logo: ['logos', 'participantes', 'editorial'],
   // mensagens e avisos
   enviar_mensagem: ['mensagens', 'avisos'],
+  org_avisar_marca: ['mensagens', 'avisos'],
   ler_mensagens_org: ['mensagens', 'avisos'],
   adicionar_observacao: ['atividade'],
   ler_notificacoes_org: ['avisos'],

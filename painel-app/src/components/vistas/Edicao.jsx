@@ -8,7 +8,7 @@ import {
 import { chaveDia } from '../../lib/hoje'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha, BotaoIcone, Botao } from '../ui'
+import { Carregando, Vazio, Erro, Secao, traduzirErro, Ajuda, Escolha, BotaoIcone, Botao, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
@@ -252,7 +252,7 @@ function AbaTemas({ edicao, pode, irPara }) {
         <Secao key={g.chave} titulo={g.tema} nota={notaDoGrupo(g)}>
           <ol className="ui-lista-simples">{doGrupo(g).map((t) => (
             <li key={t.id}>
-              <b>{g.conflito ? t.prioridade + 'º · ' : ''}{t.marca}</b>
+              <b><MarcaComLogo nome={t.marca} participanteId={t.participante_id}>{g.conflito ? t.prioridade + 'º · ' : ''}{t.marca}</MarcaComLogo></b>
               <span>Informado {tempoRelativo(t.solicitado_em)} ({dataCurta(t.solicitado_em)}) · {ROTULO_PAGAMENTO[t.pagamento_status]}{t.status === 'aprovado' ? ' · APROVADO por ' + (t.decidido_rotulo || '—') : ''}</span>
               {t.justificativa && <span>{t.justificativa}</span>}
               <div className="ui-linha-acoes">
@@ -322,7 +322,7 @@ function AbaVendas({ edicao, pode }) {
             <thead><tr><th scope="col">Marca</th>{dias.map((d) => <th key={d} scope="col">{dataBr(d).slice(0, 5)}</th>)}<th scope="col">Total</th></tr></thead>
             <tbody>{dados.marcas.map((m) => (
               <tr key={m.participacao_id}>
-                <th scope="row">{m.marca}{!m.tem_conta && <span className="ui-tabela__nota"> (sem acesso)</span>}{Number(m.corrigidas) > 0 && <span className="ui-tabela__nota"> · {m.corrigidas} correç{Number(m.corrigidas) === 1 ? 'ão' : 'ões'}</span>}</th>
+                <th scope="row"><MarcaComLogo nome={m.marca} participanteId={m.participante_id} />{!m.tem_conta && <span className="ui-tabela__nota"> (sem acesso)</span>}{Number(m.corrigidas) > 0 && <span className="ui-tabela__nota"> · {m.corrigidas} correç{Number(m.corrigidas) === 1 ? 'ão' : 'ões'}</span>}</th>
                 {dias.map((d) => {
                   const v = (m.dias || {})[d]
                   const vazio = v == null && d <= dados.hoje
@@ -399,7 +399,7 @@ function AbaRevisao({ pode, irPara }) {
           <li key={r.id}>
             <div className="og-item og-item--info" data-severidade={r.severidade}>
               <span className="og-item__cor" data-tom={r.severidade} aria-hidden="true" />
-              <span className="og-item__nome">{r.titulo}{r.marca ? ' · ' + r.marca : r.contato ? ' · ' + r.contato : ''}</span>
+              <span className="og-item__nome">{r.titulo}{r.marca ? <> · <MarcaComLogo nome={r.marca} participanteId={r.participante_id} tamanho={20} /></> : r.contato ? ' · ' + r.contato : ''}</span>
               <span className="og-item__meta">
                 {ROTULO_PENDENCIA[r.tipo]}{r.valor_original ? ' · recebido: “' + r.valor_original + '”' : ''}
                 {r.aba ? ' · ' + r.aba + ', linha ' + r.linha : ''}{r.descricao ? ' · ' + r.descricao : ''}
@@ -467,7 +467,7 @@ function NomesPadrao({ pode }) {
       acoes={pode('curadoria.decidir') && lista.some((x) => x.regra !== 'revisar') && <button className="og-btn og-btn--mini" type="button" onClick={aplicar}>Aplicar padrão</button>}>
       {lista.length === 0 ? <p className="ui-nota">Todos os nomes estão no padrão.</p> : (
         <ul className="ui-lista-simples">{lista.map((x) => (
-          <li key={x.participante_id}><b>{x.anterior} → {x.nome}</b><span>{ROTULO_REGRA_NOME[x.regra] || x.regra}{x.motivo ? ' · ' + x.motivo : ''}</span></li>
+          <li key={x.participante_id}><b><MarcaComLogo nome={x.nome} participanteId={x.participante_id}>{x.anterior} → {x.nome}</MarcaComLogo></b><span>{ROTULO_REGRA_NOME[x.regra] || x.regra}{x.motivo ? ' · ' + x.motivo : ''}</span></li>
         ))}</ul>
       )}
       {aviso && (aviso.ok ? <p className="ui-nota ui-nota--ok" role="status">{aviso.ok}</p> : <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>)}

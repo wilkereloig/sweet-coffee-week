@@ -255,7 +255,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
                               return (
                                 <button type="button" className="og-cartao" key={chave} onClick={() => abrirLink(destino)}>
                                   <span className="og-cartao__topo">
-                                    <LogoMarca url={it.tipo === 'marca' ? urlLogo(logos[it.participanteId] && logos[it.participanteId].path) : null} nome={it.nome} tamanho={40} />
+                                    <LogoMarca url={it.tipo === 'marca' ? urlLogo(logos[it.participanteId] && logos[it.participanteId].path) : null} participanteId={it.tipo === 'marca' ? it.participanteId : null} nome={it.nome} tamanho={40} />
                                     <b className="og-cartao__nome">{it.nome || '(sem nome)'}</b>
                                     {it.novo && <Selo tom="atencao">Nova</Selo>}
                                   </span>

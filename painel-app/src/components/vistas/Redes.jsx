@@ -2,7 +2,7 @@ import React from 'react'
 import { rpc } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Icone } from '../Icone'
-import { Carregando, Erro, Vazio, Selo, Botao, BotaoIcone, Escolha, Secao, MaisAcoes } from '../ui'
+import { Carregando, Erro, Vazio, Selo, Botao, BotaoIcone, Escolha, Secao, MaisAcoes, MarcaComLogo } from '../ui'
 import * as R from '../../lib/redes'
 import * as C from '../../lib/campanhas'
 import * as K from '../../lib/checklist'
@@ -86,7 +86,7 @@ export function CartaoPost({ p, agora, conflito, urls, renovar, onAbrir, compact
       <Miniatura path={p.miniatura} formato={p.formato} urls={urls} renovar={renovar} />
       <span className="rd-cartao__corpo" aria-hidden="true">
         <span className="rd-cartao__titulo">{p.titulo}</span>
-        {p.participante_nome && <span className="rd-cartao__part">{p.participante_nome}</span>}
+        {p.participante_nome && <span className="rd-cartao__part"><MarcaComLogo nome={p.participante_nome} participanteId={p.participante_id} tamanho={18} /></span>}
         <span className="rd-cartao__meta">{hora} · {fmt.curto}{seq}</span>
         {camp && <span className="rd-cartao__camp" style={P.estiloPasta(camp.cor)}><span className="bb-ponto" />{C.nomeCurto(camp.nome)}</span>}
         <span className="rd-cartao__estado">
@@ -341,7 +341,7 @@ function VistaLista({ itens, ord, onOrdenar, ctx }) {
               <td className="rd-tabela__data">{p.programado_para ? R.quandoTexto(p.programado_para) : 'Sem data'}</td>
               <td className="rd-tabela__titulo">
                 <button type="button" className="rd-link" onClick={() => ctx.onAbrir(p.id)}>{p.titulo}</button>
-                {p.participante_nome && <span className="rd-tabela__sub">{p.participante_nome}</span>}
+                {p.participante_nome && <span className="rd-tabela__sub"><MarcaComLogo nome={p.participante_nome} participanteId={p.participante_id} tamanho={18} /></span>}
               </td>
               <td><Icone nome={fmt.icone || 'imagem'} tamanho={16} /> {fmt.curto}</td>
               <td>{p.responsavel_nome || <span className="rd-falta">Sem responsável</span>}</td>

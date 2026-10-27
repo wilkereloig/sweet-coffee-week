@@ -5,7 +5,7 @@ import { linkWhatsApp } from '../../lib/participantes'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { linkPreenchimento, textoPreenchimento, painelDaMarca, entraNoLoteDeSenhas, diferencasEnvio, situacaoLink, dataCurtaBR } from '../../lib/preenchimento'
 import { emitirCredenciais, lerAcessos, registrarEnvio } from './AcessoMarca'
-import { Secao, Selo, Botao, BotaoIcone, Carregando, Erro, Vazio, traduzirErro } from '../ui'
+import { Secao, Selo, Botao, BotaoIcone, Carregando, Erro, Vazio, traduzirErro, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import { Folha } from '../Folha'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
@@ -353,7 +353,7 @@ export function ListaPreenchimento({ pode, irPara }) {
             const wa = m.codigo ? linkWhatsApp(m.telefone, mensagemDe(m)) : null
             return (
               <li key={m.participacao_id} className="pr-lista__linha">
-                <button type="button" className="og-link pr-lista__nome" onClick={() => irPara && irPara('participantes', { vista: 'participantes', id: m.participante_id, sub: 'gestao' })}>{m.nome}</button>
+                <button type="button" className="og-link pr-lista__nome" onClick={() => irPara && irPara('participantes', { vista: 'participantes', id: m.participante_id, sub: 'gestao' })}><MarcaComLogo nome={m.nome} participanteId={m.participante_id} /></button>
                 <Selo tom={sit.tom}>{sit.texto}</Selo>
                 <span className="pr-lista__acoes">
                   {podeAcesso && entraNoLote(m) && <button className="og-btn og-btn--mini" type="button" disabled={ocupado} onClick={() => gerarSenhas([m])}>{acessoDe(m).user_id ? 'Nova senha' : 'Criar acesso'}</button>}
