@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Botões mais limpos: baixar, compartilhar, mover, editar e apagar viraram ícones. No computador, o nome aparece ao passar o mouse.
+Logo das marcas nos avisos e nas listas. Na ficha, cada pendência pode ser resolvida ali ou cobrada do participante, uma, várias ou em lote.
