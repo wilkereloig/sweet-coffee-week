@@ -478,8 +478,9 @@ test('a tela: três áreas na ordem pedida, cartões pelo Modulo do painel, Soci
   assert.ok(ordem.every((i) => i > 0) && ordem[0] < ordem[1] && ordem[1] < ordem[2], 'ordem das áreas: ' + ordem)
   assert.equal((m.match(/<MacroSecao /g) || []).length, 3)
   const cartao = ler('painel-app/src/components/vistas/mesa/CartaoAcao.jsx')
-  assert.match(cartao, /<Modulo [^>]*onClick=\{\(\) => navegar\(acao\.rota\)\}/, 'o cartão inteiro é o atalho da lista que conta')
-  assert.match(cartao, /rotuloIr=\{'Abrir ' \+ acao\.destino\}/, 'o destino é dito')
+  // Só o cartão com `acao.abrir` (Combos para aprovar, 27/10/2026) resolve numa folha; os outros seguem sendo o atalho da lista.
+  assert.match(cartao, /<Modulo [^>]*onClick=\{\(\) => \(aqui \? abrir\(acao\.abrir\) : navegar\(acao\.rota\)\)\}/, 'o cartão inteiro é o atalho da lista que conta (ou abre a folha)')
+  assert.match(cartao, /rotuloIr=\{aqui \? 'Revisar e decidir' : 'Abrir ' \+ acao\.destino\}/, 'o destino é dito')
   // Social media: a leitura é a da Mesa (entra no "nada precisa"); o resumo confere a permissão (redes.ver) e fica sob o título certo.
   tem(mc, /\{pode && !\(extra\.lidas && !extra\.redes\) && \(\s*<NivelTitulo\.Provider value=\{3\}>\s*<ResumoRedes navegar=\{navegar\} pode=\{pode\} resumo=\{extra\.redes\} \/>/)
   assert.match(ler('painel-app/src/components/vistas/Redes.jsx'), /const ver = pode\('redes\.ver'\)[\s\S]*if \(!ver\) return null/)

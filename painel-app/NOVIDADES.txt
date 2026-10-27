@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Arquivos com prévia: as imagens aparecem em miniatura e abrem grandes com um toque, antes de baixar.
+Combos para aprovar: o cartão da Visão geral mostra qual combo espera e deixa aprovar ou pedir ajuste ali mesmo.

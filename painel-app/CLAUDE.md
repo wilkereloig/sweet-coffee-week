@@ -1871,3 +1871,21 @@ telas depois de salvar. Agora há **uma camada só** (`painel-app/src/lib/sync/`
   dois aparelhos, ordem trocada, queda, abas, sessão expirada, permissão revogada, canal negado, marca, segundo plano, sem rede,
   senha única) e `node tests/painel-app-sync-vistas-navegador.mjs` (23 cenários das vistas reais: Produção, Arquivos, Materiais,
   Chaves da edição, Publicação, Logo). Filtro opcional: `SO=<n>` no primeiro, texto no segundo.
+
+#### Combos para aprovar — decidir na Visão geral — 27/10/2026 (pedido do Wilker)
+"No card aparece exatamente o que eu preciso saber, e não achei onde é que eu aprovo." Antes, o cartão "Cadastros para aprovar" só
+dizia o nome da marca e abria a lista; a decisão morava em ficha › Operação › Combo, quatro cliques adiante. Migration
+`20261117_combos_em_analise.sql` (✅ aplicada; teste `supabase/testes/combos-em-analise.sql` → `TESTE_OK`; reversão em
+`supabase/reverter/`), lógica em `lib/combosAnalise.js`, folha em `vistas/mesa/FolhaDecidirCombo.jsx`, teste
+`tests/painel-app-combos-analise.test.mjs` e cenário V9 de `tests/painel-visao-geral-navegador.mjs`.
+- **O que espera a curadoria é o COMBO** (`combo_status = 'em_analise'`), não o cadastro (já completo). O cartão agora se chama
+  "Combos para aprovar", e o detalhe diz marca · “nome do combo” · tema · "enviado há N h" (`desde` = o último "→ em_analise"
+  da auditoria). O NÚMERO continua sendo o tamanho da lista de marcas que ele abre (marca encerrada não conta).
+- **O cartão resolve ali mesmo:** `acao.abrir = 'aprovacao'` faz o clique abrir a folha, em vez de ir à lista (pé: "Revisar e
+  decidir"). A folha mostra uma marca por vez, do combo que espera há mais tempo: combo, tema e justificativa, os três itens e os
+  custos da marca (vazio = "não informado", 0 = "sem custo"); **Aprovar combo**, **Pedir ajuste** (nota obrigatória) e
+  **Abrir a ficha**. Decidir = `revisar_combo`, a MESMA RPC da ficha, então a marca recebe o mesmo aviso (sino + push). A fila é a
+  do momento em que a folha abriu (decidir relê a Visão geral, e a lista que encolhe não embaralha "2 de 3").
+- **Nunca meia lista:** o cartão só mostra o combo se `get_combos_em_analise` trouxe TODOS os que ele conta (`cobreAsMarcas`);
+  leitura que caiu (ou sem `curadoria.decidir`) volta ao texto simples e à lista de marcas. A leitura não entra em `falhas`.
+- ⚠️ `auditoria.alvo_id` é TEXTO: comparar com `pa.id::text` (a primeira versão da função quebrava no uso).

@@ -7,9 +7,11 @@ import { Modulo } from '../../ui'
  * dentro de um <button> só cabe conteúdo de frase. O que o cartão conta, a permissão e a rota vêm prontos de
  * lib/visaoGeral.js (`acoesDaEquipe`); aqui só se desenha.
  */
-export function CartaoAcao({ acao, navegar }) {
+export function CartaoAcao({ acao, navegar, abrir }) {
+  // `acao.abrir` (ex.: 'aprovacao'): o cartão resolve ali mesmo, numa folha, em vez de mandar para uma lista.
+  const aqui = !!(acao.abrir && abrir)
   return (
-    <Modulo icone={acao.icone} titulo={acao.titulo} onClick={() => navegar(acao.rota)} rotuloIr={'Abrir ' + acao.destino}>
+    <Modulo icone={acao.icone} titulo={acao.titulo} onClick={() => (aqui ? abrir(acao.abrir) : navegar(acao.rota))} rotuloIr={aqui ? 'Revisar e decidir' : 'Abrir ' + acao.destino}>
       <span className="ms-acao">
         <span className="ui-modulo__num">{acao.n}</span>
         <span className="ms-acao__frase">{acao.frase}</span>

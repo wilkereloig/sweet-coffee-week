@@ -65,7 +65,7 @@ const semPendencia = (prazoEmDias) => ({
   edicoes: [{ ...DADOS.edicoes[0], cronograma: [{ chave: 'preenchimento', tipo: 'prazo', fim: emDias(prazoEmDias), titulo: 'Prazo do cadastro', visivel_participante: true }] }],
 })
 
-async function abrir(nav, { permissoes = TODAS, viewport = [1280, 900], falhar = [], dados = DADOS } = {}) {
+async function abrir(nav, { permissoes = TODAS, viewport = [1280, 900], falhar = [], dados = DADOS, rpcs = {} } = {}) {
   const ctx = await nav.newContext({ viewport: { width: viewport[0], height: viewport[1] } })
   const b = criarBackend(); const rt = criarRealtime()
   b.rpcs.minhas_permissoes = () => [{ acoes: permissoes, funcao: 'administrador', rotulo: 'Administrador', ativo: true, deve_trocar_senha: false }]
@@ -83,6 +83,8 @@ async function abrir(nav, { permissoes = TODAS, viewport = [1280, 900], falhar =
   b.rpcs.get_atividade = () => []
   b.rpcs.get_revisao = () => []
   b.rpcs.redes_resumo = () => dados.redes || RESUMO_REDES_VAZIO
+  b.rpcs.get_combos_em_analise = () => dados.combos || []
+  Object.assign(b.rpcs, rpcs)
   for (const nome of falhar) b.falhas[nome] = 99
   await b.instalar(ctx); await rt.instalar(ctx)
   await ctx.addInitScript((s) => { if (!localStorage.getItem('scw_org_conta') && s) localStorage.setItem('scw_org_conta', s) }, sessaoGuardada(UID, EMAIL))
@@ -238,6 +240,51 @@ async function principal() {
       ok(/Faltou ler o planejamento do Social media/.test(t2), 'leitura do Social media caída é dita no bloco')
       ok(!/Nada precisa da equipe agora/.test(t2), 'e não afirma que nada precisa')
       await caiu.ctx.close()
+    }
+
+    console.log('V9 "Combos para aprovar": o cartão diz qual combo e a folha aprova ou pede ajuste')
+    {
+      const ha2h = new Date(Date.now() - 2 * 3600e3).toISOString()
+      const dados = {
+        ...DADOS,
+        participantes: [
+          { id: 'm1', participacao_id: 'pa-m1', nome_marca: 'Doce Sol', edicao_codigo: '2026.2', combo_status: 'em_analise', status_cadastro: 'cadastro_completo', user_id: 'u1' },
+          { id: 'm5', participacao_id: 'pa-m5', nome_marca: 'Pão Real', edicao_codigo: '2026.2', combo_status: 'em_analise', status_cadastro: 'cadastro_completo', user_id: 'u5' },
+        ],
+        combos: [
+          { participacao_id: 'pa-m1', participante_id: 'm1', nome_marca: 'Doce Sol', edicao_codigo: '2026.2', combo_nome: 'Sol da Tarde', combo_descricao: 'Um combo de verão.', tema_combo: 'Divertida Mente', tema_justificativa: 'Cores e emoções.', custo_embalagem: '5.00', custo_delivery: null, combo_para_viagem: true, desde: ha2h, itens: [{ tipo: 'doce', nome: 'Bolo alegria', descricao: 'Bolo amarelo' }] },
+          { participacao_id: 'pa-m5', participante_id: 'm5', nome_marca: 'Pão Real', edicao_codigo: '2026.2', combo_nome: 'Coroa de Pão', tema_combo: 'Moana', desde: new Date().toISOString(), itens: [] },
+        ],
+      }
+      const chamadas = []
+      const { ctx, page, erros } = await abrir(nav, { dados, rpcs: { revisar_combo: (c) => { chamadas.push(c); return null } } })
+      await irPara(page, '#visao')
+      const t = await textoDe(page)
+      ok(/Combos para aprovar/.test(t) && /combos esperando a sua decisão/.test(t), 'o cartão diz "combos esperando a sua decisão"')
+      ok(/Doce Sol · “Sol da Tarde”/.test(t) && /Pão Real · “Coroa de Pão”/.test(t), 'o cartão traz marca e nome do combo')
+      ok(/Revisar e decidir/.test(t), 'o pé do cartão diz "Revisar e decidir"')
+      const pular = page.locator('.ui-tour button', { hasText: /Pular|Concluir/ }).first() // o tour abre sozinho na 1ª visita
+      if (await pular.count()) await pular.click()
+      await page.getByRole('button', { name: /Combos para aprovar/ }).click()
+      await page.getByText('Combo 1 de 2').waitFor({ timeout: 8000 })
+      let f = await textoDe(page)
+      ok(/Sol da Tarde/.test(f) && /Divertida Mente/.test(f) && /Cores e emoções/.test(f) && /Bolo alegria/.test(f), 'a folha mostra combo, tema, justificativa e itens')
+      ok(/Entrega: não informado/.test(f) && /R\$\s*5,00/.test(f), 'custo vazio = "não informado"; o preenchido aparece em reais')
+      await page.getByRole('button', { name: 'Aprovar combo' }).click()
+      await page.getByText('Combo 2 de 2').waitFor({ timeout: 8000 })
+      ok(chamadas.length === 1 && chamadas[0].p_participacao === 'pa-m1' && chamadas[0].p_status === 'aprovado', 'Aprovar chama revisar_combo com aprovado')
+      f = await textoDe(page)
+      ok(/Doce Sol aprovado\. A marca foi avisada/.test(f) && /Coroa de Pão/.test(f), 'diz que a marca foi avisada e passa ao próximo combo')
+      await page.getByRole('button', { name: 'Pedir ajuste', exact: true }).click()
+      const enviar = page.getByRole('button', { name: 'Enviar pedido de ajuste' })
+      ok(await enviar.isDisabled(), 'pedir ajuste sem texto não envia')
+      await page.locator('textarea').fill('Trocar o nome do combo')
+      await enviar.click()
+      await dormir(1200)
+      ok(chamadas.length === 2 && chamadas[1].p_status === 'correcao_solicitada' && chamadas[1].p_nota === 'Trocar o nome do combo', 'pedir ajuste manda a nota')
+      ok(/Nenhum combo esperando decisão/.test(await textoDe(page)), 'sem combos na fila, a folha diz isso')
+      ok(erros.length === 0, 'sem erro de JavaScript ' + erros.join(' | ').slice(0, 160))
+      await ctx.close()
     }
   } finally {
     if (nav) await nav.close().catch(() => {})

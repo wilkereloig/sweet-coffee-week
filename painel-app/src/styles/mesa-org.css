@@ -17,3 +17,12 @@
 
 /* A última área da página não empurra o fim da rolagem. */
 .ms-visao > .ui-macro:last-child{margin-bottom:0}
+
+/* A folha onde a curadoria decide um combo (vistas/mesa/FolhaDecidirCombo.jsx): marca, combo, tema, itens, custos, ações. */
+.ms-dec{gap:var(--e-4)}
+.ms-dec__marca{display:flex;align-items:center;justify-content:space-between;gap:var(--e-3);flex-wrap:wrap}
+.ms-dec__bloco{display:flex;flex-direction:column;gap:var(--e-1)}
+.ms-dec__bloco p{margin:0;overflow-wrap:anywhere}
+.ms-dec__rotulo{margin:0;font:700 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.ms-dec__titulo{font:700 16px/1.35 var(--f-ui)}
+.ms-dec__acoes{flex-wrap:wrap}

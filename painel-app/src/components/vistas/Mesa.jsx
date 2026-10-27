@@ -12,6 +12,7 @@ import { urlLogo } from '../../lib/logos'
 import { ResumoRedes } from './Redes'
 import { totalAlertas } from '../../lib/redes'
 import { CartaoAcao } from './mesa/CartaoAcao'
+import { FolhaDecidirCombo } from './mesa/FolhaDecidirCombo'
 import { ResumoEdicao } from './mesa/ResumoEdicao'
 import { AtividadeRecente } from './mesa/AtividadeRecente'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
@@ -40,9 +41,10 @@ export function Mesa({ abrirLink, navegar, pode }) {
   const [candidaturas, setCandidaturas] = React.useState(null) // null = carregando
   const [participantes, setParticipantes] = React.useState([])
   // `marcasLidas` / `edicaoLida`: a leitura funcionou ao menos uma vez (sem isso, lista vazia e "sem edição" são só o valor inicial, não um fato).
-  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, redes: null, falhas: [], lidas: false, marcasLidas: false, edicaoLida: false })
+  const [extra, setExtra] = React.useState({ dados: {}, solicitacoes: [], sessoes: [], conversas: [], atividade: null, revisao: [], temas: [], edicao: null, redes: null, combos: [], falhas: [], lidas: false, marcasLidas: false, edicaoLida: false })
   const [erro, setErro] = React.useState(null)
   const [etapaSel, setEtapaSel] = React.useState(null) // null = a primeira com gente
+  const [folhaAberta, setFolhaAberta] = React.useState(null) // 'aprovacao' = a folha onde a curadoria decide os combos
   const [logos, setLogos] = React.useState({}) // participante_id → logo oficial
 
   /*
@@ -78,7 +80,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
     const part = await pegar('get_participantes', {}, LEITURA.marcas)
     if (!vale()) return true
     if (part.ok) setParticipantes(part.v || [])
-    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes, logos, redes] = await Promise.all([
+    const [apoiar, contato, solicitacoes, sessoes, conversas, atividade, revisao, temas, edicoes, logos, redes, combos] = await Promise.all([
       pegar(ORIGENS.apoiar.rpc, {}, LEITURA.apoiar), pegar(ORIGENS.contato.rpc, {}, LEITURA.contato),
       pegar('get_solicitacoes_admin', {}, LEITURA.pedidos), pegar('get_sessoes_fotos', {}, LEITURA.sessoes),
       pegar('get_conversas', {}, LEITURA.conversas), pegar('get_atividade', { p_limite: 12 }, LEITURA.atividade),
@@ -87,6 +89,9 @@ export function Mesa({ abrirLink, navegar, pode }) {
       pegar('get_logos', {}, null),
       // Social media (só com redes.ver): o que ele tem em aberto entra na conta do "nada precisa da equipe".
       pode && pode('redes.ver') ? pegar('redes_resumo', {}, LEITURA.redes) : Promise.resolve({ ok: true, v: null }),
+      // Os combos que o cartão "Combos para aprovar" mostra e decide (só com curadoria.decidir). Sem entrar em `falhas`:
+      // se não vier, o cartão volta ao texto simples e à lista de marcas (lib/visaoGeral.js › cartaoAprovacao).
+      pode && pode('curadoria.decidir') ? pegar('get_combos_em_analise', {}, null) : Promise.resolve({ ok: true, v: null }),
     ])
     if (!vale()) return true
     if (logos.ok) setLogos(Object.fromEntries((logos.v || []).map((l) => [l.participante_id, l])))
@@ -99,6 +104,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
       atividade: ou(atividade, x.atividade || []), revisao: ou(revisao, x.revisao), temas: ou(temas, x.temas),
       edicao: ou(edicoes, x.edicao, (v) => (v || []).find((e) => e.atual) || null),
       redes: ou(redes, x.redes, (v) => v || null),
+      combos: ou(combos, x.combos),
     }))
     return falhas.length === 0 && logos.ok && part.ok
   }, [guarda, pode])
@@ -133,7 +139,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
   })
   const { cartoes, ocultas } = acoesDaEquipe({
     candidaturas: candidaturas || [], participantes, conversas: extra.conversas, revisao: extra.revisao, pedidos: pedidosPublicados,
-    temas: extra.temas, respostasSite: extra.dados, edicaoCodigo: edCodigo, agenda, pode: pode || (() => false),
+    temas: extra.temas, combos: extra.combos, respostasSite: extra.dados, edicaoCodigo: edCodigo, agenda, pode: pode || (() => false),
   })
   const nContagens = cartoes.filter((c) => c.tipo === 'contagem').length
   // O que o Social media tem para ESTE perfil (os mesmos alertas do topo do Planejamento): com algo, nada de "nada precisa".
@@ -191,7 +197,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
                       </ul>
                     ) : (extra.falhas.length ? <p className="ui-nota">Não consegui conferir tudo.</p> : !extra.lidas ? <p className="ui-nota">Conferindo…</p> : <p className="ui-nota">Nada pendente agora.</p>)}
                   </Modulo>
-                ) : <CartaoAcao key={c.chave} acao={c} navegar={navegar} />))}
+                ) : <CartaoAcao key={c.chave} acao={c} navegar={navegar} abrir={setFolhaAberta} />))}
               </GradeModulos>
               {/* Social media: a leitura é a da Mesa (entra no estado acima); a permissão (redes.ver), o resumo confere — sem ela,
                   não renderiza nada. Leitura que nunca deu certo: o aviso do bloco ("Faltou ler o planejamento…") já diz. */}
@@ -294,6 +300,10 @@ export function Mesa({ abrirLink, navegar, pode }) {
           </MacroSecao>
         </>
       )}
+
+      <FolhaDecidirCombo
+        aberto={folhaAberta === 'aprovacao'} combos={(cartoes.find((c) => c.chave === 'aprovacao') || {}).combos || []}
+        navegar={navegar} onFechar={() => setFolhaAberta(null)} aoDecidir={() => carregar({ silencioso: true })} />
     </div>
   )
 }

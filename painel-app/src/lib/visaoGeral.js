@@ -19,6 +19,7 @@
  * Ali o N são as primeiras linhas, não o total de linhas: nenhum texto pode prometer "o mesmo número".
  */
 import { participaDaEdicao } from './mesa.js'
+import { combosDoCartao, cobreAsMarcas, detalheDosCombos } from './combosAnalise.js'
 import { agruparTemas, diasAte, dataDoItem, textoPrazo } from './operacao.js'
 
 // ── Leituras ────────────────────────────────────────────────────────────────
@@ -185,16 +186,25 @@ function cartaoMensagens({ participantes, conversas }) {
   }
 }
 
-function cartaoAprovacao({ participantes, edicaoCodigo }) {
+/*
+ * O que espera a curadoria é o COMBO (combo_status = 'em_analise'), não o cadastro: o cadastro já está completo.
+ * Com os combos lidos (get_combos_em_analise) e cobrindo TODAS as marcas que o cartão conta, o cartão diz qual combo,
+ * de quem, com que tema e desde quando, e abre a folha onde se aprova (`abrir: 'aprovacao'`). Sem eles (leitura que
+ * caiu ou ainda não chegou), volta ao texto simples e à lista de marcas — nunca uma meia lista.
+ */
+function cartaoAprovacao({ participantes, edicaoCodigo, combos }) {
   if (!edicaoCodigo) return null
   const marcas = (participantes || []).filter((p) => aguardandoAprovacao(p) && daEdicao(edicaoCodigo)(p))
   if (!marcas.length) return null
+  const lidos = combosDoCartao(combos, marcas)
+  const comCombo = cobreAsMarcas(lidos, marcas)
   return {
     chave: 'aprovacao', n: marcas.length, itens: marcas, urgencia: URGENCIA.aprovacao, permissao: 'curadoria.decidir',
-    titulo: 'Cadastros para aprovar', icone: 'ficha', destino: 'marcas aguardando aprovação',
-    frase: plural(marcas.length, 'cadastro esperando a decisão da curadoria', 'cadastros esperando a decisão da curadoria'),
-    detalhe: resumoNomes(marcas.map((p) => p.nome_marca)),
+    titulo: 'Combos para aprovar', icone: 'ficha', destino: 'marcas aguardando aprovação',
+    frase: plural(marcas.length, 'combo esperando a sua decisão', 'combos esperando a sua decisão'),
+    detalhe: comCombo ? detalheDosCombos(lidos) : resumoNomes(marcas.map((p) => p.nome_marca)),
     rota: rotaMarcas({ edicao: edicaoCodigo, situacao: 'aguardando_aprovacao' }),
+    ...(comCombo ? { abrir: 'aprovacao', combos: lidos } : {}),
   }
 }
 
@@ -285,12 +295,12 @@ function cartaoSemAcesso({ participantes, edicaoCodigo }) {
  * `pedidos` = só os publicados e não arquivados.
  */
 export function acoesDaEquipe({
-  candidaturas = [], participantes = [], conversas = [], revisao = [], pedidos = [], temas = [],
+  candidaturas = [], participantes = [], conversas = [], revisao = [], pedidos = [], temas = [], combos = [],
   respostasSite = {}, edicaoCodigo, agenda, pode = () => false,
 } = {}) {
   const todos = [
     cartaoMensagens({ participantes, conversas }),
-    cartaoAprovacao({ participantes, edicaoCodigo }),
+    cartaoAprovacao({ participantes, edicaoCodigo, combos }),
     cartaoTemas(temas),
     cartaoPedidos(pedidos),
     cartaoCandidaturas(candidaturas),
