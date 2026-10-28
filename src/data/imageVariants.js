@@ -654,6 +654,7 @@ export const VARIANTES = new Map([
   ['/images/marcas-edicoes/2025/logo.png', { larguras: [480], original: 799 }],
   ['/images/marcas-edicoes/2026.1/logo.png', { larguras: [480], original: 806 }],
   ['/images/marcas-edicoes/2026.2/elementos/cena/natal.webp', { larguras: [480, 960], original: 1536 }],
+  ['/images/marcas-edicoes/2026.2/elementos/temas/adocee-doceria/cenario.webp', { larguras: [480, 960], original: 1536 }],
   ['/images/marcas-edicoes/2026.2/elementos/temas/boldfood-confeitaria-inclusiva/cenario.webp', { larguras: [480, 960], original: 1536 }],
   ['/images/marcas-edicoes/2026.2/elementos/temas/casa-alice-doceria/cenario.webp', { larguras: [480, 960], original: 1536 }],
   ['/images/marcas-edicoes/2026.2/fundo-heroi.webp', { larguras: [480, 960], original: 2400 }],

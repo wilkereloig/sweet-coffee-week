@@ -449,6 +449,11 @@ const KITS_TEMA_EDICAO = {
     objetoA: { src: `${ELEMENTOS_EDICAO}/temas/boldfood-confeitaria-inclusiva/objeto-a.webp`, largura: 482, altura: 700 },
     objetoB: { src: `${ELEMENTOS_EDICAO}/temas/boldfood-confeitaria-inclusiva/objeto-b.webp`, largura: 700, altura: 488 },
   },
+  'adocee-doceria': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/adocee-doceria/cenario.webp`, largura: 1536, altura: 455 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/adocee-doceria/objeto-a.webp`, largura: 570, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/adocee-doceria/objeto-b.webp`, largura: 700, altura: 686 },
+  },
 }
 
 /** Kit de cenário de uma casa (`cenario` · `objetoA` · `objetoB`), ou `null` se a casa não tem kit. */

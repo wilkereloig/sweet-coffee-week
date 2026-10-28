@@ -1,8 +1,8 @@
 """Elementos novos da Cartoon (docs/cartoon-2026-2/10 §10.15): folhas geradas -> WebP do site.
 
-Uso: python -I scripts/edicao/elementos-edicao.py <pasta saida>
-A pasta é a `saida` de 05_SITE/05_ELEMENTOS_v01 (Dropbox F2): vale o arquivo mais
-recente de cada prefixo (01..07); `*.api.png` e `*.json` são ignorados.
+Uso: python -I scripts/edicao/elementos-edicao.py <pasta saida> [<pasta saida> ...]
+As pastas são as `saida` de 05_SITE/05_ELEMENTOS_v01, v02… (Dropbox F2): vale o arquivo
+mais recente de cada prefixo (01..09) entre todas; `*.api.png` e `*.json` são ignorados.
 Requer Pillow, numpy e scipy.
 
 O que faz, em `public/images/marcas-edicoes/2026.2/elementos/`:
@@ -35,16 +35,18 @@ Q_WEBP = 88
 ICONES = ('inicio casas mapa rota avaliar premio no-local para-viagem delivery vegano sem-gluten '
           'sem-lactose sem-acucar endereco horario aberto-agora conversar como-chegar quero-ir ja-fui '
           'progresso compartilhar vazio erro').split()
-KITS = {'casa-alice-doceria': ('04', '05'), 'boldfood-confeitaria-inclusiva': ('06', '07')}
+KITS = {'casa-alice-doceria': ('04', '05'), 'boldfood-confeitaria-inclusiva': ('06', '07'),
+        'adocee-doceria': ('08', '09')}
 
 SAIDA = Path(__file__).resolve().parents[2] / 'public' / 'images' / 'marcas-edicoes' / '2026.2' / 'elementos'
 
 
-def abrir(pasta, prefixo):
+def abrir(pastas, prefixo):
     """A folha mais recente do prefixo, com o alfa limpo (o gerador deixa 254 como 'opaco' e poeira abaixo de 12)."""
-    achados = sorted(p for p in pasta.glob(f'{prefixo}-*.png') if not p.name.endswith('.api.png'))
+    achados = sorted((p for pasta in pastas for p in pasta.glob(f'{prefixo}-*.png') if not p.name.endswith('.api.png')),
+                     key=lambda p: p.name)  # o nome termina na data: o último é o mais recente
     if not achados:
-        sys.exit(f'sem arquivo {prefixo}-*.png em {pasta}')
+        sys.exit(f'sem arquivo {prefixo}-*.png em {[str(x) for x in pastas]}')
     im = Image.open(achados[-1]).convert('RGBA')
     im.putalpha(im.getchannel('A').point(lambda v: 0 if v < 12 else 255 if v >= 250 else v))
     return im
@@ -110,7 +112,7 @@ def gravar(p, destino):
     print(f'{destino.relative_to(SAIDA)}  {p.width}x{p.height}  {destino.stat().st_size / 1024:.0f} KB')
 
 
-def main(pasta):
+def main(pasta):  # `pasta`: lista de pastas `saida`
     folha = abrir(pasta, '01')
     por_celula = pecas(folha, 6, 4)
     faltam = [ICONES[i] for i in range(24) if (i % 6, i // 6) not in por_celula]
@@ -132,6 +134,6 @@ def main(pasta):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         sys.exit(__doc__)
-    main(Path(sys.argv[1]))
+    main([Path(a) for a in sys.argv[1:]])
