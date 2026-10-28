@@ -795,18 +795,19 @@
 
 /* Cenário por tema: camada decorativa no topo da ficha da casa (<CenarioTema> como 1º filho do TopoCanal).
    O topo reserva o espaço do cenário em padding — faixa embaixo, objeto A ao lado do nome (acima no celular) — e o
-   texto fica acima (z-index): o cenário nunca cobre texto. A faixa tem no máximo 32% do topo. */
+   texto fica acima (z-index): o cenário nunca cobre texto. A faixa vai INTEIRA, sem recorte (Wilker, 28/10): altura
+   = largura × --ct-cen-razao (altura/largura do arquivo, posta no topo pelo CenarioTema). Padding em % e cqw medem
+   a largura, então a reserva acompanha a faixa em qualquer tela. */
 .ct-canal:has(> .ct-cenario) {
-  --ct-cen-faixa: clamp(72px, 11vw, 160px);
   --ct-cen-a: clamp(88px, 24vw, 120px);
   position: relative; isolation: isolate; overflow: hidden;
   padding-top: calc(var(--ct-cen-a) + 32px);
-  padding-bottom: calc(clamp(32px, 6vw, 72px) + var(--ct-cen-faixa));
+  padding-bottom: calc(clamp(32px, 6vw, 72px) + var(--ct-cen-razao, .2) * 100%);
 }
 .ct-canal:has(> .ct-cenario) > :not(.ct-cenario) { position: relative; z-index: 1; }
-.ct-cenario { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.ct-cenario { position: absolute; inset: 0; z-index: 0; pointer-events: none; container-type: size; --ct-cen-faixa: calc(var(--ct-cen-razao, .2) * 100cqw); }
 .ct-cenario img { position: absolute; display: block; }
-.ct-cenario__faixa { left: 0; bottom: 0; width: 100%; height: var(--ct-cen-faixa); max-height: 32%; object-fit: cover; object-position: center bottom; }
+.ct-cenario__faixa { left: 0; bottom: 0; width: 100%; height: auto; }
 .ct-cenario__objeto--a { top: 24px; left: var(--ct-trilho); width: auto; height: var(--ct-cen-a); }
 .ct-cenario__objeto--b { right: var(--ct-trilho); bottom: 4px; width: clamp(72px, 12vw, 140px); height: calc(var(--ct-cen-faixa) * .9); object-fit: contain; object-position: right bottom; }
 @media (min-width: 901px) {
@@ -818,11 +819,8 @@
   .ct-cenario__objeto--a { top: auto; left: auto; right: var(--ct-trilho); bottom: calc(var(--ct-cen-faixa) * .4); width: var(--ct-cen-aw); height: auto; }
   .ct-cenario__objeto--b { right: auto; left: var(--ct-trilho); object-position: left bottom; }
 }
-/* Casa sem kit (CenarioTema semKit="natal"): só a faixa de Natal como chão, sem reservar o objeto A.
-   A faixa vai inteira (sem recorte, que cortaria a nuvem numa risca): altura = 17,4% da largura (266/1536),
-   e o padding em % também é medido pela largura. */
-.ct-canal:has(> .ct-cenario--natal) { padding: clamp(32px, 6vw, 72px) var(--ct-trilho) calc(clamp(32px, 6vw, 72px) + 17.4%); }
-.ct-cenario--natal .ct-cenario__faixa { height: auto; max-height: none; }
+/* Casa sem kit (CenarioTema semKit="natal"): só a faixa de Natal como chão, sem reservar o objeto A. */
+.ct-canal:has(> .ct-cenario--natal) { padding-top: clamp(32px, 6vw, 72px); padding-right: var(--ct-trilho); }
 
 /* ------------------------------------------------------------- Olhinhos (§10.5)
    Desenho do manual v03: oval creme, nanquim grosso, filete branco de adesivo, pupila com brilhos,

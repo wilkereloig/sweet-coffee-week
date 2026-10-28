@@ -2,7 +2,7 @@
  * Cenário por tema (docs/cartoon-2026-2/10 §10.15, família 3): camada decorativa
  * para o topo da ficha da casa. Vai como PRIMEIRO filho do <TopoCanal>: o CSS
  * (`.ct-canal:has(> .ct-cenario)`) reserva o espaço e põe o texto do topo acima.
- * Faixa de cenário colada na base, objeto A ao lado do nome (acima no celular),
+ * Faixa de cenário colada na base, inteira (sem recorte), objeto A ao lado do nome (acima no celular),
  * objeto B pequeno no canto oposto. Casa sem kit não renderiza nada.
  *
  * Reação ao mouse: --mx/--my em [-1, 1] no próprio .ct-cenario, atualizadas em
@@ -19,6 +19,15 @@ export function CenarioTema ({ slug, semKit = null }) {
   const kit = kitTemaEdicao(slug)
   const chao = !kit && semKit ? cenaEdicao(semKit) : null
   const raiz = React.useRef(null)
+  const faixa = kit ? kit.cenario : chao
+
+  // A faixa vai inteira: o topo (pai) precisa da proporção do arquivo para reservar a altura dela.
+  React.useLayoutEffect(() => {
+    const topo = raiz.current?.parentElement
+    if (!topo || !faixa) return undefined
+    topo.style.setProperty('--ct-cen-razao', (faixa.altura / faixa.largura).toFixed(4))
+    return () => topo.style.removeProperty('--ct-cen-razao')
+  }, [faixa])
 
   React.useEffect(() => {
     const cenario = raiz.current

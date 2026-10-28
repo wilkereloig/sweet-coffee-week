@@ -336,7 +336,7 @@ Cada casa ganha um kit próprio, gerado a partir do tema que está no painel (`t
 
 | Peça | Formato | Onde |
 |---|---|---|
-| Faixa de cenário | panorama horizontal 4:1, base do cenário, topo transparente | base do topo da ficha da casa (atrás do nome, sem cobrir texto) |
+| Faixa de cenário | panorama horizontal 4:1, base do cenário, topo transparente | base do topo da ficha da casa, **inteira, sem recorte** (Wilker, 28/10): o topo reserva a altura pela proporção do arquivo; nunca cobre texto |
 | Objeto de cenário A | recorte quadrado | ao lado do nome, no topo da ficha |
 | Objeto de cenário B | recorte quadrado | espia do canto do cartão da casa no catálogo (hover e foco; no celular, ao entrar na tela) |
 

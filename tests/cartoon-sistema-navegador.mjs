@@ -11,7 +11,7 @@
  *  3. rolagem lateral;
  *  4. botão ou link da vitrine com menos de 44px de altura (nenhum alvo = falha, não "ok");
  *  5. <img> quebrada na vitrine (os 24 ícones, a cenografia e os 2 kits de tema entram);
- *  6. cenário por tema cobrindo texto, ou faixa com mais de 32% do topo (§10.15);
+ *  6. cenário por tema cobrindo texto, ou faixa recortada (vai inteira, na proporção do arquivo — §10.15);
  *  7. anel de foco: chocolate no fundo claro, amarelo no rodapé de chocolate;
  *  8. movimento: o letreiro anima com movimento permitido e NÃO anima com prefers-reduced-motion.
  * Guarda capturas em tests/capturas-sistema/ para a conferência visual do Wilker.
@@ -85,11 +85,12 @@ try {
       })))
       const cruza = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
       const cenarios = [...document.querySelectorAll('.ct-cenario')].map((c) => {
-        const topo = c.parentElement.getBoundingClientRect()
+        const f = c.querySelector('.ct-cenario__faixa')
+        const fr = f.getBoundingClientRect()
         const pecas = [...c.querySelectorAll('img')].map((i) => [i.className, i.getBoundingClientRect()])
         const textos = [...c.parentElement.querySelectorAll('.ct-rotulo, .ct-letreiro, .ct-lead, .ct-vitrine__selo')].map((e) => e.getBoundingClientRect())
         return {
-          faixa: Math.round(c.querySelector('.ct-cenario__faixa').getBoundingClientRect().height / topo.height * 100),
+          recorte: Math.round(Math.abs(fr.height - fr.width * f.naturalHeight / f.naturalWidth)),
           cobre: pecas.filter(([, rect]) => textos.some((t) => cruza(rect, t))).map(([nome]) => nome),
         }
       })
@@ -117,9 +118,9 @@ try {
     if (r.cenarios.length === 2) ok('2 cenários por tema'); else falha(`${w}: ${r.cenarios.length} cenários (esperava 2)`)
     for (const c of r.cenarios) {
       if (c.cobre.length) falha(`${w}: cenário cobre texto — ${c.cobre.join(', ')}`)
-      if (c.faixa > 32) falha(`${w}: faixa de cenário com ${c.faixa}% do topo (máx. 32%)`)
+      if (c.recorte > 2) falha(`${w}: faixa de cenário recortada (${c.recorte}px fora da proporção do arquivo)`)
     }
-    if (r.cenarios.every((c) => !c.cobre.length && c.faixa <= 32)) ok(`cenário sem cobrir texto; faixa com ${r.cenarios.map((c) => c.faixa).join('% e ')}% do topo`)
+    if (r.cenarios.every((c) => !c.cobre.length && c.recorte <= 2)) ok('cenário sem cobrir texto; faixa inteira, sem recorte')
     if (erros.length === 0) ok('console limpo'); else falha(`${w}: console — ${erros.join(' | ')}`)
 
     // Anel de foco: chocolate no fundo claro, amarelo sobre o chocolate do rodapé (§10.15, decisão de 28/10).
