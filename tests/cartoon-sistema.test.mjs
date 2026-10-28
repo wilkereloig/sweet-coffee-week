@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
+import { iconeEdicao, cenaEdicao, kitTemaEdicao } from '../src/data/imageLibrary.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
 const ler = (p) => fs.readFileSync(path.join(raiz, p), 'utf8')
@@ -76,4 +77,50 @@ test('vitrine do sistema só existe no servidor de desenvolvimento', () => {
   assert.match(casca, /import\.meta\.env\.DEV\s*\?\s*React\.lazy\(\(\)\s*=>\s*import\('\.\/paginas\/Sistema\.jsx'\)\)\s*:\s*null/)
   assert.doesNotMatch(casca, /^import .*Sistema/m, 'import estático levaria a vitrine para o build')
   assert.match(ler('src/edicao/cartoon/paginas/Sistema.jsx'), /import '\.\/sistema\.css'/)
+})
+
+// ---- Elementos novos da edição (§10.15): todo caminho do imageLibrary existe e a medida declarada é a do arquivo.
+const ICONES = ('inicio casas mapa rota avaliar premio no-local para-viagem delivery vegano sem-gluten sem-lactose sem-acucar '
+  + 'endereco horario aberto-agora conversar como-chegar quero-ir ja-fui progresso compartilhar vazio erro').split(' ')
+
+/** Largura × altura de um WebP lendo só o cabeçalho (VP8X, VP8L ou VP8). */
+function medidaWebp (src) {
+  const b = fs.readFileSync(path.join(raiz, 'public', src))
+  assert.equal(b.toString('ascii', 8, 12), 'WEBP', `${src} não é WebP`)
+  const tipo = b.toString('ascii', 12, 16)
+  if (tipo === 'VP8X') return [b.readUIntLE(24, 3) + 1, b.readUIntLE(27, 3) + 1]
+  if (tipo === 'VP8L') { const v = b.readUInt32LE(21); return [(v & 0x3fff) + 1, ((v >> 14) & 0x3fff) + 1] }
+  return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff]
+}
+
+test('os 24 ícones da edição existem, em WebP quadrado de 192 px', () => {
+  assert.equal(ICONES.length, 24)
+  for (const nome of ICONES) {
+    const i = iconeEdicao(nome)
+    assert.ok(i, `iconeEdicao('${nome}') devolveu null`)
+    assert.ok(existe(`public${i.src}`), `falta ${i.src}`)
+    assert.deepEqual(medidaWebp(i.src), [192, 192], `${i.src} fora de 192×192`)
+  }
+  assert.equal(iconeEdicao('inexistente'), null)
+  assert.equal(iconeEdicao(undefined), null)
+})
+
+test('cenas e kits de tema: arquivo existe e a medida declarada é a do arquivo', () => {
+  const pecas = [
+    ...['tv', 'natal'].map((c) => [`cenaEdicao('${c}')`, cenaEdicao(c)]),
+    ...['casa-alice-doceria', 'boldfood-confeitaria-inclusiva'].flatMap((s) => {
+      const k = kitTemaEdicao(s)
+      assert.ok(k, `kitTemaEdicao('${s}') devolveu null`)
+      return Object.entries(k).map(([parte, p]) => [`${s}.${parte}`, p])
+    }),
+  ]
+  assert.equal(pecas.length, 2 + 6)
+  for (const [nome, p] of pecas) {
+    assert.ok(p, `${nome} devolveu null`)
+    assert.ok(existe(`public${p.src}`), `falta ${p.src}`)
+    assert.deepEqual([p.largura, p.altura], medidaWebp(p.src), `${nome}: largura/altura diferem do arquivo`)
+  }
+  assert.equal(cenaEdicao('inexistente'), null)
+  assert.equal(kitTemaEdicao('casa-sem-kit'), null)
+  assert.deepEqual(Object.keys(kitTemaEdicao('casa-alice-doceria')).sort(), ['cenario', 'objetoA', 'objetoB'])
 })

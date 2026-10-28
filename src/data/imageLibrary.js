@@ -411,6 +411,51 @@ export function letreiroEdicao(chave) {
   return LETREIROS_EDICAO[chave] || null
 }
 
+/* Elementos novos da edição 2026.2 (docs/cartoon-2026-2/10 §10.15), gerados por
+   scripts/edicao/elementos-edicao.py a partir das folhas do 05_ELEMENTOS_v01.
+   Fundo transparente; largura/altura são as do arquivo (o teste confere).
+   Peça nova entra aqui, nunca montada na página. */
+const ELEMENTOS_EDICAO = '/images/marcas-edicoes/2026.2/elementos'
+
+/* Lista fechada, na ordem da folha de ícones (6 colunas × 4 linhas). */
+const ICONES_EDICAO = new Set(('inicio casas mapa rota avaliar premio no-local para-viagem delivery vegano sem-gluten '
+  + 'sem-lactose sem-acucar endereco horario aberto-agora conversar como-chegar quero-ir ja-fui progresso '
+  + 'compartilhar vazio erro').split(' '))
+
+/** Ícone ilustrado da edição (192×192, exibir a 32, 48 ou 64 px), ou `null`. Nunca carrega função sozinho: leva texto ao lado. */
+export function iconeEdicao(nome) {
+  return ICONES_EDICAO.has(nome) ? { src: `${ELEMENTOS_EDICAO}/icones/${nome}.webp` } : null
+}
+
+const CENAS_EDICAO = {
+  tv: { src: `${ELEMENTOS_EDICAO}/cena/tv-antiga.webp`, largura: 1133, altura: 1107 },
+  natal: { src: `${ELEMENTOS_EDICAO}/cena/natal.webp`, largura: 1536, altura: 266 },
+}
+
+/** Cenografia da edição (`tv` · `natal`) com a medida do arquivo, ou `null`. */
+export function cenaEdicao(chave) {
+  return CENAS_EDICAO[chave] || null
+}
+
+/* Kit de cenário por casa (§10.15, família 3): só as duas do piloto. */
+const KITS_TEMA_EDICAO = {
+  'casa-alice-doceria': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/casa-alice-doceria/cenario.webp`, largura: 1536, altura: 392 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/casa-alice-doceria/objeto-a.webp`, largura: 527, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/casa-alice-doceria/objeto-b.webp`, largura: 478, altura: 700 },
+  },
+  'boldfood-confeitaria-inclusiva': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/boldfood-confeitaria-inclusiva/cenario.webp`, largura: 1536, altura: 501 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/boldfood-confeitaria-inclusiva/objeto-a.webp`, largura: 482, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/boldfood-confeitaria-inclusiva/objeto-b.webp`, largura: 700, altura: 488 },
+  },
+}
+
+/** Kit de cenário de uma casa (`cenario` · `objetoA` · `objetoB`), ou `null` se a casa não tem kit. */
+export function kitTemaEdicao(slug) {
+  return KITS_TEMA_EDICAO[slug] || null
+}
+
 /** Fotos das seções da Home (`heroiCombos` · `combo` · `jolie` · `mosaico` · `edicoes` · `premio`). */
 export function fotosHome(chave) {
   return HOME[chave]
