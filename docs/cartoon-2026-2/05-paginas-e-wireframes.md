@@ -168,7 +168,7 @@ Fonte: pasta `2026.2 SCW CARTOONS` (Dropbox), lida em 14/10/2026.
 | Direção "Cartaz Cartoon" | **aprovada** (03/10) | `00_BRIEFING_E_DIRECAO/01_SISTEMA_KV/DIRECAO-KV-CARTAZ-CARTOON-v01.md` | fundo creme com papel livre, um lettering por peça, raios só em volta do lettering, um herói por peça, no máximo um par de olhos, selo embaixo à esquerda |
 | Conceito "Do traço ao sabor" | **aprovado** | `BASE-CONCEITUAL-KV-E-ECOSSISTEMA.md`, `KV-01-FUNDAMENTOS.md` | "a comida real é protagonista; o cartoon comenta" |
 | Paleta | **aprovada** (cores da marca) | KV | amarelo `#FDB901`, vermelho `#ED1C20`, azul `#0184E4`, turquesa `#05BEBA`, roxo `#6424AB`, creme `#FDF2DF`, preto `#050505`, branco `#FCFCFC`; chocolate do selo = `#3D1308` institucional; fundo do herói da Home `#FAC506` (aprovado 13/10) |
-| Tipografia web | **indefinida** | os documentos do KV citam Bricolage Grotesque e Instrument Sans; a decisão de 08/10 diz que as fontes da pasta PPT são "estudo, não aprovadas" | D-04; até lá, a estrutura usa a tipografia institucional (Nexa, Typekit) |
+| Tipografia web | **decidida (27/10)** | Grandstander em toda a camada, peso por papel; títulos fixos em letreiro desenhado | [10-sistema-visual-e-paginas.md](10-sistema-visual-e-paginas.md) §10.3 substitui esta linha |
 | Fundo do herói da Home | **aprovado e publicado** (13/10) | `05_SITE/02_ASSETS/fundo-heroi-home_gpt25_v3a_USADO.png` | pode abrir a Entrada |
 | Pranchas de site (home, combos, mapa, celular) | **estudo** | `GUIA-VISUAL-CARTAZ-CARTOON/img/20-25-site-*` | só referência de composição; usam logo, nomes e selos falsos |
 | Confirmados v05, Stories v02 | aprovados para redes | `02_CAMPANHA_E_SOCIAL/...` | não são componentes do site |
@@ -209,7 +209,7 @@ Tokens novos `--ct-mo-*` ao lado de `--mo-*` (`scw-motion.css`). Com `prefers-re
 | Enviar avaliação | o botão mostra "Enviando…"; o sucesso aparece **só depois** da confirmação do servidor | — | igual |
 | Estado "aberto agora" | ponto estático colorido, **sem** piscar | — | — |
 
-**Proibido:** rolagem sequestrada, animação antes de mostrar conteúdo, carrossel obrigatório, parallax em informação de serviço, movimento permanente perto de ingredientes, endereço ou avaliação, olhos que seguem o cursor e laço contínuo (a pasta da edição diz "sem loop contínuo" e "não piscar em loop").
+**Proibido:** rolagem sequestrada, animação antes de mostrar conteúdo, carrossel obrigatório, parallax em informação de serviço, movimento permanente perto de ingredientes, endereço ou avaliação, olhos que seguem o cursor e laço contínuo (a pasta da edição diz "sem loop contínuo" e "não piscar em loop"). **Revisto em 27/10:** olhinhos vivos com contenção, seguindo o cursor só no herói da Entrada e piscando em intervalo aleatório — ver [10-sistema-visual-e-paginas.md](10-sistema-visual-e-paginas.md) §10.5.
 
 ## 5.7 Casca da edição
 
