@@ -1223,7 +1223,10 @@ Cada etapa tem plano detalhado próprio (writing-plans), escrito depois da aprov
 - Seguir o cursor só com `olhar="cursor"` (herói da Entrada).
 - Entra primeiro na vitrine. Teste de navegador: piscada acontece; parado com movimento reduzido; nenhum `<button>` dentro (é decorativo, `aria-hidden`).
 
-### E3 · Retrato local dos dados (spec §10.9)
+### E3 · Retrato local dos dados (spec §10.9 e §10.14)
+- Campos completos do §10.14: valor do combo (da organização), restrições alimentares, atendimento com canais e links, unidades, galeria e o par de logos desenhadas.
+- Coordenadas geocodificadas via Nominatim só no retrato, marcadas "a conferir".
+- Logos desenhadas: os 29 pares de `ILUSTRACOES_DERIVADAS` otimizados em WebP, fora do git enquanto forem só do retrato local.
 - Ler no banco a função de projeção (`recortar_publico`) e as de publicação para reproduzir o formato de `edicao_publica` e de `participante_publico`.
 - Montar por consulta de leitura (MCP `supabase-scw`) incluindo as casas não publicadas.
 - Gravar em `src/edicao/dados/retrato/cartoon.local.json` (+ `.gitignore`). Logos copiadas para `public/retrato-local/` se o storage for privado.
@@ -1248,14 +1251,28 @@ Cada etapa tem plano detalhado próprio (writing-plans), escrito depois da aprov
 - Teste de navegador da cena, com o retrato e com a demonstração.
 
 ### E6 · Participantes + ficha da casa
+- Componente `LogoDesenhada`: preto e branco → colorido com tinta espalhando a partir do mouse, pintando uma vez no celular, colorida direto com movimento reduzido. Só o desenho representa a casa, sem a logo oficial (decisão do Wilker, 27/10).
+- Ficha com todos os blocos de conteúdo do §10.14, cada um com o seu link.
 - **Catálogo:** foto do combo como protagonista, "Foto em produção" com a logo no `Quadro`, filtros bairro / aberto hoje / vegano / diet / para viagem / delivery.
 - **Ficha:** topo Elenco, bloco do combo em `TopoCanal cardapio`, unidades, restrições.
 - **Painel:** `FichaParticipante` muda junto. Rodar `npm run test:painel` (ou o teste do painel que a usa) e confirmar verde.
 
-### E7 · Mapa + Minha rota
-- `TopoCanal rota`.
-- Lista com "localização em conferência" para unidade sem coordenada conferida.
-- Paradas em placas numeradas e tracejado vermelho. Testes de rota existentes verdes.
+### E7 · Mapa + painel do Sweet Lover (spec §10.14)
+- **Mapa** (`TopoCanal rota`): a edição inteira num plano geral, "perto de mim", filtros (bairro, aberto agora, quero ir, já fui) e lista ao lado. Unidade sem coordenada conferida entra com "localização em conferência".
+- **Por casa:** "quero ir" e "já fui", no mapa, no cartão e na ficha.
+- **Minha rota** vira o painel do Sweet Lover:
+  - lista "quero ir";
+  - visitadas;
+  - progresso "x de N casas";
+  - paradas em placas numeradas e tracejado vermelho;
+  - Google Maps em trechos;
+  - compartilhar por link.
+- Persistência no aparelho, por edição, estendendo `src/edicao/rota/minhaRota.js` (lógica pura). Testes novos de estado: marcar, desmarcar, migrar a rota antiga, storage quebrado. Os testes de rota existentes continuam verdes.
+
+### E10 · Mapa ilustrado de Natal (depois da E7)
+- Com as coordenadas conferidas, plotar as casas sobre o contorno de Natal e gerar o desenho em estilo cartoon, misturando os temas das casas.
+- Ferramenta: skill `gerar-imagem-openai`, medium, com o manual v03 como referência.
+- Uso: peça da edição e, se aprovado, camada do mapa do site.
 
 ### E8 · Avaliar + Premiação
 - **Avaliar:** `TopoCanal servico`, letreiro "Avalie sua experiência" (versão de fundo transparente do asset do manual) e estado "abre em 5 de novembro" com olhinhos surpresos longe do formulário.

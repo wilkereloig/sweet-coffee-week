@@ -243,6 +243,49 @@ Cada etapa vira um commit local, sem push.
 8. Avaliar + Premiação.
 9. Letreiros que faltarem e passada final de testes.
 
+## 10.14 Acréscimos do Wilker (27/10, noite)
+
+Tudo abaixo vale para o servidor local, com as mesmas restrições do topo desta spec. Nada vai para o banco.
+
+**Conteúdo completo em cada página.** Nenhum dado que o painel tem fica de fora, e tudo vem bem distribuído, organizado e com link.
+
+| Bloco | O que mostra |
+|---|---|
+| Combo | valor (da organização, por edição; o preço é sempre o mesmo para todas as casas), itens, condições |
+| Restrições alimentares | vegano, diet, sem glúten etc.; o que contém e o que pode conter; trocas |
+| Atendimento | no local, para viagem, delivery e entrega, cada um com o seu canal e link |
+| Unidades | endereço, horário, WhatsApp autorizado, "Como chegar" |
+| Galeria | fotos bem montadas |
+
+O retrato local (§10.9) passa a carregar esses campos. Onde o painel ainda não tem o dado, a página mostra "não informado", sem esconder a ausência.
+
+**Logos desenhadas.**
+- **Arquivos:** `10_LOGOS_PARTICIPANTES/ILUSTRACOES_DERIVADAS/` no Dropbox da edição. São 29 pares: `PRETAS/<slug>_A-rascunho.png` e `COLORIDAS/<slug>_B-colorido.png`, quadrados com fundo branco, que entram no `Quadro` com fita.
+- **Efeito.** A versão preta vira colorida com a cor espalhando como tinta:
+  - no desktop, a partir do ponto do mouse, voltando ao sair;
+  - no celular, pinta sozinha uma vez quando o cartão chega ao meio da tela;
+  - com movimento reduzido, mostra a colorida direto.
+- **Só o desenho representa a casa no site, sem a logo oficial ao lado.** Decisão do Wilker, 27/10.
+  - Risco registrado: o desenho é uma releitura da logo feita por IA, o manual v03 diz que "a IA nunca desenha logo", e o LEIA da pasta diz que a identidade oficial continua nas fontes originais.
+  - Uma marca pode não aprovar a releitura da própria logo. Se isso acontecer, aquela casa passa a mostrar a logo oficial.
+
+**Mapa e painel do Sweet Lover.** Substitui a linha do Mapa e da Minha rota em §10.7.
+- O mapa mostra a edição inteira num plano geral: todas as casas, a rota e "perto de mim" (localização do visitante, com permissão).
+- Por casa, o visitante marca:
+  - **"quero ir"**, que entra na lista dele;
+  - **"já fui"**, que completa a rota e aparece como progresso, "x de N casas".
+- A página Minha rota vira o painel do Sweet Lover. Lista, visitadas, progresso e compartilhamento por link ficam **salvos no aparelho, sem conta**, como a Minha rota de hoje. Decisão do Wilker, 27/10.
+- Registro no servidor (conta ou envio) fica fora. Exigiria base legal, consentimento e tabela nova.
+
+**Coordenadas.** Hoje só 2 das 40 unidades têm coordenada.
+- **Proposta para a E3:** geocodificar os endereços via OpenStreetMap (Nominatim) e gravar **só no retrato local**, marcadas como "a conferir". No banco nada é gravado.
+- A organização confere no painel antes de publicar.
+
+**Mapa ilustrado de Natal (depois do mapa pronto).**
+- Com as coordenadas das casas, gerar um desenho do mapa de Natal em estilo cartoon, misturando os temas das casas.
+- É peça de arte da edição e pode virar camada do mapa do site.
+- Segue o manual v03: sem personagem de franquia, e o universo do tema aparece em objetos.
+
 ## 10.13 Fora do escopo e pendências
 
 - **Fora do escopo:** institucional, Home (`/`), painel, flags de publicação, banco (nada gravado) e Edge Functions.
