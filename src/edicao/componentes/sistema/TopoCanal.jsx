@@ -12,6 +12,6 @@ import React from 'react'
 
 export const CANAIS = ['estreia', 'elenco', 'cardapio', 'rota', 'gala', 'servico']
 
-export function TopoCanal ({ canal, children, className = '' }) {
-  return <section className={`ct-canal ct-canal--${canal} ${className}`.trim()}>{children}</section>
+export function TopoCanal ({ canal, children, className = '', ...resto }) {
+  return <section className={`ct-canal ct-canal--${canal} ${className}`.trim()} {...resto}>{children}</section>
 }

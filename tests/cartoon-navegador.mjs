@@ -104,7 +104,7 @@ try {
   {
     const { ctx, page, erros } = await contexto(nav)
     const CENAS = [
-      ['/cartoon/participantes', 'O elenco da Cartoon'],
+      ['/cartoon/participantes', 'Estrelando: nosso elenco!'],
       ['/cartoon/participantes/demo-casa-aurora', '[DEMO] Casa Aurora'],
       ['/cartoon/combos', 'Os combos da Cartoon'],
       ['/cartoon/combos/demo-casa-aurora', '[DEMO] Casa Aurora'],
@@ -211,8 +211,11 @@ try {
     await page.click('.ct-chip:has-text("Delivery")')
     await page.waitForFunction(() => new URLSearchParams(location.search).get('modo') === 'delivery')
     if ((await page.locator('.ct-cartao').count()) !== 1) falha(`filtro delivery: ${await page.locator('.ct-cartao').count()} cartões`)
-    await page.evaluate(() => window.scrollTo(0, 200))
+    // Rola até o cartão ANTES de medir: o clique do Playwright rolaria até ele de novo e a posição guardada
+    // seria outra. O topo do elenco (letreiro desenhado) deixa o cartão abaixo da dobra em 500 px de altura.
+    await page.locator('.ct-cartao__link').first().scrollIntoViewIfNeeded()
     const y0 = await page.evaluate(() => scrollY)
+    if (y0 === 0) falha('catálogo: o teste não rolou, a posição não foi verificada')
     await page.click('.ct-cartao__link')
     await page.waitForSelector('#combo')
     await page.goBack()

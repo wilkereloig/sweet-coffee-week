@@ -111,10 +111,86 @@ test('filtros usam só dado declarado', () => {
 })
 
 test('filtros vão e voltam pela query string', () => {
-  const f = { q: 'café', bairro: 'Tirol', modo: 'retirada', aberto: true, semGluten: true, semLactose: true }
+  const f = { q: 'café', bairro: 'Tirol', modo: 'retirada', aberto: true, hoje: true, vegano: true, semAcucar: true, semGluten: true, semLactose: true }
   const s = M.buscaDosFiltros(f)
   assert.deepEqual(M.filtrosDaBusca(s), f)
   assert.equal(M.buscaDosFiltros({}), '')
+  assert.deepEqual(M.filtrosDaBusca(''), { q: '', bairro: '', modo: '', aberto: false, hoje: false, vegano: false, semAcucar: false, semGluten: false, semLactose: false })
+})
+
+test('restrições do combo: sim só com todos os itens declarados; "não" só com declaração; o resto é não informado', () => {
+  const item = (...a) => ({ alimentar: a.map(([aspecto, estado]) => ({ aspecto, estado })) })
+  assert.equal(M.veredito(aurora.combo.itens, 'gluten'), 'nao', 'contém glúten em algum item')
+  assert.equal(M.veredito(aurora.combo.itens, 'lactose'), 'nao', 'o doce declara lactose')
+  assert.equal(M.veredito(aurora.combo.itens, 'vegano'), 'nao_informado')
+  assert.equal(M.veredito(bico.combo.itens, 'gluten'), 'nao_informado', 'tudo não informado não vira "não"')
+  assert.equal(M.veredito([item(['gluten', 'pode_conter'])], 'gluten'), 'nao', 'pode conter glúten não é sem glúten')
+  assert.equal(M.veredito([item(['vegano', 'sim']), item(['vegano', 'sim'])], 'vegano'), 'sim')
+  assert.equal(M.veredito([item(['vegano', 'sim']), item()], 'vegano'), 'nao_informado', 'um item calado tira o "sim"')
+  assert.equal(M.veredito([item(['acucar_adicionado', 'nao'])], 'acucar'), 'sim')
+  assert.equal(M.veredito([item(['leite', 'contem'])], 'lactose'), 'nao_informado', 'contém leite não responde lactose')
+  assert.equal(M.veredito([], 'vegano'), 'nao_informado')
+  assert.equal(M.veredito(aurora.combo.itens, 'inexistente'), 'nao_informado')
+})
+
+test('modo de atendimento da casa: sim por unidade, "não" só quando todas declararam', () => {
+  assert.deepEqual(M.estadoModo(aurora, 'delivery').unidades.map((u) => u.id), ['udemo1'])
+  assert.equal(M.estadoModo(aurora, 'delivery').estado, 'sim')
+  assert.equal(M.estadoModo(bico, 'delivery').estado, 'nao')
+  assert.equal(M.estadoModo(quadro, 'local').estado, 'nao_informado', 'unidade sem combo: não informado')
+  assert.equal(M.estadoModo({ unidades: [] }, 'local').estado, 'nao_informado', 'sem unidade: não informado')
+  const misto = { unidades: [{ id: 'a', combo: { modos: { retirada: 'nao' } } }, { id: 'b', combo: { modos: {} } }] }
+  assert.deepEqual(M.estadoModo(misto, 'retirada'), { estado: 'nao_informado', unidades: [misto.unidades[1]] })
+})
+
+test('caixa de leitura e endereço: só exibição, sem número repetido', () => {
+  assert.equal(M.caixaLegivel('COMBO K POP STAR'), 'Combo K Pop Star')
+  assert.equal(M.caixaLegivel('O CHAMADO DO MAR'), 'O Chamado do Mar')
+  assert.equal(M.caixaLegivel('Piquenique do pica pau'), 'Piquenique do pica pau', 'caixa mista fica como veio')
+  assert.equal(M.caixaLegivel(''), '')
+  assert.equal(M.caixaLegivel(null), '')
+  const adocee = { logradouro: 'AV PRAIA DE PONTA NEGRA N 8880', numero: '8880', bairro: 'Ponta Negra', cidade: 'Natal' }
+  assert.equal(M.ruaEmLinha(adocee), 'Av Praia de Ponta Negra, 8880')
+  assert.equal(M.enderecoEmLinha(adocee), 'Av Praia de Ponta Negra, 8880 · Ponta Negra · Natal')
+  assert.equal(M.ruaEmLinha({ logradouro: 'Rua Antônio China, 490', numero: '590' }), 'Rua Antônio China, 490, 590', 'número divergente não some')
+  assert.equal(M.ruaEmLinha({ logradouro: 'Rua X, 12', numero: '12' }), 'Rua X, 12')
+})
+
+test('Como chegar: coordenada só quando conferida; aproximada usa o endereço', () => {
+  const end = { logradouro: 'Rua Exemplo', numero: '10', bairro: 'Tirol', cidade: 'Natal', uf: 'RN' }
+  assert.match(M.linkComoChegar({ endereco: end, coordenada: { lat: -5.8, lng: -35.2 } }), /destination=-5\.8%2C-35\.2$/)
+  const aprox = M.linkComoChegar({ endereco: end, coordenada: { lat: -5.8, lng: -35.2, conferir: true, precisao: 'rua' } })
+  assert.match(aprox, /destination=Rua%20Exemplo%2C%2010%2C%20Tirol%2C%20Natal%20-%20RN$/)
+  assert.match(M.linkComoChegar({ coordenada: { lat: -5.8, lng: -35.2, conferir: true } }), /destination=-5\.8%2C-35\.2$/, 'sem endereço, vale a coordenada')
+  assert.equal(M.linkComoChegar({}), '')
+})
+
+test('filtros novos: vegano, sem açúcar, com combo hoje e bairro sem diferença de caixa', () => {
+  const casa = (slug, bairro, alimentar, disponibilidade = []) => ({
+    slug, unidades: [{ endereco: { bairro }, combo: { modos: {}, disponibilidade } }],
+    combo: { itens: [{ alimentar: alimentar.map(([aspecto, estado]) => ({ aspecto, estado })) }] },
+  })
+  const lista = [
+    casa('a', 'Capim Macio', [['vegano', 'sim'], ['acucar_adicionado', 'nao']], [{ data: '2026-11-09', abre: '14:00', fecha: '20:00' }]),
+    casa('b', 'Capim macio', [['vegano', 'nao']], [{ data: '2026-11-09', abre: '09:00', fecha: '12:00' }]),
+    casa('c', 'Tirol', []),
+  ]
+  const o = M.opcoesFiltro(lista)
+  assert.deepEqual(o.bairros, ['Capim Macio', 'Tirol'], 'uma opção por bairro')
+  assert.equal(o.vegano, true)
+  assert.equal(o.semAcucar, true)
+  assert.equal(o.semGluten, false)
+  assert.equal(o.hoje, false, 'sem período da edição, "hoje" não aparece')
+  const periodo = { inicio: '2026-11-05', fim: '2026-11-15' }
+  assert.equal(M.opcoesFiltro(lista, periodo, NOVE_NOV(10)).hoje, true)
+  assert.equal(M.opcoesFiltro(lista, periodo, new Date(Date.UTC(2026, 9, 28, 15))).hoje, false, 'antes do festival, "hoje" não aparece')
+  assert.deepEqual(M.filtrar(lista, { bairro: 'capim MACIO' }).map((p) => p.slug), ['a', 'b'])
+  assert.deepEqual(M.filtrar(lista, { vegano: true }).map((p) => p.slug), ['a'])
+  assert.deepEqual(M.filtrar(lista, { semAcucar: true }).map((p) => p.slug), ['a'])
+  assert.deepEqual(M.filtrar(lista, { hoje: true }, NOVE_NOV(10)).map((p) => p.slug), ['a', 'b'], '10h: a abre mais tarde, b está aberta')
+  assert.deepEqual(M.filtrar(lista, { hoje: true }, NOVE_NOV(13)).map((p) => p.slug), ['a'], '13h: b já fechou por hoje')
+  assert.equal(M.hojeEmNatal(new Date(Date.UTC(2026, 10, 10, 2, 59))), '2026-11-09', '23h59 em Natal ainda é dia 9')
+  assert.equal(M.dentroDoFestival(null), false)
 })
 
 test('formatos e links', () => {

@@ -53,23 +53,40 @@ export const FASE_TEXTO = {
   resultadosEmBreve: 'Os resultados serão publicados aqui.',
 }
 
+/** Atendimento e restrições: rótulo + ícone da edição. O ícone nunca vai sozinho (§10.15, família 1). */
+export const ATENDIMENTO = {
+  local: { rotulo: 'No local', icone: 'no-local' },
+  retirada: { rotulo: 'Para viagem', icone: 'para-viagem' },
+  delivery: { rotulo: 'Delivery', icone: 'delivery' },
+}
+export const RESTRICAO = {
+  vegano: { rotulo: 'Vegano', icone: 'vegano', sim: 'Vegano, segundo a casa', nao: 'Não é vegano', nao_informado: 'Vegano: não informado' },
+  acucar: { rotulo: 'Sem açúcar', icone: 'sem-acucar', sim: 'Sem açúcar adicionado, segundo a casa', nao: 'Tem açúcar adicionado', nao_informado: 'Açúcar adicionado: não informado' },
+  gluten: { rotulo: 'Sem glúten', icone: 'sem-gluten', sim: 'Sem glúten, segundo a casa', nao: 'Contém ou pode conter glúten', nao_informado: 'Glúten: não informado' },
+  lactose: { rotulo: 'Sem lactose', icone: 'sem-lactose', sim: 'Sem lactose, segundo a casa', nao: 'Contém lactose', nao_informado: 'Lactose: não informado' },
+}
+
 export const CATALOGO = {
-  titulo: 'O elenco da Cartoon',
+  titulo: 'Estrelando: nosso elenco!',
   tituloCombos: 'Os combos da Cartoon',
+  lead: 'Escolha a casa, veja o combo e onde provar.',
+  placa: (n) => (n === 1 ? 'casa no elenco' : 'casas no elenco'),
   busca: 'Buscar casa, combo ou bairro',
   filtros: 'Filtros',
   bairro: 'Bairro',
-  todos: 'Todos',
-  aberto: 'Combo disponível agora',
-  semGluten: 'Sem glúten declarado',
-  semLactose: 'Sem lactose declarada',
+  todos: 'Todos os bairros',
+  comoPedir: 'Como pedir',
+  quando: 'Quando',
+  hoje: 'Com combo hoje',
+  restricoes: 'Restrições',
   limpar: 'Limpar filtros',
-  ver: (n) => (n === 1 ? 'Ver 1 casa' : `Ver ${n} casas`),
-  contagem: (n) => (n === 1 ? '1 casa' : `${n} casas`),
+  contagem: (n, total) => (n === total ? (total === 1 ? '1 casa' : `${total} casas`) : `${n} de ${total} casas`),
   nenhum: (q) => (q ? `Nenhuma casa encontrada para "${q}".` : 'Nenhuma casa com esses filtros.'),
   verTodas: 'Ver todas as casas',
-  declarado: 'Declarado pela casa.',
+  declarado: 'Restrição só vale quando a casa declarou para todos os itens do combo.',
   comboEmBreve: 'Combo em breve',
+  fotoEmProducao: 'Foto em produção',
+  unidades: (n) => `${n} unidades`,
 }
 
 export const PARTICIPANTE = {

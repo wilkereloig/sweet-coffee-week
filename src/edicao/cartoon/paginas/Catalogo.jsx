@@ -1,16 +1,27 @@
 /*
- * Catálogo (§5.2): /cartoon/participantes (logo e nome à frente) e
- * /cartoon/combos (foto e composição à frente). Mesma coleção, mesmos filtros,
- * mesma página de destino. Filtros moram na query string (replaceState);
- * a posição de rolagem volta quando o visitante retorna de uma casa.
+ * Catálogo (§5.2; docs/cartoon-2026-2/10 §10.7): /cartoon/participantes (a casa à frente) e
+ * /cartoon/combos (o combo à frente). Mesma coleção, mesmos filtros, mesma página de destino.
+ * Topo no canal Elenco com o letreiro desenhado e a contagem real; o cartão tem a foto do combo
+ * como protagonista e, sem foto, a logo desenhada no Quadro ("Foto em produção").
+ * Filtros moram na query string (replaceState) e só aparecem os que o dado responde; a posição
+ * de rolagem volta quando o visitante retorna de uma casa.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { Link, Foto, Logo, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
-import { CATALOGO as T, FASE_TEXTO } from '../textos.js'
+import { letreiroEdicao, kitTemaEdicao } from '../../../data/imageLibrary'
+import { Link, Foto, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
+import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
+import { Placa } from '../../componentes/sistema/pecas.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
+import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
+import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM } from '../textos.js'
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
+// [chave do filtro, chave da restrição em M.RESTRICOES]
+const FILTROS_RESTRICAO = [['vegano', 'vegano'], ['semAcucar', 'acucar'], ['semGluten', 'gluten'], ['semLactose', 'lactose']]
+const VAZIO = { q: '', bairro: '', modo: '', aberto: false, hoje: false, vegano: false, semAcucar: false, semGluten: false, semLactose: false }
 
 function guardarPosicao () {
   try { sessionStorage.setItem(CHAVE_POSICAO, JSON.stringify({ url: location.pathname + location.search, y: scrollY })) } catch { /* sem storage */ }
@@ -25,43 +36,74 @@ function restaurarPosicao () {
   } catch { /* sem storage */ }
 }
 
+/** Selos do cartão: atendimento que alguma unidade declarou + restrição declarada no combo inteiro. */
+function selosDaCasa (p) {
+  const modos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim').map((k) => ATENDIMENTO[k])
+  const restricoes = M.RESTRICOES.map((r) => r.chave).filter((k) => M.veredito(p.combo?.itens, k) === 'sim').map((k) => RESTRICAO[k])
+  return [...modos, ...restricoes]
+}
+
 function Cartao ({ p, modo, navigate }) {
   const base = modo === 'combos' ? 'combos' : 'participantes'
   const us = p.unidades || []
-  const bairros = [...new Set(us.map((u) => u.endereco?.bairro).filter(Boolean))]
-  const modos = M.modosDoParticipante(p)
-  const disponiveis = M.MODOS.filter(([k]) => modos[k].length).map(([, r]) => r)
-  const itens = [...(p.combo?.itens || [])].sort((a, b) => a.posicao - b.posicao)
+  const bairros = [...new Map(us.map((u) => u.endereco?.bairro).filter(Boolean).map((b) => [M.normalizar(b), b])).values()]
+  const itens = [...(p.combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
+  const nomeCombo = p.combo?.nome ? M.caixaLegivel(p.combo.nome) : ''
+  const foto = p.combo?.fotos?.principal
+  const espia = kitTemaEdicao(p.slug)?.objetoB
+  const selos = selosDaCasa(p)
+  const nomesItens = itens.map((i) => i.nome).filter(Boolean)
   return (
-    <li className="ct-cartao">
+    <li className={`ct-cartao${espia ? ' ct-cartao--espia' : ''}`}>
       <Link className="ct-cartao__link" href={`${EDICAO.caminho}/${base}/${p.slug}`} navigate={navigate} aoIr={guardarPosicao}>
-        {p.combo
-          ? <Foto foto={p.combo.fotos?.principal} proporcao={modo === 'combos' ? '4 / 3' : '1 / 1'} reserva="Foto do combo em produção" />
-          : <div className="ct-foto ct-foto--reserva" style={{ '--ct-proporcao': modo === 'combos' ? '4 / 3' : '1 / 1' }}><span>{T.comboEmBreve}</span></div>}
-        <div className="ct-cartao__corpo">
-          <div className="ct-cartao__casa">
-            <Logo casa={p.casa} tamanho={modo === 'combos' ? 36 : 48} />
-            <h2 className="ct-cartao__nome">{modo === 'combos' && p.combo?.nome ? p.combo.nome : p.casa.nome}</h2>
-          </div>
-          {modo === 'combos' && <p className="ct-cartao__sub">{p.casa.nome}</p>}
-          {modo === 'combos' && itens.length > 0 && <p className="ct-cartao__sub">{itens.map((i) => i.nome).join(' · ')}</p>}
-          <p className="ct-cartao__meta">
-            {[bairros.join(', '), us.length > 1 ? `${us.length} unidades` : null].filter(Boolean).join(' · ')}
-          </p>
-          {disponiveis.length > 0 && <p className="ct-cartao__meta">{disponiveis.join(' · ')}</p>}
+        <div className="ct-cartao__visual">
+          {foto ? <Foto foto={foto} proporcao="4 / 3" alt="" /> : (
+            <div className="ct-cartao__reserva">
+              <LogoDesenhada casa={p.casa} alt="" />
+              <span className="ct-cartao__aviso">{p.combo ? T.fotoEmProducao : T.comboEmBreve}</span>
+            </div>
+          )}
         </div>
+        {espia && <img className="ct-cartao__espia" src={espia.src} width={espia.largura} height={espia.altura} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
+        <div className="ct-cartao__corpo">
+          <h2 className="ct-cartao__nome">{modo === 'combos' && nomeCombo ? nomeCombo : p.casa.nome}</h2>
+          {modo === 'combos' ? nomeCombo && <p className="ct-cartao__sub">{p.casa.nome}</p> : nomeCombo && <p className="ct-cartao__sub">{nomeCombo}</p>}
+          {modo === 'combos' && nomesItens.length > 0 && <p className="ct-cartao__sub">{nomesItens.join(' · ')}</p>}
+          {(bairros.length > 0 || us.length > 1) && (
+            <p className="ct-cartao__onde">{[bairros.join(' · '), us.length > 1 ? T.unidades(us.length) : null].filter(Boolean).join(' · ')}</p>
+          )}
+        </div>
+        {selos.length > 0 && (
+          <ul className="ct-selos ct-cartao__selos">
+            {selos.map((s) => <li key={s.icone} className="ct-selo"><IconeCartoon nome={s.icone} tamanho={32} /><span>{s.rotulo}</span></li>)}
+          </ul>
+        )}
       </Link>
     </li>
   )
 }
 
+/** Chip de filtro: ícone da edição + texto (o ícone nunca vai sozinho). */
+function Chip ({ ativo, icone, onClick, children }) {
+  return (
+    <button type="button" className={`ct-chip${icone ? ' ct-chip--icone' : ''}`} aria-pressed={ativo} onClick={onClick}>
+      {icone && <IconeCartoon nome={icone} tamanho={32} />}<span>{children}</span>
+    </button>
+  )
+}
+
 export function Catalogo ({ modo, navigate, dados }) {
   const lista = dados.participantes || []
-  const [f, setF] = React.useState(() => M.filtrosDaBusca(location.search))
+  // "Aberto agora" é filtro do Mapa; no catálogo vale "com combo hoje".
+  const [f, setF] = React.useState(() => ({ ...VAZIO, ...M.filtrosDaBusca(location.search), aberto: false }))
   const [painel, setPainel] = React.useState(false)
-  const opcoes = React.useMemo(() => M.opcoesFiltro(lista), [lista])
+  const opcoes = React.useMemo(() => M.opcoesFiltro(lista, dados.edicao), [lista, dados.edicao])
   const filtrados = React.useMemo(() => M.filtrar(lista, f), [lista, f])
-  const ativos = [f.bairro, f.modo, f.aberto, f.semGluten, f.semLactose].filter(Boolean).length
+  const ativos = [f.bairro, f.modo, f.hoje, f.vegano, f.semAcucar, f.semGluten, f.semLactose].filter(Boolean).length
+  const restricoes = FILTROS_RESTRICAO.filter(([k]) => opcoes[k])
+  const titulo = modo === 'combos'
+    ? <Letreiro nivel={1} id="cat-titulo" texto={T.tituloCombos} />
+    : <Letreiro nivel={1} id="cat-titulo" texto={T.titulo} imagem={letreiroEdicao('elenco')} />
 
   React.useEffect(() => { restaurarPosicao() }, [])
   React.useEffect(() => {
@@ -74,75 +116,103 @@ export function Catalogo ({ modo, navigate, dados }) {
   }, [f])
 
   const muda = (k, v) => setF((x) => ({ ...x, [k]: v }))
-  const limpar = () => setF({ q: '', bairro: '', modo: '', aberto: false, semGluten: false, semLactose: false })
-
-  if (!dados.participantes_publicos || !lista.length) {
-    return (
-      <section className="ct-bloco">
-        <h1 className="ct-h1">{modo === 'combos' ? T.tituloCombos : T.titulo}</h1>
-        <p className="ct-lead">{FASE_TEXTO.semElenco}</p>
-      </section>
-    )
-  }
-
-  const filtros = (
-    <div className="ct-filtros__campos">
-      {opcoes.bairros.length > 1 && (
-        <label className="ct-campo">
-          <span>{T.bairro}</span>
-          <select value={f.bairro} onChange={(e) => muda('bairro', e.target.value)}>
-            <option value="">{T.todos}</option>
-            {opcoes.bairros.map((b) => <option key={b} value={b}>{b}</option>)}
-          </select>
-        </label>
-      )}
-      {opcoes.modos.length > 0 && dados.combos_publicos && (
-        <fieldset className="ct-chips">
-          <legend className="ct-sr">Como pedir</legend>
-          {M.MODOS.filter(([k]) => opcoes.modos.includes(k)).map(([k, r]) => (
-            <button key={k} type="button" className="ct-chip" aria-pressed={f.modo === k} onClick={() => muda('modo', f.modo === k ? '' : k)}>{r}</button>
-          ))}
-        </fieldset>
-      )}
-      {dados.fase === 'em_andamento' && dados.combos_publicos && (
-        <label className="ct-check"><input type="checkbox" checked={f.aberto} onChange={(e) => muda('aberto', e.target.checked)} /> {T.aberto}</label>
-      )}
-      {opcoes.semGluten && <label className="ct-check"><input type="checkbox" checked={f.semGluten} onChange={(e) => muda('semGluten', e.target.checked)} /> {T.semGluten}</label>}
-      {opcoes.semLactose && <label className="ct-check"><input type="checkbox" checked={f.semLactose} onChange={(e) => muda('semLactose', e.target.checked)} /> {T.semLactose}</label>}
-      {(opcoes.semGluten || opcoes.semLactose) && <p className="ct-nota">{T.declarado}</p>}
-    </div>
-  )
-
-  return (
-    <section className="ct-bloco ct-catalogo" aria-labelledby="cat-titulo">
+  const limpar = () => setF(VAZIO)
+  const avisos = (
+    <>
       <AvisoDesatualizado ativo={dados.desatualizado} />
       <AvisoDemo ativo={dados.demo} />
       <AvisoRetrato retrato={dados.retrato} />
-      <div className="ct-catalogo__cabeca">
-        <h1 id="cat-titulo" className="ct-h1">{modo === 'combos' ? T.tituloCombos : T.titulo}</h1>
-        <p className="ct-catalogo__conta" aria-live="polite">{T.contagem(filtrados.length)}</p>
-      </div>
-      <div className="ct-filtros">
-        <label className="ct-campo ct-campo--busca">
-          <span className="ct-sr">{T.busca}</span>
-          <input type="search" value={f.q} placeholder={T.busca} onChange={(e) => muda('q', e.target.value)} />
-        </label>
-        <button type="button" className="ct-botao ct-botao--contorno ct-filtros__abrir" aria-expanded={painel} onClick={() => setPainel(!painel)}>
-          {T.filtros}{ativos ? ` (${ativos})` : ''}
-        </button>
-        <div className={`ct-filtros__painel${painel ? ' is-aberto' : ''}`}>{filtros}</div>
-        {(ativos > 0 || f.q) && <button type="button" className="ct-link" onClick={limpar}>{T.limpar}</button>}
-      </div>
-      {filtrados.length ? (
-        <ul className={`ct-grade ct-grade--${modo}`}>
-          {filtrados.map((p) => <Cartao key={p.slug} p={p} modo={modo} navigate={navigate} />)}
-        </ul>
-      ) : (
-        <div className="ct-estado">
-          <p>{T.nenhum(f.q)}</p>
-          <button type="button" className="ct-botao" onClick={limpar}>{T.verTodas}</button>
+    </>
+  )
+
+  if (!dados.participantes_publicos || !lista.length) {
+    return (
+      <>
+        {avisos}
+        <TopoCanal canal="elenco" className="ct-catalogo__topo" aria-labelledby="cat-titulo">
+          <div className="ct-catalogo__chamada">{titulo}<p className="ct-lead">{FASE_TEXTO.semElenco}</p></div>
+        </TopoCanal>
+      </>
+    )
+  }
+
+  return (
+    <div className="ct-catalogo">
+      {avisos}
+      <TopoCanal canal="elenco" className="ct-catalogo__topo" aria-labelledby="cat-titulo">
+        <div className="ct-catalogo__chamada">{titulo}</div>
+        <div className="ct-catalogo__apoio">
+          <Placa numero={String(lista.length)} rotulo={T.placa(lista.length)} />
+          <p className="ct-lead">{T.lead}</p>
         </div>
-      )}
-    </section>
+      </TopoCanal>
+
+      <section className="ct-bloco ct-catalogo__corpo">
+        <div className="ct-filtros ct-filtros--catalogo">
+          <label className="ct-campo ct-campo--busca">
+            <span className="ct-sr">{T.busca}</span>
+            <input type="search" value={f.q} placeholder={T.busca} onChange={(e) => muda('q', e.target.value)} />
+          </label>
+          <button type="button" className="ct-botao ct-botao--contorno ct-filtros__abrir" aria-expanded={painel} aria-controls="cat-filtros" onClick={() => setPainel(!painel)}>
+            {T.filtros}{ativos ? ` (${ativos})` : ''}
+          </button>
+          <div id="cat-filtros" className={`ct-filtros__painel${painel ? ' is-aberto' : ''}`}>
+            {opcoes.bairros.length > 1 && (
+              <label className="ct-campo ct-filtros__grupo">
+                <span className="ct-rotulo">{T.bairro}</span>
+                <select value={f.bairro} onChange={(e) => muda('bairro', e.target.value)}>
+                  <option value="">{T.todos}</option>
+                  {opcoes.bairros.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </label>
+            )}
+            {opcoes.modos.length > 0 && dados.combos_publicos && (
+              <fieldset className="ct-filtros__grupo">
+                <legend className="ct-rotulo">{T.comoPedir}</legend>
+                <div className="ct-chips">
+                  {opcoes.modos.map((k) => (
+                    <Chip key={k} ativo={f.modo === k} icone={ATENDIMENTO[k].icone} onClick={() => muda('modo', f.modo === k ? '' : k)}>{ATENDIMENTO[k].rotulo}</Chip>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            {opcoes.hoje && dados.combos_publicos && dados.fase === 'em_andamento' && (
+              <fieldset className="ct-filtros__grupo">
+                <legend className="ct-rotulo">{T.quando}</legend>
+                <div className="ct-chips"><Chip ativo={f.hoje} icone="aberto-agora" onClick={() => muda('hoje', !f.hoje)}>{T.hoje}</Chip></div>
+              </fieldset>
+            )}
+            {restricoes.length > 0 && (
+              <fieldset className="ct-filtros__grupo">
+                <legend className="ct-rotulo">{T.restricoes}</legend>
+                <div className="ct-chips">
+                  {restricoes.map(([k, chave]) => (
+                    <Chip key={k} ativo={f[k]} icone={RESTRICAO[chave].icone} onClick={() => muda(k, !f[k])}>{RESTRICAO[chave].rotulo}</Chip>
+                  ))}
+                </div>
+                <p className="ct-nota">{T.declarado}</p>
+              </fieldset>
+            )}
+          </div>
+        </div>
+
+        <div className="ct-catalogo__resumo">
+          <p className="ct-catalogo__conta" aria-live="polite">{T.contagem(filtrados.length, lista.length)}</p>
+          {(ativos > 0 || f.q) && <button type="button" className="ct-link" onClick={limpar}>{T.limpar}</button>}
+        </div>
+
+        {filtrados.length ? (
+          <ul className={`ct-elenco ct-elenco--${modo}`}>
+            {filtrados.map((p) => <Cartao key={p.slug} p={p} modo={modo} navigate={navigate} />)}
+          </ul>
+        ) : (
+          <div className="ct-estado ct-estado--vazio">
+            <IconeCartoon nome="vazio" tamanho={64} />
+            <p>{T.nenhum(f.q)}</p>
+            <button type="button" className="ct-botao" onClick={limpar}>{T.verTodas}</button>
+          </div>
+        )}
+      </section>
+    </div>
   )
 }

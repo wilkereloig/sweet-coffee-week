@@ -70,6 +70,55 @@ export function declaradoSem (itens = [], aspecto) {
   return itens.every((i) => declaracoes(i)[aspecto] === 'nao_contem')
 }
 
+/**
+ * As quatro restrições que a página e os filtros respondem para o combo inteiro. `sim`: o que a casa
+ * precisa ter declarado em CADA item; `nao`: o que, declarado em QUALQUER item, já responde "não".
+ * O resto é "não informado" — nunca deduzido (sem lactose ≠ sem leite; pode conter glúten ≠ sem glúten).
+ */
+export const RESTRICOES = [
+  { chave: 'vegano', sim: (d) => d.vegano === 'sim', nao: (d) => d.vegano === 'nao' },
+  { chave: 'acucar', sim: (d) => d.acucar_adicionado === 'nao', nao: (d) => d.acucar_adicionado === 'sim' },
+  { chave: 'gluten', sim: (d) => d.gluten === 'nao_contem', nao: (d) => d.gluten === 'contem' || d.gluten === 'pode_conter' },
+  { chave: 'lactose', sim: (d) => d.lactose === 'nao', nao: (d) => d.lactose === 'sim' },
+]
+
+/** 'sim' · 'nao' · 'nao_informado' para uma restrição (chave de RESTRICOES) no combo inteiro. */
+export function veredito (itens = [], chave) {
+  const r = RESTRICOES.find((x) => x.chave === chave)
+  if (!r || !itens?.length) return 'nao_informado'
+  const ds = itens.map(declaracoes)
+  if (ds.every(r.sim)) return 'sim'
+  return ds.some(r.nao) ? 'nao' : 'nao_informado'
+}
+
+/** Como a unidade atende o combo num modo: 'sim' · 'nao' · 'nao_informado' (o que não veio). */
+const modoDe = (u, k) => (['sim', 'nao'].includes(u?.combo?.modos?.[k]) ? u.combo.modos[k] : 'nao_informado')
+
+/**
+ * Um modo de atendimento para a casa inteira: { estado, unidades }.
+ * sim = alguma unidade declarou (unidades = essas); sem nenhum sim, alguma em branco = não informado
+ * (unidades = as em branco); todas declararam "não" = nao. Sem unidade: não informado.
+ */
+export function estadoModo (p, k) {
+  const us = p?.unidades || []
+  const sim = us.filter((u) => modoDe(u, k) === 'sim')
+  if (sim.length) return { estado: 'sim', unidades: sim }
+  const ni = us.filter((u) => modoDe(u, k) === 'nao_informado')
+  if (ni.length || !us.length) return { estado: 'nao_informado', unidades: ni }
+  return { estado: 'nao', unidades: [] }
+}
+
+/**
+ * Texto em CAIXA ALTA vira caixa de leitura ("COMBO K POP STAR" → "Combo K Pop Star"); o resto fica como
+ * veio. Só exibição: o dado não muda. Preposições e artigos do meio ficam minúsculos.
+ */
+const MIUDAS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'as', 'os', 'em', 'no', 'na', 'nos', 'nas', 'com', 'para'])
+export function caixaLegivel (s) {
+  const t = String(s ?? '')
+  if (!/\p{Lu}/u.test(t) || /\p{Ll}/u.test(t)) return t
+  return t.toLowerCase().replace(/[\p{L}\p{N}]+/gu, (w, i) => (i > 0 && MIUDAS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+}
+
 export function juntar (lista) {
   if (lista.length <= 1) return lista.join('')
   return `${lista.slice(0, -1).join(', ')} e ${lista[lista.length - 1]}`
@@ -94,6 +143,16 @@ function partesLocais (agora) {
 }
 
 const diaIso = (v) => { const s = String(v || '').slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '' }
+
+/** 'AAAA-MM-DD' de hoje em Natal. */
+export const hojeEmNatal = (agora = new Date()) => partesLocais(agora).data
+
+/** Hoje está dentro do festival ({ inicio, fim } da edição)? Sem período, não. */
+export function dentroDoFestival (periodo, agora = new Date()) {
+  const de = diaIso(periodo?.inicio); const ate = diaIso(periodo?.fim)
+  const hoje = hojeEmNatal(agora)
+  return !!de && !!ate && hoje >= de && hoje <= ate
+}
 
 /**
  * Estado do combo numa unidade agora:
@@ -141,35 +200,52 @@ function textoBusca (p) {
   return normalizar(partes.filter(Boolean).join(' '))
 }
 
-/** Opções de filtro que existem nos dados (nunca oferecer filtro vazio). */
-export function opcoesFiltro (lista = []) {
-  const bairros = new Set()
+/**
+ * Opções de filtro que existem nos dados (nunca oferecer filtro vazio). Bairro escrito de dois jeitos
+ * ("Capim Macio" · "Capim macio") vira uma opção só, na grafia com mais maiúsculas. `hoje` só existe
+ * com o `periodo` da edição e com hoje dentro dele.
+ */
+export function opcoesFiltro (lista = [], periodo = null, agora = new Date()) {
+  const bairros = new Map()
   const modos = new Set()
+  const maiusculas = (s) => (s.match(/\p{Lu}/gu) || []).length
   for (const p of lista) {
     for (const u of p.unidades || []) {
-      if (u.endereco?.bairro) bairros.add(u.endereco.bairro)
-      for (const [k] of MODOS) if (u.combo?.modos?.[k] === 'sim') modos.add(k)
+      const b = String(u.endereco?.bairro || '').trim()
+      const k = normalizar(b)
+      if (k && (!bairros.has(k) || maiusculas(b) > maiusculas(bairros.get(k)))) bairros.set(k, b)
+      for (const [m] of MODOS) if (u.combo?.modos?.[m] === 'sim') modos.add(m)
     }
   }
+  const algum = (chave) => lista.some((p) => veredito(p.combo?.itens, chave) === 'sim')
   return {
-    bairros: [...bairros].sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    bairros: [...bairros.values()].sort((a, b) => a.localeCompare(b, 'pt-BR')),
     modos: MODOS.filter(([k]) => modos.has(k)).map(([k]) => k),
-    semGluten: lista.some((p) => declaradoSem(p.combo?.itens, 'gluten')),
-    semLactose: lista.some((p) => declaradoSem(p.combo?.itens, 'lactose')),
+    hoje: dentroDoFestival(periodo, agora),
+    vegano: algum('vegano'),
+    semAcucar: algum('acucar'),
+    semGluten: algum('gluten'),
+    semLactose: algum('lactose'),
   }
 }
 
-/** Filtros: { q, bairro, modo, aberto, semGluten, semLactose }. */
+/** Filtros: { q, bairro, modo, aberto, hoje, vegano, semAcucar, semGluten, semLactose }. */
 export function filtrar (lista = [], f = {}, agora = new Date()) {
   const q = normalizar(f.q || '')
+  const bairro = normalizar(f.bairro || '')
   return lista.filter((p) => {
     if (q && !q.split(/\s+/).every((t) => textoBusca(p).includes(t))) return false
     const us = p.unidades || []
-    if (f.bairro && !us.some((u) => u.endereco?.bairro === f.bairro)) return false
+    const itens = p.combo?.itens
+    if (bairro && !us.some((u) => normalizar(u.endereco?.bairro || '') === bairro)) return false
     if (f.modo && !us.some((u) => u.combo?.modos?.[f.modo] === 'sim')) return false
     if (f.aberto && !us.some((u) => estadoAgora(u, agora).estado === 'aberto')) return false
-    if (f.semGluten && !declaradoSem(p.combo?.itens, 'gluten')) return false
-    if (f.semLactose && !declaradoSem(p.combo?.itens, 'lactose')) return false
+    // "Com combo hoje": abre hoje e ainda não fechou (agora ou mais tarde).
+    if (f.hoje && !us.some((u) => ['aberto', 'abre_hoje'].includes(estadoAgora(u, agora).estado))) return false
+    if (f.vegano && veredito(itens, 'vegano') !== 'sim') return false
+    if (f.semAcucar && veredito(itens, 'acucar') !== 'sim') return false
+    if (f.semGluten && !declaradoSem(itens, 'gluten')) return false
+    if (f.semLactose && !declaradoSem(itens, 'lactose')) return false
     return true
   })
 }
@@ -177,10 +253,11 @@ export function filtrar (lista = [], f = {}, agora = new Date()) {
 /** Filtros <-> query string (o catálogo guarda o estado no endereço). */
 export function filtrosDaBusca (search = '') {
   const q = new URLSearchParams(search)
+  const sem = q.getAll('sem')
   return {
     q: q.get('q') || '', bairro: q.get('bairro') || '', modo: q.get('modo') || '',
-    aberto: q.get('aberto') === '1', semGluten: q.getAll('sem').includes('gluten'),
-    semLactose: q.getAll('sem').includes('lactose'),
+    aberto: q.get('aberto') === '1', hoje: q.get('hoje') === '1', vegano: q.get('vegano') === '1',
+    semAcucar: sem.includes('acucar'), semGluten: sem.includes('gluten'), semLactose: sem.includes('lactose'),
   }
 }
 export function buscaDosFiltros (f = {}) {
@@ -189,6 +266,9 @@ export function buscaDosFiltros (f = {}) {
   if (f.bairro) q.set('bairro', f.bairro)
   if (f.modo) q.set('modo', f.modo)
   if (f.aberto) q.set('aberto', '1')
+  if (f.hoje) q.set('hoje', '1')
+  if (f.vegano) q.set('vegano', '1')
+  if (f.semAcucar) q.append('sem', 'acucar')
   if (f.semGluten) q.append('sem', 'gluten')
   if (f.semLactose) q.append('sem', 'lactose')
   const s = q.toString()
@@ -218,13 +298,31 @@ export function horarioNoFestival (disponibilidade = [], periodo = null) {
   return frasesDeLinhas(Array.isArray(disponibilidade) ? disponibilidade : [], datas)
 }
 
-export function enderecoEmLinha (e = {}) {
-  const rua = [e.logradouro, e.numero].filter(Boolean).join(', ')
-  return [rua, e.complemento, e.bairro, [e.cidade, e.uf].filter(Boolean).join('/')].filter(Boolean).join(' · ')
+/**
+ * "Rua, número" para mostrar: logradouro em caixa alta vira caixa de leitura, e o número que o cadastro
+ * já repete no fim do logradouro ("AV … N 8880" + número 8880) não sai duas vezes. Só exibição.
+ */
+export function ruaEmLinha (e = {}) {
+  const num = String(e.numero ?? '').trim()
+  let rua = caixaLegivel(String(e.logradouro ?? '').trim())
+  if (num) rua = rua.replace(new RegExp(`[\\s,]+(?:n[º°o.]?\\s*)?${num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'), '')
+  return [rua, num].filter(Boolean).join(', ')
 }
 
+export function enderecoEmLinha (e = {}) {
+  return [ruaEmLinha(e), e.complemento, e.bairro, [e.cidade, e.uf].filter(Boolean).join('/')].filter(Boolean).join(' · ')
+}
+
+/**
+ * Google Maps até a unidade. Coordenada só quando conferida pela organização: a aproximada do retrato
+ * (`conferir`, Nominatim por rua ou número) poderia mandar o visitante para outro ponto da avenida, e o
+ * endereço escrito acha melhor. Sem endereço, vale a coordenada que houver.
+ */
 export function linkComoChegar (u) {
-  const destino = u?.coordenada ? `${u.coordenada.lat},${u.coordenada.lng}` : enderecoEmLinha(u?.endereco)
+  const c = u?.coordenada
+  const e = u?.endereco || {}
+  const texto = [ruaEmLinha(e), e.bairro, [e.cidade, e.uf].filter(Boolean).join(' - ')].filter(Boolean).join(', ')
+  const destino = c && (!c.conferir || !texto) ? `${c.lat},${c.lng}` : texto
   return destino ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}` : ''
 }
 

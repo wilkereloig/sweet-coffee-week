@@ -7,15 +7,15 @@
 import React from 'react'
 import { srcSet } from '../../../data/imageLibrary'
 
-export function Letreiro ({ texto, imagem, nivel = 2, tamanho = 'titulo', cor = 'vermelho' }) {
+export function Letreiro ({ texto, imagem, nivel = 2, tamanho = 'titulo', cor = 'vermelho', id }) {
   const Tag = `h${nivel}`
   if (imagem) {
     return (
-      <Tag className="ct-letreiro ct-letreiro--imagem">
+      <Tag id={id} className="ct-letreiro ct-letreiro--imagem">
         <img src={imagem.src} srcSet={srcSet(imagem.src)} sizes="(max-width: 600px) 90vw, 560px" alt="" width={imagem.largura} height={imagem.altura} />
         <span className="ct-sr">{texto}</span>
       </Tag>
     )
   }
-  return <Tag className={`ct-letreiro ct-letreiro--${tamanho} ct-letreiro--cor-${cor}`}>{texto}</Tag>
+  return <Tag id={id} className={`ct-letreiro ct-letreiro--${tamanho} ct-letreiro--cor-${cor}`}>{texto}</Tag>
 }

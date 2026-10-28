@@ -4,7 +4,8 @@
  * radial que cresce — a cor espalha como tinta (o desenho mora em scw-cartoon.css):
  *  - com mouse (hover: hover): a tinta parte do ponto onde o ponteiro entrou e volta ao sair;
  *    o foco do teclado pinta a partir do centro;
- *  - toque: pinta sozinha, uma vez, quando o desenho chega ao meio da tela;
+ *  - toque: pinta sozinha, uma vez, quando o desenho chega ao meio da tela (o que já abre na
+ *    metade de cima — o topo da ficha — pinta logo ao abrir);
  *  - movimento reduzido: colorida direto (só CSS, sem listener).
  * Dentro de um cartão (.ct-cartao__link) o gatilho é o cartão inteiro; fora, o próprio desenho.
  *
@@ -31,7 +32,7 @@ export function LogoDesenhada ({ casa, alt = casa?.nome || '', className = '' })
       el.classList.toggle('is-pintada', sim)
     }
     if (!window.matchMedia('(hover: hover)').matches) {
-      const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { pinta(true); obs.disconnect() } }, { rootMargin: '-45% 0px -45% 0px' })
+      const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { pinta(true); obs.disconnect() } }, { rootMargin: '0px 0px -50% 0px' })
       obs.observe(el)
       return () => obs.disconnect()
     }
