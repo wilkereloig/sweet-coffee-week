@@ -56,3 +56,9 @@ dump-*.json
 # Sujeira de ferramenta, nao de projeto
 .playwright-mcp/
 supabase/.temp/
+
+# Retrato local da edição Cartoon (E3, docs/cartoon-2026-2/10 §10.9): dado real do painel,
+# inclusive casas ainda não publicadas, e logos desenhadas ainda sem aprovação das marcas.
+# O repositório é público. Regenerar: src/edicao/dados/retrato/README.md.
+src/edicao/dados/retrato/cartoon.local.json
+public/retrato-local/
