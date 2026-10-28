@@ -45,8 +45,8 @@ export function Botao ({ tipo = 'primario', href, navigate, children, className:
 }
 
 /** Quadro branco com fita nos cantos, para logo ou foto. */
-export function Quadro ({ children, fita = true }) {
-  return <div className={`ct-quadro${fita ? ' ct-quadro--fita' : ''}`}>{children}</div>
+export function Quadro ({ children, fita = true, className = '' }) {
+  return <div className={`ct-quadro${fita ? ' ct-quadro--fita' : ''} ${className}`.trim()}>{children}</div>
 }
 
 const BARRAS = ['creme', 'amarelo', 'turquesa', 'rosa', 'vermelho', 'azul', 'roxo']

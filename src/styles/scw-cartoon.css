@@ -432,6 +432,22 @@
 .ct-quadro--fita::before { top: -9px; left: -14px; transform: rotate(-35deg); }
 .ct-quadro--fita::after { right: -14px; bottom: -9px; transform: rotate(-35deg); }
 
+/* Logo desenhada (§10.14, LogoDesenhada.jsx): o rascunho P&B embaixo; a colorida por cima, revelada por
+   máscara radial que cresce a partir de --x/--y (a tinta espalhando). @property deixa --ct-tinta animar; sem
+   suporte, a cor só aparece de uma vez. O lado do quadro vem de --ct-desenho, que cada lugar define. */
+@property --ct-tinta { syntax: '<percentage>'; inherits: false; initial-value: -24%; }
+.ct-desenho-quadro { padding: 10px; }
+.ct-desenho { position: relative; display: block; width: var(--ct-desenho, 160px); aspect-ratio: 1; overflow: hidden; background: var(--ct-branco); }
+.ct-desenho img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.ct-desenho__cor {
+  --ct-tinta: -24%;
+  -webkit-mask-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), #000 var(--ct-tinta), transparent calc(var(--ct-tinta) + 22%));
+          mask-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), #000 var(--ct-tinta), transparent calc(var(--ct-tinta) + 22%));
+  transition: --ct-tinta 900ms cubic-bezier(.3, .7, .2, 1);
+}
+.ct-desenho.is-pintada .ct-desenho__cor { --ct-tinta: 100%; }
+.ct-desenho--inicial { display: grid; place-items: center; background: var(--ct-amarelo); font: 900 calc(var(--ct-desenho, 160px) * .45)/1 var(--ct-font); }
+
 /* skewY e não rotate: rotate alarga a caixa e abriria rolagem lateral. */
 .ct-barras { display: grid; grid-template-columns: repeat(7, 1fr); height: 18px; border-block: var(--ct-traco); transform: skewY(-1deg); }
 .ct-barras__b + .ct-barras__b { border-left: 1.2px solid var(--ct-chocolate); }
@@ -517,6 +533,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Logo desenhada: colorida direto, sem tinta (§10.14). */
+  .ct-desenho__cor { -webkit-mask-image: none; mask-image: none; }
   .ct-edicao *, .ct-edicao *::before { transition: none !important; animation: none !important; }
   .ct-edicao .ct-botao:hover, .ct-cartao__link:is(:hover, :focus-visible) { transform: none; }
 }
