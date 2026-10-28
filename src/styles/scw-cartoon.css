@@ -65,59 +65,97 @@
 }
 .ct-edicao a { color: inherit; }
 /* Anel de foco: chocolate fecha ≥ 3:1 em creme, amarelo, turquesa, rosa e branco (tests/cartoon-sistema.test.mjs mede).
-   Só sobre chocolate (.ct-rodape, .ct-abas, .ct-canal--gala) ele vira amarelo — regras no fim do arquivo.
+   Só sobre chocolate (.ct-rodape, .ct-canal--gala) ele vira amarelo — regras no fim do arquivo.
    :is() leva a especificidade a (0,3,0): vence o reset .scw-raiz a/button/…:focus-visible (0,2,1), que pintaria o anel de cyan. */
 .ct-edicao :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; border-radius: 6px; }
 .ct-edicao img { max-width: 100%; }
 .ct-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-/* ------------------------------------------------------------- casca */
+/* ------------------------------------------------------------- casca (§10.6) */
+/* Cabeçalho creme igual em todas as páginas: selo à esquerda (nunca centralizado). Celular: selo + "Menu";
+   a partir de 900 a navegação aparece e o cabeçalho fica preso ao topo. Quebras da camada: 600 / 900 / 1200. */
 .ct-topo {
-  position: sticky; top: 0; z-index: 20;
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px;
-  padding: 10px var(--ct-trilho);
-  background: var(--ct-amarelo); border-bottom: var(--ct-traco);
+  position: relative; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px 24px;
+  padding: 8px var(--ct-trilho);
+  background: var(--ct-creme); border-bottom: var(--ct-traco);
 }
-.ct-topo__marca { display: inline-flex; min-height: 44px; align-items: center; }
-.ct-topo__marca img { display: block; width: auto; height: 48px; }
-.ct-topo__nav ul { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.ct-topo__marca { display: inline-flex; flex: none; min-height: 44px; align-items: center; }
+.ct-topo__marca img { display: block; width: auto; height: 52px; }
+.ct-topo__nav { display: none; }
+.ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .ct-topo__nav a {
   display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px;
-  border-radius: 22px; font: 700 15px/1 var(--ct-font); text-decoration: none;
+  border-radius: 22px; font: 800 16px/1 var(--ct-font); text-decoration: none;
   transition: background-color var(--ct-mo), color var(--ct-mo);
 }
-.ct-topo__nav a:hover { background: rgba(58, 21, 15, .1); }
+.ct-topo__nav a:hover { background: var(--ct-amarelo); }
 .ct-edicao .ct-topo__nav a[aria-current='page'] { background: var(--ct-chocolate); color: var(--ct-creme); }
+@media (min-width: 900px) {
+  .ct-topo { position: sticky; top: 0; padding-block: 10px; }
+  .ct-topo__marca img { height: 60px; }
+  .ct-topo__nav { display: block; }
+  /* (0,3,0): .ct-edicao .ct-botao (0,2,0) vem depois no arquivo e daria display ao botão de novo. */
+  .ct-edicao .ct-topo__menu.ct-botao { display: none; }
+}
 .ct-contador {
   display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px;
   border-radius: 11px; border: 2px solid var(--ct-chocolate); background: var(--ct-amarelo); color: var(--ct-chocolate); font: 700 13px/1 var(--ct-font);
 }
 .ct-conteudo { flex: 1; padding-bottom: 32px; }
 
-.ct-rodape {
-  display: grid; gap: 12px; padding: 32px var(--ct-trilho) 40px;
-  background: var(--ct-chocolate); color: var(--ct-creme); font: 500 14px/1.5 var(--ct-font);
+/* Menu do celular: folha (<dialog> modal) colada na base. O <dialog> não tem padding: clique nele = clique no véu. */
+.ct-folha {
+  inset: auto 0 0; width: 100%; max-width: none; max-height: min(88svh, 680px); margin: auto 0 0; padding: 0; overflow: auto;
+  border: var(--ct-traco); border-bottom: 0; border-radius: 24px 24px 0 0;
+  background: var(--ct-creme); color: var(--ct-chocolate);
 }
-.ct-rodape p { max-width: 62ch; margin: 0; }
-.ct-rodape__links { display: flex; flex-wrap: wrap; gap: 0 16px; margin: 0; padding: 0; list-style: none; }
-.ct-rodape__links a, .ct-rodape__botao { display: inline-flex; align-items: center; min-height: 44px; font: 700 14px/1 var(--ct-font); }
-.ct-rodape__botao { padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
+.ct-folha::backdrop { background: rgba(58, 21, 15, .6); }
+.ct-folha__corpo { display: grid; gap: 14px; padding: 14px var(--ct-trilho) calc(20px + env(safe-area-inset-bottom)); }
+.ct-folha__cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ct-folha__titulo { margin: 0; font: 800 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-folha__lista { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 600px) { .ct-folha__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ct-folha__link {
+  display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 16px 6px 10px;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco);
+  font: 800 18px/1.2 var(--ct-font); text-decoration: none;
+}
+.ct-edicao .ct-folha__link[aria-current='page'] { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-folha__link--fora { padding-left: 16px; border-style: dashed; background: transparent; }
 
+/* Rodapé chocolate: barras de sinal no topo, a assinatura com a realização F2, as páginas, o festival e os documentos. */
+.ct-rodape { padding: 0 0 40px; background: var(--ct-chocolate); color: var(--ct-creme); font: 500 15px/1.5 var(--ct-font); }
+.ct-rodape__corpo { display: grid; gap: 24px 40px; padding: 32px var(--ct-trilho) 0; }
+@media (min-width: 600px) { .ct-rodape__corpo { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .ct-rodape__corpo { grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)); } }
+.ct-rodape__assina { display: grid; align-content: start; gap: 16px; }
+@media (min-width: 600px) and (max-width: 1199.98px) { .ct-rodape__assina { grid-column: 1 / -1; } }
+.ct-rodape p { max-width: 46ch; margin: 0; }
+.ct-rodape__realiza { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font: 700 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-rodape__realiza img { display: block; width: auto; height: 22px; }
+.ct-rodape__titulo { font: 800 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; color: var(--ct-amarelo); }
+.ct-rodape__links { display: flex; flex-wrap: wrap; gap: 0 20px; margin: 0; padding: 0; list-style: none; }
+.ct-rodape__grupo .ct-rodape__links { display: grid; grid-template-columns: repeat(2, max-content); gap: 0 28px; margin-top: 4px; }
+.ct-rodape__links a, .ct-rodape__botao { display: inline-flex; align-items: center; min-height: 44px; font: 700 15px/1.2 var(--ct-font); }
+.ct-rodape__botao { padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
+.ct-rodape__legais { grid-column: 1 / -1; padding-top: 12px; border-top: 1.5px solid rgba(253, 240, 222, .25); }
+
+/* Barra de abas do celular (< 900): creme com contorno, cinco atalhos com ícone + texto, alvo ≥ 44 px. A altura
+   real vai para --scw-base-ocupada (useReservaDaBase): a página reserva esse espaço, e o aviso de cookies sobe acima. */
 .ct-abas { display: none; }
-@media (max-width: 900px) {
-  .ct-topo { position: static; }
-  .ct-topo__nav { display: none; }
+@media (max-width: 899.98px) {
   .ct-abas {
-    position: fixed; inset: auto 0 0; z-index: 30; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
-    background: var(--ct-chocolate); border-top: 2px solid var(--ct-amarelo); padding-bottom: env(safe-area-inset-bottom);
+    position: fixed; inset: auto 0 0; z-index: 30; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: var(--ct-creme); border-top: var(--ct-traco);
   }
   .ct-edicao .ct-aba {
-    position: relative; display: grid; place-items: center; min-height: 56px; padding: 0 4px;
-    color: var(--ct-creme); font: 700 13px/1.1 var(--ct-font); text-align: center; text-decoration: none;
+    position: relative; display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 56px; padding: 4px 2px;
+    border-radius: var(--ct-raio-p); font: 800 13px/1.1 var(--ct-font); text-align: center; text-decoration: none;
   }
-  .ct-edicao .ct-aba[aria-current='page'] { color: var(--ct-chocolate); background: var(--ct-amarelo); }
-  .ct-aba .ct-contador { position: absolute; top: 4px; right: 10%; }
-  .ct-edicao { padding-bottom: calc(56px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); }
+  .ct-edicao .ct-aba[aria-current='page'] { background: var(--ct-amarelo); box-shadow: inset 0 0 0 2px var(--ct-chocolate); }
+  .ct-aba .ct-contador { position: absolute; top: 2px; right: 10%; }
+  .ct-edicao { padding-bottom: calc(var(--scw-base-ocupada, 72px) + var(--scw-aviso-h, 0px)); }
 }
 
 /* ------------------------------------------------------------- tipografia e blocos */
@@ -188,10 +226,6 @@
           mask: radial-gradient(circle at 35% 50%, #000 0 30%, transparent 62%);
 }
 .ct-abre__texto { position: relative; max-width: 760px; }
-@media (min-width: 761px) {
-  .ct-abre { background: var(--ct-amarelo) var(--ct-fundo, none) right center / cover no-repeat; }
-  .ct-abre[style*='--ct-fundo']::before { display: none; }
-}
 .ct-abre__titulo { margin: 0; }
 .ct-abre__lettering { display: block; width: min(640px, 100%); height: auto; }
 .ct-abre__periodo { margin: 12px 0 0; font: 900 clamp(22px, 2.6vw, 34px)/1.1 var(--ct-font); }
@@ -234,7 +268,7 @@
 .ct-filtros__painel { display: none; flex-basis: 100%; padding: 16px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-filtros__painel.is-aberto { display: grid; gap: 18px; }
 @media (min-width: 900px) {
-  /* Prefixo: .ct-edicao .ct-botao (0,2,0) daria display ao botão de novo. */
+  /* (0,3,0): .ct-edicao .ct-botao (0,2,0) vem depois no arquivo e daria display ao botão de novo. */
   .ct-edicao .ct-filtros__abrir { display: none; }
   .ct-filtros__painel, .ct-filtros__painel.is-aberto { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 32px; padding: 0; border: 0; background: none; box-shadow: none; }
 }
@@ -624,7 +658,7 @@
 .ct-painel > :first-child { margin-top: 0; }
 .ct-painel > :last-child { margin-bottom: 0; }
 /* Anel de foco amarelo SÓ sobre chocolate (≥ 3:1). (0,4,0) vence o anel da camada e o reset do site. */
-.ct-edicao :is(.ct-rodape, .ct-abas, .ct-canal--gala) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--ct-amarelo); }
+.ct-edicao :is(.ct-rodape, .ct-canal--gala) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--ct-amarelo); }
 
 /* ------------------------------------------------------------- elementos novos da edição (§10.15) */
 /* Ícone ilustrado: tamanho vem dos atributos (32/48/64). Nunca sozinho: o texto vem ao lado. */
@@ -680,6 +714,8 @@
   .ct-cartao__link:is(:hover, :focus-visible) { animation: ct-aperta 520ms ease-out; }
   .ct-cartao__espia { transition: translate 460ms var(--ct-mo-quique), rotate 460ms var(--ct-mo-quique); }
   .ct-edicao :is(a, button):is(:hover, :focus-visible) .ct-icone { animation: ct-pulinho 520ms ease-out; }
+  @keyframes ct-folha-sobe { from { transform: translateY(100%); } to { transform: none; } }
+  .ct-folha[open] { animation: ct-folha-sobe 300ms cubic-bezier(.22, .9, .24, 1); }
 
   .ct-cenario__faixa { animation: ct-desliza 560ms cubic-bezier(.22, .9, .24, 1) both; }
   .ct-cenario__objeto { animation: ct-quica var(--ct-mo-quique-dur) var(--ct-mo-quique) both; transition: translate 140ms ease-out; }

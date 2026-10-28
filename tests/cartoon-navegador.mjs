@@ -19,7 +19,9 @@
  *  6. CATÁLOGO — filtro na URL, voltar preserva filtro e posição.
  *  7. MINHA ROTA — adicionar, contador, persistir no recarregar, remover.
  *  8. AVALIAÇÃO — formulário só aberto; sucesso só com resposta ok; erro preserva as notas.
- *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px.
+ *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
+ *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
+ *     botão) e cinco abas (Avaliar → Prêmio depois dos resultados); rodapé com barras, F2 e cookies.
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -262,8 +264,8 @@ try {
     await ir(page, '/cartoon/participantes/demo-casa-aurora')
     await page.waitForSelector('.ct-unidade')
     await page.locator('.ct-unidade').first().locator('button:has-text("Adicionar à Minha rota")').click()
-    await page.waitForSelector('.ct-topo .ct-contador')
-    if ((await page.locator('.ct-topo .ct-contador').textContent()) !== '1') falha('contador da rota não foi a 1')
+    await page.waitForSelector('.ct-topo__nav .ct-contador')
+    if ((await page.locator('.ct-topo__nav .ct-contador').textContent()) !== '1') falha('contador da rota não foi a 1')
     await page.locator('.ct-unidade').first().locator('button:has-text("Na sua rota")').waitFor()
     await ir(page, '/cartoon/minha-rota')
     await page.reload({ waitUntil: 'networkidle' })
@@ -344,6 +346,80 @@ try {
     await ctx.close()
   }
   if (!falhas.some((f) => /^@/.test(f))) ok('360 e 1440: sem rolagem lateral, casca própria, alvos ≥ 44px, botões com contraste ≥ 4,5:1 (3:1 em texto grande)')
+
+  // Casca nova (§10.6): cabeçalho creme com selo; celular com "Menu" (folha que fecha por Esc, véu e link, foco
+  // preso e devolvido ao botão) e cinco abas; desktop com a navegação e o cabeçalho preso; rodapé com barras e F2.
+  {
+    const antes = falhas.length
+    const { ctx, page } = await contexto(nav, { w: 360, h: 800 })
+    await ir(page, '/cartoon/participantes')
+    const topo = await page.evaluate(() => {
+      const t = document.querySelector('.ct-topo')
+      const v = (s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' }
+      return { fundo: getComputedStyle(t).backgroundColor, selo: !!t.querySelector('.ct-topo__marca img[src*="selo-cartoon"]'), nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu') }
+    })
+    if (topo.fundo !== 'rgb(253, 240, 222)') falha(`@360 cabeçalho não é creme (${topo.fundo})`)
+    if (!topo.selo) falha('@360 cabeçalho sem o selo da edição')
+    if (topo.nav || !topo.menu) falha('@360 celular deveria mostrar só o botão Menu')
+    const abas = await page.locator('.ct-abas .ct-aba').allInnerTexts()
+    if (abas.map((t) => t.trim()).join(' · ') !== 'Início · Casas · Mapa · Rota · Avaliar') falha(`@360 abas: ${abas.join(' · ')}`)
+    if ((await page.locator('.ct-abas .ct-aba img.ct-icone').count()) !== 5) falha('@360 abas sem o ícone da edição')
+    if ((await page.locator('.ct-abas .ct-aba[aria-current="page"]').innerText()).trim() !== 'Casas') falha('@360 aba ativa não é Casas')
+
+    const aberto = () => page.evaluate(() => document.getElementById('ct-menu').open)
+    const focoNoBotao = () => page.evaluate(() => document.activeElement?.classList.contains('ct-topo__menu'))
+    // 1 · Esc fecha; o Tab dá a volta dentro da folha; o foco volta ao botão.
+    await page.click('.ct-topo__menu')
+    if (!(await aberto())) falha('menu do celular não abriu')
+    if ((await page.locator('.ct-topo__menu').getAttribute('aria-expanded')) !== 'true') falha('botão Menu sem aria-expanded=true aberto')
+    const fora = []
+    // 12 Tab e 12 Shift+Tab: a folha tem 9 controles, então o foco dá a volta nos dois sentidos.
+    for (let i = 0; i < 24; i++) {
+      await page.keyboard.press(i < 12 ? 'Tab' : 'Shift+Tab')
+      if (!(await page.evaluate(() => !!document.activeElement?.closest('#ct-menu')))) fora.push(i)
+    }
+    if (fora.length) falha(`foco saiu da folha no Tab (${fora.join(', ')})`)
+    await page.keyboard.press('Escape')
+    if (await aberto()) falha('Esc não fechou o menu')
+    if (!(await focoNoBotao())) falha('Esc: o foco não voltou ao botão Menu')
+    // 2 · Véu: clique fora da folha (acima dela).
+    await page.click('.ct-topo__menu')
+    await page.mouse.click(180, 30)
+    if (await aberto()) falha('clique no véu não fechou o menu')
+    if (!(await focoNoBotao())) falha('véu: o foco não voltou ao botão Menu')
+    // 3 · Link: navega e fecha.
+    await page.click('.ct-topo__menu')
+    await page.click('#ct-menu a:has-text("Mapa")')
+    await page.waitForFunction(() => location.pathname === '/cartoon/mapa')
+    if (await aberto()) falha('link da folha não fechou o menu')
+    if (!(await focoNoBotao())) falha('link: o foco não voltou ao botão Menu')
+    await ctx.close()
+
+    // Depois dos resultados, Avaliar dá lugar a Prêmio.
+    const c = await contexto(nav, { w: 360, h: 800, edicao: { ...clone(DEMO_EDICAO), resultados_publicos: true } })
+    await ir(c.page, '/cartoon/participantes')
+    const abasDepois = (await c.page.locator('.ct-abas .ct-aba').allInnerTexts()).map((t) => t.trim()).join(' · ')
+    if (abasDepois !== 'Início · Casas · Mapa · Rota · Prêmio') falha(`com resultados, abas: ${abasDepois}`)
+    await c.ctx.close()
+
+    const d = await contexto(nav, { w: 1440, h: 900 })
+    await ir(d.page, '/cartoon/participantes')
+    const m = await d.page.evaluate(() => {
+      const v = (s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' }
+      return {
+        posicao: getComputedStyle(document.querySelector('.ct-topo')).position, nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu'), abas: v('.ct-abas'),
+        marcaX: Math.round(document.querySelector('.ct-topo__marca').getBoundingClientRect().left),
+        rodape: { barras: !!document.querySelector('.ct-rodape .ct-barras'), f2: !!document.querySelector('.ct-rodape img[alt="F2 Experience"]'),
+          cookies: [...document.querySelectorAll('.ct-rodape button')].some((b) => b.textContent.includes('Preferências de cookies')),
+          legais: document.querySelectorAll('.ct-rodape a[href="/privacidade"], .ct-rodape a[href="/termos"]').length },
+      }
+    })
+    if (m.posicao !== 'sticky' || !m.nav || m.menu || m.abas) falha(`@1440 cabeçalho: ${JSON.stringify(m)}`)
+    if (m.marcaX > 120) falha(`@1440 selo não está à esquerda (x=${m.marcaX})`)
+    if (!m.rodape.barras || !m.rodape.f2 || !m.rodape.cookies || m.rodape.legais !== 2) falha(`rodapé incompleto: ${JSON.stringify(m.rodape)}`)
+    await d.ctx.close()
+    if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 5 abas (Avaliar → Prêmio), rodapé com barras, F2 e cookies')
+  }
 } finally {
   if (nav) await nav.close()
   killTree(preview.pid)

@@ -411,6 +411,19 @@ export function letreiroEdicao(chave) {
   return LETREIROS_EDICAO[chave] || null
 }
 
+/* Selo da edição 2026.2 (manual v03, assets/logo-scw-cartoon.png), arquivo
+   oficial convertido para WebP sem recorte. Cabeçalho da camada /cartoon e
+   herói da Entrada; nunca centralizado (CLAUDE.md raiz, Marca). */
+const SELO_EDICAO = { src: '/images/marcas-edicoes/2026.2/selo/selo-cartoon.webp', largura: 1921, altura: 1898, alt: 'Sweet & Coffee Week Cartoon' }
+
+/** Selo oficial da edição 2026.2. */
+export function seloEdicao() {
+  return SELO_EDICAO
+}
+
+/** Marca da realizadora (F2 Experience), a mesma da seção de realização da Home. */
+export const LOGO_F2 = { src: '/images/logo-f2experience.svg', largura: 694, altura: 89, alt: 'F2 Experience' }
+
 /* Elementos novos da edição 2026.2 (docs/cartoon-2026-2/10 §10.15), gerados por
    scripts/edicao/elementos-edicao.py a partir das folhas do 05_ELEMENTOS_v01.
    Fundo transparente; largura/altura são as do arquivo (o teste confere).

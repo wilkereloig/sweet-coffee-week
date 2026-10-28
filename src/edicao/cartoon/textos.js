@@ -9,13 +9,19 @@ import { EDICAO } from '../config.js'
 export const PERIODO = '5 a 15 de novembro'
 const C = EDICAO.caminho
 
+/* Páginas da edição (§10.6). `aba` = rótulo curto da barra do celular; `icone` = ícone ilustrado (nunca sozinho).
+   Cabeçalho e menu do celular listam todas; a barra de abas mostra Início · Casas · Mapa · Rota · Avaliar, e
+   Avaliar dá lugar a Prêmio quando os resultados saem (index.jsx). */
 export const NAV = [
-  { cena: 'participantes', rotulo: 'Participantes', href: `${C}/participantes` },
-  { cena: 'mapa', rotulo: 'Mapa', href: `${C}/mapa` },
-  { cena: 'minha-rota', rotulo: 'Minha rota', href: `${C}/minha-rota` },
-  { cena: 'avaliar', rotulo: 'Avaliar', href: `${C}/avaliar`, soComAvaliacao: true },
-  { cena: 'premiacao', rotulo: 'Premiação', href: `${C}/premiacao` },
+  { cena: 'entrada', rotulo: 'Início', aba: 'Início', icone: 'inicio', href: C },
+  { cena: 'participantes', rotulo: 'Casas', aba: 'Casas', icone: 'casas', href: `${C}/participantes` },
+  { cena: 'mapa', rotulo: 'Mapa', aba: 'Mapa', icone: 'mapa', href: `${C}/mapa` },
+  { cena: 'minha-rota', rotulo: 'Minha rota', aba: 'Rota', icone: 'rota', href: `${C}/minha-rota` },
+  { cena: 'avaliar', rotulo: 'Avaliar', aba: 'Avaliar', icone: 'avaliar', href: `${C}/avaliar` },
+  { cena: 'premiacao', rotulo: 'Premiação', aba: 'Prêmio', icone: 'premio', href: `${C}/premiacao` },
 ]
+
+export const MENU = { abrir: 'Menu', titulo: 'Páginas da Cartoon', fechar: 'Fechar' }
 
 export const ENTRADA = {
   rotulo: 'Sweet & Coffee Week',
@@ -161,7 +167,11 @@ export const CENA_TEXTO = {
 }
 
 export const RODAPE = {
-  assinatura: 'Sweet & Coffee Week Cartoon é uma edição do Sweet & Coffee Week. Realização F2 Experience.',
+  assinatura: 'Sweet & Coffee Week Cartoon é uma edição do Sweet & Coffee Week.',
+  realizacao: 'Realização',
+  paginas: 'A edição',
+  festival: 'O festival',
+  legais: 'Documentos',
   sobre: 'Sobre o festival',
   preferencias: 'Preferências de cookies',
 }

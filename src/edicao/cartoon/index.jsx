@@ -1,8 +1,12 @@
 /*
  * Camada Cartoon (2026.2) — docs/cartoon-2026-2/.
  *
- * Casca própria (cabeçalho, abas no celular, rodapé), carregamento único da
- * projeção pública da edição e a resolução de cena. Só aparece com
+ * Casca própria (docs/cartoon-2026-2/10 §10.6): cabeçalho creme com o selo à
+ * esquerda e a navegação (fixo a partir de 900px); no celular, botão "Menu" que
+ * abre a folha com todas as páginas (<dialog> modal: Esc, véu e link fecham, o
+ * foco fica na folha e volta ao botão) e a barra de abas creme embaixo; rodapé
+ * chocolate com as barras de sinal e a realização F2. Também o carregamento
+ * único da projeção pública e a resolução de cena. Só aparece com
  * CARTOON_PUBLICA ou em preview (src/lib/rotas.js).
  */
 import React from 'react'
@@ -11,13 +15,15 @@ import { EDICAO, INICIO_INSTITUCIONAL } from '../config.js'
 import { resolverCena } from '../rotas.js'
 import { carregarEdicao } from '../dados/publico.js'
 import { useMinhaRota } from '../rota/useMinhaRota.js'
-import { fotoProximaEdicao } from '../../data/imageLibrary'
+import { seloEdicao, LOGO_F2, srcSet } from '../../data/imageLibrary'
 import { LINKS_LEGAIS } from '../../components/SiteFooter'
 import { abrirPreferencias } from '../../lib/consentimento'
 import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
+import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
+import { BarrasSinal } from '../componentes/sistema/pecas.jsx'
 import { RotaContexto } from './contexto.js'
-import { NAV, CENA_TEXTO, RODAPE } from './textos.js'
+import { NAV, MENU, CENA_TEXTO, RODAPE } from './textos.js'
 import { Entrada } from './paginas/Entrada.jsx'
 import { Catalogo } from './paginas/Catalogo.jsx'
 import { Participante } from './paginas/Participante.jsx'
@@ -44,6 +50,56 @@ function useEdicao () {
   return { ...s, tentar: () => { setS({ estado: 'carregando' }); setTentativa((n) => n + 1) } }
 }
 
+/** Paradas na Minha rota: o número à vista, a frase para leitor de tela. */
+function Contador ({ n }) {
+  if (!n) return null
+  return <><span className="ct-contador" aria-hidden="true">{n}</span><span className="ct-sr">({n} {n === 1 ? 'parada' : 'paradas'})</span></>
+}
+
+/**
+ * Menu do celular: <dialog> modal. A plataforma fecha no Esc, deixa o resto da página inerte e devolve o
+ * foco ao botão ao fechar; o véu (::backdrop) fecha pelo clique no próprio <dialog>, que não tem padding
+ * (o conteúdo mora no corpo). O Tab dá a volta dentro da folha, em vez de sair para a barra do navegador.
+ */
+function MenuCelular ({ itens, ativa, navigate, paradas }) {
+  const ref = React.useRef(null)
+  const [aberto, setAberto] = React.useState(false)
+  const fechar = () => ref.current?.close()
+  const prende = (e) => {
+    if (e.key !== 'Tab') return
+    const focaveis = ref.current.querySelectorAll('a, button')
+    const [primeiro, ultimo] = [focaveis[0], focaveis[focaveis.length - 1]]
+    if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimo.focus() }
+    else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro.focus() }
+  }
+  return (
+    <>
+      <button type="button" className="ct-botao ct-botao--contorno ct-topo__menu" aria-haspopup="dialog" aria-expanded={aberto} aria-controls="ct-menu"
+        onClick={() => { ref.current.showModal(); setAberto(true) }}>{MENU.abrir}</button>
+      <dialog id="ct-menu" ref={ref} className="ct-folha" aria-labelledby="ct-menu-titulo"
+        onClose={() => setAberto(false)} onClick={(e) => { if (e.target === e.currentTarget) fechar() }} onKeyDown={prende}>
+        <div className="ct-folha__corpo">
+          <div className="ct-folha__cabeca">
+            <p id="ct-menu-titulo" className="ct-folha__titulo">{MENU.titulo}</p>
+            <button type="button" className="ct-botao ct-botao--contorno" onClick={fechar}>{MENU.fechar}</button>
+          </div>
+          <ul className="ct-folha__lista">
+            {itens.map((item) => (
+              <li key={item.cena}>
+                <Link href={item.href} navigate={navigate} aoIr={fechar} className="ct-folha__link" aria-current={ativa === item.cena ? 'page' : undefined}>
+                  <IconeCartoon nome={item.icone} tamanho={32} /><span>{item.rotulo}</span>
+                  {item.cena === 'minha-rota' && <Contador n={paradas} />}
+                </Link>
+              </li>
+            ))}
+            <li><Link href={INICIO_INSTITUCIONAL} navigate={navigate} aoIr={fechar} className="ct-folha__link ct-folha__link--fora">{RODAPE.sobre}</Link></li>
+          </ul>
+        </div>
+      </dialog>
+    </>
+  )
+}
+
 const TITULOS = {
   participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
   avaliar: 'Avaliar', premiacao: 'Premiação', sistema: 'Sistema visual', inexistente: 'Página não encontrada',
@@ -58,10 +114,17 @@ export function CartoonPage ({ path, navigate }) {
   // A barra de abas do celular é fixa na base: o aviso de cookies sobe acima dela.
   const abasRef = React.useRef(null)
   useReservaDaBase(abasRef)
-  const lettering = fotoProximaEdicao('marca')
+  const selo = seloEdicao()
   const dados = ed.dados
   const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena
-  const nav = NAV.filter((n) => !n.soComAvaliacao || dados?.avaliacao?.aberta)
+  // Barra do celular: cinco atalhos; depois dos resultados, Avaliar dá lugar a Prêmio (§10.6).
+  const abas = NAV.filter((n) => n.cena !== (dados?.resultados_publicos ? 'avaliar' : 'premiacao'))
+  const paradas = rota.ids.length
+  const linkNav = (item, className, filhos) => (
+    <Link href={item.href} navigate={navigate} className={className} aria-current={ativa === item.cena ? 'page' : undefined}>
+      {filhos}{item.cena === 'minha-rota' && <Contador n={paradas} />}
+    </Link>
+  )
 
   React.useEffect(() => {
     if (cena !== 'participante') document.title = cena === 'entrada' ? `${EDICAO.nome} · 5 a 15 de novembro` : `${TITULOS[cena]} · ${EDICAO.nome}`
@@ -103,47 +166,57 @@ export function CartoonPage ({ path, navigate }) {
       <div className="ct-edicao">
         <header className="ct-topo">
           <Link href={EDICAO.caminho} navigate={navigate} className="ct-topo__marca" aria-label={`${EDICAO.nome}, início`}>
-            {lettering && <img src={lettering.src} alt="" width="140" height="72" />}
+            <img src={selo.src} srcSet={srcSet(selo.src)} sizes="64px" alt="" width={selo.largura} height={selo.altura} />
           </Link>
           <nav className="ct-topo__nav" aria-label="Navegação da edição">
             <ul>
-              {nav.map((item) => (
-                <li key={item.cena}>
-                  <Link href={item.href} navigate={navigate} aria-current={ativa === item.cena ? 'page' : undefined}>
-                    {item.rotulo}{item.cena === 'minha-rota' && rota.ids.length ? <span className="ct-contador" aria-label={`, ${rota.ids.length} paradas`}>{rota.ids.length}</span> : null}
-                  </Link>
-                </li>
-              ))}
+              {NAV.filter((n) => n.cena !== 'entrada').map((item) => <li key={item.cena}>{linkNav(item, undefined, item.rotulo)}</li>)}
               <li><Link href={INICIO_INSTITUCIONAL} navigate={navigate}>{RODAPE.sobre}</Link></li>
             </ul>
           </nav>
+          <MenuCelular itens={NAV} ativa={ativa} navigate={navigate} paradas={paradas} />
         </header>
 
         <div className="ct-conteudo">{conteudo}</div>
         <p className="ct-sr" aria-live="polite">{rota.anuncio}</p>
 
         <footer className="ct-rodape">
-          <p>{RODAPE.assinatura}</p>
-          <ul className="ct-rodape__links">
-            <li><Link href={INICIO_INSTITUCIONAL} navigate={navigate}>{RODAPE.sobre}</Link></li>
-            <li><Link href="/participar" navigate={navigate}>Participar</Link></li>
-            <li><Link href="/apoiar" navigate={navigate}>Apoiar</Link></li>
-            <li><Link href="/contato" navigate={navigate}>Contato</Link></li>
-          </ul>
-          <ul className="ct-rodape__links">
-            {LINKS_LEGAIS.map(([href, rotulo]) => (
-              <li key={href}><Link href={href} navigate={navigate}>{rotulo}</Link></li>
-            ))}
-            <li><button type="button" className="ct-rodape__botao" onClick={abrirPreferencias}>{RODAPE.preferencias}</button></li>
-          </ul>
+          <BarrasSinal />
+          <div className="ct-rodape__corpo">
+            <div className="ct-rodape__assina">
+              <p>{RODAPE.assinatura}</p>
+              <p className="ct-rodape__realiza">
+                <span>{RODAPE.realizacao}</span>
+                <img src={LOGO_F2.src} alt={LOGO_F2.alt} width={LOGO_F2.largura} height={LOGO_F2.altura} loading="lazy" />
+              </p>
+            </div>
+            <nav className="ct-rodape__grupo" aria-labelledby="ct-rodape-edicao">
+              <p id="ct-rodape-edicao" className="ct-rodape__titulo">{RODAPE.paginas}</p>
+              <ul className="ct-rodape__links">
+                {NAV.map((item) => <li key={item.cena}><Link href={item.href} navigate={navigate}>{item.rotulo}</Link></li>)}
+              </ul>
+            </nav>
+            <nav className="ct-rodape__grupo" aria-labelledby="ct-rodape-festival">
+              <p id="ct-rodape-festival" className="ct-rodape__titulo">{RODAPE.festival}</p>
+              <ul className="ct-rodape__links">
+                <li><Link href={INICIO_INSTITUCIONAL} navigate={navigate}>{RODAPE.sobre}</Link></li>
+                <li><Link href="/participar" navigate={navigate}>Participar</Link></li>
+                <li><Link href="/apoiar" navigate={navigate}>Apoiar</Link></li>
+                <li><Link href="/contato" navigate={navigate}>Contato</Link></li>
+              </ul>
+            </nav>
+            <ul className="ct-rodape__links ct-rodape__legais" aria-label={RODAPE.legais}>
+              {LINKS_LEGAIS.map(([href, rotulo]) => (
+                <li key={href}><Link href={href} navigate={navigate}>{rotulo}</Link></li>
+              ))}
+              <li><button type="button" className="ct-rodape__botao" aria-haspopup="dialog" onClick={abrirPreferencias}>{RODAPE.preferencias}</button></li>
+            </ul>
+          </div>
         </footer>
 
         <nav ref={abasRef} className="ct-abas" aria-label="Atalhos da edição">
-          {[{ cena: 'entrada', rotulo: 'Início', href: EDICAO.caminho }, ...nav.filter((n) => n.cena !== 'premiacao' || !dados?.avaliacao?.aberta)].slice(0, 5).map((item) => (
-            <Link key={item.cena} href={item.href} navigate={navigate} className="ct-aba" aria-current={ativa === item.cena ? 'page' : undefined}>
-              {item.rotulo === 'Participantes' ? 'Casas' : item.rotulo === 'Minha rota' ? 'Rota' : item.rotulo}
-              {item.cena === 'minha-rota' && rota.ids.length ? <span className="ct-contador">{rota.ids.length}</span> : null}
-            </Link>
+          {abas.map((item) => (
+            <React.Fragment key={item.cena}>{linkNav(item, 'ct-aba', <><IconeCartoon nome={item.icone} tamanho={32} /><span>{item.aba}</span></>)}</React.Fragment>
           ))}
         </nav>
       </div>
