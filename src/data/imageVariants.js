@@ -654,6 +654,8 @@ export const VARIANTES = new Map([
   ['/images/marcas-edicoes/2025/logo.png', { larguras: [480], original: 799 }],
   ['/images/marcas-edicoes/2026.1/logo.png', { larguras: [480], original: 806 }],
   ['/images/marcas-edicoes/2026.2/fundo-heroi.webp', { larguras: [480, 960], original: 2400 }],
+  ['/images/marcas-edicoes/2026.2/letreiros/hora-de-provar.webp', { larguras: [480, 960], original: 1479 }],
+  ['/images/marcas-edicoes/2026.2/letreiros/nosso-elenco.webp', { larguras: [480, 960], original: 1462 }],
   ['/images/marcas-edicoes/2026.2/tema.webp', { larguras: [480, 960], original: 1400 }],
   ['/images/marcas-edicoes/2026.2/video-capa.webp', { larguras: [480], original: 720 }],
   ['/images/moldura-lovers-01.png', { larguras: [480, 960], original: 1081 }],

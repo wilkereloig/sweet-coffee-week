@@ -397,6 +397,20 @@ export function fotoProximaEdicao(chave) {
   return PROXIMA_EDICAO[chave] || null
 }
 
+/* Letreiros desenhados da edição 2026.2 (manual v03, assets/ig-titulo-*.png),
+   recortados da margem transparente e convertidos para WebP. Título fixo de
+   seção: <Letreiro imagem={letreiroEdicao('elenco')} texto="…" /> — o texto
+   real vai no HTML. Letreiro novo entra aqui, nunca montado na página. */
+const LETREIROS_EDICAO = {
+  elenco: { src: '/images/marcas-edicoes/2026.2/letreiros/nosso-elenco.webp', largura: 1462, altura: 736 },
+  provar: { src: '/images/marcas-edicoes/2026.2/letreiros/hora-de-provar.webp', largura: 1479, altura: 724 },
+}
+
+/** Letreiro desenhado da edição (`elenco` · `provar`), ou `null`. */
+export function letreiroEdicao(chave) {
+  return LETREIROS_EDICAO[chave] || null
+}
+
 /** Fotos das seções da Home (`heroiCombos` · `combo` · `jolie` · `mosaico` · `edicoes` · `premio`). */
 export function fotosHome(chave) {
   return HOME[chave]
