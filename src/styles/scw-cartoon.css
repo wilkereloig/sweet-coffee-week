@@ -61,7 +61,8 @@
   font-synthesis: none;
 }
 .ct-edicao a { color: inherit; }
-.ct-edicao :focus-visible { outline: 3px solid var(--ct-azul); outline-offset: 3px; border-radius: 6px; }
+/* :is() leva a especificidade a (0,3,0): vence o reset .scw-raiz a/button/…:focus-visible (0,2,1), que pintaria o anel de cyan. */
+.ct-edicao :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--ct-azul); outline-offset: 3px; border-radius: 6px; }
 .ct-edicao img { max-width: 100%; }
 .ct-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
@@ -434,9 +435,12 @@
 .ct-canal--cardapio .ct-rotulo, .ct-canal--cardapio .ct-lead {
   padding: 6px 12px; border-radius: var(--ct-raio-p); background: var(--ct-creme); color: var(--ct-chocolate);
 }
-/* O anel de foco azul fica abaixo de 3:1 sobre amarelo, turquesa e rosa: ali ele é chocolate; na Gala, amarelo. */
-.ct-canal--estreia :focus-visible, .ct-canal--rota :focus-visible, .ct-canal--cardapio :focus-visible { outline-color: var(--ct-chocolate); }
-.ct-canal--gala :focus-visible { outline-color: var(--ct-amarelo); }
+/* O anel de foco azul fica abaixo de 3:1 sobre amarelo, turquesa e rosa: ali ele é chocolate; na Gala, amarelo.
+   Prefixo .ct-edicao + :is() = (0,4,0): vence o anel da camada e o reset do site. */
+.ct-edicao .ct-canal--estreia :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+.ct-edicao .ct-canal--rota :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+.ct-edicao .ct-canal--cardapio :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--ct-chocolate); }
+.ct-edicao .ct-canal--gala :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--ct-amarelo); }
 
 @media (prefers-reduced-motion: reduce) {
   .ct-edicao *, .ct-edicao *::before { transition: none !important; animation: none !important; }
