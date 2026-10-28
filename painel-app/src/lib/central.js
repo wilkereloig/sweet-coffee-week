@@ -21,11 +21,11 @@ export function interpretarLink(link) {
   if (!link || typeof link !== 'string') return null
   const partes = link.split('/').filter(Boolean)
   if (!partes.length) return null
-  const [seg, a, b] = partes
+  const [seg, a, b, c] = partes
   const vista = (Object.hasOwn(VISTA_DO_SEGMENTO, seg) && VISTA_DO_SEGMENTO[seg]) || seg
   if (seg === 'respostas') return { vista, origem: a, id: b }
   if (seg === 'producao') return { vista, sub: a, id: b }
-  if (seg === 'marcas') return { vista, id: a, sub: b }
+  if (seg === 'marcas') return c ? { vista, id: a, sub: b, campo: c } : { vista, id: a, sub: b }
   if (seg === 'cadastro') return b ? { vista, sub: a, campo: b } : { vista, sub: a }
   return a ? { vista, id: a } : { vista }
 }
@@ -34,7 +34,7 @@ export function interpretarLink(link) {
 export function lerIrDaUrl(search) {
   try {
     const v = new URLSearchParams(search || '').get('ir')
-    return v && /^[a-z_]+(\/[A-Za-z0-9_-]+){0,2}$/.test(v) ? v : null
+    return v && /^[a-z_]+(\/[A-Za-z0-9_-]+){0,3}$/.test(v) ? v : null
   } catch {
     return null
   }
@@ -182,7 +182,7 @@ export function descreverAtividade(a, { comMarca = true } = {}) {
       return 'Acesso compartilhado ' + (d.ativa ? 'ligado' : 'desligado')
     case 'cadastro.editado': {
       // Etapa 3: o administrador editou um bloco do cadastro.
-      const BLOCO = { marca: 'dados da marca', participacao: 'dados da participação', item: 'item do combo', unidade: 'unidade' }
+      const BLOCO = { marca: 'dados da marca', participacao: 'dados da participação', item: 'item do combo', unidade: 'unidade', horario_festival: 'horário no festival' }
       const campos = d.campos ? Object.keys(d.campos).join(', ').replace(/_/g, ' ') : ''
       const nome = d.bloco === 'item' && d.nome_para ? ' "' + d.nome_para + '"' : d.bloco === 'unidade' && d.endereco ? ' ' + d.endereco : ''
       return 'Cadastro editado pela organização' + marca + ' · ' + (BLOCO[d.bloco] || 'cadastro') + nome + (campos ? ' (' + campos + ')' : '')

@@ -14,8 +14,9 @@
  * mesma ordem). Mudou lá, muda cá — o teste confere contra o SQL.
  */
 import { ALERGENICOS, CARACTERISTICAS } from '../../../src/edicao/dados/modelo.js'
-import { canaisParaObjeto, canaisParaArray, precoNumero, valorInformado, NOMES_FALTANDO } from './cadastro.js'
+import { canaisParaObjeto, canaisParaArray, NOMES_FALTANDO } from './cadastro.js'
 import { mascaraWhatsApp, validarWhatsApp, whatsappNormalizado } from './participantes.js'
+import { linhasCanonicas } from './horarioFestival.js'
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 const texto = (v) => String(v == null ? '' : v).trim()
@@ -44,7 +45,6 @@ export const DISPONIBILIDADES = [['sempre', 'Sempre disponível'], ['sob_consult
 export const MODALIDADES = [['local', 'Consumo no local'], ['retirada', 'Retirada'], ['delivery', 'Delivery']]
 
 /* ── Unidade: permanente (unidades) + participação (participacao_unidades) ── */
-export const hhmm = (t) => texto(t).slice(0, 5)
 const soDigitos = (v) => texto(v).replace(/\D/g, '')
 export const whatsappDigitos = (v) => whatsappNormalizado(v).slice(2)
 
@@ -59,8 +59,12 @@ export function erroUf(v) {
 }
 export const erroWhatsappUnidade = (v) => validarWhatsApp(v)
 
-/** Linhas do banco → uma unidade na tela. `pu` ou `un` podem faltar (sugestão / nova). */
-export function unidadeDeLinhas(pu, un, disp = []) {
+/**
+ * Linhas do banco → uma unidade na tela. `pu` ou `un` podem faltar (sugestão / nova).
+ * `horario_festival` = como a unidade funciona em cada dia do festival (linhas COMPLETAS e canônicas, [] = ainda não
+ * respondido); `horarios_antigo` = o texto livre de antes (`participacao_unidades.horarios`), só para o seletor dizer "Hoje está: …".
+ */
+export function unidadeDeLinhas(pu, un) {
   const u = un || {}
   return {
     _key: pu ? 'pu-' + pu.id : un ? 'un-' + un.id : null,
@@ -76,7 +80,6 @@ export function unidadeDeLinhas(pu, un, disp = []) {
     cidade: u.cidade || '', uf: u.uf || '', cep: u.cep || '', referencia: u.referencia || '',
     whatsapp_publico: u.whatsapp_publico ? mascaraWhatsApp(u.whatsapp_publico) : '',
     whatsapp_autorizado: !!u.whatsapp_autorizado,
-    horario_loja_texto: u.horario_loja_texto || '',
     verificada: !!u.coordenada_verificada_em,
     consumo_local: (pu && pu.consumo_local) || 'nao_informado',
     retirada: (pu && pu.retirada) || 'nao_informado',
@@ -85,9 +88,18 @@ export function unidadeDeLinhas(pu, un, disp = []) {
     delivery_regioes: (pu && pu.delivery_regioes) || '',
     delivery_taxa: (pu && pu.delivery_taxa) || '',
     observacao_combo: (pu && pu.observacao_combo) || '',
-    disponibilidade: (disp || []).filter((d) => !pu || d.participacao_unidade_id === pu.id).map(disponibilidadeDeLinha)
-      .sort((a, b) => (a.data + a.abre).localeCompare(b.data + b.abre)),
+    horario_festival: linhasCanonicas(pu && pu.horario_festival),
+    horarios_antigo: texto(pu && pu.horarios),
   }
+}
+
+/** O que `corpoUnidade` deixa de fora por inválido — para o "Salvo" dizer a verdade (auditoria de 21/10/2026). */
+export function camposInvalidosDaUnidade(u) {
+  const r = []
+  if (erroCep(u.cep)) r.push('o CEP')
+  if (erroUf(u.uf)) r.push('a UF')
+  if (erroWhatsappUnidade(u.whatsapp_publico)) r.push('o WhatsApp da loja')
+  return r
 }
 
 /** Corpo do PATCH/POST em `unidades`. Valor inválido FICA DE FORA (o campo mostra o erro). */
@@ -97,19 +109,43 @@ export function corpoUnidade(u) {
     complemento: ouNulo(u.complemento), bairro: ouNulo(u.bairro), cidade: ouNulo(u.cidade),
     uf: ouNulo(u.uf) && texto(u.uf).toUpperCase(), cep: soDigitos(u.cep) || null, referencia: ouNulo(u.referencia),
     whatsapp_publico: whatsappDigitos(u.whatsapp_publico) || null, whatsapp_autorizado: !!u.whatsapp_autorizado,
-    horario_loja_texto: ouNulo(u.horario_loja_texto),
   }
   if (erroCep(u.cep)) delete corpo.cep
   if (erroUf(u.uf)) delete corpo.uf
-  if (erroWhatsappUnidade(u.whatsapp_publico)) delete corpo.whatsapp_publico
+  // Número pela metade: nem ele nem a liberação vão (senão o número ANTIGO iria para o site).
+  if (erroWhatsappUnidade(u.whatsapp_publico)) { delete corpo.whatsapp_publico; delete corpo.whatsapp_autorizado }
   return corpo
+}
+
+/*
+ * WhatsApp da loja (23/10/2026, pedido do Wilker): preenchido = vai para o site; não há mais caixa de
+ * autorização (`whatsapp_autorizado` passa a dizer "a marca salvou sob a regra nova"). O número que foi
+ * digitado sob a regra antiga sem autorizar (`whatsappLegado`) só vai ao site quando a marca salvar a
+ * unidade de novo — nunca porque a tela abriu.
+ */
+export const whatsappLegado = (u) => !!(u && soDigitos(u.whatsapp_publico) && !u.whatsapp_autorizado && !erroWhatsappUnidade(u.whatsapp_publico))
+
+/**
+ * A unidade depois de a marca mexer nela: o número decide a liberação; qualquer outra edição DOS DADOS DA UNIDADE (bloco 4, onde o
+ * aviso "este número vai para o site" aparece) libera o número antigo. Atendimento, canais e horário (bloco 6) passam
+ * `liberaLegado: false`: quem só confirma o horário não pode publicar, sem ver, um número que ela digitou sob a regra antiga.
+ */
+export function editarUnidade(u, mudanca, { liberaLegado = true } = {}) {
+  const novo = { ...u, ...mudanca }
+  if ('whatsapp_publico' in mudanca) novo.whatsapp_autorizado = !!soDigitos(novo.whatsapp_publico)
+  else if (liberaLegado && whatsappLegado(u)) novo.whatsapp_autorizado = true
+  return novo
 }
 
 // Cópia de conveniência para quem ainda lê participacao_unidades.endereco/bairro
 // (lista da organização, Início, campos_cadastro). A tela edita `unidades`.
 export const enderecoLegado = (u) => [texto(u.logradouro), texto(u.numero)].filter(Boolean).join(', ') || null
 
-/** Corpo do PATCH/POST em `participacao_unidades` (só colunas com grant da marca). */
+/**
+ * Corpo do PATCH em `participacao_unidades` (só colunas com grant da marca). O horário no festival vai canônico
+ * (`linhasCanonicas`): o jsonb volta do banco com as chaves em outra ordem, e a comparação de `patchMudancas` é por
+ * texto — só linhas completas chegam aqui (o rascunho incompleto do seletor nunca entra em `u.horario_festival`).
+ */
 export function corpoParticipacaoUnidade(u, ordem) {
   return {
     ordem, participa: u.participa !== false,
@@ -120,7 +156,14 @@ export function corpoParticipacaoUnidade(u, ordem) {
     canais_delivery: canaisParaArray(u.canais),
     delivery_regioes: ouNulo(u.delivery_regioes), delivery_taxa: ouNulo(u.delivery_taxa),
     observacao_combo: ouNulo(u.observacao_combo),
+    horario_festival: linhasCanonicas(u.horario_festival),
   }
+}
+
+/** Corpo do INSERT: `horario_festival` só tem grant de UPDATE por coluna — o horário de uma unidade nova entra num PATCH em seguida. */
+export function corpoNovaParticipacaoUnidade(u, ordem) {
+  const { horario_festival: _depois, ...corpo } = corpoParticipacaoUnidade(u, ordem)
+  return corpo
 }
 
 /** A mesma forma, lida da linha que o servidor gravou (foto para patchMudancas). */
@@ -133,6 +176,7 @@ export function corpoParticipacaoUnidadeDeLinha(row) {
     canais_delivery: canaisParaArray(canaisParaObjeto(row.canais_delivery)),
     delivery_regioes: ouNulo(row.delivery_regioes), delivery_taxa: ouNulo(row.delivery_taxa),
     observacao_combo: ouNulo(row.observacao_combo),
+    horario_festival: linhasCanonicas(row.horario_festival),
   }
 }
 
@@ -144,37 +188,29 @@ export function nomeDaUnidade(u, i) {
 /** id do campo de uma unidade: a 1ª usa o nome genérico (o que a organização aponta). */
 export const idCampoUnidade = (base, i) => base + (i ? '-' + (i + 1) : '')
 
-/* ── Horário DO COMBO por dia do festival ─────────────────────────────────── */
-export function disponibilidadeDeLinha(d) {
-  return { id: d.id, data: d.data, abre: hhmm(d.abre), fecha: hhmm(d.fecha), observacao: d.observacao || '' }
-}
-export const corpoDisponibilidade = (d) => ({ abre: hhmm(d.abre), fecha: hhmm(d.fecha), observacao: ouNulo(d.observacao) })
+/* ── Horário NO FESTIVAL (23/10/2026) ──────────────────────────────────────────
+ * Uma pergunta só: como a unidade funciona em cada dia do festival — sem o par de perguntas de antes.
+ * Mora em participacao_unidades.horario_festival (jsonb). A regra — modos, períodos, validação, texto — é de
+ * src/edicao/dados/horarioFestival.js e a tela é components/HorarioFestival.jsx; aqui ficam só as ligações do cadastro.
+ * A unidade na tela guarda as linhas COMPLETAS (`horario_festival`) e, enquanto o seletor está incompleto, só um
+ * marcador (`_horarioPendente`) que o salvamento usa para avisar. O marcador não vai ao banco nem à mesclagem.
+ */
+const listaTexto = (l) => (l.length < 2 ? l.join('') : l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1])
 
-/** Dias do festival, 'AAAA-MM-DD', de início a fim (inclusive). */
-export function diasDoFestival(inicio, fim) {
-  const re = /^(\d{4})-(\d{2})-(\d{2})/
-  const a = re.exec(texto(inicio)); const b = re.exec(texto(fim))
-  if (!a || !b) return []
-  const t0 = Date.UTC(+a[1], +a[2] - 1, +a[3]); const t1 = Date.UTC(+b[1], +b[2] - 1, +b[3])
-  const dias = []
-  for (let t = t0; t <= t1 && dias.length < 62; t += 86400000) dias.push(new Date(t).toISOString().slice(0, 10))
-  return dias
+/** Por que o horário que a pessoa está montando ainda não pode ser salvo (vem do `onChange` do seletor). '' = nada falta. */
+export function motivoHorarioIncompleto({ faltando = [], semDiaAberto = false } = {}) {
+  if (faltando.length) return 'falta responder ' + listaTexto(faltando)
+  return semDiaAberto ? 'marque pelo menos um dia em que a unidade abre' : ''
 }
 
-export function rotuloDia(data) {
-  const d = new Date(data + 'T12:00:00')
-  return isNaN(d) ? data : d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })
-}
-
-/** '' quando a faixa vale; senão o motivo (espelha o check fecha > abre). */
-export function erroFaixa(abre, fecha) {
-  if (!/^\d{2}:\d{2}$/.test(hhmm(abre)) || !/^\d{2}:\d{2}$/.test(hhmm(fecha))) return 'Informe a hora de abrir e a de fechar.'
-  return hhmm(fecha) > hhmm(abre) ? '' : 'O horário de fechar precisa ser depois do de abrir.'
-}
-
-/** "Mesmo horário todos os dias": as linhas que substituem as da unidade. */
-export function linhasMesmoHorario(participacaoUnidadeId, dias, abre, fecha, observacao) {
-  return dias.map((data) => ({ participacao_unidade_id: participacaoUnidadeId, data, abre: hhmm(abre), fecha: hhmm(fecha), observacao: ouNulo(observacao) }))
+/** As frases do salvamento para os horários que ficaram de fora: uma por unidade que participa com horário incompleto na tela. */
+export function frasesHorarioNaoSalvo(unidades = []) {
+  const frases = []
+  unidades.forEach((u, i) => {
+    if (u.participa === false || !u._horarioPendente) return
+    frases.push('O horário de ' + nomeDaUnidade(u, i) + ' não foi salvo: ' + (motivoHorarioIncompleto(u._horarioPendente) || 'falta terminar') + '.')
+  })
+  return frases
 }
 
 /* ── Declarações alimentares ──────────────────────────────────────────────── */
@@ -205,11 +241,12 @@ export function substituicaoDeLinha(s) {
     modalidades: [...(s.modalidades || [])], unidades: [...(s.unidades || [])],
   }
 }
-/** Acréscimo vazio = não informado (null); "0" = sem custo. Nunca confundir os dois. */
+/** A troca não muda o valor do combo (24/10/2026, decisão do Wilker): o acréscimo sai da tela e vai sempre 0
+ *  — o mesmo que o /preencher grava. A coluna fica no banco só pelo dado antigo. */
 export function corpoSubstituicao(s) {
   return {
     original: texto(s.original), alternativa: texto(s.alternativa), disponibilidade: s.disponibilidade,
-    acrescimo: valorInformado(s.acrescimo) ? precoNumero(s.acrescimo) : null,
+    acrescimo: 0,
     como_solicitar: ouNulo(s.como_solicitar), modalidades: [...s.modalidades], unidades: [...s.unidades],
   }
 }
@@ -222,7 +259,7 @@ export function alternar(lista, valor, referencia) {
   return referencia ? referencia.filter((x) => nova.includes(x)) : nova
 }
 
-/* ── O que falta para enviar / publicar ───────────────────────────────────── */
+/* ── O que falta para completar / publicar ─────────────────────────────────── */
 /*
  * Espelho de pendencias_publicacao (20261014_cartoon_02_publicacao.sql):
  * combo_nome · sem_unidade · unidade:<id>:endereco|modos|canais|horario ·
@@ -239,7 +276,8 @@ export function pendenciasEdicao({ comboNome = '', unidades = [], itens = [], de
     if (!texto(u.logradouro) || !texto(u.bairro) || !texto(u.cidade)) f.push('unidade:' + id + ':endereco')
     if ([u.consumo_local, u.retirada, u.delivery_combo].some((m) => !m || m === 'nao_informado')) f.push('unidade:' + id + ':modos')
     if (u.delivery_combo === 'sim' && !canaisParaArray(u.canais).length) f.push('unidade:' + id + ':canais')
-    if (!(u.disponibilidade || []).length) f.push('unidade:' + id + ':horario')
+    // Horário no festival: [] = ainda não respondido (dia que não abre é uma resposta; o banco usa a mesma regra).
+    if (!(u.horario_festival || []).length) f.push('unidade:' + id + ':horario')
   }
   for (const i of [...itens].sort((a, b) => a.posicao - b.posicao)) {
     if (alergenicosRespondidos(declaracoes[i.id]) < ASPECTOS_ALERGENICOS.length) f.push('item:' + i.posicao + ':alimentar')
@@ -293,7 +331,7 @@ export function traduzirFaltando(codigo, { unidades = [], itens = [] } = {}) {
     if (m[2] === 'endereco') return { texto: 'Completar o endereço de ' + nome + ' (rua, bairro e cidade)', bloco: 4, campo: idCampoUnidade('unidade-endereco', pos) }
     if (m[2] === 'modos') return { texto: 'Responder como ' + nome + ' atende o combo: no local, retirada e delivery', bloco: 6, campo: idCampoUnidade('atendimento-modos', pos) }
     if (m[2] === 'canais') return { texto: 'Informar onde pedir o delivery do combo em ' + nome, bloco: 6, campo: idCampoUnidade('atendimento-canais', pos) }
-    return { texto: 'Informar o horário do combo em ' + nome, bloco: 6, campo: idCampoUnidade('atendimento-horario', pos) }
+    return { texto: 'Informar o horário no festival de ' + nome, bloco: 6, campo: idCampoUnidade('atendimento-horario', pos) }
   }
   m = /^item:(\d+):alimentar$/.exec(c)
   if (m) {
@@ -316,4 +354,162 @@ export function textoPublicacao(pub) {
     return { tom: 'erro', texto: 'Sua página saiu do site' + (texto(pub.motivo_retirada) ? ': ' + texto(pub.motivo_retirada) : '.'), link: null }
   }
   return { tom: 'neutro', texto: 'Sua página ainda não está publicada. A organização publica depois de aprovar o cadastro.', link: null }
+}
+
+/* ── Clareza do formulário da marca (22/10/2026) ─────────────────────────────
+ * Tudo puro, testado em tests/painel-app-edicao-marca.test.mjs. Os ÍNDICES dos
+ * blocos (0 a 7), `data-bloco`, `bloco-N`, `campo-*` e os links NÃO mudam: só o
+ * rótulo que a pessoa lê.
+ */
+const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios)
+
+export const ROTULO_AREA = { cadastro: 'Meu cadastro', combo: 'Meu combo' }
+
+/** Título e subtítulo de cada bloco, por índice. O número que aparece é LOCAL da aba (numeroLocalDoBloco). */
+export const TITULOS_BLOCO = [
+  { titulo: 'Dados da marca', sub: 'Nome, logo, contatos e apresentação da casa' },
+  { titulo: 'Tema e inspiração', sub: 'Sua leitura do tema da edição' },
+  { titulo: 'Itens do combo', sub: 'Dois itens de comer e uma bebida' },
+  { titulo: 'Apresentação e condições do combo', sub: 'Nome, descrição, condições, valor e custos' },
+  { titulo: 'Unidades participantes', sub: 'Endereço, WhatsApp e quais participam' },
+  { titulo: 'Informações alimentares e trocas', sub: 'Alergênicos, características e trocas de cada item' },
+  { titulo: 'Atendimento e horário no festival', sub: 'Local, retirada, delivery e o horário de cada unidade nos dias do festival' },
+]
+
+/** Meu cadastro = 0 · 4 · 6 · 7; Meu combo = 1 · 2 · 3 · 5. O mesmo corte de vistaDoBloco (guia.js) — o teste confere. */
+export function areaDoBloco(bloco) {
+  if (bloco === null || bloco === undefined) return 'cadastro'
+  return [0, 4, 6, 7].includes(Number(bloco)) ? 'cadastro' : 'combo'
+}
+
+/** Posição do bloco na aba (1, 2, 3…), ou null se ele não está nela. `visiveis` = blocos da aba. */
+export function numeroLocalDoBloco(bloco, visiveis = []) {
+  const i = [...visiveis].sort((a, b) => a - b).indexOf(Number(bloco))
+  return i < 0 ? null : i + 1
+}
+
+/**
+ * Diz ONDE a falta está: `naOutraAba` quando o bloco não é da aba aberta, e o texto completo
+ * ("Falta em Meu combo: Dar um nome ao combo") para quem está no outro lado.
+ */
+export function comOnde(f, visiveis = []) {
+  const area = areaDoBloco(f.bloco)
+  const naOutraAba = f.bloco !== null && f.bloco !== undefined && !visiveis.includes(Number(f.bloco))
+  return { ...f, area, naOutraAba, textoCompleto: naOutraAba ? 'Falta em ' + ROTULO_AREA[area] + ': ' + f.texto : f.texto }
+}
+
+/**
+ * O que falta no cadastro inteiro (as duas áreas), em ordem: primeiro o da aba aberta, depois o da outra, por bloco.
+ * `faltaCampos` = campos obrigatórios vazios (sem a logo); `pendEdicao` = códigos de pendenciasEdicao. É só leitura:
+ * o servidor continua decidindo quando o cadastro está completo. O primeiro item é o "Ir para o que falta".
+ */
+export function faltasDoCadastro({ faltaCampos = [], pendEdicao = [], unidades = [], itens = [], visiveis = [] } = {}) {
+  return [
+    ...faltaCampos.map((c) => ({ texto: c.campo ? c.rotulo : c.rotulo + ' (fale com a organização)', bloco: c.bloco, campo: c.campo || null })),
+    ...pendEdicao.map((codigo) => ({ ...traduzirFaltando(codigo, { unidades, itens }), codigo })),
+  ].map((f) => comOnde(f, visiveis))
+    .sort((a, b) => Number(a.naOutraAba) - Number(b.naOutraAba) || (a.bloco ?? 99) - (b.bloco ?? 99))
+}
+
+/**
+ * Situação de UM bloco, em palavras, para o cabeçalho recolhido. Ordem: correção pedida > falta >
+ * em análise / aprovado > preenchido. "Preenchido" NUNCA é "aprovado": só a organização aprova, e o
+ * tema tem aprovação própria (temas_propostos), à parte da do combo.
+ */
+export function estadoDoBloco({ bloco, faltam = 0, pronto = true, correcao = false, comboStatus = 'rascunho', temaStatus = null, alterado = false } = {}) {
+  if (correcao) return { estado: 'alteracao', texto: 'Correção solicitada' }
+  if (faltam > 0) return { estado: 'falta', texto: faltam === 1 ? 'Falta 1 informação' : 'Faltam ' + faltam + ' informações' }
+  if (!pronto) return { estado: 'espera', texto: 'Abre quando a organização liberar' }
+  // O tema tem decisão própria (temas_propostos): vale para o bloco 1 mesmo com o combo em outro estado
+  // (tema aprovado ≠ combo aprovado; combo aprovado não faz de um tema ainda proposto um tema aprovado).
+  if (Number(bloco) === 1 && temaStatus === 'aprovado') return { estado: 'aprovado', texto: comboStatus === 'aprovado' && !alterado ? 'Aprovado' : 'Tema aprovado' }
+  if (Number(bloco) === 1 && temaStatus === 'proposto') return { estado: 'analise', texto: 'Tema em análise' }
+  if (comboStatus === 'aprovado' && alterado) return { estado: 'completo', texto: 'Preenchido · alterações salvas' }
+  if (comboStatus === 'aprovado') return { estado: 'aprovado', texto: 'Aprovado' }
+  if (comboStatus === 'em_analise') return { estado: 'analise', texto: 'Em análise' }
+  return { estado: 'completo', texto: 'Preenchido' }
+}
+
+const curto = (s, n) => { const t = texto(s); return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t }
+const unidadeConta = (u) => u.participa !== false && !!(texto(u.logradouro) || u.unId || u.puId)
+
+/** O que o bloco já tem, em poucas palavras ("3 itens", "2 unidades"). '' = nada para resumir. */
+export function resumoDoBloco(bloco, { marca = {}, tema = {}, combo = {}, itens = [], unidades = [], declaracoes = {} } = {}) {
+  switch (Number(bloco)) {
+    case 0: return [curto(marca.nome_marca, 32), texto(marca.telefone)].filter(Boolean).join(' · ')
+    case 1: return texto(tema.tema_combo) ? 'Tema: ' + curto(tema.tema_combo, 48) : ''
+    case 2: {
+      const n = itens.filter((i) => texto(i.nome)).length
+      if (!n) return ''
+      return n === itens.length ? plural(n, 'item', 'itens') : n + ' de ' + itens.length + ' itens com nome'
+    }
+    case 3: return texto(combo.combo_nome) ? 'Combo: ' + curto(combo.combo_nome, 48) : ''
+    case 4: { const n = unidades.filter(unidadeConta).length; return n ? plural(n, 'unidade', 'unidades') : '' }
+    case 5: {
+      if (!itens.length) return ''
+      const n = itens.filter((i) => alergenicosRespondidos(declaracoes[i.id]) === ASPECTOS_ALERGENICOS.length).length
+      return n + ' de ' + itens.length + ' itens respondidos'
+    }
+    case 6: {
+      const participam = unidades.filter(unidadeConta)
+      if (!participam.length) return ''
+      return 'Horário no festival em ' + participam.filter((u) => (u.horario_festival || []).length).length + ' de ' + plural(participam.length, 'unidade', 'unidades')
+    }
+    default: return ''
+  }
+}
+
+/**
+ * A situação da participação num rótulo só. A marca só SALVA (23/10/2026, pedido do Wilker): o cadastro que
+ * fica completo vai sozinho para a conferência da organização, e toda alteração salva chega a ela. "Completo"
+ * não é "aprovado": só a organização aprova. `tom` é o do <Selo> (neutro · andamento · atencao · ok · encerrado).
+ */
+export function situacaoDaMarca({ semParticipacao = false, statusCadastro = '', comboStatus = 'rascunho', alterado = false, publicada = false, faltam = 0 } = {}) {
+  if (semParticipacao) return { chave: 'sem_edicao', texto: 'Sem edição aberta', tom: 'encerrado', nota: '' }
+  if (statusCadastro === 'encerrado') return { chave: 'encerrada', texto: 'Participação encerrada', tom: 'encerrado', nota: '' }
+  if (comboStatus === 'aprovado') {
+    if (alterado) {
+      return { chave: 'aprovado_alterado', texto: 'Alterações salvas · a organização vai atualizar o site', tom: 'andamento',
+        nota: 'A versão aprovada continua no ar até a organização conferir o que você mudou.' }
+    }
+    return publicada
+      ? { chave: 'publicada', texto: 'Combo aprovado · página no ar', tom: 'ok', nota: '' }
+      : { chave: 'aprovado', texto: 'Combo aprovado', tom: 'ok', nota: '' }
+  }
+  if (comboStatus === 'correcao_solicitada') {
+    return { chave: 'ajuste', texto: 'Ajuste pedido · corrija e salve', tom: 'atencao',
+      nota: 'A organização pediu ajustes. Corrija os campos marcados (em Meu cadastro e em Meu combo) e salve: ela recebe a alteração.' }
+  }
+  if (comboStatus === 'em_analise' || statusCadastro === 'cadastro_completo') {
+    // O cadastro já foi para a organização, mas a edição passou a pedir mais (ex.: o horário no festival): não se diz "completo".
+    if (faltam > 0) {
+      return { chave: 'em_analise', texto: 'A organização está conferindo · falta informação', tom: 'atencao',
+        nota: 'A organização já recebeu o seu cadastro, mas há informação nova a preencher. Complete o que falta e salve: ela recebe a alteração.' }
+    }
+    return { chave: 'em_analise', texto: 'Completo · a organização está conferindo', tom: 'andamento',
+      nota: 'Ela confere e avisa aqui. Mudou alguma coisa? É só salvar: a organização recebe a alteração.' }
+  }
+  return faltam ? { chave: 'rascunho', texto: 'Em preenchimento', tom: 'neutro', nota: '' }
+    : { chave: 'pronto', texto: 'Completo · a organização vai conferir', tom: 'andamento', nota: '' }
+}
+
+/** A linha de baixo do progresso: quantas informações faltam no cadastro inteiro (não é o mesmo que "% preenchido"). */
+export function textoFaltam({ faltam = 0, chave = 'rascunho' } = {}) {
+  if (faltam > 0) return faltam === 1 ? 'Falta 1 informação' : 'Faltam ' + faltam + ' informações'
+  if (['encerrada', 'sem_edicao'].includes(chave)) return ''
+  return 'Nenhuma informação faltando'
+}
+
+/**
+ * O rótulo do salvamento automático. `texto` é o que o salvamento deixou ('' = nada ainda; "Salvo, menos …" = ficou
+ * campo inválido de fora; o resto = gravado). O erro tem UMA voz só (o aviso com role="alert"): aqui é só o rótulo.
+ */
+export function rotuloSalvamento({ salvando = false, erro = false, texto: salvo = '' } = {}) {
+  if (salvando) return { estado: 'salvando', texto: 'Salvando…', detalhe: '' }
+  if (erro) return { estado: 'erro', texto: 'Não foi possível salvar', detalhe: '' }
+  if (!salvo) return { estado: 'vazio', texto: '', detalhe: '' }
+  if (/^Salvo, menos o que aguarda/.test(salvo)) return { estado: 'parcial', texto: salvo, detalhe: '' }
+  // "Salvo, menos o CEP …" e "O horário de X não foi salvo: falta responder Sábado." (horário incompleto no seletor).
+  if (/^Salvo, menos |não foi salvo: /.test(salvo)) return { estado: 'corrigir', texto: 'Há campos que precisam ser corrigidos', detalhe: salvo }
+  return { estado: 'salvo', texto: 'Alterações salvas', detalhe: '' }
 }

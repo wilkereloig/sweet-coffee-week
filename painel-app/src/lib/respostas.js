@@ -73,6 +73,7 @@ export const RECADO_ACESSO = {
   nao_autorizado: 'A sessão não vale mais. Saia e entre de novo.',
   candidatura_nao_encontrada: 'Essa candidatura não existe mais.',
   conta_ja_existe: 'Esta candidatura já tem conta. Veja em "Marcas".',
+  candidatura_nao_aprovada: 'A candidatura precisa estar como Aprovada antes de criar o acesso.',
 }
 
 // O /quero-participar guarda as respostas longas no payload; os rótulos

@@ -5,6 +5,8 @@ import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
 import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, Escolha } from '../ui'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -23,7 +25,8 @@ const PROXIMO = {
  * edição, por situação, e as sugestões — quem já recebeu em edições
  * anteriores e ainda não está na lista. O histórico nunca decide sozinho.
  */
-export function PressKit({ registrarAtualizar, pode, rota, navegar }) {
+export function PressKit({ pode, rota, navegar }) {
+  const guarda = useGuarda()
   const [lista, setLista] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
@@ -31,24 +34,35 @@ export function PressKit({ registrarAtualizar, pode, rota, navegar }) {
   const podeMudar = pode('relacionamento.gerir')
   const aberto = rota.filtros.item || null
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  // true = leu. A releitura SILENCIOSA (sinal de outra pessoa, reconexão, depois de uma ação) mantém a lista, a
+  // situação escolhida e a ficha aberta; se falhar, a lista que estava na tela continua.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     try {
       const l = await rpc('get_contatos', { p_secret: lerSenha() })
       if (l == null) throw new Error('nao_autorizado')
+      if (!vale()) return true
       setLista(l)
-    } catch (e) { setErro(e.message) }
-  }, [])
+      setErro(null)
+      return true
+    } catch (e) {
+      if (!vale()) return true
+      if (!silencioso || /nao_autorizado/.test(e.message)) setErro(e.message)
+      return false
+    }
+  }, [guarda])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  useSincronizar(DOMINIOS_VISTAS.contatos, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('presskit') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   async function mudar(c, status) {
     setAviso(null)
-    try { await rpc('definir_presskit', { p_secret: lerSenha(), p_contato: c.id, p_status: status, p_dados: {} }); await carregar() }
+    try { await rpc('definir_presskit', { p_secret: lerSenha(), p_contato: c.id, p_status: status, p_dados: {} }); await carregar({ silencioso: true }) }
     catch (e) { setAviso(erroContato(e.message)) }
   }
 
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!lista) return <Carregando />
   const naLista = lista.filter((c) => c.atual)
   const contar = (s) => naLista.filter((c) => c.atual.status === s).length
@@ -116,7 +130,7 @@ export function PressKit({ registrarAtualizar, pode, rota, navegar }) {
         )}
       </Secao>
 
-      <FichaContato id={aberto} pode={pode} onFechar={() => navegar({ filtros: {} })} onMudou={carregar} />
+      <FichaContato id={aberto} pode={pode} onFechar={() => navegar({ filtros: {} })} />
     </div>
   )
 }

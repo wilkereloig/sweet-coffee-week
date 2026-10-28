@@ -1,147 +1,189 @@
 import React from 'react'
 import { api, assinarDownload } from '../../lib/marcaApi'
-import { dataHoraExtensa } from '../../lib/central'
-import { dataCurta } from '../../lib/respostas'
-import { agruparPorCategoria, tamanhoLegivel, tipoLegivel } from '../../lib/arquivos'
+import { AmpliarPrevia } from '../PreviaArquivo'
+import { caminhoDaMiniatura } from '../../lib/arquivosPrevia'
+import { plataforma } from '../../lib/instalar'
+import { ehNovo, organizarArquivos, precisaLeitura, notaDeAbertura, leituraProvisoria, pendenciasDeArquivos, mapaDeLeituras } from '../../lib/arquivosMarca'
 import { VistaCabeca } from '../VistaCabeca'
-import { Carregando, Vazio, Erro, Secao, Selo } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, GradeModulos, Modulo, traduzirErro } from '../ui'
+import { ItemArquivo } from './arquivos/ItemArquivo'
+import { useAcessoArquivo } from './arquivos/useAcessoArquivo'
+import { PendenciasFotos } from './fotos/PendenciasFotos'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import '../../styles/arquivos-marca.css'
 
 /*
  * Arquivos (marca) — o que a organização publicou, por categoria, e a
  * confirmação de leitura quando o arquivo pede. As fotos oficiais do combo
- * (categoria combo) aparecem na aba Fotos, pelo mesmo componente (29/09/2026).
+ * (categoria combo) moram na aba Fotos (fotos/FotosOficiais.jsx, que usa o mesmo
+ * Abrir/Baixar — arquivos/useAcessoArquivo.js).
+ *
+ * 23/10/2026: no topo, as solicitações da organização sobre arquivos (`pendenciasDeArquivos`, as mesmas que o selo da
+ * aba conta). A leitura passa por `marca_confirmar_leitura`: arquivo SUBSTITUÍDO depois da leitura volta a pedir
+ * confirmação, e a confirmação nova renova a hora (o banco decide; a tela usa a hora devolvida).
+ *
+ * 22/10/2026: o que pede leitura vai para o TOPO (separado do "Novo", que é só
+ * "publicado há até 7 dias" — o banco não guarda quem abriu o quê); o que acabou
+ * de ser confirmado FICA lá, já como "confirmado", até a tela ser reaberta (a lista
+ * não pula de lugar sob o dedo); cada arquivo tem "Abrir" (mostra no navegador, só
+ * para o que ele sabe mostrar) e "Baixar" (pede o download); a tela diz o que
+ * acontece em cada aparelho, sem prometer "salvo". A gravação da leitura não mudou.
  *
  * `arquivos`, `arquivo_leitura` e o id do participante são leituras À PARTE,
- * cada uma com o próprio catch — uma falhar não apaga a outra (§10.4-b).
+ * cada uma com o próprio resultado — uma falhar não apaga a outra (§10.4-b).
+ * Releitura (sinal de arquivos ou de participantes) é silenciosa: troca as listas
+ * de uma vez, sem "Carregando…", e a que falhar deixa a lista anterior na tela.
+ * Sem a leitura das confirmações a tela NÃO afirma o que está pendente.
  */
-// `fotos`: a lista das fotos oficiais (categoria combo), embutida na aba
-// Fotos. Sem ela: a aba Arquivos, com todo o resto.
-export function Arquivos({ alvo, consumirAlvo, irPara, fotos = false, recarregarResumo }) {
+const TEXTO = {
+  botaoLer: 'Li e confirmo a leitura', pedeLer: 'Confirme a leitura', lido: 'Leitura confirmada em ', okLer: 'Leitura registrada.',
+  erroLer: 'Não deu para registrar a leitura agora. Tente de novo.',
+  blocoLer: 'Para ler e confirmar', blocoLerSub: 'A organização pediu que você confirme a leitura destes arquivos.',
+}
+// Um assunto = um ícone (nomes do registro único; conferidos em tests/painel-app-arquivos-marca.test.mjs).
+const ICONE_CATEGORIA = { combo: 'camera', identidade: 'imagem', guia: 'informacao', documento: 'documento', outro: 'pasta' }
+
+export function Arquivos({ alvo, consumirAlvo, irPara, recarregarResumo, resumo, abrirLink }) {
   const [arquivos, setArquivos] = React.useState(null)
   const [lidos, setLidos] = React.useState({})
+  const [leituraConhecida, setLeituraConhecida] = React.useState(false)
   const [participacaoId, setParticipacaoId] = React.useState(null)
   const [erro, setErro] = React.useState(null)
-  const [baixando, setBaixando] = React.useState(null)
   const [confirmando, setConfirmando] = React.useState(null)
-  const [aviso, setAviso] = React.useState(null)
+  const [recemLidos, setRecemLidos] = React.useState(() => new Set())   // ids confirmados nesta visita: ficam no bloco "Para ler"
+  const [aviso, setAviso] = React.useState(null)          // { id, tom: 'ok' | 'erro', texto } — id = o arquivo, ou null para a lista inteira
   const [destaque, setDestaque] = React.useState(null)
+  const [ampliada, setAmpliada] = React.useState(null) // { a, url } — a prévia grande de uma imagem
+  const { ocupado, acessar } = useAcessoArquivo(setAviso)
+
+  const guarda = useGuarda()
+  const temArquivos = React.useRef(false)
+  const plat = React.useMemo(() => plataforma(), [])
 
   const carregar = React.useCallback(async () => {
-    setErro(null)
-    try {
-      setArquivos((await api('arquivos?select=*&order=publicado_em.desc.nullslast')) || [])
-    } catch (e) {
-      if (e && e.message === 'sessao_expirada') return
-      setErro(e.message)
-    }
-    try {
-      const [pa, l] = await Promise.all([
+    const vale = guarda()
+    const [rArq, rLeit] = await Promise.allSettled([
+      api('arquivos?select=*&arquivado=eq.false&order=publicado_em.desc.nullslast'),
+      Promise.all([
         api('participacoes?select=id&order=created_at.desc&limit=1'),
         api('arquivo_leitura?select=arquivo_id,lido_em'),
-      ])
-      setParticipacaoId((pa && pa[0] && pa[0].id) || null)
-      setLidos(Object.fromEntries((l || []).map((x) => [x.arquivo_id, x.lido_em])))
-    } catch { /* sem isso só perde a confirmação de leitura; a lista segue */ }
-  }, [])
-  React.useEffect(() => { carregar() }, [carregar])
+      ]),
+    ])
+    if (!vale()) return
+    const morta = (r) => r.status === 'rejected' && r.reason && r.reason.message === 'sessao_expirada'
+    if (morta(rArq) || morta(rLeit)) return                   // o App leva ao login
+    if (rArq.status === 'fulfilled') { setArquivos(rArq.value || []); setErro(null); temArquivos.current = true }
+    else if (!temArquivos.current) setErro(rArq.reason && rArq.reason.message)
+    if (rLeit.status === 'fulfilled') {
+      const [pa, l] = rLeit.value
+      setParticipacaoId((pa && pa[0] && pa[0].id) || null)   // participação nova (outra edição) entra aqui
+      setLidos(mapaDeLeituras(l))   // uma linha por participação: vale a leitura mais recente de cada arquivo
+      setLeituraConhecida(true)
+    }
+    // Sem a leitura de confirmação a lista segue (só falta o "lido"), mas a falha conta no indicador.
+    const falha = [rArq, rLeit].find((r) => r.status === 'rejected')
+    if (falha) throw falha.reason
+  }, [guarda])
+  React.useEffect(() => { carregar().catch(() => {}) }, [carregar])
+  useSincronizar(['arquivos', 'participantes'], carregar)
+  const tentarDeNovo = () => { setErro(null); carregar().catch(() => {}) }
 
   React.useEffect(() => {
     if (!alvo || !alvo.id || !arquivos) return
     // Aviso antigo `arquivos/<id>` de uma foto oficial: ela mora na aba Fotos.
     const a = arquivos.find((x) => x.id === alvo.id)
-    if (!fotos && a && a.categoria === 'combo' && irPara) { irPara('fotos', { id: alvo.id }); return }
-    setDestaque(alvo.id); if (consumirAlvo) consumirAlvo()
+    if (a && a.categoria === 'combo' && irPara) { irPara('fotos', { id: alvo.id }); return }
+    if (a) setDestaque(alvo.id)
+    else setAviso({ id: null, tom: 'erro', texto: 'Não encontrei esse arquivo na sua lista. Ele pode ter sido retirado pela organização.' })
+    if (consumirAlvo) consumirAlvo()
   }, [alvo, arquivos]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function baixar(path) {
-    // A janela abre no clique, antes do await: aberta depois, o bloqueador de
-    // pop-up (principalmente no iPhone) a barra.
-    const janela = window.open('', '_blank')
-    setBaixando(path)
+  // Só ciência: grava `arquivo_leitura` (quem leu e quando) por `marca_confirmar_leitura` — que também RENOVA a
+  // leitura de um arquivo substituído depois dela. Não é aceite de termo nem concordância — por isso o botão diz
+  // "Li e confirmo a leitura". `setLidos` só roda DEPOIS da gravação confirmada: se `api` falha (rede, sessão,
+  // arquivo retirado), cai no `catch` e o arquivo continua pendente.
+  async function confirmarLeitura(a) {
+    // Sem a leitura das confirmações não se sabe se a participação existe: "ainda não foi aberta" seria afirmar o que não se sabe.
+    if (!leituraConhecida) { setAviso({ id: a.id, tom: 'erro', texto: 'Não deu para conferir suas confirmações agora. Toque em “Tentar de novo” e confirme depois.' }); return }
+    if (!participacaoId) { setAviso({ id: a.id, tom: 'erro', texto: 'Sua participação ainda não foi aberta: a confirmação fica disponível quando ela abrir.' }); return }
+    setConfirmando(a.id)
     setAviso(null)
     try {
-      const url = await assinarDownload(path)
-      if (janela) { janela.opener = null; janela.location.href = url } else window.location.href = url
-    } catch {
-      if (janela) janela.close()
-      setAviso('Não deu para abrir o arquivo agora. Tente de novo em instantes.')
-    } finally {
-      setBaixando(null)
-    }
-  }
-
-  async function confirmarLeitura(arquivoId) {
-    if (!participacaoId) { setAviso('Sua participação ainda não foi aberta: a confirmação fica disponível quando ela abrir.'); return }
-    setConfirmando(arquivoId)
-    setAviso(null)
-    try {
-      await api('arquivo_leitura', {
+      // Arquivo só desta marca em OUTRA participação (edição antiga) confirma por ela; o geral, pela mais recente.
+      const r = await api('rpc/marca_confirmar_leitura', {
         metodo: 'POST',
-        prefer: 'return=minimal,resolution=ignore-duplicates',
-        corpo: { arquivo_id: arquivoId, participacao_id: participacaoId },
+        corpo: { p_arquivo: a.id, p_participacao: a.participacao_id || participacaoId },
       })
-      setLidos((l) => ({ ...l, [arquivoId]: new Date().toISOString() }))
+      guarda()                      // uma leitura em voo é anterior a esta confirmação: não pode desfazê-la
+      // A hora que o banco gravou; sem ela, uma provisória (nunca antes da publicação) até a releitura que o registro dispara.
+      setLidos((l) => ({ ...l, [a.id]: (r && r.lido_em) || leituraProvisoria(a) }))
+      setRecemLidos((s) => new Set(s).add(a.id))   // fica no bloco "Para ler", já confirmado: a lista não pula de lugar
+      setAviso({ id: a.id, tom: 'ok', texto: TEXTO.okLer })
       if (recarregarResumo) recarregarResumo()
     } catch (e) {
       if (e && e.message === 'sessao_expirada') return
-      setAviso('Não deu para registrar a leitura agora. Tente de novo.')
+      const gone = e && e.message === 'arquivo_nao_encontrado'
+      if (gone) carregar().catch(() => {})   // a lista mostrava um arquivo que já saiu: relê
+      setAviso({ id: a.id, tom: 'erro', texto: e && e.message === 'modo_visualizacao' ? traduzirErro(e.message) : gone ? 'A organização retirou ou trocou este arquivo. A lista foi atualizada.' : TEXTO.erroLer })
     } finally {
       setConfirmando(null)
     }
   }
 
-  const visiveis = arquivos && arquivos.filter((a) => (fotos ? a.categoria === 'combo' : a.categoria !== 'combo'))
-  const lista = (
-        <Secao titulo={fotos ? 'Fotos oficiais' : 'Para baixar'}>
-          {erro && <Erro texto="Não deu para carregar os arquivos agora." onTentar={carregar} />}
-          {!erro && arquivos === null && <Carregando linhas={3} />}
-          {!erro && visiveis && visiveis.length === 0 && (fotos
-            ? <p className="ui-nota">Ainda não disponíveis. Você será avisado quando as fotos forem liberadas.</p>
-            : <Vazio titulo="Nenhum arquivo ainda">Chega aqui, com aviso.</Vazio>)}
-          {visiveis && visiveis.length > 0 && agruparPorCategoria(visiveis).map((g) => (
-            <div className="ui-downloads__grupo" key={g.chave}>
-              <h3 className="ui-downloads__titulo">{g.rotulo}</h3>
-              {g.descricao && <p className="ui-nota">{g.descricao}</p>}
-              <ul className="ui-arquivos">
-                {g.itens.map((a) => {
-                  const detalhe = [tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho), a.versao ? 'versão ' + a.versao : '', dataCurta(a.publicado_em || a.created_at)].filter(Boolean).join(' · ')
-                  const lido = lidos[a.id]
-                  return (
-                    <li key={a.id} className={'ui-arquivo' + (destaque === a.id ? ' is-destaque' : '')}>
-                      <div className="ui-arquivo__corpo">
-                        <b>{a.nome}</b>
-                        <span>{detalhe}</span>
-                        {a.descricao && <span>{a.descricao}</span>}
-                        <Selo tom={a.escopo === 'marca' ? 'andamento' : 'neutro'}>{a.escopo === 'marca' ? 'Só para você' : 'Para todos os participantes'}</Selo>
-                        {a.exige_leitura && (lido
-                          ? <span>Leitura confirmada em {dataHoraExtensa(lido)}</span>
-                          : <Selo tom="atencao">Confirme a leitura</Selo>)}
-                      </div>
-                      <div className="ui-linha-acoes">
-                        <button className="og-btn og-btn--vazado og-btn--mini" type="button" disabled={baixando === a.path} onClick={() => baixar(a.path)}>
-                          {baixando === a.path ? 'Abrindo…' : 'Baixar'}
-                        </button>
-                        {a.exige_leitura && !lido && (
-                          <button className="og-btn og-btn--mini" type="button" disabled={confirmando === a.id} onClick={() => confirmarLeitura(a.id)}>
-                            {confirmando === a.id ? 'Registrando…' : 'Li e estou de acordo'}
-                          </button>
-                        )}
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          ))}
-          {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
-        </Secao>
+  const agora = new Date()
+  const visiveis = arquivos && arquivos.filter((a) => a.categoria !== 'combo')
+  const { paraLer, grupos, leituraIncerta } = organizarArquivos(visiveis, leituraConhecida ? lidos : null, recemLidos)
+  const faltam = paraLer.filter((a) => precisaLeitura(a, lidos)).length   // o selo conta só quem ainda falta confirmar
+  const item = (a) => (
+    <ItemArquivo key={a.id} a={a} lido={lidos[a.id]} leituraConhecida={leituraConhecida} textos={TEXTO} agora={agora}
+      destacado={destaque === a.id} ocupado={ocupado} confirmando={confirmando}
+      retorno={aviso && aviso.id === a.id ? aviso : null} aoAcessar={acessar} aoConfirmar={confirmarLeitura}
+      aoAmpliar={(url) => setAmpliada({ a, url })} />
   )
-  if (fotos) return lista
+  const plural = (n, um, varios) => (n === 1 ? um : n + ' ' + varios)
 
+  const lista = (
+    <Secao titulo="Abrir e baixar" nota={visiveis && visiveis.length > 0 ? notaDeAbertura(plat) : undefined}>
+      {aviso && aviso.id === null && <p className="ui-nota ui-nota--erro" role="alert">{aviso.texto}</p>}
+      {erro && <Erro texto="Não deu para carregar os arquivos agora." onTentar={tentarDeNovo} />}
+      {!erro && arquivos === null && <Carregando linhas={3} />}
+      {!erro && visiveis && visiveis.length === 0 && (
+        <Vazio titulo="Nenhum arquivo ainda">Quando a organização publicar guias, documentos ou arquivos da sua marca, eles aparecem aqui, com aviso.</Vazio>)}
+      {leituraIncerta && (
+        <div className="ui-nota ui-nota--erro" role="alert">
+          <p>Não deu para conferir quais arquivos você já leu, então não dá para dizer o que falta confirmar.</p>
+          <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={tentarDeNovo}>Tentar de novo</button>
+        </div>
+      )}
+      {visiveis && visiveis.length > 0 && (
+        <GradeModulos>
+          {paraLer.length > 0 && (
+            <Modulo largo icone="documento" titulo={TEXTO.blocoLer} sub={TEXTO.blocoLerSub}
+              status={faltam > 0 ? <Selo tom="atencao">{plural(faltam, '1 para confirmar', 'para confirmar')}</Selo> : <Selo tom="ok">Tudo confirmado</Selo>}>
+              <ul className="am-lista">{paraLer.map(item)}</ul>
+            </Modulo>
+          )}
+          {grupos.map((g) => {
+            const novos = g.itens.filter((a) => ehNovo(a, agora)).length
+            return (
+              <Modulo key={g.chave} largo icone={ICONE_CATEGORIA[g.chave] || 'pasta'} titulo={g.rotulo} sub={g.descricao || undefined}
+                status={novos > 0 ? <Selo tom="andamento">{plural(novos, '1 novo', 'novos')}</Selo> : undefined}>
+                <ul className="am-lista">{g.itens.map(item)}</ul>
+              </Modulo>
+            )
+          })}
+        </GradeModulos>
+      )}
+    </Secao>
+  )
   return (
     <section className="ui-vista-marca">
       <VistaCabeca acento="marrom" icone="arquivos" titulo="Arquivos" nota="Marca do festival, guias e documentos" />
+      <PendenciasFotos itens={pendenciasDeArquivos(resumo)} abrirLink={abrirLink} titulo="Solicitações sobre arquivos" classe="am-pendencias" />
       {lista}
+      <AmpliarPrevia aberto={!!ampliada} nome={ampliada && ampliada.a.nome} caminho={ampliada && caminhoDaMiniatura(ampliada.a)} url={ampliada && ampliada.url}
+        assinar={assinarDownload} onFechar={() => setAmpliada(null)}
+        acoes={ampliada && <button className="og-btn og-btn--mini" type="button" onClick={() => acessar(ampliada.a, 'baixar')}>Baixar o original</button>} />
     </section>
   )
 }

@@ -11,7 +11,7 @@
   - selecionar na lista centraliza o marcador e abre o cartão;
   - tocar no marcador destaca e rola a lista até o item;
   - o endereço guarda `?unidade=<id-publico>`.
-- Cartão da unidade: casa, unidade, bairro, horário do combo de hoje, estado (aberto agora / abre às / fechado hoje), modos, "Ver casa", "Como chegar", "+ Minha rota".
+- Cartão da unidade: casa, unidade, bairro, horário de hoje no festival, estado (aberto agora / abre às / fechado hoje), modos, "Ver casa", "Como chegar", "+ Minha rota".
 - **Filtros, só com dados existentes:** bairro, modo (local / retirada / delivery), aberto agora (só em `em_andamento`), sem glúten declarado e sem lactose declarada.
 - **Localização do visitante:** só por botão "Usar minha localização", com explicação de uma linha. Ordena a lista por distância em linha reta, marcada assim: "distância em linha reta". A posição não é enviada a lugar nenhum nem gravada.
   - Exige trocar `Permissions-Policy` para `geolocation=(self)` (`vercel.json:15`).
@@ -57,7 +57,7 @@ O componente fica atrás de uma interface `<MapaUnidades unidades selecionada on
 | Persistência | `localStorage` chave `scw:edicao:2026.2:rota`, com `{versao, unidades:[ids], atualizado}`; leitura e escrita em `try/catch` (padrão do site). Nada vai ao servidor |
 | Vínculo à edição | a chave inclui o código; na próxima edição a rota começa vazia. A rota Lovers (`sweet-lovers-route`) é ignorada |
 | Unidade despublicada | ao abrir, cruza os ids com a projeção; o que não existe mais aparece como "saiu da edição" com remover; nunca some calado |
-| Acesso ao combo e ao endereço | cada parada mostra casa, unidade, endereço, horário do combo hoje e link para a página |
+| Acesso ao combo e ao endereço | cada parada mostra casa, unidade, endereço, horário de hoje no festival e link para a página |
 | Trajeto externo | "Abrir rota no Google Maps" com destino = última parada e paradas intermediárias na ordem escolhida. Limite de paradas do link [Provável: 9, que era o limite usado na Lovers]; acima disso, divide em trechos |
 | Compartilhar | link `/cartoon/minha-rota?u=id1,id2` (ids públicos); quem abre vê a rota e pode salvar como sua |
 | O que **não** prometer | "melhor caminho", "rota otimizada", tempo de percurso. Não há cálculo de rota no projeto. A ordem é a do visitante; a distância mostrada é em linha reta |

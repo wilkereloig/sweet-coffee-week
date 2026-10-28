@@ -32,7 +32,7 @@ export const DEMO_EDICAO = {
           id: 'udemo1', nome: '[DEMO] Unidade Centro',
           endereco: { logradouro: '[DEMO] Rua Exemplo', numero: '100', bairro: 'Tirol', cidade: 'Natal', uf: 'RN' },
           coordenada: { lat: -5.7945, lng: -35.2110 },
-          whatsapp: '84900000000', horario_loja: '[DEMO] seg a sáb, 8h às 20h',
+          whatsapp: '84900000000',
           combo: { modos: { local: 'sim', retirada: 'sim', delivery: 'sim' }, canais: [{ tipo: 'whatsapp', link: 'https://wa.me/5584900000000' }],
             delivery_taxa: '[DEMO] taxa conforme a região', disponibilidade: faixa('14:00', '20:00') },
         },

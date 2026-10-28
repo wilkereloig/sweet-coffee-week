@@ -17,6 +17,8 @@ const AVISO_ESQUECI = 'Abrimos o WhatsApp da organização com a mensagem pronta
 export function LoginMarca({ onEntrar, onVoltar }) {
   const [nome, setNome] = React.useState('')
   const [senha, setSenha] = React.useState('')
+  // A senha temporária (SCW-XXXX-XXXX-XXXX) é digitada à mão no celular: dá para conferir o que foi digitado.
+  const [verSenha, setVerSenha] = React.useState(false)
   const [carregando, setCarregando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
@@ -68,14 +70,19 @@ export function LoginMarca({ onEntrar, onVoltar }) {
             <span className="pn-campo__rotulo">Senha</span>
             <input
               className="pn-campo__escuro"
-              type="password"
+              type={verSenha ? 'text' : 'password'}
               autoComplete="current-password"
+              autoCapitalize="none"
+              spellCheck={false}
               placeholder="sua senha"
               required
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
             />
           </label>
+          <button className="pn-link--porta" type="button" aria-pressed={verSenha} onClick={() => setVerSenha((v) => !v)}>
+            {verSenha ? 'Esconder a senha' : 'Mostrar a senha'}
+          </button>
           {erro && <div className="pn-erro" role="alert">{erro}</div>}
           {aviso && <div className="pn-info" role="status">{aviso}</div>}
           <button className="og-btn og-btn--cyan-escuro" type="submit" disabled={carregando}>

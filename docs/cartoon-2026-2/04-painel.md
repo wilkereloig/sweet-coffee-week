@@ -13,7 +13,7 @@ Os blocos viram etapas com progresso próprio. A ordem segue o pedido; a numera�
 | Etapa | Bloco | Conteúdo | Novo em relação a hoje |
 |---|---|---|---|
 | 1 · Dados da marca | 0 | logo, apresentação pública, Instagram, site; contato e CNPJ (privados, marcados "não aparece no site") | `apresentacao_publica` |
-| 2 · Unidades participantes | 4 | escolher unidades já cadastradas ou criar; marcar quais participam; endereço estruturado; WhatsApp público com autorização; horário da loja (texto) | `unidades` permanentes, `participa`, endereço estruturado, WhatsApp por unidade |
+| 2 · Unidades participantes | 4 | escolher unidades já cadastradas ou criar; marcar quais participam; endereço estruturado; WhatsApp da loja (preenchido = vai ao site; sem caixa de autorização desde 23/10/2026) | `unidades` permanentes, `participa`, endereço estruturado, WhatsApp por unidade |
 | 3 · Combo | 1 + 3 | tema e justificativa (já existe); nome, descrição e condições do combo; preço oficial em leitura | nome e descrição saem de `participantes` e vão para `participacoes`; `combo_condicoes` |
 | 4 · Doce, salgado e bebida | 2 | por componente: nome, descrição, ingredientes | igual |
 | 5 · Informações alimentares e substituições | 5 (novo) | por componente: a lista de alergênicos e características (3.4); substituições estruturadas (3.5) | tudo novo |
@@ -28,14 +28,14 @@ Os blocos viram etapas com progresso próprio. A ordem segue o pedido; a numera�
 |---|---|
 | Salvar rascunho e retomar | o salvamento automático atual (900 ms, só colunas alteradas) cobre as tabelas novas. Tabelas filhas (declarações, substituições, disponibilidade) gravam por linha, com a mesma fila |
 | Progresso por conteúdo necessário | `campos_cadastro` passa a contar por etapa, separando "obrigatório para enviar" (E) de "obrigatório para publicar" (P). A barra mostra "Faltam 3 itens para enviar" e não uma porcentagem genérica |
-| Explicar sem excesso | uma linha de ajuda por campo, só onde há ambiguidade ("Horário em que o combo está à venda, não o horário da loja"). Textos no arquivo de conteúdo do painel |
+| Explicar sem excesso | uma linha de ajuda por campo, só onde há ambiguidade (ex.: "Se for diferente do horário normal da loja, vale o do festival"). Textos no arquivo de conteúdo do painel |
 | Validar junto ao campo | já existe (`guia.js`); as regras novas entram no mesmo lugar e espelham o `check` do banco |
 | Evitar perda de dados | descarga ao esconder a página e ao sair (já existe); aviso ao fechar com gravação pendente; nenhuma etapa apaga dado de outra |
 | Reutilizar dado permanente sem republicar | ao abrir uma edição nova, as unidades permanentes aparecem como **sugestão** ("Usar a unidade Lagoa Nova?"). Nada é copiado para a participação nova nem publicado sem confirmação. A publicação é sempre por participação |
 | Diferenças entre unidades | etapa 6 tem uma coluna por unidade; o botão "copiar da unidade anterior" acelera |
 | Mostrar o que será público | cada campo tem um selo "aparece no site" ou "uso interno"; a etapa 8 mostra a página |
 | Revisar antes de enviar | a etapa 9 lista por etapa o que será enviado e o que falta |
-| Pendências e correções | as correções por campo continuam abrindo junto ao campo e no topo da lista (`guia.js:152-155`). `CAMPOS_APONTAVEIS` passa a cobrir declarações, substituições, horário do combo, modos e canais (hoje não cobre, seção 1.2) |
+| Pendências e correções | as correções por campo continuam abrindo junto ao campo e no topo da lista (`guia.js:152-155`). `CAMPOS_APONTAVEIS` passa a cobrir declarações, substituições, horário no festival, modos e canais (hoje não cobre, seção 1.2) |
 
 **Edição em que a marca trabalha [Proposta]:** a marca continua vendo a participação mais recente. Se houver duas participações abertas, aparece um seletor de edição no topo. Hoje nada trata esse caso (`Cadastro.jsx:252`).
 

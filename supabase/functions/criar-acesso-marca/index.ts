@@ -256,6 +256,12 @@ Deno.serve(async (req) => {
     const { data: jaTem } = await admin
       .from('participantes').select('id, user_id').eq('origem_id', origemId).maybeSingle()
     if (jaTem?.user_id) return json({ erro: 'conta_ja_existe', participante_id: jaTem.id }, 409)
+
+    // A tela só oferece "Criar acesso" para candidatura aprovada (ou já em 'aguardando_cadastro', quando a tentativa
+    // anterior foi desfeita); o servidor confere o mesmo, senão uma chamada direta cria conta para quem não foi aprovado.
+    if (candidatura.status !== 'aprovado' && candidatura.status !== 'aguardando_cadastro') {
+      return json({ erro: 'candidatura_nao_aprovada', status: candidatura.status }, 409)
+    }
   } else if (participanteExistente) {
     const { data: part, error: partErr } = await admin
       .from('participantes').select('id, user_id, nome_marca, responsavel, telefone, email')

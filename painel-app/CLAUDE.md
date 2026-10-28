@@ -716,8 +716,9 @@ sha256 conferido) + `20260930_acessos_ajustes_advisor.sql`. O que passou a valer
   lista de `campos_cadastro` no banco — mudou lá, muda cá), pendências,
   próxima ação, números das abas, estado de cada campo.
 - **Correção por campo**: `pedir_correcao_campo` (motivo obrigatório) põe o
-  combo em "alteração solicitada"; a marca vê o motivo junto do campo e envia
-  de novo (o gatilho existente devolve para análise); aprovar resolve.
+  combo em "alteração solicitada"; a marca vê o motivo junto do campo, corrige e
+  salva (23/10/2026: não há "reenviar"); a correção fica aberta até a organização
+  decidir; aprovar resolve.
   Pedido da organização ganha `campo` e `prioridade`.
 - **Conta pausada**: a marca bloqueada/desativada vê "Seu acesso está pausado"
   em vez de um painel vazio (`precisaTrocarSenha` → `'pausada'`).
@@ -748,7 +749,9 @@ conferido). O que passou a valer:
   assunto → ícone; `ICONE_TOM` dá ícone a todo tom de status. `<Selo>` sempre
   com ícone + texto + cor — ⛔ nada de `<span className="og-selo">` à mão.
 - **Ação sempre nomeada** ("Editar bebida", "Adicionar unidade"); uma
-  principal, secundárias contornadas, o raro em `MaisAcoes`.
+  principal, secundárias contornadas, o raro em `MaisAcoes`. ⚠️ Desde 25/10/2026 o NOME
+  pode estar só no aria-label e na dica: secundária de desenho universal é só ícone
+  (ver "Botões só com ícone", abaixo).
 - **Ficha do participante é PÁGINA** (decisão do Wilker), no mesmo endereço
   (`#participantes/lista?item=…&sub=…`): cabeçalho-resumo e subnavegação
   Resumo · Cadastro · Combo · Unidades · Operação · Mensagens · Trajetória ·
@@ -766,7 +769,7 @@ conferido). O que passou a valer:
   sugestão por nome ou vínculo; **a marca só por vínculo confirmado**.
   Raster com lado maior < 500px e SVG com código são recusados.
 - **A logo é o 17º campo** do progresso (`campos_cadastro` e
-  `camposObrigatorios`, mesma lista). Não trava o envio para análise.
+  `camposObrigatorios`, mesma lista). Não trava a conclusão do cadastro.
 - ✅ **Logo no painel preenche 100% da caixa (`cover`)**, como na §6.12 (revisado em
   01/10/2026; antes era `contain` com margem). O filete de borda do slot é um `::after`
   por cima da imagem, porque `box-shadow inset` do próprio slot ficaria atrás dela.
@@ -825,9 +828,9 @@ em `master` no mesmo dia (`3031b90`, só o painel — a Home nova segue em `dev/
   ⚠️ A regra `.ui-ajuda` da lista antiga colidia com o `<Ajuda>` recolhível de `ui.jsx`
   (Edição, Press Kit, Vouchers); saiu junto.
 - **Painel como app:** `lib/instalar.js` captura `beforeinstallprompt` (importado no
-  `main.jsx`, antes do render). `ConviteApp` (Início e Visão geral) junta instalar +
-  avisos, com "Agora não" em `localStorage`; reabre pela última etapa do tour e pela
-  Conta. Nunca pede permissão sozinho.
+  `main.jsx`, antes do render). `ConviteAparelho` (diálogo; substituiu o `ConviteApp`) junta
+  instalar + avisos, com "Agora não" em `localStorage`; reabre pela Conta/Meu perfil e pelo
+  sino (Avisos neste aparelho › "Como instalar e ligar os avisos"). Nunca pede permissão sozinho.
 
 #### Redesenho "mesa de trabalho" — 01/10/2026 (Fase 18)
 
@@ -947,22 +950,61 @@ o cadastro abre e os blocos novos dizem "Esta etapa abre quando…", por `seFalt
 leitura de `unidades`). O que passou a valer:
 
 - **Blocos 0 a 7, as duas abas do mesmo `Cadastro.jsx`:** Meu cadastro = 0 marca · 4
-  unidades · 6 atendimento e horário do combo (· 7 fotos, sem tela aqui); Meu combo = 1
+  unidades · 6 atendimento e horário no festival (· 7 fotos, sem tela aqui); Meu combo = 1
   tema · 2 itens · 3 combo · 5 informações alimentares e trocas. `vistaDoBloco` (guia.js)
   espelha `link_campo_marca`; os blocos 5 e 6 entram na aba certa sem o `App.jsx` listá-los.
 - **Peças em `components/vistas-marca/edicao/`** (Unidades, Atendimento, Alimentar, Envio,
   campos) e **lógica pura em `lib/edicaoMarca.js`** (teste `painel-app-edicao-marca`).
   Estilo em `styles/edicao-marca.css` (prefixo `em-`).
-- **Unidade = duas linhas:** `unidades` (permanente: endereço estruturado, WhatsApp com
-  `whatsapp_autorizado`, horário da loja) + `participacao_unidades` (`participa`, modos em
+- **Unidade = duas linhas:** `unidades` (permanente: endereço estruturado e o **WhatsApp da
+  loja** — um por unidade; preenchido = vai para o site, sem caixa de autorização; a tela grava
+  `whatsapp_autorizado` junto do número, e número antigo sem autorização só vai quando a marca
+  salva a unidade, 23/10/2026; o contato PESSOAL do responsável é outro dado e segue privado)
+  + `participacao_unidades` (`participa`, modos em
   três estados, canais, regiões, taxa, observação). Nova = POST `unidades` → POST
   `participacao_unidades` com `unidade_id`. Unidade de outra edição aparece como **sugestão**
   ("Usar nesta edição"), nunca copiada sozinha. `endereco`/`bairro`/`faz_delivery` da
   participação seguem preenchidos como **espelho** para quem ainda os lê. ⛔ A marca não
   grava `lat/lng`: vê só "conferida pela organização" ou "em conferência".
-- **Horário DO COMBO** (`unidade_disponibilidade`), por dia de `edicoes.festival_inicio..fim`:
-  "Mesmo horário todos os dias" = DELETE das linhas da unidade + POST do lote; ajuste e
-  remoção por dia. Operação imediata (`operar`) descarrega a fila antes.
+- **Horário no festival** (`participacao_unidades.horario_festival`, jsonb `[{data, abre, fecha}]`;
+  23/10/2026, pedido do Wilker: UMA pergunta — como a unidade funciona em cada dia do festival —, sem
+  "horário da loja" × "horário do combo" nem horário comercial): até 2 períodos por dia, `24:00` =
+  meia-noite (só em `fecha`), horas de 05:00 a 23:30 de meia em meia hora, **dia sem período = não abre**,
+  **`[]` = ainda não respondido** (pendência `unidade:<id>:horario`). O banco valida em qualquer gravação
+  (gatilho `horario_festival_validar`; erros `horario_invalido`/`data_fora_do_festival`, traduzidos em
+  `traduzirErro`). Migrations `20261107_horario_festival*.sql` (✅ aplicadas; teste
+  `supabase/testes/horario-festival.sql`; reversão em `supabase/reverter/`). Seletor ÚNICO
+  `components/HorarioFestival.jsx` (+ `styles/horario-festival.css`), usado na marca e na ficha da equipe, e — em
+  cópia ES5 com teste de paridade — em `/preencher`; a regra mora em `src/edicao/dados/horarioFestival.js`
+  (`painel-app/src/lib/horarioFestival.js` só reexporta): "Igual todos os dias" · "Muda conforme o dia"
+  (Segunda a sexta · Sábado · Domingo → "Detalhar dia a dia"), Abre/Não abre, "Das … às …", "Incluir
+  intervalo", resumo vivo "Fica assim"/"Falta responder". O seletor guarda o RASCUNHO e só entrega `linhas`
+  quando está COMPLETO (`onChange({ linhas, completo, faltando })`; incompleto = `linhas: null`, e quem usa NÃO
+  mexe em `valor`: mexer em `valor` de fora é o que refaz o rascunho). **Marca:** `Cadastro.jsx` grava por PATCH
+  em `participacao_unidades`, só horário completo e diferente da base (comparação por
+  `linhasCanonicas`/`mesmasLinhas` — o jsonb volta com as chaves em outra ordem); ⚠️ o INSERT de
+  `participacao_unidades` NÃO tem grant da coluna (vai sem ela e o PATCH vem em seguida); rascunho incompleto fica
+  em `_horarioPendente` (nunca vai ao banco nem à mesclagem) e o salvamento diz "O horário de X não foi salvo:
+  falta responder …"; "Ver como" desabilita o seletor. **Equipe:** `HorarioDaUnidade` (`vistas/FichaCadastro.jsx`),
+  "Salvar horário" próprio por `org_salvar_horario_unidade` (`cadastro.editar`, auditoria antes/depois; domínios
+  `['unidades','participantes']`). O texto antigo (`participacao_unidades.horarios`) só aparece como "Hoje está: …"
+  até a marca confirmar; `unidades.horario_loja_texto` e a tabela `unidade_disponibilidade` ficaram SEM USO
+  (legado só de leitura; nada novo lê nem grava). **Frases:** `frasesDeLinhas(linhas, datas)` (módulo) é a ÚNICA função que
+  transforma linhas em texto (painel `textoHorarioFestival`, site `horarioNoFestival`, prévia, diff de publicação,
+  `resumoDeLinhas`): com as datas da edição e ao menos uma linha dentro delas, o resumo completo; SEM elas (o Social media não lê
+  a edição) só do primeiro ao último dia citado, dia a dia, e nunca "todos os dias". As telas da equipe que não recebem a edição
+  leem as datas por `useDatasDoFestival(codigo)` (`lib/festivalReact.js`: `datas`, `periodo`, `carregando`, `falhou`,
+  `tentarDeNovo`). **Seletor:** a releitura que traz o MESMO horário numa lista nova NÃO refaz o rascunho (`aoMudarValor`:
+  `servidor` = último valor de fora, `conhecido` = último que a tela avisou); "Igual todos os dias" com horários diferentes pede
+  confirmação (`Confirmar`) e usa o estado de DEPOIS do diálogo; "Hoje está: …" fica até o horário estar completo; sem hora depois
+  de "meia-noite" (a grade vai a 24:00; o apoio diz "Fecha depois da meia-noite? Escolha “meia-noite”"); "Incluir intervalo" não
+  aparece quando o 1º período fecha em 24:00; o foco vai ao select só em clique de ponteiro. **Marca:** horário incompleto é
+  trabalho pela metade (`registrarPendencia('cadastro-horario')`: atualizar versão, convite e fechar a aba perguntam); o
+  Atendimento/canais/horário NÃO publicam o WhatsApp antigo (`editarUnidade(u, m, { liberaLegado: false })`: o aviso "este número
+  vai para o site" só existe no bloco 4); cadastro que já estava completo antes desta leva é concluído sozinho ao abrir
+  (`ConcluirSozinho` → `concluirSeFaltar`: lê o servidor e chama `marca_concluir_cadastro` só se ainda em preenchimento — em
+  23/10/2026 eram 7 marcas); `situacaoDaMarca` com a organização e `faltam > 0` diz "A organização está conferindo · falta informação".
+  Teste de navegador: `node tests/painel-horario-navegador.mjs` (de dentro de `tests/`; H1–H6 no Cadastro real, backend falso).
 - **Declarações alimentares:** linha ausente = não respondido, **nunca** "não contém"; a
   tela nunca pré-marca. Grava por PATCH no `id` ou POST (o `on_conflict` do PostgREST não
   usa o índice único parcial). "Outro" sem dizer qual não grava (check do banco).
@@ -971,17 +1013,17 @@ leitura de `unidades`). O que passou a valer:
 - **Legado que deixou de ser escrito:** selos vegano/sem glúten/sem lactose e a
   substituição em texto dos itens; vegano/diet/"sobre o delivery" do combo. "Para viagem"
   fica (decide o custo da embalagem).
-- **"Faltam N itens para enviar"** = campos obrigatórios (menos a logo) + `pendenciasEdicao`,
-  espelho de `pendencias_publicacao` (mesmos códigos; o teste confere a lista de alergênicos
-  contra o SQL). O envio traduz os códigos novos (`unidade:<id>:…`, `item:<n>:alimentar`)
-  com o NOME da unidade e leva ao campo (ids `campo-unidade-endereco`, `-2`, `-3`…).
-- **Prévia** ("Ver como fica no site"): `marca_previa_publica` desenhada pela MESMA
-  `FichaParticipante` do site, carregada sob demanda (`edicao/FichaPrevia.jsx`, que importa
-  `scw-cartoon.css`). ⚠️ A classe raiz da edição só pode ser escrita dentro de uma pasta
-  `edicao/` — `tests/rotas-edicao` reprova o estilo dela no resto do painel.
+- **"Faltam N informações para completar o cadastro"** (era "…itens para enviar") = campos
+  obrigatórios (menos a logo) + `pendenciasEdicao`, espelho de `pendencias_publicacao` (mesmos
+  códigos; o teste confere a lista de alergênicos contra o SQL). A leitura traduz os códigos
+  novos (`unidade:<id>:…`, `item:<n>:alimentar`) com o NOME da unidade e leva ao campo (ids
+  `campo-unidade-endereco`, `-2`, `-3`…).
+- **A prévia "Ver como fica no site" saiu do cadastro** (23/10/2026, pedido do Wilker; `FichaPrevia.jsx`
+  apagado). Fica o link "Ver a página no site" para a página já publicada; a prévia da EQUIPE
+  (`Publicacao`/`PreviaPublica.jsx`) não mudou.
 - **Publicação ≠ revisão:** `marca_minha_publicacao` dá a linha "Sua página está publicada
-  (versão N)" com o link; `alterado_apos_aprovacao` mostra o aviso e troca o botão para
-  "Enviar alterações". A marca nunca publica.
+  (versão N)" com o link; `alterado_apos_aprovacao` mostra "Alterações salvas · a organização vai
+  atualizar o site". A marca nunca publica.
 - ⚠️ Ficou de fora: tela de fotos do bloco 7, declarações da alternativa de uma troca,
   seletor de edição com duas participações abertas, e o Início (`resumoMarca`) ainda não
   conta as pendências da camada de edição — só a barra do próprio cadastro.
@@ -1029,16 +1071,312 @@ Comunicação · Histórico · Gestão. ⛔ Não recriar aba por assunto nem o "
 - ⚠️ Ficou de fora (lacuna de backend/UI, nada alterado no banco): a organização não edita
   pelo painel os campos da camada Cartoon (nome/descrição/condições do combo — o RPC
   `org_salvar_dados_publicos` aceita, falta a tela —, declarações alimentares, trocas,
-  unidade permanente, modos e horário do combo) — quem preenche é a marca; o WhatsApp de unidade não autorizado não chega
-  à organização (`montar_publico` só devolve o autorizado); pagamento aparece na visão só para
+  unidade permanente e modos) — quem preenche é a marca. ✅ O **horário no festival a equipe EDITA** (23/10/2026): card da
+  unidade em Editar unidades › "Editar horário" (`HorarioDaUnidade`, o mesmo seletor, `org_salvar_horario_unidade`). O WhatsApp
+  de unidade com `whatsapp_autorizado = false` (cópia antiga da página) não chega à organização (`montar_publico` só devolve o autorizado); pagamento aparece na visão só para
   `pagamento.gerir`, mas `get_ficha_360` entrega `pagamento_status` a qualquer `dado.ler`
   (restringir é migration). Voltar do navegador com editor sujo não pergunta (só os botões).
+
+#### Início e formulário da marca mais claros — 22/10/2026 (revisão de organização e usabilidade)
+Pedido do Wilker com o painel indo para os participantes. Só interface: nenhuma RPC, tabela ou validação mudou (o servidor segue
+autoridade do envio). Análise em três frentes (UX, frontend, QA) + revisão independente de 3 lentes com cético por achado; os 20
+achados confirmados estão corrigidos e cobertos por teste.
+- **Uma leitura, um vocabulário de cadastro** (`lib/guia.js › resumoMarca`): `envio = { faltam, itens, pronto, conhecido }` (23/10/2026:
+  sem `podeEnviar` — a marca não envia mais; ver "A marca só salva" abaixo).
+  - O Início passou a ler o que a camada de edição exige (`marca_previa_publica().faltando`, em `useResumoMarca`, junto com
+    `marca_minha_publicacao`); `conhecido: false` = o banco ainda não tem a leitura → não se afirma nada sobre isso. ⛔ Falha
+    de leitura nunca vira "tudo pronto".
+  - **Não existe mais "enviar" (23/10/2026):** `resumoMarca` não tem `podeEnviar` nem a pendência `enviar`. Combo `aprovado` com
+    `alterado_apos_aprovacao` é vez da organização ("Alterações salvas · a organização vai atualizar o site"); `correcao_solicitada`
+    fica aberta até a equipe decidir ("Corrigir agora"). A logo não trava a conclusão (conta no %, não em `envio`).
+  - A mesma falta de endereço (campo básico × `unidade:<id>:endereco`/`sem_unidade` do servidor) conta UMA vez, e vale a do servidor
+    (aponta a unidade certa). ⚠️ `participacao_unidades` é lida COM `order=ordem` no resumo — o id do campo (`…-endereco-2`) é a
+    posição; sem a ordem o link cai na unidade errada (teste reprova).
+  - `%` = **"dos dados básicos"** (campos obrigatórios de `campos_cadastro`, com a logo), nunca "concluído": o alcance está escrito em
+    todo lugar (cabeçalho, Início, formulário); o que falta para COMPLETAR é a linha "Faltam N informações para completar o cadastro" (`envio`).
+  - `etapas[].detalhe` = frase pronta ("aguardando liberação da organização", "em análise pela organização"…): nunca só "falta".
+  - `proxima.critica` (mesma referência da pendência): correção > pedido importante ou com prazo ≤ `PRAZO_URGENTE_DIAS` (3) ou vencido >
+    campo. `agruparPendencias` reúne por assunto (Meu cadastro, Meu combo, Fotos, Solicitações, Documentos) sem perder nem
+    repetir; `qtd` conta arquivos/fotos para ler na aba.
+- **Início** (`vistas-marca/Hoje.jsx` + `hoje/*.jsx` + `lib/inicioMarca.js`, estilo `styles/inicio-marca.css`, prefixo `im-`): identificação
+  compacta (só ≤900px; no computador o topo já identifica) → **O que fazer agora** → pendências por assunto → acompanhamento →
+  comunicação e prazos → materiais e história. Decisões:
+  - mensagem nova só é o destaque se NÃO houver ação crítica (nem cadastro pendente com o prazo de preenchimento do cronograma em até
+    3 dias — `prazoDoCadastro`); senão fica logo abaixo;
+  - sem tarefa, diz o que está com a organização ("Aguardando a organização") — ou "Falta lançar os combos de hoje" durante o
+    festival, ou "A edição terminou"; depois do festival não se espera sessão de fotos;
+  - "Seu preenchimento" (selo **Preenchido**, neutro) é separado de "Com a organização" (tema, combo, fotos, página: **Concluído** só
+    aqui) — tema aprovado ≠ combo aprovado ≠ página publicada;
+  - durante o festival "Combos vendidos" sobe logo abaixo do destaque; os blocos têm `key` própria, então mudar a ordem MOVE e não
+    remonta (o digitado nas vendas fica). Antes do festival a venda não aparece.
+  - `dataBr`: instante com hora (prazo de pedido, UTC) vira data LOCAL; dia puro (`AAAA-MM-DD`) fica como veio.
+- **Formulário** (`Cadastro.jsx` + `edicao/*` + `lib/edicaoMarca.js`, `edicao-marca.css`): numeração visível LOCAL por aba (Meu cadastro 1–3,
+  Meu combo 1–4; os ids `bloco-N`/`data-bloco`/`campo-*` e os links gravados NÃO mudaram); cabeçalho do bloco = um `<button>` com título,
+  estado em ícone+texto (`estadoDoBloco`: o tema segue `temas_propostos`, não o combo) e, recolhido, o resumo; salvamento:
+  `rotuloSalvamento` ("Salvando…" fora do leitor de tela, "Alterações salvas" só depois da resposta do servidor, erro numa voz só),
+  a nota "Tudo o que você salva chega para a organização, que atualiza o site." e **UM botão "Salvar" no fim** (o último bloco não
+  tem "Continuar", para não haver dois "Salvar" colados); faltando algo, a linha "Faltam N informações para completar o cadastro" com
+  "Ir para o que falta" (`faltasDoCadastro`, cada falta leva ao campo mesmo na outra aba); "Continuar" só navega e põe o foco no cabeçalho do próximo bloco;
+  alimentar por item com progresso ("5 de 8 alergênicos"), item com correção abre sozinho; ausência de resposta NUNCA vira "não contém".
+  ⚠️ A barra presa `.mc-resumo` mede ~117–144px no celular de 360px: `scroll-margin-top` dos blocos e a altura reservada da linha de
+  salvamento estão em `edicao-marca.css` (medido, não calculado).
+- **Arquivos**: o botão só grava `arquivo_leitura` → "Li e confirmo a leitura" / "Conferi as fotos" (nunca "de acordo": não é aceite formal).
+- **Convite do aparelho — 23/10/2026 (decisão do Wilker; revoga a regra da "2ª visita" de 22/10):** o convite de instalar/ligar avisos
+  (`ConviteAparelho`) abre **já na 1ª visita**, 2,5 s depois de o tour fechar (`liberado={!tour.aberto}`), e de novo no app instalado enquanto os
+  avisos estiverem desligados. "Agora não" adia 7 dias, **separado para o navegador e para o app** (chave `conta` × `conta-app`: dispensar no
+  navegador não cala o app aberto pelo ícone sem avisos). `contarVisita` ficou sem uso (só um teste a cobre; apagar junto com ele).
+  ⚠️ Aviso de atualização continua com prioridade própria (`telaOcupada`).
+- **Fotos, Arquivos e Solicitações da marca** (mesma rodada, 22/10/2026; só interface, sem RPC/tabela nova — tudo cabe na lista do "Ver como"):
+  - **Fotos** (`vistas-marca/Fotos.jsx` + `fotos/*.jsx` + `lib/fotosMarca.js` + `fotos-marca.css`, prefixo `fm-`): três blocos — agendamento, preparação
+    (link para o Guia de fotos, sem duplicar conteúdo) e fotos oficiais. Sessão marcada mostra dia da semana + data, hora e local ("a organização ainda
+    vai confirmar" se faltar, nunca inventa); vagas agrupadas por dia, hora no fuso de quem abre; estados em palavras+ícone (aguardando liberação · sem
+    horários · escolha um horário · agendada · remarcada · realizada). Reservar pede confirmação (a marca não desfaz sozinha); vaga tomada por outra marca
+    diz "Esse horário acabou de ser escolhido por outra marca" e relê as vagas. Miniaturas das fotos oficiais usam as URLs assinadas que o código já
+    obtinha (carregamento preguiçoso; falha numa miniatura não derruba a lista). **Baixar todas (ZIP) e "Salvar ou compartilhar"** (23/10/2026, com 2 ou mais fotos
+    oficiais): o MESMO `useEntrega` da equipe (`vistas/BaixarArquivo.jsx`), com `obter = obterArquivoMarca` (`marcaApi.js`: assina por
+    `assinarDownload` — no "Ver como", pela organização — e busca os bytes na hora; rede caída = `rede`, resposta ruim = `download_<status>`).
+    O `rotuloBaixar` de quem chama vira o nome acessível do botão (efeito colateral: "Baixar as N (ZIP)" da ficha da postagem perdeu o aria-label
+    longo). `useEntrega({ obter, quem })`: `quem: 'marca'` troca "escolha menos arquivos" por "baixe uma de cada vez" (a marca não escolhe o conjunto) e o
+    erro de sessão por "entre de novo"; o erro diz QUAL arquivo falhou; "Cancelar" aparece enquanto prepara (`AbortController` por conjunto: nada é
+    entregue depois de cancelar); o nome final do arquivo só existe depois do download, então repetidos ("Foto" e "Foto.jpg") são renomeados com
+    `nomeLivre` antes de entrar no ZIP; no iPhone/iPad, sem toque ativo depois da espera, mostra "Baixar agora" (um toque novo) em vez de dizer
+    "download iniciado" sem ter baixado; o resultado leva o foco. ⚠️ O ZIP no navegador da marca não foi visto num iPhone real (memória).
+  - **Arquivos** (`Arquivos.jsx` + `arquivos/ItemArquivo.jsx` + `lib/arquivosMarca.js` + `arquivos-marca.css`, `am-`): os que exigem leitura e não foram lidos
+    sobem num bloco "Para ler e confirmar"; "Novo" = publicado há até 7 dias (o banco não guarda quem abriu o quê). Formato, tamanho e versão só quando o
+    dado existe. **Abrir × Baixar**: "Abrir" só para PDF/imagem/MP4 (nova aba); "Baixar" sempre (link assinado com `download`); uma nota diz o que acontece
+    no iPhone/Android/computador e a tela nunca diz "salvo". Leitura que falha ao ler = "Confirmação não verificada", nunca "pendente". ⚠️ Arquivo
+    SUBSTITUÍDO depois da leitura volta a pedir a confirmação (23/10/2026): `marca_confirmar_leitura(p_arquivo, p_participacao)` (SECURITY DEFINER;
+    migration `20261105_marca_confirmar_leitura.sql`, ✅ aplicada; teste `supabase/testes/marca-confirmar-leitura.sql`) é o único caminho de gravação do
+    painel — primeira vez insere, já confirmada ESTA versão não faz nada, versão anterior renova `lido_em`. "Versão atual" = `lido_em >= publicado_em − 1
+    min` (a mesma tolerância de `publicadoDepoisDaLeitura` e de `get_arquivos_admin`, cujo "N confirmaram" só conta a versão atual); `useResumoMarca` lê
+    `lido_em`. A aba lista também as solicitações de bloco `arquivo`. `arquivo_leitura` traz UMA linha por participação: `mapaDeLeituras` fica com a
+    leitura mais recente de cada arquivo (com "o último ganha", uma leitura antiga reabria a pendência), e a RPC recebe `a.participacao_id ||
+    participação atual` (arquivo só desta marca em edição antiga confirma por ela). A EQUIPE usa a mesma regra: `get_ficha_participacao` passou a
+    entregar `publicado_em` (migration `20261108_ficha_arquivo_publicado_em.sql`, ✅) e `FichaCadastro`/`FichaVisao` dizem pela `leituraNaFicha`
+    ("leu em X" · "leu a versão anterior em X; falta confirmar a atual" · "ainda não confirmou a leitura"). Substituir o arquivo AVISA quem já tinha
+    confirmado (sino + push): gatilho `arquivo_substituido_avisa` (`20261109_arquivo_substituido_avisa.sql`, ✅; teste
+    `supabase/testes/arquivo-substituido-avisa.sql`) — só `exige_leitura`, só quem tinha lido uma versão anterior. ⚠️ Conhecidos e aceitos: a
+    policy `leitura_marca_registra` ainda deixa o painel ANTIGO gravar `arquivo_leitura` direto (trocar por `with check (false)` quando ele sumir);
+    a tolerância de 1 min deixa uma troca feita até 60 s depois da leitura contar como "versão atual".
+  - **Solicitações** (a tela que era "Pedidos"; `Pedidos.jsx` + `pedidos/PedidoLinha.jsx` + `lib/pedidosMarca.js` + `pedidos-marca.css`, `pm-`): cada
+    linha tem título, "O que é pedido" (`solicitacoes.texto`), onde fica no painel, prazo em palavras com data local, situação e a ação (Responder ·
+    Continuar resposta · Ver resposta). Pendentes em cima (importante e prazo ≤3 dias primeiro), respondidas recolhidas em "Respondidas (N)"; "em andamento"
+    = resposta começada neste aparelho (o banco só tem pendente/respondido). O contador "Para responder (N)" bate com o do Início (teste contra `resumoMarca`).
+    O nome do destino na barra passou a ser **Solicitações** (a chave de rota segue `pedidos`, links gravados valem).
+  - **Ajuda no celular:** o botão de conversa mostra "Conversa" EMPILHADO sob o ícone (≤1100px; abaixo de 380px só o ícone, nome completo no `aria-label`).
+    ⛔ Não voltar ao rótulo ao lado do ícone: tomava a largura do título da página ("Solici…", "Arqui…"); há teste de navegador que mede o título.
+- **Painel da equipe — Visão geral e nomes** (22/10/2026):
+  - **Visão geral** (`vistas/Mesa.jsx` + `vistas/mesa/*.jsx` + `lib/visaoGeral.js` + `mesa-org.css`, `ms-`), três áreas nesta ordem: **Ações da equipe**
+    (cartões de decisão por urgência: mensagens, aprovação, temas, pedidos, candidaturas, revisão, respostas do site, marcas sem acesso; a **agenda** sobe ao
+    topo quando um prazo vence hoje/amanhã) · **Situação das marcas** (a esteira e as barras da edição) · **Atividade recente** (5, "Ver mais" até 12).
+    Cada cartão é o `Modulo` do painel com o destino dito no pé; **o número é o tamanho da lista que ele abre** (testado contra o filtro real de
+    `Marcas.jsx` e `respostas.js › filtrados`). Cartão cuja ação exige permissão (`mensagem.enviar`, `curadoria.decidir`, `producao.gerir`…) não aparece
+    sem ela; quem só tem pendência de outra função lê "Nada que a sua função possa resolver agora". "Nada precisa da equipe agora" só depois de ler tudo,
+    sem falha e sem pendência oculta (`estadoDasAcoes`); leitura que caiu é dita NO BLOCO que ela alimenta. 23/10/2026: o Social media entra na
+    conta — a Mesa lê `redes_resumo` (só com `redes.ver`; `LEITURA.redes`) e, havendo algo para o perfil (`R.totalAlertas`: atrasadas, com ajuste,
+    para aprovar ou a publicar), `estadoDasAcoes({ redes })` devolve `{ tipo: 'redes', texto: '' }`: o "Nada precisa da equipe agora" não aparece
+    ao lado do bloco do Social media com "N atrasadas" (cenário V8 de `tests/painel-visao-geral-navegador.mjs`).
+  - **Temas**: o cartão conta propostas `proposto`; a aba Temas (Edição.jsx › `AbaTemas`) abre em **"Esperando decisão (N)"** (mesmo N) com a opção "Todos".
+  - **Os três "publicar"** têm nomes distintos, fonte única em `lib/nomesPublicacao.js`: Participantes › **Páginas das marcas** (revisar e publicar a
+    página de CADA marca) · Edição › **Liberação no site** (chaves e fase da edição INTEIRA) · Social media › **Planejamento** (posts do Instagram). Só os
+    NOMES mudaram; chaves de rota (`publicacao`, `planejamento`), `sub` da ficha e links gravados valem. `lib/rota.js` ganhou as abas `publicacao` e
+    `preenchimento` (Participantes) e `publicacao`/`avaliacoes` (Edição) — antes `participantes/publicacao` caía na lista de Marcas.
+  - **Ficha da marca**: uma nota sob as abas diz que "Visão do participante" só LÊ e que "Ver como participante" (só `acesso.gerir`) abre o painel real da
+    marca em outra aba (o item do menu tem `title`); a edição aparece nas ações de publicação. Tour da equipe reescrito (passo "Social media" só com `redes.ver`).
+  - **CSS morto removido de `painel.css`** (grade antiga da Mesa, `ui-resumo__*` sem uso, `ui-pedido*`/`ui-arquivo*`/`ui-resposta*`) — conferido por
+    script em todo `painel-app/src`, `tests/` e `public/painel` antes. ⚠️ Rotas antigas e a tela "Ver como" não mudaram.
+  - Testes: `painel-app-fotos-marca`, `arquivos-marca`, `pedidos-marca`, `visao-geral`, `nomes-publicacao`; navegador (backend falso, rodar de dentro de
+    `tests/`): `painel-marca-estados-navegador.mjs` (S1–S9 e rolagem horizontal em Início, formulário, Fotos, Arquivos e Solicitações) e
+    `painel-visao-geral-navegador.mjs` (V1–V4: áreas, número = lista, permissão, leitura que cai).
+- **Revisão independente desta rodada** (4 lentes + cético por achado): 25 achados confirmados, todos corrigidos e cobertos por teste. O que ficou como regra:
+  - **Marca.** Foco e feedback: resultado de reservar/confirmar/responder vive num `AvisoComFoco` (`<p tabIndex=-1>` com `role` status/alert que recebe o foco uma
+    vez por aviso) — item que muda de lugar não pode largar o leitor de tela no vazio; o arquivo recém-confirmado fica em "Para ler" (parâmetro `mantidos` de
+    `organizarArquivos`) até reabrir a tela. Botão de confirmar leitura só com `leituraConhecida` (falha ao ler `arquivo_leitura` = "Confirmação não
+    verificada", nunca "pendente"). Abrir/Baixar de arquivos E de fotos oficiais usam o mesmo `useAcessoArquivo` (`urlParaBaixar`, `nomeArquivo`,
+    `notaDeAbertura`). Reserva de foto aplica a linha devolvida pelo PATCH antes de reler (a vaga conquistada sai da lista mesmo se a releitura cair). No modo
+    "Ver como", `modo_visualizacao` vira a frase do modo (`traduzirErro`). Solicitação de bloco `fotos` entra na lista da aba Fotos. O **rascunho de resposta**
+    de uma solicitação fica no `sessionStorage` por participação (sem ir ao banco), é declarado com `usePendencia` e **apagado no logout e na troca de conta**
+    (`limparRascunhosPedidos` em `App.jsx › sairMarca/trocaLocal`). ⚠️ O texto visível ao participante diz **"solicitação"** em todo lugar (guia, Início, tour,
+    avisos de mudança em `sincMarca.js`); "pedido" só sobrou em nomes de função, chave de rota e na organização.
+  - **Equipe.** Leitura que cai NUNCA vira zeros/"sem edição": `Mesa.jsx` guarda `marcasLidas` e `edicaoLida` ("leu ao menos uma vez" — a releitura silenciosa que
+    falha mantém o dado antigo) e `estadoDaEdicao` escolhe o texto ("Não consegui ler as marcas/a edição atual…"); com as marcas nunca lidas a esteira vira uma
+    nota (senão sobrariam contadores "0"). `estadoDasAcoes` ganhou `agendaUrgente`: "Nada precisa da equipe agora" não aparece junto de prazo que vence
+    hoje/amanhã. **Marca encerrada não conta em "Cadastros para aprovar"** (`aguardandoAprovacao` e o filtro `aguardando_aprovacao` de `Marcas.jsx` exigem
+    `participaDaEdicao`, os dois juntos). Aba Temas: grupo com tema já aprovado e propostas de outras marcas mostra "Já aprovado para <marca>: …precisam trocar de
+    tema" (a aprovada continua visível; "N marcas pediram" só em grupo sem aprovada). O cartão de pedidos soma respostas que faltam e o destino ("Quem falta")
+    lista TODAS as marcas do pedido, pendentes primeiro — por isso o texto não promete "mesmo número" ali.
+  - **Botão de conversa**: o nome acessível é "Conversa: falar com a organização (N mensagens novas)" — contém o rótulo longo (computador) e o curto (celular), WCAG 2.5.3
+    (teste em `painel-app-inicio`).
+  - ✅ Resolvido em 23/10/2026: o bloco de Social media da Visão geral (`ResumoRedes`) não mostra mais "N atrasadas" ao lado de "Nada precisa da equipe
+    agora" — a Mesa lê `redes_resumo` (com `redes.ver`; `LEITURA.redes` em `lib/visaoGeral.js`) e `estadoDasAcoes({ redes })` entra na conta; a aba Arquivos
+    da marca lista as solicitações de bloco `arquivo`; o modo `fotos` morto de `<Arquivos>` saiu.
+- ⚠️ **Ainda não validado** (nada disto foi feito): iPhone/Android reais (o `download` virar anexo, aba que fecha sozinha, `IntersectionObserver` do Safari,
+  zoom 200%), miniaturas com URLs assinadas reais, o fluxo completo de primeiro acesso + troca de senha em aparelho, reserva de foto por duas marcas ao mesmo
+  tempo (só o erro traduzido está coberto), e a Visão geral com dados reais. Testes: `tests/painel-app-guia-estados`, `painel-app-inicio`, `painel-app-edicao-marca`; navegador (backend falso):
+  `node tests/painel-horario-navegador.mjs` (H1–H6: o seletor dentro do Cadastro real) e `node tests/painel-convite-navegador.mjs` (C1–C4: convite do app
+  e "Avisos neste aparelho" do sino, iPhone só emulado), ambos com backend falso;
+  `node tests/painel-marca-estados-navegador.mjs` (de dentro de `tests/`; `CAPTURAS=<pasta>` salva imagens em 360/390/768/1280/1440).
+
+#### A marca só salva; a organização é avisada — 23/10/2026 (pedido do Wilker)
+"Coloca só o botão salvar, não precisa ter o botão enviar para a conferência, enviar para aprovação. Se ele fez alguma alteração […] a
+gente precisa ser notificado para atualizar no sistema e atualizar nas informações do site." Migration `20261106_marca_salvar_avisa.sql`
+(✅ aplicada; teste `supabase/testes/marca-salvar-avisa.sql` → `TESTE_OK`; reversão em `supabase/reverter/`).
+- **Só "Salvar".** Saíram o envio inteiro (`concluir`, "Revisar e enviar", `<Revisao>`, a nota e o botão de envio) e a prévia "Ver como fica
+  no site" (`FichaPrevia.jsx` apagado). Fica o link "Ver a página no site" para a página já publicada. **A equipe confere e publica**
+  (Aprovar e Publicar seguem como eram): o cadastro COMPLETO vai sozinho para a conferência.
+- **Quem leva o cadastro à conferência é o banco:** o gatilho `marca_alterou` chama `marca_concluir_cadastro` quando a marca grava e a
+  participação está com combo `rascunho` e cadastro `aguardando_cadastro`/`em_preenchimento` (incompleto: não faz nada). Combo `aprovado` NÃO
+  volta para análise (fica `aprovado` com `alterado_apos_aprovacao`, para a equipe republicar); `correcao_solicitada` fica aberta até a equipe decidir
+  (a marca corrige e salva; o Início segue com "Corrigir agora"). Gravação feita só pela equipe não conclui — espera o próximo salvamento da marca.
+- **Toda alteração da marca avisa a organização** (sino + push): `avisar_alteracao_marca` mantém UM aviso ABERTO por marca (`chave_grupo =
+  'marca:<participante>:alterou'`, para todos, link `marcas/<id>/publicacao`, "<Marca> alterou o cadastro", texto = as áreas). Áreas (lista
+  fechada): Dados da marca · Logo · Tema · Combo e custos · Itens do combo · Alergênicos e trocas · Unidades e atendimento · Horário no festival.
+  Área nova acumula no mesmo aviso (sem push novo); área repetida não grava nada (o salvamento automático grava a cada ~1 s); depois que
+  alguém da organização lê, a próxima alteração abre outro. Dispara SÓ a marca (`meu_participante()`): organização (`org_salvar_*`, "Aplicar" do
+  /preencher), importação, `pg_cron` e "Ver como participante" não. Cada parte tem `exception`: falha do aviso/conclusão NUNCA derruba o salvamento.
+  `marca_definir_logo` perdeu o `notificar` próprio (a troca de logo passa pelo gatilho, área "Logo"). ⚠️ Cadastro que fica completo gera dois
+  avisos com push ("alterou o cadastro" e "concluiu o cadastro"); a primeira escolha de tema ainda manda "informou o tema" (`temas_sincronizar`).
+- ⛔ **Painel novo e migration andam juntos:** sem a migration, nenhum cadastro conclui e ninguém é avisado. Com a migration e o painel antigo
+  (que ainda tem "Enviar"), o botão antigo funciona: o gatilho ignora essa gravação (só mexe em status).
+- **WhatsApp da loja:** um por unidade, "(opcional) aparece no site"; sem a caixa "Autorizo publicar este WhatsApp no site". Preenchido =
+  publicável: a tela grava `whatsapp_autorizado` junto do número (`E.editarUnidade`/`corpoUnidade`) e o "Aplicar" do /preencher também
+  (`org_preenchimento_decidir`: só um `false` explícito de uma cópia antiga da página mantém o número fora). Número antigo sem autorização (24
+  unidades) só vai ao site quando a marca salva a unidade ("Este número vai para o site quando você salvar esta unidade."). O WhatsApp
+  PESSOAL do responsável (`participantes.telefone`, usado pela organização) é outro dado e continua privado.
+- **Manual de fotos:** `guia-de-fotos-cartoon.pdf` foi arquivado (reversível: Arquivos › Arquivados › Restaurar; a RLS esconde arquivado da marca);
+  o cartão "Um arquivo para ler" é a pendência calculada de arquivos que exigem leitura, então sumiu sozinho.
+- ⚠️ Sobras conhecidas: `lib/hoje.js › proximosPassos` não foi apagado (dois testes de outras áreas o importam); o aviso de "tema informado" duplica.
+
+#### Botões só com ícone — 25/10/2026 (pedido do Wilker)
+"Simplifica todos esses botões com textos e deixa o ícone apropriado… Só deixa o que realmente precisa do texto." Teste
+`tests/painel-app-botoes-icone.test.mjs`.
+- **A regra.** Vira só ícone a ação SECUNDÁRIA de desenho UNIVERSAL: baixar, compartilhar, mover para pasta, apagar,
+  editar (lápis), copiar, fechar/descartar/limpar (X), abrir fora, ampliar, mais ações (⋯), ajuda (?), voltar, "›" que
+  abre o item, "+" repetido em lista/célula, arquivar/restaurar em linha de lista. **Fica com texto:** a ação principal
+  da tela, decisão (Aprovar, Publicar, Pedir ajuste, Bloquear…), confirmação, o Cancelar de formulário, WhatsApp (sem
+  glifo oficial), botão com número ("Baixar ZIP (12)", "Filtros (2)"), login/convite/tour e o "Tentar de novo" de erro.
+  Na marca, mais conservador: só o Baixar virou seta. ⚠️ No toque não há dica — por isso só o desenho universal.
+- **As peças (`ui.jsx`):** `Botao soIcone` (o texto, string, vira `aria-label` e `data-rotulo`; `aria-label` de quem
+  chama, mais longo, vale; `aria-busy` troca pelo "carregando"), `LinkIcone` (o mesmo para `<a>`: baixar, abrir fora) e
+  `MaisAcoes` (sempre só os três pontos; `rotulo` é string). Mesma variante de antes (contorno, amarelo, laranja), num
+  círculo de 44 px (`.og-btn--icone`; `max-width` segura a fileira que estica botões com `flex:1`). Dica em cima, no
+  mouse (`@media (hover:hover)`) e no foco do teclado; nas pontas da fileira ela encosta na borda. `BotaoIcone` (sem
+  contorno) segue nas listas que já o usavam.
+- **`BotoesEntrega`:** um arquivo = só os ícones; vários = o texto diz ZIP e quantos. `EstadoEntrega`: Cancelar e Fechar
+  viraram X.
+- **Ícones novos:** `mover-pasta`, `ampliar`, `subir` (enviar arquivo; o envio de logo usava a seta de baixar), `olho`
+  (Ver prévia; usava o desenho de "Visão geral") e `compartilhar-ios`. ⚠️ Compartilhar abre as opções DO APARELHO:
+  `ICONE_COMPARTILHAR` (`Icone.jsx`) = quadrado com seta no iPhone/iPad, três pontos no resto.
+- Texto que citava o botão pelo nome passou a dizer o desenho ("use o botão de baixar", "“Baixar” (a seta para baixo)",
+  "Mais ações (os três pontos)"). Botão novo: siga a regra acima; com `soIcone`, escreva o nome entre as tags.
+
+#### Voltar + Telas recentes e o Voltar do sistema — 24/10/2026 (pedido do Wilker)
+"Às vezes eu tô em algum canto e para voltar… preciso ir para o início de tudo" — no app instalado do iPhone não há botão Voltar
+do navegador, e no Android o Voltar do SISTEMA anda pelo histórico. Teste `tests/painel-app-historico.test.mjs` (janela falsa com
+`go()` assíncrono) e `node tests/painel-voltar-navegador.mjs` (de dentro de `tests/`; iPhone e Android EMULADOS, `page.goBack()` = o
+Voltar do sistema; não prova o aparelho real).
+- **Um dono do histórico: `lib/historico.js`.** ⛔ `history.pushState/back/go` fora dele não passa no teste. Cada tela é uma entrada
+  com `scwId` no `history.state`; o modelo (entradas, posição, telas recentes, nomes) vive no sessionStorage por painel
+  (`scw_historico_org` / `_marca`; `historico.limpar` no Sair e na troca de conta). `irPara(h, { substituir })` decide: substitui
+  (filtro/busca), volta (se `h` é a tela de onde veio — o antigo `voltarPara`) ou empilha.
+- **As cascas não ouvem `popstate`**: ouvem `historico.aoMudarEndereco` (só quando o endereço muda de fato) + `hashchange`.
+- **Camadas:** `Folha` e `Confirmar` empilham uma entrada com o MESMO endereço ao abrir (`abrirCamada`). O Voltar do sistema tira essa
+  entrada e chama o `onFechar` (fecha a folha, não a tela de baixo); se a folha continuar aberta (a pessoa desistiu de descartar) e
+  ninguém navegou, a entrada volta. Fechar pela tela tira a entrada sem chamar nada (`fecharCamada`) — sem "voltar morto".
+  ⚠️ Navegar com camada aberta primeiro tira as entradas das camadas (`history.go(-k)`) e SÓ ENTÃO empilha: a operação espera o
+  popstate numa fila (senão o go() atrasado desfaria o push). Folha que mora no endereço (postagem, contato, resposta): o X navega
+  para a lista e o histórico volta direto, sem passar pela ficha.
+- **Sair do item para a lista do mesmo lugar nunca empilha** (`irPara(h, { fechar: true })`, que o `navegar` da organização marca
+  sozinho quando só o `item` some): se a lista é de onde veio, volta; senão a entrada do item VIRA a lista. Empilhar a lista por cima
+  fazia o Voltar reabrir o item — e, com a folha da ficha aberta de FORA da lista (aviso, link), o Voltar do sistema entrava em laço
+  (achado da revisão independente, 24/10/2026).
+- **Recarga com folha aberta** ("Atualizar agora", F5): a entrada da folha volta sem a folha. `iniciar` desce para a página gêmea
+  (`scwN` = quantas camadas até a página) em vez de criar uma página duplicada (Voltar morto); o Avançar do computador que cai numa
+  camada que já fechou faz o mesmo. `iniciar` roda em `useLayoutEffect` nas cascas e só uma vez por carga (`iniciado`): a folha que
+  abre antes dele espera na fila (`antesDoInicio`).
+- **Tela:** `components/Trilha.jsx` + `styles/trilha.css`. "‹ <tela anterior>" (um toque volta um passo) e a seta "Telas recentes"
+  (folha com até 8 telas da sessão, a atual marcada, "há N min"). Computador: no lugar de "Painel SCW · …" na barra creme. Celular: no
+  chocolate, abaixo do título, no lugar da descrição — o selo sai quando o Voltar aparece (`.pn-cabeca--trilha`), a altura do cabeçalho
+  não muda, o toque tem 44 px por fora (`::before`). Trabalho pela metade (`lib/pendencias.js`, menos o que guarda rascunho) pergunta antes.
+- **Nomes:** `useNomeDaTela(vista, item, nome)` nas fichas (marca, contato, postagem, resposta, participante do Social media) e
+  `useRotulosDasAbas` no `Modulo`. A aba que abre o módulo não aparece ("‹ Participantes", não "‹ Marcas"); as outras sim ("‹ Fotos").
+  Item sem nome registrado cai no nome da aba/módulo. Tela nova com item no endereço: chamar `useNomeDaTela` com o nome que ela mostra.
+- **Mesma tela nas Recentes** = módulo + aba + item (a seção da ficha e os filtros não contam); marca = a vista.
+
+#### "Ver como participante" — 22/10/2026 (pedido do Wilker)
+O administrador vê o painel da marca EXATAMENTE como ela vê, sem gravar e sem usar nem tocar a sessão dela. Ficha › Mais ações ›
+"Ver como participante" (só `acesso.gerir`) abre `/painel/?ver_como=<participante>` numa aba nova (`VerComoParticipante.jsx`, estado
+`ver-como` do `App`, exige conta pessoal da organização). Migration `20261104_ver_como_participante.sql`; testes
+`tests/painel-app-ver-como.test.mjs`, `tests/painel-ver-como-navegador.mjs` e `supabase/testes/ver-como-participante.sql`.
+- **Um desvio só, no cliente da marca** (`lib/marcaApi.js`, `ativarVerComo`): `api()` manda GET para `org_ver_como_ler` (o caminho
+  do PostgREST vira consulta por `consultaDoCaminho`) e as funções de leitura (`RPC_LEITURA_MARCA`, a mesma lista do banco) também;
+  QUALQUER outra coisa (PATCH/POST/DELETE, `marca_*` que grava, `auth()`, `subirLogo`) lança `modo_visualizacao`. Download vai pela
+  `arquivo-url` da organização. Sem tempo real, sem tour automático, sem convite de aparelho, sem marcar aviso/mensagem como lido.
+- **No banco:** `org_ver_como_ler` é STABLE e SECURITY INVOKER — o Postgres recusa escrita dentro dela. Confere o administrador
+  (`ver_como_alvo`: conta pessoal + `acesso.gerir`) e só então troca a identidade DA TRANSAÇÃO para a conta da marca
+  (`request.jwt.claims`/`claim.sub`): a mesma RLS e as mesmas `marca_*`. Tabelas e funções em lista fechada; identificador validado
+  e citado, valor como literal. Abrir registra `participante.ver_como` na auditoria (`org_ver_como_iniciar`).
+- ⚠️ **`conta_ativa()` tem uma exceção**: com a chave `scw_ver_como` nas claims (= id de quem tem `acesso.gerir`) ela é verdadeira
+  mesmo com senha temporária — senão o administrador veria tudo vazio. Só função do banco escreve `request.jwt.claims`; JWT de
+  verdade não traz essa chave no topo. ⛔ Nunca ler a senha da marca: ela não é recuperável (hash) e o caminho é gerar outra.
+- Tela nova da marca que GRAVA não precisa de nada: o desvio já recusa. Tela nova que LÊ tabela fora da lista do banco aparece vazia
+  no modo — acrescentar a tabela em `org_ver_como_ler` (e conferir se a marca lê pela RLS dela).
 
 #### Logos oficiais da Cartoon — 15/10/2026
 As 26 logos de `10_LOGOS_PARTICIPANTES/PRINCIPAIS` (Dropbox da edição) são as oficiais, conferidas pelo Wilker; não recriar nem
 questionar. No painel elas entram como logo **do acervo** (`logos_marca.origem = 'acervo'`, caminho `/logos/participants/<slug>.png`,
 registrada por `registrar_logo`), que `urlLogo` (`lib/logos.js`) já serve como arquivo do site. Fluxo para trocar uma logo: ver
 `src/CLAUDE.md` §6.12 (script `scripts/sincronizar-logos-oficiais.py` + `scripts/acervo-logos-para-sql.mjs`).
+
+#### Logo da marca em todo lugar + miniatura — 26/10/2026 (pedido do Wilker)
+"Onde aparece a marca tem que acompanhar a logo." Migration `20261113_logos_mini.sql` (✅ aplicada; reversão em `supabase/reverter/`),
+lógica em `lib/logosMini.js`, teste `tests/painel-app-logos-mini.test.mjs`.
+- **Miniatura no banco, não no Storage:** `logos_marca.mini` = WEBP 96 × 96 (recorte central, o `cover` de `.ui-logo`) em data URI, ~1 KB
+  (a original pesa 200 KB a 4 MB). `get_logos_mini` (`membro_org`) traz todas numa leitura só; o `PainelShell` põe no `LogosMiniContexto`.
+- **Quem gera é o painel da equipe**, uma vez por logo: logo sem `mini` é baixada, recortada e gravada por `logo_definir_mini` (só grava onde
+  está vazio, então abas simultâneas não brigam). Uma de cada vez, até 60 por sessão; não roda no Safari (não codifica WEBP) nem com economia
+  de dados. Logo nova = linha nova em `logos_marca` = miniatura gerada na próxima abertura num computador.
+- **`LogoMarca` com `participanteId` (ou `conta`)** usa a miniatura até 48 px (`TAMANHO_MINI`) e a original acima; miniatura que falha cai
+  na original; sem nada, iniciais. `MarcaComLogo` = nome + logo decorativa (alt vazio: o nome visível identifica). O `Avatar` de autor
+  "Marca · …" (sino, Atividade, históricos) acha a logo pela conta (`ator_user_id`).
+- ⚠️ Ficam sem logo: listas que só trazem `participacao_id` (Arquivos › Para, Materiais, vouchers do contato, quem respondeu uma
+  solicitação, Avaliações) e `get_solicitacoes_admin` (só o nome). Resolver = a RPC devolver `participante_id`. O painel da MARCA continua
+  com a logo original (uma só, 36 px).
+
+#### Pendências: resolver ou cobrar do participante — 26/10/2026 (pedido do Wilker)
+"Ou eu mesmo resolvo e notifico o participante do que fiz, ou envio a pendência como notificação — uma, várias, ou de
+várias marcas." Migration `20261114_avisar_marca_pendencias.sql` (✅ aplicada; teste `supabase/testes/avisar-marca-pendencias.sql`
+→ `TESTE_OK`; reversão em `supabase/reverter/`), lógica em `lib/pendenciasAviso.js`, telas em `vistas/CobrarPendencias.jsx`,
+teste `tests/painel-app-pendencias-aviso.test.mjs`.
+- **Um aviso = `org_avisar_marca`** (`mensagem.enviar`): sino + push no painel da marca com o toque levando ao CAMPO
+  (`link` no formato do `?ir=`), e o mesmo texto na conversa. A mensagem entra com `scw.silencioso` para não sair também o
+  genérico "Nova mensagem da organização". Tipos: `pendencia` (nível "pendência" no sino da marca) e `ajuste` ("fizemos por você").
+- **Cada pendência de `pendenciasDaFicha` pode ter** `paraMarca` (a frase escrita PARA a marca), `link` (`linkDoCampo`) e
+  `resolver` (editor da ficha). `cobravel` = tem os dois primeiros; erro de leitura e o que é da equipe (tema em análise,
+  foto a revisar, publicar) não são cobráveis. `podeResolver` confere a permissão do editor (`PERMISSAO_DO_EDITOR`).
+- **Cartão Pendências:** o texto leva à seção (como antes); lápis = "Resolver agora" (abre o editor no lugar da seção); sino =
+  cobrar essa; com 2+ cobráveis, caixas + "Cobrar N marcadas"/"Cobrar todas" — UM aviso, link da primeira.
+- **Resolver com aviso:** "Nome do combo" (editor `nomeCombo`, `org_salvar_dados_publicos`) e a conferência de localização
+  aberta pela ficha (`ConferirLocalizacao participante={p}`) mostram a `CaixaAviso` já marcada com o texto pronto
+  (`avisoNomeCombo`/`avisoLocalizacao`), editável ou desmarcável. Salvar não depende do aviso: se o aviso falha, a tela diz.
+- **Lote (Marcas › selecionar › "Cobrar pendências")**: `lerPendenciasLote` lê as MESMAS quatro fontes da ficha, 4 marcas por
+  vez (barra "Conferindo N de M"), e a folha mostra por marca o que cobrar, com um recado comum opcional. Um aviso por marca.
+  ⚠️ Não calcular as pendências no banco: a regra mora em `pendenciasDaFicha`, e o lote tem que bater com a ficha.
+
+#### Prévia das imagens em Arquivos — 27/10/2026 (pedido do Wilker)
+"Mostra a prévia desses arquivos de download." Migration `20261116_arquivos_previa.sql` (✅ aplicada; reversão em
+`supabase/reverter/`), lógica em `lib/arquivosPrevia.js`, peça `components/PreviaArquivo.jsx` (`PreviaArquivo` + `AmpliarPrevia`),
+teste `tests/painel-app-arquivos-previa.test.mjs`.
+- **Prévia ≠ original.** A logo Cartoon em alta tem 16 MB; a miniatura usa `arquivos.previa_path`: WEBP de até 960 px na MESMA
+  pasta do bucket privado `arquivos` (CHECK). Sem prévia, o original só vira miniatura até 3 MB; acima, ícone. Baixar continua
+  entregando o original. Tocar na miniatura abre a imagem grande (a própria prévia) numa folha, com "Baixar o original".
+- **Quem gera é a equipe** (`producao.gerir`, `arquivo_definir_previa`): ao publicar (Producao › FolhaNovoArquivo) e ao
+  substituir (ArquivosOrg), do arquivo na mão; o que já estava publicado, uma vez, ao abrir Arquivos num navegador que codifica
+  WEBP (`useGerarPreviasFaltando`, uma por vez, até 60 MB). Trocar o arquivo limpa a prévia antiga (gatilho
+  `arquivos_previa_do_arquivo`).
+- **Quem lê:** a marca assina a prévia com a própria sessão (policy `arquivos_marca_le` aceita `previa_path` do arquivo que ela
+  já lê); a equipe pela `arquivo-url`, uma por miniatura, só quando chega perto da tela. A equipe lê as prévias por
+  `get_arquivos_previas` (à parte: `get_arquivos_admin` tem formato fixo e mudar exigiria recriá-la).
 
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
@@ -1059,20 +1397,51 @@ teste `tests/painel-app-preenchimento.test.mjs`.
   WhatsApp por marca. A mensagem diz "obrigatório e urgente" com o prazo do cronograma (`chave = 'preenchimento'`,
   24/10/2026). ⛔ Prazo é dado da edição, não constante no front.
 - Trocar o link revoga o anterior (`p_novo`). Link vence em `festival_fim + 15 dias`.
-- ⚠️ Fica de fora do formulário: declarações alimentares/alergênicos, trocas, horário do combo por dia
-  (`unidade_disponibilidade`) e canais de delivery — o horário do combo chega como texto em
-  `participacao_unidades.horarios`; alergias vêm em "Observações".
+- **Link curto e domínio oficial (22/10/2026, pedido do Wilker):** o link sai como `/preencher/#<22 caracteres>` — os MESMOS 128 bits do código de 32 hex, em base64url (`codigoCurto`/`codigoLongo` em `lib/preenchimento.js`; a página decodifica em `codigoDoLink`). Sem tabela nem servidor no meio, código continua no fragmento; links longos já enviados seguem valendo. ⚠️ A forma curta diferencia maiúscula: só o código longo passa por `toLowerCase`. Todo texto que vai para fora do painel (mensagens, link, formulários do site) usa `ORIGEM_PUBLICA` (`lib/origem.js`, `https://www.sweetcoffeeweek.com.br`), nunca o endereço da barra — aberto na prévia do Vercel, o painel copiava `…-eloidesignstudio.vercel.app`. O teste reprova `window.location.origin` em `painel-app/src`.
+- ⚠️ Fica de fora do formulário: canais de delivery (declarações alimentares e trocas entraram na v2). O horário entra dia a
+  dia em `participacao_unidades.horario_festival` (v4, 23/10/2026); alergias vêm em "Observações".
 - **v2 (16/10/2026, pedido do Wilker: "o jeito mais fácil de preencher"):** topo com 3 fatos (datas,
   combo, valor) + prazo, sem agenda; uma confirmação só no fim; opcionais recolhidos em `<details>`;
   ícones do registro (`<!--icone:…-->`, página listada em `icones/especificacao.json` › `estaticos`).
   Quase tudo por seleção: alergênicos (contém / "Nenhum" / traços), características (vegano,
   vegetariano, sem lactose, sem açúcar), troca por item (Sim/Não, disponibilidade, acréscimo em
   valores prontos), custos em valores prontos + "Outro", cidade (Natal/Parnamirim/Outra), bairro com
-  sugestões, horários por dias + "das/às" (texto `Ter a Dom, 10h às 22h`, que a página lê de volta).
+  sugestões, horários por dias + "das/às" (v4, 23/10/2026: hoje é o seletor do horário no festival, abaixo).
   Migration `20261016_link_preenchimento_alimentar.sql`: o retrato e o "Aplicar" passam a cobrir
   `declaracoes_alimentares` e `substituicoes`. ⛔ Desmarcar selo não grava "não": vira `nao_informado`
   só se antes estava marcado; alergênico só vira `nao_contem` quando a pessoa respondeu a pergunta.
 
+- **v3 (22/10/2026, pedido do Wilker: "horários diferentes por dia" e "facilite ao máximo", mobile e Nexa):**
+  - ~~Horário por dia~~ (texto `Seg a Sex, 10h às 22h; …` em `horarios`/`horario_loja_texto`, corte em 300/200
+    caracteres, "a loja abre igual ao combo?") — **superado pela v4**: hoje é uma lista de períodos em
+    `horario_festival`, uma pergunta só. O texto antigo só aparece como "Hoje está: …".
+  - **Contador ao vivo** no rodapé fixo (`faltas(false)` conta, `faltas()` pinta). Máscaras de WhatsApp, CEP
+    e CNPJ **só ao digitar** (nunca reescrevem o que já veio salvo); Instagram vira `@usuario`; número,
+    e-mail e CEP malformados entram na lista do que falta.
+  - **Tipografia: duas vozes** (§6.5) — Slab nos títulos, Nexa na interface (rótulo, opção, botão), Nexa Text
+    na leitura e nos campos; só 400 e 700 na sem serifa (`font-synthesis: none`). O kit carrega pelo JS,
+    dentro do script único da página (o teste exige UM `<script>`).
+
+- **v4 (23/10/2026, pedido do Wilker: "a gente tem que saber o horário em que a loja vai funcionar durante o festival"):**
+  uma pergunta só por loja — "Como esta unidade funciona nos dias do festival?" — com o mesmo desenho do seletor do painel
+  (Igual todos os dias · Muda conforme o dia → Segunda a sexta/Sábado/Domingo → Detalhar dia a dia; Abre/Não abre; até 2
+  períodos; resumo "Fica assim"/"Falta responder"). A página carrega uma CÓPIA ES5 do módulo
+  `src/edicao/dados/horarioFestival.js` (bloco marcado por comentário); `tests/preencher-horario.test.mjs` prova a paridade em
+  `node:vm` e reprova se o HTML ainda perguntar `horario_loja`/`horario_combo`. As datas vêm de `info.edicao.inicio/fim`
+  (nunca no código). O envio manda `unidades[].horario_festival = [{data, abre, fecha}]` só COMPLETO (incompleto entra em
+  "Faltam N itens", com o foco no ponto certo). `preenchimento_estado` devolve `horario_festival` e o texto antigo
+  `horario_combo` (só para "Hoje está: …"); não devolve mais `horario_loja`. Envio ANTIGO (texto) segue aceito:
+  `horario_festival_de_texto` o converte no "Aplicar". A equipe lê o envio como "Horário no festival" em frases
+  (`diferencasEnvio(atual, enviado, edicao)`: sem `edicao` nunca diz "todos os dias"; o "WhatsApp no site: Não → Sim" volta como linha da
+  revisão e o `<details>` da loja abre quando o número vem preenchido e sem autorização). O rascunho local (iPhone: a aba recarrega ao voltar do
+  WhatsApp) guarda o estado do seletor por loja em `horario_rascunho` (`{ modo, dias }`, mesmo incompleto; só quando `coletar(true)` monta o rascunho,
+  nunca no envio) e vale mais que o gravado; "Igual todos os dias" com horários diferentes avisa "Usei o horário de <dia> em todos os dias" com
+  "Desfazer" (a página não tem modal); `alvo()` da lista "Faltam N itens" é resolvido no clique; botões e legendas levam o dia/loja no nome acessível.
+  Site: `estadoAgora(u, agora, periodo)` — dentro do festival, dia sem linha = `sem_horario_hoje`; "fora do período" só fora dele.
+  Teste de navegador: `node tests/preencher-navegador.mjs` (de dentro de `tests/`; P1–P6 na página real, backend falso).
+  - ⚠️ **O kit `ngx4uek` baixa ~90 arquivos / ~3 MB** (dezenas de famílias sem uso): a Nexa chega em ~3,5 s
+    em 4G e ~17 s em 3G, e até lá a página aparece em Slab (sem texto invisível). Enxugar o kit no Adobe Fonts
+    (só Nexa e Nexa Text) resolve a página, o painel e o site de uma vez. `events:false` não adianta.
 #### Social media — planejamento, biblioteca e participantes — 16–17/10/2026 (`#social/…`)
 Módulo próprio (era Operação › Redes sociais; `#operacao/redes…` e avisos antigos `operacao/redes/<id>` caem aqui —
 `migrarRota`/`rotaDoLink` em `lib/rota.js`, e a barra de endereço é corrigida). **Um calendário só.** Abas:
@@ -1097,15 +1466,16 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   postagem** enquanto ela não foi aprovada (antes a Social media ficava sem saída); depois disso, só `redes.gerir`.
 - **Guia** (`vistas/SocialGuia.jsx`, texto em `lib/socialGuia.js`; refeito em 17/10/2026 para não empurrar o
   calendário): na primeira visita deste aparelho, UMA linha (`GuiaPrimeiraVez`, `etapasResumo`: o caminho inteiro,
-  com quem aprova e a publicação manual) + "Ver o passo a passo" / "Entendi" (`scw_social_guia_visto`; quem escondeu o
-  guia antigo — `scw_social_guia_recolhido` — não vê de novo). Os seis passos moram numa FOLHA aberta por "Como
-  funciona" no cabeçalho (`SocialGuia`).
+  com quem aprova e a publicação manual) + só "Entendi" (`scw_social_guia_visto`; quem escondeu o guia antigo —
+  `scw_social_guia_recolhido` — não vê de novo; 23/10/2026: o segundo botão "Ver o passo a passo" saiu, era a mesma folha do "Como
+  funciona"). Os seis passos moram numa FOLHA aberta por "Como funciona" no cabeçalho (`SocialGuia`).
 - **Alertas e atalhos:** a conta vem de `redes_resumo` (TODAS as abertas), não do mês aberto na tela — antes
   dezembro mostrava "0 atrasadas" com atraso em outubro. À vista só os ALERTAS do perfil e só com algo
   (`alertasDoPerfil`: quem aprova vê para aprovar · atrasadas · com ajuste; quem publica vê com ajuste · a publicar ·
-  atrasadas). ⛔ Contador zerado não vira bloco. Os outros atalhos são "Lista rápida (todas as datas)" dentro de
-  Filtros. Atalho ligado troca o período por uma faixa que DIZ o escopo (`escopoAtalho`: "de qualquer data… Não é a
-  semana escolhida") com "Voltar ao calendário".
+  atrasadas). ⛔ Contador zerado não vira bloco (23/10/2026: nem o `ResumoRedes`, que agora recebe o `resumo` já lido e
+  `totalAlertas(contagem, { aprova })` é o número que a Visão geral usa). Os outros atalhos são "Lista rápida", agora na linha
+  "Em todas as datas:" (chips cheios com seta, com o rótulo dizendo o escopo) fora de Filtros. Atalho ligado troca o período por
+  uma faixa que DIZ o escopo (`escopoAtalho`: "de qualquer data… Não é a semana escolhida") com "Voltar ao calendário".
 - **Nova postagem enxuta:** título (único obrigatório), formato, responsável (= quem cria), data, horário e legenda;
   o resto em "Mais detalhes (opcional)". No celular, os campos vêm antes da arte. "Criar postagem" do participante põe o
   @ da casa nas menções (`arrobaDe`) e leva `volta=part:<id>` no endereço: fechar (ou fechar a postagem criada) volta à
@@ -1119,22 +1489,28 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   áreas; fica no aparelho, por conta (`scw_barra_<user_id>`). Padrão: Visão geral, Participantes, Social media, Operação
   (Contatos foi para "Mais"). Área que a pessoa deixou de ver sai sozinha da escolha. O painel da marca segue fixo.
 - **Planejamento** (refinado em 17/10/2026 — percurso: ver a semana → escolher o dia → abrir o post → conferir arte e
-  legenda → próxima ação). Topo em TRÊS níveis: cabeçalho ("Planejamento" — no estreito só para o leitor de tela, a aba
-  já é o título —, "Nova postagem", "Como funciona"); período (anterior · intervalo que abre o calendário do aparelho
-  por `showPicker` · próximo · Hoje; rótulo curto no celular, `tituloCurto`); ferramentas (Semana/Mês/Dia/Lista —
-  segmentado no largo, caixa de seleção no estreito —, "Sem data" com contador, busca, "Filtros" com quantos estão
-  ligados e "Limpar filtros"). Tudo no endereço, como antes.
+  legenda → próxima ação). Reorganizado em 23/10/2026 (pedido do Wilker: "melhorar a construção e visualização"). Topo em
+  TRÊS níveis: período (anterior · intervalo que abre o calendário do aparelho por `showPicker` · próximo · Hoje; rótulo curto
+  no celular, `tituloCurto`) com as AÇÕES na mesma linha ("Como funciona", "Mais ações" › "Checklist padrão" — só com
+  `redes.gerir` —, "Nova postagem"; o `<h2>Planejamento</h2>` só existe para o leitor de tela, a aba já é o título); alertas
+  do perfil; e as ferramentas (Semana/Mês/Dia/Lista/**Sem data** num único segmentado — no estreito, caixa de seleção —,
+  "Sem data" com a contagem, busca, "Filtros" com quantos estão ligados e "Limpar filtros"). Tudo no endereço, como antes.
   Abre na SEMANA, **segunda a domingo**. ⚠️ O arranjo segue a LARGURA DO CONTEÚDO, não a do aparelho
   (`useLargura` + `ResizeObserver` → `R.layoutSemana`): **colunas** (≥1040 px de conteúdo: sete colunas de cartões
-  curtos, dia clicado abre embaixo), **agenda** (600–1039: dias em linhas, postagens ao lado) e **linhas** (<600: dia,
-  data, quantos e alerta; o dia escolhido abre ali mesmo, sem repetir data nem contagem). 1024 px de tela com o menu
-  lateral cai em agenda — sete colunas ali ficavam ilegíveis. Nenhuma rolagem automática; hoje destacado.
+  curtos, dia clicado abre embaixo) e **agenda** (abaixo disso, inclusive no celular: dias em linhas, postagens ao lado).
+  O arranjo "linhas" (<600 px) e `LARGURA_AGENDA` saíram. Todo dia tem "Adicionar" (com postagem ou sem); acima do máximo por
+  célula, "Ver todos (N)". 1024 px de tela com o menu lateral cai em agenda — sete colunas ali ficavam ilegíveis. Nenhuma
+  rolagem automática; hoje destacado. ⚠️ A regra global `.og-vista > .pn-vista-cabeca:has(+ .ui-abas){margin-bottom:var(--e-5)}`
+  (painel.css) vale para TODO módulo com abas, não só o Social media.
   ⚠️ **`container-type` contém posição fixa:** o container (`.rd-c`) envolve só o calendário; a ficha e o guia
   (folhas `position:fixed`) ficam FORA dele — dentro, a folha ficaria presa na caixa do calendário. Mesma regra em
   `.sb` (Biblioteca, sem folha) e nunca em `.sp` (Participantes abre folha).
   **Cartão** (`CartaoPost`): miniatura · título (até 2 linhas, sem hifenizar) · hora e formato · situação · responsável
   quando cabe; UM alerta, o mais urgente (`alertaDoCartao`: atrasada > ajuste > mesmo horário > pendências). O cartão
-  inteiro é o botão. Mês, Dia, Lista e Sem data continuam; filtro por **participante** (`part`).
+  inteiro é o botão (23/10/2026: a situação é um `Selo` — ícone + texto — e o nome do participante aparece quando há).
+  Mês, Dia, Lista e Sem data continuam; filtro por **participante** (`part`). A tela "Sem data" é a fila das postagens
+  sem horário programado (`ROTULO_MODO.fila = 'Sem data'`). O placeholder do título da postagem nova é "Ex.: Carrossel do
+  combo, lançamento".
 - **Ficha da postagem — leitura antes de formulário** (17/10/2026): arte → legenda → programação → "Próximo passo" →
   gavetas recolhidas (detalhes · arquivos e versões · comentários · histórico; nenhuma dentro da outra). Cada bloco
   edita NO LUGAR (`R.SECOES`: legenda sozinha — "Salvar" logo embaixo do campo, ao alcance com o teclado aberto —,
@@ -1142,8 +1518,8 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   ao campo (`ONDE_PENDENCIA`). A ÚNICA ação em destaque mora no rodapé (`R.proximaAcao`): criar · salvar (com
   alteração não salva é sempre salvar — nenhuma etapa anda com a versão antiga) · enviar para aprovação · aprovar (só
   `redes.aprovar`) · confirmar publicação. O raro fica em "Mais ações". Prévia: arte inteira (contain), altura
-  controlada, posição "2 de 7", anterior/próximo e miniaturas (nada depende de gesto), "Ampliar", "Baixar arte"/"Baixar
-  as N" com texto; falha de download aparece com "Tentar de novo" (nunca `.catch(() => {})`).
+  controlada, posição "2 de 7", anterior/próximo e miniaturas (nada depende de gesto), "Ampliar" e "Baixar arte" só
+  com ícone (25/10/2026), "Baixar as N (ZIP)" com texto; falha de download aparece com "Tentar de novo" (nunca `.catch(() => {})`).
   `Folha` ganhou duas props OPCIONAIS, só o Social media usa: `rodape` (barra fora da rolagem — sem sticky nem margem
   negativa; substituiu o `.rd-rodape` preso com `bottom:-40px`) e `cheia` (tela inteira no celular). As outras folhas
   não mudam.
@@ -1178,6 +1554,72 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   presa embaixo; "Mover para…" mostra a árvore sem a própria pasta nem as de dentro. Envio dentro da pasta aberta
   (`social_biblioteca_registrar` com `pasta_id`), "Enviado e registrado" só depois do banco. O seletor da postagem é o
   MESMO navegador (`NavegadorBiblioteca modo="seletor"`). Pasta, filtros e prévia (`ver=tipo:id`) no endereço.
+- **Apagar e restaurar arte na Biblioteca** (21/10/2026, pedido do Wilker). Migration `20261023_social_biblioteca_apagar.sql`
+  (✅ aplicada em 21/10/2026 pelo MCP `supabase-scw`; só acrescenta duas funções) + teste do banco
+  `supabase/testes/social-biblioteca-apagar.sql` (termina em exceção `TESTE_OK`; nada fica). Segue a regra do painel (excluir =
+  arquivar + restaurar): `social_biblioteca_apagar` marca `redes_arquivos.removido_em`/`removido_por_rotulo` (a MESMA marca de
+  `redes_arquivo_remover`), nada sai do Storage, e `social_biblioteca_restaurar` desfaz. ⚠️ **Só `arte`** se apaga aqui: logo,
+  foto do combo/loja e material da campanha têm arquivamento próprio (participante, Arquivos) e o banco recusa com
+  `tipo_nao_apagavel` em vez de ignorar. Permissão `redes.gerir`. Arte presa a postagem já publicada/cancelada não sai
+  (`post_fechado`, via `redes_post_aberto`); em postagem aberta sai também da postagem e o histórico dela registra. Versão
+  anterior (`substituida`) não se apaga nem restaura. Na tela: "Apagar" na prévia e "Apagar…" na seleção (confirmação em
+  laranja, `confirmar(…, { perigo: true })`); as apagadas ficam em Filtros › Situação › "Artes apagadas", onde aparece
+  "Restaurar". Até 200 por vez. O sinal de sincronização é `['biblioteca', 'redes']` (já havia gatilho em `redes_arquivos`).
+  🐛 **Contagem da pasta = o que a pasta mostra** (21/10/2026, migration `20261024_social_pastas_contagem.sql`, ✅ aplicada): o cartão dizia
+  "84 arquivos" e a pasta tinha 30 — `n_itens` contava toda linha de `social_biblioteca_pasta_item`, inclusive arte já removida da postagem e a
+  mesma arte repetida (mesmo caminho). `social_pastas_listar` agora devolve `n_itens` (disponíveis, uma arte por caminho) e `n_itens_todos` (bruto);
+  arquivar pasta decide a confirmação por `n_itens_todos`. ⚠️ Quem mexer em `social_biblioteca` (o que conta como "disponível") tem que mexer
+  também em `social_item_disponivel`, senão o número do cartão volta a divergir da lista.
+- **Arrastar arquivo até uma pasta** (21/10/2026, pedido do Wilker). Soltar numa pasta é a MESMA operação de "Mover para…"
+  (`moverItens` → `social_biblioteca_mover`, só uma chamada no arquivo; sem migration). Por PONTEIRO, não pelo arrastar nativo do HTML5
+  (que não existe no celular): `lib/arrastar.js` (lógica pura: `destinoValido`, `itensDoArrasto`, rolagem) + `lib/arrastarReact.jsx`
+  (`useArrasto`, `FantasmaArrasto`). **Mouse pega o cartão inteiro** (o clique simples continua abrindo a prévia: só vira arrasto depois de
+  mexer 6 px, e o clique que o navegador dispara ao soltar é engolido); **toque só pela alça** (`.bb-arq__alca`, `touch-action:none` ali)
+  para a rolagem da lista seguir livre. Alvos = elementos com `data-alvo-pasta` (id da pasta ou `raiz`): cartão da pasta, atalhos
+  Biblioteca/Sem pasta e o caminho; "Recentes" não é alvo. Arrastar um arquivo MARCADO leva a seleção inteira. Perto da borda do quadro
+  que rola (`.og-vista`) a lista rola sozinha; Esc cancela. A etiqueta que segue o dedo vai por portal ao `<body>`. Só quem organiza
+  (`redes.gerir`, com as pastas ativas); o teclado segue com Selecionar + Mover…. ⚠️ Elemento novo que deva ser alvo precisa de
+  `data-alvo-pasta`. Teste no navegador, mouse e toque de verdade (CDP): `node tests/painel-biblioteca-arrastar-navegador.mjs`
+  (rodar de dentro de `tests/`); lógica em `tests/painel-app-arrastar.test.mjs`.
+- **Cor da pasta** (21/10/2026, pedido do Wilker). Migration `20261025_social_pastas_cor.sql` (✅ aplicada pelo MCP `supabase-scw`; só acrescenta a
+  coluna `social_pastas.cor` + as MESMAS três funções com `cor`) e teste `tests/painel-app-pastas-cor.test.mjs`. A cor é uma chave da PALETA da marca
+  (`CORES_PASTA` em `lib/pastas.js` = `social_pastas_cor_check`: amarelo, laranja, magenta, roxo, ciano, verde, marrom) — **nunca cor livre**: o
+  teste reprova divergência com o banco e exige contraste de ícone ≥ 3:1 (creme sobre roxo/marrom/magenta, chocolate sobre o resto). Sem cor, a pasta
+  usa o acento do módulo (como antes). Menu da pasta › "Cor da pasta…" abre o seletor (`CorDaPasta`, radiogroup); "Padrão" manda cor vazia. A cor
+  aparece no disco da pasta, num ponto no título da pasta aberta e na lista "Mover para…". Subpasta NÃO herda a cor da pasta-mãe (decisão simples;
+  herdar é possível depois). Cenário no navegador em `tests/painel-biblioteca-arrastar-navegador.mjs`.
+- **Auditoria geral — lote 1, 21/10/2026** (relatório em `…/00_PLANEJAMENTO/AUDITORIA-PAINEL-2026-10-21.md`, no Dropbox; não vai ao repositório público).
+  Corrigido, com teste em `tests/painel-app-auditoria-21-10.test.mjs`: **criar acesso de candidatura** (variável `r` sombreada pelo rascunho da triagem:
+  a conta nascia e a tela dizia "Não criou"; a lista agora também relê, `respostas` em `FUNCOES_ESCRITA`); **Sair encerra só este aparelho**
+  (`logout?scope=local` — sem escopo o GoTrue encerra a conta em todos); **rascunhos do Social media** saem no "Sair"/troca de conta
+  (`lib/rascunhosSocial.js`, módulo sem dependências para o `App` não puxar o de Redes); pedido arquivado não conta como "faltando resposta";
+  sessão `remarcada` ocupa o horário na agenda de fotos; aprovar tema e "Gerar acessos" pedem confirmação; Biblioteca: a arte em uso não vira
+  "Apagada" (`20261026_social_biblioteca_arte_em_uso.sql`, ordem do `distinct on (a.path)`). ⚠️ Toda variável nova num componente que usa
+  `useRascunhoOrg` NÃO pode se chamar `r` (é o rascunho).
+- **Aprovar o que se VIU — aprovação da Eline** (21/10/2026, achado da auditoria; lote 2). Antes, trocar/acrescentar/reordenar/remover arte (ou mexer na
+  legenda) com a postagem em "Aguardando aprovação" NÃO subia a versão, e a tela de quem aprova se relê sozinha pelo sinal e passa a mandar a versão
+  nova: dava para aprovar uma arte que não se conferiu. Duas camadas: **banco** (`20261027_social_aprovacao_versao.sql`, ✅ aplicada; `redes_rever_etapa`
+  ganhou um ramo: em `aprovacao` + conteúdo mudou → `redes_carimbar` = versão +1 e "atualizado por/em" de quem mexeu, e `redes_avisar_aprovadores`, menos
+  se quem mexeu é aprovador; teste `supabase/testes/social-aprovacao-versao.sql`); **tela** (`RedesFicha.jsx`): `vistaRef` guarda o que a pessoa viu ao abrir
+  (`R.conteudoParaAprovar`: arte = id+versão na ordem, legenda, menções, formato, horário como instante, observações). Se outra pessoa muda isso e quem está
+  na ficha tem `redes.aprovar`, aparece "<quem> mudou <o quê> às hh:mm depois que você abriu" e o botão principal vira "Conferi as mudanças" (idem
+  "Aprovar direto" bloqueado); só depois volta "Aprovar", que manda a versão atual. Mudança da PRÓPRIA pessoa não pede conferência. O banco continua recusando
+  versão antiga (`redes_travar`). Teste no navegador: `node tests/painel-social-aprovacao-navegador.mjs`. Não cobre texto alternativo (`redes_arquivo_alt`).
+- **Auditoria geral — lote 3, 21/10/2026** (testes em `tests/painel-app-auditoria-21-10.test.mjs`). **Banco** (`20261028_social_resumo_e_responsavel.sql`, ✅ aplicada;
+  teste `supabase/testes/social-resumo-e-responsavel.sql`): `redes_salvar` só confere o responsável quando ele MUDA (antes, responsável com senha redefinida travava toda
+  gravação da postagem com `responsavel_invalido`); `redes_resumo.proximos_itens` é só de agora em diante (antes mostrava só os 5 atrasados mais antigos). **Tela**: Visão
+  geral só diz "Tudo em dia"/"Nada pendente" depois de ler tudo (`extra.lidas`; com leitura caída diz que não dá para afirmar); cadastro da marca pede confirmação ao
+  remover unidade, troca e horário do dia, e o "Salvo" diz o que ficou de fora por inválido (`camposInvalidosDaUnidade`: CEP, UF, WhatsApp); ficha da postagem: limite
+  de 2200 conta legenda + menções por pontos de código (`R.contarCaracteres`), título/perfil vazios avisam em português, fechar com arte subindo/falha pergunta, e data
+  digitada pela metade não apaga data e hora. ⚠️ Escrever `
+` em Python de edição pode virar quebra de linha DE VERDADE dentro de um texto JS (build quebra) — conferir com
+  `vite build` depois de editar texto com `
+`.
+- **Auditoria geral — lote 4 (segurança e lado da marca), 21/10/2026** (testes no mesmo `tests/painel-app-auditoria-21-10.test.mjs`). **Banco:** `20261029_storage_arquivos_politica.sql` (✅ aplicada; a política `arquivos_marca_le` do bucket `arquivos` só deixa a marca ler o que está publicado e não arquivado, com conta ativa — antes qualquer conta logada lia `geral/*`, até arquivado e de conta bloqueada) e `20261030_marca_complementar_resposta.sql` (✅ aplicada; teste `supabase/testes/marca-complementar-resposta.sql`): `marca_responder_solicitacao` passa a ACRESCENTAR o complemento à resposta anterior (com a data) e recusa passar de 4000 (`resposta_longa`); antes apagava a resposta. **Edge Functions** (✅ publicadas): `regerar-senha-conta` devolve `avisos` (`envio_nao_zerado`, `sessoes_nao_encerradas`) em vez de ignorar a falha — a senha JÁ mudou, então não é erro (`textoAvisosSenha` em `lib/cadastro.js`; Equipe e o lote de acessos mostram); `criar-acesso-marca` recusa candidatura que não esteja `aprovado`/`aguardando_cadastro` (`candidatura_nao_aprovada`, 409). **Tela:** link do canal de delivery só aceita http(s) (`linkWebSeguro`/`erroLinkCanal` em `lib/cadastro.js`; ficha e página pública conferem o dado antigo também); primeiro acesso da marca — `marcarSenhaTrocada` agora PROPAGA a falha, `DefinirSenha` tenta duas vezes e, se não der, fica em "Tentar de novo" só para essa parte (conta com `deve_trocar_senha` ligada não passa em `conta_ativa()` e o painel abria vazio); trocar a senha encerra as OUTRAS sessões (`logout?scope=others`, melhor esforço); `marcaApi.auth` e `api` têm tempo-limite (20 s e 30 s, `AbortSignal.timeout`); "Conferindo sua sessão" ganha "Sair" depois de 8 s e sessão que morreu em uso volta às boas-vindas com "Sua sessão terminou. Entre de novo."; login da marca ganha "Mostrar a senha". Operação: Edição › Configuração não diz "Nenhuma edição aberta" quando a LEITURA falhou (e trava trocar/fechar às cegas), trocar a edição aberta e mudar valor do combo ou datas em "Salvar edição" pedem confirmação; "Publicar arquivo" põe carimbo no nome (o Storage sobrescreve o mesmo caminho — `upsert`), reaproveitando o caminho só no reenvio de um envio que já subiu; "Publicar a casa" avisa que o combo no ar SAI; Biblioteca esvazia a lista ao trocar de pasta; a coluna "Completas" da Visão geral marca a casa encerrada. ⚠️ Fica de fora, por decisão: Realtime segue reconectando a cada 10 s no pior caso (recuo máximo), 401 em uso segue encerrando a sessão sem 2ª tentativa, horário do combo que passa da meia-noite segue recusado, `aria-live` do indicador de sincronização anuncia cada troca de estado.
+- **Campanhas, checklist e lembretes — 21/10/2026** (spec `docs/superpowers/specs/2026-10-21-social-campanhas-checklist-lembretes-design.md`, plano `docs/superpowers/plans/…`). Três migrations aditivas, todas ✅ aplicadas, cada uma com teste de banco que termina em `TESTE_OK` (`supabase/testes/social-campanhas.sql`, `social-checklist.sql`, `social-lembretes.sql`) e teste de Node (`tests/painel-app-campanhas.test.mjs`, `painel-app-checklist.test.mjs`); o cenário de tela está em `tests/painel-social-aprovacao-navegador.mjs`.
+  - **Campanhas** (`20261031_social_campanhas.sql`, `lib/campanhas.js`, aba `#social/campanhas` em `SocialCampanhas.jsx`, `FormularioCampanha.jsx`). Uma campanha por postagem (`redes_posts.campanha_id`, vazio = nenhuma). Tem nome (≤60, único entre as ativas sem diferenciar maiúscula), cor da MESMA paleta da pasta (`CORES_PASTA` = o CHECK do banco; o teste compara), descrição, período, meta e `arquivada` — nunca se apaga. `redes.editar` cria/edita/arquiva; `redes.ver` lê. `redes_campanhas_listar` devolve `n_total` (sem canceladas), `n_publicadas`, `n_abertas`, `n_atrasadas`; progresso = "12 de 20 publicadas" (com meta) ou "12 publicadas de 18 planejadas". Campanha arquivada não pode ser ESCOLHIDA (`campanha_invalida`), mas a postagem que já a tem continua com ela. Trocar de campanha entra no histórico (`conteudo` › `campanha`) e NÃO desfaz aprovação (fora da tupla de `redes_rever_etapa`). O campo "Edição ou campanha" virou "Edição" (é só a edição). Cartão: ponto colorido + nome curto; filtro `camp` no endereço; "Ver no calendário" abre o mês do início já filtrado. ⚠️ `redes_json` agora é recriado em DUAS migrations (campanha, depois checklist): quem mexer nele parte da definição viva do banco.
+  - **Checklist** (`20261101_social_checklist.sql`, `lib/checklist.js`, `ChecklistPostagem.jsx`). AVISA, não trava (decisão do Wilker). `redes_checklist_modelos` (itens por formato, o administrador `redes.gerir` edita na folha "Checklist padrão") e `redes_checklist_itens` (cópia por postagem: feito, quem, quando). A postagem recebe a cópia ao ser criada/duplicada; postagem antiga recebe na primeira abertura por quem edita (`redes_checklist_garantir`, uma vez por abertura); mudar o formato ou o modelo depois NÃO mexe nos itens que já existem. Marcar/acrescentar/remover NÃO sobe a `versao`, não toca `atualizado_em` e não desfaz aprovação. ⛔ **Nada se apaga:** remover item e substituir o modelo de um formato são `removido_em` (a migration não tem `delete from`; o painel recusou aplicar uma versão com `delete`). Quem tirou TODOS os itens de propósito não os recebe de volta. "Enviar para aprovação" com item aberto pergunta ("Falta 1 item do checklist: … Enviar mesmo assim?") e deixa seguir. Cartão mostra "3/5" em postagem aberta.
+  - **Lembretes** (`20261102_social_lembretes.sql` + `20261103_social_lembretes_cron.sql`). `redes_lembretes(p_agora)` roda no `pg_cron` a cada 10 min (job `scw-redes-lembretes`; desligar: `select cron.unschedule('scw-redes-lembretes')`) e fica quieto fora de **07h–22h de Fortaleza**. Quatro lembretes, cada um sino + push (pelo `avisar_pessoa`): **resumo do dia** (a partir das 08h, um por pessoa e dia, "N postagens para hoje · M atrasadas"); **1 h antes sem aprovação** (rascunho/aguardando: responsável + quem aprova); **passou 30 min do horário sem confirmar** (até 24 h: responsável, + quem aprova se não está aprovada); **faltando arte/legenda a 2 dias** (a partir das 08h). Sem responsável → quem criou. `redes_lembretes_enviados` (tipo, postagem, chave, pessoa) impede repetir; a chave é o horário PROGRAMADO, então reagendar libera aviso novo. Só o `pg_cron`/dono executam (`revoke` de `public`, `anon`, `authenticated`); o teste simula o relógio com `p_agora`. ⚠️ Nem todo aviso chega ao celular: o push só sai quando `admin_config.push_pessoal` está ligado e o aparelho está inscrito. Fora do lote: modelos de legenda/hashtags, duplicar com recorrência, visão por perfil/formato, desligar lembrete por pessoa.
 - **Baixar e salvar** (17/10/2026, `components/vistas/BaixarArquivo.jsx` + `lib/entrega.js`): igual na Biblioteca e na
   ficha. "Baixar" busca o ORIGINAL (nunca a miniatura; nome, formato, resolução e transparência intactos), assina a URL
   na hora e, vencida, assina de novo uma vez; entrega por download direto na mesma aba (antes buckets que não eram
@@ -1308,12 +1750,22 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   de push ACEITOU, não prova que apareceu na tela.
 - **Convite do aparelho** (`AppNoAparelho.jsx › ConviteAparelho`, substituiu o cartão da Mesa/Início): depois do login,
   conta carregada, sem tour, sem folha/diálogo, sem pendência e sem aviso de atualização na frente. Fora do modo app:
-  "Tenha o Painel SCW no seu celular" (Instalar painel só com `beforeinstallprompt`; senão "Ver como instalar", com os
-  passos do Safari no iPhone e "abrir no Safari" no Chrome do iPhone). Aberto pelo ícone (ou computador sem oferta): "Ative
-  as notificações do painel"; sucesso só depois de o servidor confirmar a inscrição desta conta (`push_aparelho`);
-  bloqueado = como liberar, sem pedir de novo. "Agora não"/fechar adia 7 dias POR CONTA e aparelho
+  "Tenha o Painel SCW no seu celular" (Instalar painel só com `beforeinstallprompt`; senão os passos aparecem DIRETO, sem
+  um toque a mais: Safari no iPhone — com "na primeira vez pelo ícone, entre com o nome e a senha; depois o painel fica aberto
+  até você tocar em Sair" (o app da Tela de Início guarda a sessão à parte do Safari) —, "No iPhone, use o Safari para instalar"
+  fora do Safari). Aberto pelo ícone (ou computador sem oferta): "Ative as notificações do painel" (a etapa explica que é
+  preciso escolher "Permitir"); sucesso só depois de o servidor confirmar a inscrição desta conta (`push_aparelho`);
+  bloqueado = `COMO_LIBERAR` (`lib/instalar.js`), um texto por aparelho (iPhone · Android no app · Android no navegador ·
+  computador), sem pedir de novo. "Agora não"/fechar adia 7 dias POR CONTA e aparelho
   (`scw_convite_aparelho_<papel>_<conta>`, só a data). Uma vez por sessão. Meu perfil / Sua conta › "Aplicativo e
   notificações" reabre, mostra o estado deste aparelho e a preferência de aviso de versão.
+  **O sino** (`Central › aparelho`) ganha no topo "Avisos neste aparelho" (desde 25/10/2026 numa caixa que abre e
+  fecha, `<details class="ui-central-aparelho ui-recolhe">`, fechada por padrão): o estado (Ligados · Desligados · Bloqueados ·
+  Indisponíveis, sempre com a linha de estado), o botão de ligar e o link "Como instalar e ligar os avisos" (fecha a folha e
+  abre o convite 300 ms depois, porque a folha leva 260 ms para sair). ⛔ Nunca no "Ver como participante": o aparelho na mão
+  é do administrador, então o sino, a etapa do tour e a seção da Conta não mostram os controles de aviso lá. O
+  `pushMarca.conferir` só conta assinatura `ativo` (a que o servidor desativou não é "Ligados"). iPhone com iOS < 16.4: "Atualize
+  o iPhone para iOS 16.4 ou mais novo para receber avisos."
 - Testes: `tests/painel-app-versao.test.mjs` (transição com dependências falsas); navegador com builds reais A→B no
   harness local (fora do repositório).
 
@@ -1344,3 +1796,120 @@ Instagram, não guarda senha de rede e não fala com a Meta. Não confundir com 
   (confirmado por ele); nome de pessoa não entra no código nem na mensagem. O login da EQUIPE (`LoginOrganizacao.jsx`) continua com o aviso
   "fale com um administrador".
 
+
+
+#### Sincronização em tempo real do painel — 19/10/2026 (pedido do Wilker: "tudo que muda aparece nas outras telas e sessões")
+
+Antes: leitura por consulta HTTP ao abrir a tela, polls soltos (avisos 60 s, marca 60 s, mensagens 20 s) e nenhum aviso entre
+telas depois de salvar. Agora há **uma camada só** (`painel-app/src/lib/sync/`), com três mecanismos separados:
+
+| Mecanismo | O que faz | Onde |
+|---|---|---|
+| **Mesma sessão** | gravação CONFIRMADA (`rpc()`, `chamarFuncao()`, `api()` do lado marca) anuncia os domínios que alterou; as telas que leem esses domínios relêem | `rpc.js` / `marcaApi.js` → `sync/anuncio.js` → `sync/barramento.js` |
+| **Outras sessões e aparelhos** | o BANCO manda um sinal mínimo por gatilho (`realtime.send`, canais PRIVADOS); a tela relê pela rota autorizada de sempre | migration `20261022_sincronizacao_tempo_real.sql` → `sync/tempoReal.js` |
+| **Reconexão** | volta à aba (fora ≥ 3 s), rede de volta, canal reentrando, ou conferência a cada 3 min → `reconciliar()` relê tudo o que está montado | `sync/sessao.js` |
+
+- **Domínios** (`sync/dominios.js`, vocabulário FECHADO): `participantes, cadastro, unidades, temas, logos, correcoes, pedidos,
+  fotos, arquivos, materiais, edicao, publicacao, mensagens, avisos, vendas, vouchers, acessos, redes, biblioteca, editorial,
+  perfis, contatos, preenchimento, respostas, atividade, configuracao`. Domínio desconhecido é descartado (no cliente e no
+  servidor). **Toda RPC/função que o painel chama tem que estar classificada** (leitura, sem sinal, ou gravação → domínios):
+  `tests/painel-app-sincronizacao-ampliada.test.mjs` reprova chamada nova sem classificação. `org_preenchimento(s)` são
+  LEITURAS de propósito (criam o link na 1ª vez; o banco avisa por gatilho) — avisar daqui faria a tela recarregar em laço.
+- **Canais** (todos privados; política `sync_receber` em `realtime.messages`, só SELECT — o navegador não publica):
+  `scw:org` (`dado.ler`) · `scw:social` (`redes.ver`) · `scw:marcas` (qualquer marca ativa: vagas de foto abertas, arquivos
+  gerais, edição) · `scw:marca:<id>` (só a conta dona) · `scw:pessoa:<uid>` (avisos, leitura, perfil — vale até para conta
+  pausada, para ela saber). Social media NÃO entra em `scw:org`: vendas, vouchers, acessos e mensagens nunca chegam a ela.
+  O painel pergunta ao servidor quais canais pode ouvir (`sync_meus_canais()`), então permissão revogada sai da lista.
+- **O sinal é mínimo**: `{d: domínio, r: id opaco, t: hora}`. Nunca registro, nome, contato, texto ou token. Dedupe por
+  transação (`scw.sync_vistos`); o gatilho engole qualquer erro (o sinal nunca derruba a gravação).
+- **Sessão**: o transporte usa o MESMO token e a MESMA renovação do resto (`tokenVivo` → `renovarCompartilhado`); não cria
+  sessão paralela nem faz login. Token novo vai pelo quadro `access_token`, sem reconectar. O acesso COMPARTILHADO (senha única)
+  não tem token → **sem canal**: só a conferência periódica a cada 45 s (a senha nunca vai a canal nem à URL). O indicador diz
+  "conferindo a cada 45 segundos" — não chama isso de tempo real.
+- **Estado mostrado** (`IndicadorSync`): Atualizado · Atualizando · Sem conexão · Sem sincronizar (falha). "Em tempo real" só na
+  dica e só DEPOIS do `phx_reply` ok de todos os canais.
+- **Troca de conta**: `pararSincronizacao()` fecha os canais, zera o barramento e muda a ÉPOCA; resposta de carga iniciada antes
+  não grava mais em tela (`useGuarda`). Outra ABA que sai/entra como outra pessoa dispara `onTrocaDeConta` (evento `storage`)
+  → `App.trocaLocal()`, que só encerra o contexto desta aba, **sem** logout no servidor e **sem** apagar a sessão (que já é a
+  da outra conta).
+- **Para ligar uma tela nova**: `useSincronizar(['dominio', …], recarregarSilencioso)` (releitura SEM spinner, mantendo o que
+  estava na tela se falhar e rejeitando para o indicador), `const vale = useGuarda()()` antes de cada `await` com `if (!vale()) return`,
+  e nada de `setInterval` de dados. Registro em edição: `useRegistroEditavel` + `<AvisoMudancaExterna/>` (mescla em três vias:
+  campo que não toquei acompanha o servidor, o que digitei nunca é trocado em silêncio, o mesmo campo dos dois lados vira
+  conflito e a pessoa escolhe). `usePendencia(...).sinalizarExterno()` avisa o indicador.
+- **Avisos**: grupo por pessoa e leitura por conta continuam (`avisar_pessoa`, `notificacao_leitura`); ler um aviso atualiza o
+  contador das outras sessões da mesma pessoa; leitura que falha DESFAZ o otimista. Pendência resolvida deixa de contar como
+  aberta (post sai de "aprovação" → aviso do aprovador vira lido; pedido respondido → aviso da marca vira lido).
+- **Push** (`enviar-push` + `carga.ts` + migration `20261022_push_entrega.sql`): mensagem e formulário não mostram o texto na
+  tela de bloqueio; resultado por aviso e aparelho (`push_envios`); falha passageira tenta de novo (até 3×, 5 min, só avisos não
+  lidos); "ok" = o serviço de push ACEITOU, não prova que apareceu. O aviso interno existe antes do push e não depende dele.
+  Com o painel aberto, o service worker avisa as abas (`{tipo:'push'}`) para relerem os avisos.
+- ⚠️ `realtime.messages` só ganha partição do dia depois que um cliente se conecta ao Realtime (o `postgres` não consegue criá-la):
+  sinal emitido com ninguém conectado se perde — inofensivo (ninguém ouvia) e coberto pela releitura ao conectar.
+- Testes: `node --test tests/painel-app-sync-*.test.mjs tests/painel-app-sincronizacao*.test.mjs tests/painel-push-carga.test.mjs`;
+  banco: `supabase/testes/sincronizacao.sql` (transação que se desfaz). Reversão: `supabase/reverter/20261022_sincronizacao_tempo_real.sql`.
+- **Vistas ligadas à camada (19/10/2026)** — quem escreve tela nova usa os ajudantes que já existem, não copia o padrão:
+  `lib/leituraVivaReact.js` (`useLeitura` = carga inicial + releitura silenciosa com guarda; `useEdicaoProtegida` = formulário
+  que resiste à alteração externa, manda só o que mudou, bloqueia salvar com conflito) · `lib/rascunhoOrg.js`
+  (`useRascunhoOrg`, a versão curta do mesmo: registro editável + pendência + `avisarSalvo`) · `lib/syncFichas.js` (domínios por
+  vista da organização, `mesclarFonte` mantém o dado antigo se a releitura falha) · `lib/sincMarca.js` (lado da marca) ·
+  `lib/cadastroMescla.js` (mescla campo a campo do Cadastro da marca: unidades, horários, trocas) · `lib/redes.js`
+  (`mesclarPostExterno`, `reduzirEditorial`: postagem e combo editorial em três vias). ⚠️ `useRascunhoOrg` e `useEdicaoProtegida`
+  se sobrepõem — ao mexer num, avaliar fundir.
+- **Cobertura — o que NÃO chega em tempo real** (cai na conferência: 45 s sem canal, 3 min com): avaliações do público
+  (`Avaliacoes`: não há gatilho na tabela); "No site"/versão publicada para o social media (`publicacao`, `cadastro`,
+  `unidades` não vão ao `scw:social`); foto aprovada por outra sessão na Biblioteca do admin; nome de participante na lista de
+  postagens. Aba com conflito aberto no Cadastro da marca: trocar de aba grava SEM a coluna em conflito (a versão da marca
+  naquele campo se perde; o aviso de fechar a aba já cobre o resto).
+- **Contagens da Visão geral** (`resumoDaEdicao`/`participaDaEdicao` em `lib/mesa.js`): participação `encerrado` (desistiu) NÃO entra
+  no total da edição, em "com acesso", "sem acesso" nem em "cadastros completos"; os filtros com/sem acesso de Marcas e o lote
+  "Gerar senhas" seguem a mesma regra, para o número do cartão abrir uma lista do mesmo tamanho. "Cadastro completo" é o STATUS
+  (a organização confirma), não "todos os campos preenchidos" (`campos_faltando = 0`).
+- **Regressão automática**: `tests/painel-app-sync-sem-polling.test.mjs` reprova `setInterval` fora da camada (exceções: versão
+  publicada, URL assinada de imagem, nova tentativa de `minhas_permissoes` quando a leitura falhou).
+- Navegador (backend e Realtime FALSOS, nada vai ao Supabase): `node tests/painel-sincronizacao-navegador.mjs` (15 cenários:
+  dois aparelhos, ordem trocada, queda, abas, sessão expirada, permissão revogada, canal negado, marca, segundo plano, sem rede,
+  senha única) e `node tests/painel-app-sync-vistas-navegador.mjs` (23 cenários das vistas reais: Produção, Arquivos, Materiais,
+  Chaves da edição, Publicação, Logo). Filtro opcional: `SO=<n>` no primeiro, texto no segundo.
+
+#### Combos para aprovar — decidir na Visão geral — 27/10/2026 (pedido do Wilker)
+"No card aparece exatamente o que eu preciso saber, e não achei onde é que eu aprovo." Antes, o cartão "Cadastros para aprovar" só
+dizia o nome da marca e abria a lista; a decisão morava em ficha › Operação › Combo, quatro cliques adiante. Migration
+`20261117_combos_em_analise.sql` (✅ aplicada; teste `supabase/testes/combos-em-analise.sql` → `TESTE_OK`; reversão em
+`supabase/reverter/`), lógica em `lib/combosAnalise.js`, folha em `vistas/mesa/FolhaDecidirCombo.jsx`, teste
+`tests/painel-app-combos-analise.test.mjs` e cenário V9 de `tests/painel-visao-geral-navegador.mjs`.
+- **O que espera a curadoria é o COMBO** (`combo_status = 'em_analise'`), não o cadastro (já completo). O cartão agora se chama
+  "Combos para aprovar", e o detalhe diz marca · “nome do combo” · tema · "enviado há N h" (`desde` = o último "→ em_analise"
+  da auditoria). O NÚMERO continua sendo o tamanho da lista de marcas que ele abre (marca encerrada não conta).
+- **O cartão resolve ali mesmo:** `acao.abrir = 'aprovacao'` faz o clique abrir a folha, em vez de ir à lista (pé: "Revisar e
+  decidir"). A folha mostra uma marca por vez, do combo que espera há mais tempo: combo, tema e justificativa, os três itens e os
+  custos da marca (vazio = "não informado", 0 = "sem custo"); **Aprovar combo**, **Pedir ajuste** (nota obrigatória) e
+  **Abrir a ficha**. Decidir = `revisar_combo`, a MESMA RPC da ficha, então a marca recebe o mesmo aviso (sino + push). A fila é a
+  do momento em que a folha abriu (decidir relê a Visão geral, e a lista que encolhe não embaralha "2 de 3").
+- **Nunca meia lista:** o cartão só mostra o combo se `get_combos_em_analise` trouxe TODOS os que ele conta (`cobreAsMarcas`);
+  leitura que caiu (ou sem `curadoria.decidir`) volta ao texto simples e à lista de marcas. A leitura não entra em `falhas`.
+- ⚠️ `auditoria.alvo_id` é TEXTO: comparar com `pa.id::text` (a primeira versão da função quebrava no uso).
+
+#### Aviso de alteração com o CAMPO e o toque que leva até ele — 27/10/2026 (pedido do Wilker)
+"Quero saber na notificação o que a marca alterou, e que ao clicar me leve ao campo." Muda o R7 de "A marca só salva" (acima): o
+aviso "<Marca> alterou o cadastro" deixou de listar ÁREAS ("Logo", "Combo e custos") e passou a listar **campos**. Migration
+`20261118_alteracao_marca_campos.sql` (✅ aplicada pelo MCP; teste `supabase/testes/marca-salvar-avisa.sql` → `TESTE_OK`, com os
+passos I e J novos; reversão em `supabase/reverter/`), testes `tests/painel-app-alteracao-campos.test.mjs` e
+`tests/painel-aviso-campo-navegador.mjs` (porta 5247; ficha de mentira, sino, rolagem e destaque).
+- **Texto = os nomes dos campos**, como a ficha os chama: "Nome do combo · Doce: descrição · Logo · Unidade 1: endereço". Só o
+  NOME, não o valor (decisão do Wilker): o salvamento automático grava a cada ~1 s e o aviso, um só e sem UPDATE a cada letra,
+  guardaria o valor pela metade. O valor certo está na ficha, destacado. Campo novo acumula no mesmo aviso (sem push novo);
+  campo repetido não grava nada.
+- **O catálogo mora no banco:** `campo_alterado_marca(tabela, coluna, linha, participação)` devolve `{rótulo, seção, âncora}`;
+  coluna fora dele não gera aviso (status, progresso e carimbos). `marca_alterou` (gatilho) e `avisar_alteracao_marca_campo`
+  usam ele. As funções por área (`avisar_alteracao_marca`) ficam sem uso (o painel não deixa apagar função).
+- **Link = `marcas/<participante>/<seção>/<campo>`** (seção: `cadastro` · `combo` · `unidades`). Com vários campos o toque leva ao
+  PRIMEIRO (ordem alfabética das colunas que mudaram no mesmo salvamento); os outros estão no texto. `rotaDoLink` põe o 3º
+  segmento em `filtros.campo`; `lerIrDaUrl` aceita até 4 segmentos (o push `?ir=`); `interpretarLink` devolve `campo`.
+- **A ficha rola até o campo e o destaca por 6 s** (`rolarParaCampo` em `FichaMarcaPagina.jsx`, classe `.fg-alvo`, sem animação):
+  linha de dados = `#fg-campo-<chave>` (o `Dados` de `FichaVisao.jsx` aceita `{ id }`); item = bloco `#fg-item-<posição>`;
+  unidade = bloco `#fg-uni-<id da unidade na edição>`. Chave desconhecida cai na seção, sem erro. Trocar de seção na ficha solta
+  o campo do endereço (`onSub` limpa `campo`). ⚠️ **Campo novo no catálogo do banco precisa de âncora na ficha** — o teste
+  confere cada chave do SQL contra os `id: '…'` de `FichaVisao.jsx`.
+- ⚠️ Painel antigo (sem esta versão) abre a ficha na seção, sem o campo; o toque no PUSH (`?ir=` com 4 segmentos) só chega ao
+  destino com o painel novo (a regra antiga recusava).

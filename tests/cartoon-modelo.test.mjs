@@ -61,6 +61,42 @@ test('estado do combo agora, no horário de Natal', () => {
   assert.match(M.textoEstado({ estado: 'sem_horario' }), /a confirmar/)
 })
 
+// Dia sem linha = a unidade NÃO abre (23/10/2026). Só o período da edição diz onde o festival começa e termina.
+test('estado do combo com o período da edição: dia sem linha DENTRO do festival é "sem combo hoje"; "fora do período" só fora dele', () => {
+  const periodo = { inicio: '2026-11-05', fim: '2026-11-15' }
+  const util = ['2026-11-05', '2026-11-06', '2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13'] // fecha sábado e domingo
+  const semFimDeSemana = { combo: { disponibilidade: util.map((data) => ({ data, abre: '10:00', fecha: '22:00' })) } }
+  const dia = (d, h) => new Date(Date.UTC(2026, 10, d, h + 3, 0)) // horário de Natal = UTC−3
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(8, 15), periodo), { estado: 'sem_horario_hoje' }, 'domingo 8: dentro do festival, sem linha')
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(14, 15), periodo), { estado: 'sem_horario_hoje' }, 'sábado 14, depois do último dia com linha')
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(15, 15), periodo), { estado: 'sem_horario_hoje' }, 'domingo 15, o último dia do festival')
+  assert.equal(M.textoEstado(M.estadoAgora(semFimDeSemana, dia(15, 15), periodo)), 'Sem combo hoje')
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(4, 15), periodo), { estado: 'fora_do_periodo' }, 'véspera')
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(16, 15), periodo), { estado: 'fora_do_periodo' }, 'dia seguinte ao festival')
+  // dia com linha não muda com o período
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(9, 15), periodo), { estado: 'aberto', ate: '22:00' })
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(9, 8), periodo), { estado: 'abre_hoje', as: '10:00' })
+  // sem o período (ou ilegível) o comportamento de antes: vale do primeiro ao último dia que a unidade cita
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(15, 15)), { estado: 'fora_do_periodo' })
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(8, 15)), { estado: 'sem_horario_hoje' })
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(15, 15), { inicio: '', fim: null }), { estado: 'fora_do_periodo' })
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(15, 15), { inicio: '2026-11-05' }), { estado: 'fora_do_periodo' }, 'período pela metade não vale')
+  // o jsonb pode trazer a data com hora
+  assert.deepEqual(M.estadoAgora(semFimDeSemana, dia(15, 15), { inicio: '2026-11-05T00:00:00', fim: '2026-11-15T00:00:00' }), { estado: 'sem_horario_hoje' })
+})
+
+test('texto do estado: horas como "20h", "22h30" e "meia-noite" (o horário passou a poder fechar à meia-noite)', () => {
+  assert.equal(M.textoEstado({ estado: 'aberto', ate: '20:00' }), 'Combo disponível agora, até 20h')
+  assert.equal(M.textoEstado({ estado: 'aberto', ate: '22:30' }), 'Combo disponível agora, até 22h30')
+  assert.equal(M.textoEstado({ estado: 'aberto', ate: '24:00' }), 'Combo disponível agora, até meia-noite')
+  assert.equal(M.textoEstado({ estado: 'abre_hoje', as: '09:00' }), 'Combo disponível hoje a partir das 9h')
+  assert.equal(M.textoEstado({ estado: 'abre_hoje', as: '14:30' }), 'Combo disponível hoje a partir das 14h30')
+  const noite = { combo: { disponibilidade: [{ data: '2026-11-09', abre: '18:00', fecha: '24:00' }] } }
+  assert.deepEqual(M.estadoAgora(noite, new Date(Date.UTC(2026, 10, 10, 2, 59))), { estado: 'aberto', ate: '24:00' }, '23h59 em Natal: ainda aberto')
+  assert.equal(M.textoEstado(M.estadoAgora(noite, new Date(Date.UTC(2026, 10, 10, 2, 59)))), 'Combo disponível agora, até meia-noite')
+  assert.deepEqual(M.estadoAgora(noite, new Date(Date.UTC(2026, 10, 10, 3, 0))), { estado: 'fora_do_periodo' }, '0h do dia 10: já é outro dia')
+})
+
 test('filtros usam só dado declarado', () => {
   const lista = DEMO_EDICAO.participantes
   assert.deepEqual(M.filtrar(lista, { modo: 'delivery' }).map((p) => p.slug), ['demo-casa-aurora'])
@@ -85,7 +121,6 @@ test('formatos e links', () => {
   assert.equal(M.formatarPreco(38.9), 'R$ 38,90')
   assert.equal(M.formatarPreco(null), '')
   assert.equal(M.formatarDia('2026-11-05'), 'qui 5/11')
-  assert.deepEqual(M.horarioResumido(aurora.unidades[0].combo.disponibilidade), [{ dias: 'qui 5/11 a dom 15/11', faixas: '14:00–20:00' }])
   assert.equal(M.linkWhatsApp('(84) 90000-0000'), 'https://wa.me/5584900000000')
   assert.match(M.linkComoChegar({ coordenada: { lat: -5.8, lng: -35.2 } }), /destination=-5\.8%2C-35\.2$/)
   assert.match(M.linkComoChegar(aurora.unidades[1]), /destination=.*Lagoa%20Nova/)

@@ -9,18 +9,28 @@ import {
 } from '../../lib/publicacao'
 import { urlPublica } from '../../../../src/edicao/dados/modelo.js'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Botao, Escolha, traduzirErro } from '../ui'
+import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Botao, Escolha, traduzirErro, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
 import '../../styles/edicao-org.css'
 import { comEnvio } from '../../lib/pendencias'
+import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
+import { useDatasDoFestival } from '../../lib/festivalReact'
+import { soAlterados, aparar, impressaoDoArquivo } from '../../lib/leituraViva'
+import { NOMES_PUBLICACAO, ondeFica } from '../../lib/nomesPublicacao'
+import { avisoLocalizacao } from '../../lib/pendenciasAviso'
+import { CaixaAviso, caixaDe, enviarAvisoMarca } from './CobrarPendencias'
 
 /*
  * Publicação da edição — lado da organização (Cartoon 2026.2, plano em
  * docs/cartoon-2026-2/04-painel.md §4.4–4.5). Duas telas:
- *   ListaPublicacao → Participantes › Publicação: uma linha por casa, filtros.
- *   AbaPublicacao   → ficha da marca, aba Publicação: pendências, diferença
- *                     entre a versão no ar e a atual, prévia, publicar/retirar,
- *                     slug, coordenadas e fotos.
+ *   ListaPublicacao → Participantes › Páginas das marcas (rota `publicacao`): uma
+ *                     linha por casa, filtros.
+ *   AbaPublicacao   → ficha da marca, seção "Página da marca no site": pendências,
+ *                     diferença entre a versão no ar e a atual, prévia,
+ *                     publicar/retirar, slug, coordenadas e fotos.
+ * Os nomes visíveis vêm de lib/nomesPublicacao.js: aqui se publica a página de
+ * UMA marca; a liberação da edição inteira é Edição › Liberação no site.
  * O banco decide (pode() em cada RPC); o botão desabilitado é só conforto.
  */
 
@@ -28,6 +38,15 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 const msgErro = (e) => traduzirErro(traduzirErroPublicacao(e && e.message))
 const PreviaPublica = React.lazy(() => import('./edicao/PreviaPublica.jsx'))
 const ROTULO_PAPEL = Object.fromEntries(PAPEIS_MIDIA)
+const CAMPOS_SLUG = ['slug']
+const CAMPOS_COORDENADA = ['lat', 'lng']
+const CAMPOS_FOTO = ['alt', 'credito']
+
+// O pai (a ficha) relê as fontes dele quando algo aqui é gravado. Uma falha DESSA releitura não
+// é falha da gravação que acabou de dar certo: ela aparece no aviso da própria ficha.
+function avisarSalvo(onSalvo) {
+  try { Promise.resolve(onSalvo && onSalvo()).catch(() => { /* a ficha mostra a própria falha */ }) } catch { /* idem */ }
+}
 
 function Aviso({ aviso }) {
   if (!aviso) return null
@@ -36,29 +55,33 @@ function Aviso({ aviso }) {
     : <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>
 }
 
-/* ── Lista: Participantes › Publicação ─────────────────────────────────── */
-export function ListaPublicacao({ edicao, rota, navegar, registrarAtualizar }) {
-  const [linhas, setLinhas] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
+/* ── Lista: Participantes › Páginas das marcas ─────────────────────────── */
+export function ListaPublicacao({ edicao, rota, navegar }) {
   const filtro = (rota && rota.filtros && rota.filtros.situacao) || ''
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try { setLinhas((await rpc('get_publicacoes_edicao', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || []) } catch (e) { setErro(e.message) }
-  }, [edicao.codigo])
-  React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // Relê sozinha quando muda o que a linha mostra: publicação, a marca (nome, situação do combo),
+  // a edição e as pendências (que saem do cadastro e das unidades). Outra edição = lista nova.
+  const leitura = useLeitura(
+    async () => (await rpc('get_publicacoes_edicao', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || [],
+    ['publicacao', 'participantes', 'edicao', 'cadastro', 'unidades'], { chave: edicao.codigo },
+  )
+  const linhas = leitura.dados === undefined ? null : leitura.dados
+  const erro = leitura.bloqueada ? leitura.erro : null
 
   const lista = filtrarPublicacoes(linhas, filtro)
   const abrir = (l) => navegar({ vista: 'participantes', aba: 'lista', filtros: { item: l.participante_id, sub: 'publicacao' } })
 
   return (
     <div className="ui-pilha">
+      <p className="ui-nota">
+        <b>{NOMES_PUBLICACAO.marcas.frase}.</b> Edição {edicao.codigo}. A versão publicada fica no ar até a organização publicar a próxima, mesmo com alteração em análise.
+        {' '}{NOMES_PUBLICACAO.edicao.frase} fica em {ondeFica('edicao')}.
+      </p>
       <div className="og-filtros">
         <Escolha rotulo="Mostrar" valor={filtro} opcoes={FILTROS_PUBLICACAO}
           onMudar={(v) => navegar({ filtros: v ? { situacao: v } : {} }, { substituir: true })} />
       </div>
-      <p className="ui-nota">Edição {edicao.codigo}. A versão publicada fica no ar até a organização publicar a próxima, mesmo com alteração em análise.</p>
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={leitura.recarregar} />}
+      {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={leitura.erro} onTentar={leitura.recarregar} />}
       {!erro && linhas === null && <Carregando />}
       {!erro && linhas && linhas.length === 0 && <Vazio titulo="Nenhuma casa nesta edição">As casas aparecem aqui quando têm participação aberta na edição {edicao.codigo}.</Vazio>}
       {!erro && linhas && linhas.length > 0 && lista.length === 0 && <Vazio titulo="Nenhuma casa com esse filtro" />}
@@ -68,7 +91,7 @@ export function ListaPublicacao({ edicao, rota, navegar, registrarAtualizar }) {
             <li key={l.participacao_id}>
               <button type="button" className="og-item" onClick={() => abrir(l)}>
                 <span className="og-item__cor" aria-hidden="true" />
-                <span className="og-item__nome">{l.nome_marca || '(sem nome)'}</span>
+                <span className="og-item__nome"><MarcaComLogo nome={l.nome_marca || '(sem nome)'} participanteId={l.participante_id} /></span>
                 <span className="og-item__dir">
                   <Selo dominio="publicacao" valor={estadoPublicacao(l)} />
                   {l.combo_status && <Selo dominio="combo" valor={l.combo_status} />}
@@ -100,11 +123,11 @@ class Protegida extends React.Component {
 
 /* Prévia = a página do site desenhada pelo componente do site, sob demanda.
  * Usada aqui e na visão geral da ficha (15/10/2026). */
-export function PreviaPagina({ conteudo, nome }) {
+export function PreviaPagina({ conteudo, nome, periodo = null }) {
   return (
     <section className="eo-previa" aria-label={'Prévia da página de ' + nome}>
       <p className="eo-previa__faixa">Prévia, ainda não publicada</p>
-      <Protegida><React.Suspense fallback={<Carregando linhas={3} texto="Abrindo a prévia…" />}><PreviaPublica p={conteudo} /></React.Suspense></Protegida>
+      <Protegida><React.Suspense fallback={<Carregando linhas={3} texto="Abrindo a prévia…" />}><PreviaPublica p={conteudo} periodo={periodo} /></React.Suspense></Protegida>
     </section>
   )
 }
@@ -112,26 +135,30 @@ export function PreviaPagina({ conteudo, nome }) {
 /* ── Ficha › Publicação ────────────────────────────────────────────────── */
 export function AbaPublicacao({ participante, pode, onMudou }) {
   const id = participante.participacao_id
-  const [pub, setPub] = React.useState(null)
-  const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const [faltando, setFaltando] = React.useState(null)
   const [agindo, setAgindo] = React.useState(false)
   const [previa, setPrevia] = React.useState(false)
+  const festival = useDatasDoFestival(participante.edicao_codigo)   // o período da edição chega à prévia (o horário sai como no site)
 
-  const carregar = React.useCallback(async () => {
-    if (!id) return
-    setErro(null)
-    try { setPub(await rpc('get_publicacao', { p_secret: lerSenha(), p_participacao: id })) } catch (e) { setErro(e.message) }
-  }, [id])
-  React.useEffect(() => { carregar() }, [carregar])
-  const depois = async () => { await carregar(); if (onMudou) onMudou() }
+  // A publicação da casa lê de muita coisa (publicações, cadastro, unidades, logo, marca, preço da
+  // edição); relê sozinha quando qualquer uma muda. Outra participação = leitura nova: a ficha de
+  // uma casa nunca aparece com os dados da anterior.
+  const leitura = useLeitura(
+    () => rpc('get_publicacao', { p_secret: lerSenha(), p_participacao: id }),
+    ['publicacao', 'cadastro', 'unidades', 'participantes', 'logos', 'edicao'], { chave: id, ativo: !!id },
+  )
+  const pub = leitura.dados
+  React.useEffect(() => { setAviso(null); setFaltando(null); setAgindo(false); setPrevia(false) }, [id])
+  const aposGravar = () => avisarSalvo(onMudou)
 
   if (!id) return <Vazio titulo="Sem participação na edição atual">A publicação é por participação: abra uma participação para esta marca primeiro.</Vazio>
-  if (erro) return <Erro texto={traduzirErroPublicacao(erro)} onTentar={carregar} />
+  if (leitura.bloqueada) return <Erro texto={traduzirErroPublicacao(leitura.erro)} onTentar={leitura.recarregar} />
   if (!pub) return <Carregando linhas={4} />
 
   const nome = participante.nome_marca || 'esta casa'
+  const ed = participante.edicao_codigo // a publicação é por participação: sempre diz a qual edição vale
+  const naEd = ed ? ' (edição ' + ed + ')' : ''
   const podeDecidir = pode('curadoria.decidir')
   const comboOk = podePublicarCombo(pub)
   const ctx = { unidades: pub.unidades, itens: pub.atual && pub.atual.combo && pub.atual.combo.itens }
@@ -141,34 +168,38 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
 
   async function publicar(nivel) {
     setAviso(null); setFaltando(null)
+    // A versão nova substitui a do ar: se a do ar mostra o combo, publicar só a casa TIRA o combo do site.
+    const tiraCombo = nivel === 'marca' && v && v.nivel === 'marca_e_combo'
     const texto = nivel === 'marca'
-      ? 'Publicar a casa ' + nome + ' no site? Entra no catálogo nome, apresentação, logo e unidades, sem o combo.'
-      : 'Publicar casa e combo de ' + nome + ' no site? Esta passa a ser a versão no ar' + (v ? ', no lugar da v' + v.versao : '') + '.'
+      ? 'Publicar a casa ' + nome + ' no site' + naEd + '? Entra no catálogo nome, apresentação, logo e unidades, sem o combo.'
+        + (tiraCombo ? ' Atenção: o combo que está no ar agora SAI do site. Para mantê-lo, use "Publicar casa e combo".' : '')
+      : 'Publicar casa e combo de ' + nome + ' no site' + naEd + '? Esta passa a ser a versão no ar' + (v ? ', no lugar da v' + v.versao : '') + '.'
     if (!(await confirmar(texto))) return
     setAgindo(true)
     try {
       const r = await rpc('publicar_participacao', { p_secret: lerSenha(), p_participacao: id, p_nivel: nivel })
       if (r && r.ok === false) setFaltando(r.faltando || [])
-      else { setAviso({ ok: 'Publicada a versão ' + (r && r.versao) + '. A marca recebe o aviso.' }); await depois() }
+      else { setAviso({ ok: 'Publicada a versão ' + (r && r.versao) + '. A marca recebe o aviso.' }); aposGravar() }
     } catch (e) { setAviso(msgErro(e)) } finally { setAgindo(false) }
   }
 
   async function retirar() {
     setAviso(null); setFaltando(null)
-    const motivo = await pedirTexto('Retirar ' + nome + ' do site? A página sai do ar na hora; o endereço continua reservado.',
+    const motivo = await pedirTexto('Retirar ' + nome + ' do site' + naEd + '? A página sai do ar na hora; o endereço continua reservado.',
       { rotulo: 'Motivo (a marca recebe este texto)' }, { acao: 'Retirar do site', perigo: true })
     if (motivo == null) return
     if (!motivo.trim()) { setAviso('Escreva o motivo da retirada: a marca recebe esse texto.'); return }
     setAgindo(true)
     try {
       await rpc('retirar_publicacao', { p_secret: lerSenha(), p_participacao: id, p_motivo: motivo.trim() })
-      setAviso({ ok: 'Retirada do site. A marca recebe o aviso com o motivo.' }); await depois()
+      setAviso({ ok: 'Retirada do site. A marca recebe o aviso com o motivo.' }); aposGravar()
     } catch (e) { setAviso(msgErro(e)) } finally { setAgindo(false) }
   }
 
   return (
     <div className="ui-pilha">
-      <MacroSecao rotulo="Publicação no site" titulo={textoPublicacao(pub)}
+      {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={traduzirErroPublicacao(leitura.erro)} onTentar={leitura.recarregar} />}
+      <MacroSecao rotulo={NOMES_PUBLICACAO.marcas.pagina + (ed ? ' · edição ' + ed : '')} titulo={textoPublicacao({ ...pub, versao: v ? v.versao : pub.ultima && pub.ultima.versao, nivel: v && v.nivel })}
         nota={v ? 'No ar desde ' + dataHoraCurta(v.publicado_em) + (v.publicado_por ? ', por ' + v.publicado_por : '') + '.'
           : pub.ultima && pub.ultima.retirado_em ? 'Retirada em ' + dataHoraCurta(pub.ultima.retirado_em) + (pub.ultima.retirado_por ? ' por ' + pub.ultima.retirado_por : '') + (pub.ultima.motivo ? '. Motivo: ' + pub.ultima.motivo : '') + '.'
             : 'Nada desta casa está no site ainda.'}>
@@ -185,6 +216,7 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
               {pub.estado === 'publicado' && <Botao icone="arquivar" variante="secundario" className="og-btn--perigo" disabled={!podeDecidir || agindo} onClick={retirar}>Retirar do site</Botao>}
             </div>
             {!podeDecidir && <p className="ui-nota">Publicar e retirar são da curadoria.</p>}
+            <p className="ui-nota">Vale só para esta casa. {NOMES_PUBLICACAO.edicao.frase} fica em {ondeFica('edicao')}.</p>
             {podeDecidir && !comboOk && (
               <p className="ui-nota">{pub.combo_status !== 'aprovado'
                 ? 'O combo só vai ao ar depois de aprovado (aba Operação). A casa pode ser publicada antes.'
@@ -204,30 +236,30 @@ export function AbaPublicacao({ participante, pode, onMudou }) {
               ? <ul className="ui-lista-simples">{pendencias.map((c) => <li key={c}><b>{traduzirPendencia(c, ctx)}</b></li>)}</ul>
               : <p className="ui-nota">Tudo que a página pública precisa está preenchido.</p>}
           </Modulo>
-          <Endereco pub={pub} participacaoId={id} pode={pode} onSalvo={depois} />
+          <Endereco key={id} pub={pub} participacaoId={id} pode={pode} onSalvo={aposGravar} />
         </GradeModulos>
       </MacroSecao>
 
       <MacroSecao rotulo="Conferir" titulo={v ? 'O que mudou desde a v' + v.versao : 'O que seria publicado'}
-        acoes={<Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => setPrevia((x) => !x)}>{previa ? 'Fechar prévia' : 'Ver como no site'}</Botao>}>
-        {v ? <Diferenca antes={v.conteudo} depois={pub.atual} /> : <p className="ui-nota">Nenhuma versão no ar ainda: a prévia mostra a página inteira como ficaria.</p>}
-        {previa && pub.atual && <PreviaPagina conteudo={pub.atual} nome={nome} />}
+        acoes={<Botao icone="olho" variante="secundario" aria-expanded={previa} onClick={() => setPrevia((x) => !x)}>{previa ? 'Fechar prévia' : 'Ver como no site'}</Botao>}>
+        {v ? <Diferenca antes={v.conteudo} depois={pub.atual} nivel={v.nivel} /> : <p className="ui-nota">Nenhuma versão no ar ainda: a prévia mostra a página inteira como ficaria.</p>}
+        {previa && pub.atual && <PreviaPagina conteudo={pub.atual} nome={nome} periodo={festival.periodo} />}
       </MacroSecao>
 
       <MacroSecao rotulo="Mapa" titulo="Unidades e localização" nota="Só a organização grava a coordenada; o mapa público só usa a conferida.">
-        <Unidades unidades={pub.unidades} pode={pode} onSalvo={depois} />
+        <Unidades unidades={pub.unidades} pode={pode} onSalvo={aposGravar} />
       </MacroSecao>
 
       <MacroSecao rotulo="Fotos" titulo="Fotos da página" nota="Só foto aprovada vai ao site, e aprovar exige texto alternativo.">
-        <Fotos pub={pub} participacaoId={id} edicao={participante.edicao_codigo} pode={pode} onSalvo={depois} />
+        <Fotos pub={pub} participacaoId={id} edicao={participante.edicao_codigo} pode={pode} onSalvo={aposGravar} />
       </MacroSecao>
     </div>
   )
 }
 
 /* ── Diferença vigente × atual ─────────────────────────────────────────── */
-function Diferenca({ antes, depois }) {
-  const d = React.useMemo(() => diferencas(antes, depois), [antes, depois])
+function Diferenca({ antes, depois, nivel }) {
+  const d = React.useMemo(() => diferencas(antes, depois, nivel), [antes, depois, nivel])
   if (!d.length) return <p className="ui-nota ui-nota--ok">Nada mudou: o que está no ar é igual ao cadastro atual.</p>
   return (
     <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Diferença entre a versão no ar e a atual">
@@ -247,11 +279,15 @@ function Diferenca({ antes, depois }) {
 
 /* ── Endereço público (slug) ───────────────────────────────────────────── */
 function Endereco({ pub, participacaoId, pode, onSalvo }) {
-  const [slug, setSlug] = React.useState(pub.slug || '')
   const [aviso, setAviso] = React.useState(null)
-  React.useEffect(() => { setSlug(pub.slug || '') }, [pub.slug])
   // Depois da 1ª publicação o endereço congela (QR impresso).
   const editavel = !pub.ultima && pode('cadastro.editar')
+  // O que está digitado nunca é trocado pela releitura: o endereço só acompanha o banco enquanto
+  // a pessoa não mexeu nele; se outra pessoa mudar o mesmo campo, ela escolhe. Formulário escondido
+  // (já publicada) não conta como trabalho pela metade.
+  const servidor = React.useMemo(() => ({ slug: pub.slug || '' }), [pub.slug])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_SLUG, { chave: participacaoId, rotulo: 'Endereço público (não salvo)', pendente: editavel })
+  const slug = reg.local.slug
   const url = urlPublicaParticipante(pub.slug)
 
   async function salvar(ev) {
@@ -260,9 +296,11 @@ function Endereco({ pub, participacaoId, pode, onSalvo }) {
     const s = slug.trim()
     const problema = s && validarSlug(s)
     if (problema) { setAviso(problema); return }
+    const brutos = reg.local
     try {
       await rpc('org_salvar_dados_publicos', { p_secret: lerSenha(), p_participacao: participacaoId, p_dados: { slug_publico: s || null } })
-      setAviso({ ok: s ? 'Endereço salvo.' : 'Endereço limpo: será gerado do nome na 1ª publicação.' }); await onSalvo()
+      reg.confirmarSalvo({ slug: s }, brutos)
+      setAviso({ ok: s ? 'Endereço salvo.' : 'Endereço limpo: será gerado do nome na 1ª publicação.' }); avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
 
@@ -274,8 +312,9 @@ function Endereco({ pub, participacaoId, pode, onSalvo }) {
       {editavel && (
         <form className="ui-form" onSubmit={salvar}>
           <label className="og-campo"><span>Endereço (só antes da 1ª publicação)</span>
-            <input type="text" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} placeholder="ex.: cafe-da-praca" maxLength={80} autoCapitalize="off" spellCheck={false} /></label>
-          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={slug.trim() === (pub.slug || '')}>Salvar endereço</button></div>
+            <input type="text" value={slug} onChange={(e) => reg.editar('slug', e.target.value.toLowerCase())} placeholder="ex.: cafe-da-praca" maxLength={80} autoCapitalize="off" spellCheck={false} /></label>
+          <AvisoMudancaExterna registro={reg} rotulos={{ slug: 'Endereço público' }} />
+          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={reg.conflito || slug.trim() === (pub.slug || '')}>Salvar endereço</button></div>
         </form>
       )}
       <Aviso aviso={aviso} />
@@ -287,33 +326,47 @@ function Endereco({ pub, participacaoId, pode, onSalvo }) {
 // Exportadas para os editores da visão geral da ficha (15/10/2026).
 export { Unidades as ConferirLocalizacao, Fotos as RevisarFotos }
 
-function Unidades({ unidades, pode, onSalvo }) {
+function Unidades({ unidades, pode, onSalvo, participante = null }) {
   const lista = unidades || []
   if (!lista.length) return <Vazio titulo="Nenhuma unidade">A marca ainda não escolheu as unidades desta edição.</Vazio>
   return (
     <GradeModulos>
-      {lista.map((u) => <Unidade key={u.participacao_unidade_id} u={u} pode={pode} onSalvo={onSalvo} />)}
+      {lista.map((u) => <Unidade key={u.participacao_unidade_id} u={u} pode={pode} onSalvo={onSalvo} participante={participante} />)}
     </GradeModulos>
   )
 }
 
-function Unidade({ u, pode, onSalvo }) {
-  const [lat, setLat] = React.useState(u.lat == null ? '' : String(u.lat))
-  const [lng, setLng] = React.useState(u.lng == null ? '' : String(u.lng))
+function Unidade({ u, pode, onSalvo, participante }) {
+  // Latitude e longitude digitadas resistem à releitura (e acompanham o banco enquanto a pessoa
+  // não mexeu): outra pessoa conferir a mesma unidade não apaga o que está sendo colado aqui.
+  const servidor = React.useMemo(() => ({ lat: u.lat == null ? '' : String(u.lat), lng: u.lng == null ? '' : String(u.lng) }), [u.lat, u.lng])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_COORDENADA, { chave: u.participacao_unidade_id, rotulo: 'Localização da unidade (não salva)', pendente: pode('producao.gerir') && !!u.unidade_id })
+  const { lat, lng } = reg.local
   const [aviso, setAviso] = React.useState(null)
   const podeGravar = pode('producao.gerir') && !!u.unidade_id
   const endereco = [[u.logradouro, u.numero].filter(Boolean).join(', '), u.bairro, u.cidade].filter(Boolean).join(' · ')
   const conferida = !!u.coordenada_verificada_em
+  // Da ficha do participante (Resolver agora): ao conferir, avisa a marca — caixa marcada, texto editável.
+  const nomeU = u.nome || u.bairro || 'Unidade ' + u.id_publico
+  const [caixa, setCaixa] = React.useState(() => (participante ? caixaDe(avisoLocalizacao({ responsavel: participante.responsavel, unidade: nomeU })) : null))
+  const avisa = !!(participante && caixa && caixa.marcado && pode('mensagem.enviar'))
 
   async function salvar(ev) {
     ev.preventDefault()
     setAviso(null)
     const c = lerCoordenada(lat, lng)
     if (c.erro) { setAviso(c.erro); return }
+    const brutos = reg.local
     try {
       await rpc('org_verificar_coordenada', { p_secret: lerSenha(), p_unidade: u.unidade_id, p_lat: c.lat, p_lng: c.lng })
-      setLat(String(c.lat)); setLng(String(c.lng))
-      setAviso({ ok: 'Localização conferida.' }); await onSalvo()
+      // O par colado num campo só vira dois números limpos (a menos que a pessoa já tenha digitado mais).
+      reg.confirmarSalvo({ lat: String(c.lat), lng: String(c.lng) }, brutos)
+      let extra = ''
+      if (avisa) {
+        try { await enviarAvisoMarca(participante.id, caixa, 'ajuste'); extra = ' O participante foi avisado.'; setCaixa({ ...caixa, marcado: false }) }
+        catch (e2) { extra = ' O aviso ao participante não foi: ' + traduzirErro(e2 && e2.message) }
+      }
+      setAviso({ ok: 'Localização conferida.' + extra }); avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
 
@@ -328,10 +381,12 @@ function Unidade({ u, pode, onSalvo }) {
         <form className="ui-form" onSubmit={salvar}>
           <p className="ui-nota">No Google Maps, clique com o botão direito no ponto da loja e copie os números. Pode colar o par inteiro no primeiro campo.</p>
           <div className="eo-par">
-            <label className="og-campo"><span>Latitude</span><input type="text" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-5.8123" /></label>
-            <label className="og-campo"><span>Longitude</span><input type="text" inputMode="decimal" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="-35.2012" /></label>
+            <label className="og-campo"><span>Latitude</span><input type="text" inputMode="decimal" value={lat} onChange={(e) => reg.editar('lat', e.target.value)} placeholder="-5.8123" /></label>
+            <label className="og-campo"><span>Longitude</span><input type="text" inputMode="decimal" value={lng} onChange={(e) => reg.editar('lng', e.target.value)} placeholder="-35.2012" /></label>
           </div>
-          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit">Conferir localização</button></div>
+          <AvisoMudancaExterna registro={reg} rotulos={{ lat: 'Latitude', lng: 'Longitude' }} />
+          {participante && caixa && <CaixaAviso pode={pode} valor={caixa} onMudar={setCaixa} />}
+          <div className="ui-linha-acoes"><button className="og-btn og-btn--mini" type="submit" disabled={reg.conflito}>{avisa ? 'Conferir e avisar' : 'Conferir localização'}</button></div>
         </form>
       )}
       {!pode('producao.gerir') && <p className="ui-nota">Conferir a localização é da produção.</p>}
@@ -357,20 +412,26 @@ function Fotos({ pub, participacaoId, edicao, pode, onSalvo }) {
 }
 
 function Foto({ m, pode, onSalvo }) {
-  const [alt, setAlt] = React.useState(m.alt || '')
-  const [credito, setCredito] = React.useState(m.credito || '')
-  const [aviso, setAviso] = React.useState(null)
-  React.useEffect(() => { setAlt(m.alt || ''); setCredito(m.credito || '') }, [m.alt, m.credito])
-  const mudou = alt !== (m.alt || '') || credito !== (m.credito || '')
   const podeTexto = pode('producao.gerir')
   const podeDecidir = pode('curadoria.decidir')
+  // Texto alternativo e crédito resistem à releitura: o que está digitado nunca é trocado, e o que a
+  // pessoa não tocou acompanha o banco. Outra foto = outro rascunho (a lista é por m.id).
+  const servidor = React.useMemo(() => ({ alt: m.alt || '', credito: m.credito || '' }), [m.alt, m.credito])
+  const reg = useEdicaoProtegida(servidor, CAMPOS_FOTO, { chave: m.id, rotulo: 'Texto da foto (não salvo)', pendente: podeTexto })
+  const { alt, credito } = reg.local
+  const [aviso, setAviso] = React.useState(null)
+  const mudou = reg.sujo
 
   async function salvarTexto(ev) {
     ev.preventDefault()
     setAviso(null)
+    // Só o que mudou: o outro campo pode ter sido alterado por outra pessoa nesse meio-tempo.
+    const brutos = reg.local
+    const alterados = aparar(soAlterados(reg.base, reg.local, CAMPOS_FOTO))
     try {
-      await rpc('org_salvar_midia', { p_secret: lerSenha(), p_dados: { id: m.id, alt, credito } })
-      setAviso({ ok: 'Texto salvo.' }); await onSalvo()
+      await rpc('org_salvar_midia', { p_secret: lerSenha(), p_dados: { id: m.id, ...alterados } })
+      reg.confirmarSalvo(alterados, brutos)
+      setAviso({ ok: 'Texto salvo.' }); avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
   async function decidir(estado) {
@@ -381,7 +442,7 @@ function Foto({ m, pode, onSalvo }) {
     }
     try {
       await rpc('org_decidir_midia', { p_secret: lerSenha(), p_id: m.id, p_estado: estado })
-      await onSalvo()
+      avisarSalvo(onSalvo)
     } catch (e) { setAviso(msgErro(e)) }
   }
 
@@ -392,10 +453,11 @@ function Foto({ m, pode, onSalvo }) {
         width={m.largura || undefined} height={m.altura || undefined} />
       <form className="ui-form" onSubmit={salvarTexto}>
         <label className="og-campo"><span>Texto alternativo (o que a foto mostra)</span>
-          <input type="text" value={alt} maxLength={ALT_MAXIMO} disabled={!podeTexto} onChange={(e) => setAlt(e.target.value)} placeholder="Ex.: bolo de chocolate com cobertura e xícara de café" /></label>
+          <input type="text" value={alt} maxLength={ALT_MAXIMO} disabled={!podeTexto} onChange={(e) => reg.editar('alt', e.target.value)} placeholder="Ex.: bolo de chocolate com cobertura e xícara de café" /></label>
         <label className="og-campo"><span>Crédito <em>(opcional)</em></span>
-          <input type="text" value={credito} maxLength={CREDITO_MAXIMO} disabled={!podeTexto} onChange={(e) => setCredito(e.target.value)} /></label>
-        {podeTexto && <div className="ui-linha-acoes"><button className="og-btn og-btn--mini og-btn--vazado" type="submit" disabled={!mudou}>Salvar texto</button></div>}
+          <input type="text" value={credito} maxLength={CREDITO_MAXIMO} disabled={!podeTexto} onChange={(e) => reg.editar('credito', e.target.value)} /></label>
+        <AvisoMudancaExterna registro={reg} rotulos={{ alt: 'Texto alternativo', credito: 'Crédito' }} />
+        {podeTexto && <div className="ui-linha-acoes"><button className="og-btn og-btn--mini og-btn--vazado" type="submit" disabled={!mudou || reg.conflito}>Salvar texto</button></div>}
       </form>
       {podeDecidir && (
         <div className="ui-linha-acoes">
@@ -428,17 +490,22 @@ function NovaFoto({ pub, participacaoId, edicao, onFechar, onSalvo }) {
   const [arquivo, setArquivo] = React.useState(null)
   const [alt, setAlt] = React.useState('')
   const [credito, setCredito] = React.useState('')
-  const [itens, setItens] = React.useState(null)
   const [enviando, setEnviando] = React.useState(false)
   const [aviso, setAviso] = React.useState(null)
+  // O que já subiu ao armazenamento mas ainda não foi registrado: tentar de novo com a mesma foto
+  // não sobe outra vez (e não deixa objeto órfão). { path, largura, altura, impressao }
+  const subido = React.useRef(null)
 
-  // get_publicacao não traz o id dos componentes; a ficha do cadastro traz.
-  React.useEffect(() => {
-    if (papel !== 'item' || itens) return
-    rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: participacaoId })
-      .then((f) => setItens((f && f.itens) || []))
-      .catch((e) => { setItens([]); setAviso(msgErro(e)) })
-  }, [papel, itens, participacaoId])
+  // get_publicacao não traz o id dos componentes; a ficha do cadastro traz. Os componentes mudam
+  // se a marca (ou a organização) editar o combo com este formulário aberto: relê sozinha.
+  const lista = useLeitura(
+    async () => { const f = await rpc('get_ficha_participacao', { p_secret: lerSenha(), p_participacao: participacaoId }); return (f && f.itens) || [] },
+    ['cadastro'], { chave: participacaoId, ativo: papel === 'item' },
+  )
+  const itens = lista.dados === undefined ? (lista.erro ? [] : null) : lista.dados
+  const avisoLista = lista.erro && lista.dados === undefined ? msgErro({ message: lista.erro }) : null
+  // O componente escolhido deixou de existir no combo: a escolha some (não vai um id morto).
+  React.useEffect(() => { if (itemId && lista.dados && !lista.dados.some((i) => i.id === itemId)) setItemId('') }, [lista.dados, itemId])
 
   async function enviar(ev) {
     ev.preventDefault()
@@ -447,18 +514,28 @@ function NovaFoto({ pub, participacaoId, edicao, onFechar, onSalvo }) {
     if (papel === 'item' && !itemId) { setAviso('Escolha o componente da foto.'); return }
     if (papel === 'loja' && !unidadeId) { setAviso('Escolha a unidade da foto.'); return }
     setEnviando(true)
+    let registrando = false
     try {
-      const { blob, largura, altura } = await paraWebp(arquivo)
-      const path = caminhoMidia(edicao, participacaoId, crypto.randomUUID())
-      const a = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: BUCKET_EDICAO, path })
-      const r = await comEnvio('Envio da foto', () => fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': 'image/webp' } }))
-      if (!r.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + r.status + ')')
+      let envio = subido.current && subido.current.impressao === impressaoDoArquivo(arquivo) ? subido.current : null
+      if (!envio) {
+        const { blob, largura, altura } = await paraWebp(arquivo)
+        const path = caminhoMidia(edicao, participacaoId, crypto.randomUUID())
+        const a = await chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'subir', bucket: BUCKET_EDICAO, path })
+        const r = await comEnvio('Envio da foto', () => fetch(a.url, { method: 'PUT', body: blob, headers: { 'Content-Type': 'image/webp' } }))
+        if (!r.ok) throw new Error('o envio para o armazenamento falhou (HTTP ' + r.status + ')')
+        envio = subido.current = { path, largura, altura, impressao: impressaoDoArquivo(arquivo) }
+      }
+      registrando = true
       await rpc('org_salvar_midia', { p_secret: lerSenha(), p_dados: {
         participacao_id: participacaoId, papel, item_id: papel === 'item' ? itemId : null,
-        participacao_unidade_id: papel === 'loja' ? unidadeId : null, path, largura, altura, alt, credito,
+        participacao_unidade_id: papel === 'loja' ? unidadeId : null, path: envio.path, largura: envio.largura, altura: envio.altura, alt, credito,
       } })
-      await onSalvo(); onFechar()
-    } catch (e) { setAviso(msgErro(e)) } finally { setEnviando(false) }
+      subido.current = null
+      avisarSalvo(onSalvo); onFechar()
+    } catch (e) {
+      // A foto já está no armazenamento e só o registro falhou: diz isso (e o reenvio reaproveita o arquivo).
+      setAviso(registrando ? msgErro(e) + ' A foto já foi enviada; ao enviar de novo ela não sobe outra vez.' : msgErro(e))
+    } finally { setEnviando(false) }
   }
 
   const TIPO = { doce: 'Doce', salgado: 'Salgado', bebida: 'Bebida' }
@@ -481,7 +558,7 @@ function NovaFoto({ pub, participacaoId, edicao, onFechar, onSalvo }) {
         <button className="og-btn og-btn--mini" type="submit" disabled={enviando} aria-busy={enviando || undefined}>{enviando ? 'Enviando…' : 'Enviar foto'}</button>
         <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={onFechar} disabled={enviando}>Cancelar</button>
       </div>
-      <Aviso aviso={aviso} />
+      <Aviso aviso={aviso || avisoLista} />
     </form>
   )
 }

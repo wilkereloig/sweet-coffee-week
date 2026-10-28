@@ -197,7 +197,7 @@ try {
     await ir(c.page, '/cartoon/participantes/demo-casa-aurora')
     await c.page.waitForSelector('#combo')
     const e = await c.page.locator('.ct-part').innerText()
-    if (e.includes('R$ 38,90') || e.includes('Adicionar à Minha rota') && e.includes('Horário do combo')) falha('edição encerrada ainda mostra preço ou horário')
+    if (e.includes('R$ 38,90') || e.includes('Adicionar à Minha rota') && e.includes('Horário no festival')) falha('edição encerrada ainda mostra preço ou horário')
     if (!e.includes('terminou')) falha('edição encerrada sem aviso')
     await c.ctx.close()
     if (falhas.length === antes) ok('sem elenco, slug sob elenco fechado, falha de rede (sem demo) e edição encerrada')

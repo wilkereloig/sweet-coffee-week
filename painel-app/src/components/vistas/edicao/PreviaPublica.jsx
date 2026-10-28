@@ -9,10 +9,10 @@ import '../../../../../src/styles/scw-cartoon.css'
  * pode morar em pasta de edição (tests/rotas-edicao.test.mjs); entra por
  * React.lazy, então o CSS e o JS da Cartoon só baixam quando a prévia abre.
  */
-export default function PreviaPublica({ p }) {
+export default function PreviaPublica({ p, periodo = null }) {
   return (
     <div className="ct-edicao">
-      <FichaParticipante p={p} fase="em_andamento" />
+      <FichaParticipante p={p} fase="em_andamento" periodo={periodo} />
     </div>
   )
 }

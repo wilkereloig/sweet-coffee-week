@@ -15,6 +15,7 @@ import { CHAVE_SESSAO } from '../../../src/lib/adminAccess.js'
 import { iniciais } from './logos.js'
 import { assinaturaConfere } from './redes.js'
 import { enviarPut, useUrlsAssinadas } from './redesArquivos.js'
+import { useGuarda } from './sync/react.js'
 
 export { iniciais }
 const lerSenha = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || '' } catch { return '' } }
@@ -132,17 +133,24 @@ export const useEquipe = () => React.useContext(EquipeContexto)
  */
 export function useCarregarEquipe(nominal) {
   const [estado, setEstado] = React.useState({ pessoas: {}, eu: null, carregado: false })
+  const guarda = useGuarda()
+  // Resposta velha não sobrescreve a nova; falha de UMA leitura não apaga o que a outra
+  // já trouxe nem o que a tela já tinha (antes um soluço de rede zerava o diretório e o
+  // "eu"). Devolve false quando alguma leitura falhou (o indicador de sincronização usa).
   const recarregar = React.useCallback(async () => {
+    const vale = guarda()
     const [dir, eu] = await Promise.all([
-      rpc('equipe_diretorio', { p_secret: lerSenha() }).catch(() => null),
-      nominal ? rpc('meu_perfil', {}).catch(() => null) : Promise.resolve(null),
+      rpc('equipe_diretorio', { p_secret: lerSenha() }).catch(() => undefined),
+      nominal ? rpc('meu_perfil', {}).catch(() => undefined) : Promise.resolve(null),
     ])
-    setEstado({
-      pessoas: Object.fromEntries((Array.isArray(dir) ? dir : []).map((p) => [p.user_id, p])),
-      eu: eu && eu.user_id ? eu : null,
+    if (!vale()) return true
+    setEstado((ant) => ({
+      pessoas: Array.isArray(dir) ? Object.fromEntries(dir.map((p) => [p.user_id, p])) : ant.pessoas,
+      eu: eu === undefined ? ant.eu : (eu && eu.user_id ? eu : null),
       carregado: true,
-    })
-  }, [nominal])
+    }))
+    return dir !== undefined && eu !== undefined
+  }, [nominal, guarda])
   React.useEffect(() => { recarregar() }, [recarregar])
   // Todas as fotos do diretório numa assinatura só (bucket privado `equipe`).
   const fotos = useUrlsAssinadas(Object.values(estado.pessoas).map((p) => p.avatar_path).filter(Boolean)

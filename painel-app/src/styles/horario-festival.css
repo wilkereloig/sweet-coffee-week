@@ -1,0 +1,49 @@
+/*
+ * Horário no festival (23/10/2026) — o seletor de components/HorarioFestival.jsx, igual no cadastro da marca e na ficha da
+ * equipe. Só tokens do painel. Cada regra começa por `.hf ` de propósito: no cadastro da marca o `.mc-bloco__corpo` tem
+ * regras de label/select/input (0,1,1) que desfariam estas se elas valessem só (0,1,0).
+ */
+.hf{margin:0 0 var(--e-4)}
+.hf fieldset{min-width:0;margin:0;padding:0;border:0}
+.hf legend{padding:0}
+
+.hf .hf__titulo{margin:0 0 var(--e-1);font:700 15px/1.3 var(--f-ui);color:var(--scw-choco)}
+.hf .hf__apoio{margin:0 0 var(--e-2);font:400 13.5px/1.45 var(--f-texto);color:var(--scw-marrom)}
+.hf .hf__escolhas{display:flex;flex-wrap:wrap;gap:0 var(--e-5)}
+.hf .hf__nota{margin:var(--e-2) 0 0;padding:var(--e-3) var(--e-4);border-radius:var(--r-2);background:var(--scw-bege);font:400 14.5px/1.45 var(--f-texto);color:var(--scw-choco)}
+
+/* Abre / Não abre e as duas escolhas de arranjo: rádio de 22px em alvo de 44px. */
+.hf .hf__opcao{display:flex;align-items:center;gap:10px;min-height:44px;margin:0;cursor:pointer}
+.hf .hf__opcao input{width:22px;height:22px;min-height:22px;margin:0;flex:0 0 auto;accent-color:var(--scw-cyan)}
+.hf .hf__opcao span{display:block;margin:0;font:700 14.5px/1.3 var(--f-ui);color:var(--scw-choco)}
+
+/* Uma linha por grupo de dias (ou por dia): filete entre elas, nada de caixa dentro de caixa. */
+.hf .hf__linhas{margin:var(--e-3) 0 0;border-top:1px solid var(--scw-filete)}
+.hf .hf__linha{padding:var(--e-3) 0;border-bottom:1px solid var(--scw-filete)}
+.hf .hf__rotulo{margin:0 0 var(--e-1);font:700 14px/1.3 var(--f-ui);color:var(--scw-choco)}
+.hf .hf__abre{display:flex;flex-wrap:wrap;gap:0 var(--e-5)}
+.hf .hf__periodo{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e-1) var(--e-4);margin:var(--e-1) 0}
+.hf .hf__par{display:inline-flex;align-items:center;gap:var(--e-2)}
+.hf .hf__das,.hf .hf__as{font:700 14px/1.3 var(--f-ui);color:var(--scw-choco)}
+
+.hf .hf__periodo select{width:auto;min-width:116px;min-height:48px;margin:0;padding:0 42px 0 14px;border-radius:var(--r-2);
+  border:1.5px solid var(--scw-borda-campo);background:var(--scw-creme) var(--icone-select) no-repeat right 14px center / 16px;
+  color:var(--scw-choco);font:400 16px/1.4 var(--f-texto);appearance:none;cursor:pointer;
+  transition:border-color var(--scw-transicao)}
+@media (hover:hover){ .hf .hf__periodo select:hover{border-color:var(--scw-marrom)} }
+.hf .hf__periodo select:focus{border-color:var(--scw-choco)}
+.hf .hf__periodo select:disabled{background-color:var(--sup-2);cursor:default}
+
+/* Ação em texto (Detalhar dia a dia · Incluir intervalo · Tirar este intervalo): link de 44px, ícone + texto. */
+.hf .hf__acao{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:0;padding:0 var(--e-1);border:0;background:none;
+  color:var(--scw-choco);font:700 14px/1.3 var(--f-ui);text-align:left;text-decoration:underline;text-decoration-color:var(--scw-marrom);
+  text-underline-offset:3px;cursor:pointer}
+@media (hover:hover){ .hf .hf__acao:hover{text-decoration-thickness:2px} }
+.hf .hf__acao:disabled{opacity:.45;cursor:default;pointer-events:none}
+.hf .hf__linhas > .hf__acao{margin-top:var(--e-2)}
+
+/* Resumo vivo: "Fica assim: …" (ícone de feito) ou "Falta responder: …" (ícone de atenção). Sempre ícone + texto. */
+.hf .hf__resumo{display:flex;align-items:flex-start;gap:var(--e-2);margin:var(--e-3) 0 0;min-height:1.45em;font:400 14.5px/1.45 var(--f-texto);color:var(--scw-choco)}
+.hf .hf__resumo svg{flex:0 0 auto;margin-top:2px}
+.hf .hf__resumo b{font-weight:700}
+.hf .hf__resumo[data-tom="falta"]{font-weight:700}

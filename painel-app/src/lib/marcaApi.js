@@ -13,14 +13,89 @@ import { SUPABASE_URL, SUPABASE_KEY } from './rpc.js'
 import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess.js'
 import { lerGuardada, gravarGuardada } from './sessaoGuardada.js'
 import { comEnvio } from './pendencias.js'
+import { aoApiConfirmada } from './sync/anuncio.js'
+import { nomeArquivo } from './entrega.js'
+
+/* Rede que não responde não pode deixar "Conferindo sua sessão" para sempre: a chamada aborta e cai no tratamento
+   de falha de rede de quem chamou. Navegador sem AbortSignal.timeout segue sem limite (como antes). */
+function comTempoLimite(ms) {
+  return typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(ms) : undefined
+}
+
+/*
+ * "Ver como participante" (22/10/2026, pedido do Wilker). O administrador abre o painel da marca SEM a sessão dela:
+ * toda leitura vai para `org_ver_como_ler` (o banco confere o administrador e lê com a RLS da marca), e TODA gravação
+ * para aqui, com `modo_visualizacao` — salvar, enviar, marcar como lido, reservar foto, logo, senha, aviso do aparelho.
+ * Um ponto só: `api()`, `auth()`, `subirLogo()` e `assinarDownload()` passam por este desvio antes de tocar sessão ou rede.
+ * Migration 20261104_ver_como_participante.sql; teste tests/painel-app-ver-como.test.mjs.
+ */
+let verComo = null // { ler(consulta) → Promise<dados>, baixar(caminho) → Promise<url> }
+export function ativarVerComo(cfg) { verComo = cfg || null }
+export const emVerComo = () => !!verComo
+/** Participante pedido no endereço (?ver_como=<uuid>); qualquer outra coisa é ignorada. */
+export function verComoDaUrl(busca) {
+  try {
+    const v = new URLSearchParams(busca).get('ver_como')
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(v || '') ? v : null
+  } catch { return null }
+}
+// As funções da marca que só LEEM (o banco tem a mesma lista em org_ver_como_ler).
+export const RPC_LEITURA_MARCA = new Set(['marca_minha_logo', 'marca_minha_historia', 'marca_meus_vouchers', 'marca_minha_publicacao', 'marca_previa_publica'])
+
+function erroVisualizacao() {
+  const e = new Error('modo_visualizacao')
+  e.codigo = 'modo_visualizacao'
+  return e
+}
+
+/**
+ * Caminho do PostgREST (o que as telas da marca pedem) → consulta de `org_ver_como_ler`.
+ * Só o que as telas usam: select de colunas, order (col[.desc][.nullslast]), limit e filtros eq/neq/gt/gte/lt/lte/in/is.
+ * Qualquer outra coisa lança — melhor uma tela que avisa do que uma leitura diferente da que a marca faria.
+ */
+export function consultaDoCaminho(caminho) {
+  const [tabela, qs = ''] = String(caminho).split('?')
+  const c = { tabela, filtros: [], ordem: [] }
+  for (const par of qs.split('&').filter(Boolean)) {
+    const i = par.indexOf('=')
+    const chave = decodeURIComponent(i < 0 ? par : par.slice(0, i))
+    const valor = decodeURIComponent(i < 0 ? '' : par.slice(i + 1))
+    if (chave === 'select') c.select = valor.split(',').map((x) => x.trim())
+    else if (chave === 'limit') c.limite = Number(valor)
+    else if (chave === 'order') {
+      for (const o of valor.split(',')) {
+        const [col, ...mods] = o.split('.')
+        c.ordem.push({ c: col, desc: mods.includes('desc'), nullslast: mods.includes('nullslast'), nullsfirst: mods.includes('nullsfirst') })
+      }
+    } else {
+      const j = valor.indexOf('.')
+      const op = valor.slice(0, j)
+      const v = valor.slice(j + 1)
+      if (op === 'in') c.filtros.push({ c: chave, op, v: v.replace(/^\(|\)$/g, '').split(',').filter(Boolean) })
+      else if (['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'is'].includes(op)) c.filtros.push({ c: chave, op, v })
+      else throw new Error('consulta_invalida')
+    }
+  }
+  return c
+}
+
+async function apiVerComo(caminho, opcoes) {
+  const metodo = opcoes.metodo || 'GET'
+  if (metodo === 'GET') return verComo.ler(consultaDoCaminho(caminho))
+  const fn = metodo === 'POST' && /^rpc\/([a-z_]+)$/.exec(caminho)
+  if (fn && RPC_LEITURA_MARCA.has(fn[1])) return verComo.ler({ rpc: fn[1], args: opcoes.corpo || {} })
+  throw erroVisualizacao()
+}
 
 export async function auth(caminho, corpo, metodo = 'POST', token, fetchImpl = fetch) {
+  if (verComo) throw erroVisualizacao()
   const cab = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }
   if (token) cab.Authorization = 'Bearer ' + token
   const r = await fetchImpl(SUPABASE_URL + '/auth/v1/' + caminho, {
     method: metodo,
     headers: cab,
     body: corpo ? JSON.stringify(corpo) : undefined,
+    signal: comTempoLimite(20000),
   })
   let dados = {}
   try { dados = await r.json() } catch { /* corpo vazio ou não-JSON */ }
@@ -149,6 +224,7 @@ function sessaoMorta() {
  * como se tivesse dado certo.
  */
 export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
+  if (verComo) return apiVerComo(caminho, opcoes)
   const atual = lerSessao()
   const viva = await renovarCompartilhado(atual, fetchImpl)
   if (!viva) sessaoMorta()
@@ -164,6 +240,7 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
     method: opcoes.metodo || 'GET',
     headers: cab,
     body: opcoes.corpo ? JSON.stringify(opcoes.corpo) : undefined,
+    signal: comTempoLimite(30000),
   })
   let dados = null
   try { dados = await r.json() } catch { /* sem corpo */ }
@@ -177,6 +254,10 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
     erro.codigo = (dados && dados.code) || null
     throw erro
   }
+  // PATCH/DELETE com `return=representation` que volta vazio = a RLS não deixou
+  // gravar nada (Cadastro trata como sem_confirmacao): não é alteração confirmada.
+  const vazio = /return=representation/.test(opcoes.prefer || '') && Array.isArray(dados) && dados.length === 0
+  if (!vazio) aoApiConfirmada(caminho, opcoes.metodo || 'GET', dados)
   return dados
 }
 
@@ -191,6 +272,7 @@ export async function api(caminho, opcoes = {}, fetchImpl = fetch) {
  * @returns {Promise<'trocar'|'ok'|'morta'|'pausada'>}
  */
 export async function precisaTrocarSenha(fetchImpl = fetch) {
+  if (verComo) return 'ok' // o administrador vê o painel; quem troca a senha é a marca
   try {
     const linhas = await api('perfis?select=deve_trocar_senha,ativo,bloqueado_em&limit=1', {}, fetchImpl)
     const p = linhas && linhas[0]
@@ -201,8 +283,10 @@ export async function precisaTrocarSenha(fetchImpl = fetch) {
   }
 }
 
+// Falha PROPAGA: quem chama (DefinirSenha) tenta de novo e, se não der, avisa. Engolir deixava a conta presa na
+// troca (deve_trocar_senha ligada) e o painel abria vazio.
 export async function marcarSenhaTrocada(fetchImpl = fetch) {
-  try { await api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} }, fetchImpl) } catch { /* ver comentário acima */ }
+  await api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} }, fetchImpl)
 }
 
 /**
@@ -212,6 +296,7 @@ export async function marcarSenhaTrocada(fetchImpl = fetch) {
  * por cima: `x-upsert: false`, cada versão é um arquivo novo.
  */
 export async function subirLogo(caminho, arquivo, tipo, fetchImpl = fetch) {
+  if (verComo) throw erroVisualizacao()
   const atual = lerSessao()
   const viva = await renovarCompartilhado(atual, fetchImpl)
   if (!viva) sessaoMorta()
@@ -220,6 +305,7 @@ export async function subirLogo(caminho, arquivo, tipo, fetchImpl = fetch) {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + viva.access_token, 'Content-Type': tipo, 'x-upsert': 'false' },
     body: arquivo,
+    signal: comTempoLimite(60000),
   }))
   if (r.status === 401) sessaoMorta()
   if (!r.ok) {
@@ -239,7 +325,8 @@ export async function subirLogo(caminho, arquivo, tipo, fetchImpl = fetch) {
  * organização, que assina com a senha compartilhada).
  * @returns {Promise<string>} URL assinada, válida por 5 minutos
  */
-export async function assinarDownload(caminho, fetchImpl = fetch) {
+export async function assinarDownload(caminho, fetchImpl = fetch, sinal) {
+  if (verComo) return verComo.baixar(caminho) // pela organização (arquivo-url), nunca com sessão da marca
   const atual = lerSessao()
   const viva = await renovarCompartilhado(atual, fetchImpl)
   if (!viva) sessaoMorta()
@@ -249,11 +336,30 @@ export async function assinarDownload(caminho, fetchImpl = fetch) {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + viva.access_token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ expiresIn: 300 }),
+    // o "Cancelar" de quem chamou E o tempo-limite; sem AbortSignal.any, só o de quem chamou (como antes)
+    signal: sinal && typeof AbortSignal.any === 'function' ? AbortSignal.any([sinal, comTempoLimite(20000)].filter(Boolean)) : (sinal || comTempoLimite(20000)),
   })
   let dados = null
   try { dados = await r.json() } catch { /* sem corpo */ }
   if (!r.ok || !dados || !dados.signedURL) throw new Error('sem_link')
   return SUPABASE_URL + '/storage/v1' + dados.signedURL
+}
+
+/**
+ * O ORIGINAL de um arquivo da marca como `File`, para o ZIP/compartilhar de `useEntrega({ obter })` (BaixarArquivo.jsx).
+ * Assina por `assinarDownload` (sessão da marca; no "Ver como", pela organização) e busca os bytes na hora.
+ * Mesmo contrato de `obterArquivo` (redesArquivos.js): rede caída = 'rede', resposta ruim = 'download_<status>'.
+ * ponytail: sem 2ª assinatura em 400/403 — a URL acabou de ser assinada (vale 5 min); acrescentar se aparecer na prática.
+ */
+export async function obterArquivoMarca(x, nome, { mime = '', sinal } = {}, fetchImpl = fetch) {
+  const url = await assinarDownload(x.path, fetchImpl, sinal)
+  let r
+  try { r = await fetchImpl(url, { signal: sinal, cache: 'no-store' }) }
+  catch (e) { if (e && e.name === 'AbortError') throw e; throw new Error('rede') }
+  if (!r.ok) throw new Error('download_' + r.status)
+  const blob = await r.blob()
+  const tipo = (blob.type && blob.type !== 'application/octet-stream' ? blob.type : '') || mime || 'application/octet-stream'
+  return new File([blob], nomeArquivo(nome, tipo, x.path), { type: tipo })
 }
 
 /**
@@ -275,7 +381,8 @@ export function pushMarca(participanteId) {
       })
     },
     remover: (endpoint) => api(linha(endpoint), { metodo: 'DELETE' }),
-    conferir: async (endpoint) => ((await api(linha(endpoint).replace('?', '?select=id&'))) || []).length > 0,
+    // Só a linha ATIVA conta: assinatura que o servidor desativou (404/410, conta pausada) não é "ligados".
+    conferir: async (endpoint) => ((await api(linha(endpoint).replace('?', '?select=id&') + '&ativo=is.true')) || []).length > 0,
     // Estado e preferência DESTE aparelho no servidor (aviso de versão nova).
     estado: (endpoint) => api('rpc/push_aparelho', { metodo: 'POST', corpo: { p_secret: null, p_endpoint: endpoint } }),
     preferir: (endpoint, ligado) => api('rpc/push_aparelho', { metodo: 'POST', corpo: { p_secret: null, p_endpoint: endpoint, p_avisar_versao: ligado } }),

@@ -85,3 +85,24 @@ export function arvoreDestinos(pastas = [], { moverPasta = null } = {}) {
 /** Item da biblioteca como referência estável (o que o banco recebe ao mover). */
 export const refItem = (x) => ({ tipo: x.tipo, id: x.id })
 export const chaveItem = (x) => x.tipo + ':' + x.id
+
+/*
+ * COR da pasta (21/10/2026, pedido do Wilker): uma chave da PALETA da marca, nunca cor livre — contraste e
+ * coerência garantidos. A lista é a de `social_pastas_cor_check` (20261025_social_pastas_cor.sql; há teste que
+ * reprova divergência). `tinta` é a cor do ícone SOBRE o disco da pasta (creme sobre roxo, marrom e magenta;
+ * chocolate sobre o resto — a mesma regra do acento dos módulos). Sem cor = acento do módulo (o de antes).
+ */
+export const CORES_PASTA = [
+  { chave: 'amarelo', rotulo: 'Amarelo', tinta: 'choco' },
+  { chave: 'laranja', rotulo: 'Laranja', tinta: 'choco' },
+  { chave: 'magenta', rotulo: 'Magenta', tinta: 'creme' },
+  { chave: 'roxo', rotulo: 'Roxo', tinta: 'creme' },
+  { chave: 'cyan', rotulo: 'Ciano', tinta: 'choco' },
+  { chave: 'verde', rotulo: 'Verde', tinta: 'choco' },
+  { chave: 'marrom', rotulo: 'Marrom', tinta: 'creme' },
+]
+const COR = Object.fromEntries(CORES_PASTA.map((c) => [c.chave, c]))
+export const corValida = (cor) => !!cor && Object.prototype.hasOwnProperty.call(COR, cor)
+export const rotuloCor = (cor) => (corValida(cor) ? COR[cor].rotulo : 'Padrão')
+/** Variáveis CSS do disco da pasta; sem cor (ou desconhecida) → nada, e o CSS cai no acento do módulo. */
+export const estiloPasta = (cor) => (corValida(cor) ? { '--pasta-cor': 'var(--scw-' + cor + ')', '--pasta-tinta': 'var(--scw-' + COR[cor].tinta + ')' } : undefined)

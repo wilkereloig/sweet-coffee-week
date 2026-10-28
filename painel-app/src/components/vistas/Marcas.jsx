@@ -10,6 +10,12 @@ import { FolhaResultadoAcessos, registrarEnvio, gerirAcesso } from './AcessoMarc
 import { FichaMarcaPagina, pendenciasDe, pctCadastro } from './FichaMarcaPagina'
 import { urlLogo } from '../../lib/logos'
 import { confirmar, pedirTexto } from '../Confirmar'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { participaDaEdicao } from '../../lib/mesa'
+import { ORIGEM_PUBLICA } from '../../lib/origem'
+import { lerPendenciasLote } from '../../lib/pendenciasAviso'
+import { FolhaCobrar } from './CobrarPendencias'
 
 // Compara nomes sem acento, caixa ou pontuação (mesma regra do banco).
 const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Mn}/gu, '').replace(/&/g, 'e').replace(/[^a-z0-9]+/g, '')
@@ -17,7 +23,7 @@ const compacto = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
 /* ── Cadastro manual ─────────────────────────────────────────────────────── */
-function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = [] }) {
+function FolhaCadastroManual({ aberto, pode, onFechar, existentes = [] }) {
   const [nome, setNome] = React.useState('')
   const [telefone, setTelefone] = React.useState('')
   const [responsavel, setResponsavel] = React.useState('')
@@ -52,7 +58,6 @@ function FolhaCadastroManual({ aberto, pode, onFechar, onCriada, existentes = []
       })
       if (!r || !r.login || !r.senha) throw new Error('a função não devolveu as credenciais.')
       setCred({ login: r.login || nome.trim(), senha: r.senha, participanteId: r.participante_id })
-      await onCriada()
     } catch (e) {
       const codigo = e.dados && e.dados.erro
       let recado = RECADO_MANUAL[codigo] || ('Não criou: ' + traduzirErro(e.message))
@@ -101,7 +106,8 @@ const ORDENS = {
   mensagens: (a, b) => (b._naoLidas || 0) - (a._naoLidas || 0) || new Date(b._ultimaMsg || 0) - new Date(a._ultimaMsg || 0),
 }
 
-export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar }) {
+export function Marcas({ pode = () => true, rota, navegar }) {
+  const guarda = useGuarda()
   const [participantes, setParticipantes] = React.useState(null)
   const [conversas, setConversas] = React.useState([])
   const [logos, setLogos] = React.useState({})
@@ -111,18 +117,21 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const [sel, setSel] = React.useState(() => new Set())
   const [lote, setLote] = React.useState(null) // { modo: 'gerar'|'regerar', marcas }
   const [loteAviso, setLoteAviso] = React.useState(null)
+  // Cobrar pendências em lote: lê as pendências de cada selecionada (a mesma regra da ficha) e abre a folha.
+  const [cobrarLote, setCobrarLote] = React.useState(null) // { destinos, carregando: { feitas, total } | null }
+  const loteCancelado = React.useRef(false)
   // Filtros e ficha aberta moram no endereço (reestruturação 29/09/2026):
   // um contador da Visão geral chega aqui já filtrado, e Voltar fecha a ficha.
   const f = rota.filtros
   const status = f.situacao || ''
   const ordem = f.ordem || 'recentes'
-  const ficha = f.item ? { id: f.item, aba: f.sub } : null
+  const ficha = f.item ? { id: f.item, aba: f.sub, campo: f.campo } : null
   const mudar = (novos, substituir = true) => navegar({ filtros: { ...f, ...novos } }, { substituir })
   const setStatus = (v) => mudar({ situacao: v })
   const setOrdem = (v) => mudar({ ordem: v === 'recentes' ? '' : v })
   // Arquivadas é outra leitura (o banco só devolve arquivadas quando pedidas).
   const arquivadas = status === 'arquivadas'
-  const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'resumo' ? x.aba : '' } : { item: '', sub: '' }, false)
+  const setFicha = (x) => mudar(x ? { item: x.id, sub: x.aba && x.aba !== 'resumo' ? x.aba : '', campo: '' } : { item: '', sub: '', campo: '' }, false)
   // A busca também mora no endereço (15/10/2026): abrir uma ficha e voltar
   // devolve a lista como estava. Digitar troca a entrada, não empilha Voltar.
   const termo = f.busca || ''
@@ -141,41 +150,57 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
     if (participantes && rolagem.current != null) { r.scrollTop = rolagem.current; rolagem.current = null }
   }, [ficha && ficha.id, !!participantes]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pedido = React.useRef(0)
-  const carregar = React.useCallback(async () => {
-    setErro(null)
+  /*
+   * A lista, as conversas e as logos. Quatro leituras em paralelo, cada uma com o próprio destino:
+   * só a lista (com a conferência da sessão) derruba a tela; conversas e logos são enfeite e, se
+   * falharem, ficam como estavam. Releitura SILENCIOSA (sinal de outra pessoa, reconexão, depois de
+   * uma ação) nunca volta ao esqueleto nem troca a lista por erro: a seleção, a busca, os filtros, a
+   * rolagem e a ficha aberta ficam onde estão. Resposta velha (trocar Arquivadas rápido, clique +
+   * sinal ao mesmo tempo) e tela desmontada não gravam nada (useGuarda). true = tudo foi lido.
+   */
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
     const senha = lerSenha()
-    const meu = ++pedido.current // trocar Arquivadas rápido: só a última resposta vale
-    try {
-      // admin_ping junto: RPC de leitura não dá erro com senha inválida, só
-      // devolve vazio — sem isso, sessão vencida pareceria "nenhuma marca".
-      const [valida, lista] = await Promise.all([
-        rpc('admin_ping', { p_secret: senha }),
-        rpc('get_participantes', { p_secret: senha, p_arquivados: arquivadas }),
-      ])
-      if (meu !== pedido.current) return
-      if (valida !== true) { setErro('A senha desta sessão não vale mais. Saia e entre de novo.'); return }
-      setParticipantes(lista || [])
-    } catch (e) {
-      if (meu === pedido.current) setErro(e.message)
+    // admin_ping junto: RPC de leitura não dá erro com senha inválida, só
+    // devolve vazio — sem isso, sessão vencida pareceria "nenhuma marca".
+    const [ping, lista, conv, logo] = await Promise.allSettled([
+      rpc('admin_ping', { p_secret: senha }),
+      rpc('get_participantes', { p_secret: senha, p_arquivados: arquivadas }),
+      rpc('get_conversas', { p_secret: senha }),
+      rpc('get_logos', { p_secret: senha }),
+    ])
+    if (!vale()) return true
+    let ok = true
+    if (ping.status === 'fulfilled' && lista.status === 'fulfilled') {
+      if (ping.value !== true) { ok = false; if (!silencioso) setErro('A senha desta sessão não vale mais. Saia e entre de novo.') }
+      else { setParticipantes(lista.value || []); setErro(null) }
+    } else {
+      ok = false
+      if (!silencioso) setErro((ping.status === 'rejected' ? ping.reason : lista.reason).message)
     }
-    // Leitura à parte: conversas não podem derrubar a lista (§10.4-b).
-    try { setConversas((await rpc('get_conversas', { p_secret: senha })) || []) } catch { setConversas([]) }
-    try { setLogos(Object.fromEntries(((await rpc('get_logos', { p_secret: senha })) || []).map((l) => [l.participante_id, l]))) } catch { setLogos({}) }
-  }, [arquivadas])
+    // Leitura à parte: conversas e logos não derrubam a lista (§10.4-b) nem se apagam uma à outra.
+    if (conv.status === 'fulfilled') setConversas(conv.value || []); else ok = false
+    if (logo.status === 'fulfilled') setLogos(Object.fromEntries((logo.value || []).map((x) => [x.participante_id, x]))); else ok = false
+    return ok
+  }, [arquivadas, guarda])
 
   // Trocou entre ativas e arquivadas: a lista anterior sai da tela (e da
   // seleção) enquanto a outra carrega — senão o lote agiria sobre a errada.
   React.useEffect(() => { setParticipantes(null); setSel(new Set()) }, [arquivadas])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  // Marca, cadastro, unidade, correção, pedido, foto, logo, acesso ou mensagem mudou (aqui ou em outra
+  // sessão): relê em silêncio. Sem poll e sem "recarregar" depois de cada ação.
+  useSincronizar(DOMINIOS_VISTAS.listaMarcas, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('marcas') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   const porMarca = React.useMemo(() => Object.fromEntries(conversas.map((c) => [c.participante_id, c])), [conversas])
   const lista = React.useMemo(() => {
-    const t = termo.trim().toLowerCase()
+    // Sem acento, espaço nem pontuação dos dois lados: "sao jose" acha "São José", "8499999" acha "(84) 99999-…".
+    const t = compacto(termo)
     return (participantes || [])
       .map((p) => ({ ...p, _naoLidas: Number((porMarca[p.id] || {}).nao_lidas || 0), _ultimaMsg: (porMarca[p.id] || {}).ultima_em }))
-      .filter((p) => !t || [p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ').toLowerCase().includes(t))
+      .filter((p) => !t || compacto([p.nome_marca, p.responsavel, p.email, p.telefone].filter(Boolean).join(' ')).includes(t))
       .filter((p) => !f.edicao || p.edicao_codigo === f.edicao)
       .filter((p) => !status || status === 'arquivadas' || (status === 'mensagens' ? p._naoLidas > 0
         : status === 'pendencias' ? Number(p.pendencias) > 0
@@ -183,18 +208,18 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         : status === 'sem_pendencias' ? !!p.participacao_id && pendenciasDe(p) === 0
         : status === 'com_pendencias' ? pendenciasDe(p) > 0
         : status === 'incompleto' ? Number(p.campos_faltando) > 0
-        : status === 'aguardando_aprovacao' ? p.combo_status === 'em_analise'
+        : status === 'aguardando_aprovacao' ? p.combo_status === 'em_analise' && participaDaEdicao(p)
         : status === 'alteracao' ? p.combo_status === 'correcao_solicitada' || Number(p.correcoes_abertas) > 0
         : status === 'sem_atividade' ? !!p.participacao_id && (!p.ultima_atividade || Date.now() - new Date(p.ultima_atividade) > 7 * 864e5)
-        : status === 'sem_conta' ? !p.user_id
-        : status === 'com_conta' ? !!p.user_id
+        : status === 'sem_conta' ? !p.user_id && participaDaEdicao(p)
+        : status === 'com_conta' ? !!p.user_id && participaDaEdicao(p)
         : status === 'possivel' ? p.historico_status === 'possivel_correspondencia'
         : p.status_cadastro === status))
       .sort(ORDENS[ordem])
   }, [participantes, porMarca, termo, status, ordem, f.edicao])
 
   // Lote: marcas com participação aberta e sem conta (arquivadas ficam de fora).
-  const semAcesso = arquivadas ? [] : (participantes || []).filter((p) => !p.user_id && p.participacao_id)
+  const semAcesso = arquivadas ? [] : (participantes || []).filter((p) => !p.user_id && p.participacao_id && participaDaEdicao(p))
   // Só o que está selecionado E visível: marca escondida por busca ou filtro
   // não entra no lote (nem na contagem que a confirmação mostra).
   const selecionadas = lista.filter((p) => sel.has(p.id))
@@ -202,6 +227,20 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const selComConta = selecionadas.filter((p) => p.user_id)
   const alternar = (id) => setSel((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
   const todasVisiveis = lista.length > 0 && lista.every((p) => sel.has(p.id))
+
+  async function cobrarSelecionadas() {
+    setLoteAviso(null)
+    const marcas = selecionadas.filter((p) => p.participacao_id)
+    if (!marcas.length) { setLoteAviso('Nenhuma das selecionadas tem participação aberta: não há pendência de edição para cobrar.'); return }
+    loteCancelado.current = false
+    setCobrarLote({ destinos: [], carregando: { feitas: 0, total: marcas.length } })
+    const destinos = await lerPendenciasLote(marcas, (nome, args) => rpc(nome, { p_secret: lerSenha(), ...args }), {
+      aoAvancar: (feitas, total) => { if (!loteCancelado.current) setCobrarLote((x) => x && { ...x, carregando: { feitas, total } }) },
+      cancelado: () => loteCancelado.current,
+    })
+    if (!loteCancelado.current) setCobrarLote({ destinos, carregando: null })
+  }
+  const fecharCobrarLote = () => { loteCancelado.current = true; setCobrarLote(null) }
 
   // Ações em lote. Toda ação que muda conta pede confirmação.
   async function emLote(acao) {
@@ -212,7 +251,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
     try {
       if (acao === 'gerar') {
         if (!selSemConta.length) { setLoteAviso('Nenhuma das selecionadas está sem acesso. Para quem já tem, use "Gerar novas senhas".'); return }
-        setLote({ modo: 'gerar', marcas: selSemConta }); return
+        if (await confirmar('Criar o acesso de ' + selSemConta.length + (selSemConta.length === 1 ? ' marca?' : ' marcas?') + '\n\nCada senha temporária aparece UMA VEZ, na tela seguinte. Tenha o WhatsApp à mão.', { acao: 'Criar acessos' })) setLote({ modo: 'gerar', marcas: selSemConta }); return
       }
       if (!n) { setLoteAviso('Nenhuma das selecionadas tem acesso ainda. Use "Gerar acessos".'); return }
       if (acao === 'regerar') {
@@ -222,7 +261,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         setLote({ modo: 'regerar', marcas: selComConta }); return
       }
       if (acao === 'copiar') {
-        const texto = textoTodosAcessos(selComConta.map((p) => ({ nomeMarca: p.nome_marca, responsavel: p.responsavel, login: p.slug || p.nome_marca })), window.location.origin)
+        const texto = textoTodosAcessos(selComConta.map((p) => ({ nomeMarca: p.nome_marca, responsavel: p.responsavel, login: p.slug || p.nome_marca })), ORIGEM_PUBLICA)
         await navigator.clipboard.writeText(texto)
         setLoteAviso('Acessos de ' + nome + ' copiados, sem senha. Para mandar senha, gere senhas novas.'); return
       }
@@ -241,7 +280,6 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
         await gerirAcesso(ids, acao, motivo)
       }
       setLoteAviso('Feito para ' + nome + '.')
-      carregar()
     } catch (e) {
       setLoteAviso(traduzirErro(e.message))
     }
@@ -252,27 +290,29 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
   const folhas = (
     <>
       <FolhaResultadoAcessos aberto={!!lote} modo={lote ? lote.modo : 'gerar'} marcas={lote ? lote.marcas : []}
-        onFechar={() => { setLote(null); setSel(new Set()) }} onMudou={carregar}
+        onFechar={() => { setLote(null); setSel(new Set()) }}
         onGerenciar={(m) => { setLote(null); setFicha({ id: m.id, aba: 'acesso' }) }} />
-      <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} onCriada={carregar} />
+      <FolhaCadastroManual aberto={cadastroAberto} pode={pode} existentes={participantes || []} onFechar={() => setCadastroAberto(false)} />
+      <FolhaCobrar aberto={!!cobrarLote} destinos={cobrarLote ? cobrarLote.destinos : []} carregando={cobrarLote && cobrarLote.carregando}
+        onFechar={fecharCobrarLote} />
     </>
   )
   if (ficha) {
     return (
       <div className="og-embutida" ref={raiz}>
-        {erro && <Erro texto={erro} onTentar={carregar} />}
+        {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
         {!erro && participantes && !participanteFicha && <Vazio titulo="Marca não encontrada">Ela pode ter sido arquivada. <button type="button" className="ui-link" onClick={() => setFicha(null)}>Voltar às marcas</button></Vazio>}
         {!erro && (!participantes || participanteFicha) && (
           <FichaMarcaPagina
+            key={ficha.id}
             participante={participanteFicha && { ...participanteFicha, _naoLidas: Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) }}
             logo={participanteFicha && logos[participanteFicha.id]}
             sub={ficha.aba || ''}
-            onSub={(s, o = {}) => mudar({ sub: s }, !!o.substituir)}
+            campo={ficha.campo || ''}
+            onSub={(s, o = {}) => mudar({ sub: s, campo: '' }, !!o.substituir)}
             onVoltar={() => setFicha(null)}
             pode={pode}
             naoLidas={participanteFicha ? Number((porMarca[participanteFicha.id] || {}).nao_lidas || 0) : 0}
-            onLidas={() => rpc('get_conversas', { p_secret: lerSenha() }).then((c) => setConversas(c || [])).catch(() => {})}
-            onMudou={carregar}
           />
         )}
         {folhas}
@@ -323,16 +363,16 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
           </label>
         </div>
         {semAcesso.length > 0 && (
-          <Botao icone="chave" variante="secundario" mini={false} disabled={!pode('marca.liberar')} onClick={() => setLote({ modo: 'gerar', marcas: semAcesso })}>Gerar acessos ({semAcesso.length})</Botao>
+          <Botao icone="chave" variante="secundario" mini={false} disabled={!pode('marca.liberar')} onClick={async () => { if (await confirmar('Criar o acesso de ' + semAcesso.length + (semAcesso.length === 1 ? ' marca?' : ' marcas?') + '\n\nCada senha temporária aparece UMA VEZ, na tela seguinte. Tenha o WhatsApp à mão.', { acao: 'Criar acessos' })) setLote({ modo: 'gerar', marcas: semAcesso }) }}>Gerar acessos ({semAcesso.length})</Botao>
         )}
         <button className="og-btn" type="button" disabled={!pode('marca.liberar')} onClick={() => setCadastroAberto(true)}>Cadastrar marca</button>
       </div>
       {f.edicao && (
-        <p className="ui-filtro-ativo">Só a edição {f.edicao} <button type="button" className="og-btn og-btn--mini og-btn--vazado" onClick={() => mudar({ edicao: '' })}>Ver todas</button></p>
+        <p className="ui-filtro-ativo">Só a edição {f.edicao} <Botao variante="secundario" icone="fechar" soIcone aria-label="Ver todas as edições" onClick={() => mudar({ edicao: '' })}>Ver todas</Botao></p>
       )}
       {!pode('marca.liberar') && <p className="ui-nota">Sua função não cadastra marca.</p>}
 
-      {erro && <Erro texto={erro} onTentar={carregar} />}
+      {erro && <Erro texto={erro} onTentar={tentarDeNovo} />}
       {!erro && participantes === null && <Carregando />}
       {!erro && participantes && participantes.length === 0 && (
         <Vazio titulo="Nenhuma marca ainda">
@@ -349,16 +389,19 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
               <span>{lista.length} {lista.length === 1 ? 'marca' : 'marcas'}{selecionadas.length ? ' · ' + selecionadas.length + (selecionadas.length === 1 ? ' selecionada' : ' selecionadas') : ' · selecionar todas'}</span>
             </label>
           </div>
-          {selecionadas.length > 0 && pode('marca.liberar') && (
+          {selecionadas.length > 0 && (pode('marca.liberar') || pode('mensagem.enviar')) && (
             <div className="ac-barra-lote" role="toolbar" aria-label="Ações nas marcas selecionadas">
+              {pode('mensagem.enviar') && <Botao icone="sino" variante="secundario" onClick={cobrarSelecionadas}>Cobrar pendências ({selecionadas.length})</Botao>}
+              {pode('marca.liberar') && <>
               <button className="og-btn og-btn--mini" type="button" onClick={() => emLote('gerar')}>Gerar acessos{selSemConta.length ? ' (' + selSemConta.length + ')' : ''}</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('regerar')}>Gerar novas senhas{selComConta.length ? ' (' + selComConta.length + ')' : ''}</button>
-              <Botao icone="copiar" variante="secundario" onClick={() => emLote('copiar')}>Copiar acessos</Botao>
+              <Botao icone="copiar" variante="secundario" soIcone aria-label="Copiar os acessos das selecionadas" onClick={() => emLote('copiar')}>Copiar acessos</Botao>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('enviado')}>Marcar como enviados</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('bloquear')}>Bloquear</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('desbloquear')}>Desbloquear</button>
               <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => emLote('forcar_troca')}>Forçar troca de senha</button>
-              <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => setSel(new Set())}>Limpar seleção</button>
+              </>}
+              <Botao variante="secundario" icone="fechar" soIcone onClick={() => setSel(new Set())}>Limpar seleção</Botao>
             </div>
           )}
           {loteAviso && <p className="ui-nota" role="status">{loteAviso}</p>}
@@ -375,7 +418,7 @@ export function Marcas({ registrarAtualizar, pode = () => true, rota, navegar })
                 <li key={p.id} className="ac-item">
                   <label className="ac-item__sel"><input type="checkbox" checked={sel.has(p.id)} onChange={() => alternar(p.id)} /><span className="ui-oculto">Selecionar {p.nome_marca}</span></label>
                   <button type="button" className="og-item og-item--marca" onClick={() => abrirFicha(p.id)}>
-                    <LogoMarca url={urlLogo(l && l.path)} nome={p.nome_marca} tamanho={40} />
+                    <LogoMarca url={urlLogo(l && l.path)} participanteId={p.id} nome={p.nome_marca} tamanho={40} />
                     <span className="og-item__nome-bloco">
                       <span className="og-item__nome">{p.nome_marca || '(sem nome)'}{p._naoLidas > 0 && <span className="og-item__novas" title={p._naoLidas + (p._naoLidas === 1 ? ' mensagem nova' : ' mensagens novas')}>{p._naoLidas}</span>}</span>
                       <span className="og-item__meta">{[pct != null && 'Cadastro ' + pct + '%', p.tema_combo, p.edicao_codigo && 'edição ' + p.edicao_codigo].filter(Boolean).join(' · ') || resumoParticipante(p)}</span>

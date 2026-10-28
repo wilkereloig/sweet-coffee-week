@@ -21,7 +21,7 @@ O Wilker delegou: "siga o plano, decida o melhor modo". Ficou assim:
 | D-09 | Decidido (texto) · validação recomendada | "não sei" permite publicar e aparece "não informado"; texto neutro "informado pela casa" + "confirme com a loja". A validação por nutricionista segue recomendada |
 | D-10 | Decidido | como na tabela abaixo |
 | D-11 | Decidido | um combo por participação |
-| D-12 | Decidido | WhatsApp da unidade só com autorização marcada pela marca |
+| D-12 | Decidido (revisto em 23/10/2026) | WhatsApp da unidade é o da LOJA: preenchido = vai ao site; a caixa de autorização saiu (o contato pessoal do responsável continua privado) |
 | D-13 | Decidido | a regra é escrita no `CLAUDE.md` junto com a fase 2 |
 | D-14 | Decidido | endereço limpo (`pushState`) no site todo, na fase 1; links com `#/` continuam funcionando e são convertidos ao abrir |
 | D-15 | Decidido | 03/11 e 19/11 **não** aparecem até a organização confirmar; vale só o período 5 a 15 de novembro |
@@ -53,7 +53,7 @@ Ordenadas por quanto travam o cronograma. "Trava" diz o que fica parado sem a de
 | **D-18** | Curadoria pode publicar sem o administrador? | sim (`curadoria.decidir`), com o histórico registrando quem publicou | velocidade na véspera | fase 3 |
 | **D-07** | og (prévia no WhatsApp e redes) por participante | começar com og genérico da Cartoon; og por participante só se houver função no servidor (Vercel Function) | compartilhamento mostra a mesma imagem para todas as casas | nenhuma |
 | **D-11** | Combo diferente por unidade é possível? | não nesta edição; diferenças pequenas vão em "observação da unidade" e no escopo das trocas | modelo mais simples | nenhuma |
-| **D-12** | WhatsApp público por unidade | publicar só com autorização marcada pela marca no painel | dado de contato comercial exposto | fase 3 |
+| **D-12** | WhatsApp público por unidade | número da loja preenchido = publicado (revisto em 23/10/2026; antes: caixa de autorização no painel) | dado de contato comercial exposto | fase 3 |
 | **D-10** | O que fica público depois do encerramento | casa, combo, componentes, fotos e resultados; saem preço, horário, canais, mapa e Minha rota | `/cartoon` vira registro sem mentir | fase 9 |
 | **D-19** | SVG do selo e do lettering | reexportar do `.ai` aprovado | o PNG de ~1,9k px serve, mas pesa e não escala | acabamento da fase 4 |
 | **D-20** | Ambiente de teste do banco | esquema separado no mesmo projeto ou um projeto temporário; nunca dados fictícios no banco de produção | ensaio integrado seguro | fase 7 |

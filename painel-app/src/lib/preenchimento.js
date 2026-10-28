@@ -12,10 +12,43 @@
  * tests/painel-app-preenchimento.test.mjs.
  */
 
+import { datasDoFestival, resumoDeLinhas } from './horarioFestival.js'
+
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const texto = (v) => (v == null ? '' : String(v)).trim()
 
-export const linkPreenchimento = (origem, codigo) => (codigo ? String(origem).replace(/\/$/, '') + '/preencher/#' + codigo : null)
+/*
+ * Link curto (22/10/2026): o código do banco são 128 bits em 32 caracteres hex; o mesmo número em base64url cabe em 22.
+ * Não é um "encurtador": nenhuma tabela, nenhum servidor no meio, o código continua no fragmento (#) e sem perder
+ * entropia. A página /preencher/ entende os dois jeitos, então os links longos já enviados seguem valendo.
+ * ⚠️ A base64url diferencia maiúscula de minúscula: quem lê o link curto NÃO pode passar `toLowerCase()` nele.
+ */
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+const HEX32 = /^[a-f0-9]{32}$/
+
+export function codigoCurto(codigo) {
+  const h = texto(codigo).toLowerCase()
+  if (!HEX32.test(h)) return texto(codigo)
+  let bits = ''
+  for (const c of h) bits += parseInt(c, 16).toString(2).padStart(4, '0')
+  bits += '0000' // 128 + 4 = 132 = 22 × 6
+  let s = ''
+  for (let i = 0; i < 132; i += 6) s += B64[parseInt(bits.slice(i, i + 6), 2)]
+  return s
+}
+
+/** Volta ao código de 32 hex. O que não for curto válido sai em minúsculas, como a página sempre tratou o código longo. */
+export function codigoLongo(curto) {
+  const s = texto(curto)
+  if (!/^[A-Za-z0-9_-]{22}$/.test(s)) return s.toLowerCase()
+  let bits = ''
+  for (const c of s) bits += B64.indexOf(c).toString(2).padStart(6, '0')
+  let h = ''
+  for (let i = 0; i < 128; i += 4) h += parseInt(bits.slice(i, i + 4), 2).toString(16)
+  return h
+}
+
+export const linkPreenchimento = (origem, codigo) => (codigo ? String(origem).replace(/\/$/, '') + '/preencher/#' + codigoCurto(codigo) : null)
 
 // '2026-10-24' → '24/10'; '2026-11-05' → '5 de novembro'.
 function partes(iso) {
@@ -68,7 +101,10 @@ export function painelDaMarca({ origem, slug, acesso, cred }) {
   if (cred && cred.senha) return { origem, login: cred.login, senha: cred.senha }
   if (!acesso) return { origem }
   if (!acesso.user_id) return { origem, sem_acesso: true }
-  return { origem, login: slug, situacao: acesso.senha_trocada_em ? 'definida' : 'temporaria' }
+  // "Definida" só vale se a marca trocou a senha DEPOIS da última emitida: senha reemitida por cima da que ela criou
+  // volta a ser temporária (era o texto "a que você criou" indo para quem tinha a senha trocada em 22/10).
+  const trocou = acesso.senha_trocada_em && (!acesso.senha_emitida_em || new Date(acesso.senha_trocada_em) > new Date(acesso.senha_emitida_em))
+  return { origem, login: slug, situacao: trocou ? 'definida' : 'temporaria' }
 }
 
 /*
@@ -119,8 +155,12 @@ const ITENS = ['Doce', 'Salgado', 'Bebida']
 const ROTULOS_UNIDADE = [
   ['nome_unidade', 'Nome da loja'], ['logradouro', 'Rua / avenida'], ['numero', 'Número'], ['complemento', 'Complemento'],
   ['bairro', 'Bairro'], ['cidade', 'Cidade'], ['cep', 'CEP'], ['referencia', 'Referência'],
-  ['horario_loja', 'Horário da loja'], ['horario_combo', 'Horário do combo'],
+  // Horário no festival (23/10/2026): uma pergunta só. `horario_festival` chega como linhas {data, abre, fecha} e é comparado como
+  // frase (ver `comHorarioEmTexto`). O texto livre antigo (`horario_combo`) só existe em envio ANTIGO; o horário da loja não é mais
+  // pedido nem aplicado, então nem entra na revisão.
+  ['horario_festival', 'Horário no festival'], ['horario_combo', 'Horário (texto antigo)'],
   ['consumo_local', 'Consumo no local'], ['retirada', 'Retirada'], ['delivery_combo', 'Delivery do combo'],
+  // Preenchido, o WhatsApp da loja vai ao site (23/10/2026): a liberação acompanha o número, mas aparece na revisão ("Não → Sim") para o efeito ser visto.
   ['whatsapp', 'WhatsApp da loja'], ['whatsapp_autorizado', 'WhatsApp no site'],
 ]
 const ASPECTOS = [
@@ -157,7 +197,7 @@ function igual(campo, a, b) {
     const db = texto(b).replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')
     return da === db
   }
-  if (campo === 'whatsapp_autorizado') return !!a === !!b
+  if (campo === 'whatsapp_autorizado') return !!a === !!b // ausente = não liberado
   return normal(campo, a) === normal(campo, b)
 }
 
@@ -169,11 +209,22 @@ function comparar(grupo, rotulos, atual = {}, novo = {}, lista) {
   }
 }
 
+// Os dias do festival para ler as linhas do horário: os da edição, quando ela está à mão. Sem eles o módulo (frasesDeLinhas, a única
+// função que transforma linhas em frases) só fala dos dias que as próprias linhas citam — nunca "todos os dias".
+const datasDaEdicao = (edicao) => (edicao && edicao.inicio ? datasDoFestival(texto(edicao.inicio).slice(0, 10), texto(edicao.fim).slice(0, 10)) : [])
+// Troca as linhas de `horario_festival` pela frase que as descreve, para comparar e mostrar como os outros campos.
+function comHorarioEmTexto(u, datas) {
+  if (!u || !Array.isArray(u.horario_festival)) return u
+  return { ...u, horario_festival: resumoDeLinhas(u.horario_festival, datas) }
+}
+
 /**
  * Lista do que mudaria ao aplicar o envio: [{ grupo, campo, de, para }].
  * Campo que o envio não traz não entra (não é "apagar").
+ * `edicao` ({ inicio, fim }, opcional) dá os dias do festival para o horário ser lido como frase: sem ela, vale o intervalo
+ * entre o primeiro e o último dia que as linhas citam.
  */
-export function diferencasEnvio(atual = {}, enviado = {}) {
+export function diferencasEnvio(atual = {}, enviado = {}, edicao = null) {
   const lista = []
   comparar('Responsável e contato', ROTULOS_MARCA, atual.marca, enviado.marca, lista)
   comparar('Tema e combo', ROTULOS_COMBO, atual.combo, enviado.combo, lista)
@@ -197,6 +248,7 @@ export function diferencasEnvio(atual = {}, enviado = {}) {
     }
   }
   const unidadesAtuais = atual.unidades || []
+  const datas = datasDaEdicao(edicao)
   let nova = 0
   for (const u of Array.isArray(enviado.unidades) ? enviado.unidades : []) {
     const antes = u && u.id ? unidadesAtuais.find((x) => x.id === u.id) : null
@@ -208,9 +260,9 @@ export function diferencasEnvio(atual = {}, enviado = {}) {
     if (!antes) {
       nova += 1
       if (!texto(u && u.logradouro)) continue // o banco ignora loja nova sem endereço
-      comparar('Loja nova' + (nova > 1 ? ' ' + nova : ''), ROTULOS_UNIDADE, {}, u, lista)
+      comparar('Loja nova' + (nova > 1 ? ' ' + nova : ''), ROTULOS_UNIDADE, {}, comHorarioEmTexto(u, datas), lista)
     } else {
-      comparar('Loja ' + nome, ROTULOS_UNIDADE, antes, u, lista)
+      comparar('Loja ' + nome, ROTULOS_UNIDADE, comHorarioEmTexto(antes, datas), comHorarioEmTexto(u, datas), lista)
     }
   }
   return lista

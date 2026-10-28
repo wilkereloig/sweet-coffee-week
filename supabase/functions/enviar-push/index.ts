@@ -35,6 +35,11 @@
 //   2. MANUAL (botão "Enviar um teste") —
 //      { secret, alvo: 'organizacao' | 'marca', participante_id?, titulo, corpo, url? }
 //      — ou, sem secret, o JWT da sessão nominal em Authorization: Bearer <token>.
+//   4. REENVIO (19/10/2026) — { reenviar: true }, chamado pelo pg_cron
+//      (`scw-push-reenviar`, a cada 5 min): relê do banco os envios que FALHARAM
+//      (push_envio_pendentes: até 3 tentativas, espaçadas, nas últimas 3 h, e
+//      não para quem já leu o aviso) e tenta de novo. Não carrega texto nem
+//      destino: quem chama só pede "tente o que está pendente".
 //   3. VERSÃO (18/10/2026) — { versao_id }, chamado pelo pg_cron
 //      (`painel_versao_ciclo`) quando o /painel/versao.json de produção muda.
 //      Texto fixo; trava, destinos e registro por aparelho no banco
@@ -43,6 +48,7 @@
 // =============================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { montarCarga } from './carga.ts'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -213,12 +219,22 @@ async function enviarPara(admin: any, alvo: string, participanteId: string | nul
   let enviados = 0
   const mortas: string[] = []
   const falhas: string[] = []
+  const resultados: { id: string, estado: string }[] = []
 
   for (const a of assinaturas) {
     const r = await enviarUm(a, carga, vapid)
+    resultados.push({ id: a.id, estado: r })
     if (r === 'ok') enviados++
     else if (r === 'morta') mortas.push(a.id)
     else falhas.push(a.id)
+  }
+
+  // Registro por aparelho (19/10/2026). "ok" = o serviço de push ACEITOU o envio; isso NÃO
+  // prova que apareceu na tela (aparelho desligado, permissão revogada depois). A falha
+  // passageira ('falhou') fica registrada para o reenvio controlado (3 tentativas). Sem a
+  // migration aplicada o registro não existe e o envio segue exatamente como antes.
+  if (notificacaoId && resultados.length) {
+    try { await admin.rpc('push_envio_registrar', { p_notificacao: notificacaoId, p_resultados: resultados }) } catch { /* melhor esforço */ }
   }
 
   if (mortas.length) {
@@ -244,7 +260,7 @@ Deno.serve(async (req) => {
 
   let payload: {
     secret?: string; alvo?: string; participante_id?: string
-    titulo?: string; corpo?: string; url?: string; notificacao_id?: string; versao_id?: string
+    titulo?: string; corpo?: string; url?: string; notificacao_id?: string; versao_id?: string; reenviar?: boolean
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
@@ -280,6 +296,42 @@ Deno.serve(async (req) => {
     return json({ ok: true, ...fim })
   }
 
+  // ── Modo reenvio (19/10/2026): tentativas CONTROLADAS ─────────────────────
+  // Só o que o banco diz estar pendente (falhou, < 3 tentativas, espaçado, recente, não lido).
+  if (payload.reenviar) {
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    )
+    const vapid = lerVapid()
+    if (!vapid) { console.error('enviar-push: VAPID ausente'); return json({ ok: true, reenviados: 0 }) }
+    const { data: pend, error: pendErr } = await admin.rpc('push_envio_pendentes', { p_limite: 50 })
+    if (pendErr) {
+      // Sem a migration aplicada a função não existe: não há o que reenviar.
+      if (pendErr.code === 'PGRST202' || pendErr.code === '42883') return json({ ok: true, reenviados: 0 })
+      return json({ erro: 'db_error' }, 500)
+    }
+    // deno-lint-ignore no-explicit-any
+    const porAviso = new Map<string, any[]>()
+    for (const p of pend || []) {
+      const lista = porAviso.get(p.notificacao_id) || []
+      lista.push(p); porAviso.set(p.notificacao_id, lista)
+    }
+    let reenviados = 0
+    for (const [notificacaoId, alvos] of porAviso) {
+      const carga = JSON.stringify(montarCarga(alvos[0], notificacaoId))
+      const resultados: { id: string, estado: string }[] = []
+      for (const a of alvos) {
+        const estado = await enviarUm({ endpoint: a.endpoint, p256dh: a.p256dh, auth_chave: a.auth_chave }, carga, vapid)
+        resultados.push({ id: a.subscription_id, estado })
+        if (estado === 'ok') reenviados++
+      }
+      await admin.rpc('push_envio_registrar', { p_notificacao: notificacaoId, p_resultados: resultados })
+    }
+    return json({ ok: true, reenviados })
+  }
+
   // ── Modo automático: uma notificação do banco ─────────────────────────────
   if (payload.notificacao_id) {
     const id = String(payload.notificacao_id)
@@ -298,17 +350,13 @@ Deno.serve(async (req) => {
     const { data: n, error: travaErr } = await admin.from('notificacoes')
       .update({ push_enviado_em: new Date().toISOString() })
       .eq('id', id).is('push_enviado_em', null)
-      .select('para, participante_id, titulo, texto, link')
+      .select('para, participante_id, tipo, titulo, texto, link')
       .maybeSingle()
     if (travaErr) return json({ erro: 'db_error' }, 500)
     if (!n) return json({ ok: true, enviados: 0 })
 
-    const carga = JSON.stringify({
-      titulo: String(n.titulo).slice(0, 80),
-      corpo: String(n.texto || '').slice(0, 240),
-      url: '/painel/' + (n.link ? '?ir=' + encodeURIComponent(n.link) : ''),
-      tag: 'scw-' + id,
-    })
+    // Mensagem e formulário não mostram o texto na tela de bloqueio (carga.ts).
+    const carga = JSON.stringify(montarCarga(n, id))
     try {
       const r = await enviarPara(admin, n.para, n.participante_id, carga, vapid, id)
       return json({ ok: true, ...r })

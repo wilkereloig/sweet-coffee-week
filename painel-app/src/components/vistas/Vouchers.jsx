@@ -8,6 +8,8 @@ import { FichaContato, erroContato } from './Contatos'
 import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, LogoMarca, Escolha } from '../ui'
 import { urlLogo } from '../../lib/logos'
 import { confirmar } from '../Confirmar'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 
@@ -18,7 +20,8 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
  * o envio; a MARCA registra o uso digitando o código no painel dela.
  * Duas leituras: por marca (quanto cada uma ainda tem) e por pessoa.
  */
-export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
+export function Vouchers({ pode, rota, navegar }) {
+  const guarda = useGuarda()
   const [dados, setDados] = React.useState(null)
   const [contatos, setContatos] = React.useState([])
   const [logos, setLogos] = React.useState({})
@@ -28,49 +31,68 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
   const [aberta, setAberta] = React.useState(null) // participacao_id expandida
   const [destino, setDestino] = React.useState({ contato: '', quantidade: 1 })
   const [gerando, setGerando] = React.useState(false)
+  const [destinando, setDestinando] = React.useState(false)
+  // O formulário é um só: trocar de marca não leva o destino escolhido na outra.
+  React.useEffect(() => { setDestino({ contato: '', quantidade: 1 }) }, [aberta])
   const podeMudar = pode('relacionamento.gerir')
   const aberto = rota.filtros.item || null
 
-  const carregar = React.useCallback(async () => {
-    setErro(null)
-    try {
-      const d = await rpc('get_vouchers', { p_secret: lerSenha() })
-      if (d == null) throw new Error('nao_autorizado')
-      setDados(d)
-    } catch (e) { setErro(e.message) }
-    try { setContatos((await rpc('get_contatos', { p_secret: lerSenha() })) || []) } catch { setContatos([]) }
-    // Logo de cada marca (leitura à parte: sem ela a lista segue com iniciais).
-    try { setLogos(Object.fromEntries(((await rpc('get_logos', { p_secret: lerSenha() })) || []).map((l) => [l.participante_id, l.path]))) } catch { setLogos({}) }
-  }, [])
+  // As três leituras são independentes: a de vouchers é a que importa (sem ela, erro); contatos e logos são
+  // apoio e, se falharem, ficam como estavam. A releitura SILENCIOSA (sinal de outra pessoa, reconexão) não
+  // volta ao esqueleto nem fecha a marca expandida. true = leu as três.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    if (!silencioso) setErro(null)
+    const [d, cs, ls] = await Promise.allSettled([
+      rpc('get_vouchers', { p_secret: lerSenha() }),
+      rpc('get_contatos', { p_secret: lerSenha() }),
+      // Logo de cada marca (leitura à parte: sem ela a lista segue com iniciais).
+      rpc('get_logos', { p_secret: lerSenha() }),
+    ])
+    if (!vale()) return true
+    let ok = true
+    if (d.status === 'fulfilled' && d.value != null) { setDados(d.value); setErro(null) }
+    else {
+      ok = false
+      // Perda de permissão (resposta nula) aparece sempre; falha de rede só na primeira leitura.
+      if (d.status === 'fulfilled') setErro('nao_autorizado')
+      else if (!silencioso) setErro(d.reason.message)
+    }
+    if (cs.status === 'fulfilled') setContatos(cs.value || []); else ok = false
+    if (ls.status === 'fulfilled') setLogos(Object.fromEntries((ls.value || []).map((l) => [l.participante_id, l.path]))); else ok = false
+    return ok
+  }, [guarda])
   React.useEffect(() => { carregar() }, [carregar])
-  React.useEffect(() => { if (registrarAtualizar) registrarAtualizar(carregar) }, [registrarAtualizar, carregar])
+  useSincronizar(DOMINIOS_VISTAS.vouchers, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('vouchers') })
+  const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
   async function gerar() {
     setGerando(true); setAviso(null)
     try {
       const n = await rpc('gerar_vouchers', { p_secret: lerSenha() })
       setAviso({ ok: n ? n + (n === 1 ? ' voucher gerado.' : ' vouchers gerados.') : 'Todas as marcas já estão com a cota completa.' })
-      await carregar()
+      await carregar({ silencioso: true })
     } catch (e) { setAviso(erroContato(e.message)) } finally { setGerando(false) }
   }
   async function destinar(participacao) {
+    if (destinando) return // duplo clique destinaria duas vezes
     if (!destino.contato) { setAviso('Escolha para quem vai o voucher.'); return }
-    setAviso(null)
+    setAviso(null); setDestinando(true)
     try {
       const cods = await rpc('destinar_vouchers', { p_secret: lerSenha(), p_participacao: participacao, p_contato: destino.contato, p_quantidade: Number(destino.quantidade) || 1, p_obs: null })
       setAviso({ ok: 'Destinado: ' + (cods || []).join(', ') + '.' })
       setDestino({ contato: '', quantidade: 1 })
-      await carregar()
-    } catch (e) { setAviso(erroContato(e.message)) }
+      await carregar({ silencioso: true })
+    } catch (e) { setAviso(erroContato(e.message)) } finally { setDestinando(false) }
   }
   async function mudar(v, status) {
     if (status === 'cancelado' && !await confirmar('Cancelar o voucher ' + v.codigo + '? Ele deixa de valer na marca.')) return
     setAviso(null)
-    try { await rpc('atualizar_voucher', { p_secret: lerSenha(), p_voucher: v.id, p_status: status, p_obs: null }); await carregar() }
+    try { await rpc('atualizar_voucher', { p_secret: lerSenha(), p_voucher: v.id, p_status: status, p_obs: null }); await carregar({ silencioso: true }) }
     catch (e) { setAviso(erroContato(e.message)) }
   }
 
-  if (erro) return <Erro texto={erro} onTentar={carregar} />
+  if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!dados) return <Carregando />
   if (!dados.edicao) return <Vazio titulo="Nenhuma edição aberta">Abra a edição em Edição › Configuração.</Vazio>
   const porMarca = resumoPorMarca(dados.vouchers, dados.marcas, dados.cota)
@@ -104,7 +126,7 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
           <ul className="og-lista">{porMarca.map((m) => (
             <li key={m.participacao_id}>
               <button type="button" className="og-item og-item--logo" aria-expanded={aberta === m.participacao_id} onClick={() => setAberta(aberta === m.participacao_id ? null : m.participacao_id)}>
-                <LogoMarca url={urlLogo(logos[m.participante_id])} nome={m.marca} tamanho={36} />
+                <LogoMarca url={urlLogo(logos[m.participante_id])} participanteId={m.participante_id} nome={m.marca} tamanho={36} />
                 <span className="og-item__nome">{m.marca}</span>
                 <span className="og-item__meta">{m.gerados} de {m.cota} gerados · {m.disponiveis} disponíveis · {m.destinados} destinados · {m.enviados} enviados · {m.utilizados} usados</span>
                 <span className="og-item__dir">{m.faltaGerar > 0 && <Selo tom="atencao">Faltam gerar {m.faltaGerar}</Selo>}</span>
@@ -137,7 +159,7 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
                       <label className="og-campo"><span>Quantidade</span>
                         <input type="number" min="1" max={m.disponiveis} inputMode="numeric" value={destino.quantidade} onChange={(e) => setDestino({ ...destino, quantidade: e.target.value })} />
                       </label>
-                      <button className="og-btn og-btn--mini" type="submit">Destinar</button>
+                      <button className="og-btn og-btn--mini" type="submit" disabled={destinando} aria-busy={destinando}>Destinar</button>
                     </form>
                   )}
                 </div>
@@ -162,7 +184,7 @@ export function Vouchers({ registrarAtualizar, pode, rota, navegar }) {
         </Secao>
       )}
 
-      <FichaContato id={aberto} pode={pode} onFechar={() => navegar({ filtros: {} })} onMudou={carregar} />
+      <FichaContato id={aberto} pode={pode} onFechar={() => navegar({ filtros: {} })} />
     </div>
   )
 }

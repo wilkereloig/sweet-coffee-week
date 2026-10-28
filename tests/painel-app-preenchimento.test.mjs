@@ -3,22 +3,75 @@
 // /preencher/ e do contrato do banco (supabase/migrations/20261016_link_preenchimento.sql).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import vm from 'node:vm'
 import {
   linkPreenchimento, textoPreenchimento, textoPainel, painelDaMarca, entraNoLoteDeSenhas, diferencasEnvio, situacaoLink, dataCurtaBR, periodoEdicao,
+  codigoCurto, codigoLongo,
 } from '../painel-app/src/lib/preenchimento.js'
+import { ORIGEM_PUBLICA } from '../painel-app/src/lib/origem.js'
+import { resumoDeLinhas, datasDoFestival } from '../painel-app/src/lib/horarioFestival.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const PAGINA = ler('public/preencher/index.html')
 const SQL_BASE = ler('supabase/migrations/20261016_link_preenchimento.sql')
 const SQL_V2 = ler('supabase/migrations/20261016_link_preenchimento_alimentar.sql')
 const SQL = SQL_BASE + '\n' + SQL_V2
+const SQL_HORARIO = ler('supabase/migrations/20261107_horario_festival.sql')
+const SQL_HORARIO_FORM = ler('supabase/migrations/20261107_horario_festival_formulario.sql')
 const CODIGO = '0123456789abcdef0123456789abcdef'
 
-test('link leva o código no fragmento, nunca na busca', () => {
-  assert.equal(linkPreenchimento('https://sweetcoffeeweek.com.br/', CODIGO), 'https://sweetcoffeeweek.com.br/preencher/#' + CODIGO)
+test('link leva o código no fragmento, nunca na busca, na forma curta (22 caracteres)', () => {
+  const l = linkPreenchimento('https://sweetcoffeeweek.com.br/', CODIGO)
+  assert.equal(l, 'https://sweetcoffeeweek.com.br/preencher/#' + codigoCurto(CODIGO))
+  assert.equal(l.split('#')[1].length, 22)
   assert.equal(linkPreenchimento('https://x', null), null)
+  // Código que não é de 32 hex (nunca sai do banco) passa como veio, sem inventar encurtamento.
+  assert.equal(linkPreenchimento('https://x', 'abc'), 'https://x/preencher/#abc')
+})
+
+test('código curto: os mesmos 128 bits em base64url, ida e volta, igual ao Buffer do Node', () => {
+  assert.equal(codigoCurto('0'.repeat(32)), 'A'.repeat(22))
+  assert.equal(codigoCurto('f'.repeat(32)), '_'.repeat(21) + 'w')
+  const amostras = [CODIGO, '7b95a98811b4495ca3e8179ba363f30e', '6460ade6b978420c91808375d5e53933', '0045677a45da4082b991b1336b7bb348', 'fe501efb04a846a7a7eb9f56eb6613bb']
+  for (const hex of amostras) {
+    const curto = codigoCurto(hex)
+    assert.equal(curto, Buffer.from(hex, 'hex').toString('base64url'), 'diverge do base64url padrão: ' + hex)
+    assert.match(curto, /^[A-Za-z0-9_-]{22}$/)
+    assert.equal(codigoLongo(curto), hex, 'ida e volta: ' + hex)
+  }
+  // O longo continua valendo como está (links já enviados); maiúscula do longo não importa.
+  assert.equal(codigoLongo(CODIGO.toUpperCase()), CODIGO)
+})
+
+test('o endereço das mensagens é o do site, nunca o da barra do navegador (prévia do Vercel, localhost)', () => {
+  assert.equal(ORIGEM_PUBLICA, 'https://www.sweetcoffeeweek.com.br')
+  const pasta = new URL('../painel-app/src/', import.meta.url)
+  const achados = []
+  const varrer = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const caminho = new URL(e.name + (e.isDirectory() ? '/' : ''), dir)
+      if (e.isDirectory()) varrer(caminho)
+      else if (/\.(jsx?|mjs)$/.test(e.name) && /window\.location\.origin/.test(readFileSync(caminho, 'utf8'))) achados.push(caminho.pathname.split('/src/')[1])
+    }
+  }
+  varrer(pasta)
+  assert.deepEqual(achados, [], 'texto para marca não pode usar window.location.origin: ' + achados.join(', '))
+})
+
+test('página: aceita o código curto (22) sem lowercase e o longo (32 hex) como sempre, e dá o mesmo código', () => {
+  const m = /function codigoDoLink\(bruto\) \{[\s\S]*?\n  \}\n/.exec(SCRIPTS[0])
+  assert.ok(m, 'página precisa declarar codigoDoLink(bruto)')
+  const codigoDoLink = vm.runInNewContext(m[0] + ';codigoDoLink')
+  for (const hex of [CODIGO, '7b95a98811b4495ca3e8179ba363f30e', 'f'.repeat(32), '0'.repeat(32)]) {
+    assert.equal(codigoDoLink(hex), hex)
+    assert.equal(codigoDoLink(hex.toUpperCase()), hex, 'o longo segue sem diferenciar maiúscula')
+    assert.equal(codigoDoLink(codigoCurto(hex)), hex, 'curto vira o mesmo código do banco')
+    assert.equal(codigoDoLink(codigoCurto(hex)), codigoLongo(codigoCurto(hex)), 'página e painel decodificam igual')
+  }
+  assert.equal(codigoDoLink('k=' + CODIGO.slice(0, 5)).length > 0, true) // não explode com lixo
+  assert.doesNotMatch(codigoDoLink('abc'), /^[a-f0-9]{32}$/, 'lixo continua falhando na validação de 32 hex')
+  assert.match(SCRIPTS[0], /var codigo = codigoDoLink\(/)
 })
 
 test('datas e período em português, sem fuso', () => {
@@ -74,6 +127,29 @@ test('diferença: só o que muda, com máscara e dinheiro normalizados', () => {
     'Loja nova · Rua / avenida', 'Loja nova · Número', 'Loja nova · Consumo no local',
   ])
   assert.deepEqual(d.find((x) => x.campo === 'Consumo no local' && x.grupo === 'Loja Tirol'), { grupo: 'Loja Tirol', campo: 'Consumo no local', de: '', para: 'Sim' })
+})
+
+test('WhatsApp da loja (23/10/2026): sem caixa de autorização; preenchido vai ao site e a revisão MOSTRA isso ("WhatsApp no site: Não → Sim")', () => {
+  const enviado = { unidades: [{ id: 'u1', logradouro: 'Rua A', numero: '10', bairro: 'Tirol', cep: '59000-000', whatsapp: '(84) 99999-0000', whatsapp_autorizado: true, consumo_local: 'nao_informado' }] }
+  // mesmo número, liberação de Não para Sim: tem que aparecer (senão o diálogo diz "Nada muda" e a equipe não vê que o número vai ao site)
+  assert.deepEqual(diferencasEnvio(ATUAL, enviado), [{ grupo: 'Loja Tirol', campo: 'WhatsApp no site', de: 'Não', para: 'Sim' }])
+  // número novo: o número e a liberação
+  const outro = diferencasEnvio(ATUAL, { unidades: [{ ...enviado.unidades[0], whatsapp: '(84) 98888-7777' }] })
+  assert.deepEqual(outro.map((x) => x.campo), ['WhatsApp da loja', 'WhatsApp no site'])
+  // já liberado e igual: nada muda; ausente conta como "não liberado"
+  assert.deepEqual(diferencasEnvio({ unidades: [{ ...ATUAL.unidades[0], whatsapp_autorizado: true }] }, enviado), [])
+  assert.deepEqual(diferencasEnvio({ unidades: [{ id: 'u1', whatsapp: '84999990000' }] }, { unidades: [{ id: 'u1', whatsapp: '(84) 99999-0000', whatsapp_autorizado: false }] }), [])
+  // número tirado: o site deixa de mostrar
+  assert.deepEqual(diferencasEnvio({ unidades: [{ ...ATUAL.unidades[0], whatsapp_autorizado: true }] }, { unidades: [{ id: 'u1', whatsapp: '', whatsapp_autorizado: false }] }).map((x) => x.campo + ': ' + x.de + ' → ' + x.para),
+    ['WhatsApp da loja: 84999990000 → ', 'WhatsApp no site: Sim → Não'])
+  // a página: nada de checkbox; o envio manda a liberação quando o número está preenchido
+  assert.doesNotMatch(PAGINA, /data-k="whatsapp_autorizado"|Pode aparecer no site/)
+  assert.match(PAGINA, /x\.whatsapp_autorizado = digitos\(x\.whatsapp \|\| ''\)\.length > 0;/)
+  assert.match(PAGINA, /WhatsApp da loja <em class="nota-curta">\(aparece no site/)
+  // e o banco aplica a liberação que vem no envio (o mesmo campo de sempre)
+  assert.match(SQL, /whatsapp_autorizado = \(un -> 'whatsapp_autorizado'\) = 'true'::jsonb and v_dig <> ''/)
+  // …e a definição vigente (a migração do horário a recria): preenchido vale, e só um "false" explícito de uma cópia antiga mantém fora
+  assert.match(SQL_HORARIO_FORM, /whatsapp_autorizado = v_dig <> '' and \(un -> 'whatsapp_autorizado'\) is distinct from 'false'::jsonb/)
 })
 
 test('diferença: loja removida e envio que só confirma', () => {
@@ -132,28 +208,93 @@ test('página: campos que o envio manda são os que o banco aplica', () => {
   for (const k of unidade) assert.ok(SQL.includes("'" + k + "'"), 'campo de item/loja sem par no banco: ' + k)
 })
 
-test('página: horário por seleção vira texto e volta igual', () => {
-  // Roda o próprio código da página (do DIAS até antes do montarHorario) num contexto isolado.
+test('página: horário no festival é UMA pergunta; o envio manda os períodos dia a dia e o banco os aplica (23/10/2026)', () => {
+  // O seletor, a cópia do modelo e o envio têm teste próprio: tests/preencher-horario.test.mjs. Aqui só o contrato com o banco.
+  assert.match(PAGINA, /data-pergunta="horario_festival"/)
+  assert.doesNotMatch(PAGINA, /data-pergunta="horario_(combo|loja)"|data-loja-igual|loja_igual/)
+  assert.match(SCRIPTS[0], /if \(linhasH\) x\.horario_festival = linhasH;/)
+  // O banco lê o array do envio, valida e grava na coluna nova; o retrato devolve os períodos (e o texto antigo só para "Hoje está").
+  assert.match(SQL_HORARIO_FORM, /jsonb_typeof\(un -> 'horario_festival'\) = 'array'/)
+  assert.match(SQL_HORARIO_FORM, /horario_festival_normalizar\(un -> 'horario_festival', v_ini, v_fim\)/)
+  const estado = SQL_HORARIO.slice(SQL_HORARIO.indexOf('function public.preenchimento_estado'), SQL_HORARIO.indexOf('function public.montar_publico'))
+  assert.match(estado, /'horario_combo', pu\.horarios, 'horario_festival', pu\.horario_festival/)
+  assert.doesNotMatch(estado, /horario_loja/, 'o horário da loja não volta mais para a página')
+})
+
+test('diferença: horário no festival lido como frase (a edição dá os dias); texto antigo continua legível; horário da loja nunca entra', () => {
+  const EDICAO = { inicio: '2026-11-05', fim: '2026-11-15' }
+  const DIAS = ['05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15'].map((d) => '2026-11-' + d)
+  const linhas = (abre, fecha, datas = DIAS) => datas.map((data) => ({ data, abre, fecha }))
+  const atual = { unidades: [{ id: 'u1', logradouro: 'Rua A', bairro: 'Tirol', horario_festival: [], horario_combo: 'Seg a Sex, 10h às 22h' }] }
+  const campo = (d) => d.map((x) => x.campo)
+
+  // ainda sem horário gravado → o que a marca mandou, em palavras
+  assert.deepEqual(diferencasEnvio(atual, { unidades: [{ id: 'u1', horario_festival: linhas('10:00', '22:00') }] }, EDICAO),
+    [{ grupo: 'Loja Tirol', campo: 'Horário no festival', de: 'Não informado', para: 'Todos os dias, das 10h às 22h' }])
+
+  // o mesmo horário não é mudança, venha o banco com HH:MM:SS e as chaves em outra ordem
+  const gravado = { unidades: [{ id: 'u1', logradouro: 'Rua A', horario_festival: DIAS.map((data) => ({ fecha: '22:00:00', abre: '10:00:00', data })) }] }
+  assert.deepEqual(diferencasEnvio(gravado, { unidades: [{ id: 'u1', horario_festival: linhas('10:00', '22:00') }] }, EDICAO), [])
+
+  // domingo fechado: só a edição sabe que o dia 15 existe; sem ela, só os dias que as linhas citam — NUNCA "todos os dias"
+  const semDomingo = { unidades: [{ id: 'u1', horario_festival: linhas('10:00', '22:00', DIAS.slice(0, 10)) }] }
+  assert.equal(diferencasEnvio(atual, semDomingo, EDICAO)[0].para, 'Qui 5 a Sáb 14/11: das 10h às 22h · Dom 15/11: não abre')
+  assert.equal(diferencasEnvio(atual, semDomingo)[0].para, 'Qui 5 a Sáb 14/11: das 10h às 22h')
+  assert.equal(diferencasEnvio(atual, semDomingo, {})[0].para, 'Qui 5 a Sáb 14/11: das 10h às 22h', 'edição sem datas = sem edição')
+  // a frase é a do módulo (a única função que transforma linhas em frases): painel, site e revisão dizem o mesmo
+  assert.equal(diferencasEnvio(atual, semDomingo, EDICAO)[0].para, resumoDeLinhas(semDomingo.unidades[0].horario_festival, datasDoFestival('2026-11-05', '2026-11-15')))
+
+  // dois períodos no dia e meia-noite
+  const turnos = { unidades: [{ id: 'u1', horario_festival: [...linhas('10:00', '14:00'), ...linhas('18:00', '24:00')] }] }
+  assert.equal(diferencasEnvio(atual, turnos, EDICAO)[0].para, 'Todos os dias, das 10h às 14h e das 18h à meia-noite')
+
+  // loja nova: sem "de"
+  assert.deepEqual(diferencasEnvio(atual, { unidades: [{ id: null, logradouro: 'Av. B', horario_festival: linhas('09:00', '12:00') }] }, EDICAO)
+    .filter((x) => x.campo === 'Horário no festival'), [{ grupo: 'Loja nova', campo: 'Horário no festival', de: '', para: 'Todos os dias, das 9h às 12h' }])
+
+  // envio ANTIGO (texto): continua legível, com o nome certo; o horário da loja não é mostrado nem aplicado
+  const antigo = { unidades: [{ id: 'u1', horario_combo: 'Seg a Sex, 10h às 22h; Sáb e Dom, fechado', horario_loja: 'seg a sáb, 8h às 20h' }] }
+  assert.deepEqual(diferencasEnvio(atual, antigo, EDICAO),
+    [{ grupo: 'Loja Tirol', campo: 'Horário (texto antigo)', de: 'Seg a Sex, 10h às 22h', para: 'Seg a Sex, 10h às 22h; Sáb e Dom, fechado' }])
+  assert.ok(!campo(diferencasEnvio(atual, antigo, EDICAO)).includes('Horário da loja'))
+})
+
+test('página: máscaras e conferência de formato', () => {
   const js = SCRIPTS[0]
-  const trecho = js.slice(js.indexOf('var DIAS'), js.indexOf('function montarHorario'))
-  const ctx = { txt: (v) => (v == null ? '' : String(v)) }
-  vm.runInNewContext(trecho + ';this.diasTexto=diasTexto;this.horaTexto=horaTexto;this.lerHorario=lerHorario;this.lerHorarios=lerHorarios;this.textoHorarios=textoHorarios;', ctx)
-  assert.equal(ctx.diasTexto([0, 1, 2, 3, 4, 5, 6]), 'Todos os dias')
-  assert.equal(ctx.diasTexto([1, 2, 3, 4, 5, 6]), 'Ter a Dom')
-  assert.equal(ctx.diasTexto([0, 2, 4]), 'Seg, Qua, Sex')
-  assert.equal(ctx.horaTexto('14:30') + ' · ' + ctx.horaTexto('9:00'), '14h30 · 9h')
-  for (const t of ['Todos os dias, 14h às 21h', 'Ter a Dom, 10h às 22h30', 'Seg, Qua, Sex, 9h às 18h', 'Sáb e Dom, 8h às 0h']) {
-    const l = ctx.lerHorario(t)
-    assert.ok(l, 'não leu: ' + t)
-    assert.equal(ctx.diasTexto(l.dias) + ', ' + ctx.horaTexto(l.abre) + ' às ' + ctx.horaTexto(l.fecha), t)
+  const trecho = js.slice(js.indexOf('function digitos'), js.indexOf('// O que falta'))
+  const ctx = {}
+  vm.runInNewContext(trecho + ';this.mascaraTel=mascaraTel;this.mascaraCep=mascaraCep;this.mascaraCnpj=mascaraCnpj;this.telefoneOk=telefoneOk;this.emailOk=emailOk;this.instagramLimpo=instagramLimpo;', ctx)
+  assert.equal(ctx.mascaraTel('84999990000'), '(84) 99999-0000')
+  assert.equal(ctx.mascaraTel('+55 84 3222-1000'), '(84) 3222-1000')
+  assert.equal(ctx.mascaraTel('8'), '(8')
+  assert.equal(ctx.mascaraCep('59090000'), '59090-000')
+  assert.equal(ctx.mascaraCnpj('12345678000190'), '12.345.678/0001-90')
+  assert.ok(ctx.telefoneOk('(84) 99999-0000') && ctx.telefoneOk('+55 (84) 3222-1000'))
+  assert.ok(!ctx.telefoneOk('99999-0000') && !ctx.telefoneOk('(84) 9999'))
+  assert.ok(ctx.emailOk('a@b.co') && !ctx.emailOk('a@b') && !ctx.emailOk('a b@c.com'))
+  assert.equal(ctx.instagramLimpo('https://www.instagram.com/minhamarca/?igsh=abc'), '@minhamarca')
+  assert.equal(ctx.instagramLimpo(' @@minhamarca '), '@minhamarca')
+  assert.equal(ctx.instagramLimpo(''), '')
+})
+
+test('página: duas vozes da família (Slab no título, Nexa na interface, Nexa Text na leitura)', () => {
+  const css = PAGINA.slice(PAGINA.indexOf('<style>'), PAGINA.indexOf('</style>')).replace(/@font-face\{[^}]*\}/g, '')
+  assert.match(css, /--f-ui:'nexa','Nexa Slab'/)
+  assert.match(css, /--f-texto:'nexa-text','Nexa Slab'/)
+  assert.match(css, /body\{[^}]*font-family:var\(--f-texto\)[^}]*font-weight:400[^}]*font-synthesis:none/)
+  assert.match(css, /h1,h2,h3\{font-family:var\(--f-slab\)/)
+  // O kit não tem 500 nem 800 na sem serifa: 800 só nos títulos (Slab), nenhum 500.
+  assert.doesNotMatch(css, /font-weight:500/)
+  const com800 = [...css.matchAll(/([^{}]+)\{[^}]*font-weight:800[^}]*\}/g)].map((m) => m[1].trim())
+  assert.deepEqual(com800.filter((x) => x !== 'h1,h2,h3'), [], '800 só nos títulos')
+  // Rótulo, botão e opção são Nexa; campo e parágrafo, Nexa Text.
+  for (const sel of ['.campo>span', '.pergunta>span', '.opcao', '.btn', '.marcar']) {
+    const regra = css.match(new RegExp('(?:^|\n|\})\s*' + sel.replace(/[.>]/g, '\$&') + '\{[^}]*\}'))
+    assert.ok(regra && /font-family:var\(--f-ui\)/.test(regra[0]), sel + ' em Nexa (interface)')
   }
-  assert.equal(ctx.lerHorario('de terça a domingo, a partir das 14'), null, 'texto livre antigo fica como "Hoje está"')
-  // Horário diferente por dia: faixas separadas por ";".
-  const multi = 'Seg a Sex, 12h às 21h; Sáb e Dom, 10h às 22h30'
-  const faixas = ctx.lerHorarios(multi)
-  assert.equal(faixas.length, 2)
-  assert.equal(ctx.textoHorarios(faixas), multi)
-  assert.equal(ctx.lerHorarios('Seg a Sex, 12h às 21h; qualquer coisa'), null)
+  // O kit carrega só pelo JS (o .css responde 412) e dentro do único script da página.
+  assert.doesNotMatch(PAGINA, /ngx4uek\.css/)
+  assert.match(SCRIPTS[0], /use\.typekit\.net\/ngx4uek\.js/)
 })
 
 test('página: alergênicos e características da página são os do banco', () => {
@@ -223,6 +364,9 @@ test('painel: senha só aparece se estiver na mão — nunca inventada nem repet
   assert.ok(!/Senha temporária: [A-Za-z0-9]{6,}/.test(enviada))
   const definida = textoPainel(painelDaMarca({ origem: ORIGEM, slug: 'caffebasilicos', acesso: { user_id: 'u', senha_trocada_em: '2026-10-01' } }))
   assert.ok(definida.includes('a que você criou no primeiro acesso') && !definida.includes('Senha temporária'))
+  const reemitida = textoPainel(painelDaMarca({ origem: ORIGEM, slug: 'caffebasilicos', acesso: { user_id: 'u', senha_trocada_em: '2026-10-01T10:00:00Z', senha_emitida_em: '2026-10-22T10:00:00Z' } }))
+  assert.match(reemitida, /Senha temporária: a que enviamos/, 'senha reemitida depois da troca volta a ser temporária')
+  assert.doesNotMatch(reemitida, /que você criou/)
   const sem = textoPainel(painelDaMarca({ origem: ORIGEM, slug: null, acesso: { user_id: null } }))
   assert.ok(sem.includes('chegam em seguida') && !sem.includes('Usuário:'))
   const naoLeu = textoPainel(painelDaMarca({ origem: ORIGEM, slug: 'x', acesso: undefined }))
@@ -249,4 +393,13 @@ test('lote de senhas: toda marca ativa com link; nunca acesso pausado, encerrada
   assert.equal(entraNoLoteDeSenhas({ marca: { ...m, status_cadastro: 'encerrado' }, acesso: { user_id: null } }), false)
   assert.equal(entraNoLoteDeSenhas({ marca: { ...m, codigo: null }, acesso: { user_id: null } }), false, 'sem link não há mensagem para levar a senha')
   assert.equal(entraNoLoteDeSenhas({ marca: m, acesso: null }), false, 'acesso não lido: não mexe em conta nenhuma')
+})
+
+test('gerar senhas: as mensagens ficam À VISTA numa folha com "Copiar tudo" (a cópia automática depois de ~1 min falhava calada)', () => {
+  const jsx = ler('painel-app/src/components/vistas/Preenchimento.jsx')
+  assert.match(jsx, /setLote\(\{ texto, n: ok\.length/)
+  assert.match(jsx, /<Folha aberto titulo=\{lote\.n/)
+  assert.match(jsx, /<textarea readOnly[^>]*value=\{lote\.texto\}/)
+  assert.match(jsx, /Copiar tudo/)
+  assert.match(jsx, /Fechar sem copiar\?/, 'fechar sem copiar pergunta: a senha não volta')
 })

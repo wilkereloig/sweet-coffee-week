@@ -1,5 +1,6 @@
 import React from 'react'
 import { Icone } from './Icone'
+import { historico } from '../lib/historico'
 
 /*
  * Confirmação própria do painel — substitui window.confirm/window.prompt, que
@@ -81,6 +82,14 @@ export function Confirmacoes() {
     setPedido(null)
     p.resolver(p.campo ? (sim ? valor : null) : sim)
   }
+  // Voltar do sistema (Android) com a confirmação aberta = "Voltar" (lib/historico.js › abrirCamada).
+  const responderRef = React.useRef(responder)
+  responderRef.current = responder
+  React.useEffect(() => {
+    if (!pedido) return undefined
+    const token = historico.abrirCamada(() => { if (responderRef.current) responderRef.current(false) })
+    return () => historico.fecharCamada(token)
+  }, [pedido])
 
   if (!pedido) return null
   const { titulo, paragrafos, acao, perigo } = partes(pedido)

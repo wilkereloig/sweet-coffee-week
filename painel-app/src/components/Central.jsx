@@ -4,6 +4,10 @@ import { Folha } from './Folha'
 import { Carregando, Erro, Vazio } from './ui'
 import { tempoRelativo, contarNaoLidas } from '../lib/central'
 import { Autor } from './Avatar'
+import { abrirConviteAparelho } from './AppNoAparelho'
+
+// A folha leva 260 ms para sair (Folha.jsx › SAIDA): o convite (outro <dialog>, com o próprio foco preso) só abre depois.
+const DEPOIS_DA_FOLHA = 300
 
 /*
  * Central de avisos — o sino do cabeçalho e a lista, IGUAL nos dois painéis.
@@ -20,9 +24,12 @@ const ICONE_TIPO = { mensagem: 'mensagem', pedido: 'pedido', arquivo: 'arquivo',
 const ICONE_NIVEL = { informacao: 'informacao', atencao: 'atencao-circulo', pendencia: 'pedido', alteracao: 'alteracao', aprovado: 'ok-circulo', arquivo: 'arquivo' }
 
 // `niveis` (opcional): { nivelDe(aviso) → chave, NIVEIS[chave] → { rotulo, acao } }.
-export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarregar, aberto, onAbrirCentral, onFecharCentral, niveis = null }) {
+// `aparelho` (opcional): o <AvisosAparelho> desta conta — vira "Avisos neste aparelho" no topo da folha. A casca não
+// passa no "Ver como" (o aparelho é do administrador, não da marca).
+export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarregar, aberto, onAbrirCentral, onFecharCentral, niveis = null, aparelho = null }) {
   const naoLidas = contarNaoLidas(itens)
   const lista = itens || []
+  const comoInstalar = () => { onFecharCentral(); setTimeout(abrirConviteAparelho, DEPOIS_DA_FOLHA) }
 
   return (
     <>
@@ -41,6 +48,16 @@ export function Central({ itens, carregando, erro, onAbrir, onLerTodas, onRecarr
         sub={naoLidas ? naoLidas + (naoLidas === 1 ? ' não lido' : ' não lidos') : 'Tudo em dia'}
         onFechar={onFecharCentral}
       >
+        {aparelho && (
+          // Recolhida (25/10/2026, pedido do Wilker): a lista de avisos é o que se abre o sino para ver; o aparelho fica a um toque.
+          <details className="ui-central-aparelho ui-recolhe">
+            <summary>Avisos neste aparelho</summary>
+            <div className="ui-central-aparelho__corpo">
+              {aparelho}
+              <button type="button" className="ui-link" onClick={comoInstalar}>Como instalar e ligar os avisos</button>
+            </div>
+          </details>
+        )}
         {naoLidas > 0 && (
           <div className="ui-linha-acoes">
             <button className="og-btn og-btn--vazado og-btn--mini" type="button" onClick={onLerTodas}>Marcar todos como lidos</button>

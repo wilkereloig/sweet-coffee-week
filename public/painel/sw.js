@@ -157,7 +157,14 @@ self.addEventListener('push', function (e) {
   let dados = {};
   try { dados = e.data ? e.data.json() : {}; } catch (err) { dados = {}; }
 
-  e.waitUntil(self.registration.showNotification(dados.titulo || 'Sweet & Coffee Week', {
+  /* Além de mostrar a notificação, avisa as abas do painel que JÁ estão abertas
+     (só um sinal, sem conteúdo): elas releem os avisos pela rota autorizada. É a
+     rede de segurança de quando o Realtime está fora do ar. */
+  const avisarAbas = dados.tipo === 'versao' ? Promise.resolve() : self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (abas) {
+    abas.forEach(function (a) { if (a.url.indexOf('/painel/') !== -1) a.postMessage({ tipo: 'push' }); });
+  }).catch(function () {});   /* push de VERSÃO não é dado novo: só o toque pede a verificação */
+
+  e.waitUntil(Promise.all([self.registration.showNotification(dados.titulo || 'Sweet & Coffee Week', {
     body: dados.corpo || '',
     icon: '/favicon-192.png',
     badge: '/favicon-96.png',
@@ -167,7 +174,7 @@ self.addEventListener('push', function (e) {
     tag: typeof dados.tag === 'string' ? dados.tag : 'scw-painel',
     renotify: true,
     data: { url: destinoSeguro(dados.url), versao: dados.tipo === 'versao' },
-  }));
+  }), avisarAbas]));
 });
 
 self.addEventListener('notificationclick', function (e) {

@@ -1,0 +1,60 @@
+/*
+ * Início da marca — nova ordem (22/10/2026). Peças novas de hoje/*.jsx; o resto da tela é de
+ * painel.css (.gm-*, .ui-modulo, .ui-macro, .og-selo). Só tokens do painel: paleta, --sup-*,
+ * --e-*, --r-*, --f-*. Nada de cor, raio ou fonte literal; nenhuma regra aqui redeclara fundo,
+ * borda ou sombra de CARD (essa definição mora no topo do painel.css). Nenhuma animação nova.
+ */
+
+/* Identificação: só no celular — acima de 900px o cabeçalho da página e a barra do topo já identificam a marca. */
+.im-ident{display:flex;align-items:center;gap:var(--e-3);min-width:0}
+.im-ident .ui-logo{box-shadow:inset 0 0 0 1px var(--scw-filete)}
+.im-ident__texto{min-width:0;display:flex;flex-direction:column;gap:2px}
+.im-ident__nome{margin:0;font:700 17px/1.2 var(--f-ui);overflow-wrap:anywhere}
+.im-ident__sub{margin:0;font:400 13.5px/1.35 var(--f-texto);color:var(--scw-marrom);text-wrap:pretty}
+@media (min-width:901px){ .im-ident{display:none} }
+
+/* Destaque (a ação principal): o cartão amarelo de sempre, com rótulo, prazo, comentário e motivo. */
+/* Dobra de especificidade nas regras que reescrevem .gm-proxima e .ui-bloco-interno: o resultado não depende de qual folha carrega primeiro. */
+.gm-proxima.im-destaque{margin-bottom:0;gap:var(--e-2)}
+.im-rotulo{display:inline-flex;align-items:center;gap:6px}
+.im-prazo{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--scw-filete);font:700 13px/1.3 var(--f-ui)}
+.im-prazo[data-urgente]{background:var(--scw-choco);color:var(--scw-creme)}
+.im-citacao{display:flex;flex-direction:column;gap:2px}
+.im-citacao__quem{font:700 12.5px/1.3 var(--f-ui)}
+/* A mensagem que ficou abaixo do destaque (há ação crítica). */
+.im-aparte{margin-top:var(--e-3)}
+.gm-pendencia[data-tipo="mensagens"] .gm-pendencia__icone{background:var(--scw-cyan)}
+
+/* Sem tarefa: aguardando a organização / edição encerrada / nada pendente. Ícone + título + texto. */
+.ui-bloco-interno.im-espera{display:flex;flex-direction:row;gap:var(--e-4);align-items:flex-start;padding:var(--e-4) var(--e-5)}
+.im-espera__icone{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--scw-cyan);color:var(--scw-choco)}
+.im-espera[data-tipo="encerrada"] .im-espera__icone,.im-espera[data-tipo="livre"] .im-espera__icone{background:var(--scw-choco);color:var(--scw-creme)}
+.im-espera__corpo{min-width:0}
+.im-espera__titulo{margin:0;font:700 18px/1.25 var(--f-ui)}
+.im-espera__texto{margin:4px 0 0;font:400 14.5px/1.45 var(--f-texto);color:var(--scw-marrom);max-width:60ch}
+.im-espera__lista{list-style:none;margin:var(--e-3) 0 0;padding:0;display:flex;flex-direction:column;gap:var(--e-2)}
+.im-espera__lista li{display:flex;align-items:flex-start;gap:var(--e-2);font:700 14px/1.35 var(--f-ui)}
+.im-espera__lista svg{flex:0 0 auto;margin-top:1px}
+
+/* Acompanhamento: progresso com o alcance dito + linhas com "quem age". */
+.im-progresso{display:flex;flex-direction:column;gap:var(--e-2)}
+.im-progresso .gm-progresso{margin:0}
+.im-progresso__dados{margin:0;font:700 15px/1.3 var(--f-ui)}
+.im-progresso__envio{display:flex;align-items:flex-start;gap:var(--e-2);margin:0;font:700 14px/1.4 var(--f-ui)}
+.im-progresso__envio svg{flex:0 0 auto;margin-top:1px}
+.im-linhas{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
+.im-linhas > li{border-bottom:1px solid var(--scw-filete)}
+.im-linha{width:100%;min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:var(--e-3);padding:var(--e-2) var(--e-1);
+  border:0;background:transparent;text-align:left;color:var(--scw-choco);font:inherit}
+button.im-linha{cursor:pointer}
+@media (hover:hover){ button.im-linha:hover{background:var(--sup-toque)} }
+.im-linha__corpo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.im-linha__corpo > b{font:700 14.5px/1.3 var(--f-ui)}
+.im-linha__corpo > span{font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom)}
+.im-linha__corpo > a{display:inline-flex;align-items:center;gap:4px;min-height:44px;font:700 13.5px/1.3 var(--f-ui)}
+.im-linha .og-selo{flex:0 0 auto}
+@media (max-width:520px){ .im-linha{flex-wrap:wrap;align-items:flex-start} }
+
+/* Comunicação: cabeçalho pequeno dos avisos recentes. */
+.im-sub{margin:var(--e-2) 0 0;font:700 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.gm-pendencia[data-urgente] .gm-pendencia__corpo > span{color:var(--scw-choco);font-weight:700}

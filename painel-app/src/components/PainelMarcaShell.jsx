@@ -14,6 +14,11 @@ import { InstalarApp, ConviteAparelho } from './AppNoAparelho'
 import { PontoVersao } from './Conexao'
 import { pushMarca } from '../lib/marcaApi'
 import { AvisosAparelho } from './AvisosAparelho'
+import { useSincronizar, useGuarda } from '../lib/sync/react'
+import { iniciarSincronizacao, pararSincronizacao } from '../lib/sync'
+import { IndicadorSync } from './IndicadorSync'
+import { historico } from '../lib/historico'
+import { Trilha, useHistorico } from './Trilha'
 
 /*
  * Casca do painel da MARCA — rail (desktop), cabeça e abas (celular), avisos
@@ -27,7 +32,7 @@ const DESTINOS = ['inicio', 'cadastro', 'combo', 'fotos', 'arquivos']
 const OCULTAS = ['pedidos', 'mensagens', 'guia']
 // Barra do celular: os cinco cabem, sem "Mais".
 const ATALHOS = DESTINOS
-const TITULOS = { inicio: 'Início', cadastro: 'Meu cadastro', combo: 'Meu combo', fotos: 'Fotos', arquivos: 'Arquivos', pedidos: 'Pedidos', mensagens: 'Mensagens', guia: 'Guia de fotos' }
+const TITULOS = { inicio: 'Início', cadastro: 'Meu cadastro', combo: 'Meu combo', fotos: 'Fotos', arquivos: 'Arquivos', pedidos: 'Solicitações', mensagens: 'Mensagens', guia: 'Guia de fotos' }
 const SUBS = {
   inicio: 'o que falta e o que vem agora',
   cadastro: 'o estabelecimento e onde encontrar',
@@ -39,6 +44,8 @@ const SUBS = {
   guia: 'como preparar o combo para as fotos',
 }
 
+// Ícone de cada vista (registro único): as do menu têm o nome da vista; as abertas de outra, o seu.
+const ICONE_VISTA = { pedidos: 'pedido', mensagens: 'mensagens', guia: 'camera' }
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3).
 const ACENTO_VISTA = { inicio: 'amarelo', cadastro: 'cyan', combo: 'laranja', fotos: 'magenta', arquivos: 'marrom', pedidos: 'laranja', mensagens: 'roxo', guia: 'magenta' }
 
@@ -53,7 +60,11 @@ function aplicarAcento(vista) {
   document.body.style.setProperty('--pn-acento-escuro', 'var(--scw-' + (escura ? 'amarelo' : cor) + ')')
 }
 
-const INTERVALO = 60000
+// Avisos deste aparelho: o mesmo texto no sino e no tour.
+const EXPLICACAO_AVISOS = 'Ligue para saber na hora quando a organização escrever, fizer uma solicitação ou marcar as fotos.'
+
+// O que o resumo da marca lê (useResumoMarca): qualquer um destes mudou → relê, sem poll.
+const DOMINIOS_RESUMO = ['participantes', 'cadastro', 'unidades', 'correcoes', 'pedidos', 'fotos', 'arquivos', 'temas', 'logos', 'publicacao', 'edicao']
 
 // Rota da marca no endereço: #combo/2?campo=item-2-descricao (bloco na
 // "aba", campo e item nos filtros). Recarregar volta ao mesmo lugar.
@@ -69,7 +80,9 @@ const normalizar = (r) => {
     : { vista: 'inicio', aba: '', filtros: {} }
 }
 
-export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial = null }) {
+// `verComo` ({ nome, onSair }): o administrador vendo como a marca (App › VerComoParticipante). Sem tempo real, sem
+// tour automático, sem convite de aparelho, sem marcar aviso como lido: só leitura (marcaApi bloqueia o resto).
+export function PainelMarcaShell({ vistas = {}, onSair, onPausada, onTrocaDeConta = null, linkInicial = null, verComo = null }) {
   const [rota, setRota] = React.useState(() => normalizar(lerRota(location.hash)))
   const vista = rota.vista
   const [contaAberta, setContaAberta] = React.useState(false)
@@ -86,14 +99,17 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
 
   React.useEffect(() => { aplicarAcento(vista) }, [vista])
 
-  // Voltar/Avançar do navegador e endereço colado.
+  // Voltar/Avançar (o do cabeçalho, o do sistema no Android) e endereço colado. Quem mexe no
+  // histórico é lib/historico.js: as voltas internas das folhas não chegam aqui.
+  // Antes de qualquer folha (o efeito do filho roda antes do do pai; layout roda antes de todos).
+  React.useLayoutEffect(() => { historico.iniciar('marca', { chaveDe: (h) => normalizar(lerRota(h)).vista }) }, [])
   React.useEffect(() => {
     const h = montarRota(rota)
-    if (location.hash !== h) history.replaceState(history.state, '', h)
+    if (location.hash !== h) historico.irPara(h, { substituir: true })
     const mudou = () => setRota(normalizar(lerRota(location.hash)))
     window.addEventListener('hashchange', mudou)
-    window.addEventListener('popstate', mudou)
-    return () => { window.removeEventListener('hashchange', mudou); window.removeEventListener('popstate', mudou) }
+    const parar = historico.aoMudarEndereco(mudou)
+    return () => { window.removeEventListener('hashchange', mudou); parar() }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const navegar = React.useCallback((r, { substituir = false } = {}) => {
@@ -101,13 +117,11 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     const h = montarRota(destino)
     setRota(destino)
     if (h === location.hash) return
-    if (substituir) history.replaceState(history.state, '', h)
-    // `interno`: a entrada nasceu dentro do painel, então "Voltar" pode
-    // usar o histórico sem sair do app (link colado ou push abrem sem ele).
-    else history.pushState({ interno: true }, '', h)
+    historico.irPara(h, { substituir })
   }, [])
+  // "Voltar" de dentro de uma vista: a tela anterior desta sessão, ou o Início (link colado, push).
   const voltar = React.useCallback(() => {
-    if (history.state && history.state.interno) history.back()
+    if (historico.podeVoltar()) historico.voltar()
     else navegar({ vista: 'inicio' })
   }, [navegar])
 
@@ -129,40 +143,62 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     if (d) irPara(d.vista, d)
   }, [irPara])
 
-  const seqAvisos = React.useRef(0)
-  const carregar = React.useCallback(async () => {
-    const minha = ++seqAvisos.current
-    // Cada leitura por si: avisos fora do ar não congelam o resumo nem a
-    // detecção de conta pausada.
-    recarregarResumo()
-    // Bloqueada/desativada com o painel aberto: a RLS devolve listas vazias
-    // (sem erro), então só o perfil conta a verdade.
-    if (pausadaRef.current) precisaTrocarSenha().then((s) => { if (s === 'pausada' && pausadaRef.current) pausadaRef.current() })
+  // Sincronização desta sessão: canais privados da marca (e da pessoa) no Realtime.
+  // Outra aba que sair ou entrar como OUTRA conta encerra este contexto (App.trocaLocal).
+  const trocaRef = React.useRef(onTrocaDeConta)
+  trocaRef.current = onTrocaDeConta
+  React.useEffect(() => {
+    if (verComo) return undefined
+    iniciarSincronizacao({ tipo: 'marca', aoTrocaDeConta: (m) => { if (trocaRef.current) trocaRef.current(m) } })
+    return () => pararSincronizacao()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Avisos e mensagens não lidas. Resposta velha (rede lenta) nunca sobrescreve a nova,
+  // nem depois de sair ou trocar de conta (useGuarda). Devolve false só se a leitura falhou.
+  const guardaAvisos = useGuarda()
+  const carregarAvisos = React.useCallback(async () => {
+    const vale = guardaAvisos()
     const [n, m] = await Promise.allSettled([
       api('notificacoes?select=id,criada_em,tipo,titulo,texto,link,lida_em&order=criada_em.desc&limit=60'),
       api('mensagens?select=id&de=eq.organizacao&lida_em=is.null'),
     ])
-    // Resposta velha (rede lenta) não sobrescreve a mais nova.
-    if (minha !== seqAvisos.current) return
+    if (!vale()) return true
+    let ok = true
+    const morta = (r) => r.status === 'rejected' && r.reason && r.reason.message === 'sessao_expirada'
     if (n.status === 'fulfilled') { setAvisos(n.value || []); setAvisosErro(null) }
-    else if (!(n.reason && n.reason.message === 'sessao_expirada')) setAvisosErro(n.reason && n.reason.message)
+    else if (!morta(n)) { setAvisosErro(n.reason && n.reason.message); ok = false }
     if (m.status === 'fulfilled') setMsgsNaoLidas((m.value || []).length)
+    else if (!morta(m)) ok = false
     setAvisosCarregando(false)
-  }, [recarregarResumo])
+    return ok
+  }, [guardaAvisos])
 
-  React.useEffect(() => {
-    carregar()
-    const t = setInterval(() => { if (document.visibilityState === 'visible') carregar() }, INTERVALO)
-    const volta = () => { if (document.visibilityState === 'visible') carregar() }
-    document.addEventListener('visibilitychange', volta)
-    return () => { clearInterval(t); document.removeEventListener('visibilitychange', volta) }
-  }, [carregar])
+  // Bloqueada/desativada com o painel aberto: a RLS devolve listas vazias (sem
+  // erro), então só o perfil conta a verdade. O servidor avisa pelo canal pessoal.
+  const verificarConta = React.useCallback(() => {
+    if (!pausadaRef.current) return undefined
+    return precisaTrocarSenha().then((s) => { if (s === 'pausada' && pausadaRef.current) pausadaRef.current() })
+  }, [])
+
+  // Relê tudo (sino, mensagem do service worker, depois de ler mensagens). Cada leitura por si:
+  // avisos fora do ar não congelam o resumo nem a detecção de conta pausada.
+  const carregar = React.useCallback(async () => {
+    recarregarResumo()
+    verificarConta()
+    return carregarAvisos()
+  }, [recarregarResumo, verificarConta, carregarAvisos])
+
+  React.useEffect(() => { carregar() }, [carregar])
+  useSincronizar(['avisos', 'mensagens'], async () => { if (!(await carregarAvisos())) throw new Error('avisos') })
+  useSincronizar(DOMINIOS_RESUMO, async () => { if (!(await recarregarResumo())) throw new Error('resumo') })
+  useSincronizar(['perfis'], verificarConta)
 
   React.useEffect(() => { if (linkInicial) abrirLink(linkInicial) }, [linkInicial]) // eslint-disable-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (!('serviceWorker' in navigator)) return
     function ouvir(ev) {
       const d = ev.data
+      if (d && d.tipo === 'push') { carregar(); return }     // push chegou com o painel aberto
       if (!d || d.tipo !== 'abrir' || typeof d.url !== 'string') return
       const ir = new URL(d.url, location.origin).searchParams.get('ir')
       if (ir) abrirLink(ir)
@@ -174,21 +210,45 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
 
   function abrirAviso(n) {
     setCentralAberta(false)
-    if (!n.lida_em) {
+    if (!n.lida_em && !verComo) {
       setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida_em: new Date().toISOString() } : x)))
-      api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: [n.id] } }).catch(() => {})
+      api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: [n.id] } }).catch((e) => {
+        // A leitura NÃO foi gravada: o aviso volta a "não lido" e o contador acompanha.
+        if (e && e.message === 'sessao_expirada') return
+        setAvisos((l) => l.map((x) => (x.id === n.id ? { ...x, lida_em: null } : x)))
+        setAvisosErro('Não deu para marcar o aviso como lido. Ele continua na lista.')
+        carregarAvisos()
+      })
     }
     if (n.link) abrirLink(n.link, n.tipo)
   }
   async function lerTodas() {
+    if (verComo) return
+    const antes = avisos
     setAvisos((l) => l.map((x) => ({ ...x, lida_em: x.lida_em || new Date().toISOString() })))
-    try { await api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: null } }) } catch (e) { setAvisosErro(e.message) }
+    try { await api('rpc/marca_ler_notificacoes', { metodo: 'POST', corpo: { p_ids: null } }) } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      setAvisos(antes)
+      setAvisosErro('Não deu para marcar os avisos como lidos. Eles continuam na lista.')
+      carregarAvisos()
+    }
   }
 
   // Progresso do tour pela marca; espera o id chegar. Aberto por aviso ou push, não se impõe.
-  const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial })
+  const tour = useTour('marca', dadosMarca && dadosMarca.participante && dadosMarca.participante.id, { autoIniciar: !linkInicial && !verComo })
   const idParticipante = (dadosMarca && dadosMarca.participante && dadosMarca.participante.id) || null
   const pushDaMarca = React.useMemo(() => pushMarca(idParticipante), [idParticipante])
+  // Avisos deste aparelho (sino, tour). Nunca no "Ver como": o aparelho é do administrador, e ligar pediria permissão nele.
+  const comAparelho = !verComo && !!idParticipante
+
+  // Voltar + telas recentes (components/Trilha.jsx).
+  const fotoHistorico = useHistorico()
+  const comTrilha = !!(fotoHistorico.anterior || fotoHistorico.recentes.length)
+  const descrever = React.useCallback((h) => {
+    const v = normalizar(lerRota(h)).vista
+    return { titulo: TITULOS[v], caminho: SUBS[v], falado: TITULOS[v], icone: ICONE_VISTA[v] || v, acento: ACENTO_VISTA[v] }
+  }, [])
+  const abrirHash = React.useCallback((h) => irPara(normalizar(lerRota(h)).vista), [irPara])
 
   const Vista = vistas[vista]
   // Números das abas = pendências daquela seção (+ mensagens não lidas no Início).
@@ -199,7 +259,14 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
     : d === 'combo' ? ['tema', 'itens', 'preco'].every((k) => (resumo.etapas.find((e) => e.chave === k) || {}).estado === 'feito') : false)
 
   return (
-    <div className="pn-casca">
+    <div className={'pn-casca' + (verComo ? ' vc-casca' : '')}>
+      {verComo && (
+        <div className="vc-faixa" role="status">
+          <Icone nome="visao" tamanho={16} />
+          <span>Vendo como <b>{verComo.nome}</b> · nada é gravado</span>
+          <button type="button" className="vc-faixa__sair" onClick={verComo.onSair}>Sair</button>
+        </div>
+      )}
       <nav className="pn-rail" aria-label="Seções" data-tour="menu">
         <img className="pn-rail__selo" src="/images/logo-seal-sweet-coffee.svg" alt="Sweet & Coffee Week" />
         {DESTINOS.map((d) => (
@@ -208,7 +275,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
             className="pn-rail__btn"
             type="button"
             data-tour={'menu-' + d}
-            aria-label={TITULOS[d] + (contadores[d] ? ' (' + contadores[d] + (contadores[d] === 1 ? ' pendência)' : ' pendências)') : pronto(d) ? ' (concluído)' : '')}
+            aria-label={TITULOS[d] + (contadores[d] ? ' (' + contadores[d] + (contadores[d] === 1 ? ' pendência)' : ' pendências)') : pronto(d) ? ' (preenchido)' : '')}
             aria-current={d === vista ? 'page' : undefined}
             onClick={() => irPara(d)}
           >
@@ -225,12 +292,12 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
         </button>
       </nav>
 
-      <header className="pn-cabeca">
+      <header className={'pn-cabeca' + (comTrilha ? ' pn-cabeca--trilha' : '')}>
         <img className="pn-cabeca__marca" src="/images/logo-seal-sweet-coffee.svg" alt="" />
         <div className="pn-cabeca__texto">
-          <p className="pn-cabeca__contexto">Painel SCW · Participante</p>
+          {!comTrilha && <p className="pn-cabeca__contexto">Painel SCW · Participante</p>}
           <h1 className="pn-cabeca__titulo">{TITULOS[vista]}</h1>
-          <p className="pn-cabeca__sub">{SUBS[vista]}</p>
+          {comTrilha ? <Trilha foto={fotoHistorico} descrever={descrever} onIr={abrirHash} /> : <p className="pn-cabeca__sub">{SUBS[vista]}</p>}
         </div>
         {/* A marca se reconhece no topo: logo, nome, edição e quanto falta. */}
         {dadosMarca && dadosMarca.participante && (
@@ -238,18 +305,20 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
             <LogoMarca url={urlLogo(dadosMarca.logo && dadosMarca.logo.atual && dadosMarca.logo.atual.path)} nome={dadosMarca.participante.nome_marca} tamanho={36} />
             <span className="pn-cabeca__ident-texto">
               <span className="pn-cabeca__ident-nome">{dadosMarca.participante.nome_marca}</span>
-              <span className="pn-cabeca__ident-sub">{[dadosMarca.participacao && 'Edição ' + dadosMarca.participacao.edicao_codigo, resumo && !resumo.semParticipacao && 'Cadastro ' + resumo.progresso.pct + '% concluído'].filter(Boolean).join(' · ')}</span>
+              <span className="pn-cabeca__ident-sub">{[dadosMarca.participacao && 'Edição ' + dadosMarca.participacao.edicao_codigo, resumo && !resumo.semParticipacao && resumo.progresso.pct + '% dos dados básicos'].filter(Boolean).join(' · ')}</span>
             </span>
           </div>
         )}
         <div className="pn-cabeca__dir">
+          {!verComo && <IndicadorSync />}
           {/* A conversa a um toque de qualquer tela (no celular, só o ícone). */}
           {vista !== 'mensagens' && (
             <button type="button" className="pn-cabeca__btn pn-cabeca__btn--texto" data-tour="conversa"
-              aria-label={'Falar com a organização' + (msgsNaoLidas ? ' (' + msgsNaoLidas + (msgsNaoLidas === 1 ? ' mensagem nova)' : ' mensagens novas)') : '')}
+              aria-label={'Conversa: falar com a organização' + (msgsNaoLidas ? ' (' + msgsNaoLidas + (msgsNaoLidas === 1 ? ' mensagem nova)' : ' mensagens novas)') : '')}
               onClick={() => irPara('mensagens')}>
               <Icone nome="mensagens" tamanho={20} />
               <span className="pn-cabeca__btn-rotulo" aria-hidden="true">Falar com a organização</span>
+              <span className="pn-cabeca__btn-curto" aria-hidden="true">Conversa</span>
               {msgsNaoLidas > 0 && <span className="pn-badge" aria-hidden="true">{msgsNaoLidas}</span>}
             </button>
           )}
@@ -267,6 +336,7 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
             onLerTodas={lerTodas}
             onRecarregar={carregar}
             niveis={{ nivelDe: nivelDoAviso, NIVEIS }}
+            aparelho={comAparelho ? <AvisosAparelho explicacao={EXPLICACAO_AVISOS} {...pushDaMarca} /> : null}
           />
           {/* Conta (avisos do aparelho e sair) — no celular fica aqui; no
               desktop, no pé da rail. */}
@@ -315,11 +385,10 @@ export function PainelMarcaShell({ vistas = {}, onSair, onPausada, linkInicial =
         onIr={(d) => irPara(d)}
       />
       {tour.aberto && <Tour etapas={tour.etapas} onFechar={tour.fechar} onIr={(l) => abrirLink(l)}
-        aparelho={<><InstalarApp compacto />{dadosMarca && dadosMarca.participante && <AvisosAparelho compacto
-          explicacao="Ligue para saber na hora quando a organização escrever, pedir algo ou marcar as fotos."
-          {...pushMarca(dadosMarca.participante.id)} />}</>} />}
-      <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={onSair} />
-      <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto} />
+        aparelho={comAparelho ? <><InstalarApp compacto papel="marca" /><AvisosAparelho compacto explicacao={EXPLICACAO_AVISOS} {...pushDaMarca} /></> : null} />}
+      <ContaMarca aberto={contaAberta} onFechar={() => setContaAberta(false)} onSair={verComo ? verComo.onSair : onSair} verComo={!!verComo} />
+      {/* Já na 1ª visita, logo depois do tour (decisão do Wilker, 23/10/2026); no app instalado, enquanto os avisos estiverem desligados. */}
+      {!verComo && <ConviteAparelho papel="marca" conta={idParticipante} push={pushDaMarca} liberado={!tour.aberto} />}
     </div>
   )
 }

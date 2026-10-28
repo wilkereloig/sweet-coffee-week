@@ -1,6 +1,6 @@
 import React from 'react'
 import { avisoSuportado, assinaturaDoAparelho, ligarAvisos, instalado } from '../lib/push'
-import { estadoAtual, ouvirInstalacao, pedirInstalacao, conviteAdiado, adiarConvite, plataforma, etapaDoConvite } from '../lib/instalar'
+import { estadoAtual, ouvirInstalacao, pedirInstalacao, conviteAdiado, adiarConvite, plataforma, etapaDoConvite, COMO_LIBERAR } from '../lib/instalar'
 import { pendencias } from '../lib/pendencias'
 import { AvisosAparelho } from './AvisosAparelho'
 import { VerificarAtualizacao, monitorDoPainel } from './Conexao'
@@ -32,7 +32,17 @@ export const PUSH_ORGANIZACAO = {
   preferir: (endpoint, ligado) => rpc('push_aparelho', { p_secret: lerSenha(), p_endpoint: endpoint, p_avisar_versao: ligado }),
 }
 
-const BENEFICIO = 'Abre direto no painel, em tela cheia, e recebe avisos mesmo com ele fechado.'
+// O motivo de instalar, nas palavras de quem usa: entrar sem digitar tudo de novo e receber os avisos.
+// iOS abaixo de 16.4 não recebe aviso (`p.iosAntigo`): o convite não promete o que o aparelho não faz.
+const BENEFICIO = (papel, p = {}) => {
+  if (p.iosAntigo) return 'Abre direto no painel, sem digitar ' + (papel === 'marca' ? 'nome e senha' : 'login e senha') + ' toda vez. Os avisos precisam do iOS 16.4 ou mais novo: atualize o iPhone para recebê-los.'
+  return papel === 'marca'
+    ? 'Abre direto no painel, sem digitar nome e senha toda vez, e recebe os avisos da organização mesmo com o painel fechado.'
+    : 'Abre direto no painel, sem digitar login e senha toda vez, e recebe os avisos mesmo com o painel fechado.'
+}
+// O app da Tela de Início do iPhone guarda a sessão à parte do Safari: entra uma vez lá dentro e fica.
+const LOGIN_DO_PAPEL = (papel) => (papel === 'marca' ? 'o nome e a senha' : 'o login e a senha')
+const ONDE_FICA = (papel) => (papel === 'marca' ? 'Sua conta' : 'Meu perfil') + ' › Aplicativo e notificações'
 
 function useInstalacao() {
   const [estado, setEstado] = React.useState(estadoAtual)
@@ -40,14 +50,14 @@ function useInstalacao() {
   return estado
 }
 
-export function InstalarApp({ compacto = false }) {
+export function InstalarApp({ compacto = false, papel = '' }) {
   const estado = useInstalacao()
   const [aviso, setAviso] = React.useState(null)
 
   async function instalar() {
     setAviso(null)
     const aceitou = await pedirInstalacao()
-    setAviso(aceitou ? 'Instalando. O ícone do Painel SCW aparece na tela inicial.' : 'Instalação cancelada. Dá para instalar depois em Meu perfil › Aplicativo e notificações.')
+    setAviso(aceitou ? 'Instalando. O ícone do Painel SCW aparece na tela inicial.' : 'Instalação cancelada. Dá para instalar depois em ' + ONDE_FICA(papel) + '.')
   }
 
   if (estado === 'instalado') {
@@ -61,10 +71,10 @@ export function InstalarApp({ compacto = false }) {
   }
   return (
     <div className="ui-instalar">
-      {!compacto && <p className="ui-nota">{BENEFICIO}</p>}
+      {!compacto && <p className="ui-nota">{BENEFICIO(papel, plataforma())}</p>}
       {estado === 'pronto' && <button className="og-btn og-btn--mini" type="button" onClick={instalar}>Instalar o painel</button>}
       {estado === 'ios' && (
-        <p className="ui-nota">No iPhone e no iPad: no Safari, toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>. Abra o painel pelo ícone novo. Só assim os avisos funcionam no iPhone.</p>
+        <p className="ui-nota">No iPhone e no iPad: no Safari, toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>. Abra o painel pelo ícone novo. Só assim os avisos funcionam no iPhone.{!compacto && ' Na primeira vez pelo ícone, entre com ' + LOGIN_DO_PAPEL(papel) + '; depois o painel fica aberto até você tocar em Sair.'}</p>
       )}
       {estado === 'manual' && !compacto && (
         <p className="ui-nota">Aberto no navegador. Se o Painel SCW já está na sua tela inicial, abra por lá. Para instalar: procure <b>Instalar app</b> ou <b>Adicionar à tela inicial</b> no menu do navegador. O painel também funciona direto pelo navegador.</p>
@@ -74,7 +84,7 @@ export function InstalarApp({ compacto = false }) {
   )
 }
 
-/* "Ver as instruções de novo" (Meu perfil) abre o mesmo diálogo, sem esperar os 7 dias. */
+/* "Ver as instruções de novo" (Meu perfil) e "Como instalar e ligar os avisos" (sino) abrem o mesmo diálogo, sem esperar os 7 dias. */
 const reabrir = new Set()
 export const abrirConviteAparelho = () => reabrir.forEach((f) => f())
 
@@ -102,51 +112,54 @@ async function lerAvisos(push) {
   return { suportado: true, registrado, negado }
 }
 
-const COMO_LIBERAR = (p, app) => p.ios ? 'Ajustes do iPhone › Notificações › Painel SCW › Permitir Notificações.'
-  : p.android && app ? 'Configurações do aparelho › Apps › Painel SCW › Notificações › Permitir.'
-  : p.android ? 'Toque no cadeado ao lado do endereço › Permissões › Notificações › Permitir.'
-  : 'Clique no cadeado ao lado do endereço do site › Notificações › Permitir. Depois, recarregue o painel.'
-
 /**
  * O convite depois do login. `liberado`: a casca diz quando pode (sem tour aberto,
- * conta carregada). Nunca sobre outro diálogo, nunca durante edição ou envio.
+ * conta carregada) — desde 23/10/2026 já na 1ª visita, logo depois do tour. Abre de
+ * novo no app instalado enquanto as notificações estiverem desligadas. Nunca sobre
+ * outro diálogo, nunca durante edição ou envio.
  */
 export function ConviteAparelho({ papel, conta, push, liberado = true }) {
   const dialogo = React.useRef(null)
   const origem = React.useRef(null)
   const [etapa, setEtapa] = React.useState(null) // 'instalar' | 'notificacoes' | 'pronto'
-  const [comoInstalar, setComoInstalar] = React.useState(false)
   const [msg, setMsg] = React.useState(null) // { tom, texto }
   const [ocupado, setOcupado] = React.useState(false)
   const [avisos, setAvisos] = React.useState(null)
   const instalacao = useInstalacao()
   const p = plataforma()
   const app = instalado()
+  // ponytail: "Agora não" no navegador não cala o app instalado (e vice-versa) — sufixo na conta, sem chave nova em instalar.js.
+  const chave = conta && (app ? conta + '-app' : conta)
 
+  // false = nada a mostrar · 'ocupada' = havia, mas outra coisa tomou a tela enquanto os avisos eram lidos · true = abriu.
   const abrir = React.useCallback(async ({ forcado = false } = {}) => {
     const av = await lerAvisos(push)
     setAvisos(av)
     const e = etapaDoConvite({ standalone: instalado(), instalacao: estadoAtual(), movel: plataforma().movel, avisos: av })
     if (!e && !forcado) return false
-    setMsg(null); setComoInstalar(false)
+    // A leitura pode ter ido à rede: quem começou a digitar, abriu uma folha ou recebeu o aviso de atualização nesse meio-tempo não perde o foco.
+    if (!forcado && telaOcupada()) return 'ocupada'
+    setMsg(null)
     setEtapa(e || 'pronto')
     return true
   }, [push])
 
   // Primeira abertura elegível: 2,5 s depois de a casca liberar; se a tela estiver ocupada, tenta mais umas vezes e desiste.
   React.useEffect(() => {
-    if (!conta || !liberado || conviteAdiado(papel, conta) || jaMostrado(papel, conta)) return undefined
+    if (!chave || !liberado || conviteAdiado(papel, chave) || jaMostrado(papel, chave)) return undefined
     let vivo = true
     let n = 0
     let t = null
     const tentar = async () => {
       if (!vivo) return
       if (telaOcupada()) { if (++n < 8) t = setTimeout(tentar, 15000); return }
-      if (await abrir() && vivo) marcarMostrado(papel, conta)
+      const r = await abrir()
+      if (r === 'ocupada') { if (vivo && ++n < 8) t = setTimeout(tentar, 15000); return }
+      if (r && vivo) marcarMostrado(papel, chave)
     }
     t = setTimeout(tentar, 2500)
     return () => { vivo = false; clearTimeout(t) }
-  }, [conta, liberado, papel, abrir])
+  }, [chave, liberado, papel, abrir])
 
   React.useEffect(() => {
     const f = () => abrir({ forcado: true })
@@ -162,7 +175,7 @@ export function ConviteAparelho({ papel, conta, push, liberado = true }) {
   }, [etapa])
 
   function fechar({ adiar = true } = {}) {
-    if (adiar && etapa !== 'pronto') adiarConvite(papel, conta)
+    if (adiar && etapa !== 'pronto') adiarConvite(papel, chave)
     setEtapa(null)
     const o = origem.current
     setTimeout(() => { if (o && typeof o.focus === 'function' && document.contains(o)) o.focus() }, 0)
@@ -171,7 +184,7 @@ export function ConviteAparelho({ papel, conta, push, liberado = true }) {
   async function instalar() {
     setMsg(null)
     const aceitou = await pedirInstalacao()
-    if (!aceitou) { setMsg({ tom: '', texto: 'Instalação cancelada. Quando quiser, está em Meu perfil › Aplicativo e notificações.' }); return }
+    if (!aceitou) { setMsg({ tom: '', texto: 'Instalação cancelada. Quando quiser, está em ' + ONDE_FICA(papel) + '.' }); return }
     const av = await lerAvisos(push)
     setAvisos(av)
     if (av.suportado && !av.registrado) { setEtapa('notificacoes'); setMsg({ tom: 'ok', texto: 'Instalando. Enquanto isso, você já pode ativar as notificações.' }) }
@@ -206,15 +219,18 @@ export function ConviteAparelho({ papel, conta, push, liberado = true }) {
   let principal = null
   if (etapa === 'instalar') {
     titulo = movel ? 'Tenha o Painel SCW no seu celular' : 'Tenha o Painel SCW neste computador'
+    // Sem o convite do navegador, os passos são o único caminho: aparecem direto, sem um toque a mais.
+    const passos = instalacao !== 'pronto'
     corpo = (
       <>
-        <p>Adicione o painel à tela inicial para abrir pelo ícone, como um aplicativo. Depois, você pode ativar as notificações para acompanhar as novidades.</p>
-        {comoInstalar && (p.ios ? (
+        <p>{BENEFICIO(papel, p)}</p>
+        {passos && (p.ios ? (
           <ol className="cv-passos">
-            {!p.safari && <li><Icone nome="seta-direita" tamanho={20} /><span>Abra este endereço no <b>Safari</b> (no Chrome do iPhone não dá).</span></li>}
+            {!p.safari && <li><Icone nome="seta-direita" tamanho={20} /><span>No iPhone, use o <b>Safari</b> para instalar: abra este endereço nele.</span></li>}
             <li><Icone nome="compartilhar" tamanho={20} /><span>Toque em <b>Compartilhar</b> (o quadrado com a seta, embaixo ou no topo).</span></li>
             <li><Icone nome="mais" tamanho={20} /><span>Escolha <b>Adicionar à Tela de Início</b>.</span></li>
             <li><Icone nome="feito" tamanho={20} /><span>Confirme em <b>Adicionar</b> e abra pelo novo ícone <b>Painel SCW</b>.</span></li>
+            <li><Icone nome="informacao" tamanho={20} /><span>Na primeira vez que abrir pelo ícone, entre com {LOGIN_DO_PAPEL(papel)}. Depois o painel fica aberto até você tocar em <b>Sair</b>.</span></li>
           </ol>
         ) : (
           <ol className="cv-passos">
@@ -223,14 +239,13 @@ export function ConviteAparelho({ papel, conta, push, liberado = true }) {
             <li><Icone nome="feito" tamanho={20} /><span>Abra pelo novo ícone <b>Painel SCW</b>.</span></li>
           </ol>
         ))}
-        <p className="cv-nota">Já instalou? Abra pelo ícone “Painel SCW” — este convite aparece porque o painel está aberto no navegador. Sem instalar, tudo funciona pelo navegador também.</p>
+        <p className="cv-nota">Já instalou? Abra pelo ícone “Painel SCW”. Sem instalar, tudo funciona pelo navegador também.</p>
       </>
     )
-    principal = instalacao === 'pronto'
-      ? <Botao variante="destaque" icone="baixar" onClick={instalar}>Instalar painel</Botao>
-      : !comoInstalar
-        ? <Botao variante="destaque" icone="informacao" onClick={() => setComoInstalar(true)}>Ver como instalar</Botao>
-        : <Botao variante="destaque" icone="feito" onClick={() => fechar({ adiar: false })}>Entendi</Botao>
+    // "Entendi" também adia (7 dias): sem isso, no navegador do celular o convite voltaria em toda aba nova ou link aberto.
+    principal = passos
+      ? <Botao variante="destaque" icone="feito" onClick={() => fechar()}>Entendi</Botao>
+      : <Botao variante="destaque" icone="baixar" onClick={instalar}>Instalar painel</Botao>
   } else if (etapa === 'notificacoes') {
     titulo = 'Ative as notificações do painel'
     corpo = negado ? (
@@ -239,7 +254,10 @@ export function ConviteAparelho({ papel, conta, push, liberado = true }) {
         <p>Para liberar: {COMO_LIBERAR(p, app)}</p>
       </>
     ) : (
-      <p>Receba avisos sobre mensagens, tarefas e novidades da sua conta, incluindo atualizações do painel.</p>
+      <>
+        <p>Receba avisos sobre mensagens, tarefas e novidades da sua conta, incluindo atualizações do painel.</p>
+        <p>Toque em <b>Ativar notificações</b> e, no pedido do aparelho, escolha <b>Permitir</b>.</p>
+      </>
     )
     principal = negado
       ? <Botao variante="destaque" icone="feito" onClick={() => fechar()}>Entendi</Botao>
@@ -247,7 +265,10 @@ export function ConviteAparelho({ papel, conta, push, liberado = true }) {
   } else if (etapa === 'pronto') {
     titulo = 'Painel SCW neste aparelho'
     corpo = (
-      <p>{app ? 'Aberto como aplicativo.' : 'Aberto no navegador.'} {avisos && avisos.registrado ? 'Notificações ativas neste aparelho.' : avisos && !avisos.suportado ? 'Este navegador não recebe notificações.' : ''}</p>
+      <>
+        <p>{app ? 'Aberto como aplicativo.' : 'Aberto no navegador.'} {avisos && avisos.registrado ? 'Notificações ativas neste aparelho.' : avisos && !avisos.suportado ? 'Este navegador não recebe notificações.' : ''}</p>
+        <p className="cv-nota">Para conferir ou mudar depois: sino › Avisos neste aparelho.</p>
+      </>
     )
     principal = <Botao variante="destaque" onClick={() => fechar({ adiar: false })}>Fechar</Botao>
   }
@@ -303,11 +324,11 @@ function PreferenciaVersao({ push }) {
 }
 
 /** Meu perfil / Sua conta › "Aplicativo e notificações". */
-export function AplicativoENotificacoes({ push, explicacao }) {
+export function AplicativoENotificacoes({ push, explicacao, papel = '' }) {
   return (
     <Secao titulo="Aplicativo e notificações" nota="Vale para ESTE aparelho: em outro celular ou computador, confira lá.">
       <div className="ui-pilha">
-        <InstalarApp />
+        <InstalarApp papel={papel} />
         {push && <AvisosAparelho explicacao={explicacao} {...push} />}
         {push && <PreferenciaVersao push={push} />}
         <div className="ui-linha-acoes">

@@ -12,7 +12,7 @@ import {
   versaoDaPagina, validarVersao, lerVersaoPublicada, criarMonitor, atualizarAgora,
   resultadoDaAtualizacao, ativarWorkerNovo, recursosDoHtml, idDoHtml, CHAVE_TENTATIVA, MAX_TENTATIVAS,
 } from '../painel-app/src/lib/versao.js'
-import { registrarPendencia, pendencias, comEnvio } from '../painel-app/src/lib/pendencias.js'
+import { registrarPendencia, pendencias, comEnvio, liberarSaida, deveAvisarSaida } from '../painel-app/src/lib/pendencias.js'
 import { etapaDoConvite, conviteAdiado, adiarConvite, plataforma, ADIAMENTO } from '../painel-app/src/lib/instalar.js'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
@@ -224,6 +224,14 @@ test('pendências: declaradas, perguntadas na hora e envio sai quando termina (i
   assert.deepEqual(durante, ['envio'])
   await assert.rejects(comEnvio('Envio de y.png', async () => { throw new Error('rede') }))
   assert.equal(pendencias().length, 0)
+})
+
+test('pendências: recarga pedida pelo painel não abre o "Sair do site?" por cima da confirmação', () => {
+  const tirar = registrarPendencia('c', { rotulo: 'Legenda', tipo: 'edicao' })
+  assert.equal(deveAvisarSaida(), true)
+  liberarSaida()
+  assert.equal(deveAvisarSaida(), false)
+  tirar()
 })
 
 test('convite: etapa certa para cada aparelho; adiamento é por conta e vence em 7 dias', () => {

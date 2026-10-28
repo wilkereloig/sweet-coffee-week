@@ -19,7 +19,10 @@ import { ListaPreenchimento } from './vistas/Preenchimento'
 import { ChavesEdicao, Avaliacoes } from './vistas/PublicacaoEdicao'
 import { Redes, ResumoRedes } from './vistas/Redes'
 import { SocialBiblioteca } from './vistas/SocialBiblioteca'
+import { SocialCampanhas } from './vistas/SocialCampanhas'
 import { SocialParticipantes } from './vistas/SocialParticipantes'
+import { NOMES_PUBLICACAO } from '../lib/nomesPublicacao'
+import { useRotulosDasAbas } from './Trilha'
 
 /*
  * Os sete módulos da organização (reestruturação 29/09/2026 — spec em
@@ -34,6 +37,8 @@ function Modulo({ id, rota, navegar, abas, nota }) {
   const ativa = visiveis.find((a) => a.chave === rota.aba) || visiveis[0]
   const idAbas = React.useId()
   const comAbas = visiveis.length > 1
+  // O Voltar e as Telas recentes dizem "Operação › Fotos" com o nome que a aba mostra.
+  useRotulosDasAbas(id, visiveis)
   return (
     <section className="og-vista">
       <VistaCabeca acento={ACENTO_VISTA[id]} icone={ICONE_DESTINO[id]} titulo={TITULOS[id][0]} nota={nota || TITULOS[id][1]} />
@@ -54,7 +59,7 @@ function Modulo({ id, rota, navegar, abas, nota }) {
 }
 
 export function Visao(props) {
-  return <Modulo id="visao" {...props} nota="O que precisa de atenção, e onde cada marca está" abas={[
+  return <Modulo id="visao" {...props} nota="O que precisa da equipe agora, como estão as marcas e o que aconteceu por último" abas={[
     // Quem só trabalha com redes (função Social media, sem dado.ler) vê só o resumo das redes.
     { chave: '', rotulo: 'Visão geral', render: () => (props.pode('dado.ler') ? <Mesa {...props} /> : <ResumoRedes navegar={props.navegar} pode={props.pode} />) },
   ]} />
@@ -66,8 +71,9 @@ export function Participantes(props) {
     { chave: 'candidaturas', rotulo: 'Candidaturas', render: () => <Respostas {...props} origens={['quero_participar']} /> },
     { chave: 'temas', rotulo: 'Temas', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <AbaTemas edicao={atual} pode={props.pode} irPara={props.irPara} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
     { chave: 'vendas', rotulo: 'Vendas', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <AbaVendas edicao={atual} pode={props.pode} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
-    // Cartoon 2026.2: o que está no site, casa a casa (filtros por revisão e publicação).
-    { chave: 'publicacao', rotulo: 'Publicação', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ListaPublicacao edicao={atual} rota={props.rota} navegar={props.navegar} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
+    // Cartoon 2026.2: revisar e publicar a página de CADA marca (filtros por revisão e publicação).
+    // A chave de rota segue `publicacao`; o nome visível vem de lib/nomesPublicacao.js (não é a liberação da edição).
+    { chave: 'publicacao', rotulo: NOMES_PUBLICACAO.marcas.rotulo, render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ListaPublicacao edicao={atual} rota={props.rota} navegar={props.navegar} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
     // Link de preenchimento (16/10/2026): uma página por marca, sem login; o envio passa por revisão na ficha.
     { chave: 'preenchimento', rotulo: 'Preenchimento', render: () => <ListaPreenchimento pode={props.pode} irPara={props.irPara} /> },
   ]} />
@@ -94,11 +100,13 @@ export function Operacao(props) {
  * Social media (17/10/2026): planejamento do Instagram, biblioteca de artes e
  * participantes para a equipe de conteúdo. Era Operação › Redes sociais — o
  * endereço antigo (#operacao/redes) cai aqui (lib/rota.js migrarRota).
- * Não é "Publicação no site" (Edição): aqui é a agenda da equipe.
+ * Não é "Liberação no site" (Edição) nem "Páginas das marcas" (Participantes):
+ * aqui é a agenda da equipe (lib/nomesPublicacao.js).
  */
 export function ModSocial(props) {
-  return <Modulo id="social" {...props} nota="Planejamento do Instagram — o painel registra, não publica" abas={[
-    { chave: 'planejamento', rotulo: 'Planejamento', render: () => <Redes {...props} /> },
+  return <Modulo id="social" {...props} nota={NOMES_PUBLICACAO.instagram.frase + ' — o painel registra, não publica'} abas={[
+    { chave: 'planejamento', rotulo: NOMES_PUBLICACAO.instagram.rotulo, render: () => <Redes {...props} /> },
+    { chave: 'campanhas', rotulo: 'Campanhas', render: () => <SocialCampanhas {...props} /> },
     { chave: 'biblioteca', rotulo: 'Biblioteca', render: () => <SocialBiblioteca {...props} /> },
     { chave: 'participantes', rotulo: 'Participantes', mostrar: props.pode('editorial.ler'), render: () => <SocialParticipantes {...props} /> },
   ]} />
@@ -120,19 +128,19 @@ function TodasEdicoes({ registrarAtualizar }) {
 }
 
 export function ModEdicao(props) {
-  // Duas leituras da edição atual na mesma aba (get_config_admin no bloco de
-  // cima, get_edicoes no de baixo): abrir outra edição em cima remonta o de
-  // baixo, que relê — senão ele seguiria dizendo "nenhuma edição atual".
-  const [versao, setVersao] = React.useState(0)
+  // Duas leituras da edição atual na mesma aba (get_config_admin no bloco de cima, get_edicoes no de
+  // baixo): as duas assinam o domínio "edicao", então abrir outra edição em cima atualiza o de baixo
+  // pelo sinal — sem remontar (remontar perderia o que está sendo digitado na Configuração).
   return <Modulo id="edicao" {...props} abas={[
     { chave: 'configuracao', rotulo: 'Configuração', render: () => (
       <div className="ui-pilha">
-        <Producao {...props} secao="edicao" registrarAtualizar={null} onEdicaoMudou={() => setVersao((v) => v + 1)} />
-        <ComEdicaoAtual key={versao} registrarAtualizar={props.registrarAtualizar}>{(atual, carregar) => <AbaConfiguracao edicao={atual} pode={props.pode} onMudou={carregar} />}</ComEdicaoAtual>
+        <Producao {...props} secao="edicao" registrarAtualizar={null} />
+        <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual, carregar) => <AbaConfiguracao edicao={atual} pode={props.pode} onMudou={carregar} />}</ComEdicaoAtual>
       </div>
     ) },
     // Cartoon 2026.2: fase e chaves do site (interruptores 1 e 3–6) e o resumo das avaliações.
-    { chave: 'publicacao', rotulo: 'Publicação no site', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ChavesEdicao edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
+    // Chave de rota `publicacao` mantida; nome visível: "Liberação no site" (a edição inteira, não uma marca).
+    { chave: 'publicacao', rotulo: NOMES_PUBLICACAO.edicao.rotulo, render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ChavesEdicao edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
     { chave: 'avaliacoes', rotulo: 'Avaliações', mostrar: props.pode('relatorio.ler'), render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <Avaliacoes edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
     { chave: 'edicoes', rotulo: 'Todas as edições', render: () => <TodasEdicoes registrarAtualizar={props.registrarAtualizar} /> },
   ]} />

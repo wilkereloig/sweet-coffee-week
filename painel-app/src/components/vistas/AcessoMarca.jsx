@@ -2,12 +2,16 @@ import React from 'react'
 import { rpc, chamarFuncao } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { RECADO_MANUAL, textoAcesso, textoTodosAcessos, linkWhatsApp, montarRecado, validarWhatsApp } from '../../lib/participantes'
+import { textoAvisosSenha } from '../../lib/cadastro'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import { Folha } from '../Folha'
 import { Credenciais } from '../Credenciais'
 import { Atividade } from '../Atividade'
-import { Secao, traduzirErro, Selo, BotaoIcone, Botao } from '../ui'
+import { Secao, traduzirErro, Selo, BotaoIcone, Botao, MarcaComLogo } from '../ui'
 import { confirmar, pedirTexto } from '../Confirmar'
+import { useSincronizar, useGuarda } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { ORIGEM_PUBLICA } from '../../lib/origem'
 
 /*
  * Acesso das marcas ao painel (29/09/2026, spec acessos-e-guia-da-marca).
@@ -39,7 +43,7 @@ export async function emitirCredenciais(marcas, modo, aoAvancar) {
         : await chamarFuncao('regerar-senha-conta', { secret: lerSenha(), participante_id: p.id })
       if (!r || !r.senha) throw new Error('a função não devolveu as credenciais.')
       // O login real é o que a função devolve (o slug): "nome-2" não se alcança digitando o nome.
-      feitos.push({ p, login: r.login || p.slug || p.nome_marca, senha: r.senha })
+      feitos.push({ p, login: r.login || p.slug || p.nome_marca, senha: r.senha, aviso: textoAvisosSenha(r.avisos) })
     } catch (e) {
       const c = e.dados && e.dados.erro
       feitos.push({ p, erro: c === 'conta_ja_existe' ? 'Já tem acesso: use "Gerar novas senhas".' : RECADO_MANUAL[c] || traduzirErro(c || e.message) })
@@ -78,13 +82,13 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
     }
   }
   async function copiarTodos() {
-    const origem = window.location.origin
+    const origem = ORIGEM_PUBLICA
     const texto = textoTodosAcessos(criados.map((r) => ({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha })), origem)
     try { await navigator.clipboard.writeText(texto); setCopiado(true); registrar(criados.map((r) => r.p.id), 'copiado') } catch { setCopiado('manual') }
   }
   async function copiarUm(r) {
     try {
-      await navigator.clipboard.writeText(textoAcesso({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: window.location.origin }))
+      await navigator.clipboard.writeText(textoAcesso({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: ORIGEM_PUBLICA }))
       registrar([r.p.id], 'copiado')
     } catch { /* os dados estão na tela */ }
   }
@@ -109,17 +113,18 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
         <p className="og-cred__aviso">Anote ou envie agora. <b>As senhas não aparecem de novo.</b> Abrir o WhatsApp não conta como enviado.</p>
         <ul className="ac-lista">
           {resultados.map((r) => {
-            const wa = r.senha && linkWhatsApp(r.p.telefone, montarRecado({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: window.location.origin }))
+            const wa = r.senha && linkWhatsApp(r.p.telefone, montarRecado({ nomeMarca: r.p.nome_marca, responsavel: r.p.responsavel, login: r.login, senha: r.senha, origem: ORIGEM_PUBLICA }))
             const envio = envios[r.p.id] || 'nao_enviado'
             return (
               <li key={r.p.id} className="ac-linha">
                 <div className="ac-linha__quem">
-                  <b>{r.p.nome_marca}</b>
+                  <b><MarcaComLogo nome={r.p.nome_marca} participanteId={r.p.id} /></b>
                   <span>{r.p.responsavel || 'sem responsável'}{r.p.telefone ? ' · ' + r.p.telefone : ' · sem WhatsApp'}</span>
                 </div>
                 {r.senha ? (
                   <>
                     <dl className="ac-linha__cred"><dt>Login</dt><dd>{r.login}</dd><dt>Senha temporária</dt><dd>{r.senha}</dd></dl>
+                    {r.aviso && <p className="ui-nota ui-nota--erro" role="alert">{r.aviso}</p>}
                     <div className="ac-linha__estado">
                       <Selo dominio="acesso" valor={envio === 'nao_enviado' ? 'aguardando_envio' : 'aguardando_primeiro_acesso'} />
                       <Selo dominio="envio" valor={envio} />
@@ -130,7 +135,7 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
                         ? <a className="og-btn og-btn--mini og-btn--vazado" href={wa} target="_blank" rel="noopener noreferrer" onClick={() => registrar([r.p.id], 'whatsapp_aberto')}>WhatsApp</a>
                         : <span className="ui-nota">Sem WhatsApp</span>}
                       <button className="og-btn og-btn--mini og-btn--vazado" type="button" disabled={envio === 'enviado_manual'} onClick={() => registrar([r.p.id], 'enviado_manual')}>{envio === 'enviado_manual' ? 'Enviado' : 'Marcar enviado'}</button>
-                      {onGerenciar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={async () => { if (await podeSair()) onGerenciar(r.p) }}>Gerenciar</button>}
+                      {onGerenciar && <Botao variante="secundario" icone="avancar" soIcone aria-label={'Gerenciar o acesso de ' + ((r.p && r.p.nome_marca) || 'marca')} onClick={async () => { if (await podeSair()) onGerenciar(r.p) }}>Gerenciar</Botao>}
                     </div>
                   </>
                 ) : <p className="ui-nota ui-nota--erro" role="alert">{r.erro}</p>}
@@ -144,7 +149,8 @@ export function FolhaResultadoAcessos({ aberto, modo, marcas, onFechar, onMudou,
 }
 
 /* ── Ficha › Acesso: a central da conta de uma marca ─────────────────────── */
-export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
+export function AbaAcesso({ participante, pode, onFechar }) {
+  const guarda = useGuarda()
   const [acesso, setAcesso] = React.useState(null)
   const [historico, setHistorico] = React.useState(null)
   const [cred, setCred] = React.useState(null)
@@ -152,29 +158,56 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
   const [erro, setErro] = React.useState(null)
   const [aviso, setAviso] = React.useState(null)
   const podeGerir = pode('marca.liberar')
+  // A marca desta tela agora: uma ação que termina depois de a ficha trocar de marca não escreve nada
+  // (a senha temporária, sobretudo, nunca aparece sob o nome de outra marca).
+  const idAtual = React.useRef(participante.id)
+  idAtual.current = participante.id
 
-  const carregar = React.useCallback(async () => {
-    try { setAcesso((await lerAcessos())[participante.id] || null) } catch (e) { setErro(traduzirErro(e.message)) }
+  // true = leu; false = alguma leitura falhou. Releitura silenciosa (sinal de outra pessoa, depois de
+  // uma ação) mantém acesso e histórico na tela se falhar.
+  const carregar = React.useCallback(async ({ silencioso = false } = {}) => {
+    const vale = guarda()
+    let ok = true
+    try {
+      const a = (await lerAcessos())[participante.id] || null
+      if (!vale()) return true
+      setAcesso(a)
+    } catch (e) {
+      if (!vale()) return true
+      ok = false
+      if (!silencioso) setErro(traduzirErro(e.message))
+    }
     try {
       const l = (await rpc('get_atividade', { p_secret: lerSenha(), p_participante: participante.id, p_limite: 300 })) || []
+      if (!vale()) return ok
       setHistorico(l.filter((a) => ACOES_DO_HISTORICO.test(a.acao || '')))
-    } catch { setHistorico([]) }
-  }, [participante.id])
+    } catch {
+      if (!vale()) return ok
+      ok = false
+      if (!silencioso) setHistorico([])
+    }
+    return ok
+  }, [participante.id, guarda])
+  // Outra marca: nada da anterior fica — nem a senha temporária, nem o acesso, nem o histórico.
+  React.useEffect(() => { setAcesso(null); setHistorico(null); setCred(null); setOcupado(false); setErro(null); setAviso(null) }, [participante.id])
   React.useEffect(() => { carregar() }, [carregar])
+  useSincronizar(DOMINIOS_VISTAS.acessoMarca, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('acesso') })
 
   async function executar(fn, ok) {
+    const id = participante.id
+    const mesma = () => idAtual.current === id
     setOcupado(true); setErro(null); setAviso(null)
-    try { await fn(); if (ok) setAviso(ok); await carregar(); onMudou && onMudou() }
-    catch (e) { const c = e.dados && e.dados.erro; setErro(RECADO_MANUAL[c] || traduzirErro(c || e.message)) }
-    finally { setOcupado(false) }
+    try { await fn(mesma); if (mesma()) { if (ok) setAviso(ok); await carregar({ silencioso: true }) } }
+    catch (e) { if (mesma()) { const c = e.dados && e.dados.erro; setErro(RECADO_MANUAL[c] || traduzirErro(c || e.message)) } }
+    finally { if (mesma()) setOcupado(false) }
   }
 
   const criar = async () => {
     if (!await confirmar('Criar o acesso de ' + participante.nome_marca + '?\n\nO login vai ser o nome do estabelecimento e a senha temporária aparece UMA VEZ, aqui.')) return
-    executar(async () => {
+    executar(async (mesma) => {
       const [r] = await emitirCredenciais([participante], 'gerar')
       if (r.erro) throw new Error(r.erro)
-      setCred({ login: r.login, senha: r.senha })
+      if (mesma()) setCred({ login: r.login, senha: r.senha })
     })
   }
   const regerar = async () => {
@@ -183,10 +216,11 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
       ? participante.nome_marca + ' já tem um acesso ativo. Gerar nova senha temporária?\n\nA senha atual deixa de valer e as sessões abertas caem.'
       : 'Gerar uma nova senha temporária para ' + participante.nome_marca + '?\n\nA anterior deixa de valer.'
     if (!await confirmar(msg)) return
-    executar(async () => {
+    executar(async (mesma) => {
       const [r] = await emitirCredenciais([participante], 'regerar')
       if (r.erro) throw new Error(r.erro)
-      setCred({ login: r.login, senha: r.senha })
+      // A senha mudou, mas um passo de limpeza pode ter falhado (sessões antigas seguem abertas): dizer.
+      if (mesma()) { setCred({ login: r.login, senha: r.senha }); if (r.aviso) setAviso(r.aviso) }
     })
   }
   const acao = async (a, pergunta, ok, comMotivo = false) => {
@@ -199,13 +233,13 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
     const novo = await pedirTexto('Trocar o login da marca', { rotulo: 'Novo nome do estabelecimento (é o login da marca)', valor: participante.nome_marca }, { titulo: 'Trocar o login da marca', acao: 'Continuar', perigo: false })
     if (!novo || novo.trim() === participante.nome_marca) return
     if (!await confirmar('Trocar o login de "' + participante.nome_marca + '" para "' + novo.trim() + '"?\n\nA marca passa a entrar com o nome novo. A senha continua a mesma.')) return
-    executar(async () => {
+    executar(async (mesma) => {
       const r = await chamarFuncao('criar-acesso-marca', { secret: lerSenha(), participante_id: participante.id, novo_nome: novo.trim() })
-      setAviso('Login alterado para "' + (r && r.login) + '". Avise a marca.')
+      if (mesma()) setAviso('Login alterado para "' + (r && r.login) + '". Avise a marca.')
     })
   }
   async function copiarAcesso() {
-    const texto = textoAcesso({ nomeMarca: participante.nome_marca, responsavel: participante.responsavel, login: participante.slug || participante.nome_marca, origem: window.location.origin })
+    const texto = textoAcesso({ nomeMarca: participante.nome_marca, responsavel: participante.responsavel, login: participante.slug || participante.nome_marca, origem: ORIGEM_PUBLICA })
     try { await navigator.clipboard.writeText(texto); setAviso('Acesso copiado (sem senha: a definitiva só a marca conhece).') } catch { setAviso('Sem área de transferência neste navegador.') }
   }
 
@@ -218,7 +252,7 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
         if (vai && !await confirmar('Arquivar ' + participante.nome_marca + '? Ela sai das listas; dá para restaurar depois.')) return
         setErro(null)
         // A marca sai da lista em que está: a ficha fecha (e o endereço perde o item).
-        try { await rpc('org_arquivar_participante', { p_secret: lerSenha(), p_participante: participante.id, p_arquivar: vai }); onFechar && onFechar(); onMudou && onMudou() }
+        try { await rpc('org_arquivar_participante', { p_secret: lerSenha(), p_participante: participante.id, p_arquivar: vai }); onFechar && onFechar() }
         catch (e) { setErro(traduzirErro(e.message)) }
       }}>{participante.arquivado_em ? 'Restaurar marca' : 'Arquivar marca'}</button>
     </Secao>
@@ -229,7 +263,7 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
       <div className="ui-pilha">
         <Secao titulo="Sem acesso criado" nota="Sem acesso. A senha temporária aparece uma vez só.">
           {cred
-            ? <Credenciais nomeMarca={participante.nome_marca} responsavel={participante.responsavel} telefone={participante.telefone} login={cred.login} senha={cred.senha} onRegistrar={(c) => registrarEnvio([participante.id], c).then(carregar)} />
+            ? <Credenciais nomeMarca={participante.nome_marca} responsavel={participante.responsavel} telefone={participante.telefone} login={cred.login} senha={cred.senha} onRegistrar={(c) => registrarEnvio([participante.id], c)} />
             : <button className="og-btn og-btn--mini" type="button" disabled={ocupado || !podeGerir} onClick={criar}>{ocupado ? 'Criando…' : 'Criar acesso para esta marca'}</button>}
           {!podeGerir && <p className="ui-nota">Sua função não libera acesso de marca.</p>}
           {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
@@ -257,7 +291,7 @@ export function AbaAcesso({ participante, pode, onMudou, onFechar }) {
           <div className="ui-dado"><dt>Senha alterada pela marca</dt><dd>{a.senha_trocada_em ? dataHoraCurta(a.senha_trocada_em) : 'ainda não'}</dd></div>
           {bloqueado && <div className="ui-dado"><dt>Motivo do bloqueio</dt><dd>{a.bloqueado_motivo || '—'}</dd></div>}
         </dl>
-        {cred && <Credenciais nomeMarca={participante.nome_marca} responsavel={participante.responsavel} telefone={participante.telefone} login={cred.login} senha={cred.senha} onRegistrar={(c) => registrarEnvio([participante.id], c).then(carregar)} />}
+        {cred && <Credenciais nomeMarca={participante.nome_marca} responsavel={participante.responsavel} telefone={participante.telefone} login={cred.login} senha={cred.senha} onRegistrar={(c) => registrarEnvio([participante.id], c)} />}
       </Secao>
 
       <Secao titulo="Ações" nota={podeGerir ? 'A senha que a marca escolheu ninguém vê. Para devolver o acesso, gere uma senha temporária nova.' : 'Sua função só consulta o acesso.'}>

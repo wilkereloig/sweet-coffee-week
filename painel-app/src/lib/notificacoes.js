@@ -31,7 +31,7 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     })
   }
 
-  solicitacoes.filter((s) => s.publicada_em && Number(s.pendentes || 0) > 0).forEach((s) => {
+  solicitacoes.filter((s) => s.publicada_em && !s.arquivada && Number(s.pendentes || 0) > 0).forEach((s) => {
     const n = Number(s.pendentes)
     fila.push({
       tipo: 'alerta',
@@ -41,7 +41,9 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
     })
   })
 
-  const vagasAbertas = sessoes.filter((s) => s.status === 'aberto').length
+  const agora = Date.now()
+  // Vaga que já passou não espera mais ninguém.
+  const vagasAbertas = sessoes.filter((s) => s.status === 'aberto' && new Date(s.data_hora).getTime() >= agora).length
   if (vagasAbertas) {
     fila.push({
       tipo: 'agenda',
@@ -52,9 +54,10 @@ export function notificacoesOrg({ dados = {}, solicitacoes = [], sessoes = [], p
   }
 
   // Só as PRÓXIMAS: sessão que já passou não é aviso, é histórico.
-  const emSeteDias = Date.now() + 7 * 864e5
+  // 'remarcada' também é sessão ativa (como no banco).
+  const emSeteDias = agora + 7 * 864e5
   sessoes
-    .filter((s) => s.status === 'agendada' && new Date(s.data_hora).getTime() <= emSeteDias && new Date(s.data_hora).getTime() >= Date.now())
+    .filter((s) => ['agendada', 'remarcada'].includes(s.status) && new Date(s.data_hora).getTime() <= emSeteDias && new Date(s.data_hora).getTime() >= agora)
     .forEach((s) => {
       fila.push({
         tipo: 'agenda',

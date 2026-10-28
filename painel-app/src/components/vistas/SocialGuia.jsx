@@ -7,10 +7,11 @@ import { passosDoGuia, quemAprova, etapasResumo } from '../../lib/socialGuia'
  * Guia do Social media (18/10/2026; reorganizado 17/10/2026 para não empurrar
  * o calendário). Duas peças:
  *  - GuiaPrimeiraVez: UMA linha de orientação na primeira visita deste
- *    aparelho, com "Ver o passo a passo" e "Entendi" (localStorage, só
- *    preferência — sem ele, aparece de novo, nada quebra).
+ *    aparelho, com "Entendi" (localStorage, só preferência — sem ele, aparece
+ *    de novo, nada quebra). O passo a passo NÃO tem botão aqui (23/10/2026):
+ *    é o mesmo "Como funciona" logo abaixo, e dois botões para a mesma folha confundiam.
  *  - SocialGuia: os seis passos completos numa folha, aberta pelo "Como
- *    funciona" do cabeçalho. Não ocupa a tela de ninguém que não pediu.
+ *    funciona" da linha do período. Não ocupa a tela de ninguém que não pediu.
  */
 const CHAVE = 'scw_social_guia_visto'
 const CHAVE_ANTIGA = 'scw_social_guia_recolhido' // quem já tinha escondido o guia antigo não vê a orientação de novo
@@ -18,7 +19,7 @@ const CHAVE_ANTIGA = 'scw_social_guia_recolhido' // quem já tinha escondido o g
 function jaViu() { try { return localStorage.getItem(CHAVE) === '1' || localStorage.getItem(CHAVE_ANTIGA) === '1' } catch { return false } }
 function marcarVisto() { try { localStorage.setItem(CHAVE, '1') } catch { /* modo privado */ } }
 
-export function GuiaPrimeiraVez({ aprovadores = [], aprova = false, onAbrirPassos }) {
+export function GuiaPrimeiraVez({ aprovadores = [], aprova = false }) {
   const [visivel, setVisivel] = React.useState(() => !jaViu())
   if (!visivel) return null
   const fechar = () => { marcarVisto(); setVisivel(false) }
@@ -27,10 +28,7 @@ export function GuiaPrimeiraVez({ aprovadores = [], aprova = false, onAbrirPasso
       <p className="sg-inicio__texto">
         <b>Como uma postagem anda:</b> {etapasResumo({ aprovador: quemAprova(aprovadores), aprova })}
       </p>
-      <div className="sg-inicio__acoes">
-        <Botao variante="secundario" icone="informacao" onClick={() => { marcarVisto(); onAbrirPassos() }}>Ver o passo a passo</Botao>
-        <Botao variante="secundario" onClick={fechar}>Entendi</Botao>
-      </div>
+      <Botao variante="secundario" onClick={fechar}>Entendi</Botao>
     </aside>
   )
 }

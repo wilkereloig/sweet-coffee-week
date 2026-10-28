@@ -67,11 +67,12 @@ test('pedido importante sobe; pedido conta na aba do bloco; respondido some', ()
   assert.ok(!r.pendencias.some((p) => p.link === 'pedidos/p3'))
 })
 
-test('tudo preenchido e não enviado: a próxima ação é enviar para análise', () => {
+test('tudo preenchido: não há "enviar" (a marca só salva) e nada fica pendente', () => {
   const cheio = { ...base, itens: itens.map((i) => ({ ...i, descricao: 'd' })) }
   const r = resumoMarca(cheio)
   assert.equal(r.progresso.pct, 100)
-  assert.equal(r.proxima.tipo, 'enviar')
+  assert.equal(r.proxima, null)
+  assert.equal(r.pendencias.length, 0)
   const aprovado = resumoMarca({ ...cheio, participacao: { ...cheio.participacao, combo_status: 'aprovado', status_cadastro: 'cadastro_completo' } })
   assert.equal(aprovado.pendencias.length, 0)
   assert.deepEqual(aprovado.campo('nome_marca'), { estado: 'aprovado' })
@@ -169,6 +170,11 @@ test('todo campo apontável cai num bloco de 0 a 7, e os novos no bloco certo', 
   assert.equal(blocoDoCampo('item-2-nome'), 2)
   assert.equal(blocoDoCampo('unidade-whatsapp'), 4)
   assert.equal(blocoDoCampo('atendimento-horario'), 6)
+  // Horário no festival (23/10/2026): uma pergunta só, no bloco 6. O "horário da loja" saiu da lista do que a equipe pode apontar.
+  const rotulos = Object.fromEntries(CAMPOS_APONTAVEIS)
+  assert.equal(rotulos['atendimento-horario'], 'Atendimento · Horário no festival')
+  assert.ok(!('unidade-horario-loja' in rotulos), 'a marca não responde mais o horário da loja')
+  for (const r of Object.values(rotulos)) assert.doesNotMatch(r, /horário (da loja|do combo)/i)
   assert.equal(blocoDoCampo('atendimento-modos-2'), 6)
   assert.equal(new Set(CAMPOS_APONTAVEIS.map(([k]) => k)).size, CAMPOS_APONTAVEIS.length, 'campo repetido')
   assert.deepEqual(interpretarLinkMarca('cadastro/6/atendimento-modos'), { vista: 'cadastro', sub: '6', campo: 'atendimento-modos' })

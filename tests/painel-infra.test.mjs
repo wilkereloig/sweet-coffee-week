@@ -450,10 +450,17 @@ test('o painel React lê a participação, não as colunas antigas do modelo ant
   assert.ok(!/\bcombo_nome\b/.test(semComentarios(MARCAS_JSX)), 'a lista de marcas ainda lê combo_nome')
 })
 
-test('quem decide se o cadastro está completo é o servidor, com o argumento novo', () => {
-  assert.match(CADASTRO_JSX, /rpc\/marca_concluir_cadastro/, 'a conclusão precisa passar pela RPC')
-  assert.match(CADASTRO_JSX, /p_participacao:/, 'Cadastro.jsx chama a conclusão com o argumento do modelo antigo')
+test('quem decide se o cadastro está completo é o servidor: o gatilho roda a conclusão a cada salvamento da marca', () => {
+  // Desde 23/10/2026 a marca só SALVA: o painel não chama mais a conclusão (não há botão de enviar).
+  assert.doesNotMatch(semComentarios(CADASTRO_JSX), /marca_concluir_cadastro/, 'Cadastro.jsx não envia: só salva')
   assert.match(MIGRATIONS, /marca_concluir_cadastro\(p_participacao uuid\)/)
+  // o gatilho chama a MESMA função (com o argumento novo), só para rascunho em preenchimento
+  const gatilho = semComentariosSql(ler('supabase/migrations/20261106_marca_salvar_avisa.sql'))
+  assert.match(gatilho, /perform public\.marca_concluir_cadastro\(v_pa\)/)
+  assert.match(gatilho, /v_combo = 'rascunho' and v_status in \('aguardando_cadastro', 'em_preenchimento'\)/)
+  assert.match(gatilho, /pg_trigger_depth\(\) <> 1/)
+  assert.match(gatilho, /public\.meu_participante\(\)/)
+  assert.doesNotMatch(gatilho, /delete from/i)
 })
 
 test('o autosave da marca não afirma gravação sem o servidor confirmar', () => {
@@ -511,7 +518,7 @@ test('criar acesso pede confirmação, e a credencial só existe na resposta da 
   const chama = corpo.indexOf("chamarFuncao('criar-acesso-marca'")
   assert.ok(confirma > -1, 'a conta nasce sem confirmar com quem está na tela')
   assert.ok(chama > confirma, 'a Edge Function é chamada antes da confirmação')
-  assert.match(corpo.slice(0, 900), /r\.login\b.*r\.senha\b/s, 'a checagem da resposta não exige login e senha')
+  assert.match(corpo.slice(0, 1400), /resp\.login\b.*resp\.senha\b/s, 'a checagem da resposta não exige login e senha') // `resp`: `r` é o rascunho da triagem
 })
 
 // O corpo que Respostas.jsx manda pro chamarFuncao tem que casar com o que a

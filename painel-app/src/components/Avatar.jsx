@@ -1,6 +1,7 @@
 import React from 'react'
 import { Icone } from './Icone'
 import { useEquipe, tipoAutor, nomeAutor, iniciais } from '../lib/equipe'
+import { useLogosMini } from '../lib/logosMini'
 
 /*
  * Avatar da EQUIPE (não é logo de participante — essa é LogoMarca, em ui.jsx).
@@ -15,6 +16,7 @@ import { useEquipe, tipoAutor, nomeAutor, iniciais } from '../lib/equipe'
  */
 export function Avatar({ id, rotulo, tamanho = 32, rotuloVisivel = true, className = '' }) {
   const { pessoas, fotos } = useEquipe()
+  const minis = useLogosMini()
   const p = id ? pessoas[id] : null
   const tipo = tipoAutor(id, rotulo)
   const nome = nomeAutor(id, rotulo, p)
@@ -22,7 +24,10 @@ export function Avatar({ id, rotulo, tamanho = 32, rotuloVisivel = true, classNa
   const url = chave && fotos ? fotos.urls[chave] : null
   const [falhou, setFalhou] = React.useState(false)
   const tentou = React.useRef(false)
-  React.useEffect(() => { setFalhou(false); tentou.current = false }, [chave])
+  // Pessoa/foto nova: recomeça. Endereço novo da MESMA foto (renovação de 4 min): tenta mostrar de novo,
+  // mas `tentou` só zera com a foto — uma foto quebrada pede assinatura nova UMA vez, nunca em laço.
+  React.useEffect(() => { tentou.current = false }, [chave])
+  React.useEffect(() => { setFalhou(false) }, [chave, url])
   const acessivel = rotuloVisivel ? { 'aria-hidden': true } : { role: 'img', 'aria-label': nome }
   const estilo = { '--av-t': tamanho + 'px' }
   const cls = 'ui-avatar ' + className
@@ -33,6 +38,11 @@ export function Avatar({ id, rotulo, tamanho = 32, rotuloVisivel = true, classNa
           onError={() => { if (!tentou.current && fotos) { tentou.current = true; fotos.renovar({ bucket: 'equipe', path: p.avatar_path }) } else setFalhou(true) }} />
       </span>
     )
+  }
+  // Marca: a logo (miniatura) pela conta que gravou o registro; sem ela, iniciais.
+  const logo = tipo === 'marca' && id ? minis.porConta[id] : null
+  if (logo && logo.mini && !falhou) {
+    return <span className={cls} style={estilo} data-tipo="marca-logo" {...acessivel}><img src={logo.mini} alt="" decoding="async" onError={() => setFalhou(true)} /></span>
   }
   if (tipo === 'pessoa' || tipo === 'marca') {
     const texto = tipo === 'marca' ? nome.replace(/^Marca ·\s*/, '') : nome

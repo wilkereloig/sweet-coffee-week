@@ -2,6 +2,7 @@ import React from 'react'
 import { rotulo as rotuloDe, tom as tomDe } from '../lib/status'
 import { Icone, ICONE_TOM } from './Icone'
 import { iniciais } from '../lib/logos'
+import { useLogosMini, fonteDaLogo } from '../lib/logosMini'
 
 /*
  * Peças de estado e de estrutura usadas pelas vistas dos dois painéis — uma
@@ -51,6 +52,7 @@ export function Erro({ titulo = 'Não consegui carregar', texto, onTentar }) {
 
 // Mensagem técnica → frase. O código cru só aparece se não houver tradução.
 const ERROS = {
+  modo_visualizacao: 'Modo visualização: você está vendo como a marca, e nada é gravado.',
   nao_autorizado: 'Sua função não permite esta ação, ou a sessão não vale mais.',
   sessao_expirada: 'Sua sessão terminou. Entre de novo.',
   usuario_invalido: 'Usuário inválido: de 3 a 30 caracteres, só letras minúsculas sem acento, números e . _ - entre eles (ex.: ana.producao).',
@@ -61,11 +63,16 @@ const ERROS = {
   NetworkError: 'Sem conexão com o servidor. Confira a internet e tente de novo.',
   mensagem_vazia: 'Escreva a mensagem antes de enviar.',
   resposta_vazia: 'Escreva a resposta antes de enviar.',
+  resposta_longa: 'A resposta com o complemento passa de 4000 caracteres. Resuma o complemento.',
   texto_vazio: 'Escreva algo antes de salvar.',
   ultimo_administrador: 'Não dá: é o último administrador ativo. Promova outra pessoa antes.',
   conta_ja_existe: 'Já existe uma conta com esse e-mail.',
   marca_sem_acesso: 'Esta marca ainda não tem acesso criado.',
   sem_marca: 'Sua conta ainda não está ligada a uma marca. Fale com a organização.',
+  // Horário no festival: o banco recusa o que o seletor já não deixa montar (outra aba, página antiga).
+  horario_invalido: 'Confira os horários: o fim tem que ser depois do início e os períodos do mesmo dia não podem se sobrepor.',
+  data_fora_do_festival: 'Esse dia não está no festival.',
+  participacao_nao_encontrada: 'Não encontrei essa participação. Atualize a ficha e tente de novo.',
 }
 export function traduzirErro(msg) {
   const m = String(msg || '')
@@ -277,15 +284,40 @@ export function Escolha({ rotulo, valor, opcoes, onMudar, disabled, className = 
   )
 }
 
-// Botão com ícone + texto (ação importante nunca é só ícone).
-export function Botao({ icone, children, variante, mini = true, className = '', ...resto }) {
-  const cls = 'og-btn' + (mini ? ' og-btn--mini' : '') + (variante === 'secundario' ? ' og-btn--vazado' : '') + (variante === 'destaque' ? ' og-btn--amarelo' : '') + (className ? ' ' + className : '')
+/*
+ * Botão com ícone + texto. `soIcone` (pedido do Wilker, 25/10/2026: "só deixa o que realmente precisa do texto"):
+ * o texto (string) vira o nome do botão (aria-label) e a dica do mouse e do teclado; o desenho de 20px fica num
+ * círculo de 44px, com a mesma variante. Só para ação secundária de desenho universal (baixar, compartilhar, mover,
+ * apagar, editar, copiar, fechar…): a ação principal, a decisão, o que tem número e o WhatsApp seguem com texto.
+ */
+export function Botao({ icone, children, variante, mini = true, soIcone = false, className = '', ...resto }) {
+  const cls = 'og-btn' + (mini ? ' og-btn--mini' : '') + (variante === 'secundario' ? ' og-btn--vazado' : '') + (variante === 'destaque' ? ' og-btn--amarelo' : '') + (soIcone ? ' og-btn--icone' : '') + (className ? ' ' + className : '')
+  if (soIcone) {
+    // `aria-label` de quem chama (mais longo: "Baixar a logo de X") vale; vazio, o nome é o texto.
+    const { 'aria-label': nome, ...outros } = resto
+    return (
+      <button type="button" className={cls} {...outros} aria-label={nome || children} data-rotulo={children}>
+        {outros['aria-busy'] ? <Icone nome="carregando" tamanho={20} className="scw-gira" /> : <Icone nome={icone} tamanho={20} />}
+      </button>
+    )
+  }
   return <button type="button" className={cls} {...resto}>{icone && <Icone nome={icone} tamanho={16} />}{children}</button>
+}
+
+/** Link só com ícone (baixar, abrir fora): as mesmas regras do `Botao soIcone`. */
+export function LinkIcone({ icone, rotulo, className = '', ...resto }) {
+  const { 'aria-label': nome, ...outros } = resto
+  return (
+    <a className={'og-btn og-btn--mini og-btn--vazado og-btn--icone' + (className ? ' ' + className : '')} {...outros} aria-label={nome || rotulo} data-rotulo={rotulo}>
+      <Icone nome={icone} tamanho={20} />
+    </a>
+  )
 }
 
 /*
  * "Mais ações": o que é raro não disputa espaço com a ação principal.
  * <details> nativo — teclado e leitor de tela de graça; fecha ao escolher.
+ * Só os três pontos (25/10/2026); `rotulo` (string) é o nome lido e a dica: "Opções da pasta X".
  */
 export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
   const ref = React.useRef(null)
@@ -294,11 +326,11 @@ export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
   function escolher(fn) { if (ref.current) ref.current.open = false; fn() }
   return (
     <details className="ui-mais-acoes" ref={ref}>
-      <summary className="og-btn og-btn--mini og-btn--vazado"><Icone nome="mais-acoes" tamanho={16} />{rotulo}</summary>
+      <summary className="og-btn og-btn--mini og-btn--vazado og-btn--icone" data-rotulo={rotulo}><Icone nome="mais-acoes" tamanho={20} /><span className="ui-oculto">{rotulo}</span></summary>
       <ul className="ui-mais-acoes__menu">
         {lista.map((a, i) => (
           <li key={i}>
-            <button type="button" className={'ui-mais-acoes__item' + (a.perigo ? ' is-perigo' : '')} disabled={a.desativado} onClick={() => escolher(a.onClick)}>
+            <button type="button" className={'ui-mais-acoes__item' + (a.perigo ? ' is-perigo' : '')} disabled={a.desativado} title={a.descricao || undefined} onClick={() => escolher(a.onClick)}>
               {a.icone && <Icone nome={a.icone} tamanho={16} />}{a.rotulo}
             </button>
           </li>
@@ -313,15 +345,33 @@ export function MaisAcoes({ itens, rotulo = 'Mais ações' }) {
  * margem interna, nunca recortada (exceção do PAINEL à §6.12 do site: aqui a
  * logo é enviada pela marca, com proporção qualquer). Sem logo: iniciais —
  * nunca imagem genérica.
+ * `participanteId` (ou `conta`, a conta da marca) busca a logo no mapa de
+ * miniaturas (lib/logosMini.js): até TAMANHO_MINI px usa a miniatura de ~1 KB;
+ * sem `url`, a original vem do mesmo mapa. Miniatura que falha cai na original.
  */
-export function LogoMarca({ url, nome, tamanho = 40, className = '' }) {
-  const [falhou, setFalhou] = React.useState(false)
-  React.useEffect(() => { setFalhou(false) }, [url])
+export function LogoMarca({ url, nome, tamanho = 40, className = '', participanteId, conta, decorativa = false }) {
+  const minis = useLogosMini()
+  const reg = (participanteId && minis.porParticipante[participanteId]) || (conta && minis.porConta[conta]) || null
+  const { mini, original } = fonteDaLogo(reg, tamanho, url)
+  const [falhas, setFalhas] = React.useState(0)
+  React.useEffect(() => { setFalhas(0) }, [mini, original])
+  const src = [mini, original].filter(Boolean)[falhas]
   const estilo = { '--logo-t': tamanho + 'px' }
-  if (url && !falhou) {
-    return <span className={'ui-logo ' + className} style={estilo}><img src={url} alt={'Logo de ' + (nome || 'marca')} loading="lazy" onError={() => setFalhou(true)} /></span>
+  if (src) {
+    return <span className={'ui-logo ' + className} style={estilo}><img src={src} alt={decorativa ? '' : 'Logo de ' + (nome || 'marca')} loading="lazy" decoding="async" onError={() => setFalhas((n) => n + 1)} /></span>
   }
-  return <span className={'ui-logo ui-logo--iniciais ' + className} style={estilo} role="img" aria-label={'Sem logo: ' + (nome || 'marca')}>{iniciais(nome)}</span>
+  const leitura = decorativa ? { 'aria-hidden': true } : { role: 'img', 'aria-label': 'Sem logo: ' + (nome || 'marca') }
+  return <span className={'ui-logo ui-logo--iniciais ' + className} style={estilo} {...leitura}>{iniciais(nome)}</span>
+}
+
+/** Nome da marca com a logo pequena ao lado (listas, tabelas, cartões). O nome visível é quem identifica: a logo é decorativa. */
+export function MarcaComLogo({ nome, participanteId, tamanho = 24, className = '', children }) {
+  return (
+    <span className={'ui-com-logo ' + className}>
+      <LogoMarca participanteId={participanteId} nome={nome} tamanho={tamanho} decorativa />
+      <span className="ui-com-logo__nome">{children || nome}</span>
+    </span>
+  )
 }
 
 // Ajuda recolhida: a regra fica a um toque, não ocupando a tela (<details>

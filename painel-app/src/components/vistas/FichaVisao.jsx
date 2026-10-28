@@ -7,15 +7,21 @@ import { dataCurta } from '../../lib/respostas'
 import { rotulo } from '../../lib/status'
 import { tempoRelativo } from '../../lib/central'
 import { mascaraWhatsApp } from '../../lib/participantes'
+import { linkWebSeguro } from '../../lib/cadastro'
 import { estadoLogoLista } from '../../lib/logos'
 import { BUCKET_EDICAO, traduzirPendencia } from '../../lib/publicacao'
+import { datasDoFestival } from '../../lib/horarioFestival'
+import { leituraNaFicha } from '../../lib/arquivosMarca'
+import { NOMES_PUBLICACAO } from '../../lib/nomesPublicacao'
 import { ROTULO_MATERIAL, ROTULO_MATERIAL_STATUS } from '../../lib/operacao'
 import {
   criarCarregadorFicha, situacaoTema, TEXTO_TEMA, TOM_TEMA, textoCusto, componentesDaFicha, unidadesDaFicha,
-  textoResposta, fotosDaFicha, fotosIniciais, resumoPublicacao, acoesDaSecao, edicaoDaFicha,
+  textoResposta, fotosDaFicha, fotosIniciais, resumoPublicacao, acoesDaSecao, edicaoDaFicha, cobravel, podeResolver,
 } from '../../lib/fichaGeral'
 import { Carregando, Erro, Vazio, Selo, Botao } from '../ui'
 import { Icone } from '../Icone'
+import { useSincronizar } from '../../lib/sync/react'
+import { DOMINIOS_VISTAS, mesclarFonte } from '../../lib/syncFichas'
 
 /*
  * Visão do participante (15/10/2026) — a ficha geral: tudo o que a marca
@@ -29,16 +35,33 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
  * As quatro leituras da ficha, cada uma com estado próprio. O estado guarda
  * de qual participação ele é: trocar de marca não mostra, nem por um quadro,
  * o dado da anterior sob o nome da seguinte.
+ *
+ * Sincronização (19/10/2026): a visão relê sozinha, e em silêncio, quando muda
+ * qualquer domínio que as quatro leituras tocam (outra pessoa mexeu na marca,
+ * reconexão, volta ao app). A releitura NÃO volta ao esqueleto: o conteúdo fica na
+ * tela, e se a leitura falhar o que já estava lá continua (a falha vai para o
+ * indicador, não para o lugar do cadastro). `recarregar()` (editor que acabou de
+ * salvar, "Tentar de novo") devolve uma promessa para quem precisa esperar.
  */
 export function useFichaGeral(participacaoId) {
   const id = participacaoId || null
   const [estado, setEstado] = React.useState({ id: undefined, fontes: {} })
   const carregar = React.useMemo(() => criarCarregadorFicha(
     (nome, args) => rpc(nome, { p_secret: lerSenha(), ...args }),
-    (fonte, s, deQuem) => setEstado((x) => ({ id: deQuem, fontes: { ...(x.id === deQuem ? x.fontes : {}), [fonte]: s } })),
+    (fonte, s, deQuem, opcoes) => setEstado((x) => {
+      const antes = x.id === deQuem ? x.fontes : {}
+      return { id: deQuem, fontes: { ...antes, [fonte]: mesclarFonte(antes[fonte], s, opcoes) } }
+    }),
   ), [])
-  React.useEffect(() => carregar(id), [carregar, id])
-  const recarregar = React.useCallback(() => { carregar(id, { manter: true }) }, [carregar, id])
+  // Guarda a leitura mais nova para cancelar na saída: nada é gravado depois de desmontar nem da troca de marca.
+  const ultima = React.useRef(null)
+  const iniciar = React.useCallback((opcoes) => { const c = carregar(id, opcoes); ultima.current = c; return c }, [carregar, id])
+  React.useEffect(() => { iniciar(); return () => { if (ultima.current) ultima.current() } }, [iniciar])
+  const recarregar = React.useCallback(() => iniciar({ manter: true }).pronto, [iniciar])
+  useSincronizar(DOMINIOS_VISTAS.fichaGeral, async () => {
+    const falhas = await iniciar({ manter: true }).pronto
+    if (falhas.length) throw new Error('ficha: ' + falhas.join(', '))
+  })
   const atuais = estado.id === id ? estado.fontes : {}
   const f = (k) => atuais[k] || { estado: id || k === 'edicoes' ? 'carregando' : 'sem_participacao', dados: null, erro: null }
   return { fontes: { nucleo: f('nucleo'), publicacao: f('publicacao'), correcoes: f('correcoes'), edicoes: f('edicoes') }, recarregar }
@@ -63,7 +86,7 @@ function Dados({ itens }) {
   return (
     <dl className="fg-dados">
       {lista.map(([r, v, op = {}], i) => (
-        <div key={i} className={'fg-dado' + (op.largo ? ' fg-dado--largo' : '')}>
+        <div key={i} className={'fg-dado' + (op.largo ? ' fg-dado--largo' : '')} id={op.id ? 'fg-campo-' + op.id : undefined} tabIndex={op.id ? -1 : undefined}>
           <dt>{r}</dt>
           <dd>{v == null || v === '' || v === false ? <Vazio_>{op.vazio}</Vazio_> : v}</dd>
         </div>
@@ -105,13 +128,26 @@ function SecaoFicha({ id, titulo, nota, acoes, edicao, children }) {
 // Ações da seção pela função de quem lê; null quando não há nenhuma (a seção fica sem barra).
 function botoesAcao(secao, pode, ctx, onEditar) {
   const lista = acoesDaSecao(secao, pode, ctx)
-  return lista.length ? lista.map((a) => (
-    <Botao key={a.editor + a.rotulo} icone="editar" variante={a.principal ? undefined : 'secundario'} onClick={() => onEditar({ secao, editor: a.editor })}>{a.rotulo}</Botao>
-  )) : null
+  return lista.length ? lista.map((a) => {
+    const lapis = a.icone === 'editar'
+    return <Botao key={a.editor + a.rotulo} icone={a.icone} soIcone={lapis} variante={a.principal && !lapis ? undefined : 'secundario'} onClick={() => onEditar({ secao, editor: a.editor })}>{a.rotulo}</Botao>
+  }) : null
 }
 
 /* ── Pendências (coluna auxiliar) ──────────────────────────────────────── */
-export function Pendencias({ itens, carregando, onIr }) {
+/*
+ * Cada pendência: o texto leva à seção; "Resolver" (lápis) abre o editor que resolve ali mesmo; o sino
+ * cobra da marca (aviso + conversa). As que dá para cobrar têm caixa: marque várias e mande UM aviso só.
+ */
+export function Pendencias({ itens, carregando, onIr, pode = () => false, onCobrar, onResolver }) {
+  const [sel, setSel] = React.useState(() => new Set())
+  const podeCobrar = !!onCobrar && pode('mensagem.enviar')
+  const cobraveis = podeCobrar ? itens.filter(cobravel) : []
+  const chaves = cobraveis.map((x) => x.chave).join('|')
+  // Pendência que sumiu (resolvida, releitura) sai da seleção.
+  React.useEffect(() => { setSel((s) => new Set([...s].filter((c) => chaves.split('|').includes(c)))) }, [chaves])
+  const marcadas = cobraveis.filter((x) => sel.has(x.chave))
+  const alternar = (c) => setSel((s) => { const n = new Set(s); n.has(c) ? n.delete(c) : n.add(c); return n })
   return (
     <section className="fg-pend" aria-labelledby="fg-pend-t">
       <h3 className="fg-pend__titulo" id="fg-pend-t">Pendências{!carregando && itens.length > 0 ? ' (' + itens.length + ')' : ''}</h3>
@@ -119,20 +155,41 @@ export function Pendencias({ itens, carregando, onIr }) {
       {!carregando && itens.length === 0 && <p className="ui-nota ui-nota--ok">Nada pendente no que foi possível verificar.</p>}
       {itens.length > 0 && (
         <ul className="fg-pend__lista">
-          {itens.map((x) => (
-            <li key={x.chave} className={x.erro ? 'is-erro' : ''}>
-              <button type="button" className="fg-pend__item" onClick={() => onIr(x.secao)}>
-                <span>{x.texto}</span>
-                <span className="fg-pend__onde">{ONDE[x.secao] || 'Ver'} <Icone nome="ir" tamanho={16} /></span>
-              </button>
-            </li>
-          ))}
+          {itens.map((x) => {
+            const cobra = podeCobrar && cobravel(x)
+            const resolve = !!onResolver && podeResolver(x, pode)
+            return (
+              <li key={x.chave} className={'fg-pend__linha' + (x.erro ? ' is-erro' : '')}>
+                {cobraveis.length > 1 && (cobra
+                  ? <label className="fg-pend__sel"><input type="checkbox" checked={sel.has(x.chave)} onChange={() => alternar(x.chave)} /><span className="ui-oculto">Incluir na cobrança: {x.texto}</span></label>
+                  : <span className="fg-pend__sel" aria-hidden="true" />)}
+                <button type="button" className="fg-pend__item" onClick={() => onIr(x.secao)}>
+                  <span>{x.texto}</span>
+                  <span className="fg-pend__onde">{ONDE[x.secao] || 'Ver'} <Icone nome="ir" tamanho={16} /></span>
+                </button>
+                {(resolve || cobra) && (
+                  <span className="fg-pend__acoes">
+                    {resolve && <Botao variante="secundario" icone="editar" soIcone aria-label={'Resolver agora: ' + x.texto} onClick={() => onResolver(x)}>Resolver agora</Botao>}
+                    {cobra && <Botao variante="secundario" icone="sino" soIcone aria-label={'Cobrar do participante: ' + x.texto} onClick={() => onCobrar([x])}>Cobrar do participante</Botao>}
+                  </span>
+                )}
+              </li>
+            )
+          })}
         </ul>
+      )}
+      {cobraveis.length > 1 && (
+        <div className="fg-pend__rodape">
+          <Botao icone="sino" variante={marcadas.length ? undefined : 'secundario'} onClick={() => onCobrar(marcadas.length ? marcadas : cobraveis)}>
+            {marcadas.length ? 'Cobrar ' + marcadas.length + (marcadas.length === 1 ? ' marcada' : ' marcadas') : 'Cobrar todas (' + cobraveis.length + ')'}
+          </Botao>
+          <span className="ui-nota">Vai num aviso só, com o toque levando à primeira.</span>
+        </div>
       )}
     </section>
   )
 }
-const ONDE = { cadastro: 'Cadastro', combo: 'Tema e combo', unidades: 'Unidades', fotos: 'Fotos', operacao: 'Operação', publicacao: 'Publicação', comunicacao: 'Comunicação' }
+const ONDE = { cadastro: 'Cadastro', combo: 'Tema e combo', unidades: 'Unidades', fotos: 'Fotos', operacao: 'Operação', publicacao: NOMES_PUBLICACAO.marcas.pagina, comunicacao: 'Comunicação' }
 
 /* ── Seções ────────────────────────────────────────────────────────────── */
 function SecaoCadastro({ p, logo, fontes, recarregar, acoes, edicao }) {
@@ -142,21 +199,21 @@ function SecaoCadastro({ p, logo, fontes, recarregar, acoes, edicao }) {
     <SecaoFicha id="cadastro" titulo="Cadastro" nota="Dados da marca, válidos para todas as edições." acoes={acoes} edicao={edicao}>
       <h4 className="fg-sub">Contato interno <small>só a equipe vê</small></h4>
       <Dados itens={[
-        ['Responsável', m.responsavel],
-        ['WhatsApp do responsável', m.telefone && mascaraWhatsApp(m.telefone)],
-        ['E-mail', m.email],
+        ['Responsável', m.responsavel, { id: 'responsavel' }],
+        ['WhatsApp do responsável', m.telefone && mascaraWhatsApp(m.telefone), { id: 'telefone' }],
+        ['E-mail', m.email, { id: 'email' }],
       ]} />
       <h4 className="fg-sub">No site <small>o que o público lê</small></h4>
       <Dados itens={[
-        ['Nome oficial', m.nome_marca],
-        ['Apresentação', nuc.estado === 'ok' ? m.apresentacao_publica && <TextoLongo texto={m.apresentacao_publica} /> : <EstadoFonte f={nuc} oQue="a apresentação" onTentar={recarregar} linhas={1} />, { largo: true }],
-        ['Instagram', m.instagram],
-        ['Site', m.site],
-        ['Logo', <Selo key="l" dominio="logo" valor={estadoLogoLista(logo)} />],
+        ['Nome oficial', m.nome_marca, { id: 'nome_marca' }],
+        ['Apresentação', nuc.estado === 'ok' ? m.apresentacao_publica && <TextoLongo texto={m.apresentacao_publica} /> : <EstadoFonte f={nuc} oQue="a apresentação" onTentar={recarregar} linhas={1} />, { largo: true, id: 'apresentacao_publica' }],
+        ['Instagram', m.instagram, { id: 'instagram' }],
+        ['Site', m.site, { id: 'site' }],
+        ['Logo', <Selo key="l" dominio="logo" valor={estadoLogoLista(logo)} />, { id: 'logo' }],
       ]} />
       <h4 className="fg-sub">Dados fiscais</h4>
-      <Dados itens={[['Razão social', m.razao_social], ['CNPJ', m.cnpj]]} />
-      <p className="fg-nota-fim">O contato de cada loja (WhatsApp público, canais de pedido) fica em Unidades.</p>
+      <Dados itens={[['Razão social', m.razao_social, { id: 'razao_social' }], ['CNPJ', m.cnpj, { id: 'cnpj' }]]} />
+      <p className="fg-nota-fim">O contato de cada loja (WhatsApp da loja, canais de pedido) fica em Unidades.</p>
     </SecaoFicha>
   )
 }
@@ -188,7 +245,7 @@ function Componente({ c, fotos, f, onTentar }) {
   const doItem = fotos.filter((x) => x.papel === 'item' && c.id && x.itemId === c.id)
   const foto = doItem.find((x) => x.estado === 'aprovada') || doItem[0]
   return (
-    <article className="fg-bloco" aria-labelledby={'fg-item-' + c.posicao}>
+    <article className="fg-bloco" aria-labelledby={'fg-item-' + c.posicao} tabIndex={-1}>
       <h4 className="fg-bloco__titulo" id={'fg-item-' + c.posicao}><span className="fg-bloco__tipo">{c.posicao}º · {c.rotuloTipo}</span>{c.nome || <Vazio_>Sem nome</Vazio_>}</h4>
       <div className={foto ? 'fg-bloco__com-foto' : ''}>
         {foto && <Miniatura foto={foto} pequena />}
@@ -247,29 +304,29 @@ function SecaoCombo({ p, fontes, recarregar, pode, onEditar, edicaoAberta }) {
     <SecaoFicha id="combo" titulo="Tema e combo" acoes={botoesAcao("combo", pode, ctx, onEditar)} edicao={edicaoAberta}>
       <Dados itens={[
         ['Tema geral da edição', ed && ed.temaGeral ? ed.temaGeral + (ed.nome ? ' (' + ed.nome + ')' : '') : fontes.edicoes.estado === 'carregando' ? 'Carregando…' : null, { vazio: 'Não definido' }],
-        ['Tema escolhido pela marca', tema.tema && <>{tema.tema} <Selo tom={TOM_TEMA[tema.estado]}>{TEXTO_TEMA[tema.estado]}</Selo></>, { vazio: TEXTO_TEMA.sem_tema }],
+        ['Tema escolhido pela marca', tema.tema && <>{tema.tema} <Selo tom={TOM_TEMA[tema.estado]}>{TEXTO_TEMA[tema.estado]}</Selo></>, { vazio: TEXTO_TEMA.sem_tema, id: 'tema_combo' }],
         tema.estado === 'divergente' && ['Última proposta registrada', tema.temaProposta + ' (' + rotulo('tema', tema.proposta.status) + ')'],
         tema.proposta && tema.proposta.decidido_em && ['Análise do tema', 'Por ' + (tema.proposta.decidido_rotulo || 'organização') + ' ' + tempoRelativo(tema.proposta.decidido_em) + (tema.proposta.observacao ? ': "' + tema.proposta.observacao + '"' : '')],
-        ['Justificativa do tema', tema.justificativa && <TextoLongo texto={tema.justificativa} />, { largo: true }],
+        ['Justificativa do tema', tema.justificativa && <TextoLongo texto={tema.justificativa} />, { largo: true, id: 'tema_justificativa' }],
       ]} />
       <h4 className="fg-sub">O combo</h4>
       <div className={principal ? 'fg-bloco__com-foto' : ''}>
         {principal && <Miniatura foto={principal} />}
         <Dados itens={[
-          ['Nome do combo', pa.combo_nome],
+          ['Nome do combo', pa.combo_nome, { id: 'combo_nome' }],
           ['Situação da revisão', <Selo key="c" dominio="combo" valor={pa.combo_status || 'rascunho'} />],
           pa.combo_revisao_nota && ['Nota da revisão para a marca', pa.combo_revisao_nota, { largo: true }],
-          ['Descrição', pa.combo_descricao && <TextoLongo texto={pa.combo_descricao} />, { largo: true }],
-          ['Proposta criativa', pa.combo_proposta && <TextoLongo texto={pa.combo_proposta} />, { largo: true }],
-          ['Condições', pa.combo_condicoes, { largo: true }],
+          ['Descrição', pa.combo_descricao && <TextoLongo texto={pa.combo_descricao} />, { largo: true, id: 'combo_descricao' }],
+          ['Proposta criativa', pa.combo_proposta && <TextoLongo texto={pa.combo_proposta} />, { largo: true, id: 'combo_proposta' }],
+          ['Condições', pa.combo_condicoes, { largo: true, id: 'combo_condicoes' }],
         ]} />
       </div>
       <h4 className="fg-sub">Preço e condições</h4>
       <Dados itens={[
         ['Preço do combo na edição', valorCombo != null ? formatarPreco(Number(valorCombo)) : fontes.edicoes.estado === 'carregando' ? 'Carregando…' : null, { vazio: 'Não definido pela organização' }],
-        ['Sai para viagem', sim(pa.combo_para_viagem)],
-        ['Custo da embalagem para viagem', pa.combo_para_viagem === false ? 'Não se aplica' : textoCusto(pa.custo_embalagem)],
-        ['Custo do delivery', !entrega && participam.length ? 'Não se aplica (nenhuma unidade entrega o combo)' : textoCusto(pa.custo_delivery)],
+        ['Sai para viagem', sim(pa.combo_para_viagem), { id: 'combo_para_viagem' }],
+        ['Custo da embalagem para viagem', pa.combo_para_viagem === false ? 'Não se aplica' : textoCusto(pa.custo_embalagem), { id: 'custo_embalagem' }],
+        ['Custo do delivery', !entrega && participam.length ? 'Não se aplica (nenhuma unidade entrega o combo)' : textoCusto(pa.custo_delivery), { id: 'custo_delivery' }],
         ['Retirada', participam.length ? nModo('retirada') + ' de ' + participam.length + (participam.length === 1 ? ' unidade' : ' unidades') : null, { vazio: 'Sem unidade participando' }],
         ['Delivery do combo', participam.length ? nModo('delivery') + ' de ' + participam.length + (participam.length === 1 ? ' unidade' : ' unidades') : null, { vazio: 'Sem unidade participando' }],
       ]} />
@@ -286,7 +343,7 @@ function Unidade({ u }) {
   const coord = u.coordenada.estado === 'conferida' ? 'Conferida' + (u.coordenada.por ? ' por ' + u.coordenada.por : '') + (u.coordenada.em ? ' em ' + dataCurta(u.coordenada.em) : '')
     : u.coordenada.estado === 'a_conferir' ? 'Ponto informado, a conferir' : 'Sem ponto no mapa'
   return (
-    <article className="fg-bloco" aria-labelledby={'fg-uni-' + u.id}>
+    <article className="fg-bloco" aria-labelledby={'fg-uni-' + u.id} tabIndex={-1}>
       <h4 className="fg-bloco__titulo" id={'fg-uni-' + u.id}>
         {u.nome}
         {u.participa ? <Selo tom="ok">Participa desta edição</Selo> : <Selo tom="encerrado">Não participa desta edição</Selo>}
@@ -294,13 +351,13 @@ function Unidade({ u }) {
       <Dados itens={[
         ['Endereço', u.enderecoTexto && <>{u.enderecoTexto}{u.endereco.referencia && <span className="fg-texto-apoio"> Referência: {u.endereco.referencia}</span>}</>, { largo: true, vazio: 'Endereço não informado' }],
         ['Localização no mapa', <>{coord}{(u.mapa || u.trajeto) && <span className="fg-links">{u.mapa && <a className="og-link" href={u.mapa} target="_blank" rel="noreferrer">Abrir no mapa</a>}{u.trajeto && <a className="og-link" href={u.trajeto} target="_blank" rel="noreferrer">Trajeto</a>}</span>}</>, { largo: true }],
-        u.participa && ['Horário da loja', u.horarioLoja],
-        u.participa && ['Horário do combo', u.horarioCombo === null ? null : u.horarioCombo.length ? <ul className="fg-lista">{u.horarioCombo.map((h) => <li key={h.dias}><b>{h.dias}</b>{h.faixas}</li>)}</ul> : null, { largo: true, vazio: u.horarioCombo === null ? 'Não carregou' : 'Não informado' }],
+        // Uma pergunta só: como a unidade funciona nos dias do festival. Sem resposta é "ainda não respondido", nunca "fechada".
+        u.participa && ['Horário no festival', u.horarioFestival, { largo: true, vazio: u.horarioFestival === null ? 'Não carregou' : 'Ainda não respondido' }],
         u.participa && ['Atendimento do combo', modos, { largo: true }],
-        u.participa && u.modos.delivery === 'sim' && ['Canais de pedido', u.canais.length ? u.canais.map((c, i) => <span key={i} className="fg-canal">{c.rotulo}{c.link && <>: <a className="og-link" href={c.link} target="_blank" rel="noreferrer">{c.link}</a></>}</span>) : null, { largo: true }],
+        u.participa && u.modos.delivery === 'sim' && ['Canais de pedido', u.canais.length ? u.canais.map((c, i) => <span key={i} className="fg-canal">{c.rotulo}{c.link && <>: {linkWebSeguro(c.link) ? <a className="og-link" href={linkWebSeguro(c.link)} target="_blank" rel="noreferrer">{c.link}</a> : <span>{c.link} (endereço inválido)</span>}</>}</span>) : null, { largo: true }],
         u.participa && u.modos.delivery === 'sim' && ['Regiões de entrega', u.regioes],
         u.participa && u.modos.delivery === 'sim' && ['Taxa de entrega', u.taxa],
-        u.participa && ['WhatsApp público da loja', u.whatsappPublico && mascaraWhatsApp(u.whatsappPublico), { vazio: 'Não divulgado no site' }],
+        u.participa && ['WhatsApp da loja', u.whatsappPublico && mascaraWhatsApp(u.whatsappPublico), { vazio: 'Não aparece no site' }],
         u.observacao && ['Condições nesta edição', u.observacao, { largo: true }],
         (u.anterior.horarios || u.anterior.mesas) && ['Cadastro anterior', [u.anterior.horarios && 'horário: ' + u.anterior.horarios, u.anterior.mesas && 'mesas: ' + u.anterior.mesas].filter(Boolean).join(' · '), { largo: true }],
       ]} />
@@ -308,7 +365,7 @@ function Unidade({ u }) {
   )
 }
 
-function SecaoUnidades({ fontes, recarregar, pode, onEditar, edicaoAberta }) {
+function SecaoUnidades({ p, fontes, recarregar, pode, onEditar, edicaoAberta }) {
   const nuc = fontes.nucleo
   const pub = fontes.publicacao
   const pubOk = pub.estado === 'ok' && pub.dados
@@ -316,7 +373,9 @@ function SecaoUnidades({ fontes, recarregar, pode, onEditar, edicaoAberta }) {
   if (nuc.estado !== 'ok' && !pubOk) {
     return <SecaoFicha id="unidades" titulo="Unidades"><EstadoFonte f={nuc.estado === 'carregando' || pub.estado === 'carregando' ? { estado: 'carregando' } : nuc} oQue="as unidades" onTentar={recarregar} /></SecaoFicha>
   }
-  const unidades = unidadesDaFicha(nuc.estado === 'ok' ? nuc.dados.unidades : [], pubOk ? pub.dados : null)
+  // Os dias do festival vêm do cadastro da edição (get_edicoes), nunca do código; sem eles a frase lista as datas das próprias linhas.
+  const ed = fontes.edicoes.estado === 'ok' ? edicaoDaFicha(p.edicao_codigo, fontes.edicoes.dados) : null
+  const unidades = unidadesDaFicha(nuc.estado === 'ok' ? nuc.dados.unidades : [], pubOk ? pub.dados : null, ed ? datasDoFestival(ed.inicio, ed.fim) : [])
   const n = unidades.filter((u) => u.participa).length
   return (
     <SecaoFicha id="unidades" titulo={'Unidades (' + unidades.length + ')'} acoes={acoes} edicao={edicaoAberta}
@@ -398,7 +457,7 @@ function SecaoOperacao({ p, fontes, recarregar, pode, onEditar, onIr, edicaoAber
           : correcoes.length ? <button type="button" className="ui-link" onClick={() => onIr('comunicacao')}>{correcoes.length} {correcoes.length === 1 ? 'aberta' : 'abertas'}: ver em Comunicação</button> : 'Nenhuma aberta'],
         ['Revisão de dados', (d.pendencias || []).length ? (d.pendencias || []).length + ' para conferir' : 'Nada para conferir'],
         ['Materiais', (d.materiais || []).length ? <ul className="fg-lista">{d.materiais.map((m) => <li key={m.id}><b>{(ROTULO_MATERIAL[m.item] || m.item) + (m.quantidade != null ? ' · ' + m.quantidade : '')}</b>{ROTULO_MATERIAL_STATUS[m.status]}{m.recebido_por ? ' · recebido por ' + m.recebido_por : ''}</li>)}</ul> : null, { largo: true, vazio: 'Nenhum material registrado' }],
-        ['Arquivos enviados à marca', (d.arquivos || []).length ? <ul className="fg-lista">{d.arquivos.map((a) => <li key={a.id}><b>{a.nome}</b>{a.exige_leitura ? (a.lido_em ? 'leu em ' + dataCurta(a.lido_em) : 'leitura não confirmada') : 'sem confirmação de leitura'}</li>)}</ul> : null, { largo: true, vazio: 'Nenhum arquivo' }],
+        ['Arquivos enviados à marca', (d.arquivos || []).length ? <ul className="fg-lista">{d.arquivos.map((a) => <li key={a.id}><b>{a.nome}</b>{leituraNaFicha(a, dataCurta, 'leitura não confirmada')}</li>)}</ul> : null, { largo: true, vazio: 'Nenhum arquivo' }],
         vendas.length > 0 && ['Vendas lançadas', totalVendas + (totalVendas === 1 ? ' combo' : ' combos') + ' em ' + vendas.length + (vendas.length === 1 ? ' dia' : ' dias')],
         // Pagamento só para quem gere pagamento — mesma regra da edição dele.
         pode('pagamento.gerir') && ['Pagamento da taxa', <Selo key="p" dominio="pagamento" valor={pa.pagamento_status} />],
@@ -409,13 +468,14 @@ function SecaoOperacao({ p, fontes, recarregar, pode, onEditar, onIr, edicaoAber
 
 function SecaoPublicacao({ p, fontes, recarregar, pode, onEditar, edicaoAberta, previa, onPrevia, PreviaPagina }) {
   const pub = fontes.publicacao
-  if (pub.estado !== 'ok' || !pub.dados) return <SecaoFicha id="publicacao" titulo="Publicação"><EstadoFonte f={pub} oQue="a publicação" onTentar={recarregar} /></SecaoFicha>
+  if (pub.estado !== 'ok' || !pub.dados) return <SecaoFicha id="publicacao" titulo={NOMES_PUBLICACAO.marcas.pagina}><EstadoFonte f={pub} oQue="a publicação" onTentar={recarregar} /></SecaoFicha>
   const r = resumoPublicacao(pub.dados)
+  const ed = fontes.edicoes.estado === 'ok' ? edicaoDaFicha(p.edicao_codigo, fontes.edicoes.dados) : null   // o período da edição chega à prévia
   const ctx = { unidades: pub.dados.unidades, itens: pub.dados.atual && pub.dados.atual.combo && pub.dados.atual.combo.itens }
   const acoes = <>{botoesAcao("publicacao", pode, { temPublicacao: true }, onEditar)}
-    {pub.dados.atual && <Botao icone="visao" variante="secundario" aria-expanded={previa} onClick={() => onPrevia(!previa)}>{previa ? 'Fechar prévia' : 'Ver prévia pública'}</Botao>}</>
+    {pub.dados.atual && <Botao icone="olho" variante="secundario" aria-expanded={previa} onClick={() => onPrevia(!previa)}>{previa ? 'Fechar prévia' : 'Ver prévia pública'}</Botao>}</>
   return (
-    <SecaoFicha id="publicacao" titulo="Publicação" acoes={acoes} edicao={edicaoAberta}
+    <SecaoFicha id="publicacao" titulo={NOMES_PUBLICACAO.marcas.pagina} acoes={acoes} edicao={edicaoAberta}
       nota="O que está no ar é uma cópia congelada: o cadastro pode mudar sem mudar o site, até a próxima publicação.">
       <Dados itens={[
         ['No site', <><Selo key="s" dominio="publicacao" valor={r.estado} /> <span className="fg-texto-apoio">{r.texto}</span></>, { largo: true }],
@@ -426,19 +486,19 @@ function SecaoPublicacao({ p, fontes, recarregar, pode, onEditar, edicaoAberta, 
         ['Revisão do combo', <><Selo key="c" dominio="combo" valor={r.comboStatus || 'rascunho'} />{r.alterado && <span className="fg-texto-apoio"> Alterado depois da aprovação</span>}</>],
         ['O que impede publicar o combo', r.pendencias ? <ul className="fg-lista">{pub.dados.pendencias.map((c) => <li key={c}>{traduzirPendencia(c, ctx)}</li>)}</ul> : 'Nada: tudo que a página pública pede está preenchido', { largo: true }],
       ]} />
-      {previa && pub.dados.atual && <PreviaPagina conteudo={pub.dados.atual} nome={p.nome_marca || 'esta casa'} />}
+      {previa && pub.dados.atual && <PreviaPagina conteudo={pub.dados.atual} nome={p.nome_marca || 'esta casa'} periodo={ed ? { inicio: ed.inicio, fim: ed.fim } : null} />}
     </SecaoFicha>
   )
 }
 
 /* ── A visão ───────────────────────────────────────────────────────────── */
-export function VisaoParticipante({ p, logo, fontes, recarregar, pode, pendencias, carregandoPend, editando, renderEditor, onEditar, onIr, previa, onPrevia, PreviaPagina }) {
+export function VisaoParticipante({ p, logo, fontes, recarregar, pode, pendencias, carregandoPend, editando, renderEditor, onEditar, onIr, previa, onPrevia, PreviaPagina, onCobrar, onResolver }) {
   const comum = { p, fontes, recarregar, pode, onEditar, onIr }
   const ed = (id) => (editando && editando.secao === id ? renderEditor(editando) : null)
   return (
     <div className="fg-visao">
       <aside className="fg-lado" aria-label="Pendências desta participação">
-        <Pendencias itens={pendencias} carregando={carregandoPend} onIr={onIr} />
+        <Pendencias itens={pendencias} carregando={carregandoPend} onIr={onIr} pode={pode} onCobrar={onCobrar} onResolver={onResolver} />
       </aside>
       <div className="fg-principal">
         <SecaoCadastro {...comum} logo={logo} acoes={botoesAcao("cadastro", pode, {}, onEditar)} edicao={ed('cadastro')} />

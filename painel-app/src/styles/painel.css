@@ -131,9 +131,9 @@ h3,h4{font-family:var(--f-ui);letter-spacing:-.005em}
    Card, lista em card, bloco do cadastro, número, cartão da esteira: creme,
    anel de 1px por dentro e sombra-1. Quem é card entra NESTA lista; nenhuma
    regra abaixo redeclara fundo, borda ou sombra de card. */
-.ui-modulo,.og-lista,.mc-bloco,.ui-resumo__bloco,.ui-numero,.og-cartao,
+.ui-modulo,.og-lista,.mc-bloco,.ui-numero,.og-cartao,
 .gm-etapa,.gm-atalho,.og-esteira__etapa,.ui-pendencias li,
-.rd-cartao,.sp-cartao,.rd-agenda,.bb-arq{
+.rd-cartao,.sp-cartao,.rd-agenda,.bb-arq,.sc-cartao{
   background:var(--sup-1);border:0;box-shadow:var(--contorno),var(--sombra-1);
 }
 /* Card que é atalho: sob o ponteiro ganha a cor de toque e sobe um degrau.
@@ -241,8 +241,65 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 /* Botão com rótulo (Falar com a organização): texto no desktop, só ícone no celular. */
 .pn-cabeca__btn--texto{width:auto;padding:0 14px;display:inline-flex;gap:8px;font:700 14px/1 var(--f-ui)}
 .pn-cabeca__btn--texto .pn-badge{position:static}
-@media (max-width:1100px){ .pn-cabeca__btn--texto{width:44px;padding:0;justify-content:center} .pn-cabeca__btn-rotulo{display:none} .pn-cabeca__btn--texto .pn-badge{position:absolute} }
+.pn-cabeca__btn-curto{display:none}
+/* Celular/tablet: rótulo CURTO ("Conversa") EMPILHADO sob o ícone — não rouba largura do título da página; abaixo de 380px só o ícone (o nome completo está no aria-label). */
+@media (max-width:1100px){ .pn-cabeca__btn--texto{width:58px;padding:0;flex-direction:column;justify-content:center;gap:2px} .pn-cabeca__btn-rotulo{display:none} .pn-cabeca__btn-curto{display:block;font:700 11px/1 var(--f-ui)} .pn-cabeca__btn--texto .pn-badge{position:absolute;top:2px;right:6px} }
+@media (max-width:379px){ .pn-cabeca__btn--texto{width:44px} .pn-cabeca__btn-curto{display:none} }
 @media (min-width:901px){ #btn-sair{display:none} }
+/* Estado da sincronização (19/10/2026): ponto + rótulo curto; vira botão em falha/sem conexão. */
+.pn-sync{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 10px;border:0;border-radius:var(--r-2);background:transparent;color:var(--scw-marrom);font:600 12px/1 var(--f-ui);white-space:nowrap}
+button.pn-sync{cursor:pointer;color:var(--scw-choco)}
+@media (hover:hover){ button.pn-sync:hover{background:rgba(61,19,8,.08)} }
+.pn-sync__ponto{width:9px;height:9px;border-radius:50%;background:var(--scw-verde);box-shadow:0 0 0 2px rgba(61,19,8,.16);flex:0 0 auto}
+.pn-sync--atualizando .pn-sync__ponto{background:var(--scw-amarelo);animation:pn-sync-pulso 1s ease-in-out infinite}
+.pn-sync--sem_conexao .pn-sync__ponto{background:var(--scw-marrom)}
+.pn-sync--falha .pn-sync__ponto{background:var(--scw-laranja)}
+.pn-sync--falha .pn-sync__rotulo{font-weight:700}
+.pn-sync__sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@keyframes pn-sync-pulso{50%{opacity:.35}}
+/* ── Prévia de arquivo de imagem (PreviaArquivo.jsx, 27/10/2026): miniatura e imagem ampliada, nos dois painéis ── */
+.ui-previa{--previa-t:64px;position:relative;flex:0 0 auto;width:var(--previa-t);height:var(--previa-t);border-radius:var(--r-1);overflow:hidden;
+  background:var(--sup-trilho);display:inline-grid;place-items:center;color:var(--scw-marrom);box-shadow:inset 0 0 0 1px var(--scw-filete)}
+.ui-previa img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.ui-previa__espera{opacity:.5}
+.ui-previa--botao{padding:0;border:0;cursor:zoom-in;font:inherit}
+.ui-previa--botao:focus-visible{outline:3px solid var(--scw-choco);outline-offset:2px}
+@media (hover:hover){ .ui-previa--botao:hover{box-shadow:inset 0 0 0 2px var(--scw-choco)} }
+.ui-previa--lista{--previa-t:44px}
+.og-item__nome--previa{display:flex;align-items:center;gap:10px;min-width:0}
+.og-item__nome--previa > span:last-child{min-width:0;overflow-wrap:anywhere}
+.ui-ampliada{display:grid;place-items:center;min-height:200px;background:var(--sup-trilho);border-radius:var(--r-2);padding:var(--e-3);margin-bottom:var(--e-4)}
+.ui-ampliada img{display:block;max-width:100%;max-height:min(70vh,960px);width:auto;height:auto;object-fit:contain}
+
+/* ── Cobrar pendências e avisar o participante (CobrarPendencias.jsx, 26/10/2026) ── */
+.cp-caixa{margin:0;padding:14px 16px;border:0;border-radius:var(--r-2);background:var(--sup-2);display:flex;flex-direction:column;gap:12px;min-width:0}
+.cp-caixa__marcar{display:flex;align-items:center;gap:10px;min-height:44px;font:700 14.5px/1.3 var(--f-ui);color:var(--scw-choco);cursor:pointer}
+.cp-caixa__marcar input,.cp-itens input{width:18px;height:18px;margin:0;flex:0 0 auto}
+.cp-destino{margin:0;padding:14px 16px;border:0;border-radius:var(--r-2);background:var(--sup-2);display:flex;flex-direction:column;gap:10px;min-width:0}
+.cp-destino > legend{float:left;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:0;font:700 15px/1.3 var(--f-ui);color:var(--scw-choco)}
+.cp-destino > legend + *{clear:both}
+.cp-itens{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.cp-itens label{display:flex;align-items:flex-start;gap:10px;min-height:44px;padding:10px 0;font:400 14.5px/1.4 var(--f-texto);color:var(--scw-choco);cursor:pointer}
+.cp-itens li + li{border-top:1px solid var(--scw-filete)}
+.cp-previa summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font:700 13.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
+.cp-previa pre{margin:0;white-space:pre-wrap;font:400 14px/1.45 var(--f-texto);color:var(--scw-choco);background:var(--sup-1);border-radius:var(--r-1);padding:12px 14px}
+.cp-progresso{width:100%;height:10px;accent-color:var(--scw-cyan)}
+.cp-conta{display:block;margin-top:4px;font:400 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+
+/* Alteração externa em registro em edição (19/10/2026): atualizado = informativo; conflito = escolha. */
+.pn-aviso-externo{margin:0 0 14px;padding:12px 14px;border:1px solid var(--scw-filete);border-left:4px solid var(--scw-cyan);border-radius:var(--r-2);background:rgba(1,175,204,.08);color:var(--scw-choco);display:flex;flex-direction:column;gap:10px}
+.pn-aviso-externo--conflito{border-left-color:var(--scw-laranja);background:rgba(255,72,16,.07)}
+.pn-aviso-externo__texto{margin:0;font:400 14px/1.45 var(--f-texto)}
+.pn-aviso-externo__lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.pn-aviso-externo__item{display:grid;gap:6px;padding:10px;border-radius:var(--r-1);background:rgba(254,240,221,.7)}
+.pn-aviso-externo__campo{font:700 13px/1.2 var(--f-ui)}
+.pn-aviso-externo__versao{display:flex;flex-direction:column;gap:2px;font:400 13.5px/1.4 var(--f-texto);overflow-wrap:anywhere}
+.pn-aviso-externo__versao em{font:600 11.5px/1.2 var(--f-ui);font-style:normal;color:var(--scw-marrom)}
+.pn-aviso-externo__acoes{display:flex;flex-wrap:wrap;gap:8px}
+.pn-aviso-externo__btn{min-height:44px;padding:0 14px;border:1px solid var(--scw-borda-campo);border-radius:var(--r-2);background:var(--scw-creme);color:var(--scw-choco);font:700 13px/1 var(--f-ui);cursor:pointer}
+@media (hover:hover){ .pn-aviso-externo__btn:hover{background:var(--scw-bege)} }
+@media (prefers-reduced-motion:reduce){ .pn-sync--atualizando .pn-sync__ponto{animation:none} }
+@media (max-width:700px){ .pn-sync:not(.pn-sync--falha):not(.pn-sync--sem_conexao) .pn-sync__rotulo{display:none} .pn-sync{padding:0 6px} }
 @media (max-width:1000px){ .pn-cabeca__quem{padding:4px;margin:0} .pn-cabeca__quem-texto{display:none} }
 @media (max-width:900px){
   .pn-cabeca{min-height:58px;background:var(--scw-choco);color:var(--scw-creme);border-bottom:0;padding-left:calc(16px + var(--scw-safe-l));padding-right:calc(12px + var(--scw-safe-r));padding-bottom:12px;gap:12px}
@@ -253,6 +310,15 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
   .pn-cabeca__btn{background:rgba(254,240,221,.1)}
   @media (hover:hover){ .pn-cabeca__btn:hover{background:rgba(254,240,221,.2)} }
 }
+/* Celular estreito (19/10/2026): com o ponto de sincronização o título "Visão geral" ficava "Visão g…". Os botões seguem com 44px
+   de toque; o que sai é o respiro entre eles, para o título caber. Vem DEPOIS do bloco de 900px (mesma especificidade). */
+@media (max-width:480px){
+  .pn-cabeca{gap:8px}
+  .pn-cabeca__dir{gap:2px}
+  .pn-cabeca__marca{height:34px}
+  .pn-sync{padding:0 3px}
+}
+@media (max-width:400px){ .pn-cabeca{gap:6px} .pn-cabeca__titulo{font-size:16px} .pn-cabeca__marca{height:26px} }
 
 /* ── Selo de contagem ──────────────────────────────────────────────────── */
 /* Creme sobre magenta: 3,8:1 — passa como elemento gráfico de 11px/700 só com
@@ -326,6 +392,8 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
    fixo mostra só o nome curto); no celular o cabeçalho fixo já diz tudo e
    este some — nada de título três vezes. */
 .pn-vista-cabeca{display:flex;align-items:center;gap:18px;margin:0 0 var(--espaco-secao);padding:0 0 var(--e-5);border-bottom:1px solid var(--scw-filete)}
+/* Módulo com abas: as abas são a continuação do título, não uma seção nova — o respiro é menor (23/10/2026). */
+.og-vista > .pn-vista-cabeca:has(+ .ui-abas){margin-bottom:var(--e-5)}
 .pn-acento-disco{width:44px;height:44px;border-radius:var(--r-2);flex:0 0 auto;display:grid;place-items:center;background:var(--scw-amarelo);color:var(--scw-choco)}
 /* O disco da página é maior que o de card: é a assinatura da tela. */
 .pn-vista-cabeca > .pn-acento-disco{width:60px;height:60px;box-shadow:var(--sombra-1)}
@@ -373,22 +441,8 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
 .ui-grade-duas{display:grid;gap:0 clamp(28px,3.4vw,56px);grid-template-columns:minmax(0,1fr)}
 @media (min-width:1280px){ .ui-grade-duas{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
-/* Painel inicial (mesa / hoje): números em cima; atenção e atividade lado a
-   lado no desktop; esteira em largura total. */
-.ui-grade-painel{display:grid;gap:0 clamp(28px,3.4vw,56px);grid-template-columns:minmax(0,1fr);grid-template-areas:"numeros" "atencao" "redes" "atividade" "esteira"}
-.ui-resumo{grid-area:numeros}
-.ui-area-atencao{grid-area:atencao}
-.ui-area-atividade{grid-area:atividade}
-.ui-area-esteira{grid-area:esteira}
-.ui-area-redes{grid-area:redes}
 /* Filtro que veio de fora (contador da Visão geral): diz qual é e como sair. */
 .ui-filtro-ativo{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 14px;font:700 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
-@media (min-width:1100px){
-  .ui-grade-painel{grid-template-columns:minmax(0,3fr) minmax(0,2fr);grid-template-areas:"numeros numeros" "atencao atividade" "redes redes" "esteira esteira"}
-}
-.ui-area-historia{grid-area:historia}
-.ui-grade-painel--marca{grid-template-areas:"atencao" "esteira" "atividade" "historia"}
-@media (min-width:1100px){ .ui-grade-painel--marca{grid-template-areas:"atencao atividade" "esteira atividade" "historia historia";align-items:start} }
 
 /* ═══ Botões ═══════════════════════════════════════════════════════════════
    Uma família só (og-btn); `acao` é o apelido usado pelo formulário da marca. */
@@ -415,6 +469,21 @@ button.ui-modulo,button.ui-numero,button.og-cartao,button.gm-atalho,button.gm-et
    chocolate sobre laranja, 4,78:1 em 14,5px/700. */
 .og-btn--perigo{background:var(--scw-laranja);color:var(--scw-choco)}
 .acao.larga{width:100%}
+/* Só o ícone (Botao soIcone, LinkIcone, MaisAcoes — 25/10/2026): a MESMA variante, num círculo de 44px. O nome vai
+   no aria-label e numa dica em cima, no mouse e no foco do teclado. No toque não há dica: por isso só vira ícone o
+   desenho universal. max-width segura o círculo onde a fileira estica os botões (flex:1). */
+.og-btn--icone{position:relative;width:44px;min-width:44px;max-width:44px;height:44px;min-height:44px;padding:0;gap:0;flex-shrink:0}
+.og-btn--icone::after{content:attr(data-rotulo);position:absolute;bottom:calc(100% + 6px);left:50%;translate:-50% 0;
+  padding:6px 10px 5px;border-radius:999px;background:var(--scw-choco);color:var(--scw-creme);font:700 12px/1 var(--f-ui);
+  white-space:nowrap;pointer-events:none;display:none;z-index:5}
+/* Nas pontas da fileira a dica encosta na borda do botão: centrada, passaria da borda da folha, que corta.
+   Botão sozinho mora no canto direito (ui-secao__acoes): a dica cresce para a esquerda. Oculta é display:none,
+   não opacity:0 — invisível, ela ainda contava na rolagem e abria rolagem lateral no celular. */
+.og-btn--icone:first-child:not(:last-child)::after{left:0;translate:none}
+.og-btn--icone:last-child::after,.ui-mais-acoes:last-child > .og-btn--icone::after{left:auto;right:0;translate:none}
+.og-btn--icone:focus-visible::after{display:block}
+@media (hover:hover){ .og-btn--icone:hover::after{display:block} }
+.ui-mais-acoes[open] > .og-btn--icone::after{display:none}
 /* Link: UMA família (eram três). Tinta chocolate, sublinhado marrom-claro
    que escurece sob o ponteiro. */
 .og-link,.link,.ui-link{
@@ -747,37 +816,22 @@ body:has(.ui-conexao) :is(.og-vista,.pn-vista__trilho){padding-bottom:calc(200px
 .ui-tour__nav{display:flex;gap:8px;margin-left:auto}
 
 /* ═══ Painel inicial ═══════════════════════════════════════════════════════ */
-/* Resumo da Visão geral: a edição em frações do total (barras) e, ao lado,
-   só o que pede ação acima de zero — zerado vira uma linha "Em dia". Oito
-   cartões iguais davam o mesmo peso a 0 e a 19. */
-.ui-resumo{display:grid;gap:12px;margin:0 0 var(--espaco-secao);grid-template-columns:minmax(0,1fr)}
-@media (min-width:760px){ .ui-resumo{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
-.ui-resumo__bloco{display:flex;flex-direction:column;gap:12px;min-width:0;padding:20px 22px 22px;border-radius:var(--r-3)}
-.ui-resumo__rotulo{margin:0;font:700 12px/1 var(--f-ui);letter-spacing:.02em;color:var(--scw-marrom)}
-.ui-resumo__total,.ui-resumo__barra,.ui-resumo__acao{
+/* Barras do resumo da edição (ResumoRedes e barras de situação). */
+.ui-resumo__total,.ui-resumo__barra{
   width:100%;border:0;background:transparent;color:var(--scw-choco);text-align:left;cursor:pointer;font:inherit;
   border-radius:var(--r-1);transition:background var(--scw-transicao);
 }
-@media (hover:hover){ .ui-resumo__total:hover,.ui-resumo__barra:hover,.ui-resumo__acao:hover{background:var(--scw-bege)} }
+@media (hover:hover){ .ui-resumo__total:hover,.ui-resumo__barra:hover{background:var(--scw-bege)} }
 .ui-resumo__total{display:flex;align-items:baseline;gap:10px;min-height:44px;padding:4px 8px;margin:-4px -8px 0;width:calc(100% + 16px)}
 .ui-resumo__n{font:900 clamp(34px,3.4vw,46px)/.9 var(--f-titulo);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
 .ui-resumo__texto{font:700 14px/1.25 var(--f-ui)}
-.ui-resumo__barras,.ui-resumo__acoes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
-.ui-resumo__acoes{gap:0}
+.ui-resumo__barras{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
 .ui-resumo__barra{display:flex;flex-direction:column;gap:7px;min-height:44px;padding:8px;margin:0 -8px;width:calc(100% + 16px)}
 .ui-resumo__linha{display:flex;justify-content:space-between;gap:12px;font:400 14px/1.3 var(--f-ui)}
 .ui-resumo__linha b{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .ui-resumo__trilho{display:block;height:8px;border-radius:4px;background:var(--scw-bege);overflow:hidden}
 .ui-resumo__trilho > span{display:block;height:100%;border-radius:inherit;background:var(--scw-choco)}
-.ui-resumo__acao{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 8px;margin:0 -8px;width:calc(100% + 16px)}
-.ui-resumo__acoes li + li{border-top:1px solid var(--scw-filete)}
-/* O número que pede ação vai em chapa amarela: é o único lugar do resumo com cor. */
-.ui-resumo__n--acao{flex:0 0 auto;min-width:52px;padding:8px 10px 6px;border-radius:var(--r-1);background:var(--scw-amarelo);text-align:center;font-size:clamp(24px,2.4vw,30px)}
-.ui-resumo__acao .ui-resumo__texto{flex:1 1 auto;min-width:0}
-.ui-resumo__ir{flex:0 0 auto;font:700 20px/1 var(--f-ui);color:var(--scw-marrom)}
 .ui-resumo__ok{display:flex;align-items:center;gap:8px;margin:0;font:700 15px/1.3 var(--f-ui)}
-.ui-resumo__emdia{margin:0;font:400 13px/1.45 var(--f-texto);color:var(--scw-marrom)}
-.ui-resumo__emdia b{color:var(--scw-choco);font-family:var(--f-ui)}
 .ui-numeros{list-style:none;margin:0 0 var(--espaco-secao);padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
 .ui-numero{
   width:100%;height:100%;text-align:left;border-radius:var(--r-3);padding:18px 20px;
@@ -885,6 +939,11 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .ui-aviso__meta{font:400 12px/1.2 var(--f-ui);color:var(--scw-marrom)}
 .ui-aviso__ponto{flex:0 0 auto;width:9px;height:9px;margin-top:6px;border-radius:50%;background:var(--scw-magenta)}
 .ui-linha-acoes + .ui-avisos,.og-detalhe__rolo > .ui-linha-acoes{margin-bottom:12px}
+/* "Avisos neste aparelho" no topo da folha (23/10/2026): estado + ligar/desligar + o convite de instalar. */
+.ui-central-aparelho{margin:0 0 var(--e-5);padding:0 var(--e-4);border-radius:var(--r-2);background:var(--sup-2)}
+.ui-central-aparelho > summary{display:flex;color:var(--scw-choco)}
+.ui-central-aparelho__corpo{display:flex;flex-direction:column;align-items:flex-start;gap:var(--e-2);padding:0 0 var(--e-4)}
+.ui-central-aparelho .ui-avisos-aparelho{align-self:stretch}
 
 /* ═══ Folha (gaveta no desktop, folha no celular) ══════════════════════════ */
 .og-fundo{position:fixed;inset:0;background:rgba(43,14,6,.5);z-index:30;animation:ogVeu 200ms var(--scw-ease)}
@@ -1126,7 +1185,6 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .mc-bloco__corpo{padding:4px 20px 24px 76px}
 @media (max-width:760px){ .mc-bloco__corpo{padding-left:18px;padding-right:18px} }
 .pn-vista form > .acao.larga{max-width:980px;margin-top:18px}
-.pn-vista .mc-concluir-aviso{margin:12px 0 0;max-width:980px}
 .pn-vista .mc-campo-curto{max-width:220px}
 .pn-vista .mc-valor-combo{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 var(--e-4);padding:12px 16px;border-radius:var(--r-2);background:var(--sup-2)}
 .pn-vista .mc-valor-combo span{font:700 13px/1.2 var(--f-ui);color:var(--scw-marrom)}
@@ -1155,29 +1213,8 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .mc-venda__erro{margin:14px 0 0;display:flex;gap:10px;align-items:flex-start;color:var(--scw-amarelo);font:700 14px/1.4 var(--f-texto)}
 .mc-venda__erro::before{content:'';flex:0 0 20px;height:20px;border-radius:50%;background:var(--scw-amarelo) var(--icone-exclamacao-choco) center/14px no-repeat}
 
-/* Pedidos da marca (acordeão com resposta). */
-.ui-pedidos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--scw-filete);max-width:980px}
-.ui-pedido{border-bottom:1px solid var(--scw-filete)}
-.ui-pedido__cabeca{width:100%;text-align:left;border:0;background:transparent;padding:16px 6px;display:flex;align-items:center;gap:14px;min-height:60px}
-@media (hover:hover){ .ui-pedido__cabeca:hover{background:var(--sup-toque)} }
-.ui-pedido__titulo{flex:1 1 auto;min-width:0;font:700 16px/1.3 var(--f-ui)}
-.ui-pedido__chevron{flex:0 0 auto;color:var(--scw-marrom);transition:transform 200ms var(--scw-ease)}
-.ui-pedido.is-aberto .ui-pedido__chevron{transform:rotate(180deg)}
-.ui-pedido__prazo{margin:0;font:700 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
-.ui-resposta{display:flex;flex-direction:column;gap:6px}
-.ui-resposta__rotulo{margin:0;font:700 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
-.ui-pedido.is-feito .ui-pedido__titulo{color:var(--scw-marrom)}
-.ui-pedido__corpo{padding:0 6px 22px;display:flex;flex-direction:column;gap:14px}
 .ui-pedido__texto{margin:0;font:400 15px/1.55 var(--f-texto);white-space:pre-wrap}
 
-/* Arquivos da marca. */
-.ui-arquivos{list-style:none;margin:0;padding:0;border-top:1px solid var(--scw-filete)}
-.ui-arquivo{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:14px 4px;border-bottom:1px solid var(--scw-filete)}
-.ui-arquivo.is-destaque{background:rgba(253,187,26,.18)}
-.ui-arquivo__corpo{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 260px}
-.ui-arquivo__corpo b{font:700 15.5px/1.3 var(--f-ui)}
-.ui-arquivo__corpo span{font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom)}
-.ui-arquivo__corpo .og-selo{align-self:flex-start;margin-top:4px;font:700 11px/1.2 var(--f-ui);color:var(--scw-choco)}
 
 /* ═══ Guia de fotos (só leitura) ═══════════════════════════════════════════ */
 .gf{display:grid;gap:clamp(28px,3.4vw,44px)}
@@ -1441,7 +1478,9 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
   color:var(--scw-choco);text-align:left;font:inherit;
 }
 .ui-modulo--largo{grid-column:1 / -1}
-.ui-modulo__cabeca{display:flex;align-items:center;gap:14px;min-width:0}
+/* Quebra de linha: em card estreito (celular, grade de 3) o selo desce para a linha de baixo em
+   vez de espremer o título até uma letra por linha (achado no iPhone, 24/10/2026). */
+.ui-modulo__cabeca{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;min-width:0}
 /* Card com corpo: a cabeça vira barra de título, separada por filete de
    ponta a ponta — o card lê como janela (título · conteúdo · ação). */
 .ui-modulo:not(.ui-modulo--atalho) > .ui-modulo__cabeca:not(:last-child){margin:0 calc(var(--modulo-x) * -1);padding:0 var(--modulo-x) 16px;box-shadow:inset 0 -1px 0 var(--scw-filete)}
@@ -1453,7 +1492,7 @@ button.ui-atencao__item:hover,button.ui-passo:hover{background:var(--sup-toque)}
 .ui-modulos > .ui-modulo:nth-child(6n+4) > .ui-modulo__cabeca > .ui-modulo__disco{--c:var(--scw-roxo);--t:var(--scw-creme)}
 .ui-modulos > .ui-modulo:nth-child(6n+5) > .ui-modulo__cabeca > .ui-modulo__disco{--c:var(--scw-laranja)}
 .ui-modulos > .ui-modulo:nth-child(6n+6) > .ui-modulo__cabeca > .ui-modulo__disco{--c:var(--scw-marrom);--t:var(--scw-creme)}
-.ui-modulo__titulos{min-width:0;flex:1 1 auto}
+.ui-modulo__titulos{min-width:0;flex:1 1 12rem}
 .ui-modulo__titulo{margin:0;font:700 17.5px/1.2 var(--f-ui);overflow-wrap:anywhere}
 .ui-modulo__sub{margin:2px 0 0;font:400 13.5px/1.35 var(--f-texto);color:var(--scw-marrom)}
 .ui-modulo__status{flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
@@ -1518,6 +1557,9 @@ button.ui-modulo:active{transform:translateY(0)}
 }
 .ui-logo img{display:block;width:100%;height:100%;object-fit:cover}
 .ui-logo:not(.ui-logo--iniciais)::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--scw-filete);pointer-events:none}
+.ui-com-logo{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;vertical-align:middle}
+.ui-com-logo > .ui-logo{flex:0 0 auto}
+.ui-com-logo__nome{min-width:0;overflow-wrap:anywhere}
 .ui-logo--iniciais{background:var(--scw-bege);font:900 calc(var(--logo-t) * .36)/1 var(--f-titulo);letter-spacing:-.02em;color:var(--scw-choco)}
 .ui-logo-editor{display:flex;flex-direction:column;gap:14px;min-width:0}
 .ui-logo-editor:focus{outline:none}
@@ -1639,6 +1681,8 @@ button.ui-modulo:active{transform:translateY(0)}
 
 .fg-dados{margin:0;display:grid;gap:14px 28px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
 .fg-dado{min-width:0}
+/* O campo (ou o bloco do item/da unidade) que o aviso de alteração da marca apontou: destaque parado, sem animação. */
+.fg-alvo{border-radius:var(--r-1);background:color-mix(in srgb,var(--scw-amarelo) 24%,transparent);box-shadow:0 0 0 3px var(--scw-amarelo);scroll-margin-top:var(--e-8)}
 .fg-dado--largo{grid-column:1 / -1}
 .fg-dado dt{font:700 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
 .fg-dado dd{margin:4px 0 0;font:400 15.5px/1.5 var(--f-texto);color:var(--scw-choco);overflow-wrap:anywhere;max-width:72ch}
@@ -1688,6 +1732,13 @@ p.fg-vazio{margin:0}
 .fg-pend__item:hover{background:var(--sup-toque)}
 .fg-pend__onde{display:inline-flex;align-items:center;gap:4px;font:700 12.5px/1 var(--f-ui);color:var(--scw-marrom)}
 .fg-pend__lista li.is-erro .fg-pend__item{color:var(--scw-marrom);font-style:italic}
+.fg-pend__linha{display:flex;align-items:center;gap:6px}
+.fg-pend__linha > .fg-pend__item{flex:1 1 auto;min-width:0}
+.fg-pend__sel{flex:0 0 28px;display:grid;place-items:center;min-height:44px}
+.fg-pend__sel input{width:18px;height:18px;margin:0}
+.fg-pend__acoes{flex:0 0 auto;display:flex;gap:4px}
+.fg-pend__rodape{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--scw-filete)}
+.fg-pend__rodape .ui-nota{margin:0}
 
 /* Editor aberto no lugar da seção. */
 .fg-editor{display:flex;flex-direction:column;gap:var(--e-5);padding:16px;border-radius:var(--r-3);background:var(--sup-0);box-shadow:inset 0 0 0 2px var(--scw-cyan)}
@@ -1746,42 +1797,36 @@ p.fg-vazio{margin:0}
 .pr-lista__nome{flex:1 1 200px;text-align:left;font:700 15px/1.3 var(--f-ui)}
 .pr-lista__acoes{display:flex;align-items:center;gap:6px;margin-left:auto}
 
-/* ── Social media › Planejamento (16/10/2026; refinado em 17/10/2026) ─────────
-   Calendário do Instagram. Topo em três níveis — cabeçalho · período ·
-   ferramentas —, alertas discretos e a semana arrumada pela LARGURA DO
-   CONTEÚDO: `.rd-c` é container (`rd`), o menu lateral já descontado.
-   R.layoutSemana escolhe o arranjo (colunas · agenda · linhas); o CSS só
-   desenha. ⚠️ O container fica num invólucro que NÃO contém as folhas:
+/* ── Social media › Planejamento (16/10/2026; refinado em 17/10 e 23/10/2026) ─
+   Calendário do Instagram. Topo em DUAS linhas — período + alertas + ações ·
+   ferramentas (a aba já é o título; o h2 é só do leitor de tela) — e a semana
+   arrumada pela LARGURA DO CONTEÚDO: `.rd-c` é container (`rd`), o menu
+   lateral já descontado. R.layoutSemana escolhe o arranjo (colunas · agenda);
+   o CSS só desenha. ⚠️ O container fica num invólucro que NÃO contém as folhas:
    container-type contém posição fixa, e a folha ficaria presa nele.
-   Uma cor por situação, sempre com texto junto; atraso = laranja + ícone.
-   Miniatura CONTIDA (nunca esticada nem recortada). */
+   Uma cor por situação, sempre com texto junto; atraso = laranja + selo, UMA
+   vez por contexto. Miniatura CONTIDA (nunca esticada nem recortada). */
 .rd,.rd-c{display:flex;flex-direction:column;gap:12px}
 .rd-c{container:rd / inline-size}
+/* Ferramentas → calendário: um respiro a mais que entre as linhas do topo. */
+.rd-c > .rd-corpo{margin-top:var(--e-2)}
 .rd-falta{color:var(--scw-marrom);font-style:italic}
 /* Link no meio do texto: a área de toque cresce para cima e para baixo sem mexer na linha. */
 .rd-link{padding:10px 0;margin:-10px 0;border:0;background:none;color:var(--scw-choco);font:inherit;text-align:left;text-decoration:underline;text-decoration-color:rgba(61,19,8,.35);text-underline-offset:3px;cursor:pointer}
 @media (hover:hover){ .rd-link:hover{text-decoration-color:currentColor} }
 
-/* Nível 1 — cabeçalho: título, uma ação principal, ajuda discreta. */
-.rd-cabeca{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
-.rd-cabeca__titulo{margin:0;font:900 clamp(20px,2.2vw,26px)/1.1 var(--f-titulo);letter-spacing:-.02em;color:var(--scw-choco)}
-.rd-cabeca__acoes{display:flex;align-items:center;gap:6px;margin-left:auto}
-.rd-ajuda{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-marrom);font:700 14px/1 var(--f-ui);cursor:pointer}
-@media (hover:hover){ .rd-ajuda:hover{color:var(--scw-choco);background:var(--sup-toque)} }
-/* Estreito: a ajuda vira só o "i" (o nome continua para o leitor de tela). */
-/* Estreito: a aba "Planejamento" logo acima já é o título — ele fica só para o
-   leitor de tela, e "Nova postagem" + ajuda cabem numa linha; a ajuda vira o "i". */
-@container rd (max-width:520px){
-  .rd-cabeca__titulo{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  .rd-cabeca__acoes{flex:1 1 auto;margin:0}
-  .rd-cabeca__acoes > .og-btn{flex:1 1 auto;justify-content:center;min-height:48px}
-  .rd-ajuda{order:2;padding:0 6px}
-}
-
-/* Nível 2 — período: anterior · intervalo (abre o calendário) · próximo · hoje.
-   No largo, os alertas ocupam o resto desta linha; no estreito, descem. */
-.rd-faixa{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+/* Linha 1 — período (anterior · intervalo que abre o calendário · próximo · hoje), alertas e, à direita,
+   as ações: "Como funciona", "Mais ações" (o raro) e "Nova postagem". No estreito, as ações sobem e
+   "Nova postagem" vem primeiro, larga. */
+.rd-faixa{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
 .rd-faixa > .rd-escopo{flex:1 1 100%}
+.rd-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto}
+/* O menu de "Mais ações" abre para a esquerda: preso à direita, nunca sai da tela. */
+.rd-acoes > .ui-mais-acoes{margin-left:auto}
+@container rd (max-width:520px){
+  .rd-acoes{order:-1;flex:1 1 100%;margin:0}
+  .rd-acoes > .rd-nova{order:-1;flex:1 1 auto;justify-content:center;min-height:48px}
+}
 .rd-periodo{display:flex;align-items:center;gap:4px;min-width:0}
 .rd-periodo__intervalo{min-height:44px;min-width:0;display:inline-flex;align-items:center;gap:8px;padding:0 10px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-choco);font:900 clamp(17px,1.9vw,21px)/1.15 var(--f-titulo);letter-spacing:-.015em;text-align:left;cursor:pointer}
 .rd-periodo__intervalo svg{flex:0 0 auto;color:var(--scw-marrom)}
@@ -1796,17 +1841,19 @@ p.fg-vazio{margin:0}
   .rd-periodo__intervalo{flex:1 1 auto;justify-content:center;padding:0 4px;font-size:17px}
 }
 
-/* Nível 3 — ferramentas: visualização, sem data, busca, filtros. */
+/* Linha 2 — ferramentas: visualização (Semana · Mês · Dia · Lista · Sem data), busca e filtros juntos à direita. */
 .rd-ferramentas,.sb-ferramentas{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .rd-modos.og-agenda__modos{margin:0}
-.rd-semdata,.rd-filtros-btn{min-height:44px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border:0;border-radius:999px;background:var(--sup-trilho);color:var(--scw-choco);font:700 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
-.rd-semdata .og-aba__n,.rd-filtros-btn .og-aba__n{background:var(--sup-1)}
-.rd-semdata[aria-pressed="true"],.rd-filtros-btn[aria-expanded="true"]{background:var(--scw-choco);color:var(--scw-creme)}
-.rd-semdata[aria-pressed="true"] .og-aba__n,.rd-filtros-btn[aria-expanded="true"] .og-aba__n{background:var(--scw-amarelo);color:var(--scw-choco)}
-@media (hover:hover){ .rd-semdata:not([aria-pressed="true"]):hover,.rd-filtros-btn:not([aria-expanded="true"]):hover{background:var(--sup-toque)} }
-.rd-ferramentas .rd-busca,.sb-ferramentas .rd-busca{flex:1 1 200px;min-width:0}
+.rd-filtros-btn{min-height:44px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border:0;border-radius:999px;background:var(--sup-trilho);color:var(--scw-choco);font:700 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
+.rd-filtros-btn .og-aba__n{background:var(--sup-1)}
+.rd-filtros-btn[aria-expanded="true"]{background:var(--scw-choco);color:var(--scw-creme)}
+.rd-filtros-btn[aria-expanded="true"] .og-aba__n{background:var(--scw-amarelo);color:var(--scw-choco)}
+@media (hover:hover){ .rd-filtros-btn:not([aria-expanded="true"]):hover{background:var(--sup-toque)} }
+.sb-ferramentas .rd-busca{flex:1 1 200px;min-width:0}
+/* A busca não estica pela linha toda: ~320 px, colada em "Filtros". Sem ela (estreito), "Filtros" vai à direita. */
+.rd-ferramentas .rd-busca{flex:0 1 320px;min-width:0;margin-left:auto}
 .rd-ferramentas .rd-busca input,.sb-ferramentas .rd-busca input{min-height:44px;padding-top:0;padding-bottom:0}
-.rd-ferramentas > .rd-filtros-btn{margin-left:auto}
+.rd-ferramentas > .rd-ver + .rd-filtros-btn{margin-left:auto}
 /* Caixa de seleção compacta (visualização no celular, tipo na biblioteca). */
 .rd-ver select{min-height:44px;max-width:100%;padding:0 40px 0 14px;border:0;border-radius:999px;appearance:none;
   background:var(--sup-trilho) var(--icone-select) no-repeat right 14px center / 16px;color:var(--scw-choco);font:700 15px/1 var(--f-ui);cursor:pointer}
@@ -1820,20 +1867,21 @@ p.fg-vazio{margin:0}
 /* Atalho ligado: diz o escopo — não é mais a semana escolhida. */
 .rd-escopo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:10px 14px;border-radius:var(--r-2);background:var(--sup-2);box-shadow:inset 4px 0 0 var(--scw-choco)}
 .rd-escopo p{margin:0;flex:1 1 260px;font:400 14.5px/1.45 var(--f-ui);color:var(--scw-choco)}
-/* Alertas: só os do perfil e só com algo — texto curto com ícone, não blocos. */
-.rd-alertas{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
-.rd-alerta{min-height:44px;display:inline-flex;align-items:center;gap:5px;padding:0 10px;border:0;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1px var(--scw-filete);color:var(--scw-choco);font:400 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
-.rd-alerta b{font-weight:800}
+/* Alertas: só os do perfil e só com algo. "Em todas as datas:" diz na tela o escopo (não é o período
+   escolhido); a pílula cheia + a seta dizem que é um atalho (abre a lista). */
+.rd-alertas{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.rd-alertas__lista{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+.rd-alerta{min-height:44px;display:inline-flex;align-items:center;gap:5px;padding:0 10px 0 12px;border:0;border-radius:999px;background:var(--sup-trilho);color:var(--scw-choco);font:700 14px/1 var(--f-ui);white-space:nowrap;cursor:pointer}
+.rd-alerta b{font-weight:900}
 .rd-alerta svg{color:var(--scw-marrom)}
-.rd-alerta[data-tom="atencao"] svg{color:var(--scw-laranja)}
+.rd-alerta[data-tom="atencao"] svg:first-child{color:var(--scw-laranja)}
 @media (hover:hover){ .rd-alerta:hover{background:var(--sup-toque)} }
-/* Celular: três alertas numa linha — o ícone sai, o texto fica. */
-@container rd (max-width:420px){ .rd-alerta svg{display:none} .rd-alerta{padding:0 9px} }
-/* Primeira visita: UMA linha de orientação (o passo a passo mora na folha). */
+/* Celular: três alertas numa linha — os ícones saem, o texto fica. */
+@container rd (max-width:420px){ .rd-alerta svg{display:none} .rd-alerta{padding:0 10px} }
+/* Primeira visita: UMA linha de orientação + "Entendi" (o passo a passo é o "Como funciona"). */
 .sg-inicio{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 14px;border-radius:var(--r-2);background:var(--sup-2)}
 .sg-inicio__texto{margin:0;flex:1 1 300px;font:400 14px/1.5 var(--f-texto);color:var(--scw-choco)}
 .sg-inicio__texto b{font-family:var(--f-ui)}
-.sg-inicio__acoes{display:flex;flex-wrap:wrap;gap:8px}
 
 /* Resumo da Visão geral (ResumoRedes) */
 .rd-resumo{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
@@ -1870,16 +1918,15 @@ p.fg-vazio{margin:0}
 .rd-cartao__meta{font:400 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
 .rd-cartao__estado{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
 .rd-cartao__resp{display:inline-flex;align-items:center;gap:6px;min-width:0;font:400 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
-.rd-cartao__sit{font:700 12.5px/1.25 var(--f-ui);color:var(--scw-choco)}
-.rd-cartao__alerta{display:inline-flex;align-items:center;gap:3px;font:700 12.5px/1.25 var(--f-ui);color:var(--scw-choco)}
-.rd-cartao__alerta svg{flex:0 0 auto;color:var(--scw-marrom)}
-.rd-cartao__alerta[data-tom="atencao"] svg{color:var(--scw-laranja)}
-/* Compacto (coluna da semana, ~140 px): miniatura em cima, o resto curto. */
+/* Participante: uma linha, abaixo do título. */
+.rd-cartao__part{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 13px/1.3 var(--f-ui);color:var(--scw-marrom)}
+/* Compacto (coluna da semana, ~140 px): miniatura em cima, o resto curto; os selos podem quebrar a linha. */
 .rd-cartao--compacto{flex-direction:column;gap:6px;min-height:0;padding:8px 8px 9px 12px}
 .rd-cartao--compacto .rd-mini{width:100%;height:64px}
 .rd-cartao--compacto .rd-cartao__titulo{font-size:14px;line-height:1.25}
 .rd-cartao--compacto .rd-cartao__meta{font-size:13px}
-.rd-cartao--compacto .rd-cartao__estado{flex-direction:column;align-items:flex-start;gap:2px}
+.rd-cartao--compacto .rd-cartao__estado{flex-direction:column;align-items:flex-start;gap:4px}
+.rd-cartao--compacto .og-selo{max-width:100%;padding:3px 8px;font-size:12px;white-space:normal}
 @container rd (max-width:420px){ .rd-cartao__resp{display:none} }
 
 /* Mês */
@@ -1900,7 +1947,8 @@ p.fg-vazio{margin:0}
 .rd-item__hora{flex:0 0 auto;font-weight:700}
 .rd-item__titulo{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rd-item__alerta{flex:0 0 auto;margin-left:auto;color:var(--scw-laranja);display:inline-grid}
-.rd-mes__mais{min-height:28px;margin-top:2px;padding:0 6px;border:0;border-radius:var(--r-1);background:none;color:var(--scw-choco);font:700 12.5px/1 var(--f-ui);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* "Ver todos (N)" do mês e da coluna da semana: 44 px de toque (no mês, toma o lugar do último item). */
+.rd-mes__mais{min-height:44px;margin-top:2px;padding:0 6px;border:0;border-radius:var(--r-1);background:none;color:var(--scw-choco);font:700 12.5px/1 var(--f-ui);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* Estreito: o mês vira grade de números; o dia abre a agenda daquele dia. */
 @container rd (max-width:700px){
   .rd-mes{border-spacing:2px}
@@ -1911,7 +1959,8 @@ p.fg-vazio{margin:0}
   .rd-mes__n{min-width:20px;height:20px;background:var(--scw-amarelo)}
 }
 
-/* Semana (segunda a domingo) — três arranjos, escolhidos pela largura do conteúdo. */
+/* Semana (segunda a domingo) — dois arranjos, escolhidos pela largura do conteúdo.
+   Hoje: o fundo do card e o selo "hoje" (o contorno grosso pesava mais que o cartão atrasado). */
 .rd-sem{list-style:none;margin:0;padding:0}
 .rd-sem__cabeca{width:100%;min-height:48px;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;padding:6px 8px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-choco);text-align:left;cursor:pointer}
 @media (hover:hover){ .rd-sem__cabeca:hover{background:rgba(61,19,8,.07)} }
@@ -1922,38 +1971,41 @@ p.fg-vazio{margin:0}
 .rd-sem__n{font:400 13px/1.2 var(--f-ui);color:var(--scw-marrom)}
 .rd-sem__alerta{display:inline-flex;align-items:center;gap:3px;font:700 13px/1 var(--f-ui);color:var(--scw-choco)}
 .rd-sem__alerta svg{color:var(--scw-laranja)}
-.rd-sem__seta{margin-left:auto;color:var(--scw-marrom)}
-/* colunas — sete, só quando cada uma tem ~140 px */
+/* colunas — sete, só quando cada uma tem ~140 px. A coluna tem altura própria: o espaço livre
+   embaixo dos cartões é o "Adicionar" daquele dia (com postagem ou sem). */
 .rd-sem--colunas{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
-.rd-sem__coluna{min-width:0;display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:var(--r-2);background:var(--sup-2)}
-.rd-sem__coluna.is-hoje{box-shadow:inset 0 0 0 2px var(--scw-choco)}
+.rd-sem__coluna{min-width:0;min-height:clamp(220px,32vh,360px);display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:var(--r-2);background:var(--sup-2)}
+.rd-sem__coluna.is-hoje,.rd-sem__linha.is-hoje{background:var(--sup-1);box-shadow:var(--contorno)}
 .rd-sem__coluna.is-aberto{background:var(--scw-bege)}
-.rd-sem--colunas .rd-sem__seta{display:none}
 .rd-sem__itens{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.rd-sem__vazio{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px dashed var(--scw-borda-campo);border-radius:var(--r-1);background:transparent;color:var(--scw-marrom);font:700 13px/1 var(--f-ui);cursor:pointer}
+/* "Adicionar": discreto (borda transparente) até o ponteiro ou o foco do teclado. */
+.rd-sem__vazio{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px dashed transparent;border-radius:var(--r-1);background:transparent;color:var(--scw-marrom);font:700 13px/1 var(--f-ui);cursor:pointer}
 @media (hover:hover){ .rd-sem__vazio:hover{color:var(--scw-choco);border-color:var(--scw-choco)} }
+.rd-sem__vazio:focus-visible{color:var(--scw-choco);border-color:var(--scw-choco)}
+.rd-sem--colunas .rd-sem__vazio{flex:1 1 auto;width:100%;align-items:flex-start;padding-top:12px}
+/* Com mouse, a coluna fica limpa: o texto aparece sob o ponteiro (no toque, sempre à vista). */
+@media (hover:hover){ .rd-sem--colunas .rd-sem__vazio:not(:hover):not(:focus-visible){color:transparent} }
 .rd-agenda{margin-top:4px;padding:14px;border-radius:var(--r-2);display:flex;flex-direction:column;gap:12px}
 .rd-agenda__cabeca{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
 .rd-agenda__cabeca h3{margin:0;font:800 18px/1.2 var(--f-ui);color:var(--scw-choco)}
 .rd-agenda .rd-dia__lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
-/* agenda — largura intermediária: o dia à esquerda, as postagens ao lado */
-.rd-sem--agenda,.rd-sem--linhas{display:flex;flex-direction:column;gap:6px}
+/* agenda — abaixo das sete colunas, também no celular: o dia à esquerda, as postagens ao lado.
+   Dia vazio = uma linha baixa (44 px) com "Adicionar". */
+.rd-sem--agenda{display:flex;flex-direction:column;gap:6px}
 .rd-sem__linha{border-radius:var(--r-2);background:var(--sup-2)}
-.rd-sem__linha.is-hoje{box-shadow:inset 0 0 0 2px var(--scw-choco)}
 .rd-sem--agenda .rd-sem__linha{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;align-items:start;padding:10px 12px}
+.rd-sem--agenda .rd-sem__linha.is-vazio{align-items:center;padding-top:0;padding-bottom:0}
 .rd-sem__rotulo{margin:0;padding-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;font:inherit}
+.rd-sem__linha.is-vazio .rd-sem__rotulo{padding:4px 0}
 .rd-sem__posts{min-width:0;display:flex;flex-direction:column;gap:8px}
 .rd-sem--agenda .rd-dia__lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
 .rd-sem--agenda .rd-sem__vazio{width:100%;min-height:76px}
-.rd-sem__nada{margin:0;padding-top:12px}
-.rd-sem__mais-acao{display:flex}
-/* linhas — celular: dia, data, quantos e alerta; o dia escolhido abre ali mesmo */
-.rd-sem__linha.is-aberto{background:var(--scw-bege)}
-.rd-sem--linhas .rd-sem__cabeca{min-height:56px;flex-wrap:nowrap;gap:12px;padding:8px 14px}
-.rd-sem--linhas .rd-sem__quando{flex:0 0 auto;min-width:96px;flex-wrap:nowrap}
-.rd-sem--linhas .rd-sem__n{flex:1 1 auto}
-.rd-sem--linhas .rd-sem__seta{margin-left:0}
-.rd-sem__aberto{display:flex;flex-direction:column;gap:10px;padding:2px 10px 12px}
+.rd-sem--agenda .rd-sem__linha.is-vazio .rd-sem__vazio{min-height:44px;justify-content:flex-start;padding:0 8px}
+.rd-sem__nada{margin:0;padding:12px 0}
+@container rd (max-width:599px){
+  .rd-sem--agenda .rd-sem__linha{grid-template-columns:52px minmax(0,1fr);gap:8px;padding:8px}
+  .rd-sem--agenda .rd-sem__vazio{min-height:44px}
+}
 
 /* Dia e listas de postagens */
 .rd-dia{display:flex;flex-direction:column;gap:8px}
@@ -2150,7 +2202,8 @@ p.fg-vazio{margin:0}
   background:var(--scw-bege);color:var(--scw-choco);font:900 calc(var(--av-t) * .38)/1 var(--f-titulo);letter-spacing:-.02em;box-shadow:inset 0 0 0 1px var(--scw-filete)}
 .ui-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .ui-avatar[data-tipo="compartilhado"],.ui-avatar[data-tipo="sistema"]{background:var(--sup-trilho);color:var(--scw-marrom)}
-.ui-avatar[data-tipo="marca"]{border-radius:var(--r-1)}
+.ui-avatar[data-tipo="marca"],.ui-avatar[data-tipo="marca-logo"]{border-radius:var(--r-1)}
+.ui-avatar[data-tipo="marca-logo"]{background:var(--scw-creme)}
 .ui-autor{display:inline-flex;align-items:center;gap:6px;min-width:0;vertical-align:middle}
 .ui-autor__texto{min-width:0}
 .ui-autor__nome{font-weight:700;color:var(--scw-choco)}
@@ -2223,7 +2276,7 @@ p.fg-vazio{margin:0}
 .bb-pasta{display:flex;align-items:stretch;gap:4px;padding:4px;border-radius:var(--r-2);background:var(--scw-bege);box-shadow:var(--contorno)}
 .bb-pasta__abrir{flex:1 1 auto;min-width:0;min-height:56px;display:flex;align-items:center;gap:10px;padding:6px 8px;border:0;border-radius:var(--r-1);background:transparent;color:var(--scw-choco);text-align:left;cursor:pointer;font:inherit}
 @media (hover:hover){ .bb-pasta__abrir:hover{background:rgba(61,19,8,.06)} }
-.bb-pasta__icone{flex:0 0 auto;width:40px;height:40px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--pn-acento,var(--scw-amarelo));color:var(--pn-acento-tinta,var(--scw-choco))}
+.bb-pasta__icone{flex:0 0 auto;width:40px;height:40px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--pasta-cor,var(--pn-acento,var(--scw-amarelo)));color:var(--pasta-tinta,var(--pn-acento-tinta,var(--scw-choco)))}
 .bb-pasta__corpo{min-width:0;display:flex;flex-direction:column;gap:2px}
 .bb-pasta__nome{font:800 15px/1.25 var(--f-ui);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .bb-pasta__meta{font:400 13px/1.3 var(--f-ui);color:var(--scw-marrom);overflow-wrap:anywhere}
@@ -2362,10 +2415,83 @@ p.fg-vazio{margin:0}
   .cv__acoes > .og-btn{flex:1 1 100%}
 }
 
+/* "Ver como participante" (22/10/2026): faixa presa no topo, sempre à vista — quem olha sabe que é a visão da marca
+   e que nada grava. Roxo com creme (contraste alto), por cima da cabeça da casca. */
+.vc-faixa{position:fixed;z-index:80;top:calc(var(--topo-app, 0px) + 8px);left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;max-width:calc(100vw - 32px);padding:6px 6px 6px 14px;border-radius:999px;
+  background:var(--scw-roxo);color:var(--scw-creme);font:400 .875rem/1.2 var(--f-ui);box-shadow:var(--sombra-2)}
+.vc-faixa span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vc-faixa__sair{flex:none;min-height:32px;padding:0 14px;border:0;border-radius:999px;background:var(--scw-creme);color:var(--scw-roxo);font:700 .8125rem/1 var(--f-ui);cursor:pointer}
+.vc-faixa__sair:focus-visible{outline:2px solid var(--scw-amarelo);outline-offset:2px}
+
 
 /* ⚠️ ESTE BLOCO FICA POR ÚLTIMO, SEMPRE. Ele zera animação e transição de tudo
    que veio acima; regra nova acrescentada depois dele escaparia do
    `prefers-reduced-motion` sem ninguém notar. */
+/* Social media › aprovar o que se viu (21/10/2026): aviso de que outra pessoa mudou a postagem depois de aberta. */
+.rd-mudou{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.rd-mudou p{margin:0;flex:1 1 240px}
+/* Biblioteca › cor da pasta (21/10/2026): só a paleta da marca; sem cor, o acento do módulo (como antes). */
+.bb-cores{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.bb-cor{width:100%;min-height:56px;display:flex;align-items:center;gap:10px;padding:6px 10px;border:0;border-radius:var(--r-2);background:var(--sup-1);box-shadow:var(--contorno);color:var(--scw-choco);font:700 15px/1.2 var(--f-ui);text-align:left;cursor:pointer}
+.bb-cor[aria-checked="true"]{box-shadow:inset 0 0 0 3px var(--scw-choco)}
+@media (hover:hover){ .bb-cor:hover{box-shadow:var(--sombra-1),var(--contorno)} .bb-cor[aria-checked="true"]:hover{box-shadow:inset 0 0 0 3px var(--scw-choco)} }
+.bb-cor__amostra{flex:0 0 auto;width:40px;height:40px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--pasta-cor,var(--pn-acento,var(--scw-amarelo)));color:var(--pasta-tinta,var(--pn-acento-tinta,var(--scw-choco)))}
+.bb-ponto{display:inline-block;flex:0 0 auto;width:14px;height:14px;margin-right:8px;border-radius:50%;background:var(--pasta-cor);box-shadow:0 0 0 1px var(--scw-filete);vertical-align:-1px}
+/* ═══ Social media › Campanhas (21/10/2026) — a cor vem de --pasta-cor (mesma paleta da pasta); o fundo do card é a definição única lá em cima ═══ */
+.sc{display:flex;flex-direction:column;gap:var(--e-4,16px)}
+.sc-cabeca{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.sc-cabeca__nota{margin:0;max-width:60ch;font:400 14px/1.4 var(--f-ui);color:var(--scw-marrom)}
+.sc-lista{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.sc-cartao{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:8px;padding:14px 16px 14px 20px;border-radius:var(--r-3);color:var(--scw-choco)}
+.sc-cartao::before{content:'';position:absolute;inset:0 auto 0 0;width:6px;background:var(--pasta-cor,var(--scw-amarelo))}
+.sc-cartao.is-arquivada{opacity:.78}
+.sc-cartao__topo{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sc-cartao__nome{margin:0;font:700 17px/1.25 var(--f-ui);overflow-wrap:anywhere}
+.sc-cartao__selo{flex:0 0 auto;padding:2px 8px;border-radius:999px;background:var(--scw-bege);font:700 12px/1.4 var(--f-ui);color:var(--scw-marrom)}
+.sc-cartao__periodo{display:inline-flex;align-items:center;gap:6px;margin:0;font:400 13.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.sc-cartao__desc{margin:0;font:400 14px/1.4 var(--f-ui);overflow-wrap:anywhere}
+.sc-barra{height:10px;border-radius:999px;background:var(--scw-bege);box-shadow:inset 0 0 0 1px var(--scw-filete);overflow:hidden}
+.sc-barra>span{display:block;height:100%;border-radius:inherit;background:var(--pasta-cor,var(--scw-amarelo));box-shadow:inset 0 0 0 1px rgba(61,19,8,.35)}
+.sc-cartao__prog,.sc-cartao__nums{margin:0;font:400 14px/1.3 var(--f-ui)}
+.sc-cartao__nums{color:var(--scw-marrom)}
+.sc-cartao__atraso{color:var(--scw-choco)}
+.sc-cartao__acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}
+.sc-arquivadas{display:flex;flex-direction:column;gap:12px}
+/* ═══ Social media › Checklist da postagem (21/10/2026) ═══ */
+.ck{display:flex;flex-direction:column;gap:8px;margin:0 0 var(--e-4,16px);padding:12px 14px;border-radius:var(--r-2);background:var(--sup-2)}
+.ck-cabeca{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ck-cabeca h3{margin:0;font:700 16px/1.3 var(--f-ui)}
+.ck-conta{font:700 14px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.ck-conta.is-completo{color:var(--scw-choco)}
+.ck-vazio{margin:0;font:400 14px/1.4 var(--f-ui);color:var(--scw-marrom)}
+.ck-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.ck-item{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:44px}
+.ck-item__rotulo{display:flex;align-items:center;gap:10px;flex:1 1 220px;min-height:44px;cursor:pointer;font:400 15px/1.3 var(--f-ui)}
+.ck-item__rotulo input[type="checkbox"]{flex:0 0 auto;width:22px;height:22px;accent-color:var(--scw-choco)}
+.ck-item.is-feito .ck-item__texto{color:var(--scw-marrom);text-decoration:line-through;text-decoration-color:rgba(61,19,8,.45)}
+.ck-item__quem{flex:0 0 auto;font:400 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.ck-item__campo{flex:1 1 auto;min-width:0;min-height:44px}
+.ck-novo{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.ck-novo .og-campo{flex:1 1 220px}
+.ck-modelo{display:flex;flex-direction:column;gap:8px;margin:0 0 var(--e-5,24px)}
+.ck-modelo h3{margin:0;font:700 16px/1.3 var(--f-ui)}
+.rd-cartao__ck{display:inline-flex;align-items:center;gap:3px;font:700 12.5px/1.25 var(--f-ui);color:var(--scw-choco)}
+.rd-cartao__ck svg{flex:0 0 auto;color:var(--scw-marrom)}
+.rd-cartao__ck.is-completo svg{color:var(--scw-choco)}
+/* Cartão da postagem: ponto da campanha + nome curto */
+.rd-cartao__camp{display:inline-flex;align-items:center;max-width:100%;font:400 12.5px/1.3 var(--f-ui);color:var(--scw-marrom)}
+.rd-cartao__camp .bb-ponto{width:10px;height:10px;margin-right:5px}
+/* Biblioteca › arrastar arquivo até uma pasta (21/10/2026). Mouse pega o cartão; toque, só a alça
+   (`touch-action:none` ali: a rolagem da lista continua livre no resto do cartão). */
+.bb-arq--arrastavel .bb-arq__abrir{padding-right:44px}
+.bb-arq__alca{position:absolute;top:6px;right:6px;z-index:1;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:var(--r-1);background:var(--sup-1);color:var(--scw-marrom);box-shadow:var(--contorno);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.bb-arq[data-arrastando]{opacity:.45}
+body[data-arrastando]{user-select:none;-webkit-user-select:none;cursor:grabbing}
+body[data-arrastando] [data-alvo-pasta]{outline:2px dashed var(--scw-marrom);outline-offset:2px}
+body[data-arrastando] [data-alvo-pasta][data-alvo]{outline:3px solid var(--scw-choco);background:var(--scw-amarelo)}
+.bb-fantasma{position:fixed;z-index:9999;pointer-events:none;display:inline-flex;align-items:center;gap:6px;max-width:min(80vw,320px);padding:8px 12px;border-radius:var(--r-2);background:var(--scw-choco);color:var(--scw-creme);font:700 14px/1.2 var(--f-ui);box-shadow:var(--sombra-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bb-fantasma[data-sobre]{background:var(--scw-verde);color:var(--scw-choco)}
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
   .og-btn:hover,.acao:hover,button.og-cartao:hover,.og-slot:hover,button.ui-numero:hover,.pn-setor--escolha:hover,

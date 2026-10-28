@@ -5,6 +5,7 @@ import { LoginMarca } from './components/LoginMarca'
 import { DefinirSenha } from './components/DefinirSenha'
 import { PainelShell } from './components/PainelShell'
 import { PainelMarcaShell } from './components/PainelMarcaShell'
+import { VerComoParticipante, verComoDaUrl } from './components/VerComoParticipante'
 import { Cadastro } from './components/vistas-marca/Cadastro'
 import { Pedidos as PedidosMarca } from './components/vistas-marca/Pedidos'
 import { Hoje } from './components/vistas-marca/Hoje'
@@ -22,7 +23,11 @@ import { CHAVE_SESSAO as CHAVE_SESSAO_ORG_CONTA, loginDaConta } from '../../src/
 import { CHAVE_SESSAO as CHAVE_SESSAO_MARCA } from '../../src/lib/marcaAccess'
 import { auth, api, precisaTrocarSenha, marcarSenhaTrocada, registrarAoSessaoExpirar, descarregarPendentes } from './lib/marcaApi'
 import { rpc, registrarAoSessaoExpirarOrg } from './lib/rpc'
+import { useSincronizar } from './lib/sync/react'
 import { lerGuardada, apagarGuardada } from './lib/sessaoGuardada'
+import { limparRascunhosSocial } from './lib/rascunhosSocial'
+import { limparRascunhosPedidos } from './lib/pedidosMarca'
+import { historico } from './lib/historico'
 import { Icone } from './components/Icone'
 
 // Só em DEV: painéis abertos sem login, para conferir telas. `/painel?org`
@@ -58,7 +63,11 @@ function quemOrg(funcaoRotulo) {
   return { nome: 'Acesso compartilhado', funcao: 'sem identificação no histórico' }
 }
 
+// "Ver como participante" (?ver_como=<id>), aberto pela ficha da marca: só com a conta pessoal da organização.
+const VER_COMO = verComoDaUrl(location.search)
+
 function estadoInicial() {
+  if (VER_COMO && lerGuardada(CHAVE_SESSAO_ORG_CONTA)) return 'ver-como'
   // Conta nominal decide primeiro — mesma ordem que rpc.js usa pra escolher
   // o modo de acesso (lê scw_org_conta antes de qualquer coisa). As duas
   // portas de organização não deveriam coexistir na mesma aba, mas SE
@@ -78,7 +87,13 @@ function estadoInicial() {
 
 // 'conferindo-marca' e 'conferindo-org' (Fase 2 do plano de funções) mostram
 // a mesma tela — extraído pra não repetir o mesmo bloco a segunda vez (§5.3).
-function TelaConferindo() {
+function TelaConferindo({ onSair }) {
+  // Rede que não responde: depois de alguns segundos aparece uma saída, em vez de "Um instante…" para sempre.
+  const [demorou, setDemorou] = React.useState(false)
+  React.useEffect(() => {
+    const t = setTimeout(() => setDemorou(true), 8000)
+    return () => clearTimeout(t)
+  }, [])
   return (
     <div className="pn-porta" id="login">
       <div className="pn-porta__caixa">
@@ -86,11 +101,19 @@ function TelaConferindo() {
         <div>
           <h1 className="pn-porta__titulo">Um instante…</h1>
           <p className="pn-porta__lead">Conferindo sua sessão.</p>
+          {demorou && (
+            <>
+              <p className="pn-porta__lead">Está demorando mais que o normal. Confira a conexão ou saia para entrar de novo.</p>
+              <button className="pn-link--porta" type="button" onClick={onSair}><Icone nome="sair" tamanho={16} />Sair</button>
+            </>
+          )}
         </div>
       </div>
     </div>
   )
 }
+
+const TEXTO_SESSAO_EXPIROU = 'Sua sessão terminou. Entre de novo.'
 
 // Sair não pode ficar preso numa rede ruim: o que depende de rede (limpar o
 // aviso do aparelho, salvar o rascunho) ganha um teto e a saída segue.
@@ -107,6 +130,8 @@ const VISTAS_MARCA = {
 export function App() {
   const [estado, setEstado] = React.useState(estadoInicial)
   const [motivoBloqueio, setMotivoBloqueio] = React.useState(null)
+  // Sessão que morreu em uso (ou no boot) volta às boas-vindas COM explicação, em vez de parecer um recomeço sem motivo.
+  const [avisoSessao, setAvisoSessao] = React.useState(null)
   // null = senha única (pode() libera tudo pra ela; PainelShell trata null
   // como "sem restrição", Fase 3 do plano). Array = as `acoes` da conta
   // nominal, carregadas uma vez em 'conferindo-org' — nunca refeito depois,
@@ -201,6 +226,21 @@ export function App() {
     return () => { cancelado = true }
   }, [estado])
 
+  // A permissão muda de verdade enquanto a pessoa está no painel (função trocada,
+  // conta suspensa): o servidor avisa pelo canal pessoal e a lista é relida na hora,
+  // em vez de valer só até o próximo login. Conta suspensa ou sem perfil sai do painel.
+  const recarregarPermissoes = React.useCallback(async () => {
+    const linhas = await rpc('minhas_permissoes', {})
+    if (!linhas || linhas.length === 0) { setMotivoBloqueio('sem-perfil'); setEstado('bloqueado-org'); return }
+    if (linhas[0].ativo === false) { setMotivoBloqueio('suspenso'); setEstado('bloqueado-org'); return }
+    const acoes = linhas[0].acoes || []
+    setAcoesPermitidas((ant) => (ant && ant.length === acoes.length && ant.every((a, i) => a === acoes[i]) ? ant : acoes))
+    setFuncaoRotulo(linhas[0].rotulo || linhas[0].funcao || null)
+    setFuncaoCodigo(linhas[0].funcao || null)
+    setPermissoesFalharam(false)
+  }, [])
+  useSincronizar(['perfis'], recarregarPermissoes, { ativo: estado === 'painel-org' && !!lerGuardada(CHAVE_SESSAO_ORG_CONTA) })
+
   React.useEffect(() => {
     if (estado !== 'painel-org' || !permissoesFalharam) return
     const t = setInterval(() => {
@@ -215,7 +255,8 @@ export function App() {
     return () => clearInterval(t)
   }, [estado, permissoesFalharam])
 
-  async function sairOrg({ expirou = false } = {}) {
+  async function sairOrg({ expirou = false, semAviso = false } = {}) {
+    if (expirou && !semAviso) setAvisoSessao(TEXTO_SESSAO_EXPIROU)
     // Sair tira os avisos DESTE aparelho: num computador compartilhado, a
     // próxima pessoa não continua recebendo o que era da conta anterior.
     // ⚠️ Não quando a saída é por sessão morta: a remoção precisaria da
@@ -226,23 +267,47 @@ export function App() {
     // não há como saber, olhando só pra `estado`, qual das duas está ativa.
     let sessaoConta = null
     try { sessaoConta = JSON.parse(lerGuardada(CHAVE_SESSAO_ORG_CONTA) || 'null') } catch { /* sessão ilegível */ }
-    if (sessaoConta) auth('logout', null, 'POST', sessaoConta.access_token).catch(() => { /* segue mesmo assim */ })
+    if (sessaoConta) auth('logout?scope=local', null, 'POST', sessaoConta.access_token).catch(() => { /* segue mesmo assim */ })
     sessionStorage.removeItem(CHAVE_SESSAO_ORG)
     apagarGuardada(CHAVE_SESSAO_ORG_CONTA)
+    limparRascunhosSocial()
+    historico.limpar('org') // as telas recentes eram desta pessoa
     setAcoesPermitidas(null)
+    setFuncaoRotulo(null)
+    setFuncaoCodigo(null)
     setPermissoesFalharam(false)
     setDestino(null)
     setEstado('boas-vindas')
   }
 
-  async function sairMarca({ expirou = false } = {}) {
+  // Outra ABA saiu ou entrou como outra pessoa: aqui só se encerra o contexto desta aba.
+  // Nada de logout no servidor nem de apagar a sessão — ela já é a da outra conta (ou
+  // nem existe mais), e mexer nela derrubaria quem acabou de entrar.
+  function trocaLocal() {
+    limparRascunhosSocial()
+    limparRascunhosPedidos()
+    historico.limpar('org')
+    historico.limpar('marca')
+    setAcoesPermitidas(null)
+    setFuncaoRotulo(null)
+    setFuncaoCodigo(null)
+    setPermissoesFalharam(false)
+    setMotivoBloqueio(null)
+    setDestino(null)
+    setEstado('boas-vindas')
+  }
+
+  async function sairMarca({ expirou = false, semAviso = false } = {}) {
+    if (expirou && !semAviso) setAvisoSessao(TEXTO_SESSAO_EXPIROU)
     // Autosave pendente vai antes: depois do removeItem não há token.
     if (!expirou) await comTeto(descarregarPendentes(), 8000)
     if (!expirou) await comTeto(desligarAvisos((endpoint) => api('push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { metodo: 'DELETE' })).catch(() => {}), 4000)
     let sessao = null
     try { sessao = JSON.parse(lerGuardada(CHAVE_SESSAO_MARCA) || 'null') } catch { /* sessão ilegível */ }
-    if (sessao) auth('logout', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
+    if (sessao) auth('logout?scope=local', null, 'POST', sessao.access_token).catch(() => { /* segue mesmo assim */ })
     apagarGuardada(CHAVE_SESSAO_MARCA)
+    limparRascunhosPedidos()
+    historico.limpar('marca')
     setDestino(null)
     setEstado('boas-vindas')
   }
@@ -250,8 +315,9 @@ export function App() {
   if (estado === 'boas-vindas') {
     return (
       <BoasVindas
-        onEscolherOrg={() => setEstado('login-org')}
-        onEscolherMarca={() => setEstado('login-marca')}
+        aviso={avisoSessao}
+        onEscolherOrg={() => { setAvisoSessao(null); setEstado('login-org') }}
+        onEscolherMarca={() => { setAvisoSessao(null); setEstado('login-marca') }}
       />
     )
   }
@@ -273,7 +339,7 @@ export function App() {
   }
 
   if (estado === 'conferindo-marca' || estado === 'conferindo-org') {
-    return <TelaConferindo />
+    return <TelaConferindo onSair={() => (estado === 'conferindo-marca' ? sairMarca({ expirou: true, semAviso: true }) : sairOrg({ expirou: true, semAviso: true }))} />
   }
 
   if (estado === 'pausada-marca') {
@@ -304,7 +370,7 @@ export function App() {
             <button
               className="pn-link--porta"
               type="button"
-              onClick={() => { apagarGuardada(CHAVE_SESSAO_ORG_CONTA); setEstado('boas-vindas') }}
+              onClick={() => sairOrg({ expirou: true, semAviso: true }) /* limpa também telas recentes e rascunhos desta conta */}
             >
               <Icone nome="voltar" tamanho={16} />Voltar
             </button>
@@ -334,6 +400,16 @@ export function App() {
     )
   }
 
+  if (estado === 'ver-como') {
+    return (
+      <>
+        <Conexao />
+        <Confirmacoes />
+        <VerComoParticipante id={VER_COMO} vistas={VISTAS_MARCA} />
+      </>
+    )
+  }
+
   if (estado === 'painel-marca') {
     return (
       <>
@@ -342,6 +418,7 @@ export function App() {
         <PainelMarcaShell
           vistas={VISTAS_MARCA}
           onSair={() => sairMarca()}
+          onTrocaDeConta={trocaLocal}
           onPausada={() => setEstado('pausada-marca')}
           linkInicial={destino}
         />
@@ -356,6 +433,7 @@ export function App() {
       <PainelShell
         vistas={MODULOS_ORG}
         onSair={() => sairOrg()}
+        onTrocaDeConta={trocaLocal}
         permissoes={acoesPermitidas}
         rotaInicial={DEV_LIVRE && PARAMS_DEV.has('guia-fotos') ? 'fotos' : funcaoCodigo === 'social' ? 'social/planejamento' : 'visao'}
         nominal={!!lerGuardada(CHAVE_SESSAO_ORG_CONTA)}

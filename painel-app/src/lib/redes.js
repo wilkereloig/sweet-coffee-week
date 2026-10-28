@@ -12,6 +12,8 @@
  * calendário viajam como "AAAA-MM-DD" e a conta é feita em UTC, sem hora local.
  */
 
+import { iniciarRegistro, reduzirRegistro } from './sync/mesclar.js'
+
 export const FUSO = 'America/Fortaleza'
 export const PERFIL_PADRAO = '@sweetcoffeeweek'
 
@@ -106,8 +108,9 @@ export function gradeMes(chave) {
 }
 export const diasDaSemana = (chave) => Array.from({ length: 7 }, (_, i) => somarDias(inicioSemana(chave), i))
 
+// A ordem é a do seletor de visualização; "Sem data" (fila) é o quinto modo, com o mesmo nome em todo lugar.
 export const MODOS = ['semana', 'mes', 'dia', 'lista', 'fila']
-export const ROTULO_MODO = { mes: 'Mês', semana: 'Semana', dia: 'Dia', lista: 'Lista', fila: 'Fila sem data' }
+export const ROTULO_MODO = { mes: 'Mês', semana: 'Semana', dia: 'Dia', lista: 'Lista', fila: 'Sem data' }
 
 /** Avança/volta um período do modo. Lista anda de mês em mês, como o mês. */
 export function mover(modo, chave, delta) {
@@ -270,6 +273,8 @@ export function alertasDoPerfil(contagem, { aprova = false } = {}) {
   const ordem = aprova ? ['aprovacao', 'atrasadas', 'ajuste'] : ['ajuste', 'aprovadas', 'atrasadas']
   return ordem.filter((k) => Number(contagem[k]) > 0)
 }
+/** Quanto do Social media espera ESTE perfil agora (a soma dos alertas acima). A Visão geral usa: com algo, não diz "nada precisa". */
+export const totalAlertas = (contagem, opcoes) => (contagem ? alertasDoPerfil(contagem, opcoes).reduce((s, k) => s + Number(contagem[k]), 0) : 0)
 /** Rótulo curto do alerta (cabe três numa linha de celular); o escopo vai no rótulo acessível. */
 export function rotuloAlerta(k, n) {
   const um = Number(n) === 1
@@ -299,20 +304,17 @@ export function escopoAtalho(atalho) {
   }[atalho] || ''
 }
 /** Quantos filtros (não período nem visualização) estão ligados. */
-export const FILTROS = ['resp', 'sit', 'fmt', 'ed', 'part', 'q']
+export const FILTROS = ['resp', 'sit', 'fmt', 'ed', 'part', 'q', 'camp']
 export const filtrosAtivos = (f = {}) => FILTROS.filter((k) => f[k]).length
 
 /**
  * Como a semana cabe na LARGURA DO CONTEÚDO (não na do aparelho: o menu
  * lateral come espaço). Sete colunas só quando cada uma fica legível (~140 px);
- * no meio, agenda (dias em linhas, postagens ao lado); estreito, linhas que abrem.
+ * abaixo disso, agenda (dias em linhas, postagens ao lado) — também no celular,
+ * onde o rótulo do dia estreita e as postagens aparecem sem precisar de um toque.
  */
 export const LARGURA_COLUNAS = 1040
-export const LARGURA_AGENDA = 600
-export function layoutSemana(largura) {
-  if (!largura || largura >= LARGURA_COLUNAS) return 'colunas'
-  return largura >= LARGURA_AGENDA ? 'agenda' : 'linhas'
-}
+export const layoutSemana = (largura) => (!largura || largura >= LARGURA_COLUNAS ? 'colunas' : 'agenda')
 
 /**
  * O alerta que o cartão mostra (um só, o mais urgente); o resto vai no rótulo
@@ -338,7 +340,7 @@ export const SECOES = {
   legenda: ['legenda'],
   extras: ['mencoes', 'observacoes'],
   programacao: ['programado_para', 'responsavel_id'],
-  detalhes: ['titulo', 'perfil', 'formato', 'edicao_codigo', 'participante_id', 'referencias'],
+  detalhes: ['titulo', 'perfil', 'formato', 'edicao_codigo', 'campanha_id', 'participante_id', 'referencias'],
 }
 /** Seções com alteração não salva (ficam abertas até salvar ou desfazer). */
 export const secoesSujas = (mudancas) => Object.keys(SECOES).filter((s) => SECOES[s].some((k) => k in mudancas))
@@ -396,6 +398,7 @@ export function filtrar(posts, f = {}, ctx = {}) {
     if (f.fmt && p.formato !== f.fmt) return false
     if (f.ed && p.edicao_codigo !== f.ed) return false
     if (f.part && p.participante_id !== f.part) return false
+    if (f.camp && p.campanha_id !== f.camp) return false
     if (q && !semAcento(p.titulo).includes(q) && !semAcento(p.participante_nome).includes(q)) return false
     return noAtalho(p, f.atalho, { eu: ctx.eu, agora })
   })
@@ -421,6 +424,8 @@ export function ordenar(posts, ord = 'data') {
     : k === 'responsavel' ? semAcento(p.responsavel_nome || '~')
     : semAcento(p[k] || '')
   return [...(posts || [])].sort((a, b) => {
+    // Sem data vai para o fim também na ordem invertida: decide antes do sinal.
+    if (k === 'data' && !a.programado_para !== !b.programado_para) return a.programado_para ? -1 : 1
     const x = val(a), y = val(b)
     const c = x < y ? -1 : x > y ? 1 : 0
     return (desc ? -c : c) || String(a.id).localeCompare(String(b.id))
@@ -439,6 +444,8 @@ export function textoCompleto(legenda, mencoes) {
   return [String(legenda || '').trim(), String(mencoes || '').trim()].filter(Boolean).join('\n\n')
 }
 export const LIMITE_LEGENDA_INSTAGRAM = 2200
+/** Caracteres como a pessoa os vê (um emoji conta 1, não 2 como `.length`). */
+export const contarCaracteres = (t) => Array.from(String(t || '')).length
 
 /** "@jolie.cafe" a partir do que a casa cadastrou (link, @ ou só o nome). Vazio se não der. */
 export function arrobaDe(instagram) {
@@ -488,7 +495,7 @@ export function validarArquivo({ nome, tipo, tamanho, cabecalho }) {
 export const caminhoArquivo = (postId, uuid, ext) => postId + '/' + uuid + '.' + ext
 
 /** Campos de conteúdo que redes_salvar aceita (o resto tem ação própria). */
-export const CAMPOS = ['titulo', 'perfil', 'edicao_codigo', 'participante_id', 'formato', 'legenda', 'mencoes', 'observacoes', 'referencias', 'programado_para', 'responsavel_id']
+export const CAMPOS = ['titulo', 'perfil', 'edicao_codigo', 'participante_id', 'formato', 'legenda', 'mencoes', 'observacoes', 'referencias', 'programado_para', 'responsavel_id', 'campanha_id']
 const norm = (v) => (v == null ? '' : String(v))
 /** Só o que mudou em relação à base (o que vai para o servidor). */
 export function diferencas(base, campos) {
@@ -503,4 +510,139 @@ export function diferencas(base, campos) {
  */
 export function camposEmConflito(baseLida, salvo, meus) {
   return Object.keys(meus).filter((k) => norm(salvo[k]) !== norm(baseLida[k]) && norm(salvo[k]) !== norm(meus[k]))
+}
+
+// ── Sincronização: o que chegou de fora enquanto a pessoa digitava (19/10/2026) ──
+/** Os campos de conteúdo de uma postagem, como texto (o que os formulários editam). */
+export const camposDoPost = (p) => Object.fromEntries(CAMPOS.map((k) => [k, norm(p ? p[k] : '')]))
+
+/*
+ * APROVAR O QUE SE VIU (21/10/2026, auditoria). A tela de quem aprova se relê sozinha quando outra pessoa mexe na
+ * postagem, e passa a mandar a versão nova — então só a versão não garante que a pessoa viu a arte que está
+ * aprovando. Estas funções dizem O QUE ela julga ao aprovar e O QUE MUDOU desde que ela viu; a ficha exige
+ * "Conferi" antes de liberar "Aprovar". Arte = id + versão de cada arquivo ativo, na ordem do carrossel.
+ */
+export const ROTULO_PARTE_APROVACAO = { arte: 'a arte', legenda: 'a legenda', mencoes: 'as menções', formato: 'o formato', horario: 'o horário', observacoes: 'as observações' }
+export function conteudoParaAprovar(post = {}, arquivos = []) {
+  const vivos = (arquivos || []).filter((a) => !a.removido_em).sort((a, b) => a.ordem - b.ordem)
+  const t = post.programado_para ? new Date(post.programado_para).getTime() : NaN
+  return {
+    arte: vivos.map((a) => a.id + ':' + (a.versao || 1)).join(','),
+    legenda: norm(post.legenda), mencoes: norm(post.mencoes), formato: norm(post.formato),
+    horario: Number.isFinite(t) ? String(t) : '', // o mesmo instante escrito de dois jeitos não é mudança
+    observacoes: norm(post.observacoes),
+  }
+}
+/** Chaves (de ROTULO_PARTE_APROVACAO) que são diferentes entre o que a pessoa viu e o que está agora. */
+export const partesMudadas = (visto, atual) => Object.keys(ROTULO_PARTE_APROVACAO).filter((k) => norm(visto && visto[k]) !== norm(atual && atual[k]))
+/** "a arte e a legenda" / "a arte, a legenda e o horário". */
+export function textoPartes(chaves = []) {
+  const t = chaves.map((k) => ROTULO_PARTE_APROVACAO[k]).filter(Boolean)
+  return t.length <= 1 ? t.join('') : t.slice(0, -1).join(', ') + ' e ' + t[t.length - 1]
+}
+
+/**
+ * Chegou uma versão nova da postagem (sinal de outra pessoa, reconexão, depois de uma ação)
+ * enquanto a ficha pode ter texto digitado. Mescla campo a campo em três vias:
+ *   velha    = a última versão que ESTA tela viu confirmada (a base);
+ *   atuais   = o que está digitado agora;
+ *   servidor = a postagem como ela está agora.
+ *   · campo que a pessoa não tocou           → acompanha o servidor;
+ *   · campo que ela mudou e o servidor não   → fica o dela;
+ *   · campo que ela mudou e o servidor mudou para OUTRO valor → CONFLITO: fica o dela e a tela
+ *     NÃO deixa salvar até ela escolher (a base anda para a versão nova; sem esse bloqueio, o
+ *     salvamento seguinte levaria a versão nova e passaria por cima do outro sem ninguém perceber).
+ * Devolve: campos (o que a tela mostra), meus (o que ELA mudou, no formato de redes_salvar),
+ * conflitos (chaves), adotados (campos que acompanharam o servidor sem ela ter tocado) e
+ * mudouFora (a versão andou).
+ */
+export function mesclarPostExterno(velha, atuais, servidor) {
+  const v = velha || {}
+  const meus = diferencas(v, atuais || {})
+  const conflitos = camposEmConflito(v, servidor, meus)
+  const adotados = CAMPOS.filter((k) => !(k in meus) && norm(servidor[k]) !== norm(v[k]))
+  const campos = camposDoPost(servidor)
+  for (const k of Object.keys(meus)) campos[k] = atuais[k]
+  return { campos, meus, conflitos, adotados, mudouFora: servidor.versao !== v.versao }
+}
+/**
+ * Conflitos que seguem valendo: os já avisados mais os novos, só dos campos que a pessoa AINDA tem
+ * alterados. A base anda para a versão nova, então um conflito avisado numa releitura precisa
+ * sobreviver à seguinte — senão a segunda releitura "esquece" e libera o salvar por cima.
+ */
+export function conflitosAbertos(anteriores, novos, mudancas) {
+  const m = mudancas || {}
+  return [...new Set([...(anteriores || []), ...(novos || [])])].filter((k) => k in m)
+}
+
+/**
+ * O aviso do barramento é sobre OUTRA postagem? Só quando dá para ter certeza: todos os sinais
+ * são do servidor ('remota'), só do domínio das postagens e todos trazem o id de outras postagens.
+ * Gravação local, reconciliação (sem id) ou qualquer outro domínio → não dá para dizer: relê.
+ */
+export function avisoDeOutraPostagem(aviso, id) {
+  if (!aviso || !id) return false
+  const dominios = aviso.dominios || [], refs = aviso.refs || [], origens = aviso.origens || []
+  if (!dominios.length || !dominios.every((d) => d === 'redes')) return false
+  if (!origens.length || !origens.every((o) => o === 'remota')) return false
+  return refs.length > 0 && !refs.includes(String(id))
+}
+
+/** O texto alternativo mudou no servidor DEPOIS de a pessoa começar a digitar o dela (e não é o mesmo texto)? */
+export const altMudouFora = (rascunho, altAtual) => !!rascunho && norm(altAtual) !== norm(rascunho.base) && norm(altAtual) !== norm(rascunho.v)
+
+/** Seleção que sobrevive à releitura: fica quem ainda existe (já com o objeto novo); quem sumiu sai. */
+export function podarSelecao(marcados, lista, chave) {
+  if (!marcados || !marcados.size) return marcados
+  const novo = new Map()
+  for (const x of lista || []) { const k = chave(x); if (marcados.has(k)) novo.set(k, x) }
+  return novo
+}
+
+// ── Combo editorial (Social media › Participantes) ──
+const COMBO_CAMPOS = ['combo_nome', 'combo_descricao', 'combo_proposta']
+/** O que mudou no formulário em relação ao lido (só isso vai ao servidor). */
+export function mudancasEditoriais(lido, form) {
+  const d = {}
+  for (const k of COMBO_CAMPOS) if (norm(form[k]).trim() !== norm(lido[k])) d[k] = form[k]
+  const itens = []
+  for (const it of form.itens || []) {
+    const orig = (lido.itens || []).find((x) => x.id === it.id) || {}
+    const m = {}
+    if (norm(it.nome).trim() !== norm(orig.nome)) m.nome = it.nome
+    if (norm(it.descricao).trim() !== norm(orig.descricao)) m.descricao = it.descricao
+    if (Object.keys(m).length) itens.push({ id: it.id, ...m })
+  }
+  if (itens.length) d.itens = itens
+  return d
+}
+/** O combo editável como mapa plano de campo → texto ('item:<id>:nome'…), a forma que a mesclagem entende. */
+export function achatarEditavel(ed) {
+  const o = {}
+  for (const k of COMBO_CAMPOS) o[k] = norm(ed && ed[k])
+  for (const it of (ed && ed.itens) || []) { o['item:' + it.id + ':nome'] = norm(it.nome); o['item:' + it.id + ':descricao'] = norm(it.descricao) }
+  return o
+}
+/**
+ * Volta do mapa plano para o formato do combo editável; o que o mapa não tem vem do `modelo` (o servidor agora).
+ * Texto vazio onde o servidor tem NULO continua nulo: é o que o servidor compara em `p_esperado` (vazio ≠ nulo lá).
+ */
+export function aEditavel(plano, modelo) {
+  const m = modelo || {}, p = plano || {}
+  const pega = (k, padrao) => (k in p ? (p[k] === '' && (padrao == null || padrao === '') ? padrao : p[k]) : padrao)
+  const o = { ...m }
+  for (const k of COMBO_CAMPOS) o[k] = pega(k, m[k])
+  o.itens = (m.itens || []).map((it) => ({ ...it, nome: pega('item:' + it.id + ':nome', it.nome), descricao: pega('item:' + it.id + ':descricao', it.descricao) }))
+  return o
+}
+/**
+ * Registro do combo em edição (null = ninguém editando). É o reducer genérico de
+ * lib/sync/mesclar.js com dois extras: 'iniciar' (abre a edição sobre o combo lido agora) e 'sair'.
+ * Chegou o combo novo do servidor ('servidor'): o que a pessoa não tocou acompanha, o que digitou
+ * nunca é trocado, o mesmo campo mudado dos dois lados vira conflito e ela escolhe.
+ */
+export function reduzirEditorial(estado, acao) {
+  if (acao.tipo === 'iniciar') { const plano = achatarEditavel(acao.editavel); return iniciarRegistro(plano, Object.keys(plano)) }
+  if (acao.tipo === 'sair') return null
+  return estado ? reduzirRegistro(estado, acao) : estado
 }

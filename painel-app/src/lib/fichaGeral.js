@@ -18,10 +18,12 @@
  * sem_participacao): erro nas fotos não apaga cadastro e combo, e erro nunca
  * vira "campo vazio".
  */
-import { ALERGENICOS, CARACTERISTICAS, formatarPreco, horarioResumido } from '../../../src/edicao/dados/modelo.js'
-import { estadoPublicacao, textoPublicacao, diferencas, traduzirPendencia, urlPublicaParticipante } from './publicacao.js'
-import { camposObrigatorios, dadosDeLinhas, blocoDoCampo, CAMPOS_APONTAVEIS } from './guia.js'
+import { ALERGENICOS, CARACTERISTICAS, formatarPreco } from '../../../src/edicao/dados/modelo.js'
+import { estadoPublicacao, textoPublicacao, diferencas, traduzirPendencia, urlPublicaParticipante, textoHorarioFestival } from './publicacao.js'
+import { camposObrigatorios, dadosDeLinhas, blocoDoCampo, CAMPOS_APONTAVEIS, linkDoCampo } from './guia.js'
+import { traduzirFaltando } from './edicaoMarca.js'
 import { rotulo } from './status.js'
+import { NOMES_PUBLICACAO } from './nomesPublicacao.js'
 
 const txt = (v) => (v == null ? '' : String(v).trim())
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -52,24 +54,39 @@ export function lerFalha(e) {
  * Carregador das quatro fontes, com descarte de resposta velha: trocar de
  * participante (ou recarregar) invalida o que ainda estava em voo — nenhum
  * dado da marca anterior aparece sob o nome da seguinte.
- * `chamar(rpc, args)` → Promise; `aoMudar(fonte, estado, participacaoId)`.
- * `manter: true` (recarga depois de salvar) não volta a "carregando": o
- * conteúdo fica na tela até a resposta nova substituí-lo.
- * @returns {(participacaoId: string|null, opcoes?: {manter?: boolean}) => () => void}
+ * `chamar(rpc, args)` → Promise; `aoMudar(fonte, estado, participacaoId, { manter })`.
+ * `manter: true` (recarga depois de salvar, ou releitura por sinal de outra
+ * sessão) não volta a "carregando": o conteúdo fica na tela até a resposta nova
+ * substituí-lo, e quem recebe o estado de ERRO decide manter o que já tinha
+ * (`mesclarFonte`, lib/syncFichas.js) — dado antigo ainda é melhor que um bloco
+ * de erro no lugar do cadastro.
+ * O retorno é o cancelamento (efeito de React) e traz `.pronto`: promessa que
+ * resolve, quando as quatro leituras terminam, com a lista das fontes que
+ * FALHARAM por erro (permissão negada não é falha) — é o que a sincronização usa
+ * para mostrar "falha" no indicador sem reabrir a tela.
+ * @returns {(participacaoId: string|null, opcoes?: {manter?: boolean}) => (() => void) & {pronto: Promise<string[]>}}
  */
 export function criarCarregadorFicha(chamar, aoMudar) {
   let vez = 0
   return function carregar(participacaoId, { manter = false } = {}) {
     const minha = ++vez
+    const feitas = []
     for (const [fonte, def] of Object.entries(FONTES_FICHA)) {
-      if (def.porParticipacao && !participacaoId) { aoMudar(fonte, { estado: 'sem_participacao', dados: null, erro: null }, participacaoId); continue }
-      if (!manter) aoMudar(fonte, { estado: 'carregando', dados: null, erro: null }, participacaoId)
-      Promise.resolve()
+      if (def.porParticipacao && !participacaoId) { aoMudar(fonte, { estado: 'sem_participacao', dados: null, erro: null }, participacaoId, { manter }); continue }
+      if (!manter) aoMudar(fonte, { estado: 'carregando', dados: null, erro: null }, participacaoId, { manter })
+      feitas.push(Promise.resolve()
         .then(() => chamar(def.rpc, def.porParticipacao ? { p_participacao: participacaoId } : {}))
-        .then((d) => { if (minha === vez) aoMudar(fonte, lerResposta(d), participacaoId) },
-          (e) => { if (minha === vez) aoMudar(fonte, lerFalha(e), participacaoId) })
+        .then((d) => { if (minha === vez) aoMudar(fonte, lerResposta(d), participacaoId, { manter }); return null },
+          (e) => {
+            const f = lerFalha(e)
+            if (minha !== vez) return null // superada por uma leitura mais nova: o que ela achar é que vale
+            aoMudar(fonte, f, participacaoId, { manter })
+            return f.estado === 'erro' ? fonte : null
+          }))
     }
-    return () => { if (minha === vez) vez++ }
+    const cancelar = () => { if (minha === vez) vez++ }
+    cancelar.pronto = Promise.all(feitas).then((l) => l.filter(Boolean))
+    return cancelar
   }
 }
 
@@ -233,11 +250,17 @@ export const linkTrajeto = (q) => (q ? 'https://www.google.com/maps/dir/?api=1&d
  *                        cidade, coordenada e quem conferiu)
  *   linhas (360)       → condições DESTA edição (modos, canais, taxa, regiões,
  *                        observação) e os campos do cadastro anterior
- *   pub.atual.unidades → só as que participam: endereço completo, horário da
- *                        loja, horário do combo, WhatsApp autorizado
+ *   pub.atual.unidades → só as que participam: endereço completo, horário no
+ *                        festival (a mesma coluna das linhas), WhatsApp da loja (só o que vai ao site)
  * Sem get_publicacao (erro), cai nas linhas do 360, marcadas como cadastro anterior.
+ *
+ * Horário no festival (23/10/2026, uma pergunta só): `horarioFestival` é a frase do que está GRAVADO na unidade da edição
+ * (`participacao_unidades.horario_festival`, que vem nas linhas do 360). `datas` = os dias do festival, da edição
+ * (`datasDoFestival` de `edicaoDaFicha`): com elas a frase conta os dias que não abrem. null = a leitura não trouxe o horário ·
+ * '' = ainda não respondido. O texto antigo (`horarios`) só sobra em `anterior`, e só enquanto não há horário gravado.
+ * O horário comercial da loja deixou de ser pedido e não aparece em lugar nenhum.
  */
-export function unidadesDaFicha(linhas, pub) {
+export function unidadesDaFicha(linhas, pub, datas = []) {
   const porId = new Map((linhas || []).map((l) => [l.id, l]))
   const publicas = new Map(((pub && pub.atual && pub.atual.unidades) || []).map((u) => [u.id, u]))
   const base = pub && Array.isArray(pub.unidades)
@@ -257,6 +280,8 @@ export function unidadesDaFicha(linhas, pub) {
     const modosLinha = l ? { local: ll.consumo_local, retirada: ll.retirada, delivery: ll.delivery_combo } : null
     const modos = modosLinha || (p && p.combo && p.combo.modos) || { local: null, retirada: null, delivery: null }
     const canais = (l ? ll.canais_delivery : p && p.combo && p.combo.canais) || []
+    // A linha do 360 manda; sem ela (ou sem a coluna), a versão pública da mesma coluna.
+    const gravado = Array.isArray(ll.horario_festival) ? ll.horario_festival : p && p.combo ? p.combo.disponibilidade || [] : null
     const verificada = b && b.coordenada_verificada_em
     const coordenada = b && b.lat != null && b.lng != null
       ? { estado: verificada ? 'conferida' : 'a_conferir', lat: b.lat, lng: b.lng, por: txt(b.coordenada_verificada_por), em: b.coordenada_verificada_em }
@@ -265,9 +290,7 @@ export function unidadesDaFicha(linhas, pub) {
       id: b ? b.participacao_unidade_id : ll.id, unidadeId: b ? b.unidade_id : ll.unidade_id, idPublico: b ? b.id_publico : ll.id_publico,
       nome: txt(b && b.nome) || txt(p && p.nome) || 'Unidade ' + (i + 1),
       participa, endereco, enderecoTexto: enderecoEmTexto(endereco),
-      horarioLoja: txt(p && p.horario_loja),
-      // null = não se aplica (não participa) ou não lido; [] = participa e não informou.
-      horarioCombo: p ? horarioResumido((p.combo && p.combo.disponibilidade) || []) : null,
+      horarioFestival: gravado === null ? null : textoHorarioFestival(gravado, datas),
       modos: { local: modos.local || null, retirada: modos.retirada || null, delivery: modos.delivery || null },
       canais: (Array.isArray(canais) ? canais : []).filter((c) => c && (c.link || c.tipo)).map((c) => ({ rotulo: CANAL[c.tipo] || txt(c.tipo), link: txt(c.link) })),
       regioes: txt(ll.delivery_regioes) || txt(p && p.combo && p.combo.delivery_regioes),
@@ -276,7 +299,7 @@ export function unidadesDaFicha(linhas, pub) {
       whatsappPublico: txt(p && p.whatsapp),
       coordenada,
       // Campos do cadastro anterior à camada Cartoon (ainda gravados como espelho).
-      anterior: { horarios: txt(ll.horarios), mesas: txt(ll.mesas), fazDelivery: !!ll.faz_delivery, soDelivery: !!ll.so_delivery },
+      anterior: { horarios: gravado && gravado.length ? '' : txt(ll.horarios), mesas: txt(ll.mesas), fazDelivery: !!ll.faz_delivery, soDelivery: !!ll.so_delivery },
       origemCompleta: !!b,
     }
     const q = consultaMapa(u)
@@ -353,7 +376,7 @@ export function resumoPublicacao(pub) {
     publicadoPor: v ? txt(v.publicado_por) : '',
     link: v ? urlPublicaParticipante(pub.slug) : '',
     reservado: !v && pub.slug ? urlPublicaParticipante(pub.slug) : '',
-    diferencas: v ? diferencas(v.conteudo, pub.atual).length : null,
+    diferencas: v ? diferencas(v.conteudo, pub.atual, v.nivel).length : null,
     pendencias: (pub.pendencias || []).length,
     alterado: !!pub.alterado_apos_aprovacao,
     retirada: pub.estado === 'retirado' && pub.ultima ? { em: pub.ultima.retirado_em, por: txt(pub.ultima.retirado_por), motivo: txt(pub.ultima.motivo) } : null,
@@ -364,7 +387,7 @@ export function resumoPublicacao(pub) {
 // ------------------------------------------------------------------ navegação
 export const SECOES_VISAO = [
   ['cadastro', 'Cadastro'], ['combo', 'Tema e combo'], ['unidades', 'Unidades'],
-  ['fotos', 'Fotos'], ['operacao', 'Operação'], ['publicacao', 'Publicação'],
+  ['fotos', 'Fotos'], ['operacao', 'Operação'], ['publicacao', NOMES_PUBLICACAO.marcas.pagina],
 ]
 const SECAO_DO_BLOCO = { 0: 'cadastro', 1: 'combo', 2: 'combo', 3: 'combo', 4: 'unidades', 5: 'combo', 6: 'unidades', 7: 'fotos' }
 export const secaoDoBloco = (b) => SECAO_DO_BLOCO[b] || 'cadastro'
@@ -372,6 +395,16 @@ const secaoDaPendencia = (c) => (/^unidade:|^sem_unidade$/.test(c) ? 'unidades' 
 
 // ------------------------------------------------------------------ pendências
 const ROTULO_CAMPO = Object.fromEntries(CAMPOS_APONTAVEIS)
+// Editor que resolve, na ficha, a falta de campos de cada seção (o mesmo do lápis da seção).
+const EDITOR_DA_SECAO = { cadastro: 'cadastro', combo: 'combo', unidades: 'unidades' }
+// Quem pode abrir cada editor de "Resolver" (o banco decide de novo em cada RPC).
+export const PERMISSAO_DO_EDITOR = {
+  cadastro: ['cadastro.editar'], combo: ['cadastro.editar'], unidades: ['cadastro.editar'], nomeCombo: ['cadastro.editar'],
+  coordenadas: ['producao.gerir'], fotos: ['producao.gerir', 'curadoria.decidir'],
+}
+export const podeResolver = (item, pode) => !!(item && item.resolver && (PERMISSAO_DO_EDITOR[item.resolver] || []).some((a) => pode(a)))
+/** Pendência que dá para cobrar da marca: tem o que dizer a ela e para onde levar. */
+export const cobravel = (item) => !!(item && !item.erro && item.paraMarca && item.link)
 
 /*
  * Lista curta e concreta do que falta: o quê, em qual seção. Cada pendência
@@ -409,30 +442,44 @@ export function pendenciasDaFicha({ participante, fontes, naoLidas = 0 }) {
       if (c.ok) continue
       if (c.campo === 'unidade-endereco' && cartoonCobraUnidade) continue
       const s = secaoDoBloco(c.bloco)
-      ;(faltas[s] = faltas[s] || []).push(c.rotulo)
+      ;(faltas[s] = faltas[s] || []).push(c)
     }
-    for (const [s, nomes] of Object.entries(faltas)) {
+    for (const [s, cs] of Object.entries(faltas)) {
+      const nomes = cs.map((c) => c.rotulo)
       const mostra = nomes.length > 4 ? nomes.slice(0, 3).join(', ') + ' e mais ' + (nomes.length - 3) : nomes.join(', ')
-      add('campos:' + s, (nomes.length === 1 ? 'Falta preencher: ' : 'Faltam ' + nomes.length + ' campos: ') + mostra, s, { campos: nomes })
+      const primeiro = cs.find((c) => c.campo) || cs[0]
+      add('campos:' + s, (nomes.length === 1 ? 'Falta preencher: ' : 'Faltam ' + nomes.length + ' campos: ') + mostra, s, {
+        campos: nomes, paraMarca: 'Preencher: ' + nomes.join(', '), link: linkDoCampo(primeiro.bloco, primeiro.campo), resolver: EDITOR_DA_SECAO[s] || null,
+      })
     }
-    for (const s of d.solicitacoes || []) if (s.estado !== 'respondido') add('pedido:' + s.id, 'Pedido sem resposta: ' + txt(s.titulo), 'operacao')
+    for (const s of d.solicitacoes || []) if (s.estado !== 'respondido') add('pedido:' + s.id, 'Pedido sem resposta: ' + txt(s.titulo), 'operacao', { paraMarca: 'Responder a solicitação “' + txt(s.titulo) + '”', link: 'pedidos/' + s.id })
     for (const r of d.pendencias || []) add('revisao:' + r.id, 'Dado para conferir: ' + txt(r.titulo), 'operacao')
     const tema = situacaoTema(pa, d.temas)
     if (tema.estado === 'proposto') add('tema:analise', 'Tema "' + tema.tema + '" aguardando análise', 'combo')
     if (tema.estado === 'divergente') add('tema:divergente', 'Tema mudou para "' + tema.tema + '" e a proposta registrada é "' + tema.temaProposta + '"', 'combo')
-    if (tema.estado === 'recusado') add('tema:recusado', 'Outro tema pedido: aguardando a marca', 'combo')
-    if (pa.combo_status === 'em_analise') add('combo:revisao', 'Combo enviado, aguardando revisão', 'operacao')
-    if (pa.combo_status === 'correcao_solicitada') add('combo:ajuste', 'Ajuste pedido no combo: aguardando a marca', 'combo')
+    if (tema.estado === 'recusado') add('tema:recusado', 'Outro tema pedido: aguardando a marca', 'combo', { paraMarca: 'Escolher outro tema para o combo', link: linkDoCampo(1) })
+    if (pa.combo_status === 'em_analise') add('combo:revisao', 'Cadastro completo, aguardando conferência', 'operacao')
+    if (pa.combo_status === 'correcao_solicitada') add('combo:ajuste', 'Ajuste pedido no combo: aguardando a marca', 'combo', { paraMarca: 'Fazer o ajuste pedido no combo', link: linkDoCampo(3) })
   }
 
   if (pubOk) {
     const p = pub.dados
     const ctx = { unidades: p.unidades, itens: p.atual && p.atual.combo && p.atual.combo.itens }
-    for (const c of codigos) add('pub:' + c, traduzirPendencia(c, ctx), secaoDaPendencia(c))
+    for (const c of codigos) {
+      const m = traduzirFaltando(c, ctx)
+      const extra = m.bloco == null ? {} : { paraMarca: m.texto, link: linkDoCampo(m.bloco, m.campo) }
+      if (c === 'combo_nome') extra.resolver = 'nomeCombo'
+      else if (/^unidade:.+:endereco$|^sem_unidade$/.test(c)) extra.resolver = 'unidades'
+      add('pub:' + c, traduzirPendencia(c, ctx), secaoDaPendencia(c), extra)
+    }
     const recebidas = (p.midias || []).filter((m) => m.estado === 'enviada').length
-    if (recebidas) add('fotos:revisao', plural(recebidas, 'foto aguardando revisão', 'fotos aguardando revisão'), 'fotos')
+    if (recebidas) add('fotos:revisao', plural(recebidas, 'foto aguardando revisão', 'fotos aguardando revisão'), 'fotos', { resolver: 'fotos' })
     for (const u of p.unidades || []) {
-      if (u.participa && !u.coordenada_verificada_em && txt(u.logradouro)) add('coord:' + u.participacao_unidade_id, 'Unidade ' + (u.nome || u.bairro || u.id_publico) + ': localização no mapa a conferir', 'unidades')
+      const nomeU = u.nome || u.bairro || u.id_publico
+      if (u.participa && !u.coordenada_verificada_em && txt(u.logradouro)) add('coord:' + u.participacao_unidade_id, 'Unidade ' + nomeU + ': localização no mapa a conferir', 'unidades', {
+        resolver: 'coordenadas', unidade: nomeU, link: linkDoCampo(4),
+        paraMarca: 'Confirmar o endereço de ' + nomeU + ' (é por ele que marcamos a loja no mapa do site)',
+      })
     }
     const r = resumoPublicacao(p)
     if (r.estado === 'alteracao_em_analise') add('pub:alterado', 'Alteração feita depois da versão no ar (v' + r.versao + ')', 'publicacao')
@@ -442,7 +489,11 @@ export function pendenciasDaFicha({ participante, fontes, naoLidas = 0 }) {
   if (cor.estado === 'ok') {
     for (const c of cor.dados || []) {
       if (c.estado === 'resolvida') continue
-      add('correcao:' + c.id, 'Alteração pedida em ' + (ROTULO_CAMPO[c.campo] || c.campo) + ': aguardando a marca', secaoDoBloco(blocoDoCampo(c.campo)))
+      const b = blocoDoCampo(c.campo)
+      add('correcao:' + c.id, 'Alteração pedida em ' + (ROTULO_CAMPO[c.campo] || c.campo) + ': aguardando a marca', secaoDoBloco(b), {
+        paraMarca: 'Corrigir ' + (ROTULO_CAMPO[c.campo] || c.campo) + (txt(c.comentario) ? ': ' + txt(c.comentario) : ''),
+        link: b == null ? null : linkDoCampo(b, c.campo),
+      })
     }
   }
   if (naoLidas > 0) add('mensagens', plural(naoLidas, 'mensagem nova da marca', 'mensagens novas da marca'), 'comunicacao')
@@ -457,27 +508,28 @@ export function pendenciasDaFicha({ participante, fontes, naoLidas = 0 }) {
  */
 export function acoesDaSecao(secao, pode, ctx = {}) {
   const p = typeof pode === 'function' ? pode : () => false
-  const a = (editor, rotuloAcao, principal = false) => ({ editor, rotulo: rotuloAcao, principal })
+  // `icone`: o desenho do que a ação faz; o lápis ("Editar…") aparece só como ícone, com o rótulo no nome e na dica.
+  const a = (editor, rotuloAcao, principal = false, icone = 'editar') => ({ editor, rotulo: rotuloAcao, principal, icone })
   if (secao === 'cadastro') return p('cadastro.editar') ? [a('cadastro', 'Editar dados da marca', true)] : []
   if (secao === 'combo') {
     return [
       p('cadastro.editar') && a('combo', 'Editar tema e componentes', true),
-      p('curadoria.decidir') && ctx.temaEstado === 'proposto' && a('operacao', 'Analisar tema'),
-      p('curadoria.decidir') && ctx.comboStatus === 'em_analise' && a('operacao', 'Revisar combo'),
+      p('curadoria.decidir') && ctx.temaEstado === 'proposto' && a('operacao', 'Analisar tema', false, 'tema'),
+      p('curadoria.decidir') && ctx.comboStatus === 'em_analise' && a('operacao', 'Revisar combo', false, 'combo'),
     ].filter(Boolean)
   }
   if (secao === 'unidades') {
     return [
       p('cadastro.editar') && a('unidades', 'Editar unidades', true),
-      p('producao.gerir') && ctx.temPublicacao && a('coordenadas', 'Conferir localização'),
+      p('producao.gerir') && ctx.temPublicacao && a('coordenadas', 'Conferir localização', false, 'local'),
     ].filter(Boolean)
   }
-  if (secao === 'fotos') return (p('producao.gerir') || p('curadoria.decidir')) && ctx.temPublicacao ? [a('fotos', 'Revisar fotos', true)] : []
+  if (secao === 'fotos') return (p('producao.gerir') || p('curadoria.decidir')) && ctx.temPublicacao ? [a('fotos', 'Revisar fotos', true, 'camera')] : []
   if (secao === 'operacao') {
     const gere = p('pagamento.gerir') || p('producao.gerir') || p('curadoria.decidir')
-    return [a('operacao', gere ? 'Gerenciar operação' : 'Ver detalhes da operação', gere)]
+    return [a('operacao', gere ? 'Gerenciar operação' : 'Ver detalhes da operação', gere, 'operacao')]
   }
-  if (secao === 'publicacao') return ctx.temPublicacao ? [a('publicacao', p('curadoria.decidir') ? 'Gerenciar publicação' : 'Ver publicação e diferenças', p('curadoria.decidir'))] : []
+  if (secao === 'publicacao') return ctx.temPublicacao ? [a('publicacao', p('curadoria.decidir') ? 'Gerenciar publicação' : 'Ver publicação e diferenças', p('curadoria.decidir'), 'loja')] : []
   return []
 }
 

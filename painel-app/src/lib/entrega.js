@@ -1,7 +1,8 @@
 /*
  * Entregar arquivo à pessoa (17/10/2026): baixar, compactar, compartilhar.
  * Peças puras ou só de navegador — quem busca o ORIGINAL no Storage é
- * redesArquivos.js (obterArquivo). Nenhuma dependência nova.
+ * redesArquivos.js (obterArquivo, equipe) ou marcaApi.js (obterArquivoMarca,
+ * a marca, com a própria sessão). Nenhuma dependência nova.
  *
  * Web Share (MDN, consultado em 17/10/2026): navigator.share exige gesto da
  * pessoa (sem ele, NotAllowedError), contexto seguro e `canShare({ files })`
@@ -37,36 +38,44 @@ export function nomeNumerado(i, n, nome) {
   return String(i + 1).padStart(Math.max(2, String(n).length), '0') + '-' + nome
 }
 
+/**
+ * Nome livre no conjunto (sem olhar caixa): repetido ganha " (2)", " (3)"… antes da extensão. `usados` é um Set de nomes em
+ * minúsculas, que a função preenche. O nome FINAL de cada arquivo só existe depois do download (a extensão vem do tipo real e
+ * `nomeArquivo` troca caracteres): quem monta o ZIP repete a checagem sobre `arquivo.name`, não sobre o nome pedido.
+ */
+export function nomeLivre(nome, usados) {
+  const m = nome.match(/^(.*?)(\.[^.]+)?$/)
+  let n = nome
+  for (let c = 2; usados.has(n.toLowerCase()); c++) n = m[1] + ' (' + c + ')' + (m[2] || '')
+  usados.add(n.toLowerCase())
+  return n
+}
+
 /** Nomes repetidos ganham " (2)", " (3)"… antes da extensão. */
 export function nomesUnicos(nomes) {
-  const vistos = new Map()
-  return nomes.map((n) => {
-    const k = n.toLowerCase()
-    const c = (vistos.get(k) || 0) + 1
-    vistos.set(k, c)
-    if (c === 1) return n
-    const m = n.match(/^(.*?)(\.[^.]+)?$/)
-    return m[1] + ' (' + c + ')' + (m[2] || '')
-  })
+  const usados = new Set()
+  return nomes.map((n) => nomeLivre(n, usados))
 }
 
 /**
  * Cabe? `tamanho` desconhecido não barra aqui — quem busca confere ao chegar.
  * `modo`: 'compartilhar' | 'zip'. Devolve { ok } ou { ok:false, motivo }.
  */
-export function planejarLote(itens, { modo = 'zip', movel = false } = {}) {
+export function planejarLote(itens, { modo = 'zip', movel = false, escolhe = true } = {}) {
   const n = itens.length
   const bytes = itens.reduce((s, x) => s + (Number(x.tamanho) || 0), 0)
   const mb = (b) => Math.round(b / 1048576) + ' MB'
+  // Quem não escolhe o conjunto (a marca baixa "todas" as fotos oficiais) não tem o que "escolher menos": baixa uma de cada vez.
+  const saida = escolhe ? 'Escolha menos arquivos' : 'Baixe uma de cada vez'
   if (!n) return { ok: false, motivo: 'Nada selecionado.' }
   if (modo === 'compartilhar') {
-    if (n > LIMITES.compartilharArquivos) return { ok: false, motivo: 'Para salvar ou compartilhar, escolha até ' + LIMITES.compartilharArquivos + ' arquivos de cada vez.' }
-    if (bytes > LIMITES.compartilharBytes) return { ok: false, motivo: 'São ' + mb(bytes) + ': passa do limite de ' + mb(LIMITES.compartilharBytes) + ' para compartilhar de uma vez. Escolha menos arquivos.' }
+    if (n > LIMITES.compartilharArquivos) return { ok: false, motivo: escolhe ? 'Para salvar ou compartilhar, escolha até ' + LIMITES.compartilharArquivos + ' arquivos de cada vez.' : 'Para salvar ou compartilhar, são até ' + LIMITES.compartilharArquivos + ' arquivos de cada vez. Baixe uma de cada vez.' }
+    if (bytes > LIMITES.compartilharBytes) return { ok: false, motivo: 'São ' + mb(bytes) + ': passa do limite de ' + mb(LIMITES.compartilharBytes) + ' para compartilhar de uma vez. ' + saida + '.' }
     return { ok: true }
   }
   const teto = movel ? LIMITES.zipBytesMovel : LIMITES.zipBytes
-  if (n > LIMITES.zipArquivos) return { ok: false, motivo: 'Escolha até ' + LIMITES.zipArquivos + ' arquivos por arquivo compactado.' }
-  if (bytes > teto) return { ok: false, motivo: 'São ' + mb(bytes) + ': passa do limite de ' + mb(teto) + (movel ? ' no celular' : '') + '. Escolha menos arquivos (vídeos pesam mais).' }
+  if (n > LIMITES.zipArquivos) return { ok: false, motivo: escolhe ? 'Escolha até ' + LIMITES.zipArquivos + ' arquivos por arquivo compactado.' : 'São ' + n + ' arquivos, mais do que cabe num ZIP (' + LIMITES.zipArquivos + '). Baixe uma de cada vez.' }
+  if (bytes > teto) return { ok: false, motivo: 'São ' + mb(bytes) + ': passa do limite de ' + mb(teto) + (movel ? ' no celular' : '') + '. ' + saida + (escolhe ? ' (vídeos pesam mais).' : '.') }
   return { ok: true, teto }
 }
 

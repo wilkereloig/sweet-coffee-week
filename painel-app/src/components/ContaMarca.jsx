@@ -4,6 +4,7 @@ import { CHAVE_SESSAO } from '../../../src/lib/marcaAccess'
 import { Folha } from './Folha'
 import { AplicativoENotificacoes } from './AppNoAparelho'
 import { Secao } from './ui'
+import { useSincronizar, useGuarda } from '../lib/sync/react'
 
 /*
  * Conta da marca (reestruturação 29/09/2026, etapa 7): o que é da PESSOA no
@@ -34,6 +35,8 @@ function AlterarSenha() {
       const r = await auth('user', { password: s1 }, 'PUT', token)
       if (!r.ok) { setAviso({ tom: 'erro', texto: recadoSenha(r) }); return }
       await api('rpc/marcar_senha_trocada', { metodo: 'POST', corpo: {} }).catch(() => null)
+      // A senha antiga pode estar aberta em outro aparelho: encerra as outras sessões (esta segue).
+      auth('logout?scope=others', null, 'POST', token).catch(() => { /* a senha nova já vale */ })
       setS1(''); setS2('')
       setAviso({ tom: 'ok', texto: 'Senha alterada.' })
     } catch {
@@ -52,13 +55,26 @@ function AlterarSenha() {
   )
 }
 
-export function ContaMarca({ aberto, onFechar, onSair }) {
+// `verComo`: o administrador vendo como a marca. O aparelho na mão é DELE — nada de ler a assinatura dele como se fosse
+// da marca (o `conferir` falha ali e a tela diria "Ligados") nem de pedir permissão no aparelho dele.
+export function ContaMarca({ aberto, onFechar, onSair, verComo = false }) {
   const [marca, setMarca] = React.useState(null)
-  React.useEffect(() => {
-    if (!aberto || marca) return
-    api('participantes?select=id,nome_marca&order=created_at.desc&limit=1')
-      .then((l) => setMarca((l && l[0]) || null)).catch(() => setMarca(null))
-  }, [aberto]) // eslint-disable-line react-hooks/exhaustive-deps
+  const guarda = useGuarda()
+  // Nome da marca no cabeçalho da folha. Relê a cada abertura e, com a folha aberta, quando 'participantes'
+  // muda (a organização renomeou a marca). Leitura que falha mantém o nome que já estava (antes zerava `marca`
+  // e o push ficava sem a conta).
+  const carregarMarca = React.useCallback(async () => {
+    const vale = guarda()
+    try {
+      const l = await api('participantes?select=id,nome_marca&order=created_at.desc&limit=1')
+      if (vale()) setMarca((l && l[0]) || null)
+    } catch (e) {
+      if (e && e.message === 'sessao_expirada') return
+      throw e
+    }
+  }, [guarda])
+  React.useEffect(() => { if (aberto) carregarMarca().catch(() => {}) }, [aberto, carregarMarca])
+  useSincronizar(['participantes'], carregarMarca, { ativo: !!aberto })
 
   const idMarca = marca && marca.id
   const push = React.useMemo(() => pushMarca(idMarca), [idMarca])
@@ -66,8 +82,14 @@ export function ContaMarca({ aberto, onFechar, onSair }) {
   return (
     <Folha aberto={aberto} titulo="Sua conta" sub={marca ? marca.nome_marca : 'Painel SCW · Participante'} onFechar={onFechar}>
       <div className="ui-pilha">
-        <AplicativoENotificacoes push={marca ? push : null}
-          explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer um pedido, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado." />
+        {verComo ? (
+          <Secao titulo="Aplicativo e notificações">
+            <p className="ui-nota">No “Ver como”, esta parte fica de fora: ela é do aparelho da marca, não deste.</p>
+          </Secao>
+        ) : (
+          <AplicativoENotificacoes papel="marca" push={marca ? push : null}
+            explicacao="Ligue para saber na hora quando a organização mandar mensagem, fizer uma solicitação, publicar um arquivo ou marcar as fotos — mesmo com o painel fechado." />
+        )}
         <Secao titulo="Alterar minha senha" nota="Mínimo 10 caracteres.">
           <AlterarSenha />
         </Secao>
