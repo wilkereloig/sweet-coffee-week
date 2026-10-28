@@ -26,6 +26,10 @@ import { MinhaRota } from './paginas/MinhaRota.jsx'
 import { Avaliar } from './paginas/Avaliar.jsx'
 import { Premiacao } from './paginas/Premiacao.jsx'
 
+// Vitrine do sistema visual (docs/cartoon-2026-2/10 §10.12): só no DEV. Fora
+// dele o import nem existe no código, então a vitrine não entra no build.
+const Sistema = import.meta.env.DEV ? React.lazy(() => import('./paginas/Sistema.jsx')) : null
+
 function useEdicao () {
   const [s, setS] = React.useState({ estado: 'carregando' })
   const [tentativa, setTentativa] = React.useState(0)
@@ -42,11 +46,13 @@ function useEdicao () {
 
 const TITULOS = {
   participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
-  avaliar: 'Avaliar', premiacao: 'Premiação', inexistente: 'Página não encontrada',
+  avaliar: 'Avaliar', premiacao: 'Premiação', sistema: 'Sistema visual', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
-  const { cena, slug, foco } = resolverCena(path)
+  const pedida = resolverCena(path)
+  const { slug, foco } = pedida
+  const cena = pedida.cena === 'sistema' && !Sistema ? 'inexistente' : pedida.cena
   const ed = useEdicao()
   const rota = useMinhaRota(EDICAO.codigo)
   // A barra de abas do celular é fixa na base: o aviso de cookies sobe acima dela.
@@ -62,7 +68,7 @@ export function CartoonPage ({ path, navigate }) {
   }, [cena])
 
   // Páginas que dependem da lista da edição esperam por ela; o participante busca o seu.
-  const precisaLista = !['entrada', 'participante', 'inexistente'].includes(cena)
+  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente'].includes(cena)
   let conteudo
   if (precisaLista && ed.estado === 'carregando') conteudo = <Carregando texto="Carregando a edição…" />
   else if (precisaLista && ed.estado === 'falha') {
@@ -77,6 +83,7 @@ export function CartoonPage ({ path, navigate }) {
       case 'minha-rota': conteudo = <MinhaRota navigate={navigate} dados={dados} />; break
       case 'avaliar': conteudo = <Avaliar navigate={navigate} dados={dados} />; break
       case 'premiacao': conteudo = <Premiacao navigate={navigate} dados={dados} />; break
+      case 'sistema': conteudo = <React.Suspense fallback={<Carregando texto="Carregando a vitrine…" />}><Sistema /></React.Suspense>; break
       default:
         conteudo = (
           <section className="ct-bloco">

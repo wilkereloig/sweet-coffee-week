@@ -8,7 +8,7 @@
  */
 import { EDICAO } from './config.js'
 
-export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'inexistente']
+export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'inexistente']
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -28,6 +28,6 @@ export function resolverCena (path = '', base = EDICAO.caminho) {
       ? { cena: 'participante', slug, foco: 'combo' }
       : { cena: 'participante', slug }
   }
-  if (!slug && ['mapa', 'minha-rota', 'avaliar', 'premiacao'].includes(primeira)) return { cena: primeira }
+  if (!slug && ['mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema'].includes(primeira)) return { cena: primeira }
   return { cena: 'inexistente' }
 }

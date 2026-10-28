@@ -70,3 +70,10 @@ test('contador da Minha rota com contraste de texto pequeno', () => {
   const tinta = regra.match(/(?:^|[\s;])color:\s*var\(--ct-([a-z]+)\)/)[1]
   assert.ok(contraste(t[tinta], t[fundo]) >= 4.5, `${tinta} sobre ${fundo} < 4,5 em texto de 13px`)
 })
+
+test('vitrine do sistema só existe no servidor de desenvolvimento', () => {
+  const casca = ler('src/edicao/cartoon/index.jsx')
+  assert.match(casca, /import\.meta\.env\.DEV\s*\?\s*React\.lazy\(\(\)\s*=>\s*import\('\.\/paginas\/Sistema\.jsx'\)\)\s*:\s*null/)
+  assert.doesNotMatch(casca, /^import .*Sistema/m, 'import estático levaria a vitrine para o build')
+  assert.match(ler('src/edicao/cartoon/paginas/Sistema.jsx'), /import '\.\/sistema\.css'/)
+})

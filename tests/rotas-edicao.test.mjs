@@ -66,6 +66,8 @@ test('cenas da edição', () => {
   assert.deepEqual(c('/cartoon/combos'), { cena: 'combos' })
   assert.deepEqual(c('/cartoon/combos/paneer-patisserie'), { cena: 'participante', slug: 'paneer-patisserie', foco: 'combo' })
   for (const s of ['mapa', 'minha-rota', 'avaliar', 'premiacao']) assert.deepEqual(c(`/cartoon/${s}`), { cena: s })
+  assert.deepEqual(c('/cartoon/sistema'), { cena: 'sistema' })
+  assert.deepEqual(c('/cartoon/sistema/x'), { cena: 'inexistente' })
   assert.deepEqual(c('/cartoon/mapa?unidade=u7k2'), { cena: 'mapa' })
   for (const p of ['/cartoon/xyz', '/cartoon/participantes/Casa_A', '/cartoon/participantes/a/b', '/cartoon/mapa/x', '/outra']) {
     assert.deepEqual(c(p), { cena: 'inexistente' }, p)
