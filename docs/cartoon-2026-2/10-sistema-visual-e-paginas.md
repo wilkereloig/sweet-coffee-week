@@ -280,7 +280,7 @@ O retrato local (§10.9) passa a carregar esses campos. Onde o painel ainda não
 - A página Minha rota vira o painel do Sweet Lover. Lista, visitadas, progresso e compartilhamento por link ficam **salvos no aparelho, sem conta**, como a Minha rota de hoje. Decisão do Wilker, 27/10.
 - Registro no servidor (conta ou envio) fica fora. Exigiria base legal, consentimento e tabela nova.
 
-**Coordenadas.** Hoje só 2 das 40 unidades têm coordenada.
+**Coordenadas.** Em 28/10, 13 das 40 unidades têm coordenada conferida no banco. O retrato local soma 21 aproximadas (Nominatim, por número ou por rua, marcadas "a conferir"), e 6 seguem sem coordenada.
 - **Proposta para a E3:** geocodificar os endereços via OpenStreetMap (Nominatim) e gravar **só no retrato local**, marcadas como "a conferir". No banco nada é gravado.
 - A organização confere no painel antes de publicar.
 
