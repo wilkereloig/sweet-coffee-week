@@ -30,6 +30,7 @@ Nada aqui declara aprovação visual, integração operacional ou conformidade l
 | 8 | [08-decisoes-pendentes.md](08-decisoes-pendentes.md) | O que depende da organização, com recomendação e impacto |
 | 9 | [09-execucao.md](09-execucao.md) | **Execução (14/10/2026):** estado por fase, como aplicar o banco, testes, roteiro de lançamento e de encerramento |
 | 10 | [10-sistema-visual-e-paginas.md](10-sistema-visual-e-paginas.md) | **Spec de 27/10/2026:** sistema visual do site a partir do manual v03 (tokens, Grandstander, componentes, olhinhos), casca e as 7 páginas repensadas, retrato local de dados, ordem de execução só no servidor local |
+| 11 | [11-plano-execucao-site.md](11-plano-execucao-site.md) | **Plano de 27/10/2026:** etapa 1 detalhada (fonte, tokens, componentes, letreiros, vitrine `/cartoon/sistema`, testes) e roteiro das etapas 2–9 |
 
 ## O essencial em uma tela
 
