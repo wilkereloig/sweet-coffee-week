@@ -421,6 +421,16 @@ export function seloEdicao() {
   return SELO_EDICAO
 }
 
+/* Troféu oficial do Sweet Awards na edição 2026.2 (manual v03, assets/ig-trofeu-dourado.png),
+   convertido para WebP sem recorte, fundo transparente. O dourado só existe neste arquivo (não é token).
+   Topo da Premiação; nunca redesenhado (§10.15). */
+const TROFEU_EDICAO = { src: '/images/marcas-edicoes/2026.2/trofeu/trofeu-dourado.webp', largura: 781, altura: 977 }
+
+/** Troféu oficial da edição 2026.2. */
+export function trofeuEdicao() {
+  return TROFEU_EDICAO
+}
+
 /** Marca da realizadora (F2 Experience), a mesma da seção de realização da Home. */
 export const LOGO_F2 = { src: '/images/logo-f2experience.svg', largura: 694, altura: 89, alt: 'F2 Experience' }
 

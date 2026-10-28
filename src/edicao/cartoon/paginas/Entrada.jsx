@@ -13,9 +13,8 @@ import { letreiroEdicao, cenaEdicao, seloEdicao, srcSet } from '../../../data/im
 import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato, Falha, Carregando } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
-import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
-import { Etiqueta, Placa, Botao } from '../../componentes/sistema/pecas.jsx'
+import { Etiqueta, Placa, Botao, Passos } from '../../componentes/sistema/pecas.jsx'
 import { ENTRADA as T, CATALOGO, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
 
 const C = EDICAO.caminho
@@ -67,15 +66,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
       {!encerrada && (
         <section className="ct-bloco ct-entrada__como" aria-labelledby="ct-como">
           <Etiqueta as="h2" cor="azul" id="ct-como">{T.comoTitulo}</Etiqueta>
-          <ol className="ct-passos">
-            {T.passos.map((p, i) => (
-              <li key={p.titulo}>
-                <IconeCartoon nome={p.icone} tamanho={64} />
-                <h3 className="ct-passos__titulo"><span className="ct-passos__n" aria-hidden="true">{i + 1}</span>{p.titulo}</h3>
-                <p>{p.texto}</p>
-              </li>
-            ))}
-          </ol>
+          <Passos passos={T.passos} />
         </section>
       )}
 

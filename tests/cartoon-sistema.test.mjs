@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { iconeEdicao, cenaEdicao, kitTemaEdicao } from '../src/data/imageLibrary.js'
+import { iconeEdicao, cenaEdicao, kitTemaEdicao, trofeuEdicao } from '../src/data/imageLibrary.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
 const ler = (p) => fs.readFileSync(path.join(raiz, p), 'utf8')
@@ -116,16 +116,17 @@ test('os 24 ícones da edição existem, em WebP quadrado de 192 px', () => {
   assert.equal(iconeEdicao(undefined), null)
 })
 
-test('cenas e kits de tema: arquivo existe e a medida declarada é a do arquivo', () => {
+test('cenas, kits de tema e troféu: arquivo existe e a medida declarada é a do arquivo', () => {
   const pecas = [
     ...['tv', 'natal'].map((c) => [`cenaEdicao('${c}')`, cenaEdicao(c)]),
+    ['trofeuEdicao()', trofeuEdicao()],
     ...['casa-alice-doceria', 'boldfood-confeitaria-inclusiva'].flatMap((s) => {
       const k = kitTemaEdicao(s)
       assert.ok(k, `kitTemaEdicao('${s}') devolveu null`)
       return Object.entries(k).map(([parte, p]) => [`${s}.${parte}`, p])
     }),
   ]
-  assert.equal(pecas.length, 2 + 6)
+  assert.equal(pecas.length, 2 + 1 + 6)
   for (const [nome, p] of pecas) {
     assert.ok(p, `${nome} devolveu null`)
     assert.ok(existe(`public${p.src}`), `falta ${p.src}`)

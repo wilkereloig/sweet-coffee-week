@@ -20,7 +20,8 @@
  *  7. MINHA ROTA (painel do Sweet Lover) — "quero ir" na ficha, contador, persistir no recarregar, progresso
  *     "x de N casas", "já fui" tira a parada da lista e põe a casa em "Já fui" (e desfaz), remover, rota antiga
  *     (versão 1) e storage quebrado.
- *  8. AVALIAÇÃO — formulário só aberto; sucesso só com resposta ok; erro preserva as notas.
+ *  8. AVALIAÇÃO — fechada: letreiro, "abre em 5 de novembro", três passos e nenhum formulário; formulário só
+ *     aberto; sucesso só com resposta ok; erro preserva as notas.
  *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
  *     botão) e cinco abas (Avaliar → Prêmio depois dos resultados); rodapé com barras, F2 e cookies.
@@ -30,6 +31,8 @@
  * 11. MAPA — topo no canal Rota; uma linha por unidade; sem coordenada = "em conferência"; aproximada dita assim
  *     na lista e no marcador; ?bairro= (contrato da Entrada) filtra a unidade; quero ir e já fui como filtro;
  *     "perto de mim" com recusa honesta e com posição (distância em linha reta).
+ * 12. PREMIAÇÃO — canal Gala com o troféu oficial e "resultados depois de 15/11"; com resultados, pódio por
+ *     categoria sem 2º/3º inventado.
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -63,7 +66,7 @@ async function waitForServer(url, ms = 30000) {
 try { await fetch(`${BASE}/`, { signal: AbortSignal.timeout(1500) }); console.error(`✗ porta ${PORT} ocupada`); process.exit(1) } catch { /* livre */ }
 
 /** Contexto com a projeção interceptada. `edicao` = resposta de edicao_publica (ou 'falha'). */
-async function contexto (nav, { w = 1440, h = 900, edicao = DEMO_EDICAO, envio = 'ok', opcoes = {} } = {}) {
+async function contexto (nav, { w = 1440, h = 900, edicao = DEMO_EDICAO, envio = 'ok', resultados = null, opcoes = {} } = {}) {
   const ctx = await nav.newContext({ viewport: { width: w, height: h }, ...opcoes })
   await ctx.route('**/rest/v1/rpc/**', async (route) => {
     const fn = route.request().url().split('/rpc/')[1].split('?')[0]
@@ -77,7 +80,7 @@ async function contexto (nav, { w = 1440, h = 900, edicao = DEMO_EDICAO, envio =
       return json(p ? { estado: 'publicado', fase: edicao.fase, participante: p } : { estado: 'inexistente' })
     }
     if (fn === 'criterios_avaliacao') return json(edicao.avaliacao?.aberta ? [{ chave: 'doce', rotulo: 'Doce', minimo: 5, maximo: 10 }, { chave: 'bebida', rotulo: 'Bebida', minimo: 5, maximo: 10 }] : [])
-    if (fn === 'resultados_publicos') return json(null)
+    if (fn === 'resultados_publicos') return json(resultados)
     return route.fulfill({ status: 404, body: '{}' })
   })
   await ctx.route('**/functions/v1/enviar-formulario', (route) => (envio === 'ok'
@@ -121,8 +124,8 @@ try {
       ['/cartoon/combos/demo-casa-aurora', '[DEMO] Casa Aurora'],
       ['/cartoon/mapa', 'Mapa'],
       ['/cartoon/minha-rota', 'Minha rota'],
-      ['/cartoon/avaliar', 'Avaliar'],
-      ['/cartoon/premiacao', 'Premiação'],
+      ['/cartoon/avaliar', 'Avalie sua experiência'],
+      ['/cartoon/premiacao', 'Sweet Awards'],
       ['/cartoon/nao-existe', 'Não encontramos essa página da Cartoon'],
       ['/cartoon/participantes/casa-que-nao-existe', 'Não encontramos essa casa na Cartoon.'],
     ]
@@ -321,6 +324,9 @@ try {
     let c = await contexto(nav)
     await ir(c.page, '/cartoon/avaliar')
     if (await c.page.locator('form.ct-form').count()) falha('formulário aberto com a avaliação fechada')
+    if (!(await c.page.locator('.ct-canal--servico h1').count())) falha('Avaliar: h1 fora do topo no canal Serviço')
+    if (!(await c.page.locator('.ct-conteudo').innerText()).includes('A avaliação abre em 5 de novembro.')) falha('Avaliar fechada sem "abre em 5 de novembro"')
+    if ((await c.page.locator('.ct-passos li').count()) !== 3) falha('Avaliar sem os três passos')
     await c.ctx.close()
     const aberta = { ...clone(DEMO_EDICAO), avaliacao: { aberta: true, abre_em: null, fecha_em: null } }
     for (const envio of ['erro', 'ok']) {
@@ -349,7 +355,7 @@ try {
   console.log('\n9 · casca e larguras')
   for (const [w, h] of [[360, 800], [1440, 900]]) {
     const { ctx, page } = await contexto(nav, { w, h })
-    for (const p of ['/cartoon', '/cartoon/participantes', '/cartoon/participantes/demo-casa-aurora', '/cartoon/mapa', '/cartoon/minha-rota']) {
+    for (const p of ['/cartoon', '/cartoon/participantes', '/cartoon/participantes/demo-casa-aurora', '/cartoon/mapa', '/cartoon/minha-rota', '/cartoon/avaliar', '/cartoon/premiacao']) {
       await ir(page, p)
       await page.waitForTimeout(300)
       const m = await page.evaluate(() => ({
@@ -579,6 +585,30 @@ try {
     if (falhas.length === antes) ok('Mapa: canal Rota, linha por unidade, "em conferência", aproximada na lista e no marcador, quero ir/já fui, ?bairro=, perto de mim (recusa e posição)')
   }
 
+  console.log('\n12 · Premiação')
+  {
+    const antes = falhas.length
+    let c = await contexto(nav)
+    await ir(c.page, '/cartoon/premiacao')
+    if (!(await c.page.locator('.ct-canal--gala h1').count())) falha('Premiação: h1 fora do topo no canal Gala')
+    if (!(await c.page.locator('.ct-gala__palco img[src*="trofeu-dourado"]').count())) falha('Premiação sem o troféu oficial')
+    if (!(await c.page.locator('.ct-gala').innerText()).includes('Resultados depois de 15/11.')) falha('Premiação sem "resultados depois de 15/11"')
+    await c.ctx.close()
+    const resultados = [
+      { trilha: 'sweet_lovers', categoria: '[DEMO] Categoria A', colocacao: 1, nome: '[DEMO] Casa Aurora', slug: 'demo-casa-aurora' },
+      { trilha: 'juri_tecnico', categoria: '[DEMO] Categoria B', colocacao: 1, nome: '[DEMO] Casa Bico de Pena', slug: 'demo-casa-bico-de-pena' },
+      { trilha: 'juri_tecnico', categoria: '[DEMO] Categoria B', colocacao: 3, nome: '[DEMO] Casa Aurora', slug: 'demo-casa-aurora' },
+    ]
+    c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), resultados_publicos: true }, resultados })
+    await ir(c.page, '/cartoon/premiacao')
+    await c.page.waitForSelector('.ct-podio')
+    const podios = await c.page.locator('.ct-podio').evaluateAll((l) => l.map((a) => [a.querySelector('.ct-podio__cat').textContent, [...a.querySelectorAll('.ct-podio__lugar')].map((x) => x.textContent).join(',')]))
+    if (JSON.stringify(podios) !== JSON.stringify([['[DEMO] Categoria A', '1º lugar'], ['[DEMO] Categoria B', '1º lugar,3º lugar']])) falha(`pódio inventou colocação: ${JSON.stringify(podios)}`)
+    if ((await c.page.locator('.ct-gala').innerText()).includes('Resultados depois de')) falha('com resultados, ainda diz "resultados depois de"')
+    if ((await c.page.locator('h1').count()) !== 1) falha('Premiação com resultados: mais de um <h1>')
+    await c.ctx.close()
+    if (falhas.length === antes) ok('Premiação: canal Gala com o troféu e "depois de 15/11"; pódio só com as colocações registradas')
+  }
 } finally {
   if (nav) await nav.close()
   killTree(preview.pid)

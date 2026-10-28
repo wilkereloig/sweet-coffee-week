@@ -162,8 +162,6 @@ export const PARTICIPANTE = {
 }
 
 export const CENA_TEXTO = {
-  avaliar: { titulo: 'Avaliar', apoio: 'Conte como foi o combo que você provou.' },
-  premiacao: { titulo: 'Premiação', apoio: 'O Sweet Awards da Cartoon.' },
   inexistente: { titulo: 'Não encontramos essa página da Cartoon', apoio: 'Confira o endereço ou volte para a entrada da edição.' },
 }
 
@@ -233,6 +231,40 @@ export const ROTA = {
   abrirMapa: 'Abrir o mapa',
   semElenco: 'O elenco desta edição será revelado em breve.',
   encerrada: 'A edição terminou. As casas seguem no catálogo como registro.',
+}
+
+/* Avaliar (§10.7, canal Serviço). Os passos descrevem o formulário que existe: casa, notas, nome e e-mail. */
+export const AVALIAR = {
+  titulo: 'Avalie sua experiência',
+  lead: 'Provou o combo? Conte como foi: as avaliações do público ajudam a escolher os destaques do Sweet Awards.',
+  passosTitulo: 'Como avaliar',
+  passos: [
+    { titulo: 'Prove o combo', texto: 'Numa casa participante: no local, para levar ou por delivery, conforme a casa.', icone: 'no-local' },
+    { titulo: 'Dê as notas', texto: 'Escolha a casa e dê uma nota para cada item do combo.', icone: 'avaliar' },
+    { titulo: 'Envie', texto: 'Com seu nome e e-mail. Uma avaliação por casa: se avaliar de novo, vale a mais recente.', icone: 'compartilhar' },
+  ],
+  abre: (quando) => `A avaliação abre ${quando}.`,
+  abreLead: 'Enquanto isso, escolha as casas que quer provar.',
+  formTitulo: 'Sua avaliação',
+  verCasas: 'Ver as casas',
+  abrirMapa: 'Abrir o mapa',
+  premiacao: 'Ver a premiação',
+}
+
+/* Premiação (§10.7, canal Gala). Nada de data de resultado além do fim do festival (D-15). */
+export const PREMIACAO = {
+  titulo: 'Sweet Awards',
+  rotulo: 'Premiação da Cartoon',
+  lead: 'As casas da Cartoon concorrem ao Sweet Awards. O público avalia durante o festival, e as categorias e o resultado são publicados aqui.',
+  depois: (dia) => (dia ? `Resultados depois de ${dia}.` : 'Resultados depois do festival.'),
+  trofeuAlt: 'Troféu dourado do Sweet Awards: uma fatia de bolo com colher sobre o prato',
+  avaliar: 'Avaliar',
+  comoAvaliar: 'Ver como avaliar',
+  resultadosTitulo: 'Os premiados',
+  trilha: { sweet_lovers: 'Sweet Lovers (avaliação do público)', juri_tecnico: 'Júri técnico' },
+  lugar: { 1: '1º lugar', 2: '2º lugar', 3: '3º lugar' },
+  empate: ' (empate)',
+  falha: 'Não conseguimos carregar os resultados agora.',
 }
 
 export const RODAPE = {

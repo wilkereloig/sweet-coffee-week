@@ -662,6 +662,7 @@ export const VARIANTES = new Map([
   ['/images/marcas-edicoes/2026.2/letreiros/nosso-elenco.webp', { larguras: [480, 960], original: 1462 }],
   ['/images/marcas-edicoes/2026.2/selo/selo-cartoon.webp', { larguras: [480, 960], original: 1921 }],
   ['/images/marcas-edicoes/2026.2/tema.webp', { larguras: [480, 960], original: 1400 }],
+  ['/images/marcas-edicoes/2026.2/trofeu/trofeu-dourado.webp', { larguras: [480], original: 781 }],
   ['/images/marcas-edicoes/2026.2/video-capa.webp', { larguras: [480], original: 720 }],
   ['/images/moldura-lovers-01.png', { larguras: [480, 960], original: 1081 }],
   ['/images/moldura-lovers-02.png', { larguras: [480, 960], original: 1081 }],

@@ -59,6 +59,21 @@ export function Chip ({ ativo, icone, onClick, children, className = '' }) {
   )
 }
 
+/** Passos numerados com o ícone da edição (Entrada "Como funciona", Avaliar "Como avaliar"). `passos`: [{ titulo, texto, icone }]. */
+export function Passos ({ passos }) {
+  return (
+    <ol className="ct-passos">
+      {passos.map((p, i) => (
+        <li key={p.titulo}>
+          <IconeCartoon nome={p.icone} tamanho={64} />
+          <h3 className="ct-passos__titulo"><span className="ct-passos__n" aria-hidden="true">{i + 1}</span>{p.titulo}</h3>
+          <p>{p.texto}</p>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
 const BARRAS = ['creme', 'amarelo', 'turquesa', 'rosa', 'vermelho', 'azul', 'roxo']
 
 /** Barras de sinal: a paleta inteira junta, só em transição — nunca fundo de texto. */

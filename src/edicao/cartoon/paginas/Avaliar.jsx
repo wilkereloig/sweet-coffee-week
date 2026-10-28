@@ -1,5 +1,7 @@
 /*
- * Avaliar (§6.3): formulário da avaliação da edição.
+ * Avaliar (§6.3; docs/cartoon-2026-2/10 §10.7): topo no canal Serviço com o letreiro "Avalie sua experiência",
+ * três passos ("Como avaliar") e o formulário. Fora da janela: o estado "abre em …" (a data marcada ou, sem ela,
+ * o primeiro dia do festival — M.aberturaDaAvaliacao, a mesma regra da Entrada) no lugar do formulário.
  *
  * Só aparece com a avaliação aberta (o servidor confere de novo: interruptor +
  * janela). Envia pela Edge Function enviar-formulario (armadilha, tempo mínimo
@@ -11,9 +13,14 @@
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import { carregarCriterios } from '../../dados/publico.js'
+import * as M from '../../dados/modelo.js'
 import { criarEnvioProtegido } from '../../../lib/enviarFormulario'
 import { Link, Carregando, Falha } from '../../componentes/base.jsx'
-import { CENA_TEXTO, FASE_TEXTO } from '../textos.js'
+import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
+import { Etiqueta, Botao, Passos } from '../../componentes/sistema/pecas.jsx'
+import { AVALIAR as T, FASE_TEXTO } from '../textos.js'
 
 const TURNSTILE_SITE_KEY = '0x4AAAAAAEbvMJDSlYJpLY3b' // pública, a mesma de /quero-participar/
 const RASCUNHO = 'scw:cartoon:avaliacao:rascunho'
@@ -88,14 +95,45 @@ export function Avaliar ({ navigate, dados }) {
   const unidades = casa?.unidades || []
   const muda = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
+  const C = EDICAO.caminho
+  const topo = (
+    <TopoCanal canal="servico" className="ct-servico-topo" aria-labelledby="av-titulo">
+      <Letreiro nivel={1} id="av-titulo" texto={T.titulo} />
+      <p className="ct-lead">{T.lead}</p>
+    </TopoCanal>
+  )
+  const passos = (
+    <section className="ct-bloco" aria-labelledby="av-passos">
+      <Etiqueta as="h2" cor="azul" id="av-passos">{T.passosTitulo}</Etiqueta>
+      <Passos passos={T.passos} />
+    </section>
+  )
+
   if (!aberta) {
-    const texto = dados?.fase === 'encerrada' ? FASE_TEXTO.avaliacaoEncerrada : FASE_TEXTO.avaliacaoFechada
+    const encerrada = dados?.fase === 'encerrada'
+    const abre = M.aberturaDaAvaliacao(dados)
     return (
-      <section className="ct-bloco">
-        <h1 className="ct-h1">{CENA_TEXTO.avaliar.titulo}</h1>
-        <p className="ct-lead">{texto}</p>
-        <Link className="ct-botao" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>Ver as casas</Link>
-      </section>
+      <>
+        {topo}
+        <section className="ct-bloco" aria-label={encerrada ? FASE_TEXTO.avaliacaoEncerrada : T.passosTitulo}>
+          <div className="ct-avaliar__fechada">
+            <IconeCartoon nome="avaliar" tamanho={64} />
+            <div>
+              <p className="ct-sub">{encerrada ? FASE_TEXTO.avaliacaoEncerrada : abre ? T.abre(abre) : FASE_TEXTO.avaliacaoFechada}</p>
+              {!encerrada && <p>{T.abreLead}</p>}
+              <div className="ct-acoes">
+                {encerrada ? <Botao href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao> : (
+                  <>
+                    <Botao href={`${C}/participantes`} navigate={navigate}>{T.verCasas}</Botao>
+                    <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}><IconeCartoon nome="mapa" tamanho={32} />{T.abrirMapa}</Botao>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+        {!encerrada && passos}
+      </>
     )
   }
   if (criterios === null) return <Carregando texto="Carregando a avaliação…" />
@@ -105,14 +143,14 @@ export function Avaliar ({ navigate, dados }) {
 
   if (estado === 'enviado') {
     return (
-      <section className="ct-bloco" aria-live="polite">
-        <h1 className="ct-h1">Avaliação registrada</h1>
+      <TopoCanal canal="servico" className="ct-servico-topo" aria-live="polite" aria-labelledby="av-ok">
+        <Letreiro nivel={1} id="av-ok" texto="Avaliação registrada" />
         <p className="ct-lead">Obrigado por avaliar {casa?.casa.nome}. Se avaliar a mesma casa de novo com este e-mail, vale a avaliação mais recente.</p>
         <div className="ct-acoes">
           <button type="button" className="ct-botao" onClick={() => { setForm((f) => ({ ...f, slug: '', unidade: '', notas: {}, comentario: '' })); setEstado('editando') }}>Avaliar outra casa</button>
-          <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>Ver as casas</Link>
+          <Link className="ct-botao ct-botao--contorno" href={`${C}/participantes`} navigate={navigate}>Ver as casas</Link>
         </div>
-      </section>
+      </TopoCanal>
     )
   }
 
@@ -140,9 +178,11 @@ export function Avaliar ({ navigate, dados }) {
   }
 
   return (
-    <section className="ct-bloco ct-avaliar" aria-labelledby="av-titulo">
-      <h1 id="av-titulo" className="ct-h1">{CENA_TEXTO.avaliar.titulo}</h1>
-      <p className="ct-lead">{CENA_TEXTO.avaliar.apoio}</p>
+    <>
+    {topo}
+    {passos}
+    <section className="ct-bloco ct-avaliar" aria-labelledby="av-form">
+      <h2 id="av-form" className="ct-h2">{T.formTitulo}</h2>
       <form onSubmit={enviar} noValidate className="ct-form">
         <label className="ct-campo"><span>Casa avaliada</span>
           <select value={form.slug} onChange={(e) => { muda('slug', e.target.value); muda('unidade', '') }} required>
@@ -193,5 +233,6 @@ export function Avaliar ({ navigate, dados }) {
         {!completo && <p className="ct-nota">Escolha a casa, dê uma nota para cada item e preencha nome e e-mail.</p>}
       </form>
     </section>
+    </>
   )
 }
