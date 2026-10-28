@@ -5,6 +5,7 @@ import { dataHoraCurta } from '../../lib/painelFormat'
 import { FILTROS_CONTATO, CATEGORIAS_CONTATO, filtrarContatos } from '../../lib/operacao'
 import { rotulo, rotulos } from '../../lib/status'
 import { vouchersPorEdicao } from '../../lib/vouchers'
+import { RETIRADO, jaSaiu } from '../../lib/presskit'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { useNomeDaTela } from '../Trilha'
@@ -288,14 +289,28 @@ function EnvioDaEdicao({ contato, podeMudar, onSalvar }) {
       </Secao>
     )
   }
+  const retirado = atual.status === RETIRADO
+  async function retirar() {
+    if (jaSaiu(atual.status) && !await confirmar('Retirar ' + contato.nome + ' da lista do Press Kit? O kit já saiu para entrega. O registro continua guardado, e dá para colocar de volta.', { perigo: true })) return
+    await soltar(onSalvar(RETIRADO))
+  }
   return (
-    <Bloco
-      erroDe={erroBloco}
-      titulo="Press Kit desta edição" nota={atual.responsavel_rotulo ? 'última mudança por ' + atual.responsavel_rotulo : undefined}
-      status={<Selo dominio="presskit" valor={atual.status} />} rotuloEditar="Editar Press Kit"
-      campos={CAMPOS_PRESSKIT} valores={atual} podeEditar={podeMudar}
-      onSalvar={async (v) => { const { status, ...dados } = v; await onSalvar(status, dados) }}
-    />
+    <>
+      <Bloco
+        erroDe={erroBloco}
+        titulo="Press Kit desta edição" nota={atual.responsavel_rotulo ? 'última mudança por ' + atual.responsavel_rotulo : undefined}
+        status={<Selo dominio="presskit" valor={atual.status} />} rotuloEditar="Editar Press Kit"
+        campos={CAMPOS_PRESSKIT} valores={atual} podeEditar={podeMudar}
+        onSalvar={async (v) => { const { status, ...dados } = v; await onSalvar(status, dados) }}
+      />
+      {podeMudar && (
+        <div className="ui-linha-acoes">
+          {retirado
+            ? <button className="og-btn og-btn--mini" type="button" onClick={() => soltar(onSalvar('selecionado'))}>Colocar de volta na lista</button>
+            : <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={retirar}>Retirar da lista</button>}
+        </div>
+      )}
+    </>
   )
 }
 

@@ -1378,6 +1378,17 @@ teste `tests/painel-app-arquivos-previa.test.mjs`.
   já lê); a equipe pela `arquivo-url`, uma por miniatura, só quando chega perto da tela. A equipe lê as prévias por
   `get_arquivos_previas` (à parte: `get_arquivos_admin` tem formato fixo e mudar exigiria recriá-la).
 
+#### Press Kit: retirar da lista e desfazer — 28/10/2026 (pedido do Wilker)
+"Se eu seleciono algum contato, eu não consigo retirar mais da lista." Só tela, sem migration: `definir_presskit` já aceitava os 7 status
+e voltar de um para o outro (é upsert). Lógica pura em `lib/presskit.js`, teste `tests/painel-app-presskit.test.mjs`.
+- **Retirar = status `cancelado`** (rótulo agora "Retirado da lista"): nada se apaga, a pessoa sai da lista e dos contadores, o endereço e as
+  datas ficam, e "Colocar de volta" a leva para Selecionado. Quem já saiu para entrega (`enviado`/`entregue`/`nao_entregue`) pede confirmação.
+- **Menu ⋯ em cada linha** (`MaisAcoes`): "Voltar para …" (um passo: ANTERIOR) e "Retirar da lista". O aviso depois de cada mudança traz
+  "Desfazer" (guarda o status de antes só na tela). Na ficha da pessoa (Contatos › Pessoas): "Retirar da lista" / "Colocar de volta na lista".
+- **Sugestões:** "Só sugerir" e "Não incluir nesta edição" ficam no ⋯; "Não incluir" cria o registro `cancelado` e tira a pessoa das sugestões
+  (aparece em "Retirado da lista"). ⚠️ Esse caso não tem "Desfazer": antes dele não havia registro, e o painel não apaga.
+- O total do título conta só quem está na lista (retirados ficam de fora); a lista vazia diz qual situação está vazia.
+
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
 `/preencher/#<código>` (página estática `public/preencher/index.html`, mesmo padrão do `/quero-participar`):

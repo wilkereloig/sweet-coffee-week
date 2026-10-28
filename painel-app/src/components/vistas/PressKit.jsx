@@ -4,26 +4,22 @@ import { dataCurta } from '../../lib/respostas'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
-import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, Escolha } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, Escolha, MaisAcoes } from '../ui'
+import { confirmar } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
+import { ORDEM, PROXIMO, ANTERIOR, RETIRADO, jaSaiu, estaNaLista, sugestoesDaLista, filtrarLista, contarSituacao } from '../../lib/presskit'
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
-
-// A ordem do trabalho: da sugestão à entrega. Cada status tem o PRÓXIMO passo.
-const ORDEM = ['constou_na_lista', 'selecionado', 'confirmado', 'enviado', 'entregue', 'nao_entregue', 'cancelado']
-const PROXIMO = {
-  constou_na_lista: ['selecionado', 'Selecionar'],
-  selecionado: ['confirmado', 'Preparar'],
-  confirmado: ['enviado', 'Saiu para entrega'],
-  enviado: ['entregue', 'Entregue'],
-  nao_entregue: ['enviado', 'Reenviar'],
-}
 
 /*
  * Contatos › Press Kit (reestruturação 29/09/2026, etapa 5): a lista desta
  * edição, por situação, e as sugestões — quem já recebeu em edições
  * anteriores e ainda não está na lista. O histórico nunca decide sozinho.
+ *
+ * Tudo se desfaz (28/10/2026, pedido do Wilker): "Retirar da lista" é o status `cancelado` — o registro fica, a
+ * pessoa sai da lista e dos contadores e volta por "Colocar de volta"; "Voltar para …" corrige um passo; e o
+ * aviso depois de cada mudança traz "Desfazer". A lógica pura mora em lib/presskit.js.
  */
 export function PressKit({ pode, rota, navegar }) {
   const guarda = useGuarda()
@@ -56,20 +52,32 @@ export function PressKit({ pode, rota, navegar }) {
   useSincronizar(DOMINIOS_VISTAS.contatos, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('presskit') })
   const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
-  async function mudar(c, status) {
+  // `ok` = o que a tela diz depois; `volta` = [contato, status anterior] quando dá para desfazer (o aviso ganha "Desfazer").
+  async function mudar(c, status, { ok, volta } = {}) {
     setAviso(null)
-    try { await rpc('definir_presskit', { p_secret: lerSenha(), p_contato: c.id, p_status: status, p_dados: {} }); await carregar({ silencioso: true }) }
-    catch (e) { setAviso(erroContato(e.message)) }
+    try {
+      await rpc('definir_presskit', { p_secret: lerSenha(), p_contato: c.id, p_status: status, p_dados: {} })
+      await carregar({ silencioso: true })
+      if (ok) setAviso({ ok, volta })
+    } catch (e) { setAviso(erroContato(e.message)) }
   }
+  async function retirar(c) {
+    const antes = c.atual.status
+    if (jaSaiu(antes) && !await confirmar('Retirar ' + c.nome + ' da lista? O Press Kit já saiu para entrega. O registro fica guardado em “' + rotulo('presskit', RETIRADO) + '”, de onde dá para colocar de volta.', { perigo: true })) return
+    await mudar(c, RETIRADO, { ok: c.nome + ' saiu da lista desta edição.', volta: [c, antes] })
+  }
+  const voltarPasso = (c) => mudar(c, ANTERIOR[c.atual.status], { ok: c.nome + ' voltou para “' + rotulo('presskit', ANTERIOR[c.atual.status]) + '”.', volta: [c, c.atual.status] })
+  const colocarDeVolta = (c) => mudar(c, 'selecionado', { ok: c.nome + ' voltou para a lista (' + rotulo('presskit', 'selecionado') + ').', volta: [c, RETIRADO] })
 
   if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!lista) return <Carregando />
-  const naLista = lista.filter((c) => c.atual)
-  const contar = (s) => naLista.filter((c) => c.atual.status === s).length
-  const visiveis = naLista
-    .filter((c) => situacao === 'todos' || (situacao === 'ativos' ? !['cancelado'].includes(c.atual.status) : c.atual.status === situacao))
-    .sort((a, b) => ORDEM.indexOf(a.atual.status) - ORDEM.indexOf(b.atual.status) || a.nome.localeCompare(b.nome, 'pt-BR'))
-  const sugestoes = lista.filter((c) => !c.atual && Number(c.recebimentos) > 0 && c.ativo !== false)
+  const contar = (s) => contarSituacao(lista, s)
+  const naLista = lista.filter(estaNaLista).length
+  const visiveis = filtrarLista(lista, situacao)
+  const sugestoes = sugestoesDaLista(lista)
+  const vazio = situacao === 'ativos' || situacao === 'todos'
+    ? 'Selecione pessoas pela ficha (Contatos › Pessoas) ou pelas sugestões abaixo.'
+    : 'Ninguém está em “' + rotulo('presskit', situacao) + '” agora. Escolha outra situação ou “Na lista”.'
 
   return (
     <div className="og-embutida">
@@ -80,15 +88,23 @@ export function PressKit({ pode, rota, navegar }) {
       </ul>
       <Ajuda titulo="Como a lista funciona">
         <p>Sugerido → Selecionado → Preparando (endereço confirmado) → Enviado → Entregue. Abra a pessoa para registrar endereço, responsável pelo envio, datas e o que vai no kit.</p>
-        <p>As sugestões abaixo são de quem recebeu em edições anteriores. Ninguém entra na lista sozinho.</p>
+        <p>Errou um passo? No menu de três pontos de cada pessoa há “Voltar para …” e “Retirar da lista”. Quem sai fica em “Retirado da lista” (nada se apaga) e volta por “Colocar de volta”. Depois de cada mudança o aviso traz “Desfazer”.</p>
+        <p>As sugestões abaixo são de quem recebeu em edições anteriores. Ninguém entra na lista sozinho; “Não incluir nesta edição” tira a pessoa das sugestões.</p>
       </Ajuda>
       <Escolha rotulo="Situação" valor={situacao} onMudar={setSituacao}
         opcoes={[['ativos', 'Na lista'], ...ORDEM.map((s) => [s, rotulo('presskit', s)]), ['todos', 'Todos']]
           .map(([v, r]) => [v, r + (ORDEM.includes(v) ? ' (' + contar(v) + ')' : '')])} />
-      {aviso && <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>}
+      {aviso && (typeof aviso === 'string'
+        ? <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>
+        : (
+          <p className="ui-nota ui-nota--ok" role="status">
+            {aviso.ok}
+            {aviso.volta && <> <button type="button" className="og-link" onClick={() => mudar(aviso.volta[0], aviso.volta[1], { ok: 'Desfeito.' })}>Desfazer</button></>}
+          </p>
+        ))}
 
-      <Secao titulo="Lista desta edição" nota={naLista.length + (naLista.length === 1 ? ' pessoa' : ' pessoas')}>
-        {visiveis.length === 0 && <Vazio titulo="Ninguém aqui">Selecione pessoas pela ficha (Contatos › Pessoas) ou pelas sugestões abaixo.</Vazio>}
+      <Secao titulo="Lista desta edição" nota={naLista + (naLista === 1 ? ' pessoa' : ' pessoas')}>
+        {visiveis.length === 0 && <Vazio titulo="Ninguém aqui">{vazio}</Vazio>}
         {visiveis.length > 0 && (
           <ul className="og-lista">{visiveis.map((c) => {
             const a = c.atual
@@ -103,6 +119,13 @@ export function PressKit({ pode, rota, navegar }) {
                     <Selo dominio="presskit" valor={a.status} />
                     {podeMudar && prox && <button className="og-btn og-btn--mini" type="button" onClick={() => mudar(c, prox[0])}>{prox[1]}</button>}
                     {podeMudar && a.status === 'enviado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(c, 'nao_entregue')}>Não entregue</button>}
+                    {podeMudar && a.status === RETIRADO && <button className="og-btn og-btn--mini" type="button" onClick={() => colocarDeVolta(c)}>Colocar de volta</button>}
+                    {podeMudar && a.status !== RETIRADO && (
+                      <MaisAcoes rotulo={'Mais ações de ' + c.nome} itens={[
+                        ANTERIOR[a.status] && { rotulo: 'Voltar para ' + rotulo('presskit', ANTERIOR[a.status]), onClick: () => voltarPasso(c) },
+                        { rotulo: 'Retirar da lista', perigo: true, onClick: () => retirar(c) },
+                      ]} />
+                    )}
                   </span>
                 </div>
               </li>
@@ -122,7 +145,12 @@ export function PressKit({ pode, rota, navegar }) {
                 <p className="og-item__meta">{[c.instagram, c.recebimentos + (Number(c.recebimentos) === 1 ? ' Press Kit' : ' Press Kits'), c.ultima_edicao && 'último ' + c.ultima_edicao].filter(Boolean).join(' · ')}</p>
                 <span className="og-item__dir">
                   {podeMudar && <button className="og-btn og-btn--mini" type="button" onClick={() => mudar(c, 'selecionado')}>Selecionar</button>}
-                  {podeMudar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(c, 'constou_na_lista')}>Sugerir</button>}
+                  {podeMudar && (
+                    <MaisAcoes rotulo={'Mais ações de ' + c.nome} itens={[
+                      { rotulo: 'Só sugerir (decidir depois)', onClick: () => mudar(c, 'constou_na_lista') },
+                      { rotulo: 'Não incluir nesta edição', onClick: () => mudar(c, RETIRADO, { ok: c.nome + ' não entra no Press Kit desta edição. Fica em “' + rotulo('presskit', RETIRADO) + '”.' }) },
+                    ]} />
+                  )}
                 </span>
               </div>
             </li>
