@@ -20,3 +20,38 @@ test('Grandstander servida pelo projeto e declarada só na camada da edição', 
     assert.doesNotMatch(ler(f), /@font-face[^}]*Grandstander/, `${f} declara a fonte da edição`)
   }
 })
+
+const CSS = 'src/styles/scw-cartoon.css'
+const tokens = () => Object.fromEntries([...ler(CSS).matchAll(/--ct-([a-z]+):\s*(#[0-9A-Fa-f]{6})\s*;/g)].map(([, n, h]) => [n, h.toUpperCase()]))
+const lum = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+const contraste = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
+
+test('paleta do manual v03, e nada da paleta antiga', () => {
+  assert.deepEqual(tokens(), {
+    creme: '#FDF0DE', amarelo: '#FDB901', chocolate: '#3A150F', preto: '#050505', vermelho: '#ED1C20',
+    rosa: '#E8195A', branco: '#FCFCFC', azul: '#0184E4', turquesa: '#05BEBA', roxo: '#6424AB',
+  })
+  const css = ler(CSS)
+  for (const velho of ['#FAC506', '#FDF2DF', 'amarelo-heroi', 'var(--scw-font', 'rgba(5, 5, 5']) {
+    assert.ok(!css.includes(velho), `ainda usa ${velho}`)
+  }
+  assert.match(css, /--ct-font:\s*'Grandstander'/)
+})
+
+test('contraste medido a partir dos tokens', () => {
+  const t = tokens()
+  const LEITURA = [['chocolate', 'creme'], ['chocolate', 'amarelo'], ['chocolate', 'turquesa'], ['chocolate', 'branco'],
+    ['creme', 'chocolate'], ['creme', 'roxo'], ['preto', 'azul']]
+  const SO_GRANDE = [['creme', 'vermelho'], ['creme', 'rosa'], ['creme', 'azul']]
+  const PROIBIDO = [['chocolate', 'roxo'], ['chocolate', 'azul']]
+  for (const [tinta, fundo] of LEITURA) assert.ok(contraste(t[tinta], t[fundo]) >= 4.5, `${tinta} sobre ${fundo} < 4,5`)
+  for (const [tinta, fundo] of SO_GRANDE) {
+    const c = contraste(t[tinta], t[fundo])
+    assert.ok(c >= 3 && c < 4.5, `${tinta} sobre ${fundo} = ${c.toFixed(2)}: a regra "só texto grande" mudou`)
+  }
+  for (const [tinta, fundo] of PROIBIDO) assert.ok(contraste(t[tinta], t[fundo]) < 4.5, `${tinta} sobre ${fundo} passou a ser legível: rever a regra`)
+})
