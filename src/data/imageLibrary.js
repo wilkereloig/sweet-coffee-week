@@ -398,7 +398,7 @@ export function fotoProximaEdicao(chave) {
 }
 
 /* Letreiros desenhados da edição 2026.2 (manual v03, assets/ig-titulo-*.png),
-   recortados da margem transparente e convertidos para WebP. Título fixo de
+   convertidos para WebP sem recorte (fundo transparente). Título fixo de
    seção: <Letreiro imagem={letreiroEdicao('elenco')} texto="…" /> — o texto
    real vai no HTML. Letreiro novo entra aqui, nunca montado na página. */
 const LETREIROS_EDICAO = {
