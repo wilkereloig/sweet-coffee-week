@@ -11,6 +11,7 @@ import { carregarResultados } from '../../dados/publico.js'
 import { trofeuEdicao, srcSet } from '../../../data/imageLibrary'
 import { Link, Carregando } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Etiqueta, Botao } from '../../componentes/sistema/pecas.jsx'
 import { PREMIACAO as T, FASE_TEXTO } from '../textos.js'
@@ -46,6 +47,8 @@ export function Premiacao ({ navigate, dados }) {
           </div>
         </div>
         <figure className="ct-gala__palco">
+          {/* Encantados com o troféu: no alto do palco, olhando para baixo, para ele. */}
+          <Olhinhos expressao="encantado" olhar={{ x: 0.5, y: 0.7 }} tamanho={112} className="ct-gala__olhos" />
           <img src={trofeu.src} srcSet={srcSet(trofeu.src)} sizes="(max-width: 899px) 60vw, 340px" width={trofeu.largura} height={trofeu.altura} alt={T.trofeuAlt} decoding="async" />
         </figure>
       </TopoCanal>

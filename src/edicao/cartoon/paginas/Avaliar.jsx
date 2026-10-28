@@ -17,6 +17,7 @@ import * as M from '../../dados/modelo.js'
 import { criarEnvioProtegido } from '../../../lib/enviarFormulario'
 import { Link, Carregando, Falha } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { Etiqueta, Botao, Passos } from '../../componentes/sistema/pecas.jsx'
@@ -117,7 +118,9 @@ export function Avaliar ({ navigate, dados }) {
         {topo}
         <section className="ct-bloco" aria-label={encerrada ? FASE_TEXTO.avaliacaoEncerrada : T.passosTitulo}>
           <div className="ct-avaliar__fechada">
-            <IconeCartoon nome="avaliar" tamanho={64} />
+            {/* "Abre em": olhinhos surpresos olhando para a data. Só neste estado, que não tem formulário. */}
+            {encerrada ? <IconeCartoon nome="avaliar" tamanho={64} />
+              : <Olhinhos expressao="surpreso" olhar={{ x: 0.7, y: 0 }} tamanho={120} className="ct-avaliar__olhos" />}
             <div>
               <p className="ct-sub">{encerrada ? FASE_TEXTO.avaliacaoEncerrada : abre ? T.abre(abre) : FASE_TEXTO.avaliacaoFechada}</p>
               {!encerrada && <p>{T.abreLead}</p>}

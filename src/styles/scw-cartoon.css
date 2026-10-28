@@ -226,7 +226,7 @@
 .ct-estreia__texto .ct-acoes { margin-top: 0; }
 .ct-estreia__cena { position: relative; display: grid; justify-items: center; width: 100%; }
 /* Reservado para os olhinhos (E2): espaço no canto de cima da cena, sem nada desenhado. */
-.ct-estreia__olhos { justify-self: end; width: clamp(96px, 12vw, 168px); aspect-ratio: 2 / 1; }
+.ct-estreia__olhos { justify-self: end; width: clamp(96px, 12vw, 168px); }
 .ct-estreia__tv { position: relative; width: min(100%, 460px); margin: 0; }
 .ct-estreia__tv img { display: block; width: 100%; height: auto; }
 /* Tela da TV, medida no arquivo (tv-antiga.webp; a mesma da vitrine): a placa do período fica no meio dela. */
@@ -291,9 +291,11 @@
 .ct-catalogo__chamada { min-width: 0; }
 .ct-catalogo__topo .ct-letreiro { margin: 0; }
 .ct-catalogo__topo .ct-letreiro--imagem img { width: min(560px, 100%); }
-.ct-catalogo__apoio { display: flex; align-items: center; gap: 16px 24px; }
+.ct-catalogo__apoio { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px 24px; }
 .ct-catalogo__apoio .ct-lead { max-width: 26ch; margin: 0; }
 .ct-catalogo__apoio .ct-placa { flex: none; rotate: -3deg; }
+/* Linha própria, acima da placa e à direita: na diagonal oposta ao letreiro, sem apertar o lead. */
+.ct-catalogo__olhos { grid-column: 1 / -1; grid-row: 1; justify-self: end; width: clamp(80px, 9vw, 132px); }
 /* (0,2,0), como a regra de base acima: com um seletor só, ela vencia e o desktop ficava em uma coluna. */
 @media (min-width: 900px) {
   .ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 560px) minmax(0, 1fr); }
@@ -651,6 +653,7 @@
 .ct-servico-topo .ct-letreiro, .ct-servico-topo .ct-lead { margin: 0; }
 .ct-avaliar__fechada { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px 16px; max-width: 760px; padding: clamp(18px, 3vw, 28px); border: 2.5px dashed var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-branco); }
 .ct-avaliar__fechada p { margin: 0 0 6px; }
+.ct-avaliar__olhos { width: clamp(80px, 14vw, 120px); }
 
 /* Premiação: topo no canal Gala (chocolate) — texto | o troféu oficial sob o holofote. A luz é CSS com as cores da
    paleta; o dourado só existe no arquivo do troféu (§10.3). (0,2,0): .ct-canal vem depois no arquivo. */
@@ -672,6 +675,8 @@
   background: radial-gradient(closest-side, color-mix(in srgb, var(--ct-amarelo) 55%, transparent), transparent);
 }
 .ct-edicao .ct-gala__palco img { position: relative; z-index: 1; width: 100%; height: auto; }
+/* Olhinhos no alto do palco, à esquerda do troféu (o filete branco os separa do chocolate). */
+.ct-gala__olhos { position: absolute; z-index: 2; top: 0; left: -22%; width: clamp(76px, 8vw, 112px); }
 /* Letreiro amarelo sobre chocolate: o contorno chocolate some no fundo; a sombra vermelha dá o volume de letreiro. */
 .ct-canal--gala .ct-letreiro { --ct-sombra-letra: .06em .07em 0 var(--ct-vermelho); }
 .ct-podios { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; }

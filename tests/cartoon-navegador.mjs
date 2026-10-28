@@ -476,7 +476,7 @@ try {
         tela: placa('.ct-estreia__tela'),
         casas: placa('.ct-estreia__casas'),
         acao: getComputedStyle(document.querySelector('.ct-estreia .ct-botao')).backgroundColor,
-        olhos: olhos ? { filhos: olhos.childElementCount, texto: olhos.textContent, oculto: olhos.getAttribute('aria-hidden') } : null,
+        olhos: olhos ? { svg: olhos.matches('svg.ct-olhinhos'), expressao: olhos.dataset.expressao, clicavel: olhos.querySelectorAll('a, button, [tabindex]').length, oculto: olhos.getAttribute('aria-hidden') } : null,
         como: txt('h2.ct-etiqueta--azul'),
         passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-icone')?.getAttribute('src')?.match(/icones\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.replace(/^\d/, '').trim()]),
         mural: [...document.querySelectorAll('.ct-mural__link')].map((a) => a.getAttribute('href').split('?')[0]),
@@ -491,7 +491,7 @@ try {
     if (e.tela !== '5 a 15 de novembro') falha(`Entrada: placa da TV "${e.tela}"`)
     if (e.casas !== '3 casas no elenco') falha(`Entrada: placa de casas "${e.casas}"`)
     if (e.acao !== 'rgb(237, 28, 32)') falha(`Entrada: botão sobre amarelo não é o de ação (${e.acao})`)
-    if (!e.olhos || e.olhos.filhos || e.olhos.texto || e.olhos.oculto !== 'true') falha(`Entrada: lugar dos olhinhos ${JSON.stringify(e.olhos)}`)
+    if (!e.olhos?.svg || e.olhos.expressao !== 'encantado' || e.olhos.clicavel || e.olhos.oculto !== 'true') falha(`Entrada: olhinhos ${JSON.stringify(e.olhos)}`)
     if (e.como !== 'Como funciona') falha(`Entrada: etiqueta azul "${e.como}"`)
     if (JSON.stringify(e.passos) !== JSON.stringify([['casas', 'Escolha a casa'], ['no-local', 'Prove o combo'], ['avaliar', 'Avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
     if (JSON.stringify(e.mural) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/participantes/${p.slug}`))) falha(`Entrada: mural ${JSON.stringify(e.mural)}`)
@@ -527,7 +527,7 @@ try {
     if (!enc.includes('terminou') || await c.page.locator('.ct-entrada__como, .ct-onde').count()) falha('Entrada encerrada: sem aviso, ou ainda com Como funciona/Onde ficam')
     if (!enc.includes('A avaliação desta edição foi encerrada.')) falha('Entrada encerrada: Avalie sem o texto de encerrada')
     await c.ctx.close()
-    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, lugar dos olhinhos vazio), como funciona, mural, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
+    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, olhinhos encantados e decorativos), como funciona, mural, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
   }
 
   console.log('\n11 · Mapa')

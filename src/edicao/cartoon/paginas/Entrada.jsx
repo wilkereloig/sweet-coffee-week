@@ -4,7 +4,7 @@
  * casas — placas só com o que é fato do dado. No corpo creme, em ordem: Como funciona · Nosso elenco
  * (as logos desenhadas, levando a cada casa e ao catálogo) · Onde ficam (bairros com a contagem real,
  * levando ao Mapa; a faixa de Natal é o chão) · Avalie · Dúvidas. O mapa interativo NÃO carrega aqui.
- * Olhinhos (E2, à espera de aprovação): o lugar fica reservado no topo, sem nada desenhado.
+ * Olhinhos (§10.5, aprovados em 28/10): encantados no alto da cena, seguindo o cursor — o único lugar onde seguem.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
@@ -12,6 +12,7 @@ import * as M from '../../dados/modelo.js'
 import { letreiroEdicao, cenaEdicao, seloEdicao, srcSet } from '../../../data/imageLibrary'
 import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato, Falha, Carregando } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { Etiqueta, Placa, Botao, Passos } from '../../componentes/sistema/pecas.jsx'
@@ -51,8 +52,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           </div>
         </div>
         <div className="ct-estreia__cena">
-          {/* Lugar dos olhinhos (E2): reservado, vazio até a aprovação. */}
-          <div className="ct-estreia__olhos" aria-hidden="true" />
+          <Olhinhos expressao="encantado" olhar="cursor" lado="direita" tamanho={168} className="ct-estreia__olhos" />
           <figure className="ct-estreia__tv">
             <img src={tv.src} width={tv.largura} height={tv.altura} alt="" decoding="async" fetchpriority="high" />
             {periodo && <div className="ct-estreia__tela"><Placa numero={periodo.numero} rotulo={periodo.rotulo} /></div>}

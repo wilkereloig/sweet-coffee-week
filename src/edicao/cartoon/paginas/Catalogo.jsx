@@ -13,6 +13,7 @@ import * as M from '../../dados/modelo.js'
 import { letreiroEdicao, kitTemaEdicao } from '../../../data/imageLibrary'
 import { Link, Foto, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Placa, Chip } from '../../componentes/sistema/pecas.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
@@ -144,6 +145,8 @@ export function Catalogo ({ modo, navigate, dados }) {
         <div className="ct-catalogo__apoio">
           <Placa numero={String(lista.length)} rotulo={T.placa(lista.length)} />
           <p className="ct-lead">{T.lead}</p>
+          {/* Encantados com o elenco: olham para o letreiro, na diagonal oposta a ele. */}
+          <Olhinhos expressao="encantado" lado="direita" tamanho={132} className="ct-catalogo__olhos" />
         </div>
       </TopoCanal>
 
