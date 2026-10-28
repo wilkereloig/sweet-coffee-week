@@ -80,6 +80,18 @@ repositório, e desenhar a marca de memória seria **inventar logo (A4)**. O bot
 page do WhatsApp, e aí entra em `icones/marcas/` (traço fixo, sem disco nem cor SCW) —
 como o Instagram desde 14/10/2026.
 
+#### Exceção declarada — a camada da edição (27/10/2026)
+
+A camada de edição (`.ct-edicao`, `src/styles/scw-cartoon.css`, rota `/cartoon`) tem
+**paleta, fonte e forma próprias**: é o KV da edição (§2.1 do `CLAUDE.md` raiz), não o
+festival institucional. Fonte: `docs/cartoon-2026-2/10-sistema-visual-e-paginas.md` §10.3
+(manual v03). Lá dentro **não valem** a tabela de 9 cores deste §6.1, a família Nexa do
+§6.5 nem o "botão chapado, sem sombra" do §6.6 — valem a paleta da edição, a
+**Grandstander** e a sombra curta de desenho animado. Fora de `.ct-edicao` nada disso
+existe: `tests/rotas-edicao.test.mjs` reprova vazamento de `--ct-*`, e
+`tests/cartoon-sistema.test.mjs` reprova a fonte declarada fora da camada e mede o
+contraste a partir dos tokens.
+
 ### 6.2 Cor por página
 
 Tokens em `body.route-*`: `--scw-pagina` · `--scw-pagina-tinta` · `--scw-pagina-menu` ·

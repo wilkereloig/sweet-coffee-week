@@ -99,14 +99,17 @@ Medida de linha do texto corrido: até 62ch.
 
 ## 10.4 Componentes (`src/edicao/componentes/sistema/`)
 
-Um arquivo por componente, sem estilo inline. Os estilos ficam em `scw-cartoon.css`, sobre os tokens.
+`Letreiro.jsx`, `TopoCanal.jsx` e (etapa 2) `Olhinhos.jsx` têm arquivo próprio. As peças
+pequenas ficam juntas em `pecas.jsx`. Sem estilo inline; o desenho fica em
+`scw-cartoon.css`, sobre os tokens. O `Botao` reusa as classes `.ct-botao` que as páginas
+já usam, então o botão novo vale para a camada inteira de uma vez.
 
 | Componente | Faz | Contrato |
 |---|---|---|
 | `Letreiro` | título de seção | `texto` (sempre), `imagem?` (letreiro desenhado), `nivel` (h1–h3). Com imagem: `<hN>` com `<img alt="">` e o texto real visível só para leitor de tela. Sem imagem: o texto em Grandstander 900 com contorno chocolate, filete creme e sombra curta |
 | `Etiqueta` | fita amarela com nome de seção | `children`; leve inclinação (−2° a −4°) |
 | `Pilula` | dado curto em chocolate | `children` |
-| `Placa` | dado duro (data, nº de casas, preço) | `numero`, `rotulo`, `cor` (contrasta com o canal); até 2 linhas |
+| `Placa` | dado duro (data, nº de casas, preço) | `numero`, `rotulo`, `cor` (amarelo · creme · turquesa; a tinta é sempre chocolate); até 2 linhas |
 | `Carimbo` | selo/nota em vermelho | `children` |
 | `Botao` | ação | `tipo`: `primario` (amarelo + contorno + sombra) · `acao` (vermelho, texto creme ≥ 18,66px/800) · `secundario` (creme + contorno). Renderiza `<a>` ou `<button>` |
 | `Quadro` | quadro branco com fita para logo/foto | `children`, `fita` (cantos) |
