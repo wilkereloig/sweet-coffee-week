@@ -1,3 +1,13 @@
+/* Grandstander (OFL), servida pelo projeto — docs/cartoon-2026-2/10 §10.3.
+   Declarada só aqui: o arquivo só entra no chunk da edição. */
+@font-face {
+  font-family: 'Grandstander';
+  src: url('/fonts/grandstander/grandstander-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /*
  * Camada Cartoon (2026.2) — tokens, casca e páginas (docs/cartoon-2026-2/ §5.5–5.7).
  *
