@@ -245,3 +245,20 @@ export const urlDaImagem = (base, foto, bucketPadrao) => {
   if (typeof foto.path === 'string' && foto.path.startsWith('/')) return foto.path
   return urlPublica(base, foto.bucket || bucketPadrao, foto.path)
 }
+
+// ------------------------------------------------------------- fonte dos dados (DEV)
+/**
+ * De onde vem a edição. Produção: sempre a RPC. No DEV: ?demo=1 (demonstração) > retrato local do
+ * painel (§10.9), se o arquivo existir nesta máquina > RPC. Pura: o teste decide sem navegador.
+ */
+export const escolherFonte = ({ dev = false, demo = false, retrato = false } = {}) => {
+  if (!dev) return 'rpc'
+  if (demo) return 'demo'
+  return retrato ? 'retrato' : 'rpc'
+}
+
+/** "2026-10-28T01:17:34" => "28/10" (dia/mês da leitura do retrato; sem fuso, o texto já é de Natal). */
+export const diaMesDoRetrato = (iso) => {
+  const m = /^\d{4}-(\d{2})-(\d{2})/.exec(String(iso || ''))
+  return m ? `${m[2]}/${m[1]}` : ''
+}

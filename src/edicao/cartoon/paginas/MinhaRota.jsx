@@ -8,7 +8,7 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { resolverParadas, linksDeRota, idsDaBusca } from '../../rota/minhaRota.js'
-import { Link, AvisoDesatualizado, AvisoDemo } from '../../componentes/base.jsx'
+import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { useRota } from '../contexto.js'
 import { CENA_TEXTO } from '../textos.js'
 
@@ -44,6 +44,7 @@ export function MinhaRota ({ navigate, dados }) {
     <section className="ct-bloco ct-rota" aria-labelledby="rota-titulo">
       <AvisoDesatualizado ativo={dados?.desatualizado} />
       <AvisoDemo ativo={dados?.demo} />
+      <AvisoRetrato retrato={dados?.retrato} />
       <h1 id="rota-titulo" className="ct-h1">{CENA_TEXTO['minha-rota'].titulo}</h1>
       <p className="ct-lead">{CENA_TEXTO['minha-rota'].apoio}</p>
       {vendoCompartilhada && (

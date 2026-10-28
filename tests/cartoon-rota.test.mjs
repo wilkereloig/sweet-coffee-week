@@ -52,9 +52,34 @@ test('rota compartilhada aceita só ids públicos', () => {
   assert.deepEqual(R.idsDaBusca('?u=u1a2b3c,lixo,u1a2b3c,<script>'), ['u1a2b3c'])
 })
 
-test('build de produção não carrega dado de demonstração', { skip: !fs.existsSync('dist/assets') && 'sem dist/ (rode npm run build)' }, () => {
-  const assets = path.resolve('dist/assets')
-  const nomes = fs.readdirSync(assets).filter((n) => n.endsWith('.js'))
-  const vaza = nomes.filter((n) => /\[DEMO\]|demo-casa-aurora|DEMO_EDICAO/.test(fs.readFileSync(path.join(assets, n), 'utf8')))
+// SCW_DIST aponta para um build feito FORA do projeto (CLAUDE.md §3.2); sem ele vale dist/.
+const DIST = path.resolve(process.env.SCW_DIST || 'dist')
+const TEXTO = /\.(js|mjs|css|html|json|webmanifest|txt|map)$/
+const arquivosDeTexto = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+  const caminho = path.join(dir, e.name)
+  if (e.isDirectory()) return arquivosDeTexto(caminho)
+  return TEXTO.test(e.name) ? [caminho] : []
+})
+const RETRATO = path.resolve('src/edicao/dados/retrato/cartoon.local.json')
+
+test('build de produção não carrega dado de demonstração', { skip: !fs.existsSync(path.join(DIST, 'assets')) && 'sem build (rode npm run build ou aponte SCW_DIST)' }, () => {
+  const vaza = arquivosDeTexto(path.join(DIST, 'assets')).filter((f) => f.endsWith('.js') && /\[DEMO\]|demo-casa-aurora|DEMO_EDICAO/.test(fs.readFileSync(f, 'utf8')))
   assert.deepEqual(vaza, [])
+})
+
+test('build de produção não carrega o retrato local do painel', { skip: !fs.existsSync(path.join(DIST, 'assets')) && 'sem build (rode npm run build ou aponte SCW_DIST)' }, () => {
+  // Marcadores que só o retrato tem; com o arquivo local presente entram também os ids públicos das unidades
+  // (nome de casa não serve: várias já estão no acervo institucional, que é público).
+  const marcas = ['retrato-local', 'cartoon.local', 'fase_do_recorte', 'sem_coordenada']
+  if (fs.existsSync(RETRATO)) {
+    const r = JSON.parse(fs.readFileSync(RETRATO, 'utf8'))
+    for (const p of r.participantes) for (const u of p.unidades || []) marcas.push(`"${u.id}"`, `'${u.id}'`, `\`${u.id}\``)
+  }
+  const vaza = arquivosDeTexto(DIST).flatMap((f) => {
+    const texto = fs.readFileSync(f, 'utf8')
+    return marcas.filter((m) => texto.includes(m)).map((m) => `${path.relative(DIST, f)}: ${m}`)
+  })
+  assert.deepEqual(vaza, [])
+  // O Vite copia public/ inteiro; vite.config.js (semRetratoLocal) tira public/retrato-local/ do resultado.
+  assert.equal(fs.existsSync(path.join(DIST, 'retrato-local')), false, 'retrato-local/ foi parar no build')
 })

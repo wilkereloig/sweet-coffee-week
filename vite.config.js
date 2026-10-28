@@ -162,8 +162,23 @@ function versaoDoPainel() {
   }
 }
 
+/*
+ * O retrato local da Cartoon (E3, docs/cartoon-2026-2/10 §10.9) deixa imagens em public/retrato-local/,
+ * fora do git (repositório público). O Vite copia public/ inteiro para o build; esta etapa tira a
+ * pasta do resultado, para o dado local nunca viajar numa publicação feita a partir desta máquina.
+ */
+function semRetratoLocal() {
+  return {
+    name: 'sem-retrato-local',
+    apply: 'build',
+    writeBundle(opts) {
+      fs.rmSync(path.join(opts.dir, 'retrato-local'), { recursive: true, force: true })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev(), versaoDoPainel()],
+  plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev(), versaoDoPainel(), semRetratoLocal()],
   build: {
     rollupOptions: {
       input: {

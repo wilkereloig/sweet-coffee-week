@@ -6,7 +6,7 @@
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import { fotoProximaEdicao } from '../../../data/imageLibrary'
-import { Link, Foto, Logo, AvisoDesatualizado, AvisoDemo, Falha, Carregando } from '../../componentes/base.jsx'
+import { Link, Foto, Logo, AvisoDesatualizado, AvisoDemo, AvisoRetrato, Falha, Carregando } from '../../componentes/base.jsx'
 import { ENTRADA as T, DUVIDAS, FASE_TEXTO } from '../textos.js'
 
 export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
@@ -45,6 +45,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
       </section>
       <AvisoDesatualizado ativo={dados?.desatualizado} />
       <AvisoDemo ativo={dados?.demo} />
+      <AvisoRetrato retrato={dados?.retrato} />
 
       {!encerrada && (
         <section className="ct-bloco" aria-labelledby="ct-como">

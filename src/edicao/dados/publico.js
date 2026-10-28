@@ -9,15 +9,37 @@
  * última cópia marcada `desatualizado`; sem cópia, lança — e a página mostra o
  * estado de falha. Dado de demonstração NUNCA é plano B: só entra em DEV com
  * ?demo=1, e o bloco some do build de produção.
+ *
+ * Ordem de leitura no DEV (escolherFonte, em modelo.js): ?demo=1 > retrato local do painel
+ * (src/edicao/dados/retrato/, só se o arquivo existir nesta máquina) > RPC. Produção: só a RPC.
  */
 import { SUPABASE_URL, SUPABASE_KEY } from '../../lib/supabaseConfig'
-import { urlDaImagem } from './modelo.js'
+import { urlDaImagem, escolherFonte } from './modelo.js'
 
 const VALIDADE = 5 * 60 * 1000
 const memoria = new Map()
 
 const demoLigado = () => import.meta.env.DEV && typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).get('demo') === '1'
+
+// Retrato local (E3, §10.9). O arquivo está no .gitignore: em outra máquina o glob volta vazio e a
+// edição cai na RPC. No build `import.meta.env.DEV` vira false, o ramo morre e o JSON nem entra no
+// grafo — tests/cartoon-rota.test.mjs confere o dist.
+const ARQUIVOS_RETRATO = import.meta.env.DEV ? import.meta.glob('./retrato/cartoon.local.json', { import: 'default' }) : {}
+const lerRetrato = Object.values(ARQUIVOS_RETRATO)[0]
+const fonte = () => escolherFonte({ dev: import.meta.env.DEV, demo: demoLigado(), retrato: !!lerRetrato })
+
+/** O retrato, se for a fonte e for desta edição; senão null (a edição cai na RPC). */
+async function doRetrato (codigo) {
+  if (fonte() !== 'retrato') return null
+  try {
+    const r = await lerRetrato()
+    return r?.edicao?.codigo === codigo ? r : null
+  } catch (e) {
+    console.warn('retrato local ilegível, usando a RPC:', e)
+    return null
+  }
+}
 
 function lerCache (chave) {
   if (memoria.has(chave)) return memoria.get(chave)
@@ -63,6 +85,8 @@ export async function carregarEdicao (codigo, { sinal } = {}) {
     const { DEMO_EDICAO } = await import('./demo/cartoon.js')
     return { ...DEMO_EDICAO, desatualizado: false, demo: true }
   }
+  const retrato = await doRetrato(codigo)
+  if (retrato) return { ...retrato, desatualizado: false }
   const dados = await comCache(`scw:edicao:${codigo}`, async () => {
     const d = await rpc('edicao_publica', { p_edicao: codigo }, sinal)
     if (!d) throw new Error('edicao_inexistente')
@@ -81,6 +105,11 @@ export async function carregarParticipante (codigo, slug, { sinal } = {}) {
     const { DEMO_EDICAO } = await import('./demo/cartoon.js')
     const p = DEMO_EDICAO.participantes.find((x) => x.slug === slug)
     return p ? { estado: 'publicado', fase: DEMO_EDICAO.fase, participante: p, demo: true } : { estado: 'inexistente', demo: true }
+  }
+  const retrato = await doRetrato(codigo)
+  if (retrato) {
+    const p = retrato.participantes.find((x) => x.slug === slug)
+    return p ? { estado: 'publicado', fase: retrato.fase, participante: p, retrato: retrato.retrato } : { estado: 'inexistente', retrato: retrato.retrato }
   }
   const lista = lerCache(`scw:edicao:${codigo}`)
   if (lista && Date.now() - lista.em < VALIDADE) {

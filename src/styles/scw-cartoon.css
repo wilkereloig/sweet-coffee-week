@@ -136,6 +136,8 @@
 }
 .ct-bloco .ct-aviso { margin-inline: 0; }
 .ct-aviso--demo { background: var(--ct-turquesa); }
+/* Faixa do retrato local (só no DEV, E3): discreta, tracejada — não é conteúdo da edição. */
+.ct-aviso--retrato { padding: 6px 12px; border-width: 1.5px; border-style: dashed; background: transparent; font-size: 13px; }
 
 .ct-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
 /* Prefixo .ct-edicao de propósito: `.ct-edicao a { color: inherit }` (0,1,1) venceria

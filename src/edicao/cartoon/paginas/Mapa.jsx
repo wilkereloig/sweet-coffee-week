@@ -8,7 +8,7 @@
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { Link, AvisoDesatualizado, AvisoDemo } from '../../componentes/base.jsx'
+import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { useRota } from '../contexto.js'
 import { CENA_TEXTO } from '../textos.js'
 
@@ -68,6 +68,7 @@ export function Mapa ({ navigate, dados }) {
     <section className="ct-bloco ct-mapa" aria-labelledby="mapa-titulo">
       <AvisoDesatualizado ativo={dados?.desatualizado} />
       <AvisoDemo ativo={dados?.demo} />
+      <AvisoRetrato retrato={dados?.retrato} />
       <h1 id="mapa-titulo" className="ct-h1">{CENA_TEXTO.mapa.titulo}</h1>
       {!dados?.participantes_publicos || !lista.length ? <p className="ct-lead">O elenco desta edição será revelado em breve.</p> : (
         <>

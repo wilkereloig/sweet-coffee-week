@@ -10,7 +10,7 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import { carregarParticipante } from '../../dados/publico.js'
 import * as M from '../../dados/modelo.js'
-import { Link, Foto, Logo, Carregando, Falha, AvisoDesatualizado, AvisoDemo } from '../../componentes/base.jsx'
+import { Link, Foto, Logo, Carregando, Falha, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { PARTICIPANTE as T, FASE_TEXTO, TIPO_ORDEM } from '../textos.js'
 import { useRota } from '../contexto.js'
 
@@ -130,7 +130,7 @@ export function Participante ({ slug, foco, navigate, edicao }) {
 
   return (
     <FichaParticipante p={p} fase={res.fase || edicao?.fase} avaliacaoAberta={!!edicao?.avaliacao?.aberta} periodo={edicao?.edicao}
-      navigate={navigate} rota={rota} desatualizado={res.desatualizado} demo={res.demo} />
+      navigate={navigate} rota={rota} desatualizado={res.desatualizado} demo={res.demo} retrato={res.retrato} />
   )
 }
 
@@ -140,7 +140,7 @@ export function Participante ({ slug, foco, navigate, edicao }) {
  * enviar é o que o site mostraria. Sem `navigate`, os links internos somem
  * (prévia); sem `rota`, o botão da Minha rota some.
  */
-export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota = null, desatualizado = false, demo = false, periodo = null }) {
+export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota = null, desatualizado = false, demo = false, retrato = null, periodo = null }) {
   const encerrada = fase === 'encerrada'
   const combo = p.combo
   const itens = [...(combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
@@ -156,6 +156,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
     <article className="ct-part">
       <AvisoDesatualizado ativo={desatualizado} />
       <AvisoDemo ativo={demo} />
+      <AvisoRetrato retrato={retrato} />
       {navigate && <p className="ct-voltar"><Link href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.voltar}</Link></p>}
 
       {/* A · Conheça a casa */}

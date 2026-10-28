@@ -4,6 +4,7 @@
  */
 import React from 'react'
 import { imagemPublica } from '../dados/publico.js'
+import { diaMesDoRetrato } from '../dados/modelo.js'
 
 export function Link ({ href, navigate, children, aoIr, ...resto }) {
   const ir = (e) => {
@@ -69,4 +70,10 @@ export function AvisoDesatualizado ({ ativo }) {
 export function AvisoDemo ({ ativo }) {
   if (!ativo) return null
   return <p className="ct-aviso ct-aviso--demo" role="note">Dados de demonstração (só em desenvolvimento). Nada aqui é real.</p>
+}
+
+/** Só no DEV, quando a edição veio do retrato local do painel (§10.9): sem a faixa, ninguém sabe que o dado não é o publicado. */
+export function AvisoRetrato ({ retrato }) {
+  if (!import.meta.env.DEV || !retrato?.lido_em) return null
+  return <p className="ct-aviso ct-aviso--retrato" role="note">Retrato local do painel · {diaMesDoRetrato(retrato.lido_em)}</p>
 }

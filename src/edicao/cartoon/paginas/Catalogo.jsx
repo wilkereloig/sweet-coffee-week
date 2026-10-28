@@ -7,7 +7,7 @@
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { Link, Foto, Logo, AvisoDesatualizado, AvisoDemo } from '../../componentes/base.jsx'
+import { Link, Foto, Logo, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { CATALOGO as T, FASE_TEXTO } from '../textos.js'
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
@@ -117,6 +117,7 @@ export function Catalogo ({ modo, navigate, dados }) {
     <section className="ct-bloco ct-catalogo" aria-labelledby="cat-titulo">
       <AvisoDesatualizado ativo={dados.desatualizado} />
       <AvisoDemo ativo={dados.demo} />
+      <AvisoRetrato retrato={dados.retrato} />
       <div className="ct-catalogo__cabeca">
         <h1 id="cat-titulo" className="ct-h1">{modo === 'combos' ? T.tituloCombos : T.titulo}</h1>
         <p className="ct-catalogo__conta" aria-live="polite">{T.contagem(filtrados.length)}</p>
