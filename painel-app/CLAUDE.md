@@ -1383,10 +1383,17 @@ teste `tests/painel-app-arquivos-previa.test.mjs`.
 e voltar de um para o outro (é upsert). Lógica pura em `lib/presskit.js`, teste `tests/painel-app-presskit.test.mjs`.
 - **Retirar = status `cancelado`** (rótulo agora "Retirado da lista"): nada se apaga, a pessoa sai da lista e dos contadores, o endereço e as
   datas ficam, e "Colocar de volta" a leva para Selecionado. Quem já saiu para entrega (`enviado`/`entregue`/`nao_entregue`) pede confirmação.
-- **Menu ⋯ em cada linha** (`MaisAcoes`): "Voltar para …" (um passo: ANTERIOR) e "Retirar da lista". O aviso depois de cada mudança traz
-  "Desfazer" (guarda o status de antes só na tela). Na ficha da pessoa (Contatos › Pessoas): "Retirar da lista" / "Colocar de volta na lista".
-- **Sugestões:** "Só sugerir" e "Não incluir nesta edição" ficam no ⋯; "Não incluir" cria o registro `cancelado` e tira a pessoa das sugestões
-  (aparece em "Retirado da lista"). ⚠️ Esse caso não tem "Desfazer": antes dele não havia registro, e o painel não apaga.
+- **Botões à vista em cada linha, embaixo do nome** (`og-item--acoes`): "Voltar para …" (um passo: ANTERIOR) e "Retirar da lista", com o nome
+  da pessoa no `aria-label`. O aviso depois de cada mudança traz "Desfazer" (guarda o status de antes só na tela). Na ficha da pessoa
+  (Contatos › Pessoas): "Retirar da lista" / "Colocar de volta na lista".
+- **Sugestões:** "Selecionar", "Só sugerir" e "Não incluir nesta edição" à vista; "Não incluir" cria o registro `cancelado` e tira a pessoa das
+  sugestões (aparece em "Retirado da lista"). ⚠️ Esse caso não tem "Desfazer": antes dele não havia registro, e o painel não apaga.
+- ⛔ **Nada de menu ⋯ (`MaisAcoes`) dentro de `og-lista`.** A 1ª versão (28/10) pôs as ações num menu: a lista é um card com
+  `overflow:hidden`, o menu abre para baixo e foi cortado (numa lista de uma pessoa não aparecia nada), e no celular ainda saía pela esquerda
+  (`.og-item__dir` alinha à esquerda e o menu ancora à direita). Corrigido no mesmo dia; `tests/painel-app-presskit.test.mjs` reprova a volta.
+  Menu ⋯ só em card solto, cabeça de página ou barra — como nas pastas, campanhas e postagens.
+- ⚠️ **Texto do aviso de atualização:** a 1ª linha de `painel-app/NOVIDADES.txt` é o que "Atualização disponível" mostra. Mudança que a pessoa
+  vai ver troca essa linha no mesmo commit (ficou desatualizada em 28/10 e o aviso descrevia outra coisa).
 - O total do título conta só quem está na lista (retirados ficam de fora); a lista vazia diz qual situação está vazia.
 
 #### Endereço completo e fila de localizações — 28/10/2026 (pedido do Wilker)

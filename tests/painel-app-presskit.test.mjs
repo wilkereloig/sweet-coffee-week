@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { ORDEM, PROXIMO, ANTERIOR, RETIRADO, jaSaiu, estaNaLista, sugestoesDaLista, filtrarLista, contarSituacao } from '../painel-app/src/lib/presskit.js'
 import { STATUS } from '../painel-app/src/lib/status.js'
 
@@ -63,4 +63,27 @@ test('a tela oferece retirar e desfazer, e a ficha da pessoa também', () => {
   assert.match(ficha, /Retirar da lista/)
   assert.match(ficha, /Colocar de volta na lista/)
   assert.equal(STATUS.presskit.cancelado.rotulo, 'Retirado da lista')
+})
+
+// 28/10/2026: o menu (⋯) das linhas do Press Kit "abria" e ninguém via — a lista é um card com overflow:hidden e corta o que
+// passa da borda (e no celular o menu ainda saía pela esquerda). As ações voltaram a ficar à vista, com o nome escrito.
+test('as ações do Press Kit ficam à vista, embaixo do nome, e não num menu dentro da lista', () => {
+  const tela = readFileSync(new URL('../painel-app/src/components/vistas/PressKit.jsx', import.meta.url), 'utf8')
+  assert.doesNotMatch(tela, /MaisAcoes/, 'menu escondido dentro de og-lista é cortado pela borda do card')
+  assert.equal((tela.match(/og-item og-item--info og-item--acoes/g) || []).length, 2, 'a lista e as sugestões usam a linha com ações embaixo')
+  for (const texto of ['>Retirar da lista<', '>Colocar de volta<', 'Voltar para {rotulo', '>Não incluir nesta edição<', '>Só sugerir<']) assert.ok(tela.includes(texto), texto)
+  // o nome acessível contém o texto visível (WCAG 2.5.3) e diz de quem é a ação
+  assert.match(tela, /aria-label=\{'Retirar da lista: ' \+ c\.nome\}/)
+  const css = readFileSync(new URL('../painel-app/src/styles/painel.css', import.meta.url), 'utf8')
+  assert.match(css, /\.og-item--acoes\{grid-template-columns:10px minmax\(0,1fr\)\}/)
+  assert.match(css, /\.og-item--acoes \.og-item__dir\{[^}]*grid-column:2/)
+})
+
+test('nenhuma tela põe um menu ⋯ (MaisAcoes) dentro de uma lista og-lista, que corta o que passa da borda', () => {
+  const pasta = new URL('../painel-app/src/components/vistas/', import.meta.url)
+  const culpados = readdirSync(pasta).filter((f) => f.endsWith('.jsx')).filter((f) => {
+    const t = readFileSync(new URL(f, pasta), 'utf8')
+    return t.includes('<MaisAcoes') && t.includes('og-lista')
+  })
+  assert.deepEqual(culpados, [])
 })

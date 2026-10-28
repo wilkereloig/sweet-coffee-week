@@ -564,6 +564,11 @@ button.og-item{cursor:pointer}
 .og-item--info{cursor:default}
 .og-item--info:not(.og-lista .og-item){padding-left:0;padding-right:0}
 .og-item--info:hover{background:transparent}
+/* Linha com ações demais para a coluna da direita (Press Kit: avançar, voltar, retirar): selo e botões descem para
+   baixo do nome em qualquer largura — o mesmo arranjo que o celular já usa. ⛔ Nada de menu (⋯) dentro da lista:
+   ela é um card com overflow:hidden e corta o que passa da borda (o menu "abria" e ninguém via). */
+.og-item--acoes{grid-template-columns:10px minmax(0,1fr)}
+.og-item--acoes .og-item__dir{grid-row:auto;grid-column:2;justify-content:flex-start;margin-top:4px}
 @media (min-width:1280px){
   .og-lista--tabela .og-item{grid-template-columns:10px minmax(200px,1.1fr) minmax(0,2fr) auto}
   .og-lista--tabela .og-item__cor{grid-row:auto;align-self:center;margin-top:0}

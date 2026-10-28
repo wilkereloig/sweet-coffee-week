@@ -4,7 +4,7 @@ import { dataCurta } from '../../lib/respostas'
 import { rotulo } from '../../lib/status'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
-import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, Escolha, MaisAcoes } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, Escolha } from '../ui'
 import { confirmar } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
@@ -88,7 +88,7 @@ export function PressKit({ pode, rota, navegar }) {
       </ul>
       <Ajuda titulo="Como a lista funciona">
         <p>Sugerido → Selecionado → Preparando (endereço confirmado) → Enviado → Entregue. Abra a pessoa para registrar endereço, responsável pelo envio, datas e o que vai no kit.</p>
-        <p>Errou um passo? No menu de três pontos de cada pessoa há “Voltar para …” e “Retirar da lista”. Quem sai fica em “Retirado da lista” (nada se apaga) e volta por “Colocar de volta”. Depois de cada mudança o aviso traz “Desfazer”.</p>
+        <p>Errou um passo? Cada pessoa tem “Voltar para …” e “Retirar da lista”. Quem sai fica em “Retirado da lista” (nada se apaga) e volta por “Colocar de volta”. Depois de cada mudança o aviso traz “Desfazer”.</p>
         <p>As sugestões abaixo são de quem recebeu em edições anteriores. Ninguém entra na lista sozinho; “Não incluir nesta edição” tira a pessoa das sugestões.</p>
       </Ajuda>
       <Escolha rotulo="Situação" valor={situacao} onMudar={setSituacao}
@@ -111,7 +111,7 @@ export function PressKit({ pode, rota, navegar }) {
             const prox = PROXIMO[a.status]
             return (
               <li key={c.id}>
-                <div className="og-item og-item--info">
+                <div className="og-item og-item--info og-item--acoes">
                   <span className="og-item__cor" data-tipo={c.tipo} aria-hidden="true" />
                   <button type="button" className="og-item__nome og-link" onClick={() => navegar({ filtros: { item: c.id } })}>{c.nome}</button>
                   <p className="og-item__meta">{[c.instagram, a.endereco_confirmado || c.endereco || 'sem endereço', a.responsavel_envio && 'envio: ' + a.responsavel_envio, a.data && 'enviado ' + dataCurta(a.data), a.recebido_em && 'recebido ' + dataCurta(a.recebido_em)].filter(Boolean).join(' · ')}</p>
@@ -119,13 +119,11 @@ export function PressKit({ pode, rota, navegar }) {
                     <Selo dominio="presskit" valor={a.status} />
                     {podeMudar && prox && <button className="og-btn og-btn--mini" type="button" onClick={() => mudar(c, prox[0])}>{prox[1]}</button>}
                     {podeMudar && a.status === 'enviado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(c, 'nao_entregue')}>Não entregue</button>}
-                    {podeMudar && a.status === RETIRADO && <button className="og-btn og-btn--mini" type="button" onClick={() => colocarDeVolta(c)}>Colocar de volta</button>}
-                    {podeMudar && a.status !== RETIRADO && (
-                      <MaisAcoes rotulo={'Mais ações de ' + c.nome} itens={[
-                        ANTERIOR[a.status] && { rotulo: 'Voltar para ' + rotulo('presskit', ANTERIOR[a.status]), onClick: () => voltarPasso(c) },
-                        { rotulo: 'Retirar da lista', perigo: true, onClick: () => retirar(c) },
-                      ]} />
+                    {podeMudar && a.status === RETIRADO && <button className="og-btn og-btn--mini" type="button" aria-label={'Colocar de volta: ' + c.nome} onClick={() => colocarDeVolta(c)}>Colocar de volta</button>}
+                    {podeMudar && a.status !== RETIRADO && ANTERIOR[a.status] && (
+                      <button className="og-btn og-btn--mini og-btn--vazado" type="button" aria-label={'Voltar para ' + rotulo('presskit', ANTERIOR[a.status]) + ': ' + c.nome} onClick={() => voltarPasso(c)}>Voltar para {rotulo('presskit', ANTERIOR[a.status])}</button>
                     )}
+                    {podeMudar && a.status !== RETIRADO && <button className="og-btn og-btn--mini og-btn--vazado" type="button" aria-label={'Retirar da lista: ' + c.nome} onClick={() => retirar(c)}>Retirar da lista</button>}
                   </span>
                 </div>
               </li>
@@ -139,17 +137,16 @@ export function PressKit({ pode, rota, navegar }) {
         {sugestoes.length > 0 && (
           <ul className="og-lista">{sugestoes.map((c) => (
             <li key={c.id}>
-              <div className="og-item og-item--info">
+              <div className="og-item og-item--info og-item--acoes">
                 <span className="og-item__cor" data-tipo={c.tipo} aria-hidden="true" />
                 <button type="button" className="og-item__nome og-link" onClick={() => navegar({ filtros: { item: c.id } })}>{c.nome}</button>
                 <p className="og-item__meta">{[c.instagram, c.recebimentos + (Number(c.recebimentos) === 1 ? ' Press Kit' : ' Press Kits'), c.ultima_edicao && 'último ' + c.ultima_edicao].filter(Boolean).join(' · ')}</p>
                 <span className="og-item__dir">
-                  {podeMudar && <button className="og-btn og-btn--mini" type="button" onClick={() => mudar(c, 'selecionado')}>Selecionar</button>}
+                  {podeMudar && <button className="og-btn og-btn--mini" type="button" aria-label={'Selecionar: ' + c.nome} onClick={() => mudar(c, 'selecionado')}>Selecionar</button>}
+                  {podeMudar && <button className="og-btn og-btn--mini og-btn--vazado" type="button" aria-label={'Só sugerir: ' + c.nome} onClick={() => mudar(c, 'constou_na_lista')}>Só sugerir</button>}
                   {podeMudar && (
-                    <MaisAcoes rotulo={'Mais ações de ' + c.nome} itens={[
-                      { rotulo: 'Só sugerir (decidir depois)', onClick: () => mudar(c, 'constou_na_lista') },
-                      { rotulo: 'Não incluir nesta edição', onClick: () => mudar(c, RETIRADO, { ok: c.nome + ' não entra no Press Kit desta edição. Fica em “' + rotulo('presskit', RETIRADO) + '”.' }) },
-                    ]} />
+                    <button className="og-btn og-btn--mini og-btn--vazado" type="button" aria-label={'Não incluir nesta edição: ' + c.nome}
+                      onClick={() => mudar(c, RETIRADO, { ok: c.nome + ' não entra no Press Kit desta edição. Fica em “' + rotulo('presskit', RETIRADO) + '”.' })}>Não incluir nesta edição</button>
                   )}
                 </span>
               </div>

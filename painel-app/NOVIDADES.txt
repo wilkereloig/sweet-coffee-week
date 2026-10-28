@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Avisos de alteração da marca: a notificação diz quais campos mudaram e o toque leva ao campo, já destacado na ficha.
+Press Kit: retirar pessoa da lista e desfazer. Novo: Participantes › Localizações, e o endereço agora pede número e CEP.
