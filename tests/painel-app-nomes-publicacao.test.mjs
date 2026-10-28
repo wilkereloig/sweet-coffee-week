@@ -41,7 +41,7 @@ const textosDoTour = (pode) => etapasDoTour(TOUR.organizacao, { pode }).map((e) 
 // em push (e favoritos) deixam de abrir a tela certa.
 const CHAVES_DE_ROTA = {
   visao: [''],
-  participantes: ['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento'],
+  participantes: ['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento', 'localizacoes'],
   contatos: ['pessoas', 'presskit', 'vouchers', 'recebidos'],
   operacao: ['pedidos', 'fotos', 'materiais'],
   social: ['planejamento', 'campanhas', 'biblioteca', 'participantes'],

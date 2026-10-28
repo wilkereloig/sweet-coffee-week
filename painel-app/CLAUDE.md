@@ -965,7 +965,7 @@ leitura de `unidades`). O que passou a valer:
   `participacao_unidades` com `unidade_id`. Unidade de outra edição aparece como **sugestão**
   ("Usar nesta edição"), nunca copiada sozinha. `endereco`/`bairro`/`faz_delivery` da
   participação seguem preenchidos como **espelho** para quem ainda os lê. ⛔ A marca não
-  grava `lat/lng`: vê só "conferida pela organização" ou "em conferência".
+  grava `lat/lng` e, desde 28/10/2026, também não vê nada do mapa (ver "Endereço completo e fila de localizações").
 - **Horário no festival** (`participacao_unidades.horario_festival`, jsonb `[{data, abre, fecha}]`;
   23/10/2026, pedido do Wilker: UMA pergunta — como a unidade funciona em cada dia do festival —, sem
   "horário da loja" × "horário do combo" nem horário comercial): até 2 períodos por dia, `24:00` =
@@ -1388,6 +1388,26 @@ e voltar de um para o outro (é upsert). Lógica pura em `lib/presskit.js`, test
 - **Sugestões:** "Só sugerir" e "Não incluir nesta edição" ficam no ⋯; "Não incluir" cria o registro `cancelado` e tira a pessoa das sugestões
   (aparece em "Retirado da lista"). ⚠️ Esse caso não tem "Desfazer": antes dele não havia registro, e o painel não apaga.
 - O total do título conta só quem está na lista (retirados ficam de fora); a lista vazia diz qual situação está vazia.
+
+#### Endereço completo e fila de localizações — 28/10/2026 (pedido do Wilker)
+"O participante coloca todos os dados do endereço; conferir o ponto no mapa é comigo, só confirmo." Migration
+`20261120_endereco_completo_e_fila_de_localizacao.sql` (reversão em `supabase/reverter/`, teste do banco
+`supabase/testes/localizacoes-endereco.sql` → `TESTE_OK`), lógica em `lib/localizacoes.js`, tela `vistas/Localizacoes.jsx`,
+testes `tests/painel-app-localizacoes.test.mjs` e `painel-app-edicao-marca.test.mjs`.
+- **Endereço completo = rua, número, bairro, cidade e CEP** (antes só rua, bairro e cidade). Mesma regra em três lugares, que andam
+  juntos: `pendencias_publicacao` (banco), `pendenciasEdicao` (`lib/edicaoMarca.js`) e o `/preencher` (`data-obrigatorio` de número e CEP;
+  o CEP saiu do bloco recolhido). Marca sem número escreve **S/N**. O código da pendência não mudou (`unidade:<id>:endereco`).
+  ⚠️ A migration faz ~24 unidades que já tinham o cadastro "completo" voltarem a ter pendência (faltava CEP): é o efeito pedido, e o lembrete
+  diário passa a cobrar. Painel novo e migration andam juntos.
+- **O participante não vê mais nada do mapa:** saiu o aviso "Localização no mapa: em conferência…" de Meu cadastro › Unidades.
+- **Participantes › Localizações** (`#participantes/localizacoes`): fila única com as unidades que participam da edição (leitura
+  `get_localizacoes_unidades`, `dado.ler`). Cada uma mostra o endereço como o participante escreveu, "Abrir o endereço no Google Maps" (por
+  ENDEREÇO, com CEP) e "Ver o ponto salvo". A administração cola o par "latitude, longitude" e confirma — `org_verificar_coordenada`, a mesma da
+  ficha (`producao.gerir`); com ponto já salvo, o botão vira "Confirmar este ponto". Filtro "A conferir" (padrão) · "Conferidas" · "Todas". Mudar
+  o endereço no cadastro tira a conferência (o banco já fazia) e a unidade volta à fila. A conferência por ficha (Publicação) continua valendo.
+- ⚠️ **Não há sugestão automática do ponto** (decisão do Wilker): o painel não geocodifica; o ponto vem do Google Maps, colado à mão. O
+  OpenStreetMap foi avaliado e descartado — em Natal ele erra a casa (testado com a Carcará: 4,8 km de diferença).
+- ⚠️ Ficou de fora: card "Localizações a conferir" na Visão geral; `verificada` segue no estado da unidade da marca, sem uso na tela.
 
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único

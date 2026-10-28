@@ -16,6 +16,7 @@ import { ComEdicaoAtual, useEdicoes, AbaConfiguracao, AbaTemas, AbaVendas, AbaRe
 import { Carregando, Erro } from './ui'
 import { ListaPublicacao } from './vistas/Publicacao'
 import { ListaPreenchimento } from './vistas/Preenchimento'
+import { ListaLocalizacoes } from './vistas/Localizacoes'
 import { ChavesEdicao, Avaliacoes } from './vistas/PublicacaoEdicao'
 import { Redes, ResumoRedes } from './vistas/Redes'
 import { SocialBiblioteca } from './vistas/SocialBiblioteca'
@@ -76,6 +77,8 @@ export function Participantes(props) {
     { chave: 'publicacao', rotulo: NOMES_PUBLICACAO.marcas.rotulo, render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ListaPublicacao edicao={atual} rota={props.rota} navegar={props.navegar} registrarAtualizar={props.registrarAtualizar} />}</ComEdicaoAtual> },
     // Link de preenchimento (16/10/2026): uma página por marca, sem login; o envio passa por revisão na ficha.
     { chave: 'preenchimento', rotulo: 'Preenchimento', render: () => <ListaPreenchimento pode={props.pode} irPara={props.irPara} /> },
+    // Conferência do ponto no mapa (28/10/2026): só da administração; o participante só preenche o endereço.
+    { chave: 'localizacoes', rotulo: 'Localizações', render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ListaLocalizacoes edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
   ]} />
 }
 

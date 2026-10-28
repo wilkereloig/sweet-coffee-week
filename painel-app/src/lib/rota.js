@@ -133,7 +133,7 @@ function rotaCrua(link) {
   }
 }
 
-const ABA_PARTICIPANTES = new Set(['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento'])
+const ABA_PARTICIPANTES = new Set(['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento', 'localizacoes'])
 const ABA_CONTATOS = new Set(['pessoas', 'presskit', 'vouchers', 'recebidos'])
 const ABA_ARQUIVOS = new Set(['gerais', 'participantes', 'arquivados'])
 

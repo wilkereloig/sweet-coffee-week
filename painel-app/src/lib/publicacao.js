@@ -79,7 +79,7 @@ export function traduzirPendencia(codigo, { unidades, itens } = {}) {
   if (m) {
     const u = nomeUnidade(m[1], unidades)
     return u + ': ' + {
-      endereco: 'endereço incompleto (rua, bairro e cidade).',
+      endereco: 'endereço incompleto (rua, número, bairro, cidade e CEP).',
       modos: 'consumo no local, retirada e delivery do combo precisam de resposta (sim ou não).',
       canais: 'faz delivery do combo, mas nenhum canal de pedido foi informado.',
       horario: 'sem horário no festival.',
