@@ -13,7 +13,9 @@
 --     recortar_publico só tira o preço/whatsapp/horário quando a fase é 'encerrada'; qualquer
 --     outra fase deixa combo, preço e unidades inteiros. Usamos 'em_andamento' também no
 --     envelope, que é a fase em que o catálogo mostra os combos;
---  3. casa sem slug_publico recebe public.slug_publico_de(nome) e "slug_provisorio": true.
+--  3. casa sem slug_publico recebe public.slug_publico_de(nome) e "slug_provisorio": true;
+--  4. casa.tema = participacoes.tema_combo. D-17: o tema só aparece depois do post de
+--     Confirmados da marca, que já saiu (28/10). montar_publico ainda não traz o campo.
 -- Mais a chave `retrato` ({ lido_em, fase_no_banco, ... }) que o site usa no aviso.
 --
 -- O que NUNCA entra: montar_publico já devolve só a projeção pública (sem contato da equipe,
@@ -25,13 +27,19 @@ with ed as (
     join public.edicao_publicacao c on c.edicao_codigo = e.codigo
    where e.codigo = '2026.2'
 ), casas as (
-  select p.nome_marca,
+  select p.nome_marca, nullif(btrim(pa.tema_combo), '') as tema,
          public.recortar_publico(public.montar_publico(pa.id, 'marca_e_combo'), true, 'em_andamento') as r
     from public.participacoes pa
     join public.participantes p on p.id = pa.participante_id
    where pa.edicao_codigo = '2026.2'
      and pa.status_cadastro <> 'encerrado'
      and p.arquivado_em is null
+), casas_slug as (
+  select tema,
+         case when r ->> 'slug' is null
+              then r || jsonb_build_object('slug', public.slug_publico_de(nome_marca), 'slug_provisorio', true)
+              else r end as r
+    from casas
 )
 select jsonb_build_object(
   'retrato', jsonb_build_object(
@@ -50,10 +58,8 @@ select jsonb_build_object(
   'resultados_publicos', false,
   'participantes', (
     select coalesce(jsonb_agg(
-             case when r ->> 'slug' is null
-                  then r || jsonb_build_object('slug', public.slug_publico_de(nome_marca), 'slug_provisorio', true)
-                  else r end
+             case when tema is null then r else jsonb_set(r, '{casa,tema}', to_jsonb(tema)) end
              order by lower(r #>> '{casa,nome}')), '[]'::jsonb)
-      from casas)
+      from casas_slug)
 ) as retrato
 from ed;
