@@ -57,6 +57,17 @@ test('contraste medido a partir dos tokens', () => {
   for (const [tinta, fundo] of PROIBIDO) assert.ok(contraste(t[tinta], t[fundo]) < 4.5, `${tinta} sobre ${fundo} passou a ser legível: rever a regra`)
 })
 
+test('anel de foco: chocolate nos fundos claros, amarelo só sobre chocolate (≥ 3:1)', () => {
+  const t = tokens()
+  for (const fundo of ['creme', 'amarelo', 'turquesa', 'rosa', 'branco']) {
+    assert.ok(contraste(t.chocolate, t[fundo]) >= 3, `anel chocolate sobre ${fundo} < 3:1`)
+  }
+  assert.ok(contraste(t.amarelo, t.chocolate) >= 3, 'anel amarelo sobre chocolate < 3:1')
+  const css = ler(CSS)
+  assert.match(css, /:focus-visible\s*{\s*outline:\s*3px solid var\(--ct-chocolate\)/)
+  assert.doesNotMatch(css, /outline[^;]*var\(--ct-azul\)/, 'sobrou anel azul')
+})
+
 test('preto só no traço de desenho; texto e contorno de interface em chocolate', () => {
   const css = ler(CSS)
   const usos = css.split('\n').filter((l) => l.includes('var(--ct-preto)')).map((l) => l.trim())
