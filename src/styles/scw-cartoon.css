@@ -391,7 +391,7 @@
 }
 /* Vermelho sobre creme fecha ~3,9:1: carimbo é sempre texto grande (20px/900). */
 .ct-carimbo {
-  display: inline-grid; place-items: center; padding: 8px 14px; border: 3px solid var(--ct-vermelho); border-radius: var(--ct-raio-p);
+  display: inline-grid; place-items: center; padding: 8px 14px; border: 3px solid var(--ct-vermelho); border-radius: var(--ct-raio-p); background: var(--ct-creme);
   color: var(--ct-vermelho); font: 900 20px/1 var(--ct-font); text-transform: uppercase; transform: rotate(-6deg);
 }
 .ct-placa {
@@ -434,7 +434,9 @@
 .ct-canal--cardapio .ct-rotulo, .ct-canal--cardapio .ct-lead {
   padding: 6px 12px; border-radius: var(--ct-raio-p); background: var(--ct-creme); color: var(--ct-chocolate);
 }
-.ct-canal--cardapio :focus-visible, .ct-canal--gala :focus-visible { outline-color: var(--ct-amarelo); }
+/* O anel de foco azul fica abaixo de 3:1 sobre amarelo, turquesa e rosa: ali ele é chocolate; na Gala, amarelo. */
+.ct-canal--estreia :focus-visible, .ct-canal--rota :focus-visible, .ct-canal--cardapio :focus-visible { outline-color: var(--ct-chocolate); }
+.ct-canal--gala :focus-visible { outline-color: var(--ct-amarelo); }
 
 @media (prefers-reduced-motion: reduce) {
   .ct-edicao *, .ct-edicao *::before { transition: none !important; animation: none !important; }

@@ -32,10 +32,15 @@ export function Placa ({ numero, rotulo, cor = 'amarelo' }) {
 
 const CLASSE_BOTAO = { primario: 'ct-botao', acao: 'ct-botao ct-botao--acao', secundario: 'ct-botao ct-botao--contorno' }
 
-/** Com `href` vira link da edição; sem, botão. Reusa .ct-botao, que as páginas já usam. */
-export function Botao ({ tipo = 'primario', href, navigate, children, ...resto }) {
-  const className = CLASSE_BOTAO[tipo]
-  if (href) return <Link href={href} navigate={navigate} className={className} {...resto}>{children}</Link>
+/**
+ * Com `href` + `navigate` vira link da edição (SPA); com `href` sem `navigate`
+ * (link externo, mapa, WhatsApp) vira <a> comum; sem `href`, botão.
+ * Reusa .ct-botao, que as páginas já usam; `className` do chamador soma, não substitui.
+ */
+export function Botao ({ tipo = 'primario', href, navigate, children, className: extra = '', ...resto }) {
+  const className = `${CLASSE_BOTAO[tipo] ?? CLASSE_BOTAO.primario} ${extra}`.trim()
+  if (href && navigate) return <Link href={href} navigate={navigate} className={className} {...resto}>{children}</Link>
+  if (href) return <a href={href} className={className} {...resto}>{children}</a>
   return <button type="button" className={className} {...resto}>{children}</button>
 }
 
