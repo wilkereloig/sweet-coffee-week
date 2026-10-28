@@ -289,6 +289,79 @@ O retrato local (§10.9) passa a carregar esses campos. Onde o painel ainda não
 - É peça de arte da edição e pode virar camada do mapa do site.
 - Segue o manual v03: sem personagem de franquia, e o universo do tema aparece em objetos.
 
+## 10.15 Elementos novos da edição (28/10)
+
+**Pedido do Wilker:** a vitrine estava correta, mas sem vida. Ele pediu ícones e elementos **novos**, todos no mesmo estilo e pensados para o lugar onde vão ser usados. Nada vem do acervo de stories e stickers: os estilos ali são misturados.
+
+**Estilo de todas as peças.** É o mesmo do manual v03 (§06 "Estilo do desenho"):
+- contorno de nanquim (chocolate ou preto);
+- cor chapada da paleta, uma sombra cel e um brilho pequeno;
+- forma sintética, legível em 1 segundo;
+- fundo transparente.
+
+Gerado com a skill `gerar-imagem-openai` em qualidade medium. Uma família sai de uma folha só, para o traço e o peso ficarem iguais; depois a folha é recortada em PNG individuais e convertida em WebP. Cada peça entra no `imageLibrary`, nunca montada na página.
+
+**Limite fixo:** sem personagem, logo, nome, bordão ou texto da franquia. O universo de cada desenho aparece em lugar, paisagem, objeto e paleta.
+
+### Família 1 · Ícones de interface ilustrados
+
+Sempre acompanhados de texto (nunca sozinhos com função). Tamanho de exibição de 32, 48 ou 64px; nada abaixo de 28px.
+
+| Grupo | Ícones | Onde |
+|---|---|---|
+| Navegação | início (TV antiga), casas (fachada com toldo), mapa (mapa dobrado), rota (placa de trilha), avaliar (prancheta com estrela), prêmio (roseta de prêmio — o troféu oficial nunca é redesenhado) | abas do celular, menu, rodapé |
+| Atendimento | no local (mesa com xícara), para viagem (sacola de papel), delivery (motoca com caixa) | selos do combo e da unidade, filtros |
+| Restrições | vegano (folha), sem glúten (espiga riscada), sem lactose (garrafa de leite riscada), sem açúcar (cubo riscado) | selos do combo, filtros, bloco alimentar |
+| Unidade | endereço (pin), horário (relógio despertador), aberto agora (porta aberta com luz), conversar (balão — sem marca de aplicativo), como chegar (bússola) | cartão da unidade, mapa |
+| Painel do Sweet Lover | quero ir (coração com pin), já fui (carimbo de visto), progresso (bandeira de chegada), compartilhar (aviãozinho de papel) | mapa, cartão, ficha, Minha rota |
+| Estados | vazio (lupa), erro (TV com chiado) | estados das páginas e 404 |
+
+### Família 2 · Cenografia da edição
+
+Uma peça grande por canal, usada no topo de página (`TopoCanal`), nunca mais de uma por tela.
+
+| Canal | Peça | Onde |
+|---|---|---|
+| Estreia | TV antiga grande, com antena, tela vazia para conteúdo | herói da Entrada |
+| Elenco | cabine de camarim com estrelas e lâmpadas | topo de Participantes |
+| Cardápio | mesa de café com xícara, fatia e colher | bloco do combo na ficha |
+| Rota | placas de rua cartoon fincadas na grama | topo do Mapa e da Minha rota |
+| Gala | holofote e cortina | topo da Premiação |
+| Serviço | prancheta com lápis | topo do Avaliar |
+| Todos | faixa de paisagem de Natal em cartoon (ponte, forte, farol, dunas, mar) | rodapé da casca; base do mapa ilustrado (E10) |
+
+### Família 3 · Cenário por tema (uma casa, um universo)
+
+Cada casa ganha um kit próprio, gerado a partir do tema que está no painel (`tema_combo`).
+
+| Peça | Formato | Onde |
+|---|---|---|
+| Faixa de cenário | panorama horizontal 4:1, base do cenário, topo transparente | base do topo da ficha da casa (atrás do nome, sem cobrir texto) |
+| Objeto de cenário A | recorte quadrado | ao lado do nome, no topo da ficha |
+| Objeto de cenário B | recorte quadrado | espia do canto do cartão da casa no catálogo (hover e foco; no celular, ao entrar na tela) |
+
+- **Antes de gerar cada kit** (memória `combos-ia-cenario-primeiro`): pesquisar o universo do desenho e anotar, numa linha, o lugar, dois objetos, a paleta e o que evitar. Kits diferentes entre si, mesmo quando dois temas se parecem.
+- **Exemplo de direção:** um tema de praia havaiana vira coqueiros, prancha, casa sobre pilotis e flores; um tema da Idade da Pedra vira casas de pedra, palmeiras antigas e roda de pedra. Nada do personagem.
+- **Dados:** `src/edicao/dados/temas.js` liga cada slug ao kit (caminhos via `imageLibrary`). Casa sem kit cai no cenário genérico do canal Elenco.
+
+### Movimento
+
+- Letreiro pula ao entrar (antecipação, quique).
+- Placa balança uma vez.
+- Cartão com compressão e estiramento no hover e no foco.
+- Objeto de cenário entra deslizando e reage ao mouse.
+- Barras de sinal na troca de página.
+- Nada em laço infinito perto de conteúdo. Tudo desligado com `prefers-reduced-motion`.
+
+### Piloto (antes de produzir tudo)
+
+São cerca de 9 gerações:
+1. folha de ícones;
+2. TV antiga e faixa de Natal;
+3. kits de 2 casas aprovadas: Casa Alice Doceria (Alice no País das Maravilhas) e Boldfood (Ursinhos Carinhosos).
+
+Tudo vai para a vitrine, com uma ficha de casa de exemplo, para aprovação. Só depois saem os outros 25 kits.
+
 ## 10.13 Fora do escopo e pendências
 
 - **Fora do escopo:** institucional, Home (`/`), painel, flags de publicação, banco (nada gravado) e Edge Functions.
