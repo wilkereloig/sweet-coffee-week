@@ -1,20 +1,32 @@
 /*
- * Página do participante (§5.3 do plano) — a ficha única da edição.
- * /cartoon/combos/:slug usa a mesma página com foco="combo" (abre no bloco B).
+ * Página do participante (§5.3 do plano; docs/cartoon-2026-2/10 §10.7 e §10.14) — a ficha única da edição.
+ * /cartoon/combos/:slug usa a mesma página com foco="combo" (abre no bloco do combo).
  *
- * A Conheça a casa · B O combo · C Doce, salgado e bebida · D Antes de pedir ·
- * E Como experimentar · F As unidades · G Avalie (só com a avaliação aberta).
- * Preço, composição, alergênicos e modos ficam à vista, sem abas.
+ * Topo (canal Elenco + cenário da casa) · O combo (canal Cardápio: o rosa é moldura, o texto pequeno
+ * mora no painel creme e nos cartões) · Restrições alimentares · Como pedir · Unidades · Galeria ·
+ * Avalie (só com a avaliação aberta). Tudo à vista, sem abas. O que o painel ainda não tem aparece
+ * como "não informado" — nunca escondido, nunca deduzido.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import { carregarParticipante } from '../../dados/publico.js'
 import * as M from '../../dados/modelo.js'
-import { Link, Foto, Logo, Carregando, Falha, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
-import { PARTICIPANTE as T, FASE_TEXTO, TIPO_ORDEM } from '../textos.js'
+import * as H from '../../dados/horarioFestival.js'
+import { Link, Foto, Carregando, Falha, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
+import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
+import { CenarioTema } from '../../componentes/sistema/CenarioTema.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
+import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
+import { Etiqueta, Placa, Botao, Quadro } from '../../componentes/sistema/pecas.jsx'
+import { PARTICIPANTE as T, FASE_TEXTO, TIPO_ORDEM, ATENDIMENTO, RESTRICAO } from '../textos.js'
 import { useRota } from '../contexto.js'
 
+/** Link http(s) de verdade (o dado já gravado antes da validação do painel não é confiável). */
+const linkSeguro = (c) => /^https?:\/\//i.test(String(c.link || '').trim())
+
 function Alimentar ({ item }) {
+  if (!item.alimentar?.length) return <p className="ct-alimentar__nada">{T.restricoesNada}</p>
   const r = M.resumoItem(item)
   const c = r.caracteristicas
   const extras = [
@@ -27,9 +39,9 @@ function Alimentar ({ item }) {
     <dl className="ct-alimentar">
       {r.contem.length > 0 && <div className="ct-alimentar__linha ct-alimentar__linha--contem"><dt>{T.contem}</dt><dd>{M.juntar(r.contem)}</dd></div>}
       {r.podeConter.length > 0 && <div className="ct-alimentar__linha ct-alimentar__linha--pode"><dt>{T.podeConter}</dt><dd>{M.juntar(r.podeConter)}</dd></div>}
-      {r.naoInformado.length > 0 && <div className="ct-alimentar__linha ct-alimentar__linha--ni"><dt>{T.naoInformado}</dt><dd>{M.juntar(r.naoInformado)}</dd></div>}
       {r.naoContem.length > 0 && <div className="ct-alimentar__linha"><dt>{T.naoContem}</dt><dd>{M.juntar(r.naoContem)}</dd></div>}
-      {extras.length > 0 && <div className="ct-alimentar__linha"><dt className="ct-sr">Características</dt><dd>{extras.join(' · ')}</dd></div>}
+      {r.naoInformado.length > 0 && <div className="ct-alimentar__linha ct-alimentar__linha--ni"><dt>{T.naoInformado}</dt><dd>{M.juntar(r.naoInformado)}</dd></div>}
+      {extras.length > 0 && <div className="ct-alimentar__linha ct-alimentar__linha--extra"><dt className="ct-sr">Características</dt><dd>{extras.join(' · ')}</dd></div>}
     </dl>
   )
 }
@@ -61,38 +73,98 @@ function Trocas ({ lista, unidades }) {
   )
 }
 
+/** O horário no festival, dia a dia (5 a 15/11), com o dia de hoje marcado. Sem as datas da edição, em frases. */
+function Dias ({ linhas, periodo }) {
+  if (!linhas?.length) return <p className="ct-unidade__ni">{T.horarioNi}</p>
+  const datas = periodo ? H.datasDoFestival(String(periodo.inicio || '').slice(0, 10), String(periodo.fim || '').slice(0, 10)) : []
+  const dias = H.diasDeLinhas(linhas, datas)
+  if (!dias.some((d) => d.periodos?.length)) return <ul className="ct-unidade__frases">{M.horarioNoFestival(linhas, periodo).map((h) => <li key={h}>{h}</li>)}</ul>
+  const hoje = M.hojeEmNatal()
+  return (
+    <ul className="ct-dias">
+      {dias.map((d) => (
+        <li key={d.data} className={`ct-dia${d.data === hoje ? ' is-hoje' : ''}${d.periodos?.length ? '' : ' is-fechado'}`}>
+          <span className="ct-dia__nome">{H.rotuloDia(d.data)}{d.data === hoje && <span className="ct-dia__hoje">{T.hoje}</span>}</span>
+          <span className="ct-dia__horas">{d.periodos?.length ? H.periodosTexto(d.periodos) : T.naoAbre}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function Unidade ({ u, casa, navigate, comCombo, rota, periodo }) {
   const est = M.estadoAgora(u, undefined, periodo)
-  const horario = comCombo ? M.horarioNoFestival(u.combo?.disponibilidade, periodo) : []
+  const agora = M.textoEstado(est)
   const naRota = !!rota && rota.tem(u.id)
   const titulo = u.nome || u.endereco?.bairro || casa.nome
+  const comoChegar = M.linkComoChegar(u)
   return (
     <article className="ct-unidade" aria-labelledby={`un-${u.id}`}>
-      <h3 id={`un-${u.id}`} className="ct-unidade__nome">{titulo}</h3>
-      <p className="ct-unidade__endereco">{M.enderecoEmLinha(u.endereco)}{u.endereco?.referencia ? ` (${u.endereco.referencia})` : ''}</p>
+      <div className="ct-unidade__onde">
+        <h3 id={`un-${u.id}`} className="ct-unidade__nome">{titulo}</h3>
+        {u.nome && u.endereco?.bairro && <p className="ct-rotulo">{u.endereco.bairro}</p>}
+        <p className="ct-unidade__linha"><IconeCartoon nome="endereco" tamanho={32} />
+          <span>{M.enderecoEmLinha(u.endereco) || T.unidadesNi}{u.endereco?.referencia ? ` (${u.endereco.referencia})` : ''}</span></p>
+        {comCombo && u.combo?.observacao && <p className="ct-unidade__obs">{u.combo.observacao}</p>}
+        {(!u.coordenada || u.coordenada.conferir) && <p className="ct-unidade__obs">{T.localizacaoConferencia}</p>}
+        <div className="ct-acoes">
+          {rota && (
+            <button type="button" className={`ct-botao${naRota ? ' ct-botao--feito' : ''}`} aria-pressed={naRota}
+              onClick={() => (naRota ? rota.remover(u.id, titulo) : rota.adicionar(u.id, titulo))}>
+              <IconeCartoon nome={naRota ? 'ja-fui' : 'rota'} tamanho={32} />{naRota ? T.rotaNaRota : T.rotaAdicionar}
+            </button>
+          )}
+          {comoChegar && <Botao tipo="secundario" href={comoChegar} target="_blank" rel="noopener noreferrer"><IconeCartoon nome="como-chegar" tamanho={32} />{T.comoChegar}</Botao>}
+          {u.whatsapp && <Botao tipo="secundario" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer"><IconeCartoon nome="conversar" tamanho={32} />{T.whatsapp}</Botao>}
+          {u.coordenada && navigate && <Botao tipo="secundario" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}><IconeCartoon nome="mapa" tamanho={32} />{T.verNoMapa}</Botao>}
+        </div>
+      </div>
       {comCombo && (
         <div className="ct-unidade__horario">
-          <p className="ct-rotulo">{T.horarioFestival}</p>
-          {horario.length
-            ? <ul>{horario.map((h) => <li key={h}>{h}</li>)}</ul>
-            : <p>{M.textoEstado({ estado: 'sem_horario' })}</p>}
-          {horario.length > 0 && M.textoEstado(est) && <p className={`ct-agora ct-agora--${est.estado}`}>{M.textoEstado(est)}</p>}
+          <p className="ct-unidade__linha ct-rotulo"><IconeCartoon nome="horario" tamanho={32} /><span>{T.horarioFestival}</span></p>
+          <Dias linhas={u.combo?.disponibilidade} periodo={periodo} />
+          {u.combo?.disponibilidade?.length > 0 && agora && (
+            <p className={`ct-agora ct-agora--${est.estado}`}>
+              {est.estado === 'aberto' && <IconeCartoon nome="aberto-agora" tamanho={32} />}{agora}
+            </p>
+          )}
         </div>
       )}
-      {comCombo && u.combo?.observacao && <p className="ct-unidade__obs">{u.combo.observacao}</p>}
-      {!u.coordenada && <p className="ct-unidade__obs">{T.localizacaoConferencia}</p>}
-      <div className="ct-acoes">
-        {M.linkComoChegar(u) && <a className="ct-botao ct-botao--contorno" href={M.linkComoChegar(u)} target="_blank" rel="noopener noreferrer">{T.comoChegar}</a>}
-        {u.whatsapp && <a className="ct-botao ct-botao--contorno" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer">{T.whatsapp}</a>}
-        {u.coordenada && navigate && <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}>Ver no mapa</Link>}
-        {rota && (
-          <button type="button" className={`ct-botao${naRota ? ' ct-botao--feito' : ''}`} aria-pressed={naRota}
-            onClick={() => (naRota ? rota.remover(u.id, titulo) : rota.adicionar(u.id, titulo))}>
-            {naRota ? T.rotaNaRota : T.rotaAdicionar}
-          </button>
-        )}
-      </div>
     </article>
+  )
+}
+
+/** Um modo de atendimento (no local · para viagem · delivery) com o estado e, no delivery, os canais. */
+function Modo ({ p, k, nomesUnidades }) {
+  const { estado, unidades } = M.estadoModo(p, k)
+  const variasUnidades = (p.unidades || []).length > 1
+  const texto = estado === 'sim'
+    ? (variasUnidades ? T.modo.simEm(nomesUnidades(unidades)) : T.modo.sim)
+    : estado === 'nao_informado' && variasUnidades && unidades.length ? `${T.modo.nao_informado}: ${nomesUnidades(unidades)}` : T.modo[estado]
+  return (
+    <li className={`ct-modo ct-modo--${k}`} data-estado={estado}>
+      <IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={48} />
+      <div className="ct-modo__texto">
+        <h3 className="ct-modo__nome">{ATENDIMENTO[k].rotulo}</h3>
+        <p className="ct-modo__estado">{texto}</p>
+        {k === 'delivery' && estado === 'sim' && unidades.map((u) => {
+          const canais = (u.combo?.canais || []).filter((c) => /^https?:\/\//i.test(String(c.link || '').trim()))
+          return (
+            <div key={u.id} className="ct-modo__delivery">
+              {variasUnidades && <p className="ct-rotulo">{u.nome || u.endereco?.bairro}</p>}
+              {canais.length > 0 && (
+                <p>{T.pedirPor}:{' '}
+                  {canais.map((c, i) => <a key={i} className="ct-link" href={String(c.link).trim()} target="_blank" rel="noopener noreferrer">{T.canais[c.tipo] || c.tipo}</a>)
+                    .reduce((acc, el, i) => (i ? [...acc, ' · ', el] : [el]), [])}
+                </p>
+              )}
+              {u.combo?.delivery_regioes && <p>{T.regioes}: {u.combo.delivery_regioes}</p>}
+              <p>{T.taxa}: {u.combo?.delivery_taxa || T.taxaNi}</p>
+            </div>
+          )
+        })}
+      </div>
+    </li>
   )
 }
 
@@ -143,135 +215,160 @@ export function Participante ({ slug, foco, navigate, edicao }) {
 export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota = null, desatualizado = false, demo = false, retrato = null, periodo = null }) {
   const encerrada = fase === 'encerrada'
   const combo = p.combo
+  const unidades = p.unidades || []
   const itens = [...(combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
-  const modos = M.modosDoParticipante(p)
   const alerta = M.fraseAlerta(itens)
-  const resumo = M.resumoCombo(itens)
   const fotos = combo?.fotos || {}
-  const galeria = [fotos.principal, ...(fotos.galeria || [])].filter(Boolean)
+  const galeria = [fotos.principal, ...(fotos.galeria || []), ...unidades.flatMap((u) => u.fotos || [])].filter(Boolean)
   const avaliacaoAberta = aberta && !!combo && !!navigate
   const nomesUnidades = (lista) => M.juntar(lista.map((u) => u.nome || u.endereco?.bairro || p.casa.nome))
+  const nomeCombo = combo?.nome ? M.caixaLegivel(combo.nome) : T.comboSemNome(p.casa.nome)
+  const nomesItens = itens.map((i) => i.nome).filter(Boolean)
+  const selos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim')
+  const instagram = p.casa.instagram && p.casa.instagram.replace(/^@/, '').trim()
 
   return (
     <article className="ct-part">
       <AvisoDesatualizado ativo={desatualizado} />
       <AvisoDemo ativo={demo} />
       <AvisoRetrato retrato={retrato} />
-      {navigate && <p className="ct-voltar"><Link href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.voltar}</Link></p>}
+      {navigate && <p className="ct-voltar"><Link href={`${EDICAO.caminho}/participantes`} navigate={navigate}>← {T.voltar}</Link></p>}
 
-      {/* A · Conheça a casa */}
-      <header className="ct-bloco ct-casa">
-        <Logo casa={p.casa} tamanho={88} />
-        <div>
-          <p className="ct-rotulo">{T.selo}</p>
-          <h1 className="ct-casa__nome">{p.casa.nome}</h1>
-          {p.casa.apresentacao && <p className="ct-casa__texto">{p.casa.apresentacao}</p>}
-          {p.casa.instagram && <p className="ct-casa__canal"><a href={`https://www.instagram.com/${p.casa.instagram.replace(/^@/, '')}/`} target="_blank" rel="noopener noreferrer">{p.casa.instagram}</a></p>}
+      {/* 1 · Topo: canal Elenco + cenário da casa (ou o chão de Natal) */}
+      <TopoCanal canal="elenco" className="ct-casa ct-ficha__topo" aria-labelledby="casa-nome">
+        <CenarioTema slug={p.slug} semKit="natal" />
+        <div className="ct-ficha__cabeca">
+          <LogoDesenhada casa={p.casa} className="ct-ficha__logo" />
+          <div className="ct-ficha__titulo">
+            <p className="ct-rotulo">{T.selo}</p>
+            <Letreiro nivel={1} id="casa-nome" tamanho="display" cor="chocolate" texto={p.casa.nome} />
+            {p.casa.apresentacao && <p className="ct-lead ct-ficha__apresentacao">{p.casa.apresentacao}</p>}
+            {!encerrada && selos.length > 0 && (
+              <ul className="ct-selos ct-ficha__selos" aria-label={T.atendimentoTitulo}>
+                {selos.map((k) => <li key={k} className="ct-selo"><IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={32} /><span>{ATENDIMENTO[k].rotulo}</span></li>)}
+              </ul>
+            )}
+          </div>
         </div>
-      </header>
+      </TopoCanal>
       {encerrada && <p className="ct-aviso">{FASE_TEXTO.encerrada}</p>}
 
-      {/* B · O combo */}
+      {/* 2 · O combo: canal Cardápio (rosa = moldura) */}
       {combo ? (
-        <section id="combo" className="ct-bloco ct-combo" aria-labelledby="combo-titulo">
-          <Foto foto={fotos.principal} proporcao="4 / 3" className="ct-combo__foto" prioridade reserva="Foto do combo em produção" />
-          <div className="ct-combo__info">
-            <p className="ct-rotulo">{T.comboTitulo}</p>
-            <h2 id="combo-titulo" className="ct-combo__nome">{combo.nome || T.comboSemNome(p.casa.nome)}</h2>
-            {combo.descricao && <p>{combo.descricao}</p>}
-            {!encerrada && <p className="ct-combo__preco">{combo.preco ? M.formatarPreco(combo.preco) : T.precoAConfirmar}</p>}
-            {combo.condicoes && <p className="ct-combo__condicoes">{combo.condicoes}</p>}
-            <p className="ct-combo__composicao">{itens.map((i) => i.nome).filter(Boolean).join(' · ')}</p>
-            {!encerrada && (
-              <p className="ct-combo__modos">{M.MODOS.filter(([k]) => modos[k].length).map(([, r]) => r).join(' · ') || T.nenhumModo}</p>
-            )}
-            {alerta && <p className="ct-combo__alerta"><a href="#antes-de-pedir">{alerta}</a></p>}
-            {galeria.length > 1 && <Galeria fotos={galeria} rotulo={T.galeria(galeria.length)} />}
+        <TopoCanal canal="cardapio" className="ct-cardapio" id="combo" aria-labelledby="combo-titulo">
+          <Etiqueta>{T.comboTitulo}</Etiqueta>
+          <Letreiro nivel={2} id="combo-titulo" texto={nomeCombo} cor="amarelo" />
+          <div className="ct-cardapio__grade">
+            <Quadro className="ct-cardapio__foto">
+              <Foto foto={fotos.principal} proporcao="4 / 3" prioridade reserva={T.fotoReserva} />
+            </Quadro>
+            <div className="ct-painel ct-cardapio__painel">
+              {!encerrada && (combo.preco
+                ? <div className="ct-cardapio__preco"><Placa numero={M.formatarPreco(combo.preco)} rotulo={T.precoRotulo} /><p className="ct-nota">{T.precoNota}</p></div>
+                : <p className="ct-cardapio__preco ct-sub">{T.precoAConfirmar}</p>)}
+              <div>
+                <p className="ct-rotulo">{T.noCombo}</p>
+                {/* Espaço fixo antes do ponto: a linha nunca começa com "·". */}
+                <p className="ct-cardapio__composicao">{(nomesItens.length ? nomesItens : itens.map((i) => T.tipos[i.tipo])).join('\u00a0· ')}</p>
+              </div>
+              {combo.descricao && <p>{combo.descricao}</p>}
+              <div>
+                <p className="ct-rotulo">{T.condicoes}</p>
+                <p className={combo.condicoes ? '' : 'ct-ni'}>{combo.condicoes || T.condicoesNi}</p>
+              </div>
+              {alerta && <a className="ct-alerta" href="#restricoes">{alerta}</a>}
+            </div>
           </div>
-        </section>
+          {itens.length > 0 && (
+            <ul className="ct-cardapio__itens">
+              {itens.map((i) => (
+                <li key={i.posicao} className="ct-item">
+                  {i.foto && <Foto foto={i.foto} proporcao="1 / 1" />}
+                  <Etiqueta>{T.tipos[i.tipo]}</Etiqueta>
+                  {i.nome ? <h3 className="ct-item__nome">{i.nome}</h3> : <p className="ct-item__nome ct-ni">{T.nomeNi}</p>}
+                  {i.descricao && <p>{i.descricao}</p>}
+                  {i.ingredientes && <p className="ct-item__ingr"><span className="ct-rotulo">{T.ingredientes}</span> {i.ingredientes}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </TopoCanal>
       ) : (
-        <p className="ct-bloco ct-aviso">{FASE_TEXTO.semCombo}</p>
+        <p className="ct-aviso">{FASE_TEXTO.semCombo}</p>
       )}
 
-      {/* C · Componentes */}
-      {combo && itens.length > 0 && (
-        <section className="ct-bloco" aria-labelledby="comp-titulo">
-          <h2 id="comp-titulo" className="ct-h2">{T.componentesTitulo}</h2>
-          <div className="ct-componentes">
-            {itens.map((i) => (
-              <article key={i.posicao} className="ct-componente" aria-labelledby={`it-${i.posicao}`}>
-                {i.foto && <Foto foto={i.foto} proporcao="1 / 1" />}
-                <p className="ct-rotulo">{T.tipos[i.tipo]}</p>
-                <h3 id={`it-${i.posicao}`} className="ct-componente__nome">{i.nome}</h3>
-                {i.descricao && <p>{i.descricao}</p>}
-                {i.ingredientes && <p className="ct-componente__ingr"><span className="ct-rotulo">{T.ingredientes}</span> {i.ingredientes}</p>}
-                <Alimentar item={i} />
-                <Trocas lista={i.substituicoes} unidades={p.unidades} />
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* D · Antes de pedir */}
+      {/* 3 · Restrições alimentares */}
       {combo && (
-        <section id="antes-de-pedir" className="ct-bloco ct-antes" aria-labelledby="antes-titulo">
-          <h2 id="antes-titulo" className="ct-h2">{T.antesTitulo}</h2>
-          {resumo.length ? (
-            <ul className="ct-antes__lista">
-              {resumo.map((l) => (
-                <li key={l.aspecto}>
-                  <strong>{l.rotulo}</strong>:{' '}
-                  {[l.contem.length && `contém (${M.juntar(l.contem)})`, l.podeConter.length && `pode conter (${M.juntar(l.podeConter)})`,
-                    l.naoInformado.length && `não informado (${M.juntar(l.naoInformado)})`].filter(Boolean).join('; ')}
+        <section id="restricoes" className="ct-bloco ct-ficha__secao" aria-labelledby="restricoes-titulo">
+          <Letreiro id="restricoes-titulo" texto={T.restricoesTitulo} />
+          <p className="ct-lead">{T.restricoesLead}</p>
+          <ul className="ct-vereditos">
+            {M.RESTRICOES.map(({ chave }) => {
+              const v = M.veredito(itens, chave)
+              return (
+                <li key={chave} className={`ct-veredito ct-veredito--${v}`}>
+                  {v === 'sim' ? <IconeCartoon nome={RESTRICAO[chave].icone} tamanho={32} /> : <span className="ct-veredito__marca" aria-hidden="true" />}
+                  <span>{RESTRICAO[chave][v]}</span>
                 </li>
+              )
+            })}
+          </ul>
+          {itens.length > 0 && (
+            <div className="ct-restricoes">
+              {itens.map((i) => (
+                <article key={i.posicao} className="ct-restricao" aria-labelledby={`al-${i.posicao}`}>
+                  <h3 id={`al-${i.posicao}`} className="ct-restricao__nome"><span className="ct-rotulo">{T.tipos[i.tipo]}</span>{i.nome || T.nomeNi}</h3>
+                  <Alimentar item={i} />
+                  <Trocas lista={i.substituicoes} unidades={unidades} />
+                </article>
               ))}
-            </ul>
-          ) : <p>{T.antesNada}</p>}
-          <p className="ct-antes__confirme">{T.confirme}</p>
+            </div>
+          )}
+          <p className="ct-confirme">{T.confirme}</p>
         </section>
       )}
 
-      {/* E · Como experimentar */}
+      {/* 4 · Como pedir */}
       {combo && !encerrada && (
-        <section className="ct-bloco" aria-labelledby="como-titulo">
-          <h2 id="como-titulo" className="ct-h2">{T.comoTitulo}</h2>
-          {M.MODOS.some(([k]) => modos[k].length) ? (
-            <ul className="ct-modos">
-              {M.MODOS.filter(([k]) => modos[k].length).map(([k, r]) => (
-                <li key={k}>
-                  <strong>{r}</strong>{p.unidades.length > 1 ? ` · ${T.modoEm} ${nomesUnidades(modos[k])}` : ''}
-                  {k === 'delivery' && modos.delivery.map((u) => (
-                    <div key={u.id} className="ct-modos__delivery">
-                      {(u.combo?.canais || []).some((c) => /^https?:\/\//i.test(String(c.link || '').trim())) && (
-                        <p>{T.pedirPor}:{' '}
-                          {u.combo.canais.filter((c) => /^https?:\/\//i.test(String(c.link || '').trim())).map((c, i) => <a key={i} className="ct-link" href={String(c.link).trim()} target="_blank" rel="noopener noreferrer">{T.canais[c.tipo] || c.tipo}</a>)
-                            .reduce((acc, el, i) => (i ? [...acc, ' · ', el] : [el]), [])}
-                        </p>
-                      )}
-                      {u.combo?.delivery_regioes && <p>{T.regioes}: {u.combo.delivery_regioes}</p>}
-                      <p>{T.taxa}: {u.combo?.delivery_taxa || 'conforme a plataforma ou a loja'}</p>
-                    </div>
-                  ))}
-                </li>
-              ))}
-            </ul>
-          ) : <p>{T.nenhumModo}</p>}
+        <section id="atendimento" className="ct-bloco ct-ficha__secao" aria-labelledby="atendimento-titulo">
+          <Letreiro id="atendimento-titulo" texto={T.atendimentoTitulo} />
+          <ul className="ct-modos">
+            {M.MODOS.map(([k]) => <Modo key={k} p={p} k={k} nomesUnidades={nomesUnidades} />)}
+          </ul>
+          {(instagram || p.casa.site) && (
+            <div className="ct-ficha__fale">
+              <p className="ct-rotulo">{T.faleCom}</p>
+              <div className="ct-acoes">
+                {instagram && <Botao tipo="secundario" href={`https://www.instagram.com/${instagram}/`} target="_blank" rel="noopener noreferrer">@{instagram}</Botao>}
+                {p.casa.site && linkSeguro({ link: p.casa.site }) && <Botao tipo="secundario" href={p.casa.site} target="_blank" rel="noopener noreferrer">{T.site}</Botao>}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
-      {/* F · Unidades */}
-      <section className="ct-bloco" aria-labelledby="un-titulo">
-        <h2 id="un-titulo" className="ct-h2">{T.unidadesTitulo(p.unidades.length)}</h2>
-        <div className="ct-unidades">
-          {p.unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={!!combo && !encerrada} rota={rota} periodo={periodo} />)}
-        </div>
+      {/* 5 · Unidades */}
+      <section id="unidades" className="ct-bloco ct-ficha__secao" aria-labelledby="un-titulo">
+        <Letreiro id="un-titulo" texto={T.unidadesTitulo(unidades.length)} />
+        {unidades.length ? (
+          <div className={`ct-unidades${unidades.length > 1 ? ' ct-unidades--varias' : ''}`}>
+            {unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={!!combo && !encerrada} rota={rota} periodo={periodo} />)}
+          </div>
+        ) : <p className="ct-ni">{T.unidadesNi}</p>}
       </section>
 
-      {/* G · Avalie */}
+      {/* 6 · Galeria */}
+      <section className="ct-bloco ct-ficha__secao" aria-labelledby="galeria-titulo">
+        <Letreiro id="galeria-titulo" texto={T.galeriaTitulo} />
+        {galeria.length ? <Galeria fotos={galeria} /> : (
+          <Quadro className="ct-galeria-reserva"><p>{T.galeriaReserva}</p></Quadro>
+        )}
+      </section>
+
+      {/* 7 · Avalie */}
       {avaliacaoAberta && (
         <section className="ct-bloco ct-avalie" aria-labelledby="av-titulo">
-          <h2 id="av-titulo" className="ct-h2">{T.avaliarTitulo}</h2>
+          <Letreiro id="av-titulo" texto={T.avaliarTitulo} />
           <p>{T.avaliarTexto}</p>
           <Link className="ct-botao" href={`${EDICAO.caminho}/avaliar?participante=${p.slug}`} navigate={navigate}>{T.avaliar}</Link>
         </section>
@@ -280,14 +377,23 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
   )
 }
 
-function Galeria ({ fotos, rotulo }) {
+/** Fotos em grade; cada uma abre ampliada num <dialog> com anterior/próxima. */
+function Galeria ({ fotos }) {
   const ref = React.useRef(null)
   const [i, setI] = React.useState(0)
-  const abrir = () => { setI(0); ref.current?.showModal() }
+  const abrir = (n) => { setI(n); ref.current?.showModal() }
   return (
     <>
-      <button type="button" className="ct-link" onClick={abrir}>{rotulo}</button>
-      <dialog ref={ref} className="ct-galeria" aria-label="Fotos do combo" onClick={(e) => { if (e.target === ref.current) ref.current.close() }}>
+      <ul className="ct-galeria-grade">
+        {fotos.map((f, n) => (
+          <li key={n}>
+            <button type="button" className="ct-galeria-grade__item" onClick={() => abrir(n)} aria-label={`Ampliar a foto ${n + 1} de ${fotos.length}`}>
+              <Foto foto={f} proporcao="1 / 1" />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <dialog ref={ref} className="ct-galeria" aria-label="Fotos" onClick={(e) => { if (e.target === ref.current) ref.current.close() }}>
         <Foto foto={fotos[i]} proporcao="4 / 3" />
         <div className="ct-acoes">
           <button type="button" className="ct-botao ct-botao--contorno" disabled={i === 0} onClick={() => setI(i - 1)}>Anterior</button>

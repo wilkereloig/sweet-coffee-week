@@ -334,66 +334,144 @@
   .ct-grade--participantes .ct-cartao__corpo { padding: 12px 14px; }
 }
 
-/* ------------------------------------------------------------- participante */
-.ct-voltar { margin: 0; padding: 16px var(--ct-trilho) 0; }
+/* ------------------------------------------------------------- ficha da casa (E6, §10.7 + §10.14) */
+.ct-voltar { margin: 0; padding: 12px var(--ct-trilho) 0; }
 .ct-voltar a { display: inline-flex; align-items: center; min-height: 44px; font: 700 15px/1 var(--ct-font); }
-.ct-casa { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
-.ct-casa__nome { margin: 0; font: 900 clamp(34px, 4.6vw, 68px)/.96 var(--ct-font); letter-spacing: -.01em; text-wrap: balance; }
-.ct-casa__texto { margin: 10px 0 0; font: 500 18px/1.5 var(--ct-font); }
-.ct-casa__canal { margin: 6px 0 0; }
-.ct-casa__canal a { display: inline-flex; min-height: 44px; align-items: center; font: 700 15px/1 var(--ct-font); }
+/* "Não informado" é dado, não erro: mesmo tom, peso de destaque. */
+.ct-ni { font-weight: 600; }
 
-.ct-combo { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 48px); align-items: start; }
-.ct-combo__info { display: grid; gap: 8px; }
-.ct-combo__info p { margin: 0; }
-.ct-combo__nome { margin: 0; font: 900 clamp(28px, 3.4vw, 48px)/1 var(--ct-font); letter-spacing: -.01em; }
-.ct-combo__preco {
-  justify-self: start; padding: 6px 16px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-amarelo);
-  font: 900 clamp(26px, 3vw, 40px)/1.05 var(--ct-font);
+/* 1 · Topo (canal Elenco + cenário): logo desenhada no quadro, nome em letreiro display, selos de atendimento. */
+.ct-ficha__cabeca { display: grid; justify-items: start; gap: 22px; width: 100%; }
+.ct-ficha__logo { --ct-desenho: clamp(112px, 34vw, 150px); rotate: -2deg; }
+.ct-ficha__titulo { display: grid; justify-items: start; gap: 12px; min-width: 0; }
+.ct-ficha__titulo .ct-rotulo, .ct-ficha__titulo .ct-letreiro, .ct-ficha__apresentacao { margin: 0; }
+.ct-ficha__titulo .ct-letreiro { max-width: 16ch; }
+.ct-ficha__selos { margin-top: 4px; }
+.ct-ficha__selos .ct-selo { background: var(--ct-branco); }
+@media (min-width: 901px) {
+  .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 44px; }
+  .ct-ficha__logo { --ct-desenho: clamp(170px, 15vw, 224px); }
 }
-.ct-combo__composicao, .ct-combo__modos { font: 700 16px/1.4 var(--ct-font); }
-.ct-combo__alerta a {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: var(--ct-traco); border-radius: 12px;
-  background: var(--ct-branco); font: 700 15px/1.3 var(--ct-font); text-decoration: none;
+/* Celular: o objeto A do kit vai para o canto direito, ao lado do quadro da logo; o topo não reserva faixa em cima. */
+@media (max-width: 900px) {
+  .ct-canal.ct-ficha__topo:has(> .ct-cenario) { padding-top: clamp(28px, 6vw, 56px); }
+  .ct-ficha__topo .ct-cenario__objeto--a { top: 22px; left: auto; right: var(--ct-trilho); height: clamp(96px, 28vw, 150px); }
 }
-@media (max-width: 900px) { .ct-combo { grid-template-columns: 1fr; } }
 
-.ct-componentes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
-.ct-componente { display: grid; align-content: start; gap: 8px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); }
-.ct-componente > p, .ct-componente__nome { margin: 0; }
-.ct-componente__nome { font: 900 22px/1.1 var(--ct-font); }
-.ct-componente__ingr { font-size: 15px; }
-.ct-alimentar { display: grid; gap: 6px; margin: 4px 0 0; }
+/* 2 · O combo (canal Cardápio): o rosa é moldura; foto no quadro, preço em placa e texto no painel creme, itens em cartões. */
+.ct-cardapio { gap: 0; scroll-margin-top: 84px; }
+.ct-cardapio > .ct-etiqueta { margin-bottom: 10px; }
+.ct-cardapio > .ct-letreiro { max-width: 20ch; margin: 0 0 28px; }
+.ct-cardapio__grade { display: grid; gap: 28px; width: 100%; align-items: start; }
+/* .ct-quadro vem depois no arquivo (inline-grid, centro): o prefixo garante a foto na largura toda. */
+.ct-quadro.ct-cardapio__foto { display: grid; place-items: stretch; width: 100%; padding: 12px; color: var(--ct-chocolate); rotate: -1deg; }
+.ct-cardapio__foto .ct-foto--reserva span { font: 800 clamp(17px, 1.6vw, 21px)/1.3 var(--ct-font); }
+.ct-cardapio__painel { display: grid; align-content: start; gap: 18px; max-width: none; }
+.ct-cardapio__painel p { margin: 0; }
+.ct-cardapio__preco { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.ct-cardapio__preco .ct-nota { max-width: 24ch; margin: 0; }
+.ct-cardapio__composicao { font: 800 var(--ct-fs-sub)/1.2 var(--ct-font); text-wrap: balance; }
+.ct-alerta {
+  display: inline-flex; align-items: center; justify-self: start; min-height: 44px; padding: 0 18px;
+  border: var(--ct-traco); border-radius: 999px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+  font: 800 15px/1.3 var(--ct-font); text-decoration: none;
+}
+/* A etiqueta do tipo pousa na borda de cima do cartão, como fita. */
+.ct-cardapio__itens { display: grid; gap: 32px; width: 100%; margin: 40px 0 0; padding: 0; list-style: none; }
+.ct-item {
+  display: grid; align-content: start; gap: 8px; padding: 24px 20px 20px;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); color: var(--ct-chocolate); box-shadow: var(--ct-sombra);
+}
+.ct-item > p { margin: 0; }
+.ct-item > .ct-etiqueta { justify-self: start; margin: -40px 0 2px; }
+.ct-item__nome { margin: 0; font: 900 22px/1.1 var(--ct-font); }
+.ct-item__ingr { font-size: 15px; }
+@media (min-width: 900px) {
+  .ct-cardapio__grade { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 44px; }
+  .ct-cardapio__itens { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+}
+
+/* Seções da ficha no corpo creme: letreiro em CSS + conteúdo em cartões. */
+.ct-ficha__secao > .ct-letreiro { margin-bottom: 10px; }
+.ct-ficha__secao > .ct-lead { margin-bottom: 22px; }
+
+/* 3 · Restrições: o veredito do combo inteiro (4 linhas) e o que cada item declarou. */
+.ct-vereditos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; margin: 0 0 24px; padding: 0; list-style: none; }
+.ct-veredito {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 8px;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); font: 700 15px/1.3 var(--ct-font);
+}
+.ct-veredito--sim { background: var(--ct-turquesa); }
+.ct-veredito--nao_informado { border-style: dashed; background: transparent; }
+.ct-veredito__marca { flex: none; width: 14px; height: 14px; margin: 0 9px; border: 2.5px solid var(--ct-chocolate); border-radius: 50%; }
+.ct-veredito--nao .ct-veredito__marca { background: var(--ct-chocolate); }
+.ct-restricoes { display: grid; gap: 16px; }
+@media (min-width: 900px) { .ct-restricoes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
+.ct-restricao { display: grid; align-content: start; gap: 12px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); }
+.ct-restricao__nome { display: grid; gap: 2px; margin: 0; font: 900 20px/1.15 var(--ct-font); }
+.ct-restricao__nome .ct-rotulo { display: block; margin: 0; }
+.ct-alimentar { display: grid; gap: 6px; margin: 0; }
 .ct-alimentar__linha { display: grid; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--ct-creme); }
 .ct-alimentar__linha dt { font: 700 13px/1.2 var(--ct-font); }
 .ct-alimentar__linha dd { margin: 0; font: 500 15px/1.4 var(--ct-font); }
 .ct-alimentar__linha--contem { background: var(--ct-amarelo); }
 .ct-alimentar__linha--pode { background: var(--ct-creme); box-shadow: inset 4px 0 0 var(--ct-vermelho); }
 .ct-alimentar__linha--ni { background: var(--ct-branco); border: 1.5px dashed var(--ct-chocolate); }
+.ct-alimentar__linha--extra dd { font-weight: 700; }
+.ct-alimentar__nada { margin: 0; padding: 10px 12px; border: 1.5px dashed var(--ct-chocolate); border-radius: 10px; font: 600 15px/1.4 var(--ct-font); }
 .ct-trocas ul { display: grid; gap: 10px; margin: 0; padding: 0 16px 16px; list-style: none; }
 .ct-trocas li p { margin: 0; }
 .ct-trocas__meta { font: 500 14px/1.4 var(--ct-font); }
+.ct-confirme { max-width: 68ch; margin: 22px 0 0; padding: 14px 18px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-turquesa); font: 700 15px/1.45 var(--ct-font); }
 
-.ct-antes { padding-bottom: 0; }
-.ct-antes__lista { display: grid; gap: 6px; max-width: 820px; margin: 0 0 12px; padding-left: 20px; }
-.ct-antes__confirme { padding: 12px 16px; border: var(--ct-traco); border-radius: 12px; background: var(--ct-turquesa); font: 700 15px/1.4 var(--ct-font); }
-.ct-modos { display: grid; gap: 10px; max-width: 820px; margin: 0; padding: 0; list-style: none; }
-.ct-modos > li { padding: 14px 16px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-branco); }
-.ct-modos__delivery p { margin: 6px 0 0; }
-.ct-modos__delivery .ct-link { margin-right: 4px; }
+/* 4 · Como pedir: um cartão por modo. Disponível em branco com sombra; "não" em creme; "não informado" tracejado. */
+.ct-modos { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { .ct-modos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
+.ct-modo { display: flex; align-items: flex-start; gap: 14px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-modo:not([data-estado='sim']) { background: var(--ct-creme); box-shadow: none; }
+.ct-modo[data-estado='nao_informado'] { border-style: dashed; }
+.ct-modo:not([data-estado='sim']) .ct-icone { opacity: .45; filter: grayscale(1); }
+.ct-modo__texto { display: grid; gap: 4px; min-width: 0; }
+.ct-modo__texto p { margin: 0; }
+.ct-modo__nome { margin: 0; font: 900 21px/1.1 var(--ct-font); }
+.ct-modo__estado { font: 700 16px/1.35 var(--ct-font); }
+.ct-modo__delivery { display: grid; gap: 2px; margin-top: 6px; font-size: 15px; }
+.ct-ficha__fale { margin-top: 26px; }
+.ct-ficha__fale .ct-acoes { margin-top: 6px; }
 
-.ct-unidades { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
-.ct-unidade { display: grid; align-content: start; gap: 8px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); }
+/* 5 · Unidades: cartão largo — onde fica e as ações à esquerda; o horário dia a dia à direita (desktop). */
+.ct-unidades { display: grid; gap: 20px; }
+.ct-unidade { display: grid; gap: 22px 44px; padding: clamp(18px, 2.4vw, 28px); border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra); }
+@media (min-width: 900px) { .ct-unidade { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); } }
 .ct-unidade p { margin: 0; }
-.ct-unidade__nome { margin: 0; font: 900 21px/1.1 var(--ct-font); }
-.ct-unidade__horario ul { margin: 0; padding-left: 18px; }
-.ct-unidade .ct-agora { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; font: 700 14px/1.3 var(--ct-font); }
-.ct-agora::before { content: ''; width: 10px; height: 10px; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); }
-.ct-agora--aberto::before { background: var(--ct-turquesa); }
+.ct-unidade__onde, .ct-unidade__horario { display: grid; align-content: start; gap: 10px; min-width: 0; }
+.ct-unidade__nome { margin: 0; font: 900 clamp(22px, 2.4vw, 28px)/1.1 var(--ct-font); }
+.ct-unidade__linha { display: flex; align-items: center; gap: 8px; }
+.ct-unidade__linha .ct-icone { margin-left: -4px; }
+.ct-unidade__horario > .ct-unidade__linha { margin: 0; }
+.ct-unidade__obs, .ct-unidade__ni { font-size: 15px; }
+.ct-unidade__frases { margin: 0; padding-left: 18px; }
+.ct-unidade .ct-acoes { margin-top: 6px; }
+.ct-dias { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 1200px) { .ct-dias { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ct-dia { display: grid; gap: 1px; padding: 7px 10px; border: 1.5px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-creme); }
+.ct-dia__nome { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font: 800 14px/1.25 var(--ct-font); }
+.ct-dia__horas { font: 500 14px/1.3 var(--ct-font); }
+.ct-dia.is-fechado { border-style: dashed; background: transparent; }
+.ct-dia.is-hoje { border-width: 2.5px; background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-dia__hoje { padding: 1px 8px; border-radius: 999px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 12px/1.4 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
+.ct-unidade .ct-agora { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font: 700 15px/1.3 var(--ct-font); }
+.ct-agora::before { content: ''; flex: none; width: 10px; height: 10px; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); }
+.ct-agora--aberto::before { display: none; }
 .ct-agora--abre_hoje::before { background: var(--ct-amarelo); }
-.ct-unidade__obs, .ct-unidade__loja { font-size: 15px; }
 .ct-avalie { padding-bottom: 8px; }
 
+/* 6 · Galeria: grade de fotos que abre ampliada; sem foto, o quadro com a reserva honesta. */
+.ct-galeria-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { .ct-galeria-grade { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; } }
+.ct-galeria-grade__item { display: block; width: 100%; padding: 0; border: 0; border-radius: var(--ct-raio); background: none; cursor: zoom-in; }
+.ct-galeria-reserva { display: grid; width: 100%; min-height: 168px; place-items: center; padding: 28px; }
+.ct-galeria-reserva p { margin: 0; padding: 14px 22px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); font: 800 clamp(18px, 1.8vw, 22px)/1.3 var(--ct-font); }
 .ct-galeria { width: min(960px, 94vw); padding: 16px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-creme); }
 .ct-galeria::backdrop { background: rgba(58, 21, 15, .7); }
 
@@ -577,6 +655,11 @@
   .ct-cenario__objeto--a { top: auto; left: auto; right: var(--ct-trilho); bottom: calc(var(--ct-cen-faixa) * .4); width: var(--ct-cen-aw); height: auto; }
   .ct-cenario__objeto--b { right: auto; left: var(--ct-trilho); object-position: left bottom; }
 }
+/* Casa sem kit (CenarioTema semKit="natal"): só a faixa de Natal como chão, sem reservar o objeto A.
+   A faixa vai inteira (sem recorte, que cortaria a nuvem numa risca): altura = 17,4% da largura (266/1536),
+   e o padding em % também é medido pela largura. */
+.ct-canal:has(> .ct-cenario--natal) { padding: clamp(32px, 6vw, 72px) var(--ct-trilho) calc(clamp(32px, 6vw, 72px) + 17.4%); }
+.ct-cenario--natal .ct-cenario__faixa { height: auto; max-height: none; }
 
 /* ------------------------------------------------------------- movimento de desenho animado (§10.15)
    Antecipação, exagero e quique, UMA vez ao montar (ou no gesto). Nada em laço, nada perto de conteúdo.

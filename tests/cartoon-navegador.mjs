@@ -13,7 +13,8 @@
  *  2. CENAS — link direto e recarregar em todas; um <h1>; console limpo.
  *  3. HASH ANTIGO e LOVERS — #/... vira caminho limpo; endereços Lovers nunca na edição.
  *  4. PARTICIPANTE — preço, composição, alergênicos e modos sem abas; "não informado"
- *     visível; delivery só onde a unidade declarou para o combo; combo abre no bloco B.
+ *     visível; delivery só onde a unidade declarou para o combo; combo abre no bloco do combo;
+ *     casa com dado fino (itens sem nome, modos em branco) sem título vazio e com "não informado".
  *  5. ESTADOS — casa inexistente, sem elenco divulgado, falha de rede (nunca demo), encerrada.
  *  6. CATÁLOGO — filtro na URL, voltar preserva filtro e posição.
  *  7. MINHA ROTA — adicionar, contador, persistir no recarregar, remover.
@@ -148,7 +149,8 @@ try {
     const antes = falhas.length
     await ir(page, '/cartoon/participantes/demo-casa-aurora')
     await page.waitForSelector('#combo')
-    const t = await page.locator('.ct-part').innerText()
+    // A composição usa espaço fixo antes do "·" (a linha nunca começa com ponto): compara com espaço comum.
+    const t = (await page.locator('.ct-part').innerText()).replace(/ /g, ' ')
     for (const s of ['R$ 38,90', '[DEMO] Doce · [DEMO] Salgado · [DEMO] Bebida', 'Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Troca']) {
       if (!t.includes(s)) falha(`participante sem "${s}"`)
     }
@@ -161,7 +163,10 @@ try {
     const b = await page.locator('.ct-part').innerText()
     if (!b.includes('Não informado pela casa')) falha('restrição não informada não aparece como "não informado"')
     if (b.includes('Não contém, segundo a casa')) falha('"não informado" virou "não contém"')
-    if (b.includes('Delivery')) falha('Bico de Pena mostra delivery sem ter declarado')
+    // Delivery aparece como "a casa não oferece" (dado declarado), nunca como disponível nem com canal.
+    if ((await page.locator('.ct-modo--delivery').getAttribute('data-estado')) !== 'nao') falha('Bico de Pena: delivery não está como "não oferece"')
+    if ((await page.locator('.ct-modo--delivery').innerText()).includes('Pedir por')) falha('Bico de Pena mostra canal de delivery sem ter declarado')
+    if (await page.locator('.ct-ficha__selos .ct-selo', { hasText: 'Delivery' }).count()) falha('Bico de Pena tem selo de delivery no topo')
     await ir(page, '/cartoon/participantes/demo-casa-quadro-a-quadro')
     await page.waitForSelector('.ct-casa')
     if (!(await page.locator('.ct-part').innerText()).includes('será revelado em breve') || await page.locator('#combo').count()) falha('casa sem combo publicado mostrou combo')
@@ -172,6 +177,27 @@ try {
     if (Math.abs(topo) > 120) falha(`/combos/:slug não abriu no bloco do combo (top=${Math.round(topo)})`)
     if (falhas.length === antes) ok('preço, composição, alergênicos e modos à vista; não informado ≠ não contém; delivery por unidade; combo focado')
     await ctx.close()
+
+    // Casa com dado fino, como as do painel hoje: itens sem nome, modos em branco, endereço em caixa alta.
+    const antesFina = falhas.length
+    const fina = {
+      slug: 'teste-casa-fina', nivel: 'marca_e_combo', casa: { nome: 'Casa Fina' },
+      combo: { preco: 38.9, fotos: {}, itens: [{ tipo: 'doce', posicao: 1 }, { tipo: 'salgado', posicao: 2 }, { tipo: 'bebida', posicao: 3 }] },
+      unidades: [{ id: 'ufina1', endereco: { logradouro: 'RUA DO TESTE N 10', numero: '10', bairro: 'Tirol', cidade: 'Natal' }, combo: { modos: {} } }],
+    }
+    const c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), participantes: [...clone(DEMO_EDICAO).participantes, fina] } })
+    await ir(c.page, '/cartoon/participantes/teste-casa-fina')
+    await c.page.waitForSelector('#combo')
+    const vazios = await c.page.evaluate(() => [...document.querySelectorAll('.ct-part :is(h1, h2, h3)')].filter((h) => !h.textContent.trim()).length)
+    if (vazios) falha(`casa fina: ${vazios} título(s) vazio(s)`)
+    const f = await c.page.locator('.ct-part').innerText()
+    for (const s of ['Nome não informado pela casa', 'Não informado pela casa', 'Não informadas pela casa.', 'Galeria em produção', 'Foto do combo em produção', 'Rua do Teste, 10']) {
+      if (!f.includes(s)) falha(`casa fina sem "${s}"`)
+    }
+    if (f.includes('10, 10')) falha('casa fina: número do endereço repetido')
+    if ((await c.page.locator('.ct-modo[data-estado="nao_informado"]').count()) !== 3) falha('casa fina: modos em branco não aparecem como não informados')
+    if (falhas.length === antesFina) ok('casa com dado fino: sem título vazio, "não informado" à vista, endereço sem número repetido')
+    await c.ctx.close()
   }
 
   console.log('\n5 · estados parciais e de falha')

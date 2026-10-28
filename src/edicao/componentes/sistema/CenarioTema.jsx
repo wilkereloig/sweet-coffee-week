@@ -8,12 +8,16 @@
  * Reação ao mouse: --mx/--my em [-1, 1] no próprio .ct-cenario, atualizadas em
  * pointermove com requestAnimationFrame; o CSS converte em até 8px de
  * deslocamento. Sem listener com movimento reduzido e no toque.
+ *
+ * `semKit="natal"` (ficha da casa): casa sem kit ganha a faixa de Natal como chão, sem objetos
+ * (.ct-cenario--natal não reserva o espaço do objeto A).
  */
 import React from 'react'
-import { kitTemaEdicao, srcSet } from '../../../data/imageLibrary'
+import { kitTemaEdicao, cenaEdicao, srcSet } from '../../../data/imageLibrary'
 
-export function CenarioTema ({ slug }) {
+export function CenarioTema ({ slug, semKit = null }) {
   const kit = kitTemaEdicao(slug)
+  const chao = !kit && semKit ? cenaEdicao(semKit) : null
   const raiz = React.useRef(null)
 
   React.useEffect(() => {
@@ -40,6 +44,13 @@ export function CenarioTema ({ slug }) {
     }
   }, [kit])
 
+  if (chao) {
+    return (
+      <div className="ct-cenario ct-cenario--natal" ref={raiz} aria-hidden="true">
+        <img className="ct-cenario__faixa" src={chao.src} srcSet={srcSet(chao.src)} sizes="100vw" width={chao.largura} height={chao.altura} alt="" decoding="async" />
+      </div>
+    )
+  }
   if (!kit) return null
   const { cenario, objetoA, objetoB } = kit
   return (

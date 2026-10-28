@@ -894,7 +894,12 @@ test('site: nenhum texto "horário da loja" nem "horário do combo" nas páginas
     assert.doesNotMatch(t, /horário da loja|Horário da loja|horario_loja|horarioLoja|Horário do combo|horarioCombo/, arq)
   }
   assert.match(ler('src/edicao/cartoon/textos.js'), /horarioFestival: 'Horário no festival'/)
-  assert.match(ler('src/edicao/cartoon/paginas/Participante.jsx'), /M\.horarioNoFestival\(u\.combo\?\.disponibilidade, periodo\)/)
+  // A ficha mostra o horário dia a dia (E6, 28/10) com as regras do mesmo módulo: dia sem linha = não abre; sem as datas da
+  // edição (ou sem linha dentro delas), cai nas frases de sempre.
+  const ficha = ler('src/edicao/cartoon/paginas/Participante.jsx')
+  assert.match(ficha, /<Dias linhas=\{u\.combo\?\.disponibilidade\} periodo=\{periodo\} \/>/)
+  assert.match(ficha, /H\.diasDeLinhas\(linhas, datas\)/)
+  assert.match(ficha, /M\.horarioNoFestival\(linhas, periodo\)/)
   assert.match(ler('src/edicao/cartoon/paginas/Participante.jsx'), /periodo=\{edicao\?\.edicao\}/, 'o período da edição chega à unidade')
 })
 
