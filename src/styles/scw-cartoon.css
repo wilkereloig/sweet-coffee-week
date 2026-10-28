@@ -286,7 +286,7 @@
 
 /* ------------------------------------------------------------- catálogo (E6, §10.7) */
 /* Topo no canal Elenco: o letreiro e, ao lado (a partir de 900), a placa com a contagem real + a chamada. */
-.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 12px 56px; padding-block: clamp(28px, 4.5vw, 56px); }
+.ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 12px 56px; padding-block: clamp(28px, 4.5vw, 56px); }
 .ct-catalogo__chamada { min-width: 0; }
 .ct-catalogo__topo .ct-letreiro { margin: 0; }
 .ct-catalogo__topo .ct-letreiro--imagem img { width: min(560px, 100%); }
