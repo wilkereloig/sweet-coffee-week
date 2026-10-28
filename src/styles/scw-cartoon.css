@@ -135,15 +135,18 @@
 /* Prefixo .ct-edicao de propósito: `.ct-edicao a { color: inherit }` (0,1,1) venceria
    `.ct-botao` (0,1,0) e o link-botão sairia preto sobre preto (CLAUDE.md §10.1). */
 .ct-edicao .ct-botao {
-  display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 20px;
-  border: var(--ct-traco); border-radius: 23px; background: var(--ct-chocolate); color: var(--ct-creme);
-  font: 700 15px/1 var(--ct-font); text-decoration: none; cursor: pointer;
-  transition: transform var(--ct-mo), background-color var(--ct-mo), color var(--ct-mo);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px;
+  border: var(--ct-traco); border-radius: 999px; background: var(--ct-amarelo); color: var(--ct-chocolate);
+  box-shadow: var(--ct-sombra-p);
+  font: 800 16px/1 var(--ct-font); text-decoration: none; cursor: pointer;
+  transition: transform var(--ct-mo), box-shadow var(--ct-mo), background-color var(--ct-mo);
 }
-.ct-edicao .ct-botao:hover { transform: translateY(-2px); }
-.ct-edicao .ct-botao:active { transform: translateY(0); }
-.ct-edicao .ct-botao:disabled { opacity: .45; cursor: default; transform: none; }
-.ct-edicao .ct-botao--contorno { background: transparent; color: var(--ct-chocolate); }
+.ct-edicao .ct-botao:hover { transform: translate(-1px, -1px); box-shadow: var(--ct-sombra); }
+.ct-edicao .ct-botao:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ct-chocolate); }
+.ct-edicao .ct-botao:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
+/* Creme sobre vermelho fecha ~3,9:1: só texto grande (19px/800). */
+.ct-edicao .ct-botao--acao { background: var(--ct-vermelho); color: var(--ct-creme); font-size: 19px; }
+.ct-edicao .ct-botao--contorno { background: var(--ct-creme); color: var(--ct-chocolate); }
 .ct-edicao .ct-botao--feito { background: var(--ct-turquesa); color: var(--ct-chocolate); }
 .ct-link {
   display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none;
@@ -358,6 +361,80 @@
 .ct-podio__cat { margin: 0 0 8px; font: 900 22px/1.1 var(--ct-font); }
 .ct-podio ol { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .ct-podio__lugar { display: inline-block; min-width: 76px; font: 700 14px/1.2 var(--ct-font); }
+
+/* ------------------------------------------------------------- sistema (docs/cartoon-2026-2/10 §10.4) */
+.ct-letreiro { margin: 0 0 16px; text-wrap: balance; }
+.ct-letreiro--imagem img { display: block; width: min(560px, 100%); height: auto; }
+/* Letreiro em texto: cor de ação, contorno chocolate por fora (paint-order) e sombra curta. */
+.ct-letreiro--titulo, .ct-letreiro--display {
+  --ct-letra: var(--ct-vermelho);
+  color: var(--ct-letra);
+  font-family: var(--ct-font); font-weight: 900;
+  -webkit-text-stroke: .1em var(--ct-chocolate);
+  paint-order: stroke fill;
+  text-shadow: .05em .06em 0 var(--ct-chocolate);
+}
+.ct-letreiro--titulo { font-size: var(--ct-fs-titulo); line-height: 1.02; }
+.ct-letreiro--display { font-size: var(--ct-fs-display); line-height: .98; }
+.ct-letreiro--cor-amarelo { --ct-letra: var(--ct-amarelo); }
+.ct-letreiro--cor-chocolate { --ct-letra: var(--ct-chocolate); }
+
+.ct-etiqueta {
+  display: inline-block; margin: 0 0 12px; padding: 6px 14px 5px;
+  border: var(--ct-traco); background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p);
+  font: 800 var(--ct-fs-servico)/1.2 var(--ct-font); letter-spacing: .1em; text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+.ct-pilula {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 999px;
+  background: var(--ct-chocolate); color: var(--ct-creme); font: 800 15px/1 var(--ct-font);
+}
+/* Vermelho sobre creme fecha ~3,9:1: carimbo é sempre texto grande (20px/900). */
+.ct-carimbo {
+  display: inline-grid; place-items: center; padding: 8px 14px; border: 3px solid var(--ct-vermelho); border-radius: var(--ct-raio-p);
+  color: var(--ct-vermelho); font: 900 20px/1 var(--ct-font); text-transform: uppercase; transform: rotate(-6deg);
+}
+.ct-placa {
+  display: inline-grid; gap: 2px; margin: 0; padding: 12px 18px 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p);
+  box-shadow: var(--ct-sombra); color: var(--ct-chocolate); text-align: center;
+}
+.ct-placa__numero { font: 900 clamp(28px, 4vw, 44px)/1 var(--ct-font); }
+.ct-placa__rotulo { font: 700 var(--ct-fs-servico)/1.2 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-placa--amarelo { background: var(--ct-amarelo); }
+.ct-placa--creme { background: var(--ct-creme); }
+.ct-placa--turquesa { background: var(--ct-turquesa); }
+
+.ct-quadro { position: relative; display: inline-grid; place-items: center; padding: 14px; border: var(--ct-traco); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-quadro--fita::before, .ct-quadro--fita::after {
+  content: ''; position: absolute; width: 56px; height: 18px;
+  border: 1.5px solid rgba(58, 21, 15, .35); background: rgba(253, 185, 1, .85);
+}
+.ct-quadro--fita::before { top: -9px; left: -14px; transform: rotate(-35deg); }
+.ct-quadro--fita::after { right: -14px; bottom: -9px; transform: rotate(-35deg); }
+
+/* skewY e não rotate: rotate alarga a caixa e abriria rolagem lateral. */
+.ct-barras { display: grid; grid-template-columns: repeat(7, 1fr); height: 18px; border-block: var(--ct-traco); transform: skewY(-1deg); }
+.ct-barras__b + .ct-barras__b { border-left: 1.2px solid var(--ct-chocolate); }
+.ct-barras__b--creme { background: var(--ct-creme); }
+.ct-barras__b--amarelo { background: var(--ct-amarelo); }
+.ct-barras__b--turquesa { background: var(--ct-turquesa); }
+.ct-barras__b--rosa { background: var(--ct-rosa); }
+.ct-barras__b--vermelho { background: var(--ct-vermelho); }
+.ct-barras__b--azul { background: var(--ct-azul); }
+.ct-barras__b--roxo { background: var(--ct-roxo); }
+
+.ct-canal { display: grid; justify-items: start; gap: 8px; padding: clamp(32px, 6vw, 72px) var(--ct-trilho); border-bottom: var(--ct-traco); color: var(--ct-chocolate); }
+.ct-canal--estreia { background: var(--ct-amarelo); }
+.ct-canal--elenco { background: var(--ct-creme); }
+.ct-canal--cardapio { background: var(--ct-rosa); color: var(--ct-creme); }
+.ct-canal--rota { background: var(--ct-turquesa); }
+.ct-canal--gala { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-canal--servico { background: var(--ct-creme); border-top: 12px solid var(--ct-azul); }
+/* Rosa não sustenta texto pequeno (creme ~4:1): rótulo e apoio vão em placa creme (manual v03, canal 3). */
+.ct-canal--cardapio .ct-rotulo, .ct-canal--cardapio .ct-lead {
+  padding: 6px 12px; border-radius: var(--ct-raio-p); background: var(--ct-creme); color: var(--ct-chocolate);
+}
+.ct-canal--cardapio :focus-visible, .ct-canal--gala :focus-visible { outline-color: var(--ct-amarelo); }
 
 @media (prefers-reduced-motion: reduce) {
   .ct-edicao *, .ct-edicao *::before { transition: none !important; animation: none !important; }
