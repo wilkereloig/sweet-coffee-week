@@ -36,8 +36,8 @@ test('paleta do manual v03, e nada da paleta antiga', () => {
     rosa: '#E8195A', branco: '#FCFCFC', azul: '#0184E4', turquesa: '#05BEBA', roxo: '#6424AB',
   })
   const css = ler(CSS)
-  for (const velho of ['#FAC506', '#FDF2DF', 'amarelo-heroi', 'var(--scw-font', 'rgba(5, 5, 5']) {
-    assert.ok(!css.includes(velho), `ainda usa ${velho}`)
+  for (const velho of [/#FAC506/i, /#FDF2DF/i, /amarelo-heroi/, /var\(--scw-font/, /rgba\(\s*5\s*,\s*5\s*,\s*5\s*,/]) {
+    assert.doesNotMatch(css, velho, `ainda usa ${velho}`)
   }
   assert.match(css, /--ct-font:\s*'Grandstander'/)
 })
@@ -54,4 +54,19 @@ test('contraste medido a partir dos tokens', () => {
     assert.ok(c >= 3 && c < 4.5, `${tinta} sobre ${fundo} = ${c.toFixed(2)}: a regra "só texto grande" mudou`)
   }
   for (const [tinta, fundo] of PROIBIDO) assert.ok(contraste(t[tinta], t[fundo]) < 4.5, `${tinta} sobre ${fundo} passou a ser legível: rever a regra`)
+})
+
+test('preto só no traço de desenho; texto e contorno de interface em chocolate', () => {
+  const css = ler(CSS)
+  const usos = css.split('\n').filter((l) => l.includes('var(--ct-preto)')).map((l) => l.trim())
+  assert.deepEqual(usos, ['--ct-traco-desenho: 2.5px solid var(--ct-preto);'])
+  assert.match(css, /--ct-traco:\s*2\.5px solid var\(--ct-chocolate\)/)
+})
+
+test('contador da Minha rota com contraste de texto pequeno', () => {
+  const t = tokens()
+  const regra = ler(CSS).match(/\.ct-contador\s*{([^}]*)}/)[1]
+  const fundo = regra.match(/background:\s*var\(--ct-([a-z]+)\)/)[1]
+  const tinta = regra.match(/(?:^|[\s;])color:\s*var\(--ct-([a-z]+)\)/)[1]
+  assert.ok(contraste(t[tinta], t[fundo]) >= 4.5, `${tinta} sobre ${fundo} < 4,5 em texto de 13px`)
 })

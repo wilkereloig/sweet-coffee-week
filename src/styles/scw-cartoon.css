@@ -15,7 +15,7 @@
  * vaza para o institucional ou o painel (tests/rotas-edicao.test.mjs confere).
  *
  * Direção "Cartaz Cartoon" (aprovada 03/10/2026): papel creme com respiro,
- * tinta preta, contorno de desenho, raios SÓ em volta do lettering, um herói
+ * tinta chocolate, contorno de desenho, raios SÓ em volta do lettering, um herói
  * por página. A foto real é protagonista; o cartoon comenta.
  * Sistema do manual v03 (docs/cartoon-2026-2/10-sistema-visual-e-paginas.md):
  * texto em chocolate sobre creme, amarelo, turquesa ou branco; creme sobre
@@ -84,7 +84,7 @@
 .ct-edicao .ct-topo__nav a[aria-current='page'] { background: var(--ct-chocolate); color: var(--ct-creme); }
 .ct-contador {
   display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px;
-  border-radius: 11px; background: var(--ct-vermelho); color: var(--ct-branco); font: 700 13px/1 var(--ct-font);
+  border-radius: 11px; border: 2px solid var(--ct-chocolate); background: var(--ct-amarelo); color: var(--ct-chocolate); font: 700 13px/1 var(--ct-font);
 }
 .ct-conteudo { flex: 1; padding-bottom: 32px; }
 
