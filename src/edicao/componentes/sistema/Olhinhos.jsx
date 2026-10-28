@@ -131,7 +131,6 @@ export function Olhinhos ({ expressao = 'encantado', olhar, lado = 'esquerda', t
         {/* Surpreso: traços de susto e a gota. */}
         <g className="ct-olhinhos__extra ct-olhinhos__extra--surpreso">
           <path className="ct-olhinhos__traco" d="M6 78l18 10M3 102h20M8 126l17-8M238 74l-18 12M241 100h-20M236 126l-17-8" />
-          <path className="ct-olhinhos__gota" transform="translate(40 150)" d="M0-16C6-5 10 1 10 7A10 10 0 0 1-10 7C-10 1-6-5 0-16Z" />
         </g>
 
         {OLHOS.map((o) => (
@@ -161,6 +160,10 @@ export function Olhinhos ({ expressao = 'encantado', olhar, lado = 'esquerda', t
             </g>
           </g>
         ))}
+        {/* A gota vem por cima do olho, sobre o contorno, como no manual. */}
+        <g className="ct-olhinhos__extra ct-olhinhos__extra--surpreso">
+          <path className="ct-olhinhos__gota" transform="translate(42 146)" d="M0-16C6-5 10 1 10 7A10 10 0 0 1-10 7C-10 1-6-5 0-16Z" />
+        </g>
       </g>
     </svg>
   )
