@@ -3,12 +3,15 @@
  * docs/cartoon-2026-2/10 §10.12, etapa 1: o Wilker aprova cores, tipos e peças
  * aqui antes de qualquer página mudar. O index.jsx só importa este arquivo sob
  * import.meta.env.DEV, então ele não entra no build.
+ * §10.15 (28/10): ícones, cenografia e ficha de exemplo com cenário por tema.
  */
 import React from 'react'
 import './sistema.css'
-import { letreiroEdicao } from '../../../data/imageLibrary'
+import { letreiroEdicao, cenaEdicao, srcSet } from '../../../data/imageLibrary'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { TopoCanal, CANAIS } from '../../componentes/sistema/TopoCanal.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
+import { CenarioTema } from '../../componentes/sistema/CenarioTema.jsx'
 import { Etiqueta, Pilula, Placa, Carimbo, Botao, Quadro, BarrasSinal } from '../../componentes/sistema/pecas.jsx'
 
 // [cor, papel, tinta que passa sobre ela]
@@ -17,12 +20,12 @@ const CORES = [
   ['amarelo', 'cena, faixa, botão primário, canal Estreia', 'chocolate'],
   ['chocolate', 'todo texto, contorno, sombra', 'creme'],
   ['preto', 'contorno de desenho', 'creme'],
-  ['vermelho', 'ação focal, carimbo, rota (texto grande)', 'creme'],
+  ['vermelho', 'ação focal, carimbo, tracejado de rota (texto grande)', 'creme'],
   ['rosa', 'destaque curto, canal Cardápio (texto grande)', 'creme'],
   ['branco', 'quadro de logo e foto, brilho', 'chocolate'],
   ['azul', 'canal Serviço', 'preto'],
   ['turquesa', 'canal Rota', 'chocolate'],
-  ['roxo', 'só em detalhe', 'creme'],
+  ['roxo', 'só em detalhe (barras de sinal)', 'creme'],
 ]
 
 // [classe do sistema, regra, exemplo]
@@ -37,6 +40,22 @@ const TIPOS = [
 
 const NOME_CANAL = { estreia: 'Estreia', elenco: 'Elenco', cardapio: 'Cardápio', rota: 'Rota', gala: 'Gala', servico: 'Serviço' }
 
+// [grupo, [[nome do ícone, rótulo]]] — os 24 do §10.15; o rótulo é o texto que sempre acompanha o ícone.
+const GRUPOS_ICONES = [
+  ['Navegação', [['inicio', 'Início'], ['casas', 'Casas'], ['mapa', 'Mapa'], ['rota', 'Rota'], ['avaliar', 'Avaliar'], ['premio', 'Prêmio']]],
+  ['Atendimento', [['no-local', 'No local'], ['para-viagem', 'Para viagem'], ['delivery', 'Delivery']]],
+  ['Restrições', [['vegano', 'Vegano'], ['sem-gluten', 'Sem glúten'], ['sem-lactose', 'Sem lactose'], ['sem-acucar', 'Sem açúcar']]],
+  ['Unidade', [['endereco', 'Endereço'], ['horario', 'Horário'], ['aberto-agora', 'Aberto agora'], ['conversar', 'Conversar'], ['como-chegar', 'Como chegar']]],
+  ['Painel do Sweet Lover', [['quero-ir', 'Quero ir'], ['ja-fui', 'Já fui'], ['progresso', 'Progresso'], ['compartilhar', 'Compartilhar']]],
+  ['Estados', [['vazio', 'Vazio'], ['erro', 'Erro']]],
+]
+
+// Fichas de exemplo: só o arranjo. Nada daqui é o cadastro real da casa (o aviso da seção diz isso).
+const FICHAS = [
+  { slug: 'casa-alice-doceria', nome: 'Casa Alice Doceria', tema: 'Inspirado em Alice no País das Maravilhas', selos: [['no-local', 'No local'], ['para-viagem', 'Para viagem'], ['vegano', 'Vegano']] },
+  { slug: 'boldfood-confeitaria-inclusiva', nome: 'Boldfood Confeitaria Inclusiva', tema: 'Inspirado em Ursinhos Carinhosos', selos: [['no-local', 'No local'], ['delivery', 'Delivery'], ['sem-gluten', 'Sem glúten']] },
+]
+
 /** HEX lido do próprio CSS: a vitrine nunca repete o valor do token. */
 function Hex ({ cor }) {
   const ref = React.useRef(null)
@@ -46,6 +65,8 @@ function Hex ({ cor }) {
 }
 
 export default function Sistema () {
+  const tv = cenaEdicao('tv')
+  const natal = cenaEdicao('natal')
   return (
     <div className="ct-vitrine">
       <section className="ct-bloco">
@@ -94,7 +115,7 @@ export default function Sistema () {
         <div className="ct-vitrine__pecas">
           <Etiqueta>Como funciona</Etiqueta>
           <Pilula>17ª edição</Pilula>
-          <Carimbo>Nota 10</Carimbo>
+          <Carimbo>Estreia</Carimbo>
           <Placa numero="5 a 15" rotulo="de novembro" />
           <Placa numero="11" rotulo="dias de festival" cor="creme" />
           <Placa numero="3" rotulo="itens no combo" cor="turquesa" />
@@ -111,17 +132,96 @@ export default function Sistema () {
         <BarrasSinal />
       </section>
 
-      <section className="ct-bloco" aria-labelledby="v-canais">
-        <h2 id="v-canais" className="ct-h2">Canais · topo de página</h2>
+      <section aria-labelledby="v-canais">
+        <div className="ct-bloco">
+          <h2 id="v-canais" className="ct-h2">Canais · topo de página</h2>
+        </div>
+        {CANAIS.map((canal) => canal === 'cardapio' ? (
+          <TopoCanal key={canal} canal={canal}>
+            <Letreiro nivel={3} texto={NOME_CANAL[canal]} cor="amarelo" />
+            <div className="ct-painel">
+              <p className="ct-rotulo">Canal {NOME_CANAL[canal]}</p>
+              <p className="ct-lead">Rosa é moldura: o texto pequeno mora neste painel creme.</p>
+              <Botao>Ação do canal</Botao>
+            </div>
+          </TopoCanal>
+        ) : (
+          <TopoCanal key={canal} canal={canal}>
+            <p className="ct-rotulo">Canal {NOME_CANAL[canal]}</p>
+            <Letreiro nivel={3} texto={NOME_CANAL[canal]} cor={canal === 'gala' ? 'amarelo' : 'vermelho'} />
+            <p className="ct-lead">Texto de apoio no tom de leitura deste canal.</p>
+            <Botao>Ação do canal</Botao>
+          </TopoCanal>
+        ))}
       </section>
-      {CANAIS.map((canal) => (
-        <TopoCanal key={canal} canal={canal}>
-          <p className="ct-rotulo">Canal {NOME_CANAL[canal]}</p>
-          <Letreiro nivel={3} texto={NOME_CANAL[canal]} cor={canal === 'gala' || canal === 'cardapio' ? 'amarelo' : 'vermelho'} />
-          <p className="ct-lead">Texto de apoio no tom de leitura deste canal.</p>
-          <Botao>Ação do canal</Botao>
-        </TopoCanal>
-      ))}
+
+      <section className="ct-bloco" aria-labelledby="v-icones">
+        <h2 id="v-icones" className="ct-h2">Ícones</h2>
+        <p className="ct-nota">24 ícones ilustrados em 48 px, sempre com o nome ao lado: nenhum carrega função sozinho.</p>
+        <div className="ct-vitrine__icones">
+          {GRUPOS_ICONES.map(([grupo, itens]) => (
+            <div key={grupo}>
+              <h3 className="ct-rotulo">{grupo}</h3>
+              <ul className="ct-vitrine__lista-icones">
+                {itens.map(([nome, rotulo]) => (
+                  <li key={nome}><IconeCartoon nome={nome} /><span>{rotulo}</span></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <h3 className="ct-rotulo">Tamanhos de exibição</h3>
+        <ul className="ct-vitrine__lista-icones ct-vitrine__lista-icones--linha">
+          {[32, 48, 64].map((t) => (
+            <li key={t}><IconeCartoon nome="casas" tamanho={t} /><span>{t} px</span></li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="ct-bloco" aria-labelledby="v-cenografia">
+        <h2 id="v-cenografia" className="ct-h2">Cenografia</h2>
+        <p className="ct-nota">Uma peça grande por tela. A tela da TV fica vazia de propósito: o site põe o conteúdo ali.</p>
+        <div className="ct-vitrine__cena">
+          <figure className="ct-vitrine__tv">
+            <img src={tv.src} width={tv.largura} height={tv.altura} alt="" aria-hidden="true" decoding="async" />
+            <div className="ct-vitrine__tv-tela"><Placa numero="5 a 15" rotulo="de novembro" /></div>
+          </figure>
+          <img
+            className="ct-vitrine__natal" src={natal.src} srcSet={srcSet(natal.src)} sizes="(max-width: 900px) 100vw, 60vw"
+            width={natal.largura} height={natal.altura} alt="" aria-hidden="true" decoding="async"
+          />
+        </div>
+      </section>
+
+      <section aria-labelledby="v-ficha">
+        <div className="ct-bloco">
+          <h2 id="v-ficha" className="ct-h2">Ficha da casa · cenário por tema</h2>
+          <p className="ct-aviso ct-aviso--demo">Exemplo — dados ilustrativos. Nome, tema, selos e combo abaixo não são o cadastro real da casa.</p>
+        </div>
+        {FICHAS.map(({ slug, nome, tema, selos }) => (
+          <article key={slug}>
+            <TopoCanal canal="elenco">
+              <CenarioTema slug={slug} />
+              <p className="ct-rotulo">Casa participante</p>
+              <Letreiro nivel={3} tamanho="display" cor="chocolate" texto={nome} />
+              <p className="ct-lead">{tema}</p>
+              <ul className="ct-vitrine__selos">
+                {selos.map(([icone, rotulo]) => (
+                  <li key={icone} className="ct-vitrine__selo"><IconeCartoon nome={icone} tamanho={32} /><span>{rotulo}</span></li>
+                ))}
+              </ul>
+            </TopoCanal>
+            <TopoCanal canal="cardapio">
+              <Letreiro nivel={4} texto="Cardápio" cor="amarelo" />
+              <div className="ct-painel">
+                <p className="ct-sub">Nome do combo</p>
+                <p>Doce · Salgado · Bebida</p>
+                <p className="ct-nota">Exemplo: o combo e o preço reais vêm do cadastro da casa.</p>
+              </div>
+            </TopoCanal>
+          </article>
+        ))}
+      </section>
     </div>
   )
 }

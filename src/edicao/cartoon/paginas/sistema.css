@@ -15,3 +15,20 @@
 .ct-vitrine__pecas { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-bottom: 24px; }
 .ct-vitrine__pecas--quadro { margin-top: 32px; }
 .ct-vitrine__logo { display: grid; place-items: center; width: 140px; height: 90px; font: 700 14px/1.2 var(--ct-font); }
+
+/* Ícones (§10.15): grupo por grupo, sempre com o nome ao lado. */
+.ct-vitrine__icones { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 20px 28px; margin: 16px 0 28px; }
+.ct-vitrine__lista-icones { display: grid; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ct-vitrine__lista-icones li { display: flex; align-items: center; gap: 12px; font: 700 16px/1.2 var(--ct-font); }
+.ct-vitrine__lista-icones--linha { display: flex; flex-wrap: wrap; gap: 20px 32px; }
+
+/* Cenografia: a Placa cai sobre a área creme da TV (medida na imagem: 11% a 71% de largura, 32% a 81% de altura). */
+.ct-vitrine__cena { display: grid; gap: 32px; justify-items: start; }
+.ct-vitrine__tv { position: relative; width: min(100%, 520px); margin: 0; }
+.ct-vitrine__tv img { display: block; width: 100%; height: auto; }
+.ct-vitrine__tv-tela { position: absolute; left: 11.5%; top: 33%; display: grid; width: 59.5%; height: 47%; place-items: center; }
+.ct-vitrine__natal { display: block; width: 100%; height: auto; }
+
+/* Selos da ficha de exemplo: ícone de 32 px + texto, sobre branco. */
+.ct-vitrine__selos { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; }
+.ct-vitrine__selo { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 8px; border: var(--ct-traco); border-radius: 999px; background: var(--ct-branco); font: 700 15px/1 var(--ct-font); }
