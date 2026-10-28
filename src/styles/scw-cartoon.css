@@ -293,8 +293,9 @@
 .ct-catalogo__apoio { display: flex; align-items: center; gap: 16px 24px; }
 .ct-catalogo__apoio .ct-lead { max-width: 26ch; margin: 0; }
 .ct-catalogo__apoio .ct-placa { flex: none; rotate: -3deg; }
+/* (0,2,0), como a regra de base acima: com um seletor só, ela vencia e o desktop ficava em uma coluna. */
 @media (min-width: 900px) {
-  .ct-catalogo__topo { grid-template-columns: minmax(0, 560px) minmax(0, 1fr); }
+  .ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 560px) minmax(0, 1fr); }
 }
 .ct-catalogo__corpo { padding-top: clamp(24px, 3.5vw, 40px); }
 .ct-catalogo__resumo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 16px; min-height: 44px; margin: 0 0 12px; }
@@ -534,32 +535,96 @@
 .ct-galeria { width: min(960px, 94vw); padding: 16px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-creme); }
 .ct-galeria::backdrop { background: rgba(58, 21, 15, .7); }
 
-/* ------------------------------------------------------------- minha rota e mapa */
-.ct-paradas { display: grid; gap: 10px; max-width: 900px; margin: 0; padding: 0; list-style: none; }
-.ct-parada { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: start; padding: 14px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-branco); }
-.ct-parada--saiu { background: var(--ct-creme); border-style: dashed; }
-.ct-parada__n { display: inline-grid; place-items: center; width: 36px; height: 36px; border: var(--ct-traco); border-radius: 50%; background: var(--ct-amarelo); font: 900 17px/1 var(--ct-font); }
-.ct-parada__info p { margin: 0; }
-.ct-parada__nome { font: 700 17px/1.3 var(--ct-font); }
-.ct-parada__acoes { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
-.ct-edicao .ct-parada__acoes .ct-botao { min-height: 44px; padding: 0 14px; font-size: 14px; }
+/* ------------------------------------------------------------- mapa e minha rota (E7, §10.14) */
+/* Topo no canal Rota (turquesa): letreiro em CSS e a chamada; na Minha rota, o progresso.
+   (0,2,0): .ct-canal (gap/padding) vem depois no arquivo e apagaria o espaçamento (armadilha da E6). */
+.ct-canal.ct-rota-topo { gap: 12px; padding-block: clamp(28px, 4.5vw, 56px); }
+.ct-rota-topo .ct-letreiro, .ct-rota-topo .ct-lead { margin: 0; }
+.ct-rota-topo .ct-lead { max-width: 56ch; }
 
-.ct-mapa__corpo { display: grid; grid-template-columns: minmax(280px, 420px) minmax(0, 1fr); gap: 20px; align-items: start; }
-.ct-mapa__lista { display: grid; gap: 8px; max-height: 70svh; margin: 0; padding: 4px; overflow: auto; list-style: none; }
-.ct-mapa__item { border: var(--ct-traco); border-radius: 14px; background: var(--ct-branco); }
-.ct-mapa__item.is-sel { background: var(--ct-amarelo); }
-.ct-mapa__item .ct-acoes { margin: 0; padding: 0 12px 12px; }
-.ct-mapa__sel { display: grid; gap: 2px; width: 100%; min-height: 56px; padding: 12px; border: 0; border-radius: 14px; background: none; color: inherit; font: 500 15px/1.4 var(--ct-font); text-align: left; cursor: pointer; }
-.ct-mapa__sel strong { font: 700 16px/1.3 var(--ct-font); }
-.ct-mapa__area { position: sticky; top: 90px; display: grid; place-items: center; min-height: 320px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); overflow: hidden; }
-.ct-mapa__mapa { width: 100%; height: min(70svh, 640px); }
-.ct-marcador { width: 22px; height: 22px; padding: 0; border: 3px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); cursor: pointer; }
-.ct-marcador.is-sel { width: 30px; height: 30px; background: var(--ct-vermelho); }
-@media (max-width: 900px) {
-  .ct-mapa__corpo { grid-template-columns: 1fr; }
-  .ct-mapa__area { position: static; order: -1; min-height: 120px; }
-  .ct-mapa__lista { max-height: none; overflow: visible; }
+/* "Quero ir" / "Já fui" (painel do Sweet Lover): chip com ícone + texto; marcado = turquesa (o canal Rota), tinta
+   chocolate (7:1). (0,3,0) vence o amarelo do chip ligado. Casa com várias unidades: link para escolher a unidade. */
+.ct-chip.ct-marca[aria-pressed='true'], .ct-marca.is-ligada { background: var(--ct-turquesa); box-shadow: inset 0 0 0 1.5px var(--ct-chocolate), var(--ct-sombra-p); }
+.ct-edicao a.ct-marca { text-decoration: none; }
+.ct-marca > span { text-align: left; }
+.ct-marca__nota { display: block; margin-top: 2px; font: 600 12px/1.2 var(--ct-font); }
+.ct-elenco .ct-cartao { display: grid; grid-template-rows: 1fr auto; gap: 10px; }
+.ct-cartao__marcas, .ct-ficha__marcas { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Progresso "x de N casas": ícone da edição + texto + barra nativa (<progress>), sem transição. */
+.ct-progresso { display: flex; align-items: center; gap: 12px; margin-top: 6px; padding: 10px 18px 10px 8px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-creme); box-shadow: var(--ct-sombra-p); }
+.ct-progresso__corpo { display: grid; gap: 8px; min-width: min(240px, 48vw); }
+.ct-progresso__texto { margin: 0; font: 600 16px/1.3 var(--ct-font); }
+.ct-progresso__texto strong { font: 900 22px/1.1 var(--ct-font); }
+.ct-progresso__barra { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; border: var(--ct-traco); border-radius: 999px; background: var(--ct-branco); overflow: hidden; }
+.ct-progresso__barra::-webkit-progress-bar { background: var(--ct-branco); }
+.ct-progresso__barra::-webkit-progress-value { background: var(--ct-vermelho); }
+.ct-progresso__barra::-moz-progress-bar { background: var(--ct-vermelho); }
+
+/* Minha rota: placas numeradas num trilho à esquerda, ligadas pelo tracejado vermelho (a rota); cada parada num cartão. */
+.ct-rota__secao .ct-letreiro { margin-bottom: 12px; }
+.ct-paradas { --ct-placa-w: 78px; position: relative; display: grid; gap: 18px; max-width: 920px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ct-paradas::before { content: ''; position: absolute; top: 28px; bottom: 28px; left: calc(var(--ct-placa-w) / 2 - 2px); border-left: 4px dashed var(--ct-vermelho); }
+.ct-parada { display: grid; grid-template-columns: var(--ct-placa-w) minmax(0, 1fr); gap: 12px; align-items: start; }
+.ct-parada .ct-placa { position: relative; z-index: 1; width: var(--ct-placa-w); padding: 8px 2px 10px; rotate: -3deg; }
+.ct-parada:nth-child(even) .ct-placa { rotate: 3deg; }
+.ct-parada .ct-placa__rotulo { font-size: 12px; letter-spacing: .06em; }
+.ct-parada__cartao { display: grid; gap: 10px; min-width: 0; padding: 14px 16px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-parada--saiu .ct-parada__cartao { border-style: dashed; background: var(--ct-creme); box-shadow: none; }
+.ct-parada__info p { margin: 0; }
+.ct-parada__nome { font: 800 18px/1.3 var(--ct-font); }
+.ct-parada__nome a { display: inline-flex; align-items: center; min-height: 44px; }
+.ct-parada__acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.ct-edicao .ct-parada__acoes .ct-botao { min-height: 44px; padding: 0 14px; font-size: 14px; }
+.ct-visitadas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ct-visitada { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 6px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-visitada__nome { display: inline-flex; flex: 1; align-items: center; min-width: 0; min-height: 44px; font: 800 16px/1.2 var(--ct-font); }
+
+/* Mapa: a lista vem primeiro no DOM (Tab), o mapa ao lado no desktop e em cima no celular. */
+.ct-mapa { padding-top: clamp(24px, 3.5vw, 40px); }
+.ct-edicao .ct-mapa__perto { padding-left: 10px; }
+.ct-mapa__corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.ct-mapa__lado { display: grid; gap: 10px; order: -1; min-width: 0; }
+.ct-mapa__lista { display: grid; gap: 12px; margin: 0; padding: 4px 6px 8px 2px; list-style: none; }
+@media (min-width: 900px) {
+  .ct-mapa__corpo { grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); }
+  .ct-mapa__lado { position: sticky; top: 96px; order: 0; }
+  .ct-mapa__lista { max-height: calc(100svh - 140px); overflow: auto; }
 }
+.ct-mapa__item { border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-mapa__item.is-visitada { background: var(--ct-creme); }
+.ct-mapa__item.is-sel { background: var(--ct-amarelo); }
+.ct-mapa__sel { display: grid; gap: 2px; width: 100%; min-height: 56px; padding: 12px 14px 8px; border: 0; border-radius: var(--ct-raio-p); background: none; color: inherit; font: 500 15px/1.4 var(--ct-font); text-align: left; cursor: pointer; }
+.ct-mapa__sel strong { font: 800 17px/1.3 var(--ct-font); }
+.ct-mapa__sel .ct-nota { margin: 0; }
+.ct-mapa__local { font: 700 13px/1.4 var(--ct-font); }
+/* Ponto aproximado: o mesmo anel tracejado do marcador, para a lista e o mapa dizerem a mesma coisa. */
+.ct-mapa__local--aprox::before { content: ''; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border: 2px dashed var(--ct-chocolate); border-radius: 50%; vertical-align: -1px; }
+.ct-mapa__marcas, .ct-mapa__acoes { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0 12px 12px; }
+.ct-mapa__area { display: grid; place-items: center; min-height: 120px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); overflow: hidden; }
+.ct-mapa__area > .ct-nota { margin: 16px; }
+.ct-mapa__mapa { width: 100%; height: min(62svh, 520px); }
+@media (min-width: 900px) { .ct-mapa__area { min-height: 320px; } .ct-mapa__mapa { height: min(calc(100svh - 190px), 680px); } }
+/* Controles do MapLibre com alvo de 44 px: (0,2,1) vence o .maplibregl-ctrl-group button (0,1,1) do pacote. */
+.ct-mapa__mapa .maplibregl-ctrl-group button { width: 44px; height: 44px; }
+.ct-mapa__mapa .maplibregl-ctrl-attrib a { display: inline-flex; align-items: center; min-height: 44px; }
+/* Marcador: o botão tem 44 px (alvo de toque); o ponto desenhado mora no ::before. */
+.ct-marcador { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; }
+.ct-marcador::before { content: ''; width: 22px; height: 22px; border: 3px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); box-shadow: 2px 2px 0 var(--ct-chocolate); }
+/* Aproximado: anel tracejado com miolo creme — nunca se passa por ponto exato. */
+.ct-marcador--aprox::before { border-style: dashed; background: var(--ct-creme); }
+.ct-marcador--quero::before { background: var(--ct-vermelho); }
+.ct-marcador--foi::before { background: var(--ct-turquesa); }
+.ct-marcador.is-sel::before { width: 32px; height: 32px; border-width: 4px; }
+.ct-marcador--voce { width: 22px; height: 22px; cursor: default; }
+.ct-marcador--voce::before { width: 14px; height: 14px; border: 3px solid var(--ct-branco); background: var(--ct-azul); box-shadow: 0 0 0 2.5px var(--ct-chocolate); }
+.ct-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0 4px; list-style: none; font: 600 13px/1.3 var(--ct-font); }
+.ct-legenda li { display: inline-flex; align-items: center; gap: 6px; }
+.ct-legenda__ponto { width: 16px; height: 16px; border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); }
+.ct-legenda__ponto--aproximada { border-style: dashed; background: var(--ct-creme); }
+.ct-legenda__ponto--quero { background: var(--ct-vermelho); }
+.ct-legenda__ponto--foi { background: var(--ct-turquesa); }
+.ct-legenda__ponto--voce { width: 12px; height: 12px; border-color: var(--ct-branco); background: var(--ct-azul); box-shadow: 0 0 0 2px var(--ct-chocolate); }
 
 /* ------------------------------------------------------------- avaliação e premiação */
 .ct-form { display: grid; gap: 16px; max-width: 680px; }

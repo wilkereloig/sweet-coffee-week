@@ -1,101 +1,153 @@
 /*
- * Minha rota (§6.2): paradas na ordem do visitante, com subir/descer por
- * teclado, remover, unidades que saíram da edição sinalizadas (nunca somem
- * caladas), rota externa em trechos e link para compartilhar. Sem "melhor
- * caminho": não há cálculo de percurso no projeto.
+ * Minha rota → painel do Sweet Lover (§6.2; docs/cartoon-2026-2/10 §10.14). Topo no canal Rota com o progresso
+ * "x de N casas" (ícone + barra). "Quero ir": as paradas na ordem do visitante, em placas numeradas ligadas pelo
+ * tracejado vermelho, com subir/descer por teclado, "já fui" e remover; unidade que saiu da edição aparece
+ * sinalizada (nunca some calada); Google Maps em trechos e link para compartilhar. "Já fui": as casas visitadas.
+ * Tudo salvo no aparelho, sem conta. Sem "melhor caminho": não há cálculo de percurso no projeto.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { resolverParadas, linksDeRota, idsDaBusca } from '../../rota/minhaRota.js'
+import { resolverParadas, linksDeRota, idsDaBusca, progresso } from '../../rota/minhaRota.js'
 import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
+import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
+import { Placa, Botao } from '../../componentes/sistema/pecas.jsx'
 import { useRota } from '../contexto.js'
-import { CENA_TEXTO } from '../textos.js'
+import { JaFui } from '../MarcasLover.jsx'
+import { ROTA as T } from '../textos.js'
 
 export function MinhaRota ({ navigate, dados }) {
   const rota = useRota()
+  const lista = dados?.participantes || []
+  const C = EDICAO.caminho
   const compartilhada = React.useMemo(() => idsDaBusca(location.search), [])
   const vendoCompartilhada = compartilhada.length > 0 && compartilhada.join() !== rota.ids.join()
-  const ids = vendoCompartilhada ? compartilhada : rota.ids
-  const paradas = resolverParadas(ids, dados?.participantes || [])
-  const links = linksDeRota(paradas)
+  const paradas = resolverParadas(vendoCompartilhada ? compartilhada : rota.ids, lista)
+  // "Já fui" completa a parada: ela sai das pendentes (sem sair da rota) e a casa aparece em "Já fui".
+  const pendentes = vendoCompartilhada ? paradas : paradas.filter((pa) => !pa.ativa || !rota.foi(pa.participante))
+  const visiveis = pendentes.map((pa) => pa.id)
+  const links = linksDeRota(pendentes)
+  const visitadas = lista.filter((p) => rota.foi(p))
+  const prog = progresso(rota.visitadas, lista)
   const [copiado, setCopiado] = React.useState('')
-  const encerrada = dados?.fase === 'encerrada'
 
   const compartilhar = async () => {
-    const url = `${location.origin}${EDICAO.caminho}/minha-rota?u=${rota.ids.join(',')}`
+    const url = `${location.origin}${C}/minha-rota?u=${pendentes.filter((pa) => pa.ativa).map((pa) => pa.id).join(',')}`
     try {
       if (navigator.share) await navigator.share({ title: 'Minha rota na Sweet & Coffee Week Cartoon', url })
-      else { await navigator.clipboard.writeText(url); setCopiado('Link copiado.') }
-    } catch { setCopiado(`Copie o link: ${url}`) }
+      else { await navigator.clipboard.writeText(url); setCopiado(T.copiado) }
+    } catch { setCopiado(T.copie(url)) }
   }
 
-  if (encerrada) {
-    return (
-      <section className="ct-bloco">
-        <h1 className="ct-h1">{CENA_TEXTO['minha-rota'].titulo}</h1>
-        <p className="ct-lead">A edição terminou. As casas seguem no catálogo como registro.</p>
-        <Link className="ct-botao" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>Ver as casas</Link>
-      </section>
-    )
-  }
-
-  return (
-    <section className="ct-bloco ct-rota" aria-labelledby="rota-titulo">
+  const avisos = (
+    <>
       <AvisoDesatualizado ativo={dados?.desatualizado} />
       <AvisoDemo ativo={dados?.demo} />
       <AvisoRetrato retrato={dados?.retrato} />
-      <h1 id="rota-titulo" className="ct-h1">{CENA_TEXTO['minha-rota'].titulo}</h1>
-      <p className="ct-lead">{CENA_TEXTO['minha-rota'].apoio}</p>
-      {vendoCompartilhada && (
-        <div className="ct-aviso">
-          <p>Esta é uma rota compartilhada com você.</p>
-          <button type="button" className="ct-botao" onClick={() => { rota.substituir(compartilhada); navigate(`${EDICAO.caminho}/minha-rota`) }}>Salvar como minha rota</button>
-        </div>
-      )}
-      {!paradas.length ? (
-        <div className="ct-estado">
-          <p>Você ainda não escolheu nenhuma parada. Na página de cada casa, toque em "Adicionar à Minha rota".</p>
-          <Link className="ct-botao" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>Ver as casas</Link>
-        </div>
-      ) : (
-        <>
-          <ol className="ct-paradas">
-            {paradas.map((pa, i) => (
-              <li key={pa.id} className={`ct-parada${pa.ativa ? '' : ' ct-parada--saiu'}`}>
-                <span className="ct-parada__n" aria-hidden="true">{i + 1}</span>
-                <div className="ct-parada__info">
-                  {pa.ativa ? (
-                    <>
-                      <p className="ct-parada__nome"><Link href={`${EDICAO.caminho}/participantes/${pa.participante.slug}`} navigate={navigate}>{pa.participante.casa.nome}</Link>
-                        {pa.unidade.nome ? ` · ${pa.unidade.nome}` : ''}</p>
-                      <p>{M.enderecoEmLinha(pa.unidade.endereco)}</p>
-                      {pa.unidade.combo && M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao)) && <p className="ct-nota">{M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao))}</p>}
-                    </>
-                  ) : <p className="ct-parada__nome">Esta unidade saiu da edição.</p>}
-                </div>
-                {!vendoCompartilhada && (
-                  <div className="ct-parada__acoes">
-                    <button type="button" className="ct-botao ct-botao--contorno" disabled={i === 0} aria-label={`Subir parada ${i + 1}`} onClick={() => rota.mover(pa.id, -1)}>Subir</button>
-                    <button type="button" className="ct-botao ct-botao--contorno" disabled={i === paradas.length - 1} aria-label={`Descer parada ${i + 1}`} onClick={() => rota.mover(pa.id, 1)}>Descer</button>
-                    <button type="button" className="ct-botao ct-botao--contorno" onClick={() => rota.remover(pa.id, pa.ativa ? pa.participante.casa.nome : 'Parada')}>Remover</button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ol>
-          <div className="ct-acoes">
-            {links.map((href, i) => (
-              <a key={href} className="ct-botao" href={href} target="_blank" rel="noopener noreferrer">
-                {links.length > 1 ? `Abrir trecho ${i + 1} no Google Maps` : 'Abrir a rota no Google Maps'}
-              </a>
-            ))}
-            {!vendoCompartilhada && <button type="button" className="ct-botao ct-botao--contorno" onClick={compartilhar}>Compartilhar a rota</button>}
+    </>
+  )
+  const topo = (texto, comProgresso = false) => (
+    <TopoCanal canal="rota" className="ct-rota-topo" aria-labelledby="rota-titulo">
+      <Letreiro nivel={1} id="rota-titulo" texto={T.titulo} cor="amarelo" />
+      <p className="ct-lead">{texto}</p>
+      {comProgresso && prog.total > 0 && (
+        <div className="ct-progresso">
+          <IconeCartoon nome="progresso" tamanho={64} />
+          <div className="ct-progresso__corpo">
+            <p className="ct-progresso__texto" id="rota-progresso"><strong>{T.progresso(prog.feitas, prog.total)}</strong> {T.progressoRotulo}</p>
+            <progress className="ct-progresso__barra" max={prog.total} value={prog.feitas} aria-labelledby="rota-progresso" />
           </div>
-          <p className="ct-nota">A ordem é a que você escolheu. O Google Maps calcula o trajeto entre as paradas.</p>
-          {copiado && <p className="ct-nota" role="status">{copiado}</p>}
-        </>
+        </div>
       )}
-    </section>
+    </TopoCanal>
+  )
+
+  if (dados?.fase === 'encerrada') {
+    return <>{avisos}{topo(T.encerrada)}<section className="ct-bloco"><Botao href={`${C}/participantes`} navigate={navigate}>{T.verCasas}</Botao></section></>
+  }
+  if (!dados?.participantes_publicos || !lista.length) return <>{avisos}{topo(T.semElenco)}</>
+
+  return (
+    <div className="ct-rota">
+      {avisos}
+      {topo(T.lead, !vendoCompartilhada)}
+
+      <section className="ct-bloco ct-rota__secao" aria-labelledby="rota-quero">
+        {vendoCompartilhada && (
+          <div className="ct-aviso">
+            <p>{T.compartilhada}</p>
+            <button type="button" className="ct-botao" onClick={() => { rota.substituir(compartilhada); navigate(`${C}/minha-rota`) }}>{T.salvar}</button>
+          </div>
+        )}
+        <Letreiro id="rota-quero" texto={T.queroIrTitulo} />
+        {!pendentes.length ? (
+          <div className="ct-estado ct-estado--vazio">
+            <IconeCartoon nome="quero-ir" tamanho={64} />
+            <p>{paradas.length ? T.tudoVisitado : T.queroIrVazio}</p>
+            <div className="ct-acoes">
+              <Botao href={`${C}/mapa`} navigate={navigate}><IconeCartoon nome="mapa" tamanho={32} />{T.abrirMapa}</Botao>
+              <Botao tipo="secundario" href={`${C}/participantes`} navigate={navigate}>{T.verCasas}</Botao>
+            </div>
+          </div>
+        ) : (
+          <>
+            <ol className="ct-paradas">
+              {pendentes.map((pa, i) => (
+                <li key={pa.id} className={`ct-parada${pa.ativa ? '' : ' ct-parada--saiu'}`}>
+                  <Placa numero={String(i + 1)} rotulo={T.parada} />
+                  <div className="ct-parada__cartao">
+                  <div className="ct-parada__info">
+                    {pa.ativa ? (
+                      <>
+                        <p className="ct-parada__nome"><Link href={`${C}/participantes/${pa.participante.slug}`} navigate={navigate}>{M.tituloDaUnidade(pa.participante, pa.unidade)}</Link></p>
+                        <p>{M.enderecoEmLinha(pa.unidade.endereco)}</p>
+                        {pa.unidade.combo && M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao)) && <p className="ct-nota">{M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao))}</p>}
+                      </>
+                    ) : <p className="ct-parada__nome">{T.saiu}</p>}
+                  </div>
+                  {!vendoCompartilhada && (
+                    <div className="ct-parada__acoes">
+                      {pa.ativa && <JaFui p={pa.participante} />}
+                      <button type="button" className="ct-botao ct-botao--contorno" disabled={i === 0} aria-label={`${T.subir} parada ${i + 1}`} onClick={() => rota.mover(pa.id, -1, visiveis)}>{T.subir}</button>
+                      <button type="button" className="ct-botao ct-botao--contorno" disabled={i === pendentes.length - 1} aria-label={`${T.descer} parada ${i + 1}`} onClick={() => rota.mover(pa.id, 1, visiveis)}>{T.descer}</button>
+                      <button type="button" className="ct-botao ct-botao--contorno" onClick={() => rota.remover(pa.id, pa.ativa ? pa.participante.casa.nome : 'Parada')}>{T.remover}</button>
+                    </div>
+                  )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="ct-acoes">
+              {links.map((href, i) => (
+                <Botao key={href} href={href} target="_blank" rel="noopener noreferrer"><IconeCartoon nome="como-chegar" tamanho={32} />{links.length > 1 ? T.abrirTrecho(i + 1) : T.abrirRota}</Botao>
+              ))}
+              {!vendoCompartilhada && <Botao tipo="secundario" onClick={compartilhar}><IconeCartoon nome="compartilhar" tamanho={32} />{T.compartilhar}</Botao>}
+            </div>
+            <p className="ct-nota">{T.ordem}</p>
+            {copiado && <p className="ct-nota" role="status">{copiado}</p>}
+          </>
+        )}
+      </section>
+
+      {!vendoCompartilhada && (
+        <section className="ct-bloco ct-rota__secao" aria-labelledby="rota-foi">
+          <Letreiro id="rota-foi" texto={T.jaFuiTitulo} />
+          {visitadas.length ? (
+            <ul className="ct-visitadas">
+              {visitadas.map((p) => (
+                <li key={p.slug} className="ct-visitada">
+                  <IconeCartoon nome="ja-fui" tamanho={48} />
+                  <Link className="ct-visitada__nome" href={`${C}/participantes/${p.slug}`} navigate={navigate}>{p.casa.nome}</Link>
+                  <JaFui p={p} />
+                </li>
+              ))}
+            </ul>
+          ) : <p className="ct-ni">{T.jaFuiVazio}</p>}
+          <p className="ct-nota">{T.aparelho}</p>
+        </section>
+      )}
+    </div>
   )
 }

@@ -288,6 +288,36 @@ export function filtrar (lista = [], f = {}, agora = new Date()) {
   })
 }
 
+/** "Casa · Unidade" para listas fora da ficha; unidade com o mesmo nome da casa não repete o nome. */
+export const tituloDaUnidade = (p, u) => (u?.nome && normalizar(u.nome) !== normalizar(p.casa.nome) ? `${p.casa.nome} · ${u.nome}` : p.casa.nome)
+
+/** Distância em linha reta (km) entre dois { lat, lng } — o que o Mapa mostra, dito assim. */
+export function km (a, b) {
+  const r = (x) => (x * Math.PI) / 180
+  const h = Math.sin(r(b.lat - a.lat) / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(r(b.lng - a.lng) / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.sqrt(h))
+}
+
+/**
+ * Linhas do Mapa: uma por UNIDADE — bairro e "aberto agora" valem para a unidade, não para a casa.
+ * f: { q, bairro, aberto, queroIr, jaFui }; marcas (painel do Sweet Lover): { rota: ids "quero ir", foi(p): casa visitada }.
+ * Com `posicao`, ordena pela distância (sem coordenada no fim); sem, por bairro e casa.
+ */
+export function unidadesDoMapa (lista = [], f = {}, marcas = {}, { agora = new Date(), periodo = null, posicao = null } = {}) {
+  const bairro = normalizar(f.bairro || '')
+  const rota = marcas.rota || []
+  const foiNa = marcas.foi || (() => false)
+  return filtrar(lista, { q: f.q })
+    .flatMap((p) => (p.unidades || []).map((u) => ({ p, u, quero: rota.includes(u.id), foi: foiNa(p) })))
+    .filter(({ u, quero, foi }) => (!bairro || normalizar(u.endereco?.bairro || '') === bairro)
+      && (!f.aberto || estadoAgora(u, agora, periodo).estado === 'aberto')
+      && (!f.queroIr || quero) && (!f.jaFui || foi))
+    .map((x) => ({ ...x, dist: posicao && x.u.coordenada ? km(posicao, x.u.coordenada) : null }))
+    .sort((a, b) => (posicao ? (a.dist ?? Infinity) - (b.dist ?? Infinity) : 0)
+      || (a.u.endereco?.bairro || '').localeCompare(b.u.endereco?.bairro || '', 'pt-BR')
+      || a.p.casa.nome.localeCompare(b.p.casa.nome, 'pt-BR'))
+}
+
 /** Filtros <-> query string (o catálogo guarda o estado no endereço). */
 export function filtrosDaBusca (search = '') {
   const q = new URLSearchParams(search)

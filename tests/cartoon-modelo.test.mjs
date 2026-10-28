@@ -230,3 +230,32 @@ test('Entrada: período da edição para a placa, abertura da avaliação e bair
   assert.deepEqual(M.contarBairros(lista), [{ bairro: 'Capim Macio', casas: 2 }, { bairro: 'Tirol', casas: 2 }, { bairro: 'Alecrim', casas: 1 }])
   assert.deepEqual(M.opcoesFiltro(lista).bairros, ['Alecrim', 'Capim Macio', 'Tirol'])
 })
+
+test('Mapa: uma linha por unidade; bairro e "aberto agora" valem para a unidade; quero ir e já fui do painel', () => {
+  const agora = new Date('2026-11-06T15:00:00-03:00')
+  const periodo = { inicio: '2026-11-05', fim: '2026-11-15' }
+  const lista = [
+    { slug: 'a', casa: { nome: 'Casa A' }, unidades: [
+      { id: 'u00000a', endereco: { bairro: 'Tirol' }, coordenada: { lat: -5.80, lng: -35.20 }, combo: { disponibilidade: [{ data: '2026-11-06', abre: '14:00', fecha: '18:00' }] } },
+      { id: 'u00000b', endereco: { bairro: 'capim macio' }, coordenada: { lat: -5.86, lng: -35.19, conferir: true } }] },
+    { slug: 'b', casa: { nome: 'Casa B' }, unidades: [{ id: 'u00000c', endereco: { bairro: 'Capim Macio' } }] },
+  ]
+  const ids = (linhas) => linhas.map((x) => x.u.id)
+  assert.deepEqual(ids(M.unidadesDoMapa(lista)), ['u00000b', 'u00000c', 'u00000a'], 'sem posição: por bairro, depois casa')
+  // O filtro do bairro leva só a unidade daquele bairro, sem diferença de caixa (contrato da Entrada: ?bairro=).
+  assert.deepEqual(ids(M.unidadesDoMapa(lista, { bairro: 'Capim Macio' })), ['u00000b', 'u00000c'])
+  assert.deepEqual(ids(M.unidadesDoMapa(lista, { aberto: true }, {}, { agora, periodo })), ['u00000a'])
+  const marcas = { rota: ['u00000c'], foi: (p) => p.slug === 'a' }
+  assert.deepEqual(ids(M.unidadesDoMapa(lista, { queroIr: true }, marcas)), ['u00000c'])
+  // "Já fui" é da casa: a outra unidade da Casa A também aparece como visitada.
+  assert.deepEqual(ids(M.unidadesDoMapa(lista, { jaFui: true }, marcas)), ['u00000b', 'u00000a'])
+  assert.deepEqual(ids(M.unidadesDoMapa(lista, { q: 'casa b' })), ['u00000c'])
+  // Com posição: mais perto primeiro, sem coordenada no fim; distância em linha reta.
+  const perto = M.unidadesDoMapa(lista, {}, {}, { posicao: { lat: -5.80, lng: -35.201 } })
+  assert.deepEqual(ids(perto), ['u00000a', 'u00000b', 'u00000c'])
+  assert.ok(perto[0].dist < 0.2 && perto[2].dist === null)
+  assert.equal(M.tituloDaUnidade({ casa: { nome: 'Boldfood' } }, { nome: 'BOLDFOOD' }), 'Boldfood')
+  assert.equal(M.tituloDaUnidade({ casa: { nome: 'Caroli' } }, { nome: 'Midway' }), 'Caroli · Midway')
+  assert.equal(M.tituloDaUnidade({ casa: { nome: 'Caroli' } }, {}), 'Caroli')
+  assert.ok(Math.abs(M.km({ lat: -5.8, lng: -35.2 }, { lat: -5.9, lng: -35.2 }) - 11.1) < 0.1)
+})

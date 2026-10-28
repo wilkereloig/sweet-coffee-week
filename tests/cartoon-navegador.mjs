@@ -17,7 +17,9 @@
  *     casa com dado fino (itens sem nome, modos em branco) sem título vazio e com "não informado".
  *  5. ESTADOS — casa inexistente, sem elenco divulgado, falha de rede (nunca demo), encerrada.
  *  6. CATÁLOGO — filtro na URL, voltar preserva filtro e posição.
- *  7. MINHA ROTA — adicionar, contador, persistir no recarregar, remover.
+ *  7. MINHA ROTA (painel do Sweet Lover) — "quero ir" na ficha, contador, persistir no recarregar, progresso
+ *     "x de N casas", "já fui" tira a parada da lista e põe a casa em "Já fui" (e desfaz), remover, rota antiga
+ *     (versão 1) e storage quebrado.
  *  8. AVALIAÇÃO — formulário só aberto; sucesso só com resposta ok; erro preserva as notas.
  *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
@@ -25,6 +27,9 @@
  * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, lugar vazio dos
  *     olhinhos), como funciona, mural das casas, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
  *     sem elenco, falha de rede e edição encerrada.
+ * 11. MAPA — topo no canal Rota; uma linha por unidade; sem coordenada = "em conferência"; aproximada dita assim
+ *     na lista e no marcador; ?bairro= (contrato da Entrada) filtra a unidade; quero ir e já fui como filtro;
+ *     "perto de mim" com recusa honesta e com posição (distância em linha reta).
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -58,8 +63,8 @@ async function waitForServer(url, ms = 30000) {
 try { await fetch(`${BASE}/`, { signal: AbortSignal.timeout(1500) }); console.error(`✗ porta ${PORT} ocupada`); process.exit(1) } catch { /* livre */ }
 
 /** Contexto com a projeção interceptada. `edicao` = resposta de edicao_publica (ou 'falha'). */
-async function contexto (nav, { w = 1440, h = 900, edicao = DEMO_EDICAO, envio = 'ok' } = {}) {
-  const ctx = await nav.newContext({ viewport: { width: w, height: h } })
+async function contexto (nav, { w = 1440, h = 900, edicao = DEMO_EDICAO, envio = 'ok', opcoes = {} } = {}) {
+  const ctx = await nav.newContext({ viewport: { width: w, height: h }, ...opcoes })
   await ctx.route('**/rest/v1/rpc/**', async (route) => {
     const fn = route.request().url().split('/rpc/')[1].split('?')[0]
     const corpo = JSON.parse(route.request().postData() || '{}')
@@ -228,7 +233,8 @@ try {
     await ir(c.page, '/cartoon/participantes/demo-casa-aurora')
     await c.page.waitForSelector('#combo')
     const e = await c.page.locator('.ct-part').innerText()
-    if (e.includes('R$ 38,90') || e.includes('Adicionar à Minha rota') && e.includes('Horário no festival')) falha('edição encerrada ainda mostra preço ou horário')
+    if (e.includes('R$ 38,90') || e.includes('Horário no festival')) falha('edição encerrada ainda mostra preço ou horário')
+    if (await c.page.locator('.ct-part .ct-marca').count()) falha('edição encerrada ainda mostra "Quero ir"/"Já fui"')
     if (!e.includes('terminou')) falha('edição encerrada sem aviso')
     await c.ctx.close()
     if (falhas.length === antes) ok('sem elenco, slug sob elenco fechado, falha de rede (sem demo) e edição encerrada')
@@ -260,27 +266,52 @@ try {
     await ctx.close()
   }
 
-  console.log('\n7 · Minha rota')
+  console.log('\n7 · Minha rota (painel do Sweet Lover)')
   {
-    const { ctx, page } = await contexto(nav)
+    const { ctx, page, erros } = await contexto(nav)
     const antes = falhas.length
+    const CHAVE = 'scw:edicao:2026.2:rota'
+    const prog = async () => (await page.locator('.ct-progresso__texto').innerText()).replace(/\s+/g, ' ').trim()
     await ir(page, '/cartoon/participantes/demo-casa-aurora')
     await page.waitForSelector('.ct-unidade')
-    await page.locator('.ct-unidade').first().locator('button:has-text("Adicionar à Minha rota")').click()
+    const quero = page.locator('.ct-unidade').first().locator('button:has-text("Quero ir")')
+    await quero.click()
     await page.waitForSelector('.ct-topo__nav .ct-contador')
     if ((await page.locator('.ct-topo__nav .ct-contador').textContent()) !== '1') falha('contador da rota não foi a 1')
-    await page.locator('.ct-unidade').first().locator('button:has-text("Na sua rota")').waitFor()
+    if ((await quero.getAttribute('aria-pressed')) !== 'true') falha('"Quero ir" não ficou marcado (aria-pressed)')
+    if ((await quero.innerText()).trim() !== 'Quero ir') falha('"Quero ir" trocou de nome ao marcar (o estado é o aria-pressed)')
     await ir(page, '/cartoon/minha-rota')
     await page.reload({ waitUntil: 'networkidle' })
     if ((await page.locator('.ct-parada').count()) !== 1) falha('rota não persistiu no recarregar')
+    if (!(await page.locator('.ct-canal--rota h1').count())) falha('Minha rota: h1 fora do topo no canal Rota')
+    if ((await page.locator('.ct-parada .ct-placa .ct-placa__numero').innerText()).trim() !== '1') falha('parada sem a placa numerada')
     if (!(await page.locator('a:has-text("Abrir a rota no Google Maps")').count())) falha('sem link de rota externa')
     if ((await page.locator('.ct-rota').innerText()).match(/melhor caminho|otimizad/i)) falha('rota promete otimização')
+    // Demonstração: 3 casas com unidade.
+    if ((await prog()) !== '0 de 3 casas visitadas') falha(`progresso inicial "${await prog()}"`)
+    await page.click('.ct-parada button:has-text("Já fui")')
+    if ((await page.locator('.ct-parada').count()) !== 0) falha('"já fui" não tirou a parada de "Quero ir"')
+    if ((await page.locator('.ct-visitada').allInnerTexts()).join('|').indexOf('[DEMO] Casa Aurora') < 0) falha('casa visitada não aparece em "Já fui"')
+    if ((await prog()) !== '1 de 3 casas visitadas' || (await page.locator('progress.ct-progresso__barra').getAttribute('value')) !== '1') falha(`progresso depois do "já fui": "${await prog()}"`)
+    await page.reload({ waitUntil: 'networkidle' })
+    if ((await prog()) !== '1 de 3 casas visitadas') falha('"já fui" não persistiu no recarregar')
+    const salvo = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)), CHAVE)
+    if (salvo?.versao !== 2 || !salvo.visitadas?.includes('udemo1') || !salvo.visitadas?.includes('udemo2')) falha(`storage do painel: ${JSON.stringify(salvo)}`)
+    await page.click('.ct-visitada button:has-text("Já fui")')
+    if ((await page.locator('.ct-parada').count()) !== 1 || (await prog()) !== '0 de 3 casas visitadas') falha('desfazer o "já fui" não devolveu a parada')
     await page.click('.ct-parada button:has-text("Remover")')
     if ((await page.locator('.ct-parada').count()) !== 0) falha('remover não tirou a parada')
-    await page.evaluate(() => localStorage.setItem('scw:edicao:2026.2:rota', JSON.stringify({ versao: 1, unidades: ['u000000'] })))
+    // Rota antiga (versão 1, só unidades): lida como está; unidade despublicada sinalizada.
+    await page.evaluate((k) => localStorage.setItem(k, JSON.stringify({ versao: 1, unidades: ['udemo3', 'u000000'] })), CHAVE)
     await page.reload({ waitUntil: 'networkidle' })
+    if ((await page.locator('.ct-parada').count()) !== 2) falha('rota versão 1 não foi lida')
     if (!(await page.locator('.ct-parada--saiu').count())) falha('unidade despublicada sumiu calada da rota')
-    if (falhas.length === antes) ok('adicionar, contador, persistir, remover, unidade que saiu sinalizada')
+    // Storage quebrado: a página abre vazia, sem erro.
+    await page.evaluate((k) => localStorage.setItem(k, '{quebrado'), CHAVE)
+    await page.reload({ waitUntil: 'networkidle' })
+    if ((await page.locator('.ct-parada').count()) !== 0 || !(await page.locator('.ct-rota').innerText()).includes('Sua lista está vazia')) falha('storage quebrado não abriu a lista vazia')
+    if (erros.length) falha(`Minha rota: console ${erros.slice(0, 2).join(' | ')}`)
+    if (falhas.length === antes) ok('quero ir, contador, persistir, placa numerada, progresso, já fui (e desfazer), remover, rota v1, saiu da edição, storage quebrado')
     await ctx.close()
   }
 
@@ -318,7 +349,7 @@ try {
   console.log('\n9 · casca e larguras')
   for (const [w, h] of [[360, 800], [1440, 900]]) {
     const { ctx, page } = await contexto(nav, { w, h })
-    for (const p of ['/cartoon', '/cartoon/participantes', '/cartoon/participantes/demo-casa-aurora', '/cartoon/mapa']) {
+    for (const p of ['/cartoon', '/cartoon/participantes', '/cartoon/participantes/demo-casa-aurora', '/cartoon/mapa', '/cartoon/minha-rota']) {
       await ir(page, p)
       await page.waitForTimeout(300)
       const m = await page.evaluate(() => ({
@@ -492,6 +523,62 @@ try {
     await c.ctx.close()
     if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, lugar dos olhinhos vazio), como funciona, mural, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
   }
+
+  console.log('\n11 · Mapa')
+  {
+    const antes = falhas.length
+    // Uma coordenada aproximada (como as do retrato: Nominatim por rua, "a conferir") na Bico de Pena.
+    const ed = clone(DEMO_EDICAO)
+    ed.participantes[1].unidades[0].coordenada = { lat: -5.876, lng: -35.178, conferir: true, precisao: 'rua' }
+    // Estilo mínimo no lugar dos tiles: o MapLibre sobe e os marcadores aparecem (rota registrada depois vence).
+    const estilo = { version: 8, sources: {}, layers: [{ id: 'fundo', type: 'background', paint: { 'background-color': '#FDF0DE' } }] }
+    let c = await contexto(nav, { edicao: ed })
+    await c.ctx.route('**/tiles.openfreemap.org/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(estilo) }))
+    await ir(c.page, '/cartoon/mapa')
+    await c.page.waitForSelector('.ct-mapa__item')
+    const item = (id) => c.page.locator(`#mapa-${id}`)
+    if (!(await c.page.locator('.ct-canal--rota h1').count())) falha('Mapa: h1 fora do topo no canal Rota')
+    if ((await c.page.locator('.ct-mapa__item').count()) !== 4) falha(`Mapa: ${await c.page.locator('.ct-mapa__item').count()} linhas (uma por unidade = 4)`)
+    if (!(await item('udemo4').innerText()).includes('Localização no mapa em conferência.')) falha('unidade sem coordenada sem "em conferência"')
+    if (!(await item('udemo3').innerText()).includes('Ponto aproximado no mapa')) falha('coordenada aproximada não dita na lista')
+    if ((await item('udemo1').innerText()).includes('aproximado')) falha('coordenada conferida dita como aproximada')
+    await c.page.waitForSelector('.ct-marcador', { timeout: 8000 }).catch(() => {})
+    const marcadores = await c.page.evaluate(() => [...document.querySelectorAll('button.ct-marcador')].map((b) => ({ nome: b.getAttribute('aria-label'), aprox: b.classList.contains('ct-marcador--aprox'), alto: b.getBoundingClientRect().height })))
+    if (marcadores.length !== 2) falha(`Mapa: ${marcadores.length} marcadores (as 2 unidades com coordenada)`)
+    const aprox = marcadores.find((m) => m.aprox)
+    if (!aprox || !/ponto aproximado/.test(aprox.nome) || marcadores.filter((m) => m.aprox).length !== 1) falha(`marcador aproximado: ${JSON.stringify(marcadores)}`)
+    if (marcadores.some((m) => m.alto < 44)) falha('marcador com alvo < 44px')
+    // Quero ir e já fui na linha; os filtros mostram só o que o visitante marcou.
+    await item('udemo3').locator('button:has-text("Quero ir")').click()
+    await item('udemo1').locator('button:has-text("Já fui")').click()
+    if ((await item('udemo2').locator('button:has-text("Já fui")').getAttribute('aria-pressed')) !== 'true') falha('"já fui" não marcou a casa inteira (as duas unidades)')
+    if (!(await c.page.locator('button.ct-marcador--quero').count()) || (await c.page.locator('button.ct-marcador--foi').count()) !== 1) falha('marcadores sem o estado de "quero ir"/"já fui"')
+    await c.page.click('.ct-mapa__filtros button:has-text("Quero ir")')
+    if (JSON.stringify(await c.page.locator('.ct-mapa__item').evaluateAll((l) => l.map((x) => x.id))) !== '["mapa-udemo3"]') falha('filtro "Quero ir"')
+    await c.page.click('.ct-mapa__filtros button:has-text("Quero ir")')
+    await c.page.click('.ct-mapa__filtros button:has-text("Já fui")')
+    if ((await c.page.locator('.ct-mapa__item').count()) !== 2) falha('filtro "Já fui" (as duas unidades da casa)')
+    // "Perto de mim" sem permissão: mensagem honesta, a lista segue.
+    await c.page.click('button:has-text("Perto de mim")')
+    await c.page.waitForSelector('text=Sem acesso à sua localização', { timeout: 12000 }).catch(() => falha('recusa da localização sem mensagem'))
+    await c.ctx.close()
+    // ?bairro= (contrato da Entrada): só as unidades daquele bairro, e o seletor mostra o bairro.
+    c = await contexto(nav)
+    await ir(c.page, '/cartoon/mapa?bairro=Tirol')
+    await c.page.waitForSelector('.ct-mapa__item')
+    if (JSON.stringify(await c.page.locator('.ct-mapa__item').evaluateAll((l) => l.map((x) => x.id).sort())) !== '["mapa-udemo1","mapa-udemo4"]') falha('?bairro=Tirol não filtrou as unidades')
+    if ((await c.page.locator('.ct-mapa__filtros select').inputValue()) !== 'Tirol') falha('seletor de bairro não mostra Tirol')
+    await c.ctx.close()
+    // Com a posição: ordena pela distância em linha reta.
+    c = await contexto(nav, { opcoes: { permissions: ['geolocation'], geolocation: { latitude: -5.876, longitude: -35.178 } } })
+    await ir(c.page, '/cartoon/mapa')
+    await c.page.click('button:has-text("Perto de mim")')
+    await c.page.waitForSelector('text=Ordenado pela distância em linha reta', { timeout: 12000 }).catch(() => falha('posição concedida sem ordenar'))
+    if (!(await c.page.locator('.ct-mapa__item').first().innerText()).includes('em linha reta')) falha('distância sem "em linha reta"')
+    await c.ctx.close()
+    if (falhas.length === antes) ok('Mapa: canal Rota, linha por unidade, "em conferência", aproximada na lista e no marcador, quero ir/já fui, ?bairro=, perto de mim (recusa e posição)')
+  }
+
 } finally {
   if (nav) await nav.close()
   killTree(preview.pid)

@@ -4,7 +4,8 @@
  * Topo no canal Elenco com o letreiro desenhado e a contagem real; o cartão tem a foto do combo
  * como protagonista e, sem foto, a logo desenhada no Quadro ("Foto em produção").
  * Filtros moram na query string (replaceState) e só aparecem os que o dado responde; a posição
- * de rolagem volta quando o visitante retorna de uma casa.
+ * de rolagem volta quando o visitante retorna de uma casa. "Quero ir" e "Já fui" ficam abaixo do cartão,
+ * fora do link (área própria, nunca botão dentro de link).
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
@@ -13,9 +14,10 @@ import { letreiroEdicao, kitTemaEdicao } from '../../../data/imageLibrary'
 import { Link, Foto, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
-import { Placa } from '../../componentes/sistema/pecas.jsx'
+import { Placa, Chip } from '../../componentes/sistema/pecas.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
+import { QueroIrCasa, JaFui } from '../MarcasLover.jsx'
 import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM } from '../textos.js'
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
@@ -43,7 +45,7 @@ function selosDaCasa (p) {
   return [...modos, ...restricoes]
 }
 
-function Cartao ({ p, modo, navigate }) {
+function Cartao ({ p, modo, navigate, encerrada }) {
   const base = modo === 'combos' ? 'combos' : 'participantes'
   const us = p.unidades || []
   const bairros = [...new Map(us.map((u) => u.endereco?.bairro).filter(Boolean).map((b) => [M.normalizar(b), b])).values()]
@@ -79,16 +81,13 @@ function Cartao ({ p, modo, navigate }) {
           </ul>
         )}
       </Link>
+      {!encerrada && (p.unidades || []).length > 0 && (
+        <div className="ct-cartao__marcas">
+          <QueroIrCasa p={p} navigate={navigate} />
+          <JaFui p={p} />
+        </div>
+      )}
     </li>
-  )
-}
-
-/** Chip de filtro: ícone da edição + texto (o ícone nunca vai sozinho). */
-function Chip ({ ativo, icone, onClick, children }) {
-  return (
-    <button type="button" className={`ct-chip${icone ? ' ct-chip--icone' : ''}`} aria-pressed={ativo} onClick={onClick}>
-      {icone && <IconeCartoon nome={icone} tamanho={32} />}<span>{children}</span>
-    </button>
   )
 }
 
@@ -203,7 +202,7 @@ export function Catalogo ({ modo, navigate, dados }) {
 
         {filtrados.length ? (
           <ul className={`ct-elenco ct-elenco--${modo}`}>
-            {filtrados.map((p) => <Cartao key={p.slug} p={p} modo={modo} navigate={navigate} />)}
+            {filtrados.map((p) => <Cartao key={p.slug} p={p} modo={modo} navigate={navigate} encerrada={dados.fase === 'encerrada'} />)}
           </ul>
         ) : (
           <div className="ct-estado ct-estado--vazio">

@@ -4,6 +4,7 @@
  */
 import React from 'react'
 import { Link } from '../base.jsx'
+import { IconeCartoon } from './IconeCartoon.jsx'
 
 /** Fita com o nome da seção: amarela; `cor="azul"` no canal Serviço ("como funciona"), em texto grande. */
 export function Etiqueta ({ children, as: Tag = 'p', cor, ...resto }) {
@@ -47,6 +48,15 @@ export function Botao ({ tipo = 'primario', href, navigate, children, className:
 /** Quadro branco com fita nos cantos, para logo ou foto. */
 export function Quadro ({ children, fita = true, className = '' }) {
   return <div className={`ct-quadro${fita ? ' ct-quadro--fita' : ''} ${className}`.trim()}>{children}</div>
+}
+
+/** Chip de alternância (filtro do catálogo e do mapa, "Quero ir"/"Já fui"): ícone da edição + texto, nunca o ícone sozinho. */
+export function Chip ({ ativo, icone, onClick, children, className = '' }) {
+  return (
+    <button type="button" className={`ct-chip${icone ? ' ct-chip--icone' : ''} ${className}`.trim()} aria-pressed={ativo} onClick={onClick}>
+      {icone && <IconeCartoon nome={icone} tamanho={32} />}<span>{children}</span>
+    </button>
+  )
 }
 
 const BARRAS = ['creme', 'amarelo', 'turquesa', 'rosa', 'vermelho', 'azul', 'roxo']

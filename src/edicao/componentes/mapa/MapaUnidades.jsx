@@ -6,10 +6,12 @@
  * tiles vetoriais, por isso MapLibre GL (o servidor público do OpenStreetMap é
  * "best-effort" e avisa que serviço comercial pode perder o acesso).
  * Trocar de provedor = trocar ESTILO abaixo; as páginas só conhecem a interface
- * { pontos, selecionada, aoSelecionar }.
+ * { pontos, selecionada, aoSelecionar, voce }.
  *
  * Acessibilidade: o mapa é complementar — toda função existe na lista ao lado.
  * Cada marcador é um <button> com nome; a seleção sincroniza com a lista.
+ * Ponto aproximado (`aproximada`: coordenada "a conferir" do retrato) tem marcador próprio e diz isso no nome:
+ * nunca se passa por localização exata. "Quero ir" / "Já fui" mudam o marcador sem refazer o enquadramento.
  */
 import React from 'react'
 import maplibregl from 'maplibre-gl'
@@ -18,10 +20,13 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 const ESTILO = 'https://tiles.openfreemap.org/styles/liberty'
 const NATAL = [-35.21, -5.81]
 
-export default function MapaUnidades ({ pontos, selecionada, aoSelecionar }) {
+const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quero && 'quero ir', p.foi && 'já fui'].filter(Boolean).join(', ')
+
+export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce = null }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const marcadores = React.useRef(new Map())
+  const marcaVoce = React.useRef(null)
   const [erro, setErro] = React.useState(false)
 
   React.useEffect(() => {
@@ -32,9 +37,10 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar }) {
     mapa.current = m
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
     m.on('error', (e) => { if (e?.error?.status >= 400 || /style/i.test(String(e?.error?.message || ''))) setErro(true) })
-    return () => { m.remove(); mapa.current = null; marcadores.current.clear() }
+    return () => { m.remove(); mapa.current = null; marcadores.current.clear(); marcaVoce.current = null }
   }, [])
 
+  // Marcadores e enquadramento: só quando o CONJUNTO de unidades muda (filtro), não a cada marca.
   React.useEffect(() => {
     const m = mapa.current
     if (!m) return
@@ -44,8 +50,6 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar }) {
     for (const p of pontos) {
       const el = document.createElement('button')
       el.type = 'button'
-      el.className = 'ct-marcador'
-      el.setAttribute('aria-label', p.titulo)
       el.addEventListener('click', () => aoSelecionar(p.id))
       const mk = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(m)
       marcadores.current.set(p.id, mk)
@@ -55,12 +59,23 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar }) {
     else if (pontos.length === 1) m.jumpTo({ center: [pontos[0].lng, pontos[0].lat], zoom: 15 })
   }, [pontos.map((p) => p.id).join(), aoSelecionar])
 
+  // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome. classList, não
+  // className: o MapLibre põe as classes de posicionamento dele no mesmo elemento.
   React.useEffect(() => {
-    for (const [id, mk] of marcadores.current) {
-      const el = mk.getElement()
-      el.classList.toggle('is-sel', id === selecionada)
-      el.setAttribute('aria-pressed', String(id === selecionada))
+    for (const p of pontos) {
+      const el = marcadores.current.get(p.id)?.getElement()
+      if (!el) continue
+      el.classList.add('ct-marcador')
+      el.classList.toggle('ct-marcador--aprox', !!p.aproximada)
+      el.classList.toggle('ct-marcador--quero', !!p.quero)
+      el.classList.toggle('ct-marcador--foi', !!p.foi)
+      el.classList.toggle('is-sel', p.id === selecionada)
+      el.setAttribute('aria-label', nomeDoPonto(p))
+      el.setAttribute('aria-pressed', String(p.id === selecionada))
     }
+  })
+
+  React.useEffect(() => {
     const mk = marcadores.current.get(selecionada)
     if (mk && mapa.current) {
       const reduzir = matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -68,6 +83,18 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar }) {
     }
   }, [selecionada])
 
-  if (erro) return <p className="ct-nota" role="alert">O mapa não carregou. A lista ao lado tem todas as unidades.</p>
-  return <div ref={caixa} className="ct-mapa__mapa" role="region" aria-label="Mapa das unidades (a lista ao lado tem as mesmas informações)" />
+  // "Perto de mim": a posição do visitante só vira um ponto no mapa dele; não sai do navegador.
+  React.useEffect(() => {
+    marcaVoce.current?.remove()
+    marcaVoce.current = null
+    if (!voce || !mapa.current) return
+    const el = document.createElement('span')
+    el.className = 'ct-marcador ct-marcador--voce'
+    el.setAttribute('role', 'img')
+    el.setAttribute('aria-label', 'Você está aqui')
+    marcaVoce.current = new maplibregl.Marker({ element: el }).setLngLat([voce.lng, voce.lat]).addTo(mapa.current)
+  }, [voce?.lat, voce?.lng])
+
+  if (erro) return <p className="ct-nota" role="alert">O mapa não carregou. A lista tem todas as unidades.</p>
+  return <div ref={caixa} className="ct-mapa__mapa" role="region" aria-label="Mapa das unidades (a lista tem as mesmas informações)" />
 }

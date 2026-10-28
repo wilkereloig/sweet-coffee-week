@@ -151,8 +151,6 @@ export const PARTICIPANTE = {
   whatsapp: 'Conversar no WhatsApp',
   verNoMapa: 'Ver no mapa',
   localizacaoConferencia: 'Localização no mapa em conferência.',
-  rotaAdicionar: 'Adicionar à Minha rota',
-  rotaNaRota: 'Na sua rota',
   galeriaTitulo: 'Galeria',
   galeriaReserva: 'Galeria em produção',
   avaliarTitulo: 'Avalie sua experiência',
@@ -164,11 +162,77 @@ export const PARTICIPANTE = {
 }
 
 export const CENA_TEXTO = {
-  mapa: { titulo: 'Mapa', apoio: 'As casas e unidades da Cartoon.' },
-  'minha-rota': { titulo: 'Minha rota', apoio: 'As paradas que você escolheu, na ordem que você quiser.' },
   avaliar: { titulo: 'Avaliar', apoio: 'Conte como foi o combo que você provou.' },
   premiacao: { titulo: 'Premiação', apoio: 'O Sweet Awards da Cartoon.' },
   inexistente: { titulo: 'Não encontramos essa página da Cartoon', apoio: 'Confira o endereço ou volte para a entrada da edição.' },
+}
+
+/* Painel do Sweet Lover (§10.14): "quero ir" é da UNIDADE (vira parada da Minha rota); "já fui" é da CASA
+   (vira progresso). Rótulo fixo: o estado vai no aria-pressed e na cor, não troca o nome do botão. */
+export const LOVER = {
+  queroIr: 'Quero ir',
+  jaFui: 'Já fui',
+  escolher: (n) => `escolha entre ${n} unidades`,
+  naLista: (n) => (n === 1 ? '1 unidade na lista' : `${n} unidades na lista`),
+}
+
+export const MAPA = {
+  titulo: 'Mapa',
+  lead: 'Todas as casas da Cartoon num mapa só. Marque onde quer ir e onde já foi: fica salvo neste aparelho.',
+  busca: 'Buscar casa ou bairro',
+  bairro: 'Bairro',
+  todos: 'Todos os bairros',
+  mostrar: 'Mostrar',
+  aberto: 'Aberto agora',
+  pertoDeMim: 'Perto de mim',
+  pedindo: 'Pedindo sua localização…',
+  ordenado: 'Ordenado pela distância em linha reta até você. Sua posição não sai deste aparelho.',
+  negada: 'Sem acesso à sua localização. A lista segue por bairro.',
+  contagem: (n) => (n === 1 ? '1 unidade' : `${n} unidades`),
+  limpar: 'Limpar filtros',
+  nenhuma: 'Nenhuma unidade com esses filtros.',
+  verMapa: (n) => `Ver no mapa (${n})`,
+  carregando: 'Carregando o mapa…',
+  semMapa: 'As localizações no mapa estão em conferência. Use a lista.',
+  falhou: 'O mapa não carregou. A lista tem todas as unidades.',
+  semCoordenada: 'Localização no mapa em conferência.',
+  aproximada: 'Ponto aproximado no mapa, em conferência.',
+  aproximadaRua: 'Ponto aproximado no mapa: a rua confere, o número ainda não.',
+  legenda: { conferida: 'Localização conferida', aproximada: 'Ponto aproximado, em conferência', quero: 'Quero ir', foi: 'Já fui', voce: 'Você' },
+  distancia: (d, aproximada) => `${aproximada ? 'cerca de ' : ''}${d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1).replace('.', ',')} km`} em linha reta`,
+  verCasa: 'Ver a casa',
+  comoChegar: 'Como chegar',
+  encerrada: 'A edição terminou. As casas seguem no catálogo como registro.',
+  verCasas: 'Ver as casas',
+}
+
+export const ROTA = {
+  titulo: 'Minha rota',
+  lead: 'Sua lista de casas para provar e as que você já visitou. Fica salva neste aparelho, sem conta.',
+  progresso: (x, n) => `${x} de ${n} ${n === 1 ? 'casa' : 'casas'}`,
+  progressoRotulo: 'visitadas',
+  queroIrTitulo: 'Quero ir',
+  queroIrVazio: 'Sua lista está vazia. No mapa, no catálogo ou na página de cada casa, toque em "Quero ir".',
+  tudoVisitado: 'Você já visitou todas as casas da sua lista.',
+  parada: 'parada',
+  subir: 'Subir', descer: 'Descer', remover: 'Remover',
+  saiu: 'Esta unidade saiu da edição.',
+  abrirRota: 'Abrir a rota no Google Maps',
+  abrirTrecho: (i) => `Abrir trecho ${i} no Google Maps`,
+  compartilhar: 'Compartilhar a rota',
+  copiado: 'Link copiado.',
+  copie: (url) => `Copie o link: ${url}`,
+  ordem: 'A ordem é a que você escolheu. O Google Maps calcula o trajeto entre as paradas.',
+  jaFuiTitulo: 'Já fui',
+  jaFuiVazio: 'Provou um combo? Toque em "Já fui" na casa: ela entra aqui e conta no seu progresso.',
+  desfazer: 'Desfazer',
+  aparelho: 'Salvo só neste aparelho e neste navegador, sem conta. Limpar os dados do navegador apaga a lista.',
+  compartilhada: 'Esta é uma rota compartilhada com você.',
+  salvar: 'Salvar como minha rota',
+  verCasas: 'Ver as casas',
+  abrirMapa: 'Abrir o mapa',
+  semElenco: 'O elenco desta edição será revelado em breve.',
+  encerrada: 'A edição terminou. As casas seguem no catálogo como registro.',
 }
 
 export const RODAPE = {

@@ -21,6 +21,7 @@ import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { Etiqueta, Placa, Botao, Quadro } from '../../componentes/sistema/pecas.jsx'
 import { PARTICIPANTE as T, FASE_TEXTO, TIPO_ORDEM, ATENDIMENTO, RESTRICAO } from '../textos.js'
 import { useRota } from '../contexto.js'
+import { QueroIr, QueroIrCasa, JaFui } from '../MarcasLover.jsx'
 
 /** Link http(s) de verdade (o dado já gravado antes da validação do painel não é confiável). */
 const linkSeguro = (c) => /^https?:\/\//i.test(String(c.link || '').trim())
@@ -95,7 +96,6 @@ function Dias ({ linhas, periodo }) {
 function Unidade ({ u, casa, navigate, comCombo, rota, periodo }) {
   const est = M.estadoAgora(u, undefined, periodo)
   const agora = M.textoEstado(est)
-  const naRota = !!rota && rota.tem(u.id)
   const titulo = u.nome || u.endereco?.bairro || casa.nome
   const comoChegar = M.linkComoChegar(u)
   return (
@@ -108,12 +108,7 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo }) {
         {comCombo && u.combo?.observacao && <p className="ct-unidade__obs">{u.combo.observacao}</p>}
         {(!u.coordenada || u.coordenada.conferir) && <p className="ct-unidade__obs">{T.localizacaoConferencia}</p>}
         <div className="ct-acoes">
-          {rota && (
-            <button type="button" className={`ct-botao${naRota ? ' ct-botao--feito' : ''}`} aria-pressed={naRota}
-              onClick={() => (naRota ? rota.remover(u.id, titulo) : rota.adicionar(u.id, titulo))}>
-              <IconeCartoon nome={naRota ? 'ja-fui' : 'rota'} tamanho={32} />{naRota ? T.rotaNaRota : T.rotaAdicionar}
-            </button>
-          )}
+          {rota && <QueroIr u={u} nome={M.tituloDaUnidade({ casa }, u)} />}
           {comoChegar && <Botao tipo="secundario" href={comoChegar} target="_blank" rel="noopener noreferrer"><IconeCartoon nome="como-chegar" tamanho={32} />{T.comoChegar}</Botao>}
           {u.whatsapp && <Botao tipo="secundario" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer"><IconeCartoon nome="conversar" tamanho={32} />{T.whatsapp}</Botao>}
           {u.coordenada && navigate && <Botao tipo="secundario" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}><IconeCartoon nome="mapa" tamanho={32} />{T.verNoMapa}</Botao>}
@@ -186,7 +181,9 @@ export function Participante ({ slug, foco, navigate, edicao }) {
   React.useEffect(() => {
     if (res.estado !== 'publicado') return
     document.title = `${foco === 'combo' ? 'Combo da ' : ''}${p.casa.nome} · Sweet & Coffee Week Cartoon`
-    if (foco === 'combo') requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('combo')?.scrollIntoView({ block: 'start' })))
+    // /combos/:slug abre no combo; "Quero ir" de casa com várias unidades, vindo do catálogo, abre nas unidades.
+    const alvo = foco === 'combo' ? 'combo' : new URLSearchParams(location.search).get('ver') === 'unidades' ? 'unidades' : ''
+    if (alvo) requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(alvo)?.scrollIntoView({ block: 'start' })))
   }, [res.estado, p, foco])
 
   if (res.estado === 'carregando') return <Carregando texto="Carregando a casa…" />
@@ -210,10 +207,11 @@ export function Participante ({ slug, foco, navigate, edicao }) {
  * A ficha em si — só apresentação, a partir do JSON público. É a MESMA que a
  * prévia do painel mostra (painel-app importa daqui): o que a marca vê antes de
  * enviar é o que o site mostraria. Sem `navigate`, os links internos somem
- * (prévia); sem `rota`, o botão da Minha rota some.
+ * (prévia); sem `rota` (ou com a edição encerrada), "Quero ir" e "Já fui" somem.
  */
-export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota = null, desatualizado = false, demo = false, retrato = null, periodo = null }) {
+export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, navigate = null, rota: rotaRecebida = null, desatualizado = false, demo = false, retrato = null, periodo = null }) {
   const encerrada = fase === 'encerrada'
+  const rota = encerrada ? null : rotaRecebida
   const combo = p.combo
   const unidades = p.unidades || []
   const itens = [...(combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
@@ -247,6 +245,9 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
               <ul className="ct-selos ct-ficha__selos" aria-label={T.atendimentoTitulo}>
                 {selos.map((k) => <li key={k} className="ct-selo"><IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={32} /><span>{ATENDIMENTO[k].rotulo}</span></li>)}
               </ul>
+            )}
+            {rota && unidades.length > 0 && (
+              <div className="ct-ficha__marcas"><QueroIrCasa p={p} navigate={navigate} naFicha /><JaFui p={p} /></div>
             )}
           </div>
         </div>

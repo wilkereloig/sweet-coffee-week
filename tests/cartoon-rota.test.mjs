@@ -15,6 +15,10 @@ test('adicionar não duplica; remover e mover respeitam a ordem do visitante', (
   assert.deepEqual(R.mover(ids, 'u000002', -1), ['u000002', 'u000001'])
   assert.deepEqual(R.mover(ids, 'u000001', -1), ids)
   assert.deepEqual(R.remover(ids, 'u000001'), ['u000002'])
+  // Com uma parada escondida (casa já visitada) no meio, a troca é com a vizinha VISÍVEL.
+  const tres = ['u000001', 'u000002', 'u000003']
+  assert.deepEqual(R.mover(tres, 'u000003', -1, ['u000001', 'u000003']), ['u000003', 'u000002', 'u000001'])
+  assert.deepEqual(R.mover(tres, 'u000002', 1, ['u000001', 'u000003']), tres, 'parada fora das visíveis não se move')
 })
 
 test('persistência por edição e armazenamento quebrado', () => {
@@ -28,6 +32,76 @@ test('persistência por edição e armazenamento quebrado', () => {
   assert.deepEqual(R.lerRota('2026.2', explode), [])
   assert.doesNotThrow(() => R.gravarRota('2026.2', ['x'], explode))
   assert.equal(R.chaveRota('2026.2').includes('sweet-lovers'), false)
+})
+
+// Painel do Sweet Lover (§10.14): "quero ir" + "já fui", no aparelho, por edição.
+const casa = (slug, ...us) => ({ slug, casa: { nome: slug }, unidades: us.map((id) => ({ id })) })
+
+test('já fui marca e desmarca a casa inteira; progresso conta casas com unidade', () => {
+  const a = casa('a', 'u00000a', 'u00000b'); const b = casa('b', 'u00000c'); const semUnidade = casa('c')
+  let vis = R.alternarVisita([], a)
+  assert.deepEqual(vis, ['u00000a', 'u00000b'])
+  assert.equal(R.visitada(a, vis), true)
+  assert.equal(R.visitada(b, vis), false)
+  assert.deepEqual(R.progresso(vis, [a, b, semUnidade]), { feitas: 1, total: 2 })
+  // Uma unidade só marcada (de outra aba, ou de unidade nova) já vale a casa; desmarcar tira todas.
+  assert.equal(R.visitada(a, ['u00000b']), true)
+  assert.deepEqual(R.alternarVisita(['u00000b', 'u00000c'], a), ['u00000c'])
+  vis = R.alternarVisita(vis, a)
+  assert.deepEqual(vis, [])
+  assert.deepEqual(R.progresso([], []), { feitas: 0, total: 0 })
+})
+
+test('painel grava as duas listas e quero ir não apaga já fui', () => {
+  const s = memoria()
+  R.gravarPainel('2026.2', { unidades: ['u000001'], visitadas: ['u000002'] }, s)
+  assert.deepEqual(R.lerPainel('2026.2', s), { unidades: ['u000001'], visitadas: ['u000002'] })
+  R.gravarRota('2026.2', ['u000001', 'u000003'], s)
+  assert.deepEqual(R.lerPainel('2026.2', s), { unidades: ['u000001', 'u000003'], visitadas: ['u000002'] })
+  assert.equal(JSON.parse(s.getItem(R.chaveRota('2026.2'))).versao, 2)
+  assert.deepEqual(R.lerPainel('2027.1', s), { unidades: [], visitadas: [] })
+})
+
+test('rota antiga (versão 1, só unidades) é lida e vira versão 2 na próxima gravação', () => {
+  const s = memoria()
+  s.setItem(R.chaveRota('2026.2'), JSON.stringify({ versao: 1, unidades: ['u000001', 'u000001', 7, 'u000002'], atualizado: 1 }))
+  const lido = R.lerPainel('2026.2', s)
+  assert.deepEqual(lido, { unidades: ['u000001', 'u000002'], visitadas: [] })
+  R.gravarPainel('2026.2', { ...lido, visitadas: R.alternarVisita(lido.visitadas, casa('x', 'u000002')) }, s)
+  const salvo = JSON.parse(s.getItem(R.chaveRota('2026.2')))
+  assert.equal(salvo.versao, 2)
+  assert.deepEqual([salvo.unidades, salvo.visitadas], [['u000001', 'u000002'], ['u000002']])
+  // Lixo no lugar das listas não quebra nem vira id.
+  s.setItem(R.chaveRota('2026.2'), JSON.stringify({ versao: 2, unidades: 'u000001', visitadas: { a: 1 } }))
+  assert.deepEqual(R.lerPainel('2026.2', s), { unidades: [], visitadas: [] })
+})
+
+test('storage quebrado: JSON inválido, getItem/setItem que lançam e localStorage inacessível', () => {
+  const s = memoria()
+  s.setItem(R.chaveRota('2026.2'), '{quebrado')
+  assert.deepEqual(R.lerPainel('2026.2', s), { unidades: [], visitadas: [] })
+  const explode = { getItem () { throw new Error('bloqueado') }, setItem () { throw new Error('bloqueado') } }
+  assert.deepEqual(R.lerPainel('2026.2', explode), { unidades: [], visitadas: [] })
+  assert.doesNotThrow(() => R.gravarPainel('2026.2', { unidades: ['u000001'], visitadas: [] }, explode))
+  // Navegador que bloqueia o storage lança ao LER a propriedade (iframe isolado, cookies bloqueados).
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, get () { throw new Error('SecurityError') } })
+  try {
+    assert.deepEqual(R.lerPainel('2026.2'), { unidades: [], visitadas: [] })
+    assert.doesNotThrow(() => R.gravarPainel('2026.2', { unidades: [], visitadas: [] }))
+    assert.deepEqual(R.lerRota('2026.2'), [])
+  } finally {
+    if (original) Object.defineProperty(globalThis, 'localStorage', original)
+    else delete globalThis.localStorage
+  }
+})
+
+test('rota externa usa o endereço quando a coordenada é aproximada', () => {
+  const u = (coordenada) => ({ ativa: true, unidade: { coordenada, endereco: { logradouro: 'Rua A', numero: '1', bairro: 'Tirol', cidade: 'Natal' } } })
+  const destino = (p) => new URL(R.linksDeRota([p])[0]).searchParams.get('destination')
+  assert.equal(destino(u({ lat: -5.8, lng: -35.2 })), '-5.8,-35.2')
+  assert.equal(destino(u({ lat: -5.8, lng: -35.2, conferir: true, precisao: 'rua' })), 'Rua A, 1, Tirol, Natal')
+  assert.equal(destino({ ativa: true, unidade: { coordenada: { lat: -5.8, lng: -35.2, conferir: true }, endereco: {} } }), '-5.8,-35.2')
 })
 
 test('unidade que saiu da edição volta sinalizada, nunca some', () => {
