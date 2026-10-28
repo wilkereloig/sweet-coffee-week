@@ -196,7 +196,7 @@ export default function Sistema () {
       <section aria-labelledby="v-ficha">
         <div className="ct-bloco">
           <h2 id="v-ficha" className="ct-h2">Ficha da casa · cenário por tema</h2>
-          <p className="ct-aviso ct-aviso--demo">Exemplo — dados ilustrativos. Nome, tema, selos e combo abaixo não são o cadastro real da casa.</p>
+          <p className="ct-aviso ct-aviso--demo">Exemplo — nome e tema são da casa; selos e combo são ilustrativos, não o cadastro real.</p>
         </div>
         {FICHAS.map(({ slug, nome, tema, selos }) => (
           <article key={slug}>

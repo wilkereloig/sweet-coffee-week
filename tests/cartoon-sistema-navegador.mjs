@@ -101,7 +101,7 @@ try {
         alvos: alvos.length,
         baixos: alvos.filter((a) => a.altura < 44),
         imgs: imgs.length,
-        icones: document.querySelectorAll('.ct-vitrine .ct-icone').length,
+        icones: document.querySelectorAll('.ct-vitrine__icones .ct-icone').length,
         quebradas: imgs.filter((i) => !(i.complete && i.naturalWidth > 0)).map((i) => i.getAttribute('src')),
         cenarios,
       }
@@ -112,7 +112,7 @@ try {
     if (r.alvos === 0) falha(`${w}: nenhum botão ou link na vitrine (a checagem de 44px não mediu nada)`)
     else if (r.baixos.length === 0) ok(`${r.alvos} alvos ≥ 44px`)
     else falha(`${w}: alvos baixos ${JSON.stringify(r.baixos)}`)
-    if (r.icones >= 24 && r.imgs > r.icones && r.quebradas.length === 0) ok(`${r.imgs} imagens carregadas (${r.icones} ícones)`)
+    if (r.icones === 24 && r.quebradas.length === 0) ok(`${r.imgs} imagens carregadas (${r.icones} ícones)`)
     else falha(`${w}: imagens — ${r.imgs} no total, ${r.icones} ícones, quebradas: ${JSON.stringify(r.quebradas)}`)
     if (r.cenarios.length === 2) ok('2 cenários por tema'); else falha(`${w}: ${r.cenarios.length} cenários (esperava 2)`)
     for (const c of r.cenarios) {

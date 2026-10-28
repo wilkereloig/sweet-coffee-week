@@ -434,7 +434,7 @@ const CENAS_EDICAO = {
 
 /** Cenografia da edição (`tv` · `natal`) com a medida do arquivo, ou `null`. */
 export function cenaEdicao(chave) {
-  return CENAS_EDICAO[chave] || null
+  return Object.hasOwn(CENAS_EDICAO, chave) ? CENAS_EDICAO[chave] : null
 }
 
 /* Kit de cenário por casa (§10.15, família 3): só as duas do piloto. */
@@ -453,7 +453,8 @@ const KITS_TEMA_EDICAO = {
 
 /** Kit de cenário de uma casa (`cenario` · `objetoA` · `objetoB`), ou `null` se a casa não tem kit. */
 export function kitTemaEdicao(slug) {
-  return KITS_TEMA_EDICAO[slug] || null
+  // hasOwn: o slug vem do banco, e 'constructor' não pode devolver Object.
+  return Object.hasOwn(KITS_TEMA_EDICAO, slug) ? KITS_TEMA_EDICAO[slug] : null
 }
 
 /** Fotos das seções da Home (`heroiCombos` · `combo` · `jolie` · `mosaico` · `edicoes` · `premio`). */

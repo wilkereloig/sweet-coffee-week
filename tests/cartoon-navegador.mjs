@@ -297,20 +297,24 @@ try {
             .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0)
           let el = e; let fundo = getComputedStyle(el).backgroundColor
           while (el && /rgba\(0, 0, 0, 0\)|transparent/.test(fundo)) { el = el.parentElement; fundo = el ? getComputedStyle(el).backgroundColor : 'rgb(253, 242, 223)' }
-          const [a1, a2] = [lum(rgb(getComputedStyle(e).color)), lum(rgb(fundo))]
-          return { t: e.textContent.trim().slice(0, 24), r: (Math.max(a1, a2) + 0.05) / (Math.min(a1, a2) + 0.05) }
-        }).filter((x) => x.r < 4.5),
+          const { color, fontSize, fontWeight } = getComputedStyle(e)
+          const [a1, a2] = [lum(rgb(color)), lum(rgb(fundo))]
+          // Texto grande (≥ 24px, ou ≥ 18,66px em peso ≥ 700) pede 3:1 — regra de contraste da spec e WCAG 1.4.3.
+          const px = parseFloat(fontSize)
+          const minimo = px >= 24 || (px >= 18.66 && Number(fontWeight) >= 700) ? 3 : 4.5
+          return { t: e.textContent.trim().slice(0, 24), r: (Math.max(a1, a2) + 0.05) / (Math.min(a1, a2) + 0.05), minimo }
+        }).filter((x) => x.r < x.minimo),
         alvos: [...document.querySelectorAll('.ct-edicao a, .ct-edicao button, .ct-edicao summary')]
           .filter((e) => e.offsetParent && e.getBoundingClientRect().height < 44).map((e) => e.textContent.trim().slice(0, 30)),
       }))
       if (m.overflow > 1) falha(`@${w} ${p}: rolagem horizontal (${m.overflow}px)`)
       if (m.inst) falha(`@${w} ${p}: casca institucional dentro da edição`)
       if (m.alvos.length) falha(`@${w} ${p}: alvos < 44px: ${m.alvos.slice(0, 4).join(' | ')}`)
-      if (m.contraste.length) falha(`@${w} ${p}: contraste < 4,5:1: ${m.contraste.map((x) => `${x.t} ${x.r.toFixed(2)}`).join(' | ')}`)
+      if (m.contraste.length) falha(`@${w} ${p}: contraste abaixo do mínimo: ${m.contraste.map((x) => `${x.t} ${x.r.toFixed(2)} (mín. ${x.minimo})`).join(' | ')}`)
     }
     await ctx.close()
   }
-  if (!falhas.some((f) => /^@/.test(f))) ok('360 e 1440: sem rolagem lateral, casca própria, alvos ≥ 44px, botões com contraste ≥ 4,5:1')
+  if (!falhas.some((f) => /^@/.test(f))) ok('360 e 1440: sem rolagem lateral, casca própria, alvos ≥ 44px, botões com contraste ≥ 4,5:1 (3:1 em texto grande)')
 } finally {
   if (nav) await nav.close()
   killTree(preview.pid)

@@ -353,6 +353,13 @@ Cada casa ganha um kit próprio, gerado a partir do tema que está no painel (`t
 - Barras de sinal na troca de página.
 - Nada em laço infinito perto de conteúdo. Tudo desligado com `prefers-reduced-motion`.
 
+### Regras de superfície (28/10, adotadas por padrão)
+
+- Sobre amarelo (canal Estreia e abertura da Entrada), o botão primário vira o de ação: vermelho com texto creme em 19px/800. É texto grande, então vale 3:1, e o par dá 3,9:1.
+- O rosa é moldura. Texto pequeno dentro do canal Cardápio mora num `.ct-painel` creme.
+- O anel de foco é chocolate por padrão. Fica amarelo só sobre chocolate: rodapé, abas e canal Gala.
+- No letreiro chocolate, o contorno vira creme e a sombra vira amarela, para os vãos das letras não fecharem.
+
 ### Piloto (antes de produzir tudo)
 
 São cerca de 9 gerações:

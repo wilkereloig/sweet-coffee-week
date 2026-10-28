@@ -378,16 +378,24 @@
 /* Letreiro em texto: cor de ação, contorno chocolate por fora (paint-order) e sombra curta. */
 .ct-letreiro--titulo, .ct-letreiro--display {
   --ct-letra: var(--ct-vermelho);
+  --ct-contorno: var(--ct-chocolate);
+  --ct-sombra-letra: .05em .06em 0 var(--ct-chocolate);
   color: var(--ct-letra);
   font-family: var(--ct-font); font-weight: 900;
-  -webkit-text-stroke: .1em var(--ct-chocolate);
+  -webkit-text-stroke: .1em var(--ct-contorno);
   paint-order: stroke fill;
-  text-shadow: .05em .06em 0 var(--ct-chocolate);
+  text-shadow: var(--ct-sombra-letra);
 }
 .ct-letreiro--titulo { font-size: var(--ct-fs-titulo); line-height: 1.02; }
 .ct-letreiro--display { font-size: var(--ct-fs-display); line-height: .98; }
 .ct-letreiro--cor-amarelo { --ct-letra: var(--ct-amarelo); }
-.ct-letreiro--cor-chocolate { --ct-letra: var(--ct-chocolate); }
+/* Chocolate com contorno chocolate fecha os vãos das letras: o contorno vira creme (respiro)
+   e a sombra amarela sai além dele, como letreiro de desenho animado. */
+.ct-letreiro--cor-chocolate {
+  --ct-letra: var(--ct-chocolate);
+  --ct-contorno: var(--ct-creme);
+  --ct-sombra-letra: .09em .1em 0 var(--ct-amarelo);
+}
 
 .ct-etiqueta {
   display: inline-block; margin: 0 0 12px; padding: 6px 14px 5px;
