@@ -153,6 +153,18 @@ try {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     const sem = await animacao()
     if (com !== 'none' && sem === 'none') ok(`letreiro anima (${com}) e para com movimento reduzido`); else falha(`${w}: animationName com=${com} sem=${sem}`)
+
+    // Olhinhos (§10.5): decorativos (aria-hidden, nada clicável dentro), param com movimento reduzido e piscam sozinhos.
+    const olhos = await page.evaluate(() => [...document.querySelectorAll('.ct-olhinhos')].map((o) => ({
+      oculto: o.getAttribute('aria-hidden') === 'true', clicavel: o.querySelectorAll('a, button, [tabindex]').length, mov: o.getAttribute('data-movimento'),
+    })))
+    if (olhos.length >= 3 && olhos.every((o) => o.oculto && !o.clicavel && o.mov === 'nao')) ok(`${olhos.length} pares de olhinhos decorativos, parados com movimento reduzido`)
+    else falha(`${w}: olhinhos ${JSON.stringify(olhos)}`)
+    if (w === 1440) {
+      await page.emulateMedia({ reducedMotion: 'no-preference' })
+      const piscou = await page.waitForFunction(() => document.querySelector('.ct-olhinhos.ct-olhinhos--pisca'), null, { timeout: 7500, polling: 50 }).then(() => true, () => false)
+      if (piscou) ok('olhinhos piscam sozinhos (intervalo de 3 a 6 s)'); else falha('olhinhos não piscaram em 7,5 s')
+    }
     await page.close()
   }
 } finally {

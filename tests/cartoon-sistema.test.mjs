@@ -71,7 +71,7 @@ test('anel de foco: chocolate nos fundos claros, amarelo só sobre chocolate (�
 test('preto só no traço de desenho; texto e contorno de interface em chocolate', () => {
   const css = ler(CSS)
   const usos = css.split('\n').filter((l) => l.includes('var(--ct-preto)')).map((l) => l.trim())
-  assert.deepEqual(usos, ['--ct-traco-desenho: 2.5px solid var(--ct-preto);'])
+  assert.deepEqual(usos, ['--ct-tinta-desenho: var(--ct-preto); /* nanquim do desenho (olhinhos); o preto não sai daqui */'])
   assert.match(css, /--ct-traco:\s*2\.5px solid var\(--ct-chocolate\)/)
 })
 

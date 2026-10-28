@@ -44,7 +44,8 @@
   --ct-fs-servico: 14px;
 
   --ct-traco: 2.5px solid var(--ct-chocolate);
-  --ct-traco-desenho: 2.5px solid var(--ct-preto);
+  --ct-tinta-desenho: var(--ct-preto); /* nanquim do desenho (olhinhos); o preto não sai daqui */
+  --ct-traco-desenho: 2.5px solid var(--ct-tinta-desenho);
   --ct-sombra: 4px 4px 0 var(--ct-chocolate);
   --ct-sombra-p: 3px 3px 0 var(--ct-chocolate);
   --ct-raio: 18px;
@@ -823,6 +824,53 @@
 .ct-canal:has(> .ct-cenario--natal) { padding: clamp(32px, 6vw, 72px) var(--ct-trilho) calc(clamp(32px, 6vw, 72px) + 17.4%); }
 .ct-cenario--natal .ct-cenario__faixa { height: auto; max-height: none; }
 
+/* ------------------------------------------------------------- Olhinhos (§10.5)
+   Desenho do manual v03: oval creme, nanquim grosso, filete branco de adesivo, pupila com brilhos,
+   hachura na base. A expressão é só CSS (data-expressao); o movimento entre elas fica no bloco de
+   movimento abaixo, então com "reduzir movimento" a troca é seca e nada pisca. */
+.ct-olhinhos { display: block; max-width: 100%; height: auto; overflow: visible; }
+.ct-olhinhos--direita { transform: scaleX(-1); }
+.ct-olhinhos__adesivo ellipse { fill: var(--ct-branco); stroke: var(--ct-branco); stroke-width: 16; }
+.ct-olho__fundo { fill: var(--ct-creme); }
+.ct-olho__contorno { fill: none; stroke: var(--ct-tinta-desenho); stroke-width: 6; }
+.ct-olho__hachura { fill: none; stroke: var(--ct-chocolate); stroke-width: 2.2; stroke-linecap: round; opacity: .5; }
+.ct-olho__iris { fill: var(--ct-tinta-desenho); }
+.ct-olho__brilho { fill: var(--ct-branco); }
+.ct-olho__palpebra-fundo { fill: color-mix(in srgb, var(--ct-creme) 80%, var(--ct-amarelo)); } /* sombra cel: um tom abaixo do creme */
+.ct-olho__palpebra-vinco { fill: none; stroke: var(--ct-chocolate); stroke-width: 2.4; stroke-linecap: round; opacity: .55; }
+.ct-olho__palpebra-borda { fill: none; stroke: var(--ct-tinta-desenho); stroke-width: 5; stroke-linecap: round; }
+.ct-olho__sobrancelha { fill: var(--ct-tinta-desenho); stroke: var(--ct-tinta-desenho); stroke-width: 3; stroke-linejoin: round; }
+.ct-olhinhos__estrela { fill: var(--ct-amarelo); stroke: var(--ct-tinta-desenho); stroke-width: 2.5; stroke-linejoin: round; }
+.ct-olhinhos__traco { fill: none; stroke: var(--ct-tinta-desenho); stroke-width: 4; stroke-linecap: round; }
+.ct-olhinhos__gota { fill: var(--ct-azul); stroke: var(--ct-tinta-desenho); stroke-width: 2.5; }
+
+/* Partes que mexem: a caixa do próprio desenho é a origem (escala e giro no lugar). */
+.ct-olho__pupila, .ct-olho__sobrancelha, .ct-olho__globo, .ct-olhinhos__extra, .ct-olhinhos__corpo { transform-box: fill-box; transform-origin: center; }
+.ct-olho__olhar { transform: translate(var(--ox, 0px), var(--oy, 0px)); }
+.ct-olho__palpebra { transform: translateY(-76px); }
+.ct-olho__brilho--3 { opacity: 0; }
+.ct-olhinhos__extra { opacity: 0; transform: scale(.4); }
+
+/* Encantado: pupila grande, três brilhos, sobrancelhas em arco, estrelinhas. */
+.ct-olhinhos[data-expressao='encantado'] .ct-olho__pupila { transform: scale(1.14); }
+.ct-olhinhos[data-expressao='encantado'] .ct-olho__brilho--3 { opacity: 1; }
+.ct-olhinhos[data-expressao='encantado'] .ct-olho--e .ct-olho__sobrancelha { transform: translate(-2px, -4px) rotate(-12deg); }
+.ct-olhinhos[data-expressao='encantado'] .ct-olho--d .ct-olho__sobrancelha { transform: translate(2px, -6px) rotate(10deg); }
+.ct-olhinhos[data-expressao='encantado'] .ct-olhinhos__extra--encantado { opacity: 1; transform: none; }
+/* Esperto: pálpebra caída, pupila média de lado, uma sobrancelha alta e a outra baixa. */
+.ct-olhinhos[data-expressao='esperto'] .ct-olho__pupila { transform: scale(.84); }
+.ct-olhinhos[data-expressao='esperto'] .ct-olho__palpebra { transform: translateY(-18px); }
+.ct-olhinhos[data-expressao='esperto'] .ct-olho--e .ct-olho__sobrancelha { transform: translate(-4px, -12px) rotate(-16deg); }
+.ct-olhinhos[data-expressao='esperto'] .ct-olho--d .ct-olho__sobrancelha { transform: translate(2px, 17px) rotate(-5deg) scale(1.1, .8); }
+/* Surpreso: olhos crescem, pupila miúda, sobrancelhas no alto, traços e gota. */
+.ct-olhinhos[data-expressao='surpreso'] .ct-olho__globo { transform: scale(1.05); }
+.ct-olhinhos[data-expressao='surpreso'] .ct-olho__pupila { transform: scale(.5); }
+.ct-olhinhos[data-expressao='surpreso'] .ct-olho--e .ct-olho__sobrancelha { transform: translate(-4px, -20px) rotate(-6deg); }
+.ct-olhinhos[data-expressao='surpreso'] .ct-olho--d .ct-olho__sobrancelha { transform: translate(4px, -22px) rotate(9deg); }
+.ct-olhinhos[data-expressao='surpreso'] .ct-olhinhos__extra--surpreso { opacity: 1; transform: none; }
+/* Piscada: a pálpebra desce inteira. Vence a de qualquer expressão. */
+.ct-olhinhos.ct-olhinhos--pisca .ct-olho__palpebra { transform: translateY(70px); }
+
 /* ------------------------------------------------------------- movimento de desenho animado (§10.15)
    Antecipação, exagero e quique, UMA vez ao montar (ou no gesto). Nada em laço, nada perto de conteúdo.
    Tudo aqui só existe com movimento permitido; o bloco "reduce" abaixo continua valendo. */
@@ -849,6 +897,14 @@
   .ct-cenario__objeto { animation: ct-quica var(--ct-mo-quique-dur) var(--ct-mo-quique) both; transition: translate 140ms ease-out; }
   .ct-cenario__objeto--a { translate: calc(var(--mx, 0) * 8px) calc(var(--my, 0) * 6px); }
   .ct-cenario__objeto--b { translate: calc(var(--mx, 0) * -5px) calc(var(--my, 0) * -4px); animation-delay: 120ms; }
+
+  /* Olhinhos: troca de expressão interpolada com quique; olhar com atraso; piscada rápida. */
+  .ct-olho__pupila, .ct-olho__sobrancelha, .ct-olho__globo, .ct-olhinhos__extra { transition: transform 420ms var(--ct-mo-quique), opacity 240ms ease-out; }
+  .ct-olho__olhar { transition: transform 280ms cubic-bezier(.22, .9, .24, 1); }
+  .ct-olho__palpebra { transition: transform 320ms var(--ct-mo-quique); }
+  .ct-olhinhos--pisca .ct-olho__palpebra { transition-duration: 70ms; transition-timing-function: ease-in; }
+  @keyframes ct-olhinhos-troca { 0% { transform: none; } 30% { transform: scale(.95, 1.06); } 65% { transform: scale(1.04, .96); } 100% { transform: none; } }
+  .ct-olhinhos--troca .ct-olhinhos__corpo { animation: ct-olhinhos-troca 460ms ease-out; }
 }
 
 @media (prefers-reduced-motion: reduce) {

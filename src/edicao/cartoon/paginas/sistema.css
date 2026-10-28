@@ -32,3 +32,9 @@
 /* Selos da ficha de exemplo: ícone de 32 px + texto, sobre branco. */
 .ct-vitrine__selos { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; }
 .ct-vitrine__selo { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 8px; border: var(--ct-traco); border-radius: 999px; background: var(--ct-branco); font: 700 15px/1 var(--ct-font); }
+
+/* Olhinhos (§10.5) */
+.ct-vitrine__olhinhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; margin: 24px 0 0; padding: 0; list-style: none; }
+.ct-vitrine__olhinhos li { display: grid; justify-items: start; gap: 6px; }
+.ct-vitrine__olhinhos-demo { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; margin-top: 40px; }
+.ct-vitrine__olhinhos-botoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }

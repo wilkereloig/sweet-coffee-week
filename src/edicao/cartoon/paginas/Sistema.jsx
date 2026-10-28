@@ -12,6 +12,7 @@ import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { TopoCanal, CANAIS } from '../../componentes/sistema/TopoCanal.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { CenarioTema } from '../../componentes/sistema/CenarioTema.jsx'
+import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Etiqueta, Pilula, Placa, Carimbo, Botao, Quadro, BarrasSinal } from '../../componentes/sistema/pecas.jsx'
 
 // [cor, papel, tinta que passa sobre ela]
@@ -193,6 +194,8 @@ export default function Sistema () {
         </div>
       </section>
 
+      <VitrineOlhinhos />
+
       <section aria-labelledby="v-ficha">
         <div className="ct-bloco">
           <h2 id="v-ficha" className="ct-h2">Ficha da casa · cenário por tema</h2>
@@ -223,5 +226,47 @@ export default function Sistema () {
         ))}
       </section>
     </div>
+  )
+}
+
+const EXPRESSOES_VITRINE = [
+  ['encantado', 'Encantado', 'novidade e combo'],
+  ['esperto', 'Esperto', 'dica, mapa, rota'],
+  ['surpreso', 'Surpreso', 'contagem, "abre em", última chance'],
+]
+
+// Olhinhos (§10.5): as três expressões, a troca animada e o olhar seguindo o cursor. Nada aqui é página real.
+function VitrineOlhinhos () {
+  const [exp, setExp] = React.useState('encantado')
+  return (
+    <section className="ct-bloco" aria-labelledby="v-olhinhos">
+      <h2 id="v-olhinhos" className="ct-h2">Olhinhos</h2>
+      <p className="ct-nota">Desenhados no código, do zero. Piscam sozinhos a cada 3 a 6 segundos e param com "reduzir movimento". Um par por tela, longe de formulário, endereço, ingrediente e mapa.</p>
+      <ul className="ct-vitrine__olhinhos">
+        {EXPRESSOES_VITRINE.map(([chave, nome, uso]) => (
+          <li key={chave}>
+            <Olhinhos expressao={chave} tamanho={200} />
+            <p className="ct-rotulo">{nome}</p>
+            <p className="ct-nota">{uso}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="ct-vitrine__olhinhos-demo">
+        <div>
+          <h3 className="ct-rotulo">Troca de expressão</h3>
+          <Olhinhos expressao={exp} tamanho={220} />
+          <div className="ct-vitrine__olhinhos-botoes">
+            {EXPRESSOES_VITRINE.map(([chave, nome]) => (
+              <Botao key={chave} tipo={exp === chave ? 'primario' : 'secundario'} aria-pressed={exp === chave} onClick={() => setExp(chave)}>{nome}</Botao>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h3 className="ct-rotulo">Seguindo o cursor (só no herói da Entrada)</h3>
+          <Olhinhos expressao="encantado" olhar="cursor" lado="direita" tamanho={220} />
+          <p className="ct-nota">Espelhado (lado direita) para olhar para dentro da tela.</p>
+        </div>
+      </div>
+    </section>
   )
 }
