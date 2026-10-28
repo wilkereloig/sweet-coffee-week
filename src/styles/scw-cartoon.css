@@ -393,6 +393,9 @@
 .ct-cartao__corpo { display: grid; gap: 4px; padding: 14px 16px 18px; }
 .ct-cartao__nome { margin: 0; font: 900 19px/1.1 var(--ct-font); }
 .ct-cartao__sub { margin: 0; font: 500 14px/1.4 var(--ct-font); }
+/* Tema da casa (D-17: só depois do post de Confirmados). Vermelho é ação focal; aqui a tinta é chocolate. */
+.ct-cartao__tema { margin: 0; font: 700 13px/1.35 var(--ct-font); }
+.ct-ficha__tema { margin: 4px 0 12px; font: 700 clamp(17px, 1.6vw, 21px)/1.3 var(--ct-font); }
 
 /* ------------------------------------------------------------- ficha da casa (E6, §10.7 + §10.14) */
 .ct-voltar { margin: 0; padding: 12px var(--ct-trilho) 0; }

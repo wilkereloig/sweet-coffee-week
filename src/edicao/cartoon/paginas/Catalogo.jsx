@@ -71,6 +71,7 @@ function Cartao ({ p, modo, navigate, encerrada }) {
           <h2 className="ct-cartao__nome">{modo === 'combos' && nomeCombo ? nomeCombo : p.casa.nome}</h2>
           {modo === 'combos' ? nomeCombo && <p className="ct-cartao__sub">{p.casa.nome}</p> : nomeCombo && <p className="ct-cartao__sub">{nomeCombo}</p>}
           {modo === 'combos' && nomesItens.length > 0 && <p className="ct-cartao__sub">{nomesItens.join(' · ')}</p>}
+          {p.casa.tema && <p className="ct-cartao__tema">{T.tema(p.casa.tema)}</p>}
           {(bairros.length > 0 || us.length > 1) && (
             <p className="ct-cartao__onde">{[bairros.join(' · '), us.length > 1 ? T.unidades(us.length) : null].filter(Boolean).join(' · ')}</p>
           )}

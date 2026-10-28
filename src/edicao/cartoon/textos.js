@@ -49,7 +49,7 @@ export const ENTRADA = {
 }
 
 export const DUVIDAS = [
-  ['Quanto custa o combo?', 'O preço aparece na página de cada casa quando a organização confirma.'],
+  ['Quanto custa o combo?', 'O valor do combo é o mesmo em todas as casas e aparece na página de cada uma.'],
   ['Tem delivery?', 'Depende da casa e da unidade. Cada página diz onde o combo sai por delivery e por qual canal.'],
   ['Tenho alergia ou restrição. O que faço?', 'Cada componente traz o que a casa informou sobre alergênicos e trocas. Confirme sempre com a loja antes de pedir: a informação é da casa, e "não informado" quer dizer que ela não declarou.'],
   ['Como avalio?', 'A avaliação abre durante o festival, na página Avaliar e no fim da página de cada casa.'],
@@ -98,11 +98,13 @@ export const CATALOGO = {
   comboEmBreve: 'Combo em breve',
   fotoEmProducao: 'Foto em produção',
   unidades: (n) => `${n} unidades`,
+  tema: (t) => `Inspirado em ${t}`,
 }
 
 export const PARTICIPANTE = {
   voltar: 'Voltar para as casas',
   selo: 'Casa participante da Sweet & Coffee Week Cartoon',
+  tema: (t) => `Inspirado em ${t}`,
   comboTitulo: 'O combo',
   comboSemNome: (casa) => `Combo da ${casa}`,
   precoAConfirmar: 'Preço a confirmar',

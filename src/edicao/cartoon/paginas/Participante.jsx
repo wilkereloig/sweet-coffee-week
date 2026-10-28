@@ -240,6 +240,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
           <div className="ct-ficha__titulo">
             <p className="ct-rotulo">{T.selo}</p>
             <Letreiro nivel={1} id="casa-nome" tamanho="display" cor="chocolate" texto={p.casa.nome} />
+            {p.casa.tema && <p className="ct-ficha__tema">{T.tema(p.casa.tema)}</p>}
             {p.casa.apresentacao && <p className="ct-lead ct-ficha__apresentacao">{p.casa.apresentacao}</p>}
             {!encerrada && selos.length > 0 && (
               <ul className="ct-selos ct-ficha__selos" aria-label={T.atendimentoTitulo}>
