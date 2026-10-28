@@ -7,7 +7,7 @@
  *  - toque: pinta sozinha, uma vez, quando o desenho chega ao meio da tela (o que já abre na
  *    metade de cima — o topo da ficha — pinta logo ao abrir);
  *  - movimento reduzido: colorida direto (só CSS, sem listener).
- * Dentro de um cartão (.ct-cartao__link) o gatilho é o cartão inteiro; fora, o próprio desenho.
+ * Dentro de um link (o cartão do catálogo, o mural da Entrada) o gatilho é o link inteiro; fora, o próprio desenho.
  *
  * Sem par desenhado (produção, ou casa sem desenho): a logo oficial (`casa.logo`); sem logo,
  * a inicial em texto. Só o desenho representa a casa: nunca a logo oficial ao lado
@@ -36,7 +36,7 @@ export function LogoDesenhada ({ casa, alt = casa?.nome || '', className = '' })
       obs.observe(el)
       return () => obs.disconnect()
     }
-    const alvo = el.closest('.ct-cartao__link') || el
+    const alvo = el.closest('a') || el
     const lim = (v) => Math.round(Math.min(100, Math.max(0, v)))
     const entra = (e) => {
       if (e.pointerType === 'touch') return

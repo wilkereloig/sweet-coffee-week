@@ -7,7 +7,7 @@
  *  2. "Sem lactose" ≠ "sem leite": são aspectos diferentes, lidos separados.
  *  3. Modo de atendimento só conta quando a unidade declarou "sim" para o COMBO.
  */
-import { datasDoFestival, frasesDeLinhas, horaTexto } from './horarioFestival.js'
+import { datasDoFestival, frasesDeLinhas, horaTexto, periodoDoFestivalTexto } from './horarioFestival.js'
 
 export const ALERGENICOS = [
   ['gluten', 'glúten'], ['leite', 'leite'], ['ovo', 'ovo'], ['amendoim', 'amendoim'],
@@ -147,6 +147,27 @@ const diaIso = (v) => { const s = String(v || '').slice(0, 10); return /^\d{4}-\
 /** 'AAAA-MM-DD' de hoje em Natal. */
 export const hojeEmNatal = (agora = new Date()) => partesLocais(agora).data
 
+/**
+ * Período da edição para a placa e o texto: { texto: '5 a 15 de novembro', numero: '5 a 15', rotulo: 'de novembro' }.
+ * Sem datas válidas em `edicao` ({ inicio, fim }), usa o texto `reserva` (mesma forma); sem os dois, null.
+ */
+export function periodoDaEdicao (edicao, reserva = '') {
+  const de = diaIso(edicao?.inicio); const ate = diaIso(edicao?.fim)
+  const texto = (de && ate ? periodoDoFestivalTexto(datasDoFestival(de, ate)).replace(/^(de|em) /, '') : '') || reserva
+  const i = texto.lastIndexOf(' de ')
+  if (i < 1) return null
+  return { texto, numero: texto.slice(0, i), rotulo: texto.slice(i + 1) }
+}
+
+/**
+ * Quando a avaliação abre, por extenso ('em 5 de novembro'): a data marcada (`avaliacao.abre_em`) ou, sem ela,
+ * o primeiro dia do festival (§10.7: "abre em 5 de novembro"). Sem nenhuma das duas, ''.
+ */
+export function aberturaDaAvaliacao (dados) {
+  const dia = diaIso(dados?.avaliacao?.abre_em) || diaIso(dados?.edicao?.inicio)
+  return dia ? periodoDoFestivalTexto([dia]) : ''
+}
+
 /** Hoje está dentro do festival ({ inicio, fim } da edição)? Sem período, não. */
 export function dentroDoFestival (periodo, agora = new Date()) {
   const de = diaIso(periodo?.inicio); const ate = diaIso(periodo?.fim)
@@ -201,25 +222,42 @@ function textoBusca (p) {
 }
 
 /**
- * Opções de filtro que existem nos dados (nunca oferecer filtro vazio). Bairro escrito de dois jeitos
- * ("Capim Macio" · "Capim macio") vira uma opção só, na grafia com mais maiúsculas. `hoje` só existe
- * com o `periodo` da edição e com hoje dentro dele.
+ * Bairros das unidades com quantas casas têm unidade em cada um, do maior para o menor (empate: nome).
+ * Bairro escrito de dois jeitos ("Capim Macio" · "Capim macio") vira um só, na grafia com mais maiúsculas;
+ * casa com duas unidades no mesmo bairro conta uma vez.
  */
-export function opcoesFiltro (lista = [], periodo = null, agora = new Date()) {
+export function contarBairros (lista = []) {
   const bairros = new Map()
-  const modos = new Set()
   const maiusculas = (s) => (s.match(/\p{Lu}/gu) || []).length
   for (const p of lista) {
     for (const u of p.unidades || []) {
-      const b = String(u.endereco?.bairro || '').trim()
-      const k = normalizar(b)
-      if (k && (!bairros.has(k) || maiusculas(b) > maiusculas(bairros.get(k)))) bairros.set(k, b)
+      const nome = String(u.endereco?.bairro || '').trim()
+      const k = normalizar(nome)
+      if (!k) continue
+      const b = bairros.get(k) || { bairro: nome, casas: new Set() }
+      if (maiusculas(nome) > maiusculas(b.bairro)) b.bairro = nome
+      b.casas.add(p.slug)
+      bairros.set(k, b)
+    }
+  }
+  return [...bairros.values()].map(({ bairro, casas }) => ({ bairro, casas: casas.size }))
+    .sort((a, b) => b.casas - a.casas || a.bairro.localeCompare(b.bairro, 'pt-BR'))
+}
+
+/**
+ * Opções de filtro que existem nos dados (nunca oferecer filtro vazio). Bairros como em `contarBairros`,
+ * em ordem alfabética. `hoje` só existe com o `periodo` da edição e com hoje dentro dele.
+ */
+export function opcoesFiltro (lista = [], periodo = null, agora = new Date()) {
+  const modos = new Set()
+  for (const p of lista) {
+    for (const u of p.unidades || []) {
       for (const [m] of MODOS) if (u.combo?.modos?.[m] === 'sim') modos.add(m)
     }
   }
   const algum = (chave) => lista.some((p) => veredito(p.combo?.itens, chave) === 'sim')
   return {
-    bairros: [...bairros.values()].sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    bairros: contarBairros(lista).map((b) => b.bairro).sort((a, b) => a.localeCompare(b, 'pt-BR')),
     modos: MODOS.filter(([k]) => modos.has(k)).map(([k]) => k),
     hoje: dentroDoFestival(periodo, agora),
     vegano: algum('vegano'),

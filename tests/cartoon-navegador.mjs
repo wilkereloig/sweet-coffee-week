@@ -22,6 +22,9 @@
  *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
  *     botão) e cinco abas (Avaliar → Prêmio depois dos resultados); rodapé com barras, F2 e cookies.
+ * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, lugar vazio dos
+ *     olhinhos), como funciona, mural das casas, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
+ *     sem elenco, falha de rede e edição encerrada.
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -120,8 +123,8 @@ try {
     ]
     const antes = falhas.length
     await ir(page, '/cartoon')
-    if (!(await page.locator('h1 img[alt="Cartoon"]').count())) falha('/cartoon: h1 sem o lettering com nome')
-    for (const [p, t] of CENAS) {
+    if (!(await page.locator('h1.ct-letreiro--imagem img[src*="hora-de-provar"]').count())) falha('/cartoon: h1 sem o letreiro desenhado')
+    for (const [p, t] of [['/cartoon', 'Agora é hora de provar!'], ...CENAS]) {
       await ir(page, p)
       await page.waitForFunction((t) => document.querySelector('h1')?.textContent?.trim() === t, t, { timeout: 5000 }).catch(() => {})
       if ((await h1(page)) !== t) falha(`${p}: h1 "${await h1(page)}" ≠ "${t}"`)
@@ -419,6 +422,75 @@ try {
     if (!m.rodape.barras || !m.rodape.f2 || !m.rodape.cookies || m.rodape.legais !== 2) falha(`rodapé incompleto: ${JSON.stringify(m.rodape)}`)
     await d.ctx.close()
     if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 5 abas (Avaliar → Prêmio), rodapé com barras, F2 e cookies')
+  }
+
+  console.log('\n10 · Entrada')
+  {
+    const antes = falhas.length
+    const { ctx, page, erros } = await contexto(nav, { w: 1440, h: 900 })
+    await ir(page, '/cartoon')
+    await page.waitForSelector('.ct-mural')
+    const e = await page.evaluate(() => {
+      const txt = (s) => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || ''
+      const placa = (s) => [...document.querySelectorAll(`${s} .ct-placa span`)].map((x) => x.textContent.trim()).join(' ')
+      const olhos = document.querySelector('.ct-estreia__olhos')
+      return {
+        canal: !!document.querySelector('.ct-canal--estreia h1'),
+        tela: placa('.ct-estreia__tela'),
+        casas: placa('.ct-estreia__casas'),
+        acao: getComputedStyle(document.querySelector('.ct-estreia .ct-botao')).backgroundColor,
+        olhos: olhos ? { filhos: olhos.childElementCount, texto: olhos.textContent, oculto: olhos.getAttribute('aria-hidden') } : null,
+        como: txt('h2.ct-etiqueta--azul'),
+        passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-icone')?.getAttribute('src')?.match(/icones\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.replace(/^\d/, '').trim()]),
+        mural: [...document.querySelectorAll('.ct-mural__link')].map((a) => a.getAttribute('href').split('?')[0]),
+        bairros: [...document.querySelectorAll('.ct-bairro')].map((a) => `${a.firstChild.textContent}:${a.querySelector('.ct-bairro__n').textContent}`),
+        avalie: txt('.ct-entrada__avalie .ct-lead'),
+        avaliar: !!document.querySelector('.ct-entrada__avalie a[href^="/cartoon/avaliar"]'),
+        duvidas: document.querySelectorAll('.ct-duvidas details').length,
+        chao: !!document.querySelector('.ct-onde img.ct-onde__chao[src*="natal"]'),
+      }
+    })
+    if (!e.canal) falha('Entrada: h1 fora do topo no canal Estreia')
+    if (e.tela !== '5 a 15 de novembro') falha(`Entrada: placa da TV "${e.tela}"`)
+    if (e.casas !== '3 casas no elenco') falha(`Entrada: placa de casas "${e.casas}"`)
+    if (e.acao !== 'rgb(237, 28, 32)') falha(`Entrada: botão sobre amarelo não é o de ação (${e.acao})`)
+    if (!e.olhos || e.olhos.filhos || e.olhos.texto || e.olhos.oculto !== 'true') falha(`Entrada: lugar dos olhinhos ${JSON.stringify(e.olhos)}`)
+    if (e.como !== 'Como funciona') falha(`Entrada: etiqueta azul "${e.como}"`)
+    if (JSON.stringify(e.passos) !== JSON.stringify([['casas', 'Escolha a casa'], ['no-local', 'Prove o combo'], ['avaliar', 'Avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
+    if (JSON.stringify(e.mural) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/participantes/${p.slug}`))) falha(`Entrada: mural ${JSON.stringify(e.mural)}`)
+    if (JSON.stringify(e.bairros) !== JSON.stringify(['Tirol:2', 'Lagoa Nova:1', 'Ponta Negra:1'])) falha(`Entrada: bairros ${JSON.stringify(e.bairros)}`)
+    if (!e.chao) falha('Entrada: Onde ficam sem a faixa de Natal')
+    if (e.avalie !== 'A avaliação abre em 5 de novembro.' || !e.avaliar) falha(`Entrada: Avalie "${e.avalie}"`)
+    if (e.duvidas !== 4) falha(`Entrada: ${e.duvidas} dúvidas`)
+    // O bairro leva ao Mapa já filtrado.
+    await page.click('.ct-bairro:has-text("Tirol")')
+    await page.waitForFunction(() => location.pathname === '/cartoon/mapa')
+    if (new URLSearchParams(new URL(page.url()).search).get('bairro') !== 'Tirol') falha(`Entrada: bairro levou a ${page.url()}`)
+    if (erros.length) falha(`Entrada: console ${erros.slice(0, 2).join(' | ')}`)
+    await ctx.close()
+
+    // Estados: elenco fechado, falha de rede e edição encerrada.
+    let c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), participantes_publicos: false, combos_publicos: false, participantes: [] } })
+    await ir(c.page, '/cartoon')
+    const fechado = await c.page.locator('.ct-conteudo').innerText()
+    if (!fechado.includes('será revelado em breve')) falha('Entrada sem elenco não diz "em breve"')
+    if (await c.page.locator('.ct-estreia__casas, .ct-mural, .ct-onde').count()) falha('Entrada sem elenco mostrou placa de casas, mural ou bairros')
+    if ((await c.page.locator('.ct-estreia__tela .ct-placa span').allTextContents()).join(' ') !== '5 a 15 de novembro') falha('Entrada sem elenco perdeu a placa do período')
+    await c.ctx.close()
+    c = await contexto(nav, { edicao: 'falha' })
+    await ir(c.page, '/cartoon')
+    await c.page.waitForSelector('.ct-entrada__elenco [role="alert"]')
+    if (!(await c.page.locator('.ct-entrada__elenco button:has-text("Tentar de novo")').count())) falha('Entrada com falha sem "Tentar de novo"')
+    if ((await c.page.locator('h1').count()) !== 1) falha('Entrada com falha sem o <h1> do topo')
+    await c.ctx.close()
+    c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), fase: 'encerrada' } })
+    await ir(c.page, '/cartoon')
+    await c.page.waitForSelector('.ct-mural')
+    const enc = await c.page.locator('.ct-conteudo').innerText()
+    if (!enc.includes('terminou') || await c.page.locator('.ct-entrada__como, .ct-onde').count()) falha('Entrada encerrada: sem aviso, ou ainda com Como funciona/Onde ficam')
+    if (!enc.includes('A avaliação desta edição foi encerrada.')) falha('Entrada encerrada: Avalie sem o texto de encerrada')
+    await c.ctx.close()
+    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, lugar dos olhinhos vazio), como funciona, mural, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
   }
 } finally {
   if (nav) await nav.close()

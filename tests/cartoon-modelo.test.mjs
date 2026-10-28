@@ -213,3 +213,20 @@ test('URL da imagem: caminho absoluto é do site, o resto é do Storage', () => 
   assert.equal(M.urlDaImagem(B, null, 'edicao-publico'), '')
   assert.equal(M.urlDaImagem(B, { bucket: 'logos', path: '' }, 'edicao-publico'), '')
 })
+
+test('Entrada: período da edição para a placa, abertura da avaliação e bairros com contagem de casas', () => {
+  assert.deepEqual(M.periodoDaEdicao({ inicio: '2026-11-05', fim: '2026-11-15' }), { texto: '5 a 15 de novembro', numero: '5 a 15', rotulo: 'de novembro' })
+  assert.deepEqual(M.periodoDaEdicao({ inicio: '2026-10-30', fim: '2026-11-02' }), { texto: '30 de outubro a 2 de novembro', numero: '30 de outubro a 2', rotulo: 'de novembro' })
+  assert.equal(M.periodoDaEdicao({ inicio: '2026-11-05', fim: '2026-11-05' }).numero, '5')
+  assert.equal(M.periodoDaEdicao(null, '5 a 15 de novembro').numero, '5 a 15', 'sem datas, vale a reserva')
+  assert.equal(M.periodoDaEdicao({ inicio: 'x' }), null)
+
+  assert.equal(M.aberturaDaAvaliacao({ edicao: { inicio: '2026-11-05' }, avaliacao: { abre_em: null } }), 'em 5 de novembro')
+  assert.equal(M.aberturaDaAvaliacao({ edicao: { inicio: '2026-11-05' }, avaliacao: { abre_em: '2026-11-07T00:00:00-03:00' } }), 'em 7 de novembro')
+  assert.equal(M.aberturaDaAvaliacao({}), '')
+
+  const casa = (slug, ...bairros) => ({ slug, unidades: bairros.map((bairro) => ({ endereco: { bairro } })) })
+  const lista = [casa('a', 'Capim Macio', 'Capim macio'), casa('b', 'capim macio', 'Tirol'), casa('c', 'Tirol'), casa('d', 'Alecrim'), casa('e', '')]
+  assert.deepEqual(M.contarBairros(lista), [{ bairro: 'Capim Macio', casas: 2 }, { bairro: 'Tirol', casas: 2 }, { bairro: 'Alecrim', casas: 1 }])
+  assert.deepEqual(M.opcoesFiltro(lista).bairros, ['Alecrim', 'Capim Macio', 'Tirol'])
+})

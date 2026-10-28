@@ -5,9 +5,9 @@
 import React from 'react'
 import { Link } from '../base.jsx'
 
-/** Fita amarela com o nome da seção. */
-export function Etiqueta ({ children, as: Tag = 'p' }) {
-  return <Tag className="ct-etiqueta">{children}</Tag>
+/** Fita com o nome da seção: amarela; `cor="azul"` no canal Serviço ("como funciona"), em texto grande. */
+export function Etiqueta ({ children, as: Tag = 'p', cor, ...resto }) {
+  return <Tag className={`ct-etiqueta${cor ? ` ct-etiqueta--${cor}` : ''}`} {...resto}>{children}</Tag>
 }
 
 /** Dado curto em chocolate. */

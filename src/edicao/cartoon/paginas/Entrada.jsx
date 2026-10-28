@@ -1,104 +1,136 @@
 /*
- * Entrada da edição (§5.1): abertura com o lettering aprovado, como
- * experimentar, o elenco, onde ficam, avaliação/premiação e dúvidas.
- * O mapa interativo NÃO carrega aqui — só a contagem por bairro.
+ * Entrada da edição (/cartoon; docs/cartoon-2026-2/10 §10.7). Topo no canal Estreia: selo, letreiro
+ * desenhado "Agora é hora de provar!", a TV antiga com a placa do período na tela e a placa com o nº de
+ * casas — placas só com o que é fato do dado. No corpo creme, em ordem: Como funciona · Nosso elenco
+ * (as logos desenhadas, levando a cada casa e ao catálogo) · Onde ficam (bairros com a contagem real,
+ * levando ao Mapa; a faixa de Natal é o chão) · Avalie · Dúvidas. O mapa interativo NÃO carrega aqui.
+ * Olhinhos (E2, à espera de aprovação): o lugar fica reservado no topo, sem nada desenhado.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
-import { fotoProximaEdicao } from '../../../data/imageLibrary'
-import { Link, Foto, Logo, AvisoDesatualizado, AvisoDemo, AvisoRetrato, Falha, Carregando } from '../../componentes/base.jsx'
-import { ENTRADA as T, DUVIDAS, FASE_TEXTO } from '../textos.js'
+import * as M from '../../dados/modelo.js'
+import { letreiroEdicao, cenaEdicao, seloEdicao, srcSet } from '../../../data/imageLibrary'
+import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato, Falha, Carregando } from '../../componentes/base.jsx'
+import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
+import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
+import { Etiqueta, Placa, Botao } from '../../componentes/sistema/pecas.jsx'
+import { ENTRADA as T, CATALOGO, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
+
+const C = EDICAO.caminho
 
 export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
-  const lettering = fotoProximaEdicao('marca')
-  const fundo = fotoProximaEdicao('fundo')
-  const lista = dados?.participantes || []
-  const elenco = lista.slice(0, 8)
-  const porBairro = new Map()
-  for (const p of lista) for (const u of p.unidades || []) {
-    const b = u.endereco?.bairro
-    if (b) porBairro.set(b, (porBairro.get(b) || 0) + 1)
-  }
-  const bairros = [...porBairro.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'))
+  const selo = seloEdicao()
+  const tv = cenaEdicao('tv')
+  const natal = cenaEdicao('natal')
+  const elenco = dados?.participantes_publicos ? dados.participantes || [] : []
+  const bairros = M.contarBairros(elenco)
+  const periodo = M.periodoDaEdicao(dados?.edicao, PERIODO)
   const encerrada = dados?.fase === 'encerrada'
-  const passos = dados?.avaliacao?.aberta || dados?.fase === 'em_andamento' ? T.passos : T.passos.slice(0, 2)
-  const textoAvaliacao = dados?.avaliacao?.aberta ? null
-    : encerrada ? (dados?.resultados_publicos ? null : FASE_TEXTO.avaliacaoEncerrada) : FASE_TEXTO.avaliacaoFechada
+  const aberta = !!dados?.avaliacao?.aberta
+  const abre = M.aberturaDaAvaliacao(dados)
+  const textoAvalie = aberta ? T.avalieAberta
+    : encerrada ? FASE_TEXTO.avaliacaoEncerrada
+    : abre ? T.avalieAbre(abre) : FASE_TEXTO.avaliacaoFechada
 
   return (
     <>
-      <section className="ct-abre" aria-labelledby="ct-abre-titulo" style={fundo ? { '--ct-fundo': `url(${fundo.src})` } : undefined}>
-        <div className="ct-abre__texto">
-          <p className="ct-rotulo">{T.rotulo}</p>
-          <h1 id="ct-abre-titulo" className="ct-abre__titulo">
-            {lettering
-              ? <img className="ct-abre__lettering" src={lettering.src} alt={T.titulo} width="1400" height="717" fetchpriority="high" />
-              : T.titulo}
-          </h1>
-          <p className="ct-abre__periodo">{T.periodo}</p>
-          <p className="ct-abre__frase">{encerrada ? FASE_TEXTO.encerrada : T.frase}</p>
-          <div className="ct-acoes">
-            <Link className="ct-botao" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.acaoParticipantes}</Link>
-            {!encerrada && <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/mapa`} navigate={navigate}>{T.acaoMapa}</Link>}
-          </div>
-        </div>
-      </section>
       <AvisoDesatualizado ativo={dados?.desatualizado} />
       <AvisoDemo ativo={dados?.demo} />
       <AvisoRetrato retrato={dados?.retrato} />
 
+      <TopoCanal canal="estreia" className="ct-estreia" aria-labelledby="ct-estreia-titulo">
+        <div className="ct-estreia__texto">
+          {/* O cabeçalho já nomeia a edição (link do selo); aqui o selo é a abertura, sem repetir o nome. */}
+          <img className="ct-estreia__selo" src={selo.src} srcSet={srcSet(selo.src)} sizes="160px" alt="" width={selo.largura} height={selo.altura} />
+          <Letreiro nivel={1} id="ct-estreia-titulo" texto={T.titulo} imagem={letreiroEdicao('provar')} />
+          <p className="ct-estreia__frase">{encerrada ? FASE_TEXTO.encerrada : T.frase}</p>
+          <div className="ct-acoes">
+            <Botao tipo="acao" href={`${C}/participantes`} navigate={navigate}>{T.acaoParticipantes}</Botao>
+            {!encerrada && <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}>{T.acaoMapa}</Botao>}
+          </div>
+        </div>
+        <div className="ct-estreia__cena">
+          {/* Lugar dos olhinhos (E2): reservado, vazio até a aprovação. */}
+          <div className="ct-estreia__olhos" aria-hidden="true" />
+          <figure className="ct-estreia__tv">
+            <img src={tv.src} width={tv.largura} height={tv.altura} alt="" decoding="async" fetchpriority="high" />
+            {periodo && <div className="ct-estreia__tela"><Placa numero={periodo.numero} rotulo={periodo.rotulo} /></div>}
+            {elenco.length > 0 && (
+              <div className="ct-estreia__casas"><Placa numero={String(elenco.length)} rotulo={CATALOGO.placa(elenco.length)} cor="turquesa" /></div>
+            )}
+          </figure>
+        </div>
+      </TopoCanal>
+
       {!encerrada && (
-        <section className="ct-bloco" aria-labelledby="ct-como">
-          <h2 id="ct-como" className="ct-h2">{T.comoTitulo}</h2>
+        <section className="ct-bloco ct-entrada__como" aria-labelledby="ct-como">
+          <Etiqueta as="h2" cor="azul" id="ct-como">{T.comoTitulo}</Etiqueta>
           <ol className="ct-passos">
-            {passos.map((p, i) => (
-              <li key={p.titulo}><span className="ct-passos__n" aria-hidden="true">{i + 1}</span><strong>{p.titulo}</strong><span>{p.texto}</span></li>
+            {T.passos.map((p, i) => (
+              <li key={p.titulo}>
+                <IconeCartoon nome={p.icone} tamanho={64} />
+                <h3 className="ct-passos__titulo"><span className="ct-passos__n" aria-hidden="true">{i + 1}</span>{p.titulo}</h3>
+                <p>{p.texto}</p>
+              </li>
             ))}
           </ol>
         </section>
       )}
 
-      <section className="ct-bloco" aria-labelledby="ct-elenco">
-        <div className="ct-bloco__cabeca">
-          <h2 id="ct-elenco" className="ct-h2">{T.elencoTitulo}</h2>
-          {lista.length > elenco.length && <Link className="ct-link" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.verTodas}</Link>}
-        </div>
+      <section className="ct-bloco ct-entrada__elenco" aria-labelledby="ct-elenco">
+        <Letreiro id="ct-elenco" texto={T.elencoTitulo} imagem={letreiroEdicao('elenco')} />
         {erro ? <Falha titulo="Não conseguimos carregar as casas agora" texto="Confira a conexão e tente de novo." tentar={tentar} />
           : carregando ? <Carregando texto="Carregando as casas…" />
-          : dados?.participantes_publicos && lista.length ? (
-          <ul className="ct-grade ct-grade--participantes">
-            {elenco.map((p) => (
-              <li key={p.slug} className="ct-cartao">
-                <Link className="ct-cartao__link" href={`${EDICAO.caminho}/participantes/${p.slug}`} navigate={navigate}>
-                  {p.combo ? <Foto foto={p.combo.fotos?.principal} proporcao="1 / 1" reserva="Foto do combo em produção" />
-                    : <div className="ct-foto ct-foto--reserva" style={{ '--ct-proporcao': '1 / 1' }}><span>Combo em breve</span></div>}
-                  <div className="ct-cartao__corpo"><div className="ct-cartao__casa"><Logo casa={p.casa} tamanho={40} /><h3 className="ct-cartao__nome">{p.casa.nome}</h3></div></div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : <p className="ct-lead">{FASE_TEXTO.semElenco}</p>}
+          : elenco.length ? (
+            <>
+              <ul className="ct-mural">
+                {elenco.map((p) => (
+                  <li key={p.slug}>
+                    <Link className="ct-mural__link" href={`${C}/participantes/${p.slug}`} navigate={navigate}>
+                      <LogoDesenhada casa={p.casa} alt="" />
+                      <span className="ct-mural__nome">{p.casa.nome}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="ct-acoes"><Botao href={`${C}/participantes`} navigate={navigate}>{T.verTodas(elenco.length)}</Botao></div>
+            </>
+          ) : <p className="ct-lead">{FASE_TEXTO.semElenco}</p>}
       </section>
 
-      {bairros.length > 0 && !encerrada && (
-        <section className="ct-bloco" aria-labelledby="ct-onde">
-          <h2 id="ct-onde" className="ct-h2">{T.ondeTitulo}</h2>
-          <ul className="ct-bairros">{bairros.map(([b, n]) => <li key={b}>{b} <span>{n}</span></li>)}</ul>
-          <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/mapa`} navigate={navigate}>{T.acaoMapa}</Link>
+      {!encerrada && bairros.length > 0 && (
+        <section className="ct-onde" aria-labelledby="ct-onde">
+          <div className="ct-bloco">
+            <Letreiro id="ct-onde" texto={T.ondeTitulo} />
+            <p className="ct-lead">{T.ondeLead}</p>
+            <ul className="ct-bairros">
+              {bairros.map(({ bairro, casas }) => (
+                <li key={bairro}>
+                  <Link className="ct-bairro" href={`${C}/mapa?bairro=${encodeURIComponent(bairro)}`} navigate={navigate}>
+                    {bairro}<span className="ct-bairro__n" aria-hidden="true">{casas}</span><span className="ct-sr">, {T.bairroCasas(casas)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}>{T.acaoMapa}</Botao>
+          </div>
+          <img className="ct-onde__chao" src={natal.src} srcSet={srcSet(natal.src)} sizes="100vw" width={natal.largura} height={natal.altura} alt="" loading="lazy" decoding="async" />
         </section>
       )}
 
-      <section className="ct-bloco" aria-labelledby="ct-av">
-        <h2 id="ct-av" className="ct-h2">{T.avaliacaoTitulo}</h2>
-        {textoAvaliacao && <p>{textoAvaliacao}</p>}
+      <section className="ct-bloco ct-entrada__avalie" aria-labelledby="ct-avalie">
+        <Letreiro id="ct-avalie" texto={T.avalieTitulo} />
+        <p className="ct-lead">{textoAvalie}</p>
         <div className="ct-acoes">
-          {dados?.avaliacao?.aberta && <Link className="ct-botao" href={`${EDICAO.caminho}/avaliar`} navigate={navigate}>Avaliar</Link>}
-          <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/premiacao`} navigate={navigate}>Ver a premiação</Link>
+          {!encerrada && <Botao href={`${C}/avaliar`} navigate={navigate}>{aberta ? T.avaliar : T.comoAvaliar}</Botao>}
+          <Botao tipo={encerrada ? 'primario' : 'secundario'} href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao>
         </div>
       </section>
 
-      <section className="ct-bloco" aria-labelledby="ct-duvidas">
-        <h2 id="ct-duvidas" className="ct-h2">{T.duvidasTitulo}</h2>
+      <section className="ct-bloco ct-entrada__duvidas" aria-labelledby="ct-duvidas">
+        <Letreiro id="ct-duvidas" texto={T.duvidasTitulo} />
         <div className="ct-duvidas">
           {DUVIDAS.map(([q, r]) => <details key={q}><summary>{q}</summary><p>{r}</p></details>)}
         </div>

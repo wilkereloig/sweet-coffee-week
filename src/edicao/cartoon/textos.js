@@ -24,23 +24,28 @@ export const NAV = [
 export const MENU = { abrir: 'Menu', titulo: 'Páginas da Cartoon', fechar: 'Fechar' }
 
 export const ENTRADA = {
-  rotulo: 'Sweet & Coffee Week',
-  titulo: 'Cartoon',
-  periodo: `${PERIODO} · Natal`,
+  titulo: 'Agora é hora de provar!',
   frase: 'Casas de Natal transformam desenhos em sabor: um doce, um salgado e uma bebida em cada combo.',
-  acaoParticipantes: 'Ver participantes',
+  acaoParticipantes: 'Ver as casas',
   acaoMapa: 'Abrir o mapa',
-  comoTitulo: 'Como experimentar',
+  comoTitulo: 'Como funciona',
   passos: [
-    { titulo: 'Escolha a casa', texto: 'Veja os combos e onde cada casa fica.' },
-    { titulo: 'Prove o combo', texto: 'No local, para levar ou por delivery, conforme a casa.' },
-    { titulo: 'Avalie', texto: 'Sua avaliação ajuda a escolher os destaques do Sweet Awards.' },
+    { titulo: 'Escolha a casa', texto: 'Veja os combos e onde cada casa fica.', icone: 'casas' },
+    { titulo: 'Prove o combo', texto: 'No local, para levar ou por delivery, conforme a casa.', icone: 'no-local' },
+    { titulo: 'Avalie', texto: 'Sua avaliação ajuda a escolher os destaques do Sweet Awards.', icone: 'avaliar' },
   ],
-  elencoTitulo: 'O elenco',
-  verTodas: 'Ver todas as casas',
+  elencoTitulo: 'Estrelando: nosso elenco!',
+  verTodas: (n) => (n === 1 ? 'Ver a casa' : `Ver as ${n} casas`),
   ondeTitulo: 'Onde ficam',
-  avaliacaoTitulo: 'Avaliação e premiação',
-  duvidasTitulo: 'Antes de sair',
+  ondeLead: 'Escolha um bairro para ver as casas dele no mapa.',
+  bairroCasas: (n) => (n === 1 ? '1 casa' : `${n} casas`),
+  avalieTitulo: 'Avalie sua experiência',
+  avalieAbre: (quando) => `A avaliação abre ${quando}.`,
+  avalieAberta: 'Provou o combo? Conte como foi: as avaliações do público ajudam a escolher os destaques do Sweet Awards.',
+  avaliar: 'Avaliar',
+  comoAvaliar: 'Ver como avaliar',
+  premiacao: 'Ver a premiação',
+  duvidasTitulo: 'Dúvidas',
 }
 
 export const DUVIDAS = [
