@@ -118,9 +118,9 @@ export function Avaliar ({ navigate, dados }) {
         {topo}
         <section className="ct-bloco" aria-label={encerrada ? FASE_TEXTO.avaliacaoEncerrada : T.passosTitulo}>
           <div className="ct-avaliar__fechada">
-            {/* "Abre em": olhinhos surpresos olhando para a data. Só neste estado, que não tem formulário. */}
+            {/* "Abre em": olhinhos em expectativa olhando para a data. Só neste estado, que não tem formulário. */}
             {encerrada ? <IconeCartoon nome="avaliar" tamanho={64} />
-              : <Olhinhos expressao="surpreso" olhar={{ x: 0.7, y: 0 }} tamanho={120} className="ct-avaliar__olhos" />}
+              : <Olhinhos expressao="expectativa" olhar={{ x: 0.7, y: 0 }} tamanho={120} className="ct-avaliar__olhos" />}
             <div>
               <p className="ct-sub">{encerrada ? FASE_TEXTO.avaliacaoEncerrada : abre ? T.abre(abre) : FASE_TEXTO.avaliacaoFechada}</p>
               {!encerrada && <p>{T.abreLead}</p>}

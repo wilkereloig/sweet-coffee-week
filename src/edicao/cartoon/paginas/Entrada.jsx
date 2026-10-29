@@ -4,7 +4,7 @@
  * casas — placas só com o que é fato do dado. No corpo creme, em ordem: Como funciona · Nosso elenco
  * (as logos desenhadas, levando a cada casa e ao catálogo) · Onde ficam (bairros com a contagem real,
  * levando ao Mapa; a faixa de Natal é o chão) · Avalie · Dúvidas. O mapa interativo NÃO carrega aqui.
- * Olhinhos (§10.5, aprovados em 28/10): encantados no alto da cena, seguindo o cursor — o único lugar onde seguem.
+ * Sem olhinhos (MANUAL-CARTOON §1.3, 29/10): o selo e o letreiro da edição já são grandes aqui, e o olho já está neles.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
@@ -12,7 +12,6 @@ import * as M from '../../dados/modelo.js'
 import { letreiroEdicao, cenaEdicao, seloEdicao, srcSet } from '../../../data/imageLibrary'
 import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato, Falha, Carregando } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
-import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { Etiqueta, Placa, Botao, Passos } from '../../componentes/sistema/pecas.jsx'
@@ -52,7 +51,6 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           </div>
         </div>
         <div className="ct-estreia__cena">
-          <Olhinhos expressao="encantado" olhar="cursor" lado="direita" tamanho={168} className="ct-estreia__olhos" />
           <figure className="ct-estreia__tv">
             <img src={tv.src} width={tv.largura} height={tv.altura} alt="" decoding="async" fetchpriority="high" />
             {periodo && <div className="ct-estreia__tela"><Placa numero={periodo.numero} rotulo={periodo.rotulo} /></div>}

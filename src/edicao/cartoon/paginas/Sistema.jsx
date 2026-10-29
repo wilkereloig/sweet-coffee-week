@@ -231,8 +231,8 @@ export default function Sistema () {
 
 const EXPRESSOES_VITRINE = [
   ['encantado', 'Encantado', 'novidade e combo'],
-  ['esperto', 'Esperto', 'dica, mapa, rota'],
-  ['surpreso', 'Surpreso', 'contagem, "abre em", última chance'],
+  ['curioso', 'Curioso', 'dica, mapa, rota'],
+  ['expectativa', 'Expectativa', 'contagem, "abre em", última chance'],
 ]
 
 // Olhinhos (§10.5): as três expressões, a troca animada e o olhar seguindo o cursor. Nada aqui é página real.
@@ -241,7 +241,7 @@ function VitrineOlhinhos () {
   return (
     <section className="ct-bloco" aria-labelledby="v-olhinhos">
       <h2 id="v-olhinhos" className="ct-h2">Olhinhos</h2>
-      <p className="ct-nota">Desenhados no código, do zero. Piscam sozinhos a cada 3 a 6 segundos e param com "reduzir movimento". Um par por tela, longe de formulário, endereço, ingrediente e mapa.</p>
+      <p className="ct-nota">No padrão da cliente (MANUAL-CARTOON §1.3), desenhados no código. Piscam sozinhos a cada 3 a 6 segundos e param com "reduzir movimento". Um par por tela, olhando para o título, a placa ou a logo; nenhum onde a logo da edição já é grande, nem perto de formulário, endereço, ingrediente e mapa.</p>
       <ul className="ct-vitrine__olhinhos">
         {EXPRESSOES_VITRINE.map(([chave, nome, uso]) => (
           <li key={chave}>
@@ -262,7 +262,7 @@ function VitrineOlhinhos () {
           </div>
         </div>
         <div>
-          <h3 className="ct-rotulo">Seguindo o cursor (só no herói da Entrada)</h3>
+          <h3 className="ct-rotulo">Seguindo o cursor</h3>
           <Olhinhos expressao="encantado" olhar="cursor" lado="direita" tamanho={220} />
           <p className="ct-nota">Espelhado (lado direita) para olhar para dentro da tela.</p>
         </div>

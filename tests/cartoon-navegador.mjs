@@ -25,8 +25,8 @@
  *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
  *     botão) e cinco abas (Avaliar → Prêmio depois dos resultados); rodapé com barras, F2 e cookies.
- * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, lugar vazio dos
- *     olhinhos), como funciona, mural das casas, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
+ * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, sem olhinhos —
+ *     MANUAL §1.3), como funciona, mural das casas, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
  *     sem elenco, falha de rede e edição encerrada.
  * 11. MAPA — topo no canal Rota; uma linha por unidade; sem coordenada = "em conferência"; aproximada dita assim
  *     na lista e no marcador; ?bairro= (contrato da Entrada) filtra a unidade; quero ir e já fui como filtro;
@@ -470,13 +470,12 @@ try {
     const e = await page.evaluate(() => {
       const txt = (s) => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || ''
       const placa = (s) => [...document.querySelectorAll(`${s} .ct-placa span`)].map((x) => x.textContent.trim()).join(' ')
-      const olhos = document.querySelector('.ct-estreia__olhos')
       return {
         canal: !!document.querySelector('.ct-canal--estreia h1'),
         tela: placa('.ct-estreia__tela'),
         casas: placa('.ct-estreia__casas'),
         acao: getComputedStyle(document.querySelector('.ct-estreia .ct-botao')).backgroundColor,
-        olhos: olhos ? { svg: olhos.matches('svg.ct-olhinhos'), expressao: olhos.dataset.expressao, clicavel: olhos.querySelectorAll('a, button, [tabindex]').length, oculto: olhos.getAttribute('aria-hidden') } : null,
+        olhos: document.querySelectorAll('.ct-estreia .ct-olhinhos').length,
         como: txt('h2.ct-etiqueta--azul'),
         passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-icone')?.getAttribute('src')?.match(/icones\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.replace(/^\d/, '').trim()]),
         mural: [...document.querySelectorAll('.ct-mural__link')].map((a) => a.getAttribute('href').split('?')[0]),
@@ -491,7 +490,7 @@ try {
     if (e.tela !== '5 a 15 de novembro') falha(`Entrada: placa da TV "${e.tela}"`)
     if (e.casas !== '3 casas no elenco') falha(`Entrada: placa de casas "${e.casas}"`)
     if (e.acao !== 'rgb(237, 28, 32)') falha(`Entrada: botão sobre amarelo não é o de ação (${e.acao})`)
-    if (!e.olhos?.svg || e.olhos.expressao !== 'encantado' || e.olhos.clicavel || e.olhos.oculto !== 'true') falha(`Entrada: olhinhos ${JSON.stringify(e.olhos)}`)
+    if (e.olhos) falha(`Entrada: ${e.olhos} par(es) de olhinhos no topo, onde selo e letreiro já são grandes (MANUAL §1.3)`)
     if (e.como !== 'Como funciona') falha(`Entrada: etiqueta azul "${e.como}"`)
     if (JSON.stringify(e.passos) !== JSON.stringify([['casas', 'Escolha a casa'], ['no-local', 'Prove o combo'], ['avaliar', 'Avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
     if (JSON.stringify(e.mural) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/participantes/${p.slug}`))) falha(`Entrada: mural ${JSON.stringify(e.mural)}`)
@@ -527,7 +526,7 @@ try {
     if (!enc.includes('terminou') || await c.page.locator('.ct-entrada__como, .ct-onde').count()) falha('Entrada encerrada: sem aviso, ou ainda com Como funciona/Onde ficam')
     if (!enc.includes('A avaliação desta edição foi encerrada.')) falha('Entrada encerrada: Avalie sem o texto de encerrada')
     await c.ctx.close()
-    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, olhinhos encantados e decorativos), como funciona, mural, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
+    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, sem olhinhos), como funciona, mural, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
   }
 
   console.log('\n11 · Mapa')

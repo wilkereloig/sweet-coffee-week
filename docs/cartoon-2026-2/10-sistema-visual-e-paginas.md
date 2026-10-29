@@ -121,25 +121,30 @@ já usam, então o botão novo vale para a camada inteira de uma vez.
 
 ## 10.5 Olhinhos
 
-- **Desenho:** SVG próprio, refeito do zero. Nada de recorte do PNG.
-  - Ovais brancos com contorno de nanquim e filete branco externo.
-  - Pupila grande e dois brilhos.
-  - Pálpebra e sobrancelha desenhadas.
-  - Sem boca, sem corpo.
-- **Expressões** (as três do manual) e onde aparecem:
+Padrão da cliente desde 29/10 (MANUAL-CARTOON §1.3, refs `olhinhos-padrao-cliente-take1|2|3.png`). Os olhos
+de 28/10 (ovais com filete branco, pálpebra, estrelinhas e gota) saíram de uso.
+
+- **Desenho:** SVG próprio em `Olhinhos.jsx`.
+  - Dois ovais creme, altos e encostados; o esquerdo na frente, cada um com leve inclinação.
+  - Contorno preto de pincel: um anel mais grosso embaixo e por fora (elipse maior deslocada − o olho).
+  - Pupila preta grande com **dois** brilhos: um oval e um ponto.
+  - Sobrancelhas soltas, pinceladas que afinam nas pontas.
+  - Sombra cel e hachura leves na base.
+  - **Sem:** boca, gota, lágrima, pálpebra, filete branco de adesivo, estrelinhas, vários brilhos.
+- **Expressões** (expectativa, curiosidade, encanto; nunca choro) e onde aparecem:
   - *encantado*: novidade e combo;
-  - *esperto*: dica, mapa, rota;
-  - *surpreso*: contagem, "abre em", última chance.
+  - *curioso*: dica, mapa, rota;
+  - *expectativa*: contagem, "abre em", última chance (com os traços curtos de ação do take 3).
   - Troca entre expressões animada, não por corte seco.
 - **Movimento:** linguagem de animação clássica (antecipação, exagero, quique).
-  - Piscada com intervalo aleatório de 3 a 6 s, às vezes dupla.
-  - O olhar aponta para o assunto da tela.
-  - Seguir o cursor ou o toque: **só no herói da Entrada**, com atraso e suavização.
+  - Piscada com intervalo aleatório de 3 a 6 s, às vezes dupla: o olho achata no meio, sem pálpebra.
+  - O olhar aponta para o assunto da tela: o título, a placa, o troféu.
+  - Seguir o cursor existe no componente (`olhar="cursor"`); hoje só a vitrine usa.
   - Com `prefers-reduced-motion`: parados, na expressão do contexto.
-- **Lugar:** um par por tela, na diagonal oposta ao protagonista.
-  - Só no herói da Entrada, no topo de Participantes, no estado "abre em" de Avaliar e no topo de Premiação.
+- **Lugar:** um par por tela, espiando de uma borda.
+  - No topo de Participantes, no estado "abre em" de Avaliar e no palco de Premiação.
+  - **Não na Entrada:** selo e letreiro da edição já são grandes ali, e o olho já está neles.
   - Nunca perto de formulário, endereço, ingrediente ou mapa.
-- **Aprovação:** primeiro na vitrine (§10.12, etapa 2). Só depois entram nas páginas.
 
 ## 10.6 Casca (`cartoon/index.jsx`)
 
@@ -164,12 +169,12 @@ O corpo de todas as páginas é creme. O topo de cada uma usa o `TopoCanal` do s
 
 | Página | Canal | Conteúdo, em ordem |
 |---|---|---|
-| **Entrada** `/cartoon` | Estreia (amarelo) | Herói: selo, letreiro "Agora é hora de provar!", TV-cidade e olhinhos seguindo o cursor; placas só com o que é fato (5 a 15 de novembro, nº de casas publicadas) · Como funciona (escolha · prove · avalie) com etiqueta azul · "Nosso elenco": logos em `Quadro`, levando a Participantes · Onde ficam: bairros, levando ao Mapa · Avalie · Dúvidas |
+| **Entrada** `/cartoon` | Estreia (amarelo) | Herói: selo, letreiro "Agora é hora de provar!", TV-cidade, sem olhinhos; placas só com o que é fato (5 a 15 de novembro, nº de casas publicadas) · Como funciona (escolha · prove · avalie) com etiqueta azul · "Nosso elenco": logos em `Quadro`, levando a Participantes · Onde ficam: bairros, levando ao Mapa · Avalie · Dúvidas |
 | **Participantes** | Elenco (creme) | Letreiro "Nosso elenco", contagem, busca, filtros (bairro, aberto hoje, vegano, diet, para viagem, delivery) · cartão com a foto do combo como protagonista (sem foto: "Foto em produção" com a logo no `Quadro`), logo, nome, tema ("inspirado em …"), bairros e selos |
 | **Ficha da casa** | Elenco no topo; Cardápio (rosa) no bloco do combo | Logo, nome (display) e tema · combo: foto grande, nome, itens e condições, preço só se vier do dado · unidades: endereço, horário, Como chegar, WhatsApp autorizado, "Adicionar à rota" · restrições alimentares e trocas · galeria |
 | **Mapa** | Rota (turquesa) | Mapa e lista; filtros "aberto agora" e bairro; unidade sem coordenada conferida entra na lista com "localização em conferência" |
 | **Minha rota** | Rota (turquesa) | Paradas em placas numeradas, tracejado vermelho, Google Maps em trechos, compartilhar |
-| **Avaliar** | Serviço (creme + azul) | Letreiro "Avalie sua experiência", três passos, formulário. Fora da janela: estado "abre em 5 de novembro", com olhinhos surpresos longe do formulário |
+| **Avaliar** | Serviço (creme + azul) | Letreiro "Avalie sua experiência", três passos, formulário. Fora da janela: estado "abre em 5 de novembro", com olhinhos em expectativa longe do formulário |
 | **Premiação** | Gala (chocolate) | Antes dos resultados: troféu oficial sob holofote, "resultados depois de 15/11". Depois: pódio por categoria. 2º e 3º sem registro ficam ausentes, nunca inventados |
 
 - O nome "Mapa" fica até o Wilker decidir entre "Rota da Doçura" e "Mapa da Doçura" (pendência do manual).
