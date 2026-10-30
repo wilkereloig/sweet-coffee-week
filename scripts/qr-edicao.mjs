@@ -28,6 +28,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import QRCode from 'qrcode'
+import { destinoDoCodigo, normalizarCodigo } from '../src/edicao/qrPontos.js'
 
 const arg = (nome, padrao) => {
   const i = process.argv.indexOf(`--${nome}`)
@@ -94,25 +95,29 @@ async function gerar (casas) {
   console.log(`✓ ${casas.length} QR Codes em ${SAIDA}`)
 }
 
-// Peças com QR de contagem. O destino daqui só vai para o lista.csv; quem leva a pessoa é a função /q/.
+// Peças com QR de contagem. A regra código → destino é a de src/edicao/qrPontos.js (a mesma do
+// api/q.js); o destino daqui só vai para o lista.csv.
 const PECAS_POR_CASA = [
-  { prefixo: 'd1', nome: 'Display de mesa · face 1 (combo)', destino: (slug) => `${CAMINHO}/participantes/${slug}` },
-  { prefixo: 'd2', nome: 'Display de mesa · face 2 (avaliar)', destino: () => `${CAMINHO}/avaliar` },
+  { prefixo: 'd1', nome: 'Display de mesa · face 1 (combo)' },
+  { prefixo: 'd2', nome: 'Display de mesa · face 2 (avaliar)' },
 ]
-const PECAS_GERAIS = [{ codigo: 'pl-geral', nome: 'Placa de sinalização (geral)', destino: CAMINHO }]
+const PECAS_GERAIS = [{ codigo: 'pl-geral', nome: 'Placa de sinalização (geral)' }]
 
 async function gerarPorPeca (casas) {
   await fs.mkdir(SAIDA, { recursive: true })
   const pontos = [
-    ...casas.flatMap((c) => PECAS_POR_CASA.map((p) => ({ codigo: `${p.prefixo}-${c.slug}`, nome: p.nome, casa: c.casa?.nome || c.slug, destino: p.destino(c.slug) }))),
+    ...casas.flatMap((c) => PECAS_POR_CASA.map((p) => ({ codigo: `${p.prefixo}-${c.slug}`, nome: p.nome, casa: c.casa?.nome || c.slug }))),
     ...PECAS_GERAIS.map((p) => ({ ...p, casa: '' })),
   ]
+  // Código impresso não tem volta: slug fora do desenho do código para tudo antes de gerar qualquer arquivo.
+  const invalidos = pontos.filter((p) => normalizarCodigo(p.codigo) !== p.codigo).map((p) => p.codigo)
+  if (invalidos.length) { console.error(`✗ código inválido (só a-z, 0-9 e hífen entre eles): ${invalidos.join(', ')}`); process.exitCode = 1; return }
   const csv = [['codigo', 'peca', 'casa', 'qr_aponta_para', 'destino', 'arquivo']]
   for (const p of pontos) {
     const url = `${BASE}/q/${p.codigo}`
     const arquivo = `${p.codigo}.png`
     await QRCode.toFile(path.join(SAIDA, arquivo), url, OPCOES_QR)
-    csv.push([p.codigo, p.nome, p.casa, url, `${BASE}${p.destino}`, arquivo])
+    csv.push([p.codigo, p.nome, p.casa, url, `${BASE}${destinoDoCodigo(p.codigo)}`, arquivo])
   }
   await gravarCsv(csv)
   console.log(`✓ ${pontos.length} QR de contagem em ${SAIDA}`)
