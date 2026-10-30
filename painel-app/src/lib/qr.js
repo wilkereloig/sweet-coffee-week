@@ -8,11 +8,11 @@ const FUSO = 'America/Fortaleza'
 
 /** Rótulo de cada tipo de peça (os mesmos do check de qr_pontos.tipo). */
 export const TIPOS = {
-  display_face1: 'Display · face 1 (combo)',
+  display_face1: 'Participantes (QR do combo)',
   display_face2: 'Display · face 2 (avaliar)',
   placa: 'Placa',
   mapa: 'Mapa',
-  outro: 'Outra peça',
+  outro: 'QR geral',
   teste: 'Teste',
 }
 export const rotuloTipo = (tipo) => TIPOS[tipo] || tipo || '—'
@@ -22,6 +22,20 @@ export const PERIODOS = [
   ['hoje', 'Hoje'],
   ['tudo', 'Tudo, com testes'],
 ]
+/**
+ * Colunas de detalhe da tabela de participantes: só as que alguma casa tem. Desde 30/10/2026 a avaliação é um
+ * QR geral, então a face 2 some e cada casa fica com um número só (o QR do combo).
+ */
+export function colunasVisiveis(casas) {
+  const tem = (chave) => (casas || []).some((c) => Number(c[chave]) > 0)
+  const face2 = tem('face2')
+  const outras = tem('outras')
+  return { face2, outras, detalhar: face2 || outras }
+}
+
+/** Ordens que fazem sentido com as colunas visíveis. */
+export const ordensDisponiveis = (v) => ORDENS.filter(([k]) => (k === 'face1' ? v.detalhar : k === 'face2' ? v.face2 : true))
+
 export const ORDENS = [
   ['total', 'Mais leituras'],
   ['face1', 'Face 1 (combo)'],
@@ -125,10 +139,17 @@ export function montarCsv(colunas, linhas) {
   return '\ufeff' + [cabecalho, ...corpo].join('\r\n') + '\r\n'
 }
 
-export const csvCasas = (casas) => montarCsv([
-  ['nome', 'Casa'], ['face1', 'Face 1 (combo)'], ['face2', 'Face 2 (avaliar)'], ['outras', 'Outras peças'], ['total', 'Total'],
-  [(c) => ultimaLeitura(c.ultima, true), 'Última hora com leitura'],
-], casas)
+export const csvCasas = (casas) => {
+  const v = colunasVisiveis(casas)
+  return montarCsv([
+    ['nome', 'Casa'],
+    ...(v.detalhar ? [['face1', 'Face 1 (combo)']] : []),
+    ...(v.face2 ? [['face2', 'Face 2 (avaliar)']] : []),
+    ...(v.outras ? [['outras', 'Outras peças']] : []),
+    ['total', v.detalhar ? 'Total' : 'Leituras'],
+    [(c) => ultimaLeitura(c.ultima, true), 'Última hora com leitura'],
+  ], casas)
+}
 
 export const csvPecas = (pontos, nomeDaCasa) => montarCsv([
   ['codigo', 'Código'], [(p) => rotuloTipo(p.tipo), 'Peça'], [(p) => nomeDaCasa[p.participacao_id] || '', 'Casa'],

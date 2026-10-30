@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import {
   TIPOS, rotuloTipo, argumentosDoPeriodo, hojeEmNatal, ordenarCasas, comPosicao, filtrarPorTexto, larguraBarra, maiorValor,
   numero, ultimaLeitura, diaCurto, rotuloLugar, rotuloAparelho, celulaCsv, montarCsv, csvCasas, csvPecas, csvDias, nomeDoArquivo,
+  colunasVisiveis, ordensDisponiveis,
 } from '../painel-app/src/lib/qr.js'
 
 const lerArquivo = (rel) => readFileSync(new URL('../' + rel, import.meta.url), 'utf8')
@@ -90,9 +91,15 @@ test('CSV: ponto e vírgula, aspas, fórmula neutralizada, BOM e CRLF', () => {
   assert.equal(celulaCsv(0), '0')
   assert.equal(montarCsv([['a', 'A'], [(l) => l.b * 2, 'Dobro']], [{ a: 'x;y', b: 2 }]), '\ufeffA;Dobro\r\n"x;y";4\r\n')
   const casas = csvCasas(ordenarCasas(CASAS, 'total'))
-  assert.ok(casas.startsWith('\ufeffCasa;Face 1 (combo);Face 2 (avaliar);Outras peças;Total;Última hora com leitura\r\n'))
-  assert.ok(casas.includes('Wow Cookies;0;2;0;2;30/10/2026 12h\r\n'))
-  assert.ok(casas.includes('Bolomania;0;0;0;0;—\r\n'))
+  assert.ok(casas.startsWith('\ufeffCasa;Face 1 (combo);Face 2 (avaliar);Total;Última hora com leitura\r\n'))
+  assert.ok(casas.includes('Wow Cookies;0;2;2;30/10/2026 12h\r\n'))
+  assert.ok(casas.includes('Bolomania;0;0;0;—\r\n'))
+  // avaliação num QR geral: sem face 2 nem outras peças, cada casa fica com um número só
+  const soCombo = CASAS.map((c) => ({ ...c, face2: 0, total: c.face1 }))
+  assert.deepEqual(colunasVisiveis(soCombo), { face2: false, outras: false, detalhar: false })
+  assert.ok(csvCasas(soCombo).startsWith('\ufeffCasa;Leituras;Última hora com leitura\r\n'))
+  assert.deepEqual(ordensDisponiveis(colunasVisiveis(soCombo)).map(([k]) => k), ['total', 'nome'])
+  assert.deepEqual(ordensDisponiveis(colunasVisiveis(CASAS)).map(([k]) => k), ['total', 'face1', 'face2', 'nome'])
   const pecas = csvPecas(
     [{ codigo: 'd2-wow-cookies', tipo: 'display_face2', participacao_id: 'p1', leituras: 2, ultima: '2026-10-30T15:00:00+00:00', ativo: true },
       { codigo: 'pl-geral', tipo: 'placa', participacao_id: null, leituras: 0, ultima: null, ativo: false }],

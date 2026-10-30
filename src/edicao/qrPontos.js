@@ -7,16 +7,21 @@
  * pelo gerador de QR (scripts/qr-edicao.mjs), por api/q.js (Vercel Edge) e pelos testes. A regra
  * código → destino mora só aqui (CLAUDE.md §5.1).
  *
- * Códigos:  d1-<slug>  display de mesa, face 1 (combo)   → página da casa
- *           d2-<slug>  display de mesa, face 2 (avaliar) → /avaliar
- *           pl-…       placa de sinalização               → entrada da edição
- *           mapa-…     mapa (inclui o Bitly do cliente)   → /mapa
- *           qualquer outro                                → entrada da edição (nunca erro)
+ * Códigos:  d1-<slug>  QR do participante (o combo; face 1 do display) → página da casa
+ *           inicio     página inicial da edição                           → entrada da edição
+ *           avaliar    avaliação GERAL (a pessoa escolhe a casa lá)      → /avaliar
+ *           premiacao  premiação                                          → /premiacao
+ *           mapa-…     mapa (inclui o Bitly do cliente)                  → /mapa
+ *           d2-<slug>, pl-…  sem peça impressa desde 30/10/2026 (a avaliação virou um QR só); a regra fica
+ *           qualquer outro                                                → entrada da edição (nunca erro)
  */
 import { EDICAO } from './config.js'
 
 // Mesmo desenho do slug da casa: minúsculas e dígitos, hífen só entre eles.
 const CODIGO = /^[a-z0-9]+(-[a-z0-9]+)*$/
+
+// Peça única para a edição inteira (Map, não objeto: 'constructor' é um código válido).
+const GERAIS = new Map([['avaliar', '/avaliar'], ['premiacao', '/premiacao']])
 
 /** Código válido, em minúsculas, ou null. Nunca lança. */
 export function normalizarCodigo (bruto) {
@@ -32,6 +37,7 @@ export function destinoDoCodigo (bruto) {
   const base = EDICAO.caminho
   const codigo = normalizarCodigo(bruto)
   if (!codigo) return base
+  if (GERAIS.has(codigo)) return base + GERAIS.get(codigo)
   const [prefixo, ...resto] = codigo.split('-')
   if (prefixo === 'd1' && resto.length) return `${base}/participantes/${resto.join('-')}`
   if (prefixo === 'd2') return `${base}/avaliar`

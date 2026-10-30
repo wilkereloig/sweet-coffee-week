@@ -17,7 +17,8 @@
  *   node scripts/qr-edicao.mjs --lista <arquivo.json>   → antes da publicação (slug já gravado)
  *   node scripts/qr-edicao.mjs --por-peca --lista <arquivo.json> --saida <pasta>
  *       → QR de CONTAGEM por peça física (plano docs/cartoon-2026-2/12-plano-qr-leituras.md): o QR leva só
- *         <base>/q/<código> (d1-<slug> = display face 1, d2-<slug> = face 2, pl-geral = placa) e a função /q/
+ *         <base>/q/<código> (participante-<slug>.png = d1-<slug>, o combo; geral-avaliacao/-premiacao/-pagina-inicial
+ *         = avaliar/premiacao/inicio, um QR só para a edição) e a função /q/
  *         conta a leitura e redireciona. ⛔ O CÓDIGO NUNCA MUDA depois de impresso; o destino pode mudar.
  *
  * Nunca gerar QR sem slug_publico gravado: ele congela na publicação (ou quando a
@@ -96,17 +97,21 @@ async function gerar (casas) {
 }
 
 // Peças com QR de contagem. A regra código → destino é a de src/edicao/qrPontos.js (a mesma do
-// api/q.js); o destino daqui só vai para o lista.csv.
+// api/q.js); o destino daqui só vai para o lista.csv. Desde 30/10/2026 a avaliação é um QR geral (a pessoa
+// escolhe a casa na página), não um por casa.
 const PECAS_POR_CASA = [
-  { prefixo: 'd1', nome: 'Display de mesa · face 1 (combo)' },
-  { prefixo: 'd2', nome: 'Display de mesa · face 2 (avaliar)' },
+  { prefixo: 'd1', nome: 'Participante · QR do combo (face 1 do display)', arquivo: (slug) => `participante-${slug}.png` },
 ]
-const PECAS_GERAIS = [{ codigo: 'pl-geral', nome: 'Placa de sinalização (geral)' }]
+const PECAS_GERAIS = [
+  { codigo: 'inicio', nome: 'Página inicial da Cartoon', arquivo: 'geral-pagina-inicial.png' },
+  { codigo: 'avaliar', nome: 'Avaliação geral (a pessoa escolhe a casa)', arquivo: 'geral-avaliacao.png' },
+  { codigo: 'premiacao', nome: 'Premiação', arquivo: 'geral-premiacao.png' },
+]
 
 async function gerarPorPeca (casas) {
   await fs.mkdir(SAIDA, { recursive: true })
   const pontos = [
-    ...casas.flatMap((c) => PECAS_POR_CASA.map((p) => ({ codigo: `${p.prefixo}-${c.slug}`, nome: p.nome, casa: c.casa?.nome || c.slug }))),
+    ...casas.flatMap((c) => PECAS_POR_CASA.map((p) => ({ codigo: `${p.prefixo}-${c.slug}`, nome: p.nome, casa: c.casa?.nome || c.slug, arquivo: p.arquivo(c.slug) }))),
     ...PECAS_GERAIS.map((p) => ({ ...p, casa: '' })),
   ]
   // Código impresso não tem volta: slug fora do desenho do código para tudo antes de gerar qualquer arquivo.
@@ -115,7 +120,7 @@ async function gerarPorPeca (casas) {
   const csv = [['codigo', 'peca', 'casa', 'qr_aponta_para', 'destino', 'arquivo']]
   for (const p of pontos) {
     const url = `${BASE}/q/${p.codigo}`
-    const arquivo = `${p.codigo}.png`
+    const { arquivo } = p
     await QRCode.toFile(path.join(SAIDA, arquivo), url, OPCOES_QR)
     csv.push([p.codigo, p.nome, p.casa, url, `${BASE}${destinoDoCodigo(p.codigo)}`, arquivo])
   }
