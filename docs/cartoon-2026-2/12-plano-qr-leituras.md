@@ -1,6 +1,6 @@
 # 12 · Plano: contar as leituras dos QR Codes e mostrar no painel
 
-**Estado (30/10/2026, noite):** Fases 0, 1, 1b e 2 FEITAS. O contador está em PRODUÇÃO desde 30/10 (`master` em `2e650c62`, autorizado pelo Wilker): `/q/<código>` responde 302 certo no domínio oficial, o Bitly do cliente (`/q/mapa-bitly`) já não dá 404 e o banco grava a cidade. A aba **Operação › QR Codes** (só leitura: ranking por participante, dia, hora, cidade, aparelho, peça por peça e CSV) está pronta e testada no código e no banco (`get_qr_resumo` e `qr_resumo_dados`, migration `20261122_qr_painel` aplicada), mas **ainda não publicada**: depende de outro merge em `master` (autorização escrita). Faltam D3 (placa por casa, adesivo, voucher), pausar/cadastrar peça pelo painel (só quando a D3 pedir peça nova) e apagar as linhas de teste do banco (precisa de ok).
+**Estado (30/10/2026, noite):** Fases 0, 1, 1b e 2 FEITAS. O contador está em PRODUÇÃO desde 30/10 (`master` em `2e650c62`, autorizado pelo Wilker): `/q/<código>` responde 302 certo no domínio oficial, o Bitly do cliente (`/q/mapa-bitly`) já não dá 404 e o banco grava a cidade. A aba **Operação › QR Codes** (só leitura: ranking por participante, dia, hora, cidade, aparelho, peça por peça e CSV) também está **em PRODUÇÃO desde 30/10** (`master` em `b32086e6`, autorizado pelo Wilker; deploy da Vercel `READY` e o JS publicado do painel traz `get_qr_resumo`; banco: `get_qr_resumo` e `qr_resumo_dados`, migration `20261122_qr_painel` aplicada). A tela em si ainda não foi conferida no navegador (o painel pede login). Faltam D3 (placa por casa, adesivo, voucher), pausar/cadastrar peça pelo painel (só quando a D3 pedir peça nova) e apagar as linhas de teste do banco (precisa de ok).
 **Pedido:** o cliente quer saber quantas vezes cada QR foi lido e de que peça veio (display, placa…). Wilker: "esses dados a gente pode criar no painel".
 Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]**.
 
@@ -32,6 +32,8 @@ Ganhos sobre "só Analytics": conta todo mundo (inclusive quem recusou cookies);
 | Placa de sinalização | `pl-…` | `/cartoon` | a definir |
 | Mapa (QR do cliente, opcional) | `mapa-bitly` | `/cartoon/mapa` | 1 |
 | Teste | `teste` | `/cartoon` | 1, não entra na soma |
+
+⚠️ Não confundir: **D1 a D5** (maiúsculas) são as decisões da seção 12.9; **`d1-` e `d2-`** nos códigos e nos arquivos são as faces do display de mesa. **`d1-<casa>.png` = face 1, a do combo; `d2-<casa>.png` = face 2, a da avaliação.** Na face do combo do prisma entra sempre o `d1-`.
 
 **[Proposta]** Regras: minúsculo e sem acento; **nunca mudar um código depois de impresso**; o destino pode mudar sem reimprimir; código desconhecido ou pausado vai para `/cartoon`, nunca para um erro.
 
@@ -84,7 +86,7 @@ Limites que devem ir para o cliente:
 | 0 | Decisões D1 a D3; regerar todos os QR como `/q/<código>`; entregar os PNG | ✅ feito em 30/10 para display (faces 1 e 2) e placa geral; falta D3 (placa por casa, adesivo, voucher) | Wilker |
 | 1 | Migration, `api/q.js`, rewrite, testes; conferir no celular | ✅ feito em 30/10: migration aplicada, 15 testes e teste ao vivo contra o banco real; falta conferir no celular depois de publicar | — |
 | 1b | Publicar em produção (merge em `master`) | ✅ feito em 30/10: `master` avançou por fast-forward para `2e650c62` (2 commits do QR, sem a Cartoon); `/q/teste`, `/q/mapa-bitly` e código desconhecido conferidos no domínio oficial | autorizado pelo Wilker |
-| 2 | Aba no painel e CSV | ✅ feita em 30/10 no código e no banco (só leitura); **falta publicar** (novo merge em `master`, autorização escrita) | Fase 1 |
+| 2 | Aba no painel e CSV | ✅ feita e **publicada em 30/10** (só leitura; `master` em `b32086e6`); falta conferir a tela no navegador | Fase 1 |
 | 3 | Opcional: números por marca na área da marca; leituras que viram avaliações; editar destino pelo painel | depois | — |
 
 ⚠️ Se a Fase 1b não estiver em produção quando a primeira peça for lida, `/q/…` dá 404. O merge precisa estar no calendário.
