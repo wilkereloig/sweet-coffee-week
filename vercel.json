@@ -203,6 +203,10 @@
     {
       "source": "/em-breve",
       "destination": "/"
+    },
+    {
+      "source": "/q/:codigo",
+      "destination": "/api/q?c=:codigo"
     }
   ],
   "redirects": [

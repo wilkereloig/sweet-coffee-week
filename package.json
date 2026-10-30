@@ -23,6 +23,7 @@
     "test:cartoon": "node --test tests/rotas-edicao.test.mjs tests/cartoon-modelo.test.mjs tests/cartoon-rota.test.mjs",
     "test:destaque": "node --test tests/destaque-edicao.test.mjs",
     "test:consentimento": "node --test tests/consentimento.test.mjs",
+    "test:qr": "node --test tests/qr-leituras.test.mjs",
     "test:privacidade": "node tests/privacidade-navegador.mjs",
     "icones": "node scripts/icones/gerar.mjs",
     "test:icones": "node --test tests/icones.test.mjs",
