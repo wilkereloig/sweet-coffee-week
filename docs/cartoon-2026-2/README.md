@@ -31,6 +31,7 @@ Nada aqui declara aprovação visual, integração operacional ou conformidade l
 | 9 | [09-execucao.md](09-execucao.md) | **Execução (14/10/2026):** estado por fase, como aplicar o banco, testes, roteiro de lançamento e de encerramento |
 | 10 | [10-sistema-visual-e-paginas.md](10-sistema-visual-e-paginas.md) | **Spec de 27/10/2026:** sistema visual do site a partir do manual v03 (tokens, Grandstander, componentes, olhinhos), casca e as 7 páginas repensadas, retrato local de dados, ordem de execução só no servidor local |
 | 11 | [11-plano-execucao-site.md](11-plano-execucao-site.md) | **Plano de 27/10/2026:** etapa 1 detalhada (fonte, tokens, componentes, letreiros, vitrine `/cartoon/sistema`, testes) e roteiro das etapas 2–9 |
+| 12 | [12-plano-qr-leituras.md](12-plano-qr-leituras.md) | **Plano de 30/10/2026 (proposto):** contar as leituras dos QR por peça física (/q/código, contador por hora, aba Operação > QR Codes no painel), códigos, banco, redirecionador, prazo até 05/11 e decisões D1 a D5 |
 
 ## O essencial em uma tela
 
