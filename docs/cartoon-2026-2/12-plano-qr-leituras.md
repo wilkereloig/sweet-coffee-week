@@ -28,7 +28,10 @@ Ganhos sobre "só Analytics": conta todo mundo (inclusive quem recusou cookies);
 | Peça | Código | Vai para | Quantidade |
 |---|---|---|---|
 | Display de mesa · face 1 (combo) | `d1-<slug>` | página da casa | 27 (ou 41 por unidade) |
-| Display de mesa · face 2 (avaliar) | `d2-<slug>` | `/cartoon/avaliar` | 27 (ou 41), ou 1 único |
+| ~~Display de mesa · face 2 por casa~~ | ~~`d2-<slug>`~~ | saiu em 30/10: a avaliação é um QR geral | 0 |
+| Avaliação geral (a pessoa escolhe a casa) | `avaliar` | `/cartoon/avaliar` | 1 |
+| Premiação | `premiacao` | `/cartoon/premiacao` | 1 |
+| Página inicial da Cartoon | `inicio` | `/cartoon` | 1 |
 | Placa de sinalização | `pl-…` | `/cartoon` | a definir |
 | Mapa (QR do cliente, opcional) | `mapa-bitly` | `/cartoon/mapa` | 1 |
 | Teste | `teste` | `/cartoon` | 1, não entra na soma |
@@ -94,7 +97,7 @@ Limites que devem ir para o cliente:
 ## 12.9 Decisões
 
 - **[Decisão] D1 · Granularidade. ✅ Decidido em 30/10: por casa.** Por casa (27 códigos por face) ou por unidade (41)? Recomendação: por casa, um arquivo de impressão por casa, como o display já é. Por unidade só se o cliente exigir "qual loja da rede". O código aceita crescer (`d1-boldfood-2`) sem refazer nada.
-- **[Decisão] D2 · Face 2 (avaliar). ✅ Decidido em 30/10: QR por casa.** QR por casa (`d2-<slug>`) ou um só? Recomendação: por casa, para saber qual casa gera mais avaliações. Custo: a face 2 deixa de ser arte única e sai em 27 arquivos (por script).
+- **[Decisão] D2 · Face 2 (avaliar). ✅ Decidido em 30/10: QR por casa. ↩️ REVISTO no mesmo dia pelo Wilker: um QR GERAL (`avaliar`), a pessoa escolhe a casa na página; `pl-geral` também sai. Pasta `09_QR_CODES/00_USAR_ESTES` = `participante-<slug>.png` (27, código `d1-<slug>`) + `geral-avaliacao`, `geral-premiacao`, `geral-pagina-inicial` + `lista.csv`; o QR do mapa é o do cliente (Bitly → `/q/mapa-bitly`). Migration `20261123_qr_pontos_gerais` escrita; a aplicação foi RECUSADA pelo sistema de permissão e espera o ok do Wilker. Sem ela, `/q/avaliar` e `/q/premiacao` caem na entrada da edição e não contam.** QR por casa (`d2-<slug>`) ou um só? Recomendação: por casa, para saber qual casa gera mais avaliações. Custo: a face 2 deixa de ser arte única e sai em 27 arquivos (por script).
 - **[Decisão] D3 · Outras peças com QR.** A placa de sinalização é uma geral ou uma por casa/local? Adesivo e voucher levam QR?
 - **[Decisão] D4 · Operação. Migration ✅ aplicada em 30/10 (o Wilker mandou seguir). Merge em `master`: pendente de autorização escrita.** Ok para aplicar a migration no Supabase e para o merge em `master` antes de 05/11 (A2).
 - **[Decisão] D5 · Bitly do cliente. ✅ Decidido em 30/10: o QR do cliente fica na peça e o Wilker já pediu a troca do destino.** Pedir que ele mude o destino do Bitly para `/q/mapa-bitly`: o QR impresso não muda e a leitura aparece nos dois lugares.

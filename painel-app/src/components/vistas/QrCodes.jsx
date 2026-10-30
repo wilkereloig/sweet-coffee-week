@@ -6,7 +6,7 @@ import { useLeitura } from '../../lib/leituraVivaReact'
 import { entregar } from '../../lib/entrega'
 import { ComEdicaoAtual } from './Edicao'
 import {
-  PERIODOS, ORDENS, rotuloTipo, argumentosDoPeriodo, ordenarCasas, comPosicao, filtrarPorTexto, larguraBarra, maiorValor,
+  PERIODOS, colunasVisiveis, ordensDisponiveis, rotuloTipo, argumentosDoPeriodo, ordenarCasas, comPosicao, filtrarPorTexto, larguraBarra, maiorValor,
   numero, ultimaLeitura, diaCurto, rotuloLugar, rotuloAparelho, csvCasas, csvPecas, csvDias, nomeDoArquivo,
 } from '../../lib/qr'
 import '../../styles/qr.css'
@@ -84,7 +84,7 @@ function Leituras({ inicio }) {
   const nomeDaCasa = Object.fromEntries(r.casas.map((c) => [c.participacao_id, c.nome]))
   const casasVisiveis = filtrarPorTexto(casas, buscaCasa, ['nome'])
   const pecasVisiveis = filtrarPorTexto(r.pontos, buscaPeca, ['codigo', 'rotulo'])
-  const temOutras = r.casas.some((c) => c.outras > 0)
+  const cols = colunasVisiveis(r.casas)
   const maiorCasa = maiorValor(r.casas, 'total')
 
   return (
@@ -106,10 +106,10 @@ function Leituras({ inicio }) {
       ) : (
         <>
           <Secao titulo="Participantes com mais leituras"
-            nota="Cada participante soma as duas faces do display: a face 1 leva ao combo; a face 2, a avaliar."
+            nota={cols.detalhar ? 'Cada participante soma as peças com o QR dele: a face 1 leva ao combo.' : 'Cada participante conta as leituras do QR do combo dele. Avaliação, premiação e página inicial têm um QR geral cada, em “Peça por peça”.'}
             acoes={<Botao icone="baixar" variante="secundario" onClick={() => baixar('casas', csvCasas(ordenarCasas(r.casas, 'total')))}>Baixar CSV</Botao>}>
             <div className="ui-linha-acoes qr-filtros">
-              <Escolha rotulo="Ordenar por" valor={ordem} opcoes={ORDENS} onMudar={setOrdem} />
+              <Escolha rotulo="Ordenar por" valor={ordem} opcoes={ordensDisponiveis(cols)} onMudar={setOrdem} />
               <label className="og-campo qr-busca"><span>Buscar participante</span>
                 <input type="search" value={buscaCasa} onChange={(e) => setBuscaCasa(e.target.value)} /></label>
             </div>
@@ -119,19 +119,19 @@ function Leituras({ inicio }) {
                   <thead><tr>
                     {ordem !== 'nome' && <th scope="col" className="qr-num">#</th>}
                     <th scope="col" className="qr-nome">Participante</th>
-                    <th scope="col" className="qr-num">Face 1 · combo</th>
-                    <th scope="col" className="qr-num">Face 2 · avaliar</th>
-                    {temOutras && <th scope="col" className="qr-num">Outras peças</th>}
-                    <th scope="col" className="qr-num">Total</th>
+                    {cols.detalhar && <th scope="col" className="qr-num">Face 1 · combo</th>}
+                    {cols.face2 && <th scope="col" className="qr-num">Face 2 · avaliar</th>}
+                    {cols.outras && <th scope="col" className="qr-num">Outras peças</th>}
+                    <th scope="col" className="qr-num">{cols.detalhar ? 'Total' : 'Leituras'}</th>
                     <th scope="col">Última leitura</th>
                   </tr></thead>
                   <tbody>{casasVisiveis.map((c) => (
                     <tr key={c.participacao_id}>
                       {ordem !== 'nome' && <td className="qr-num">{c.posicao || '—'}</td>}
                       <th scope="row" className="qr-nome">{c.nome}</th>
-                      <td className="qr-num">{numero(c.face1)}</td>
-                      <td className="qr-num">{numero(c.face2)}</td>
-                      {temOutras && <td className="qr-num">{numero(c.outras)}</td>}
+                      {cols.detalhar && <td className="qr-num">{numero(c.face1)}</td>}
+                      {cols.face2 && <td className="qr-num">{numero(c.face2)}</td>}
+                      {cols.outras && <td className="qr-num">{numero(c.outras)}</td>}
                       <td className="qr-num qr-barra" style={{ '--p': larguraBarra(c.total, maiorCasa) + '%' }}>{numero(c.total)}</td>
                       <td>{ultimaLeitura(c.ultima)}</td>
                     </tr>

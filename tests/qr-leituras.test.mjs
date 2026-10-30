@@ -38,6 +38,10 @@ test('regra do código: cada peça leva para o destino certo e o resto vai para 
     ['d1-casa-1190-restaurante-e-coffee', '/cartoon/participantes/casa-1190-restaurante-e-coffee'],
     ['d2-cookitos', '/cartoon/avaliar'],
     ['pl-geral', '/cartoon'],
+    ['inicio', '/cartoon'],
+    ['avaliar', '/cartoon/avaliar'],
+    ['premiacao', '/cartoon/premiacao'],
+    ['constructor', '/cartoon'],
     ['mapa-bitly', '/cartoon/mapa'],
     ['teste', '/cartoon'],
     ['d1', '/cartoon'], // sem casa
