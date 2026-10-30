@@ -115,7 +115,8 @@ export const STATUS = {
     enviado: s('Enviado', 'andamento'),
     entregue: s('Entregue', 'ok'),
     nao_entregue: s('Não entregue', 'atencao'),
-    cancelado: s('Cancelado', 'encerrado'),
+    // "Retirar da lista" (Contatos › Press Kit): o registro fica e dá para colocar de volta.
+    cancelado: s('Retirado da lista', 'encerrado'),
   },
   tipo_contato: {
     influenciador: s('Influenciador', 'neutro'), imprensa: s('Imprensa', 'neutro'),

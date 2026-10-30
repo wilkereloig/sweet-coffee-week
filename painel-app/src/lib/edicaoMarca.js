@@ -262,7 +262,7 @@ export function alternar(lista, valor, referencia) {
 /* ── O que falta para completar / publicar ─────────────────────────────────── */
 /*
  * Espelho de pendencias_publicacao (20261014_cartoon_02_publicacao.sql):
- * combo_nome · sem_unidade · unidade:<id>:endereco|modos|canais|horario ·
+ * combo_nome · sem_unidade · unidade:<id>:endereco (rua, número, bairro, cidade e CEP)|modos|canais|horario ·
  * item:<posicao>:alimentar. Unidade ainda não gravada usa a chave local no
  * lugar do id público (o servidor nem a vê ainda).
  */
@@ -273,7 +273,8 @@ export function pendenciasEdicao({ comboNome = '', unidades = [], itens = [], de
   if (!participam.length) f.push('sem_unidade')
   for (const u of participam) {
     const id = u.id_publico || u._key
-    if (!texto(u.logradouro) || !texto(u.bairro) || !texto(u.cidade)) f.push('unidade:' + id + ':endereco')
+    // Endereço completo (28/10/2026): rua, número (S/N vale), bairro, cidade e CEP — o servidor exige o mesmo.
+    if (!texto(u.logradouro) || !texto(u.numero) || !texto(u.bairro) || !texto(u.cidade) || !texto(u.cep)) f.push('unidade:' + id + ':endereco')
     if ([u.consumo_local, u.retirada, u.delivery_combo].some((m) => !m || m === 'nao_informado')) f.push('unidade:' + id + ':modos')
     if (u.delivery_combo === 'sim' && !canaisParaArray(u.canais).length) f.push('unidade:' + id + ':canais')
     // Horário no festival: [] = ainda não respondido (dia que não abre é uma resposta; o banco usa a mesma regra).
@@ -328,7 +329,7 @@ export function traduzirFaltando(codigo, { unidades = [], itens = [] } = {}) {
     const i = unidades.findIndex((u) => u.id_publico === m[1] || u._key === m[1])
     const nome = i >= 0 ? nomeDaUnidade(unidades[i], i) : 'uma unidade'
     const pos = Math.max(i, 0)
-    if (m[2] === 'endereco') return { texto: 'Completar o endereço de ' + nome + ' (rua, bairro e cidade)', bloco: 4, campo: idCampoUnidade('unidade-endereco', pos) }
+    if (m[2] === 'endereco') return { texto: 'Completar o endereço de ' + nome + ' (rua, número, bairro, cidade e CEP)', bloco: 4, campo: idCampoUnidade('unidade-endereco', pos) }
     if (m[2] === 'modos') return { texto: 'Responder como ' + nome + ' atende o combo: no local, retirada e delivery', bloco: 6, campo: idCampoUnidade('atendimento-modos', pos) }
     if (m[2] === 'canais') return { texto: 'Informar onde pedir o delivery do combo em ' + nome, bloco: 6, campo: idCampoUnidade('atendimento-canais', pos) }
     return { texto: 'Informar o horário no festival de ' + nome, bloco: 6, campo: idCampoUnidade('atendimento-horario', pos) }

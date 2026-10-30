@@ -965,7 +965,7 @@ leitura de `unidades`). O que passou a valer:
   `participacao_unidades` com `unidade_id`. Unidade de outra edição aparece como **sugestão**
   ("Usar nesta edição"), nunca copiada sozinha. `endereco`/`bairro`/`faz_delivery` da
   participação seguem preenchidos como **espelho** para quem ainda os lê. ⛔ A marca não
-  grava `lat/lng`: vê só "conferida pela organização" ou "em conferência".
+  grava `lat/lng` e, desde 28/10/2026, também não vê nada do mapa (ver "Endereço completo e fila de localizações").
 - **Horário no festival** (`participacao_unidades.horario_festival`, jsonb `[{data, abre, fecha}]`;
   23/10/2026, pedido do Wilker: UMA pergunta — como a unidade funciona em cada dia do festival —, sem
   "horário da loja" × "horário do combo" nem horário comercial): até 2 períodos por dia, `24:00` =
@@ -1377,6 +1377,44 @@ teste `tests/painel-app-arquivos-previa.test.mjs`.
 - **Quem lê:** a marca assina a prévia com a própria sessão (policy `arquivos_marca_le` aceita `previa_path` do arquivo que ela
   já lê); a equipe pela `arquivo-url`, uma por miniatura, só quando chega perto da tela. A equipe lê as prévias por
   `get_arquivos_previas` (à parte: `get_arquivos_admin` tem formato fixo e mudar exigiria recriá-la).
+
+#### Press Kit: retirar da lista e desfazer — 28/10/2026 (pedido do Wilker)
+"Se eu seleciono algum contato, eu não consigo retirar mais da lista." Só tela, sem migration: `definir_presskit` já aceitava os 7 status
+e voltar de um para o outro (é upsert). Lógica pura em `lib/presskit.js`, teste `tests/painel-app-presskit.test.mjs`.
+- **Retirar = status `cancelado`** (rótulo agora "Retirado da lista"): nada se apaga, a pessoa sai da lista e dos contadores, o endereço e as
+  datas ficam, e "Colocar de volta" a leva para Selecionado. Quem já saiu para entrega (`enviado`/`entregue`/`nao_entregue`) pede confirmação.
+- **Botões à vista em cada linha, embaixo do nome** (`og-item--acoes`): "Voltar para …" (um passo: ANTERIOR) e "Retirar da lista", com o nome
+  da pessoa no `aria-label`. O aviso depois de cada mudança traz "Desfazer" (guarda o status de antes só na tela). Na ficha da pessoa
+  (Contatos › Pessoas): "Retirar da lista" / "Colocar de volta na lista".
+- **Sugestões:** "Selecionar", "Só sugerir" e "Não incluir nesta edição" à vista; "Não incluir" cria o registro `cancelado` e tira a pessoa das
+  sugestões (aparece em "Retirado da lista"). ⚠️ Esse caso não tem "Desfazer": antes dele não havia registro, e o painel não apaga.
+- ⛔ **Nada de menu ⋯ (`MaisAcoes`) dentro de `og-lista`.** A 1ª versão (28/10) pôs as ações num menu: a lista é um card com
+  `overflow:hidden`, o menu abre para baixo e foi cortado (numa lista de uma pessoa não aparecia nada), e no celular ainda saía pela esquerda
+  (`.og-item__dir` alinha à esquerda e o menu ancora à direita). Corrigido no mesmo dia; `tests/painel-app-presskit.test.mjs` reprova a volta.
+  Menu ⋯ só em card solto, cabeça de página ou barra — como nas pastas, campanhas e postagens.
+- ⚠️ **Texto do aviso de atualização:** a 1ª linha de `painel-app/NOVIDADES.txt` é o que "Atualização disponível" mostra. Mudança que a pessoa
+  vai ver troca essa linha no mesmo commit (ficou desatualizada em 28/10 e o aviso descrevia outra coisa).
+- O total do título conta só quem está na lista (retirados ficam de fora); a lista vazia diz qual situação está vazia.
+
+#### Endereço completo e fila de localizações — 28/10/2026 (pedido do Wilker)
+"O participante coloca todos os dados do endereço; conferir o ponto no mapa é comigo, só confirmo." Migration
+`20261120_endereco_completo_e_fila_de_localizacao.sql` (reversão em `supabase/reverter/`, teste do banco
+`supabase/testes/localizacoes-endereco.sql` → `TESTE_OK`), lógica em `lib/localizacoes.js`, tela `vistas/Localizacoes.jsx`,
+testes `tests/painel-app-localizacoes.test.mjs` e `painel-app-edicao-marca.test.mjs`.
+- **Endereço completo = rua, número, bairro, cidade e CEP** (antes só rua, bairro e cidade). Mesma regra em três lugares, que andam
+  juntos: `pendencias_publicacao` (banco), `pendenciasEdicao` (`lib/edicaoMarca.js`) e o `/preencher` (`data-obrigatorio` de número e CEP;
+  o CEP saiu do bloco recolhido). Marca sem número escreve **S/N**. O código da pendência não mudou (`unidade:<id>:endereco`).
+  ⚠️ A migration faz ~24 unidades que já tinham o cadastro "completo" voltarem a ter pendência (faltava CEP): é o efeito pedido, e o lembrete
+  diário passa a cobrar. Painel novo e migration andam juntos.
+- **O participante não vê mais nada do mapa:** saiu o aviso "Localização no mapa: em conferência…" de Meu cadastro › Unidades.
+- **Participantes › Localizações** (`#participantes/localizacoes`): fila única com as unidades que participam da edição (leitura
+  `get_localizacoes_unidades`, `dado.ler`). Cada uma mostra o endereço como o participante escreveu, "Abrir o endereço no Google Maps" (por
+  ENDEREÇO, com CEP) e "Ver o ponto salvo". A administração cola o par "latitude, longitude" e confirma — `org_verificar_coordenada`, a mesma da
+  ficha (`producao.gerir`); com ponto já salvo, o botão vira "Confirmar este ponto". Filtro "A conferir" (padrão) · "Conferidas" · "Todas". Mudar
+  o endereço no cadastro tira a conferência (o banco já fazia) e a unidade volta à fila. A conferência por ficha (Publicação) continua valendo.
+- ⚠️ **Não há sugestão automática do ponto** (decisão do Wilker): o painel não geocodifica; o ponto vem do Google Maps, colado à mão. O
+  OpenStreetMap foi avaliado e descartado — em Natal ele erra a casa (testado com a Carcará: 4,8 km de diferença).
+- ⚠️ Ficou de fora: card "Localizações a conferir" na Visão geral; `verificada` segue no estado da unidade da marca, sem uso na tela.
 
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único

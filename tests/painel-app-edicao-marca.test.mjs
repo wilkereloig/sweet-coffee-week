@@ -12,7 +12,7 @@ const SQL_PUB = ler('supabase/migrations/20261014_cartoon_02_publicacao.sql')
 
 const MODOS_OK = { consumo_local: 'sim', retirada: 'nao', delivery_combo: 'nao' }
 const unidadeOk = (extra = {}) => ({
-  _key: 'pu-1', id_publico: 'uabc123', participa: true, logradouro: 'Rua A', bairro: 'Tirol', cidade: 'Natal',
+  _key: 'pu-1', id_publico: 'uabc123', participa: true, logradouro: 'Rua A', numero: '10', bairro: 'Tirol', cidade: 'Natal', cep: '59000000',
   ...MODOS_OK, canais: { aplicativo: '', whatsapp: '', site: '' }, horario_festival: [{ data: '2026-11-05', abre: '10:00', fecha: '18:00' }],
   ...extra,
 })
@@ -34,6 +34,18 @@ test('pendências: mesmos códigos e mesma ordem do servidor', () => {
   const u = unidadeOk({ bairro: '', retirada: 'nao_informado', delivery_combo: 'sim', horario_festival: [] })
   const f = E.pendenciasEdicao({ comboNome: '  ', unidades: [u], itens, declaracoes: { i2: todas('contem') } })
   assert.deepEqual(f, ['combo_nome', 'unidade:uabc123:endereco', 'unidade:uabc123:modos', 'unidade:uabc123:canais', 'unidade:uabc123:horario', 'item:1:alimentar'])
+})
+
+test('pendências: o endereço só está completo com rua, número, bairro, cidade e CEP (28/10/2026)', () => {
+  const pend = (extra) => E.pendenciasEdicao({ comboNome: 'C', unidades: [unidadeOk(extra)] }).filter((c) => c.endsWith(':endereco'))
+  assert.deepEqual(pend({}), [])
+  for (const campo of ['logradouro', 'numero', 'bairro', 'cidade', 'cep']) {
+    assert.deepEqual(pend({ [campo]: '  ' }), ['unidade:uabc123:endereco'], campo + ' vazio deixa o endereço incompleto')
+  }
+  assert.deepEqual(pend({ numero: 'S/N' }), [], 'sem número vale se a marca escreve S/N')
+  // O banco exige o mesmo (pendencias_publicacao em 20261120): rua, número, bairro, cidade e CEP não vazios.
+  const sql = readFileSync(new URL('../supabase/migrations/20261120_endereco_completo_e_fila_de_localizacao.sql', import.meta.url), 'utf8')
+  for (const campo of ['r.logradouro', 'r.u_numero', 'r.u_bairro', 'r.cidade', 'r.u_cep']) assert.ok(sql.includes("coalesce(btrim(" + campo + "), '') = ''"), campo + ' não é conferido no SQL')
 })
 
 test('pendências: sem unidade participando, e a que não participa não conta', () => {
@@ -77,7 +89,7 @@ test('faltando traduzido: nome da unidade (nunca o id público) e o campo certo'
   const unidades = [unidadeOk({ id_publico: 'u1', nome_unidade: 'Midway' }), unidadeOk({ id_publico: 'u2', nome_unidade: '', bairro: 'Ponta Negra' })]
   const itens = [{ id: 'i', posicao: 1, tipo: 'doce' }]
   const t = (c) => E.traduzirFaltando(c, { unidades, itens })
-  assert.deepEqual(t('unidade:u1:endereco'), { texto: 'Completar o endereço de Midway (rua, bairro e cidade)', bloco: 4, campo: 'unidade-endereco' })
+  assert.deepEqual(t('unidade:u1:endereco'), { texto: 'Completar o endereço de Midway (rua, número, bairro, cidade e CEP)', bloco: 4, campo: 'unidade-endereco' })
   const modos = t('unidade:u2:modos')
   assert.match(modos.texto, /Ponta Negra/)
   assert.doesNotMatch(modos.texto, /u2/)

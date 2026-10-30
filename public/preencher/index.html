@@ -387,9 +387,12 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     </div>
     <div class="dupla dupla--numero">
       <label class="campo"><span>Rua / avenida</span><input data-k="logradouro" maxlength="160" autocomplete="address-line1"></label>
-      <label class="campo"><span>Número</span><input data-k="numero" maxlength="20"></label>
+      <label class="campo"><span>Número <em class="nota-curta">(sem número? escreva S/N)</em></span><input data-k="numero" maxlength="20"></label>
     </div>
-    <label class="campo"><span>Bairro</span><input data-k="bairro" maxlength="80" list="pr-bairros" autocomplete="off"></label>
+    <div class="dupla">
+      <label class="campo"><span>Bairro</span><input data-k="bairro" maxlength="80" list="pr-bairros" autocomplete="off"></label>
+      <label class="campo"><span>CEP</span><input data-k="cep" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="59000-000"></label>
+    </div>
     <div class="pergunta" role="radiogroup" data-pergunta="cidade">
       <span>Cidade</span>
       <div class="opcoes">
@@ -410,10 +413,9 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
       </div>
     </div>
     <details class="mais">
-      <summary><!--icone:mais:20--><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg><!--/icone-->Nome da loja, CEP e WhatsApp</summary>
+      <summary><!--icone:mais:20--><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg><!--/icone-->Nome da loja, complemento e WhatsApp</summary>
       <div class="dupla">
         <label class="campo"><span>Nome da loja</span><input data-k="nome_unidade" maxlength="60" placeholder="Ex.: Ponta Negra"></label>
-        <label class="campo"><span>CEP</span><input data-k="cep" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="59000-000"></label>
         <label class="campo"><span>Complemento</span><input data-k="complemento" maxlength="80"></label>
         <label class="campo"><span>Referência</span><input data-k="referencia" maxlength="120"></label>
       </div>
@@ -628,7 +630,7 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     };
     // WhatsApp já cadastrado e ainda sem liberação: abre a seção para a marca ver que, preenchido, ele vai ao site.
     if (u && digitos(txt(u.whatsapp)).length > 0 && u.whatsapp_autorizado === false) no.querySelector('details.mais').open = true;
-    [['logradouro', 'Rua / avenida'], ['bairro', 'Bairro']].forEach(function (p) {
+    [['logradouro', 'Rua / avenida'], ['numero', 'Número (sem número? escreva S/N)'], ['bairro', 'Bairro'], ['cep', 'CEP']].forEach(function (p) {
       no.querySelector('[data-k="' + p[0] + '"]').dataset.obrigatorio = p[1];
     });
     // Loja que nunca foi gravada some de vez; a que já existe fica riscada e pode voltar.

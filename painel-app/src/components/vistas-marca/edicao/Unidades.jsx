@@ -7,9 +7,10 @@ import { EstadoCampo, Correcao, Publico, GrupoPublico, Opcional } from './campos
 
 /*
  * Bloco 4 · Unidades. A unidade é PERMANENTE (`unidades`: endereço e WhatsApp da loja) e participa da
- * edição por `participacao_unidades` (`participa`). Coordenada do mapa é só da organização: a marca vê se já
- * foi conferida, nunca a edita. Uma unidade cadastrada em outra edição aparece como sugestão, sem ser copiada
- * sozinha (04-painel.md §4.2). O horário da unidade nos dias do festival é do bloco 6 (Atendimento).
+ * edição por `participacao_unidades` (`participa`). A marca preenche o endereço inteiro (rua, número, bairro, cidade
+ * e CEP) e não vê nada do mapa: conferir o ponto é só da organização (Participantes › Localizações, 28/10/2026).
+ * Uma unidade cadastrada em outra edição aparece como sugestão, sem ser copiada sozinha (04-painel.md §4.2).
+ * O horário da unidade nos dias do festival é do bloco 6 (Atendimento).
  */
 function Campo({ rotulo, opcional, publico = true, id, erro, children, nota }) {
   const idErro = erro && id ? 'erro-' + id : undefined
@@ -28,7 +29,7 @@ export function Unidades({ unidades, sugestoes, est, alterar, adicionar, remover
   return (
     <>
       <p className="nota">Uma por endereço. Rede com várias lojas cadastra cada uma — continua contando como
-        uma marca só. O endereço fica guardado para as próximas edições. Do endereço, só rua, bairro e cidade são obrigatórios.</p>
+        uma marca só. O endereço fica guardado para as próximas edições. Preencha rua, número, bairro, cidade e CEP.</p>
       <GrupoPublico>
         {sugestoes.length > 0 && (
           <div className="em-sugestoes">
@@ -68,7 +69,7 @@ export function Unidades({ unidades, sugestoes, est, alterar, adicionar, remover
                   <input id={'campo-' + idCampoUnidade('unidade-endereco', i)} maxLength={160} autoComplete="address-line1" value={u.logradouro} onChange={campo('logradouro')} />
                   {i === 0 && <Correcao e={est('unidade-endereco')} />}
                 </label>
-                <Campo rotulo="Número" opcional><input maxLength={20} inputMode="numeric" value={u.numero} onChange={campo('numero')} /></Campo>
+                <Campo rotulo="Número" nota="Sem número? Escreva S/N."><input maxLength={20} value={u.numero} onChange={campo('numero')} /></Campo>
               </div>
               <div className="dupla">
                 <Campo rotulo="Complemento" opcional><input maxLength={80} value={u.complemento} onChange={campo('complemento')} /></Campo>
@@ -84,16 +85,10 @@ export function Unidades({ unidades, sugestoes, est, alterar, adicionar, remover
                 <Campo rotulo="Estado (UF)" opcional id={'uf-' + k} erro={erroUf(u.uf)}>
                   <input maxLength={2} autoComplete="address-level1" value={u.uf} onChange={(e) => alterar(k, 'uf', e.target.value.toUpperCase())} />
                 </Campo>
-                <Campo rotulo="CEP" opcional publico={false} id={'cep-' + k} erro={erroCep(u.cep)}>
+                <Campo rotulo="CEP" publico={false} id={'cep-' + k} erro={erroCep(u.cep)}>
                   <input inputMode="numeric" maxLength={9} autoComplete="postal-code" value={u.cep} onChange={campo('cep')} />
                 </Campo>
               </div>
-              <p className="nota em-mapa">
-                <Icone nome="local" tamanho={16} />
-                {u.verificada
-                  ? 'Localização no mapa: conferida pela organização.'
-                  : 'Localização no mapa: em conferência. A organização confere o ponto no mapa a partir do endereço — mudar o endereço pede conferência nova.'}
-              </p>
               {/* O WhatsApp DA LOJA, um por unidade, vai para o site quando preenchido. O contato do responsável
                   (Dados da marca) é outro: fica só com a organização. */}
               <label>
