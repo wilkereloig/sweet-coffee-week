@@ -15,12 +15,7 @@ insert into public.qr_pontos (codigo, tipo, rotulo, destino) values
   ('premiacao', 'outro', 'Premiação', '/cartoon/premiacao')
 on conflict (codigo) do nothing;
 
--- Os que saem e já têm leitura de teste (a leitura aponta para o código) viram 'teste': ficam fora da soma.
+-- Os que saem (nunca impressos) viram 'teste' e ficam pausados: fora da soma, só aparecem em "Tudo, com testes".
+-- Não são apagados: a versão com DELETE foi recusada pelo sistema de permissão em 30/10/2026.
 update public.qr_pontos set tipo = 'teste', ativo = false
- where (codigo like 'd2-%' or codigo = 'pl-geral')
-   and exists (select 1 from public.qr_leituras_hora l where l.codigo = qr_pontos.codigo);
-
--- Os que saem sem nenhuma leitura são apagados.
-delete from public.qr_pontos p
- where (p.codigo like 'd2-%' or p.codigo = 'pl-geral')
-   and not exists (select 1 from public.qr_leituras_hora l where l.codigo = p.codigo);
+ where codigo like 'd2-%' or codigo = 'pl-geral';
