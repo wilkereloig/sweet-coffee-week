@@ -230,41 +230,105 @@ export default function Sistema () {
 }
 
 const EXPRESSOES_VITRINE = [
+  ['neutro', 'Neutro', 'base da construção'],
   ['encantado', 'Encantado', 'novidade e combo'],
   ['curioso', 'Curioso', 'dica, mapa, rota'],
   ['expectativa', 'Expectativa', 'contagem, "abre em", última chance'],
+  ['surpreso', 'Surpreso', 'resultado, revelação'],
+  ['feliz', 'Feliz', 'avaliação enviada, obrigado'],
 ]
+const PROPORCOES = [
+  'Olho: largura = 0,75 da altura; o esquerdo é um pouco maior e fica na frente.',
+  'Encostados: um cobre o outro em cerca de 10% da largura.',
+  'Pupila: 62% da altura do olho, com creme em volta; nunca encosta no contorno.',
+  'Brilhos: um oval grande no alto à esquerda e um ponto pequeno abaixo dele. Só dois.',
+  'Contorno de pincel: cerca de 4% da altura do olho, um pouco mais cheio embaixo.',
+  'Sombra: meia-lua lisa embaixo, à esquerda. Sem hachura (era o que dava cara de olheira).',
+  'Sobrancelha: 3/4 da largura do olho, solta acima dele, grossa no meio e fina nas pontas.',
+  'Cabeça invisível: uma esfera (círculo azul). Girar leva os olhos sobre ela; o de trás afina e o da frente cresce.',
+]
+const GIRO = [[-1, 'Perfil esquerdo'], [-0.5, '3/4 esquerdo'], [0, 'Frente'], [0.5, '3/4 direito'], [1, 'Perfil direito']]
+const PISCAR = [[1, 'Aberto'], [0.55, 'Fechando'], [0.08, 'Fechado'], [0.55, 'Abrindo']]
+const ESPIAR = [[1, 'Escondido'], [0.55, 'Subindo'], [0.12, 'Espiando'], [0.12, 'Olha de lado', { x: 0.9, y: 0.1 }]]
+const DIRECOES = [-1, 0, 1].flatMap((y) => [-1, 0, 1].map((x) => ({ x, y })))
 
-// Olhinhos (§10.5): as três expressões, a troca animada e o olhar seguindo o cursor. Nada aqui é página real.
+// Um quadro parado da folha: sem piscada sorteada, para comparar as poses lado a lado.
+function Pose ({ rotulo, nota, ...props }) {
+  return (
+    <figure className="ct-personagem__pose">
+      <Olhinhos tamanho={150} piscar={false} {...props} />
+      <figcaption><span className="ct-rotulo">{rotulo}</span>{nota && <span className="ct-nota">{nota}</span>}</figcaption>
+    </figure>
+  )
+}
+
+// Olhinhos (§10.5): folha do personagem (construção, giro, expressões, ações) e ele ao vivo. Nada aqui é página real.
 function VitrineOlhinhos () {
   const [exp, setExp] = React.useState('encantado')
+  const [virar, setVirar] = React.useState(0)
+  const [inclinar, setInclinar] = React.useState(0)
   return (
     <section className="ct-bloco" aria-labelledby="v-olhinhos">
-      <h2 id="v-olhinhos" className="ct-h2">Olhinhos</h2>
-      <p className="ct-nota">No padrão da cliente (MANUAL-CARTOON §1.3), desenhados no código. Piscam sozinhos a cada 3 a 6 segundos e param com "reduzir movimento". Um par por tela, olhando para o título, a placa ou a logo; nenhum onde a logo da edição já é grande, nem perto de formulário, endereço, ingrediente e mapa.</p>
-      <ul className="ct-vitrine__olhinhos">
-        {EXPRESSOES_VITRINE.map(([chave, nome, uso]) => (
-          <li key={chave}>
-            <Olhinhos expressao={chave} tamanho={200} />
-            <p className="ct-rotulo">{nome}</p>
-            <p className="ct-nota">{uso}</p>
-          </li>
-        ))}
-      </ul>
-      <div className="ct-vitrine__olhinhos-demo">
-        <div>
-          <h3 className="ct-rotulo">Troca de expressão</h3>
-          <Olhinhos expressao={exp} tamanho={220} />
+      <h2 id="v-olhinhos" className="ct-h2">Olhinhos · folha do personagem</h2>
+      <p className="ct-nota">Padrão da cliente (MANUAL-CARTOON §1.3) nas proporções da prévia aprovada. Um desenho só, em vetor: tudo abaixo é o mesmo personagem em poses diferentes.</p>
+
+      <h3 className="ct-personagem__titulo">1 · Construção</h3>
+      <div className="ct-personagem__construcao">
+        <Olhinhos expressao="neutro" tamanho={320} guias piscar={false} />
+        <ul className="ct-personagem__medidas">{PROPORCOES.map((m) => <li key={m}>{m}</li>)}</ul>
+      </div>
+
+      <h3 className="ct-personagem__titulo">2 · Giro</h3>
+      <div className="ct-personagem__fila">
+        {GIRO.map(([v, nome]) => <Pose key={nome} rotulo={nome} expressao="neutro" pose={{ virar: v }} />)}
+        <Pose rotulo="Cabeça para cima" expressao="neutro" pose={{ inclinar: -1 }} />
+        <Pose rotulo="Cabeça para baixo" expressao="neutro" pose={{ inclinar: 1 }} />
+      </div>
+
+      <h3 className="ct-personagem__titulo">3 · Expressões</h3>
+      <div className="ct-personagem__fila">
+        {EXPRESSOES_VITRINE.map(([chave, nome, uso]) => <Pose key={chave} rotulo={nome} nota={uso} expressao={chave} />)}
+      </div>
+
+      <h3 className="ct-personagem__titulo">4 · Ações</h3>
+      <p className="ct-rotulo">Piscar</p>
+      <div className="ct-personagem__fila">
+        {PISCAR.map(([a, nome], i) => <Pose key={i} rotulo={nome} expressao="neutro" pose={{ abertura: a }} />)}
+        <Pose rotulo="Piscadinha" expressao="encantado" pose={{ abertura: { e: 0.08, d: 1 }, sob: { e: [0, 8, 6], d: [0, -8, 6] } }} />
+      </div>
+      <p className="ct-rotulo">Olhar em todas as direções</p>
+      <div className="ct-personagem__direcoes">
+        {DIRECOES.map((d) => <Olhinhos key={`${d.x}${d.y}`} expressao="neutro" olhar={d} tamanho={110} piscar={false} />)}
+      </div>
+      <p className="ct-rotulo">Espiar de trás da borda</p>
+      <div className="ct-personagem__fila">
+        {ESPIAR.map(([e, nome, olhar]) => <Pose key={nome} rotulo={nome} expressao={e > 0.5 ? 'neutro' : 'curioso'} olhar={olhar} pose={{ espiar: e }} />)}
+      </div>
+      <p className="ct-rotulo">Susto</p>
+      <div className="ct-personagem__fila">
+        <Pose rotulo="Calmo" expressao="neutro" />
+        <Pose rotulo="Pulo" expressao="surpreso" pose={{ pulo: -8, globo: { e: [0.94, 1.12], d: [0.94, 1.12] } }} />
+        <Pose rotulo="Assustado" expressao="surpreso" />
+      </div>
+
+      <h3 className="ct-personagem__titulo">5 · Ao vivo</h3>
+      <div className="ct-personagem__vivo">
+        <Olhinhos expressao={exp} olhar="cursor" pose={{ virar, inclinar }} tamanho={280} />
+        <div className="ct-personagem__controles">
           <div className="ct-vitrine__olhinhos-botoes">
             {EXPRESSOES_VITRINE.map(([chave, nome]) => (
               <Botao key={chave} tipo={exp === chave ? 'primario' : 'secundario'} aria-pressed={exp === chave} onClick={() => setExp(chave)}>{nome}</Botao>
             ))}
           </div>
-        </div>
-        <div>
-          <h3 className="ct-rotulo">Seguindo o cursor</h3>
-          <Olhinhos expressao="encantado" olhar="cursor" lado="direita" tamanho={220} />
-          <p className="ct-nota">Espelhado (lado direita) para olhar para dentro da tela.</p>
+          <label className="ct-personagem__regua">
+            <span className="ct-rotulo">Girar</span>
+            <input type="range" min="-1" max="1" step="0.05" value={virar} onChange={(e) => setVirar(Number(e.target.value))} />
+          </label>
+          <label className="ct-personagem__regua">
+            <span className="ct-rotulo">Inclinar</span>
+            <input type="range" min="-1" max="1" step="0.05" value={inclinar} onChange={(e) => setInclinar(Number(e.target.value))} />
+          </label>
+          <p className="ct-nota">As pupilas seguem o cursor; pisca sozinho a cada 3 a 6 segundos e para com "reduzir movimento".</p>
         </div>
       </div>
     </section>
