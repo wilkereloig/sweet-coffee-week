@@ -1,6 +1,6 @@
 # 12 · Plano: contar as leituras dos QR Codes e mostrar no painel
 
-**Estado (30/10/2026):** PROPOSTO, com a Fase 0 feita. D1 e D2 decididas (o Wilker aceitou as recomendações em 30/10) e os 55 QR de contagem foram regerados em `06_MATERIAIS_PDV/09_QR_CODES/00_USAR_ESTES` (display faces 1 e 2 das 27 casas e placa geral). Banco, redirecionador e painel NÃO foram construídos, nada foi aplicado ou publicado. Faltam D3, D4 e D5 (seção 12.9). ⚠️ Os QR novos apontam para `/q/…`, que só passa a existir em produção na Fase 1b: até lá dá 404.
+**Estado (30/10/2026, fim do dia):** Fases 0 e 1 FEITAS no código e no banco; faltam publicar (1b) e o painel (2). D1, D2 e D5 decididas e o Wilker mandou seguir com a implementação. Os 55 QR de contagem estão em `06_MATERIAIS_PDV/09_QR_CODES/00_USAR_ESTES`. A migration `20261121_qr_leituras` foi **aplicada** no Supabase em 30/10; `api/q.js`, `src/edicao/qrPontos.js`, o rewrite e `npm run test:qr` (15 testes) estão commitados em `dev/site-completo`. **Nada publicado:** `/q/…` ainda dá 404 em produção até a Fase 1b (merge em `master`, só com autorização escrita). O Wilker já pediu ao cliente que o Bitly dele aponte para `/q/mapa-bitly`. Faltam D3 (placa por casa, adesivo, voucher) e a Fase 2 (painel).
 **Pedido:** o cliente quer saber quantas vezes cada QR foi lido e de que peça veio (display, placa…). Wilker: "esses dados a gente pode criar no painel".
 Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]**.
 
@@ -47,10 +47,10 @@ Limites que devem ir para o cliente:
 
 ## 12.5 Banco
 
-**[Proposta]** Migration nova `supabase/migrations/2026MMDD_qr_leituras.sql`, escrita e **só aplicada com ok explícito do Wilker**:
+**[Proposta]** Migration nova `supabase/migrations/20261121_qr_leituras.sql`, escrita e **só aplicada com ok explícito do Wilker**:
 - `qr_pontos`: código, tipo, rótulo, participação e unidade (opcionais), destino manual (opcional), ativo.
 - `qr_leituras_hora`: chave (código, hora, país, região, cidade, aparelho, robô) e a coluna `leituras`.
-- RPC pública `registrar_leitura_qr(...)`: só aceita código existente e ativo, soma +1 (upsert) e devolve o destino atual, calculado do slug vigente da casa, então um slug que mude depois não quebra o QR impresso.
+- RPC pública `registrar_leitura_qr(...)`: só aceita código existente e ativo, soma +1 (upsert) e devolve só o destino **manual** do ponto (ou null). O destino padrão sai da regra do código em `src/edicao/qrPontos.js`, uma fonte só, lida por `api/q.js` e pelo gerador de QR. Trava de 25 combinações de lugar por peça e hora: o excedente cai em "sem lugar", então chamada direta com a chave pública não enche a tabela.
 - RPCs do painel: `get_qr_resumo(...)` (permissão `dado.ler`) e `qr_ponto_salvar(...)` (permissão `producao.gerir`).
 - RLS ligada, tabelas fechadas, acesso só pelas RPCs (padrão do projeto).
 - Semente: um ponto `d1` e um `d2` por casa ativa, lidos de `participacoes`.
@@ -80,8 +80,8 @@ Limites que devem ir para o cliente:
 | Fase | O quê | Quando | Depende de |
 |---|---|---|---|
 | 0 | Decisões D1 a D3; regerar todos os QR como `/q/<código>`; entregar os PNG | ✅ feito em 30/10 para display (faces 1 e 2) e placa geral; falta D3 (placa por casa, adesivo, voucher) | Wilker |
-| 1 | Migration, `api/q.js`, rewrite, testes; conferir no celular | até 03/11 | ok para aplicar a migration (D4) |
-| 1b | Publicar em produção (merge em `master`) | até 04/11 | **autorização escrita do Wilker (A2)** |
+| 1 | Migration, `api/q.js`, rewrite, testes; conferir no celular | ✅ feito em 30/10: migration aplicada, 15 testes e teste ao vivo contra o banco real; falta conferir no celular depois de publicar | — |
+| 1b | Publicar em produção (merge em `master`) | **o quanto antes: o Bitly do cliente já aponta para `/q/mapa-bitly`** | **autorização escrita do Wilker (A2)** |
 | 2 | Aba no painel e CSV | até 05/11, ou durante o festival (os números já estão sendo gravados) | Fase 1 |
 | 3 | Opcional: números por marca na área da marca; leituras que viram avaliações; editar destino pelo painel | depois | — |
 
@@ -92,17 +92,20 @@ Limites que devem ir para o cliente:
 - **[Decisão] D1 · Granularidade. ✅ Decidido em 30/10: por casa.** Por casa (27 códigos por face) ou por unidade (41)? Recomendação: por casa, um arquivo de impressão por casa, como o display já é. Por unidade só se o cliente exigir "qual loja da rede". O código aceita crescer (`d1-boldfood-2`) sem refazer nada.
 - **[Decisão] D2 · Face 2 (avaliar). ✅ Decidido em 30/10: QR por casa.** QR por casa (`d2-<slug>`) ou um só? Recomendação: por casa, para saber qual casa gera mais avaliações. Custo: a face 2 deixa de ser arte única e sai em 27 arquivos (por script).
 - **[Decisão] D3 · Outras peças com QR.** A placa de sinalização é uma geral ou uma por casa/local? Adesivo e voucher levam QR?
-- **[Decisão] D4 · Operação.** Ok para aplicar a migration no Supabase e para o merge em `master` antes de 05/11 (A2).
-- **[Decisão] D5 · Bitly do cliente.** Pedir que ele mude o destino do Bitly para `/q/mapa-bitly`: o QR impresso não muda e a leitura aparece nos dois lugares.
+- **[Decisão] D4 · Operação. Migration ✅ aplicada em 30/10 (o Wilker mandou seguir). Merge em `master`: pendente de autorização escrita.** Ok para aplicar a migration no Supabase e para o merge em `master` antes de 05/11 (A2).
+- **[Decisão] D5 · Bitly do cliente. ✅ Decidido em 30/10: o QR do cliente fica na peça e o Wilker já pediu a troca do destino.** Pedir que ele mude o destino do Bitly para `/q/mapa-bitly`: o QR impresso não muda e a leitura aparece nos dois lugares.
 
 ## 12.10 Riscos e cuidados
 
 - Privacidade: `/privacidade` ganha um parágrafo ("contamos leituras de QR de forma agregada, sem dados pessoais"). O texto é decisão do Wilker e da F2.
 - A Cartoon ainda não é pública (`CARTOON_PUBLICA = false`): até a publicação o destino abre o site comum; a leitura é contada do mesmo jeito.
 - A prévia da Vercel pode exigir login; o teste final é no domínio oficial com o código `teste`.
+- **Ainda não visto na Vercel:** o rewrite `/q/:codigo` → `/api/q?c=:codigo` e os cabeçalhos `x-vercel-ip-*` só se confirmam num deploy. A função lê `?c=`, `?codigo=` ou o último pedaço do caminho e, se nada vier, cai na entrada da edição.
+- **Teste no banco real (30/10):** a função e a chave pública foram testadas de ponta a ponta (contagem, robô, trava de lugares, destino manual, pausa, tabelas fechadas). Ficaram **27 linhas de teste** em `qr_leituras_hora` (ponto `teste` e uma leitura de `d2-wow-cookies`, todas de 30/10). A limpeza (DELETE) foi **recusada** pelo sistema de permissão e não foi refeita. Não atrapalha: o painel soma só a partir de 05/11 e `teste` não entra na soma. Para apagar, com o ok do Wilker: `delete from public.qr_leituras_hora where codigo in ('teste', 'd2-wow-cookies');`
+- O Security Advisor avisa que a função é executável por `anon` e `authenticated`: é o esperado (a chave pública precisa chamá-la), igual às outras RPCs públicas. `authenticated` poderia sair se o aviso incomodar.
 - Os QR antigos (URL longa com `utm`, em `09_QR_CODES/participantes/` e `cartoon-*.png`) **não contam leitura por peça** e não podem ir para a gráfica. Ficaram onde estavam, sem mexer, para não quebrar vínculo nos arquivos do Illustrator; mover para `_substituidos` quando o Wilker terminar de trocar. `cartoon-premiacao.png` e `cartoon-mapa.png` ainda não têm código novo (não estavam no conjunto aprovado).
 
 ## 12.11 Arquivos (§3.5: listar antes de editar)
 
-- Novos: `api/q.js` · `supabase/migrations/2026MMDD_qr_leituras.sql` · `painel-app/src/components/vistas/QrCodes.jsx` · `tests/qr-leituras.test.mjs` · modo `--por-peca` no gerador de QR (`scripts/qr-edicao.mjs`, **feito em 30/10**); na Fase 1 a regra código → destino sai do script para um módulo só, usado também por `api/q.js` (uma fonte de verdade, §5.1).
+- Novos: `api/q.js` · `supabase/migrations/20261121_qr_leituras.sql` · `painel-app/src/components/vistas/QrCodes.jsx` · `tests/qr-leituras.test.mjs` · modo `--por-peca` no gerador de QR (`scripts/qr-edicao.mjs`, **feito em 30/10**); na Fase 1 a regra código → destino sai do script para um módulo só, usado também por `api/q.js` (uma fonte de verdade, §5.1).
 - Editados: `vercel.json` (1 regra) · `painel-app/src/components/Modulos.jsx` (1 aba) · `package.json` (script `test:qr`) · texto de `/privacidade` · índice do README.
