@@ -43,7 +43,7 @@ export const TITULOS = {
   visao: ['Visão geral', 'o que precisa de atenção hoje'],
   participantes: ['Participantes', 'marcas, candidaturas, temas e vendas'],
   contatos: ['Contatos', 'pessoas, Press Kit, vouchers e formulários'],
-  operacao: ['Operação', 'pedidos, fotos e materiais'],
+  operacao: ['Operação', 'pedidos, fotos, materiais e QR Codes'],
   social: ['Social media', 'planejamento, campanhas, biblioteca e participantes'],
   arquivos: ['Arquivos', 'documentos, guias e materiais'],
   edicao: ['Edição', 'datas, cronograma e edições'],

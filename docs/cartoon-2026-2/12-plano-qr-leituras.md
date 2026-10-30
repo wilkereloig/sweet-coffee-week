@@ -1,6 +1,6 @@
 # 12 · Plano: contar as leituras dos QR Codes e mostrar no painel
 
-**Estado (30/10/2026, fim do dia):** Fases 0 e 1 FEITAS no código e no banco; faltam publicar (1b) e o painel (2). D1, D2 e D5 decididas e o Wilker mandou seguir com a implementação. Os 55 QR de contagem estão em `06_MATERIAIS_PDV/09_QR_CODES/00_USAR_ESTES`. A migration `20261121_qr_leituras` foi **aplicada** no Supabase em 30/10; `api/q.js`, `src/edicao/qrPontos.js`, o rewrite e `npm run test:qr` (15 testes) estão commitados em `dev/site-completo`. **Nada em produção:** `/q/…` ainda dá 404 no domínio oficial até a Fase 1b (merge em `master`, só com autorização escrita). A branch `qr/contagem` (`master` + os 2 commits do QR, sem os da Cartoon) está no GitHub e a prévia da Vercel foi testada com sucesso em 30/10. O Wilker já pediu ao cliente que o Bitly dele aponte para `/q/mapa-bitly`. Faltam D3 (placa por casa, adesivo, voucher) e a Fase 2 (painel).
+**Estado (30/10/2026, noite):** Fases 0, 1, 1b e 2 FEITAS. O contador está em PRODUÇÃO desde 30/10 (`master` em `2e650c62`, autorizado pelo Wilker): `/q/<código>` responde 302 certo no domínio oficial, o Bitly do cliente (`/q/mapa-bitly`) já não dá 404 e o banco grava a cidade. A aba **Operação › QR Codes** (só leitura: ranking por participante, dia, hora, cidade, aparelho, peça por peça e CSV) está pronta e testada no código e no banco (`get_qr_resumo` e `qr_resumo_dados`, migration `20261122_qr_painel` aplicada), mas **ainda não publicada**: depende de outro merge em `master` (autorização escrita). Faltam D3 (placa por casa, adesivo, voucher), pausar/cadastrar peça pelo painel (só quando a D3 pedir peça nova) e apagar as linhas de teste do banco (precisa de ok).
 **Pedido:** o cliente quer saber quantas vezes cada QR foi lido e de que peça veio (display, placa…). Wilker: "esses dados a gente pode criar no painel".
 Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]**.
 
@@ -51,7 +51,7 @@ Limites que devem ir para o cliente:
 - `qr_pontos`: código, tipo, rótulo, participação e unidade (opcionais), destino manual (opcional), ativo.
 - `qr_leituras_hora`: chave (código, hora, país, região, cidade, aparelho, robô) e a coluna `leituras`.
 - RPC pública `registrar_leitura_qr(...)`: só aceita código existente e ativo, soma +1 (upsert) e devolve só o destino **manual** do ponto (ou null). O destino padrão sai da regra do código em `src/edicao/qrPontos.js`, uma fonte só, lida por `api/q.js` e pelo gerador de QR. Trava de 25 combinações de lugar por peça e hora: o excedente cai em "sem lugar", então chamada direta com a chave pública não enche a tabela.
-- RPCs do painel: `get_qr_resumo(...)` (permissão `dado.ler`) e `qr_ponto_salvar(...)` (permissão `producao.gerir`).
+- RPC do painel: `get_qr_resumo(p_secret, p_de, p_ate, p_testes)` (permissão `dado.ler`), que chama `qr_resumo_dados(...)` (o cálculo, fechado para anon/authenticated, para poder ser testado sem credencial). **Feito em 30/10** (`20261122_qr_painel.sql`). `qr_ponto_salvar(...)` (`producao.gerir`: pausar e cadastrar peça) **ficou para depois**: só faz sentido quando a D3 definir peças novas, e uma peça nova também precisa do PNG do QR, que o gerador faz por script.
 - RLS ligada, tabelas fechadas, acesso só pelas RPCs (padrão do projeto).
 - Semente: um ponto `d1` e um `d2` por casa ativa, lidos de `participacoes`.
 
@@ -74,6 +74,8 @@ Limites que devem ir para o cliente:
 - Cadastrar ponto novo (adesivo, voucher, outra placa) e pausar ponto.
 - Exportar CSV para o cliente.
 - Arquivos: `painel-app/src/components/vistas/QrCodes.jsx` (novo) e uma aba em `Modulos.jsx`.
+- **Feito em 30/10 (só leitura):** cartões (leituras no período, hoje, por tipo de peça, robôs que não contam); **Participantes com mais leituras** (face 1 + face 2 de cada casa, posição, ordenar por total/face 1/face 2/nome, busca sem acento); por dia; por hora do dia; cidade e aparelho; peça por peça (com busca) e CSV de participantes, dias e peças (ponto e vírgula, com BOM). Períodos: "Desde a abertura" (padrão, usa `festival_inicio` da edição atual), "Hoje" e "Tudo, com testes". A lógica pura está em `painel-app/src/lib/qr.js` e os testes em `tests/painel-app-qr.test.mjs` (9 testes, na suíte `test:organizacao`).
+- **Não feito:** cadastrar ponto novo e pausar ponto pelo painel (ver 12.5).
 
 ## 12.8 Ordem e prazo (festival abre em 05/11)
 
@@ -81,8 +83,8 @@ Limites que devem ir para o cliente:
 |---|---|---|---|
 | 0 | Decisões D1 a D3; regerar todos os QR como `/q/<código>`; entregar os PNG | ✅ feito em 30/10 para display (faces 1 e 2) e placa geral; falta D3 (placa por casa, adesivo, voucher) | Wilker |
 | 1 | Migration, `api/q.js`, rewrite, testes; conferir no celular | ✅ feito em 30/10: migration aplicada, 15 testes e teste ao vivo contra o banco real; falta conferir no celular depois de publicar | — |
-| 1b | Publicar em produção (merge em `master`) | **o quanto antes: o Bitly do cliente já aponta para `/q/mapa-bitly`** | **autorização escrita do Wilker (A2)** |
-| 2 | Aba no painel e CSV | até 05/11, ou durante o festival (os números já estão sendo gravados) | Fase 1 |
+| 1b | Publicar em produção (merge em `master`) | ✅ feito em 30/10: `master` avançou por fast-forward para `2e650c62` (2 commits do QR, sem a Cartoon); `/q/teste`, `/q/mapa-bitly` e código desconhecido conferidos no domínio oficial | autorizado pelo Wilker |
+| 2 | Aba no painel e CSV | ✅ feita em 30/10 no código e no banco (só leitura); **falta publicar** (novo merge em `master`, autorização escrita) | Fase 1 |
 | 3 | Opcional: números por marca na área da marca; leituras que viram avaliações; editar destino pelo painel | depois | — |
 
 ⚠️ Se a Fase 1b não estiver em produção quando a primeira peça for lida, `/q/…` dá 404. O merge precisa estar no calendário.
