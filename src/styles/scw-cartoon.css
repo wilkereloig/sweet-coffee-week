@@ -836,7 +836,7 @@
 .ct-olho__sombra { fill: color-mix(in srgb, var(--ct-creme) 78%, var(--ct-amarelo)); } /* sombra cel: um tom abaixo do creme */
 .ct-olho__fundo { fill: var(--ct-creme); }
 .ct-olho__contorno { fill: var(--ct-tinta-desenho); }
-.ct-olho__hachura { fill: none; stroke: var(--ct-chocolate); stroke-width: 2; stroke-linecap: round; opacity: .35; }
+.ct-olho__hachura { fill: none; stroke: var(--ct-chocolate); stroke-width: 1.6; stroke-linecap: round; opacity: .45; }
 .ct-olho__iris { fill: var(--ct-tinta-desenho); }
 .ct-olho__brilho { fill: var(--ct-branco); }
 .ct-olho__sobrancelha { fill: var(--ct-olhinhos-solto, var(--ct-tinta-desenho)); stroke: var(--ct-olhinhos-solto, var(--ct-tinta-desenho)); stroke-width: 1.5; stroke-linejoin: round; }
@@ -848,7 +848,7 @@
 .ct-olhinhos__traco { opacity: 0; transform: scale(.4); }
 
 /* Encantado: pupila cheia, sobrancelhas altas com as pontas de dentro um pouco erguidas. */
-.ct-olhinhos[data-expressao='encantado'] .ct-olho__pupila { transform: scale(1.1); }
+.ct-olhinhos[data-expressao='encantado'] .ct-olho__pupila { transform: scale(1.05); }
 .ct-olhinhos[data-expressao='encantado'] .ct-olho--e .ct-olho__sobrancelha { transform: translate(0, -6px) rotate(-4deg); }
 .ct-olhinhos[data-expressao='encantado'] .ct-olho--d .ct-olho__sobrancelha { transform: translate(0, -7px) rotate(4deg); }
 /* Curioso: espia de lado; uma sobrancelha sobe, a outra desce achatada sobre o olho que aperta. */
@@ -861,7 +861,8 @@
 .ct-olhinhos[data-expressao='expectativa'] .ct-olho__pupila { transform: scale(.9); }
 .ct-olhinhos[data-expressao='expectativa'] .ct-olho--e .ct-olho__sobrancelha { transform: translate(-2px, -13px) rotate(-5deg); }
 .ct-olhinhos[data-expressao='expectativa'] .ct-olho--d .ct-olho__sobrancelha { transform: translate(2px, -14px) rotate(5deg); }
-.ct-olhinhos[data-expressao='expectativa'] .ct-olhinhos__traco { opacity: 1; transform: none; }
+.ct-olhinhos[data-expressao='expectativa'] .ct-olhinhos__traco--meio,
+.ct-olhinhos[data-expressao='curioso'] .ct-olhinhos__traco--lado { opacity: 1; transform: none; }
 /* Piscada: o olho fecha achatando no meio (sem pálpebra); as sobrancelhas ficam. */
 .ct-olhinhos.ct-olhinhos--pisca .ct-olho__pisca { transform: scaleY(.08); }
 

@@ -1,8 +1,8 @@
 /**
  * Olhinhos — o personagem da edição (docs/cartoon-2026-2/10 §10.5; MANUAL-CARTOON §1.3, padrão da
  * cliente desde 29/10). SVG desenhado aqui: dois ovais creme altos e encostados, o esquerdo na frente;
- * contorno preto de pincel, mais grosso embaixo e por fora; pupila grande com dois brilhos (um oval,
- * um ponto); sobrancelhas soltas que afinam nas pontas; sombra e hachura leves na base.
+ * contorno preto de pincel, mais grosso embaixo e por fora; pupila grande com dois brilhos redondos (um
+ * grande, um pequeno); sobrancelhas grossas em meia-lua; sombra e hachura cruzada na base.
  * Sem boca, gota, pálpebra, adesivo branco ou estrelinha. Decorativo: aria-hidden, nada clicável dentro.
  *
  * expressao: 'encantado' (novidade, combo) · 'curioso' (dica, mapa, rota) · 'expectativa' ("abre em").
@@ -18,7 +18,7 @@ import React, { useEffect, useId, useRef } from 'react'
 const EXPRESSOES = ['encantado', 'curioso', 'expectativa']
 // Sem `olhar`, cada expressão aponta para onde ela faz sentido: o curioso espia de lado, a expectativa olha para cima.
 const OLHAR_PADRAO = { encantado: { x: 0, y: -0.2 }, curioso: { x: 0.75, y: 0.15 }, expectativa: { x: 0.2, y: -0.7 } }
-const ALCANCE = { x: 16, y: 18 } // unidades do viewBox: a pupila nunca encosta no contorno
+const ALCANCE = { x: 10, y: 13 } // unidades do viewBox: a pupila nunca encosta no contorno
 // 'd' vem antes: o olho esquerdo é desenhado por cima, na frente, como nas referências da cliente.
 const OLHOS = [
   { id: 'd', cx: 170, cy: 118, rx: 50, ry: 63, giro: 6, fora: 1 },
@@ -28,6 +28,12 @@ const LARGURA = 260
 const ALTURA = 210
 
 function limitar (v) { return Math.max(-1, Math.min(1, v)) }
+// Hachura cruzada da base (referências da cliente): duas famílias de traços curtos, só na faixa de sombra.
+function hachura (ry) {
+  let d = ''
+  for (let x = -42; x <= 42; x += 9) d += `M${x - 4} ${ry - 2}l8-17M${x + 5} ${ry - 2}l-8-17`
+  return d
+}
 // Elipse como caminho (para juntar duas num anel com evenodd).
 function elipse (cx, cy, rx, ry) {
   return `M${cx - rx} ${cy}a${rx} ${ry} 0 1 0 ${2 * rx} 0a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`
@@ -124,8 +130,9 @@ export function Olhinhos ({ expressao = 'encantado', olhar, lado = 'esquerda', t
         ))}
       </defs>
       <g className="ct-olhinhos__corpo">
-        {/* Expectativa: traços curtos de ação nos dois cantos de cima. */}
-        <path className="ct-olhinhos__traco" d="M14 44l14 12M8 70l17 2M30 22l6 16M246 40l-14 12M252 66l-17 2M230 18l-6 16" />
+        {/* Tracinhos de surpresa: em leque entre as sobrancelhas (expectativa) ou no canto da sobrancelha que sobe (curioso). */}
+        <path className="ct-olhinhos__traco ct-olhinhos__traco--meio" d="M119 16l5 13M131 11v15M143 16l-5 13" />
+        <path className="ct-olhinhos__traco ct-olhinhos__traco--lado" d="M22 30l14 11M14 54l16 3" />
 
         {OLHOS.map((o) => (
           <g key={o.id} className={`ct-olho ct-olho--${o.id}`} transform={`translate(${o.cx} ${o.cy}) rotate(${o.giro})`}>
@@ -134,22 +141,22 @@ export function Olhinhos ({ expressao = 'encantado', olhar, lado = 'esquerda', t
                 {/* Base um tom abaixo do creme; o creme por cima, subido, deixa a sombra só embaixo. */}
                 <ellipse className="ct-olho__sombra" rx={o.rx} ry={o.ry} />
                 <g clipPath={`url(#${uid}-${o.id})`}>
-                  <ellipse className="ct-olho__fundo" cx={o.fora * 2} cy="-7" rx={o.rx - 3} ry={o.ry - 5} />
-                  <path className="ct-olho__hachura" d={`M${-o.fora * 22} ${o.ry - 6}l${o.fora * 5}-9M${-o.fora * 10} ${o.ry - 3}l${o.fora * 5}-9M${o.fora * 2} ${o.ry - 2}l${o.fora * 5}-9M${o.fora * 14} ${o.ry - 4}l${o.fora * 5}-9`} />
+                  <ellipse className="ct-olho__fundo" cx={o.fora * 2} cy="-13" rx={o.rx - 3} ry={o.ry - 10} />
+                  <path className="ct-olho__hachura" d={hachura(o.ry)} />
                   <g className="ct-olho__olhar">
                     <g className="ct-olho__pupila">
-                      <ellipse className="ct-olho__iris" rx="26" ry="31" />
-                      <ellipse className="ct-olho__brilho" cx="8" cy="-12" rx="7.5" ry="10" transform="rotate(-28 8 -12)" />
-                      <circle className="ct-olho__brilho" cx="-10" cy="11" r="3.6" />
+                      <ellipse className="ct-olho__iris" rx="34" ry="39" />
+                      <circle className="ct-olho__brilho" cx="-10" cy="-14" r="11" />
+                      <circle className="ct-olho__brilho" cx="-17" cy="11" r="4.6" />
                     </g>
                   </g>
                 </g>
                 {/* Contorno de pincel: anel entre o olho e uma elipse maior, descida e puxada para fora. */}
-                <path className="ct-olho__contorno" fillRule="evenodd" d={`${elipse(o.fora * 2.5, 3.5, o.rx + 7, o.ry + 8)}${elipse(0, 0, o.rx, o.ry)}`} />
+                <path className="ct-olho__contorno" fillRule="evenodd" d={`${elipse(o.fora * 1.5, 2.5, o.rx + 8, o.ry + 8.5)}${elipse(0, 0, o.rx, o.ry)}`} />
               </g>
             </g>
-            <g transform={`translate(${o.fora * 4} ${-o.ry - 17})`}>
-              <path className="ct-olho__sobrancelha" d="M-29 9C-19-12 13-16 30-1C14-6-13-3-29 9Z" />
+            <g transform={`translate(${o.fora * 4} ${-o.ry - 11})`}>
+              <path className="ct-olho__sobrancelha" d="M-32 13C-23-19 16-23 34 3C16-2-14 3-32 13Z" />
             </g>
           </g>
         ))}
