@@ -1951,3 +1951,15 @@ passos I e J novos; reversão em `supabase/reverter/`), testes `tests/painel-app
   confere cada chave do SQL contra os `id: '…'` de `FichaVisao.jsx`.
 - ⚠️ Painel antigo (sem esta versão) abre a ficha na seção, sem o campo; o toque no PUSH (`?ir=` com 4 segmentos) só chega ao
   destino com o painel novo (a regra antiga recusava).
+
+#### Operação › QR Codes — 30/10/2026 (`#operacao/qr`)
+Aba só de leitura (`dado.ler`): quantas vezes cada peça com QR foi lida, por participante (ranking), dia, hora, cidade, aparelho e peça.
+Plano e decisões: `docs/cartoon-2026-2/12-plano-qr-leituras.md`. Vista `vistas/QrCodes.jsx`, lógica pura em `lib/qr.js` (período, ranking,
+busca, CSV), estilo em `styles/qr.css`, testes em `tests/painel-app-qr.test.mjs`.
+- **Banco:** `20261122_qr_painel.sql` → `get_qr_resumo(p_secret, p_de, p_ate, p_testes)`, que chama `qr_resumo_dados` (o cálculo, fechado para
+  anon/authenticated). `qr_pontos` e `qr_leituras_hora` seguem fechadas. Robôs ficam fora de todos os números (só aparecem em "de robôs");
+  o ponto `teste` só entra em "Tudo, com testes"; datas no fuso de Natal; "Desde a abertura" usa `festival_inicio` da edição atual.
+- **Sem domínio de sincronização:** o número muda a cada QR lido, não por ação da equipe; atualiza pelo botão "Atualizar".
+- ⚠️ `qr` é chave de rota nova de Operação (entrou no contrato de `tests/painel-app-nomes-publicacao.test.mjs`).
+- **Não faz ainda:** pausar nem cadastrar peça. Fica para quando a D3 definir peças novas (peça nova também precisa do PNG do QR, que sai do
+  `scripts/qr-edicao.mjs --por-peca`).

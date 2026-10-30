@@ -43,7 +43,7 @@ const CHAVES_DE_ROTA = {
   visao: [''],
   participantes: ['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento', 'localizacoes'],
   contatos: ['pessoas', 'presskit', 'vouchers', 'recebidos'],
-  operacao: ['pedidos', 'fotos', 'materiais'],
+  operacao: ['pedidos', 'fotos', 'materiais', 'qr'],
   social: ['planejamento', 'campanhas', 'biblioteca', 'participantes'],
   arquivos: ['gerais', 'participantes', 'arquivados'],
   edicao: ['configuracao', 'publicacao', 'avaliacoes', 'edicoes'],

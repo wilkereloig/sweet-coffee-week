@@ -1,0 +1,13 @@
+/*
+ * Operação › QR Codes — só o que painel.css não tem. Tokens do painel (--scw-*, --e-*), nenhuma cor nova.
+ * A barra atrás do número usa --p (0–100%), calculada em lib/qr.js › larguraBarra.
+ */
+.qr-controles,.qr-filtros{align-items:flex-end;margin-bottom:var(--e-4)}
+.qr-filtros > .og-campo{margin:0}
+.qr-busca{flex:1 1 16rem;max-width:26rem}
+.qr-nome{text-align:left}
+.qr-num{text-align:right;font-variant-numeric:tabular-nums}
+.qr-barra{background:linear-gradient(90deg,rgba(1,175,204,.22) var(--p,0%),transparent 0%)}
+.qr-pausada{color:var(--scw-marrom)}
+.qr-codigo{font:600 12.5px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.qr-duas{display:grid;gap:var(--e-4);grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))}

@@ -10,6 +10,7 @@ import { PressKit } from './vistas/PressKit'
 import { Vouchers } from './vistas/Vouchers'
 import { Producao } from './vistas/Producao'
 import { MateriaisEdicao } from './vistas/MateriaisEdicao'
+import { QrCodes } from './vistas/QrCodes'
 import { ArquivosOrg } from './vistas/ArquivosOrg'
 import { Equipe } from './vistas/Equipe'
 import { ComEdicaoAtual, useEdicoes, AbaConfiguracao, AbaTemas, AbaVendas, AbaRevisao, AbaImportacoes, AbaEdicoes } from './vistas/Edicao'
@@ -96,6 +97,7 @@ export function Operacao(props) {
     { chave: 'pedidos', rotulo: 'Pedidos', mostrar: props.pode('dado.ler'), render: () => <Producao {...props} secao="pedidos" /> },
     { chave: 'fotos', rotulo: 'Fotos', mostrar: props.pode('dado.ler'), render: () => <Producao {...props} secao="fotos" /> },
     { chave: 'materiais', rotulo: 'Materiais', mostrar: props.pode('dado.ler'), render: () => <MateriaisEdicao {...props} /> },
+    { chave: 'qr', rotulo: 'QR Codes', mostrar: props.pode('dado.ler'), render: () => <QrCodes {...props} /> },
   ]} />
 }
 
