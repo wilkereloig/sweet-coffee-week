@@ -259,7 +259,7 @@ export const PREMIACAO = {
   rotulo: 'Premiação da Cartoon',
   lead: 'As casas da Cartoon concorrem ao Sweet Awards. O público avalia durante o festival, e as categorias e o resultado são publicados aqui.',
   depois: (dia) => (dia ? `Resultados depois de ${dia}.` : 'Resultados depois do festival.'),
-  trofeuAlt: 'Troféu dourado do Sweet Awards: uma fatia de bolo com colher sobre o prato',
+  trofeuAlt: 'Troféu de ouro do Sweet Awards: uma fatia de bolo provada, com a colher de sobremesa cravada, sobre a base no formato do selo',
   avaliar: 'Avaliar',
   comoAvaliar: 'Ver como avaliar',
   resultadosTitulo: 'Os premiados',

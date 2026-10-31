@@ -421,15 +421,24 @@ export function seloEdicao() {
   return SELO_EDICAO
 }
 
-/* Troféu oficial do Sweet Awards na edição 2026.2 (manual v03, assets/ig-trofeu-dourado.png),
-   convertido para WebP sem recorte, fundo transparente. O dourado só existe neste arquivo (não é token).
-   Topo da Premiação; nunca redesenhado (§10.15). */
-const TROFEU_EDICAO = { src: '/images/marcas-edicoes/2026.2/trofeu/trofeu-dourado.webp', largura: 781, altura: 977 }
-
-/** Troféu oficial da edição 2026.2. */
-export function trofeuEdicao() {
-  return TROFEU_EDICAO
+/* Troféu do Sweet Awards v15 (decisões de 22/10: fatia de bolo com colher de sobremesa, base no
+   formato do selo; 1º ouro, 2º prata, 3º cobre), de 01_SWEET_AWARDS_MARCA/TROFEU-ARTES/*-frente.png,
+   recortado ao conteúdo e convertido para WebP, fundo transparente. O metal só existe nestes arquivos
+   (não é token). Premiação; nunca redesenhado (§10.15). */
+const TROFEUS_EDICAO = {
+  ouro: { src: '/images/marcas-edicoes/2026.2/trofeu/trofeu-ouro.webp', largura: 644, altura: 900 },
+  prata: { src: '/images/marcas-edicoes/2026.2/trofeu/trofeu-prata.webp', largura: 633, altura: 900 },
+  cobre: { src: '/images/marcas-edicoes/2026.2/trofeu/trofeu-cobre.webp', largura: 648, altura: 900 },
 }
+
+/** Troféu do Sweet Awards: 'ouro' (1º), 'prata' (2º) ou 'cobre' (3º). */
+export function trofeuEdicao(metal = 'ouro') {
+  return TROFEUS_EDICAO[metal] || TROFEUS_EDICAO.ouro
+}
+
+/* Marca permanente do Sweet Awards (22/10: "Sweet" oficial + "AWARDS" em Montserrat Black), sem relação
+   com o KV da edição. Versão creme, para fundo escuro. Kit completo em 01_SWEET_AWARDS_MARCA/MARCA-B/. */
+export const MARCA_SWEET_AWARDS = { src: '/images/sweet-awards/marca-creme.svg', largura: 404, altura: 260, alt: 'Sweet Awards' }
 
 /** Marca da realizadora (F2 Experience), a mesma da seção de realização da Home. */
 export const LOGO_F2 = { src: '/images/logo-f2experience.svg', largura: 694, altura: 89, alt: 'F2 Experience' }

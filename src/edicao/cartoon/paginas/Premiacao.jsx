@@ -1,6 +1,7 @@
 /*
- * Premiação (§6.4; docs/cartoon-2026-2/10 §10.7): topo no canal Gala (chocolate) com o troféu oficial sob o
- * holofote. Antes dos resultados: como funciona e "resultados depois de <fim do festival>" (do dado; nenhuma data
+ * Premiação (§6.4; docs/cartoon-2026-2/10 §10.7): topo no canal Gala (chocolate) com a marca própria do Sweet
+ * Awards no título e o troféu v15 de ouro sob o holofote; no pódio, cada lugar leva o troféu do seu metal (decisões
+ * de 22/10: 1º ouro, 2º prata, 3º cobre). Antes dos resultados: como funciona e "resultados depois de <fim do festival>" (do dado; nenhuma data
  * de divulgação inventada, D-15). Resultados SÓ com o interruptor 6 (resultados_publicos() devolve null antes):
  * pódio por categoria e trilha, empate permitido; 2º e 3º sem registro ficam ausentes, nunca preenchidos
  * (CLAUDE.md §8.5). Categorias provisórias (D-06) não aparecem como definitivas.
@@ -8,13 +9,15 @@
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import { carregarResultados } from '../../dados/publico.js'
-import { trofeuEdicao, srcSet } from '../../../data/imageLibrary'
+import { trofeuEdicao, MARCA_SWEET_AWARDS, srcSet } from '../../../data/imageLibrary'
 import { Link, Carregando } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Etiqueta, Botao } from '../../componentes/sistema/pecas.jsx'
 import { PREMIACAO as T, FASE_TEXTO } from '../textos.js'
+
+const METAL = { 1: 'ouro', 2: 'prata', 3: 'cobre' }
 
 export function Premiacao ({ navigate, dados }) {
   const [res, setRes] = React.useState(dados?.resultados_publicos ? 'carregando' : null)
@@ -37,7 +40,9 @@ export function Premiacao ({ navigate, dados }) {
       <TopoCanal canal="gala" className="ct-gala" aria-labelledby="pr-titulo">
         <div className="ct-gala__texto">
           <p className="ct-rotulo">{T.rotulo}</p>
-          <Letreiro nivel={1} id="pr-titulo" texto={T.titulo} cor="amarelo" />
+          <h1 id="pr-titulo" className="ct-gala__marca">
+            <img src={MARCA_SWEET_AWARDS.src} width={MARCA_SWEET_AWARDS.largura} height={MARCA_SWEET_AWARDS.altura} alt={T.titulo} decoding="async" />
+          </h1>
           <p className="ct-lead">{T.lead}</p>
           {!dados?.resultados_publicos && <p className="ct-sub">{T.depois(fim ? `${fim[2]}/${fim[1]}` : '')}</p>}
           <div className="ct-acoes">
@@ -70,7 +75,10 @@ export function Premiacao ({ navigate, dados }) {
                       if (!ganhadores.length) return null // sem registro: ausente, nunca preenchido
                       return (
                         <li key={n} className={`ct-podio__linha ct-podio__linha--${n}`}>
-                          <span className="ct-podio__lugar">{T.lugar[n]}</span>
+                          <span className="ct-podio__lugar">
+                            <img src={trofeuEdicao(METAL[n]).src} width={trofeuEdicao(METAL[n]).largura} height={trofeuEdicao(METAL[n]).altura} alt="" decoding="async" />
+                            {T.lugar[n]}
+                          </span>
                           <span>
                             {ganhadores.map((w, i) => (
                               <React.Fragment key={i}>{i ? ' e ' : ''}{w.slug ? <Link href={`${C}/participantes/${w.slug}`} navigate={navigate}>{w.nome}</Link> : w.nome}</React.Fragment>
