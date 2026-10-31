@@ -648,6 +648,15 @@
 /* Avaliar: topo no canal Serviço (creme com a faixa azul), letreiro em CSS. (0,2,0) pelo mesmo motivo do canal Rota.
    Fora da janela, o estado "abre em …" num cartão tracejado no lugar do formulário. */
 .ct-canal.ct-servico-topo { gap: 12px; padding-block: clamp(28px, 4.5vw, 56px); }
+
+/* Cenografia do topo (<CenaTopo>, família 2): objeto à direita do texto no desktop, ocupando o vazio;
+   no celular, pequeno, depois do texto e encostado à direita. */
+.ct-edicao .ct-topo__cena { justify-self: end; width: clamp(84px, 24vw, 120px); height: auto; margin-top: -8px; rotate: 4deg; }
+@media (min-width: 900px) {
+  .ct-canal:has(> .ct-topo__cena) { grid-template-columns: minmax(0, 1fr) auto; column-gap: 48px; }
+  .ct-canal:has(> .ct-topo__cena) > :not(.ct-topo__cena) { grid-column: 1; }
+  .ct-edicao .ct-topo__cena { grid-column: 2; grid-row: 1 / span 4; align-self: center; width: clamp(170px, 16vw, 230px); }
+}
 .ct-servico-topo .ct-letreiro, .ct-servico-topo .ct-lead { margin: 0; }
 .ct-avaliar__fechada { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px 16px; max-width: 760px; padding: clamp(18px, 3vw, 28px); border: 2.5px dashed var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-branco); }
 .ct-avaliar__fechada p { margin: 0 0 6px; }

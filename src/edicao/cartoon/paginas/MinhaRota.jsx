@@ -10,7 +10,7 @@ import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { resolverParadas, linksDeRota, idsDaBusca, progresso } from '../../rota/minhaRota.js'
 import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
-import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { TopoCanal, CenaTopo } from '../../componentes/sistema/TopoCanal.jsx'
 import { letreiroEdicao } from '../../../data/imageLibrary'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
@@ -62,6 +62,7 @@ export function MinhaRota ({ navigate, dados }) {
           </div>
         </div>
       )}
+      <CenaTopo chave="placas" />
     </TopoCanal>
   )
 

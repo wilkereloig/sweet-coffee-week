@@ -466,9 +466,12 @@ export function iconeEdicao(nome) {
 const CENAS_EDICAO = {
   tv: { src: `${ELEMENTOS_EDICAO}/cena/tv-antiga.webp`, largura: 1133, altura: 1107 },
   natal: { src: `${ELEMENTOS_EDICAO}/cena/natal.webp`, largura: 1536, altura: 266 },
+  // Cenografia dos topos (família 2), 31/10 em 05_SITE/08_CENOGRAFIA_TOPOS: placas de rua (Rota) e prancheta (Serviço).
+  placas: { src: `${ELEMENTOS_EDICAO}/cena/placas.webp`, largura: 917, altura: 1021 },
+  prancheta: { src: `${ELEMENTOS_EDICAO}/cena/prancheta.webp`, largura: 976, altura: 994 },
 }
 
-/** Cenografia da edição (`tv` · `natal`) com a medida do arquivo, ou `null`. */
+/** Cenografia da edição (`tv` · `natal` · `placas` · `prancheta`) com a medida do arquivo, ou `null`. */
 export function cenaEdicao(chave) {
   return Object.hasOwn(CENAS_EDICAO, chave) ? CENAS_EDICAO[chave] : null
 }

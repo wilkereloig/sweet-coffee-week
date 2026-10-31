@@ -12,7 +12,7 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
-import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { TopoCanal, CenaTopo } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { Botao, Chip } from '../../componentes/sistema/pecas.jsx'
@@ -71,6 +71,7 @@ export function Mapa ({ navigate, dados }) {
     <TopoCanal canal="rota" className="ct-rota-topo" aria-labelledby="mapa-titulo">
       <Letreiro nivel={1} id="mapa-titulo" texto={T.titulo} cor="amarelo" />
       <p className="ct-lead">{texto}</p>
+      <CenaTopo chave="placas" />
     </TopoCanal>
   )
   const avisos = (
