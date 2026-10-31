@@ -11,6 +11,7 @@ import * as M from '../../dados/modelo.js'
 import { resolverParadas, linksDeRota, idsDaBusca, progresso } from '../../rota/minhaRota.js'
 import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { letreiroEdicao } from '../../../data/imageLibrary'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { Placa, Botao } from '../../componentes/sistema/pecas.jsx'
@@ -50,7 +51,7 @@ export function MinhaRota ({ navigate, dados }) {
   )
   const topo = (texto, comProgresso = false) => (
     <TopoCanal canal="rota" className="ct-rota-topo" aria-labelledby="rota-titulo">
-      <Letreiro nivel={1} id="rota-titulo" texto={T.titulo} cor="amarelo" />
+      <Letreiro nivel={1} id="rota-titulo" texto={T.titulo} imagem={letreiroEdicao('rota')} />
       <p className="ct-lead">{texto}</p>
       {comProgresso && prog.total > 0 && (
         <div className="ct-progresso">

@@ -18,6 +18,7 @@ import { criarEnvioProtegido } from '../../../lib/enviarFormulario'
 import { Link, Carregando, Falha } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
+import { letreiroEdicao } from '../../../data/imageLibrary'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { Etiqueta, Botao, Passos } from '../../componentes/sistema/pecas.jsx'
@@ -99,7 +100,7 @@ export function Avaliar ({ navigate, dados }) {
   const C = EDICAO.caminho
   const topo = (
     <TopoCanal canal="servico" className="ct-servico-topo" aria-labelledby="av-titulo">
-      <Letreiro nivel={1} id="av-titulo" texto={T.titulo} />
+      <Letreiro nivel={1} id="av-titulo" texto={T.titulo} imagem={letreiroEdicao('avalie')} />
       <p className="ct-lead">{T.lead}</p>
     </TopoCanal>
   )

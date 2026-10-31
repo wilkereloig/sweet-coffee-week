@@ -658,8 +658,6 @@ export const VARIANTES = new Map([
   ['/images/marcas-edicoes/2026.2/elementos/temas/boldfood-confeitaria-inclusiva/cenario.webp', { larguras: [480, 960], original: 1536 }],
   ['/images/marcas-edicoes/2026.2/elementos/temas/casa-alice-doceria/cenario.webp', { larguras: [480, 960], original: 1536 }],
   ['/images/marcas-edicoes/2026.2/fundo-heroi.webp', { larguras: [480, 960], original: 2400 }],
-  ['/images/marcas-edicoes/2026.2/letreiros/hora-de-provar.webp', { larguras: [480, 960], original: 1479 }],
-  ['/images/marcas-edicoes/2026.2/letreiros/nosso-elenco.webp', { larguras: [480, 960], original: 1462 }],
   ['/images/marcas-edicoes/2026.2/selo/selo-cartoon.webp', { larguras: [480, 960], original: 1921 }],
   ['/images/marcas-edicoes/2026.2/tema.webp', { larguras: [480, 960], original: 1400 }],
   ['/images/marcas-edicoes/2026.2/trofeu/trofeu-dourado.webp', { larguras: [480], original: 781 }],

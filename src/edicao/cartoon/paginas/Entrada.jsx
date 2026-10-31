@@ -92,7 +92,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
       {!encerrada && bairros.length > 0 && (
         <section className="ct-onde" aria-labelledby="ct-onde">
           <div className="ct-bloco">
-            <Letreiro id="ct-onde" texto={T.ondeTitulo} />
+            <Letreiro id="ct-onde" texto={T.ondeTitulo} imagem={letreiroEdicao('onde')} />
             <p className="ct-lead">{T.ondeLead}</p>
             <ul className="ct-bairros">
               {bairros.map(({ bairro, casas }) => (
@@ -110,7 +110,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
       )}
 
       <section className="ct-bloco ct-entrada__avalie" aria-labelledby="ct-avalie">
-        <Letreiro id="ct-avalie" texto={T.avalieTitulo} />
+        <Letreiro id="ct-avalie" texto={T.avalieTitulo} imagem={letreiroEdicao('avalie')} />
         <p className="ct-lead">{textoAvalie}</p>
         <div className="ct-acoes">
           {!encerrada && <Botao href={`${C}/avaliar`} navigate={navigate}>{aberta ? T.avaliar : T.comoAvaliar}</Botao>}

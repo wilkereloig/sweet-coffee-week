@@ -397,16 +397,20 @@ export function fotoProximaEdicao(chave) {
   return PROXIMA_EDICAO[chave] || null
 }
 
-/* Letreiros desenhados da edição 2026.2 (manual v03, assets/ig-titulo-*.png),
-   convertidos para WebP sem recorte (fundo transparente). Título fixo de
-   seção: <Letreiro imagem={letreiroEdicao('elenco')} texto="…" /> — o texto
-   real vai no HTML. Letreiro novo entra aqui, nunca montado na página. */
+/* Letreiros desenhados da edição 2026.2 no traço do título aprovado (MANUAL-CARTOON 1.0: "TÁ CHEGANDO!" —
+   bolha amarela, contorno preto, sombra vermelha), gerados em 31/10 (05_SITE/07_LETREIROS_v02), recortados ao
+   conteúdo e convertidos para WebP, fundo transparente. Título fixo de seção:
+   <Letreiro imagem={letreiroEdicao('elenco')} texto="…" /> — o texto real vai no HTML.
+   Letreiro novo entra aqui, nunca montado na página. */
 const LETREIROS_EDICAO = {
-  elenco: { src: '/images/marcas-edicoes/2026.2/letreiros/nosso-elenco.webp', largura: 1462, altura: 736 },
-  provar: { src: '/images/marcas-edicoes/2026.2/letreiros/hora-de-provar.webp', largura: 1479, altura: 724 },
+  elenco: { src: '/images/marcas-edicoes/2026.2/letreiros/nosso-elenco.webp', largura: 1400, altura: 575 },
+  provar: { src: '/images/marcas-edicoes/2026.2/letreiros/hora-de-provar.webp', largura: 1400, altura: 653 },
+  onde: { src: '/images/marcas-edicoes/2026.2/letreiros/onde-ficam.webp', largura: 1400, altura: 627 },
+  rota: { src: '/images/marcas-edicoes/2026.2/letreiros/minha-rota.webp', largura: 1400, altura: 624 },
+  avalie: { src: '/images/marcas-edicoes/2026.2/letreiros/avalie-sua-experiencia.webp', largura: 1400, altura: 654 },
 }
 
-/** Letreiro desenhado da edição (`elenco` · `provar`), ou `null`. */
+/** Letreiro desenhado da edição (`elenco` · `provar` · `onde` · `rota` · `avalie`), ou `null`. */
 export function letreiroEdicao(chave) {
   return LETREIROS_EDICAO[chave] || null
 }
