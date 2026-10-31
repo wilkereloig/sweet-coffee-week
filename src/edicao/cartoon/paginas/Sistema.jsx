@@ -13,7 +13,7 @@ import { TopoCanal, CANAIS } from '../../componentes/sistema/TopoCanal.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { CenarioTema } from '../../componentes/sistema/CenarioTema.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
-import { Etiqueta, Pilula, Placa, Carimbo, Botao, Quadro, BarrasSinal } from '../../componentes/sistema/pecas.jsx'
+import { Etiqueta, Pilula, Placa, Carimbo, Botao, Quadro } from '../../componentes/sistema/pecas.jsx'
 
 // [cor, papel, tinta que passa sobre ela]
 const CORES = [
@@ -130,7 +130,6 @@ export default function Sistema () {
         <div className="ct-vitrine__pecas ct-vitrine__pecas--quadro">
           <Quadro><span className="ct-vitrine__logo">Logo da casa</span></Quadro>
         </div>
-        <BarrasSinal />
       </section>
 
       <section aria-labelledby="v-canais">

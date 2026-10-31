@@ -73,14 +73,3 @@ export function Passos ({ passos }) {
     </ol>
   )
 }
-
-const BARRAS = ['creme', 'amarelo', 'turquesa', 'rosa', 'vermelho', 'azul', 'roxo']
-
-/** Barras de sinal: a paleta inteira junta, só em transição — nunca fundo de texto. */
-export function BarrasSinal () {
-  return (
-    <div className="ct-barras" aria-hidden="true">
-      {BARRAS.map((c) => <span key={c} className={`ct-barras__b ct-barras__b--${c}`} />)}
-    </div>
-  )
-}

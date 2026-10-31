@@ -24,7 +24,7 @@
  *     aberto; sucesso só com resposta ok; erro preserva as notas.
  *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
- *     botão) e cinco abas (Avaliar → Prêmio depois dos resultados); rodapé com barras, F2 e cookies.
+ *     botão) e cinco abas (Avaliar → Prêmio depois dos resultados); rodapé com F2 e cookies, sem barras de sinal.
  * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, sem olhinhos —
  *     MANUAL §1.3), como funciona, mural das casas, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
  *     sem elenco, falha de rede e edição encerrada.
@@ -388,7 +388,7 @@ try {
   if (!falhas.some((f) => /^@/.test(f))) ok('360 e 1440: sem rolagem lateral, casca própria, alvos ≥ 44px, botões com contraste ≥ 4,5:1 (3:1 em texto grande)')
 
   // Casca nova (§10.6): cabeçalho creme com selo; celular com "Menu" (folha que fecha por Esc, véu e link, foco
-  // preso e devolvido ao botão) e cinco abas; desktop com a navegação e o cabeçalho preso; rodapé com barras e F2.
+  // preso e devolvido ao botão) e cinco abas; desktop com a navegação e o cabeçalho preso; rodapé com F2, sem barras de sinal.
   {
     const antes = falhas.length
     const { ctx, page } = await contexto(nav, { w: 360, h: 800 })
@@ -449,16 +449,16 @@ try {
       return {
         posicao: getComputedStyle(document.querySelector('.ct-topo')).position, nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu'), abas: v('.ct-abas'),
         marcaX: Math.round(document.querySelector('.ct-topo__marca').getBoundingClientRect().left),
-        rodape: { barras: !!document.querySelector('.ct-rodape .ct-barras'), f2: !!document.querySelector('.ct-rodape img[alt="F2 Experience"]'),
+        rodape: { barras: !!document.querySelector('.ct-barras'), f2: !!document.querySelector('.ct-rodape img[alt="F2 Experience"]'),
           cookies: [...document.querySelectorAll('.ct-rodape button')].some((b) => b.textContent.includes('Preferências de cookies')),
           legais: document.querySelectorAll('.ct-rodape a[href="/privacidade"], .ct-rodape a[href="/termos"]').length },
       }
     })
     if (m.posicao !== 'sticky' || !m.nav || m.menu || m.abas) falha(`@1440 cabeçalho: ${JSON.stringify(m)}`)
     if (m.marcaX > 120) falha(`@1440 selo não está à esquerda (x=${m.marcaX})`)
-    if (!m.rodape.barras || !m.rodape.f2 || !m.rodape.cookies || m.rodape.legais !== 2) falha(`rodapé incompleto: ${JSON.stringify(m.rodape)}`)
+    if (m.rodape.barras || !m.rodape.f2 || !m.rodape.cookies || m.rodape.legais !== 2) falha(`rodapé incompleto: ${JSON.stringify(m.rodape)}`)
     await d.ctx.close()
-    if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 5 abas (Avaliar → Prêmio), rodapé com barras, F2 e cookies')
+    if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 5 abas (Avaliar → Prêmio), rodapé com F2 e cookies, sem barras de sinal (MANUAL-CARTOON 1.0)')
   }
 
   console.log('\n10 · Entrada')

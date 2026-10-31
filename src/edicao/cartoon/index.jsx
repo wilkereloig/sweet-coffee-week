@@ -21,7 +21,6 @@ import { abrirPreferencias } from '../../lib/consentimento'
 import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
-import { BarrasSinal } from '../componentes/sistema/pecas.jsx'
 import { RotaContexto } from './contexto.js'
 import { NAV, MENU, CENA_TEXTO, RODAPE } from './textos.js'
 import { Entrada } from './paginas/Entrada.jsx'
@@ -181,7 +180,6 @@ export function CartoonPage ({ path, navigate }) {
         <p className="ct-sr" aria-live="polite">{rota.anuncio}</p>
 
         <footer className="ct-rodape">
-          <BarrasSinal />
           <div className="ct-rodape__corpo">
             <div className="ct-rodape__assina">
               <p>{RODAPE.assinatura}</p>
