@@ -41,7 +41,8 @@ export function Premiacao ({ navigate, dados }) {
         <div className="ct-gala__texto">
           <p className="ct-rotulo">{T.rotulo}</p>
           <h1 id="pr-titulo" className="ct-gala__marca">
-            <img src={MARCA_SWEET_AWARDS.src} width={MARCA_SWEET_AWARDS.largura} height={MARCA_SWEET_AWARDS.altura} alt={T.titulo} decoding="async" />
+            <img src={MARCA_SWEET_AWARDS.src} width={MARCA_SWEET_AWARDS.largura} height={MARCA_SWEET_AWARDS.altura} alt="" decoding="async" />
+            <span className="ct-sr">{T.titulo}</span>
           </h1>
           <p className="ct-lead">{T.lead}</p>
           {!dados?.resultados_publicos && <p className="ct-sub">{T.depois(fim ? `${fim[2]}/${fim[1]}` : '')}</p>}

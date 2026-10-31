@@ -31,7 +31,7 @@
  * 11. MAPA — topo no canal Rota; uma linha por unidade; sem coordenada = "em conferência"; aproximada dita assim
  *     na lista e no marcador; ?bairro= (contrato da Entrada) filtra a unidade; quero ir e já fui como filtro;
  *     "perto de mim" com recusa honesta e com posição (distância em linha reta).
- * 12. PREMIAÇÃO — canal Gala com o troféu oficial e "resultados depois de 15/11"; com resultados, pódio por
+ * 12. PREMIAÇÃO — canal Gala com a marca do Sweet Awards e o troféu v15 de ouro e "resultados depois de 15/11"; com resultados, pódio por
  *     categoria sem 2º/3º inventado.
  */
 import { chromium } from 'playwright'
@@ -590,7 +590,7 @@ try {
     let c = await contexto(nav)
     await ir(c.page, '/cartoon/premiacao')
     if (!(await c.page.locator('.ct-canal--gala h1').count())) falha('Premiação: h1 fora do topo no canal Gala')
-    if (!(await c.page.locator('.ct-gala__palco img[src*="trofeu-dourado"]').count())) falha('Premiação sem o troféu oficial')
+    if (!(await c.page.locator('.ct-gala__palco img[src*="trofeu-ouro"]').count())) falha('Premiação sem o troféu v15 de ouro')
     if (!(await c.page.locator('.ct-gala').innerText()).includes('Resultados depois de 15/11.')) falha('Premiação sem "resultados depois de 15/11"')
     await c.ctx.close()
     const resultados = [
