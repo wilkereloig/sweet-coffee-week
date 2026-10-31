@@ -135,3 +135,23 @@ Antes do passo 1, confira ao vivo o link de compartilhamento (og) de `/cartoon`.
    - **Histórico do Sweet Awards:** os resultados da Cartoon.
    - **Teste "Cartoon não é histórico"** (`tests/edicoes.test.mjs:23`): passa a aceitar a 2026.2.
 5. Eu, depois de backup e numa migration separada: aposentar as colunas legadas (`vegano`/`sem_gluten`/`sem_lactose`, `tem_substituicao`/`substituicao`, `participantes.combo_nome`/`combo_descricao`, `participacao_unidades.endereco`/`bairro`/`horarios`).
+
+## 9.7 Site repensado (27 a 31/10/2026, só no servidor local)
+
+Spec: `10-sistema-visual-e-paginas.md`; plano: `11-plano-execucao-site.md`. Commits locais em `dev/site-completo`, **sem push** (pedido do Wilker: nada publicado).
+
+| Etapa | Estado |
+|---|---|
+| E1 · sistema visual e vitrine `/cartoon/sistema` | feita |
+| E2 · olhinhos | **em pausa** (31/10, Wilker: "pode esquecer esse personagem por enquanto"). Folha do personagem em vetor na vitrine (`f32ac09d`), não aprovada. Os olhinhos antigos seguem em Catálogo, Avaliar e Premiação até a decisão |
+| E3–E8 · retrato local, casca, Entrada, catálogo e ficha, Mapa, Minha rota, Avaliar, Premiação | feitas |
+| Premiação | troféu v15 (ouro, prata e cobre) e marca própria do Sweet Awards (decisões de 22/10) |
+| Barras de sinal | saíram (MANUAL-CARTOON 1.0) |
+| Letreiros | 5 no traço "TÁ CHEGANDO!" (elenco, provar, onde ficam, minha rota, avalie); o do Mapa segue em CSS até o nome da página ser decidido |
+| Cenografia dos topos | placas (Mapa, Minha rota) e prancheta (Avaliar). Faltam camarim (Elenco) e mesa de café (Cardápio), sem lugar vago hoje |
+| Kits de cenário | 3 no site (Alice, Boldfood, Adocee). Os 24 restantes: prévia gerada pela API e pacote para o ChatGPT em `05_SITE/05_ELEMENTOS_v03/`; entram quando o Wilker escolher a versão |
+| QR da página inicial | já existia: `06_MATERIAIS_PDV/09_QR_CODES/00_USAR_ESTES/geral-pagina-inicial.png` |
+| E9 · testes | `test:cartoon` 57/57, `test:imagens`, `test:motion` (6 páginas × 2 telas), `responsive` 6/6 e `test:cartoon-navegador` verdes em 31/10. Uma checagem do navegador oscila: `/combos/:slug` abriu 130px abaixo do bloco (limite 120) numa rodada e passou na seguinte |
+
+**Decisões em aberto (do Wilker):** nome do Mapa, hex do rosa (`#FB2B56` × `#E8195A`), og 1200×630, SVG do selo, mapa ilustrado de Natal, publicação (`CARTOON_PUBLICA`, push e merge).
+

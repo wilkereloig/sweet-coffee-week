@@ -1,6 +1,6 @@
 # Sweet & Coffee Week Cartoon 2026.2 — especificação do site da edição e do painel
 
-**Estado (14/10/2026, noite):** fases 1, 4, 5 e 6 implementadas em `dev/site-completo` (só preview); banco escrito e **não aplicado**; roteiro de lançamento pronto — ver [09-execucao.md](09-execucao.md).
+**Estado (31/10/2026):** banco aplicado e painel no ar desde 15/10; site da edição repensado (spec 10) e completo no servidor local, sem push e sem publicar — ver [09-execucao.md](09-execucao.md) §9.7. Estado de 14/10: fases 1, 4, 5 e 6 em `dev/site-completo`.
 **Data:** 14/10/2026 · **Branch analisada:** `dev/site-completo` (HEAD `066510d`, igual a `master`).
 **Escopo:** a camada de edição Cartoon (site público da 17ª edição) e o que o painel precisa ganhar para alimentá-la.
 
