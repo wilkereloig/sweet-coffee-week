@@ -17,6 +17,9 @@ export function Link ({ href, navigate, children, aoIr, ...resto }) {
 }
 
 /** Foto do banco com proporção fixa; sem foto, reserva com texto (§6.12: nunca área vazia). */
+/** Proporção da própria foto (sem recorte); sem medida, a moldura padrão do lugar. */
+export const proporcaoDe = (foto, padrao) => (foto?.largura && foto?.altura ? `${foto.largura} / ${foto.altura}` : padrao)
+
 export function Foto ({ foto, bucket, alt, proporcao = '1 / 1', reserva = 'Foto em produção', className = '', prioridade = false }) {
   const src = imagemPublica(foto, bucket)
   const [falhou, setFalhou] = React.useState(false)

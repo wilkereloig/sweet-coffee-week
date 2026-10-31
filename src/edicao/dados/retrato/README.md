@@ -17,8 +17,9 @@ No DEV cada página mostra a faixa tracejada "Retrato local do painel · dd/mm" 
 2. **Gravar o arquivo**: `node scripts/edicao/retrato-salvar.mjs <caminho-da-resposta>` (recusa se aparecer campo privado).
 3. **Coordenadas**: `node scripts/edicao/geocodificar-retrato.mjs` (Nominatim, 1 requisição por segundo, ~45 s; só preenche quem está sem coordenada).
 4. **Logos desenhadas**: `python -I scripts/edicao/logos-desenhadas.py` (Pillow; lê o Dropbox da edição, gera `public/retrato-local/logos-desenhadas/` e acrescenta `casa.logo_desenhada` ao retrato).
+5. **Fotos dos combos**: `python -I scripts/edicao/fotos-combo.py` (lê `03_COMBOS/02_ARTES/<marca>/`, a maior versão `aprovada-vN` de cada peça; gera `public/retrato-local/combos/<slug>/` em 1200 × 1500 e preenche `combo.fotos.principal`, `itens[].foto` e `combo.fotos.galeria` com cortados e opções). Leva uns 3 minutos.
 
-Os passos 3 e 4 reescrevem o `cartoon.local.json`, então vêm depois do 2. Conferir tudo: `npm run test:cartoon`.
+Os passos 3 a 5 reescrevem o `cartoon.local.json`, então vêm depois do 2. Conferir tudo: `npm run test:cartoon`.
 
 **Última leitura: 28/10/2026** (27 casas, 40 unidades, banco ainda em fase `preparacao`, nenhuma casa publicada).
 
@@ -29,7 +30,7 @@ Mesmo formato de `edicao_publica('2026.2')` (`docs/cartoon-2026-2/03-modelo-de-d
 - **Casas**: todas as participações ativas (`status_cadastro <> 'encerrado'`, participante não arquivado), publicadas ou não. Cada uma é `recortar_publico(montar_publico(id, 'marca_e_combo'), true, 'em_andamento')`.
 - **Fase `em_andamento`**: `recortar_publico` só tira preço, WhatsApp e horário quando a fase é `encerrada`; qualquer outra deixa combo, preço e unidades inteiros. `em_andamento` é também a fase em que o catálogo mostra os combos. O banco ainda está em `preparacao` (anotado em `retrato.fase_no_banco`), e `participantes_publicos` e `combos_publicos` saem `true` só aqui.
 - **Slug**: casa sem `slug_publico` recebe `public.slug_publico_de(nome)` e `"slug_provisorio": true`.
-- **Campos do §10.14**: valor do combo (`combo.preco`, da organização), alergênicos e características por item (`alimentar`), trocas (`substituicoes`), modos de atendimento e canais com link (`unidades[].combo.modos`, `canais`), unidades com endereço, horário e WhatsApp autorizado, fotos (`combo.fotos`, hoje vazia: nenhuma foto aprovada no banco).
+- **Campos do §10.14**: valor do combo (`combo.preco`, da organização), alergênicos e características por item (`alimentar`), trocas (`substituicoes`), modos de atendimento e canais com link (`unidades[].combo.modos`, `canais`), unidades com endereço, horário e WhatsApp autorizado, fotos (`combo.fotos`: vazia no banco, que ainda não tem foto aprovada; no retrato vêm do passo 5, as fotos aprovadas do Dropbox, desde 31/10/2026).
 - **Ausência**: o que o painel não tem fica ausente do JSON (nada é inventado). A página mostra "não informado". Casas com combo ainda sem nome ou itens sem nome aparecem assim.
 - **Nunca entram**: contato da equipe, WhatsApp não autorizado, custos, pagamento, nota de revisão, dados de conta. A projeção pública do banco já não traz; `retrato-salvar.mjs` e o teste ainda recusam essas chaves.
 - **Logos oficiais**: já são públicas (bucket `logos` ou `/logos/participants/…` do site), então nada foi copiado.

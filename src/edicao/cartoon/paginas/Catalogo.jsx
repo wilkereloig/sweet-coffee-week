@@ -11,7 +11,7 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { letreiroEdicao, kitTemaEdicao } from '../../../data/imageLibrary'
-import { Link, Foto, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
+import { Link, Foto, proporcaoDe, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
@@ -60,7 +60,7 @@ function Cartao ({ p, modo, navigate, encerrada }) {
     <li className={`ct-cartao${espia ? ' ct-cartao--espia' : ''}`}>
       <Link className="ct-cartao__link" href={`${EDICAO.caminho}/${base}/${p.slug}`} navigate={navigate} aoIr={guardarPosicao}>
         <div className="ct-cartao__visual">
-          {foto ? <Foto foto={foto} proporcao="4 / 3" alt="" /> : (
+          {foto ? <Foto foto={foto} proporcao={proporcaoDe(foto, '4 / 3')} alt="" /> : (
             <div className="ct-cartao__reserva">
               <LogoDesenhada casa={p.casa} alt="" />
               <span className="ct-cartao__aviso">{p.combo ? T.fotoEmProducao : T.comboEmBreve}</span>

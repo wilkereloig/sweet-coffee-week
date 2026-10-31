@@ -12,7 +12,7 @@ import { EDICAO } from '../../config.js'
 import { carregarParticipante } from '../../dados/publico.js'
 import * as M from '../../dados/modelo.js'
 import * as H from '../../dados/horarioFestival.js'
-import { Link, Foto, Carregando, Falha, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
+import { Link, Foto, proporcaoDe, Carregando, Falha, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { CenarioTema } from '../../componentes/sistema/CenarioTema.jsx'
@@ -262,7 +262,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
           <Letreiro nivel={2} id="combo-titulo" texto={nomeCombo} cor="amarelo" />
           <div className="ct-cardapio__grade">
             <Quadro className="ct-cardapio__foto">
-              <Foto foto={fotos.principal} proporcao="4 / 3" prioridade reserva={T.fotoReserva} />
+              <Foto foto={fotos.principal} proporcao={proporcaoDe(fotos.principal, '4 / 3')} prioridade reserva={T.fotoReserva} />
             </Quadro>
             <div className="ct-painel ct-cardapio__painel">
               {!encerrada && (combo.preco
@@ -285,7 +285,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
             <ul className="ct-cardapio__itens">
               {itens.map((i) => (
                 <li key={i.posicao} className="ct-item">
-                  {i.foto && <Foto foto={i.foto} proporcao="1 / 1" />}
+                  {i.foto && <Foto foto={i.foto} proporcao={proporcaoDe(i.foto, '1 / 1')} />}
                   <Etiqueta>{T.tipos[i.tipo]}</Etiqueta>
                   {i.nome ? <h3 className="ct-item__nome">{i.nome}</h3> : <p className="ct-item__nome ct-ni">{T.nomeNi}</p>}
                   {i.descricao && <p>{i.descricao}</p>}
@@ -396,7 +396,7 @@ function Galeria ({ fotos }) {
         ))}
       </ul>
       <dialog ref={ref} className="ct-galeria" aria-label="Fotos" onClick={(e) => { if (e.target === ref.current) ref.current.close() }}>
-        <Foto foto={fotos[i]} proporcao="4 / 3" />
+        <Foto foto={fotos[i]} proporcao={proporcaoDe(fotos[i], '4 / 3')} />
         <div className="ct-acoes">
           <button type="button" className="ct-botao ct-botao--contorno" disabled={i === 0} onClick={() => setI(i - 1)}>Anterior</button>
           <span aria-live="polite">{i + 1} de {fotos.length}</span>
