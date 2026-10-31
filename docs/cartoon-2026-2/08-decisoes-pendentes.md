@@ -26,7 +26,7 @@ O Wilker delegou: "siga o plano, decida o melhor modo". Ficou assim:
 | D-14 | Decidido | endereço limpo (`pushState`) no site todo, na fase 1; links com `#/` continuam funcionando e são convertidos ao abrir |
 | D-15 | Decidido | 03/11 e 19/11 **não** aparecem até a organização confirmar; vale só o período 5 a 15 de novembro |
 | D-16 | Decidido | caixa de Natal e região metropolitana: lat −6,30 a −5,55; lng −35,55 a −34,95 [ajustável] |
-| D-17 | Decidido | o tema inspirador não aparece no site nesta edição |
+| D-17 | Decidido | o tema inspirador aparece no site como "Inspirado em …" (liberado em 28/10; antes: não aparecia) |
 | D-18 | Decidido | curadoria publica, com registro no histórico |
 | D-19 | **Só o Wilker** (Illustrator) | até lá, o PNG aprovado |
 | D-20 | Decidido | sem dado fictício no banco de produção. Testes SQL em transação desfeita (padrão de `supabase/testes/`); ensaio com marcas fictícias em projeto temporário, se preciso |

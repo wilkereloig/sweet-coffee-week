@@ -51,7 +51,7 @@ Os commits ficam locais em `dev/site-completo` até ordem em contrário.
 | `--ct-branco` | `#FCFCFC` | quadro de logo/foto, brilho | — |
 | `--ct-azul` | `#0184E4` | canal Serviço ("como funciona") | — |
 | `--ct-turquesa` | `#05BEBA` | canal Rota | — |
-| `--ct-roxo` | `#6424AB` | só em detalhe (barras de sinal) | — |
+| `--ct-roxo` | `#6424AB` | só em detalhe (as barras de sinal saíram em 31/10, MANUAL-CARTOON 1.0) | — |
 
 - `--ct-amarelo-heroi` (`#FAC506`) **sai**.
 - Dourado não é token: só existe no troféu oficial, como arquivo.
@@ -113,8 +113,8 @@ já usam, então o botão novo vale para a camada inteira de uma vez.
 | `Carimbo` | selo/nota em vermelho | `children` |
 | `Botao` | ação | `tipo`: `primario` (amarelo + contorno + sombra) · `acao` (vermelho, texto creme ≥ 18,66px/800) · `secundario` (creme + contorno). Renderiza `<a>` ou `<button>` |
 | `Quadro` | quadro branco com fita para logo/foto | `children`, `fita` (cantos) |
-| `BarrasSinal` | creme, amarelo, turquesa, rosa, vermelho, azul, roxo | só em transição (topo do rodapé); nunca fundo de texto |
 | `TopoCanal` | herói/topo da página no canal | `canal`: `estreia` · `elenco` · `cardapio` · `rota` · `gala` · `servico` |
+| `CenaTopo` | objeto de cenografia do topo (31/10) | `chave`: `placas` (Rota: Mapa, Minha rota) · `prancheta` (Serviço: Avaliar). À direita do texto no desktop; pequeno, depois do texto, no celular |
 | `Olhinhos` | personagem da edição | §10.5 |
 
 `Foto`, `Logo`, `Carregando`, `Falha` e os avisos de `base.jsx` passam a usar os tokens novos sem mudar de contrato.
@@ -157,8 +157,7 @@ de 28/10 (ovais com filete branco, pálpebra, estrelinhas e gota) saíram de uso
   - embaixo, barra de abas creme com contorno: Início · Casas · Mapa · Rota · Avaliar;
   - depois dos resultados, Avaliar dá lugar a "Prêmio";
   - abas de 44px ou mais.
-- **Rodapé chocolate:**
-  - `BarrasSinal` no topo;
+- **Rodapé chocolate** (sem barras de sinal desde 31/10, MANUAL-CARTOON 1.0):
   - realização F2 (logo oficial);
   - links das páginas e documentos legais;
   - preferências de cookies.
@@ -214,13 +213,12 @@ Os arquivos vêm da pasta `assets/` do manual. São otimizados em WebP (480/960/
 
 - **Entram:**
   - selo (`logo-scw-cartoon.png`);
-  - letreiros `ig-titulo-elenco` e `ig-titulo-provar`;
-  - "Avalie sua experiência", em versão de fundo transparente;
+  - letreiros no traço do título do MANUAL-CARTOON 1.0 ("TÁ CHEGANDO!": bolha amarela, contorno preto, sombra vermelha), refeitos em 31/10 (`05_SITE/07_LETREIROS_v02`): "Nosso elenco", "Agora é hora de provar", "Onde ficam", "Minha rota" e "Avalie sua experiência";
   - `ig-tv-cidade`;
-  - `ig-trofeu-dourado`;
+  - troféu do Sweet Awards v15 (decisões de 22/10) em ouro, prata e cobre, e a marca permanente do Sweet Awards (creme), no lugar de `ig-trofeu-dourado` desde 31/10;
   - `logo-f2.svg`;
   - a fonte.
-- **Letreiros que faltam:** "Onde ficam", "Minha rota" e "Sweet Awards" começam em CSS (§10.4, `Letreiro` sem imagem). A imagem só é gerada depois que a página for aprovada.
+- **Letreiros:** desde 31/10 só o título do Mapa segue em CSS, porque o nome da página está em aberto ("Mapa", "Rota da Doçura" ou "Mapa da Doçura"). O título da Premiação é a marca do Sweet Awards, não letreiro.
 
 ## 10.11 Testes
 
@@ -355,7 +353,6 @@ Cada casa ganha um kit próprio, gerado a partir do tema que está no painel (`t
 - Placa balança uma vez.
 - Cartão com compressão e estiramento no hover e no foco.
 - Objeto de cenário entra deslizando e reage ao mouse.
-- Barras de sinal na troca de página.
 - Nada em laço infinito perto de conteúdo. Tudo desligado com `prefers-reduced-motion`.
 
 ### Regras de superfície (28/10, adotadas por padrão)
