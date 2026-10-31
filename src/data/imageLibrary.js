@@ -476,7 +476,7 @@ export function cenaEdicao(chave) {
   return Object.hasOwn(CENAS_EDICAO, chave) ? CENAS_EDICAO[chave] : null
 }
 
-/* Kit de cenário por casa (§10.15, família 3): só as duas do piloto. */
+/* Kit de cenário por casa (§10.15, família 3): as 27 casas da edição (piloto + 24 de 31/10). */
 const KITS_TEMA_EDICAO = {
   'casa-alice-doceria': {
     cenario: { src: `${ELEMENTOS_EDICAO}/temas/casa-alice-doceria/cenario.webp`, largura: 1536, altura: 392 },
@@ -492,6 +492,127 @@ const KITS_TEMA_EDICAO = {
     cenario: { src: `${ELEMENTOS_EDICAO}/temas/adocee-doceria/cenario.webp`, largura: 1536, altura: 455 },
     objetoA: { src: `${ELEMENTOS_EDICAO}/temas/adocee-doceria/objeto-a.webp`, largura: 570, altura: 700 },
     objetoB: { src: `${ELEMENTOS_EDICAO}/temas/adocee-doceria/objeto-b.webp`, largura: 700, altura: 686 },
+  },
+  // 31/10/2026: os 24 restantes (05_SITE/05_ELEMENTOS_v03, gerados pela API, temas do painel).
+  'bolomania': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/bolomania/cenario.webp`, largura: 1536, altura: 413 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/bolomania/objeto-a.webp`, largura: 700, altura: 534 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/bolomania/objeto-b.webp`, largura: 528, altura: 700 },
+  },
+  'caffe-basilicos': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/caffe-basilicos/cenario.webp`, largura: 1536, altura: 460 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/caffe-basilicos/objeto-a.webp`, largura: 483, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/caffe-basilicos/objeto-b.webp`, largura: 475, altura: 700 },
+  },
+  'canutos': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/canutos/cenario.webp`, largura: 1536, altura: 412 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/canutos/objeto-a.webp`, largura: 700, altura: 666 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/canutos/objeto-b.webp`, largura: 483, altura: 700 },
+  },
+  'carcara': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/carcara/cenario.webp`, largura: 1536, altura: 389 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/carcara/objeto-a.webp`, largura: 700, altura: 501 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/carcara/objeto-b.webp`, largura: 659, altura: 700 },
+  },
+  'caroli-douces': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/caroli-douces/cenario.webp`, largura: 1536, altura: 431 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/caroli-douces/objeto-a.webp`, largura: 607, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/caroli-douces/objeto-b.webp`, largura: 677, altura: 700 },
+  },
+  'casa-1190-restaurante-e-coffee': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/casa-1190-restaurante-e-coffee/cenario.webp`, largura: 1536, altura: 441 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/casa-1190-restaurante-e-coffee/objeto-a.webp`, largura: 700, altura: 658 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/casa-1190-restaurante-e-coffee/objeto-b.webp`, largura: 700, altura: 573 },
+  },
+  'cookitos': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/cookitos/cenario.webp`, largura: 1536, altura: 360 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/cookitos/objeto-a.webp`, largura: 700, altura: 608 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/cookitos/objeto-b.webp`, largura: 700, altura: 553 },
+  },
+  'delicato-bolos': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/delicato-bolos/cenario.webp`, largura: 1536, altura: 458 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/delicato-bolos/objeto-a.webp`, largura: 700, altura: 695 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/delicato-bolos/objeto-b.webp`, largura: 578, altura: 700 },
+  },
+  'diva-do-cafe': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/diva-do-cafe/cenario.webp`, largura: 1536, altura: 418 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/diva-do-cafe/objeto-a.webp`, largura: 651, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/diva-do-cafe/objeto-b.webp`, largura: 608, altura: 700 },
+  },
+  'jolie-cafe-patisserie': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/jolie-cafe-patisserie/cenario.webp`, largura: 1536, altura: 467 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/jolie-cafe-patisserie/objeto-a.webp`, largura: 700, altura: 655 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/jolie-cafe-patisserie/objeto-b.webp`, largura: 700, altura: 662 },
+  },
+  'just-food-e-coffee': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/just-food-e-coffee/cenario.webp`, largura: 1536, altura: 407 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/just-food-e-coffee/objeto-a.webp`, largura: 680, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/just-food-e-coffee/objeto-b.webp`, largura: 452, altura: 700 },
+  },
+  'maison-julie-douceur': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/maison-julie-douceur/cenario.webp`, largura: 1536, altura: 418 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/maison-julie-douceur/objeto-a.webp`, largura: 700, altura: 672 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/maison-julie-douceur/objeto-b.webp`, largura: 700, altura: 691 },
+  },
+  'mangai': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/mangai/cenario.webp`, largura: 1536, altura: 417 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/mangai/objeto-a.webp`, largura: 665, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/mangai/objeto-b.webp`, largura: 700, altura: 617 },
+  },
+  'marianas-confeitaria': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/marianas-confeitaria/cenario.webp`, largura: 1536, altura: 370 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/marianas-confeitaria/objeto-a.webp`, largura: 505, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/marianas-confeitaria/objeto-b.webp`, largura: 688, altura: 700 },
+  },
+  'marlon-vinicius-confeitaria-e-cafe': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/marlon-vinicius-confeitaria-e-cafe/cenario.webp`, largura: 1536, altura: 478 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/marlon-vinicius-confeitaria-e-cafe/objeto-a.webp`, largura: 700, altura: 601 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/marlon-vinicius-confeitaria-e-cafe/objeto-b.webp`, largura: 383, altura: 700 },
+  },
+  'mr-cupcake-confeitaria': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/mr-cupcake-confeitaria/cenario.webp`, largura: 1536, altura: 415 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/mr-cupcake-confeitaria/objeto-a.webp`, largura: 465, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/mr-cupcake-confeitaria/objeto-b.webp`, largura: 313, altura: 700 },
+  },
+  'o-maestro-cafe': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/o-maestro-cafe/cenario.webp`, largura: 1536, altura: 470 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/o-maestro-cafe/objeto-a.webp`, largura: 700, altura: 561 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/o-maestro-cafe/objeto-b.webp`, largura: 700, altura: 599 },
+  },
+  'padoca-do-bosque': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/padoca-do-bosque/cenario.webp`, largura: 1536, altura: 388 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/padoca-do-bosque/objeto-a.webp`, largura: 408, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/padoca-do-bosque/objeto-b.webp`, largura: 700, altura: 673 },
+  },
+  'paneer-patisserie': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/paneer-patisserie/cenario.webp`, largura: 1536, altura: 400 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/paneer-patisserie/objeto-a.webp`, largura: 688, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/paneer-patisserie/objeto-b.webp`, largura: 700, altura: 668 },
+  },
+  'parma-doces': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/parma-doces/cenario.webp`, largura: 1536, altura: 314 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/parma-doces/objeto-a.webp`, largura: 483, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/parma-doces/objeto-b.webp`, largura: 466, altura: 700 },
+  },
+  'sabor-de-pao': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/sabor-de-pao/cenario.webp`, largura: 1536, altura: 426 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/sabor-de-pao/objeto-a.webp`, largura: 657, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/sabor-de-pao/objeto-b.webp`, largura: 373, altura: 700 },
+  },
+  'sweet-duo-confeitaria': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/sweet-duo-confeitaria/cenario.webp`, largura: 1536, altura: 495 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/sweet-duo-confeitaria/objeto-a.webp`, largura: 700, altura: 653 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/sweet-duo-confeitaria/objeto-b.webp`, largura: 516, altura: 700 },
+  },
+  'vivianne-castro-doces': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/vivianne-castro-doces/cenario.webp`, largura: 1536, altura: 377 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/vivianne-castro-doces/objeto-a.webp`, largura: 700, altura: 525 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/vivianne-castro-doces/objeto-b.webp`, largura: 689, altura: 700 },
+  },
+  'wow-cookies': {
+    cenario: { src: `${ELEMENTOS_EDICAO}/temas/wow-cookies/cenario.webp`, largura: 1536, altura: 426 },
+    objetoA: { src: `${ELEMENTOS_EDICAO}/temas/wow-cookies/objeto-a.webp`, largura: 563, altura: 700 },
+    objetoB: { src: `${ELEMENTOS_EDICAO}/temas/wow-cookies/objeto-b.webp`, largura: 566, altura: 700 },
   },
 }
 

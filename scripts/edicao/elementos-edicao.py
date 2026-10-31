@@ -1,8 +1,8 @@
 """Elementos novos da Cartoon (docs/cartoon-2026-2/10 §10.15): folhas geradas -> WebP do site.
 
 Uso: python -I scripts/edicao/elementos-edicao.py <pasta saida> [<pasta saida> ...]
-As pastas são as `saida` de 05_SITE/05_ELEMENTOS_v01, v02… (Dropbox F2): vale o arquivo
-mais recente de cada prefixo (01..09) entre todas; `*.api.png` e `*.json` são ignorados.
+As pastas são as `saida` de 05_SITE/05_ELEMENTOS_v01, v02, v03 (Dropbox F2): vale o arquivo
+mais recente de cada prefixo (01..57) entre todas; `*.api.png` e `*.json` são ignorados.
 Requer Pillow, numpy e scipy.
 
 O que faz, em `public/images/marcas-edicoes/2026.2/elementos/`:
@@ -36,7 +36,33 @@ ICONES = ('inicio casas mapa rota avaliar premio no-local para-viagem delivery v
           'sem-lactose sem-acucar endereco horario aberto-agora conversar como-chegar quero-ir ja-fui '
           'progresso compartilhar vazio erro').split()
 KITS = {'casa-alice-doceria': ('04', '05'), 'boldfood-confeitaria-inclusiva': ('06', '07'),
-        'adocee-doceria': ('08', '09')}
+        'adocee-doceria': ('08', '09'),
+        # 31/10/2026: os 24 restantes, 05_SITE/05_ELEMENTOS_v03 (temas lidos do painel)
+        'bolomania': ('10', '11'),
+        'caffe-basilicos': ('12', '13'),
+        'canutos': ('14', '15'),
+        'carcara': ('16', '17'),
+        'caroli-douces': ('18', '19'),
+        'casa-1190-restaurante-e-coffee': ('20', '21'),
+        'cookitos': ('22', '23'),
+        'delicato-bolos': ('24', '25'),
+        'diva-do-cafe': ('26', '27'),
+        'jolie-cafe-patisserie': ('28', '29'),
+        'just-food-e-coffee': ('30', '31'),
+        'maison-julie-douceur': ('32', '33'),
+        'mangai': ('34', '35'),
+        'marianas-confeitaria': ('36', '37'),
+        'marlon-vinicius-confeitaria-e-cafe': ('38', '39'),
+        'mr-cupcake-confeitaria': ('40', '41'),
+        'o-maestro-cafe': ('42', '43'),
+        'padoca-do-bosque': ('44', '45'),
+        'paneer-patisserie': ('46', '47'),
+        'parma-doces': ('48', '49'),
+        'sabor-de-pao': ('50', '51'),
+        'sweet-duo-confeitaria': ('52', '53'),
+        'vivianne-castro-doces': ('54', '55'),
+        'wow-cookies': ('56', '57'),
+        }
 
 SAIDA = Path(__file__).resolve().parents[2] / 'public' / 'images' / 'marcas-edicoes' / '2026.2' / 'elementos'
 
