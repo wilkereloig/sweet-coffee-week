@@ -125,7 +125,7 @@
 .ct-edicao .ct-folha__link[aria-current='page'] { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
 .ct-folha__link--fora { padding-left: 16px; border-style: dashed; background: transparent; }
 
-/* Rodapé chocolate: barras de sinal no topo, a assinatura com a realização F2, as páginas, o festival e os documentos. */
+/* Rodapé chocolate: a assinatura com a realização F2, as páginas, o festival e os documentos. */
 .ct-rodape { padding: 0 0 40px; background: var(--ct-chocolate); color: var(--ct-creme); font: 500 15px/1.5 var(--ct-font); }
 .ct-rodape__corpo { display: grid; gap: 24px 40px; padding: 32px var(--ct-trilho) 0; }
 @media (min-width: 600px) { .ct-rodape__corpo { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -660,6 +660,9 @@
 .ct-gala__texto { display: grid; justify-items: start; gap: 12px; min-width: 0; }
 .ct-gala__texto > * { margin: 0; }
 .ct-gala__texto .ct-acoes:empty { display: none; }
+/* Marca própria e permanente do Sweet Awards (22/10), sem o letreiro da edição. */
+.ct-gala__marca { padding-bottom: 8px; line-height: 0; }
+.ct-edicao .ct-gala__marca img { width: clamp(200px, 26vw, 320px); height: auto; }
 .ct-gala__palco { position: relative; justify-self: center; width: min(58vw, 300px); margin: 0; padding: 40px 0 18px; }
 /* Holofote: um cone de luz creme que desce do alto sobre o troféu; no chão, a elipse amarela onde ele pousa. */
 .ct-gala__palco::before {
@@ -682,10 +685,10 @@
 .ct-podio { display: grid; align-content: start; justify-items: start; gap: 8px; padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-podio__cat { margin: 0; font: 900 22px/1.1 var(--ct-font); }
 .ct-podio__lugares { display: grid; gap: 8px; width: 100%; margin: 0; padding: 0; list-style: none; }
-.ct-podio__linha { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 10px; font: 700 16px/1.3 var(--ct-font); }
-.ct-podio__lugar { display: inline-grid; place-items: center; min-height: 36px; padding: 0 8px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 800 14px/1 var(--ct-font); }
-.ct-podio__linha--1 .ct-podio__lugar { background: var(--ct-amarelo); }
-.ct-podio__linha--2 .ct-podio__lugar { background: var(--ct-turquesa); }
+.ct-podio__linha { display: grid; grid-template-columns: 118px minmax(0, 1fr); align-items: center; gap: 10px; font: 700 16px/1.3 var(--ct-font); }
+.ct-podio__lugar { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 10px 0 6px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 800 14px/1 var(--ct-font); }
+/* O metal do troféu (ouro, prata, cobre) diz a colocação; a pílula fica creme nas três. */
+.ct-edicao .ct-podio__lugar img { width: auto; height: 32px; }
 .ct-podio__linha a { display: inline-flex; align-items: center; min-height: 44px; }
 
 /* ------------------------------------------------------------- sistema (docs/cartoon-2026-2/10 §10.4) */
@@ -765,15 +768,6 @@
 .ct-desenho--inicial { display: grid; place-items: center; background: var(--ct-amarelo); font: 900 calc(var(--ct-desenho, 160px) * .45)/1 var(--ct-font); }
 
 /* skewY e não rotate: rotate alarga a caixa e abriria rolagem lateral. */
-.ct-barras { display: grid; grid-template-columns: repeat(7, 1fr); height: 18px; border-block: var(--ct-traco); transform: skewY(-1deg); }
-.ct-barras__b + .ct-barras__b { border-left: 1.2px solid var(--ct-chocolate); }
-.ct-barras__b--creme { background: var(--ct-creme); }
-.ct-barras__b--amarelo { background: var(--ct-amarelo); }
-.ct-barras__b--turquesa { background: var(--ct-turquesa); }
-.ct-barras__b--rosa { background: var(--ct-rosa); }
-.ct-barras__b--vermelho { background: var(--ct-vermelho); }
-.ct-barras__b--azul { background: var(--ct-azul); }
-.ct-barras__b--roxo { background: var(--ct-roxo); }
 
 .ct-canal { display: grid; justify-items: start; gap: 8px; padding: clamp(32px, 6vw, 72px) var(--ct-trilho); border-bottom: var(--ct-traco); color: var(--ct-chocolate); }
 .ct-canal--estreia { background: var(--ct-amarelo); }
