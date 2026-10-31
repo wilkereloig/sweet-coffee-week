@@ -149,7 +149,7 @@ Spec: `10-sistema-visual-e-paginas.md`; plano: `11-plano-execucao-site.md`. Comm
 | Barras de sinal | saíram (MANUAL-CARTOON 1.0) |
 | Letreiros | 5 no traço "TÁ CHEGANDO!" (elenco, provar, onde ficam, minha rota, avalie); o do Mapa segue em CSS até o nome da página ser decidido |
 | Cenografia dos topos | placas (Mapa, Minha rota) e prancheta (Avaliar). Faltam camarim (Elenco) e mesa de café (Cardápio), sem lugar vago hoje |
-| Kits de cenário | 3 no site (Alice, Boldfood, Adocee). Os 24 restantes: prévia gerada pela API e pacote para o ChatGPT em `05_SITE/05_ELEMENTOS_v03/`; entram quando o Wilker escolher a versão |
+| Kits de cenário | as 27 casas têm kit desde 31/10 (`f9def506`): os 24 novos vieram da API (`05_SITE/05_ELEMENTOS_v03`), aprovados pelo Wilker ("Sim, aplica"). O pacote para o ChatGPT fica na mesma pasta, para refazer algum kit |
 | QR da página inicial | já existia: `06_MATERIAIS_PDV/09_QR_CODES/00_USAR_ESTES/geral-pagina-inicial.png` |
 | E9 · testes | `test:cartoon` 57/57, `test:imagens`, `test:motion` (6 páginas × 2 telas), `responsive` 6/6 e `test:cartoon-navegador` verdes em 31/10. Uma checagem do navegador oscila: `/combos/:slug` abriu 130px abaixo do bloco (limite 120) numa rodada e passou na seguinte |
 
