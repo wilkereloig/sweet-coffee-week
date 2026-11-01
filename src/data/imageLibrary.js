@@ -626,9 +626,36 @@ const KITS_TEMA_EDICAO = {
 }
 
 /* Cenário do combo (05_SITE/09_CENARIO_COMBO): a faixa do kit com o combo da casa desenhado dentro do tema.
+   Caffè Basilico's pela API (piloto, 31/10); as outras 26 pelo Codex (01/11), recortadas ao desenho.
    Vai fixa no rodapé da ficha; casa sem ele usa a faixa do kit. */
 const CENARIOS_COMBO_EDICAO = {
+  'adocee-doceria': { src: `${ELEMENTOS_EDICAO}/temas/adocee-doceria/cenario-combo.webp`, largura: 1536, altura: 781 },
+  'boldfood-confeitaria-inclusiva': { src: `${ELEMENTOS_EDICAO}/temas/boldfood-confeitaria-inclusiva/cenario-combo.webp`, largura: 1536, altura: 671 },
+  'bolomania': { src: `${ELEMENTOS_EDICAO}/temas/bolomania/cenario-combo.webp`, largura: 1535, altura: 625 },
   'caffe-basilicos': { src: `${ELEMENTOS_EDICAO}/temas/caffe-basilicos/cenario-combo.webp`, largura: 1536, altura: 512 },
+  'canutos': { src: `${ELEMENTOS_EDICAO}/temas/canutos/cenario-combo.webp`, largura: 1800, altura: 571 },
+  'carcara': { src: `${ELEMENTOS_EDICAO}/temas/carcara/cenario-combo.webp`, largura: 1800, altura: 490 },
+  'caroli-douces': { src: `${ELEMENTOS_EDICAO}/temas/caroli-douces/cenario-combo.webp`, largura: 1536, altura: 616 },
+  'casa-1190-restaurante-e-coffee': { src: `${ELEMENTOS_EDICAO}/temas/casa-1190-restaurante-e-coffee/cenario-combo.webp`, largura: 1536, altura: 569 },
+  'casa-alice-doceria': { src: `${ELEMENTOS_EDICAO}/temas/casa-alice-doceria/cenario-combo.webp`, largura: 1536, altura: 696 },
+  'cookitos': { src: `${ELEMENTOS_EDICAO}/temas/cookitos/cenario-combo.webp`, largura: 1800, altura: 585 },
+  'delicato-bolos': { src: `${ELEMENTOS_EDICAO}/temas/delicato-bolos/cenario-combo.webp`, largura: 1536, altura: 627 },
+  'diva-do-cafe': { src: `${ELEMENTOS_EDICAO}/temas/diva-do-cafe/cenario-combo.webp`, largura: 1800, altura: 596 },
+  'jolie-cafe-patisserie': { src: `${ELEMENTOS_EDICAO}/temas/jolie-cafe-patisserie/cenario-combo.webp`, largura: 1800, altura: 600 },
+  'just-food-e-coffee': { src: `${ELEMENTOS_EDICAO}/temas/just-food-e-coffee/cenario-combo.webp`, largura: 1800, altura: 529 },
+  'maison-julie-douceur': { src: `${ELEMENTOS_EDICAO}/temas/maison-julie-douceur/cenario-combo.webp`, largura: 1536, altura: 553 },
+  'mangai': { src: `${ELEMENTOS_EDICAO}/temas/mangai/cenario-combo.webp`, largura: 1800, altura: 650 },
+  'marianas-confeitaria': { src: `${ELEMENTOS_EDICAO}/temas/marianas-confeitaria/cenario-combo.webp`, largura: 1536, altura: 550 },
+  'marlon-vinicius-confeitaria-e-cafe': { src: `${ELEMENTOS_EDICAO}/temas/marlon-vinicius-confeitaria-e-cafe/cenario-combo.webp`, largura: 1800, altura: 554 },
+  'mr-cupcake-confeitaria': { src: `${ELEMENTOS_EDICAO}/temas/mr-cupcake-confeitaria/cenario-combo.webp`, largura: 1800, altura: 622 },
+  'o-maestro-cafe': { src: `${ELEMENTOS_EDICAO}/temas/o-maestro-cafe/cenario-combo.webp`, largura: 1536, altura: 622 },
+  'padoca-do-bosque': { src: `${ELEMENTOS_EDICAO}/temas/padoca-do-bosque/cenario-combo.webp`, largura: 1536, altura: 622 },
+  'paneer-patisserie': { src: `${ELEMENTOS_EDICAO}/temas/paneer-patisserie/cenario-combo.webp`, largura: 1536, altura: 626 },
+  'parma-doces': { src: `${ELEMENTOS_EDICAO}/temas/parma-doces/cenario-combo.webp`, largura: 1536, altura: 494 },
+  'sabor-de-pao': { src: `${ELEMENTOS_EDICAO}/temas/sabor-de-pao/cenario-combo.webp`, largura: 1536, altura: 707 },
+  'sweet-duo-confeitaria': { src: `${ELEMENTOS_EDICAO}/temas/sweet-duo-confeitaria/cenario-combo.webp`, largura: 1536, altura: 781 },
+  'vivianne-castro-doces': { src: `${ELEMENTOS_EDICAO}/temas/vivianne-castro-doces/cenario-combo.webp`, largura: 1536, altura: 665 },
+  'wow-cookies': { src: `${ELEMENTOS_EDICAO}/temas/wow-cookies/cenario-combo.webp`, largura: 1536, altura: 682 },
 }
 
 /** Faixa do rodapé fixo da ficha: o cenário com o combo, ou a faixa do kit; `null` sem kit. */
@@ -636,9 +663,38 @@ export function cenarioComboEdicao(slug) {
   return (Object.hasOwn(CENARIOS_COMBO_EDICAO, slug) && CENARIOS_COMBO_EDICAO[slug]) || kitTemaEdicao(slug)?.cenario || null
 }
 
-/* Pin do mapa por casa, desenhado a partir do tema dela (05_SITE/10_PINS_MAPA, pacote para o ChatGPT).
-   Entra aqui quando o arquivo existir: { src, largura, altura }, ponta do pin no centro da base. */
-const PINS_EDICAO = {}
+/* Pin do mapa por casa, desenhado a partir do tema dela (05_SITE/10_PINS_MAPA).
+   Gerados no Codex em 01/11 a partir do pacote; recortados ao desenho, 144 px de largura (3× o tamanho no mapa).
+   A ponta do pin fica no centro da base: o marcador ancora embaixo. */
+const PINS_EDICAO = {
+  'adocee-doceria': { src: `${ELEMENTOS_EDICAO}/pins/adocee-doceria.webp`, largura: 144, altura: 185 },
+  'boldfood-confeitaria-inclusiva': { src: `${ELEMENTOS_EDICAO}/pins/boldfood-confeitaria-inclusiva.webp`, largura: 144, altura: 184 },
+  'bolomania': { src: `${ELEMENTOS_EDICAO}/pins/bolomania.webp`, largura: 144, altura: 184 },
+  'caffe-basilicos': { src: `${ELEMENTOS_EDICAO}/pins/caffe-basilicos.webp`, largura: 144, altura: 185 },
+  'canutos': { src: `${ELEMENTOS_EDICAO}/pins/canutos.webp`, largura: 144, altura: 184 },
+  'carcara': { src: `${ELEMENTOS_EDICAO}/pins/carcara.webp`, largura: 144, altura: 177 },
+  'caroli-douces': { src: `${ELEMENTOS_EDICAO}/pins/caroli-douces.webp`, largura: 144, altura: 185 },
+  'casa-1190-restaurante-e-coffee': { src: `${ELEMENTOS_EDICAO}/pins/casa-1190-restaurante-e-coffee.webp`, largura: 144, altura: 184 },
+  'casa-alice-doceria': { src: `${ELEMENTOS_EDICAO}/pins/casa-alice-doceria.webp`, largura: 144, altura: 188 },
+  'cookitos': { src: `${ELEMENTOS_EDICAO}/pins/cookitos.webp`, largura: 144, altura: 183 },
+  'delicato-bolos': { src: `${ELEMENTOS_EDICAO}/pins/delicato-bolos.webp`, largura: 144, altura: 184 },
+  'diva-do-cafe': { src: `${ELEMENTOS_EDICAO}/pins/diva-do-cafe.webp`, largura: 144, altura: 187 },
+  'jolie-cafe-patisserie': { src: `${ELEMENTOS_EDICAO}/pins/jolie-cafe-patisserie.webp`, largura: 144, altura: 185 },
+  'just-food-e-coffee': { src: `${ELEMENTOS_EDICAO}/pins/just-food-e-coffee.webp`, largura: 144, altura: 186 },
+  'maison-julie-douceur': { src: `${ELEMENTOS_EDICAO}/pins/maison-julie-douceur.webp`, largura: 144, altura: 185 },
+  'mangai': { src: `${ELEMENTOS_EDICAO}/pins/mangai.webp`, largura: 144, altura: 188 },
+  'marianas-confeitaria': { src: `${ELEMENTOS_EDICAO}/pins/marianas-confeitaria.webp`, largura: 144, altura: 185 },
+  'marlon-vinicius-confeitaria-e-cafe': { src: `${ELEMENTOS_EDICAO}/pins/marlon-vinicius-confeitaria-e-cafe.webp`, largura: 144, altura: 184 },
+  'mr-cupcake-confeitaria': { src: `${ELEMENTOS_EDICAO}/pins/mr-cupcake-confeitaria.webp`, largura: 144, altura: 184 },
+  'o-maestro-cafe': { src: `${ELEMENTOS_EDICAO}/pins/o-maestro-cafe.webp`, largura: 144, altura: 175 },
+  'padoca-do-bosque': { src: `${ELEMENTOS_EDICAO}/pins/padoca-do-bosque.webp`, largura: 144, altura: 184 },
+  'paneer-patisserie': { src: `${ELEMENTOS_EDICAO}/pins/paneer-patisserie.webp`, largura: 144, altura: 184 },
+  'parma-doces': { src: `${ELEMENTOS_EDICAO}/pins/parma-doces.webp`, largura: 144, altura: 192 },
+  'sabor-de-pao': { src: `${ELEMENTOS_EDICAO}/pins/sabor-de-pao.webp`, largura: 144, altura: 185 },
+  'sweet-duo-confeitaria': { src: `${ELEMENTOS_EDICAO}/pins/sweet-duo-confeitaria.webp`, largura: 144, altura: 185 },
+  'vivianne-castro-doces': { src: `${ELEMENTOS_EDICAO}/pins/vivianne-castro-doces.webp`, largura: 144, altura: 184 },
+  'wow-cookies': { src: `${ELEMENTOS_EDICAO}/pins/wow-cookies.webp`, largura: 144, altura: 184 },
+}
 
 /** Pin desenhado do tema da casa no mapa, ou `null` (o mapa usa o marcador da edição). */
 export function pinEdicao(slug) {

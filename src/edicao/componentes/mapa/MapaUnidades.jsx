@@ -57,7 +57,7 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
         el.classList.add('ct-marcador--pin')
       }
       el.addEventListener('click', () => aoSelecionar(p.id))
-      const mk = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(m)
+      const mk = new maplibregl.Marker({ element: el, anchor: p.pin ? 'bottom' : 'center' }).setLngLat([p.lng, p.lat]).addTo(m)
       marcadores.current.set(p.id, mk)
       limites.extend([p.lng, p.lat])
     }

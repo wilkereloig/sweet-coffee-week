@@ -861,12 +861,12 @@
 /* Casa sem kit (CenarioTema semKit="natal"): só a faixa de Natal como chão, sem reservar o objeto A. */
 .ct-canal:has(> .ct-cenario--natal) { padding-top: clamp(32px, 6vw, 72px); padding-right: var(--ct-trilho); }
 /* Ficha da casa: o topo leva só os objetos; a faixa (com o combo desenhado, quando existe) fica presa ao pé da
-   tela de ponta a ponta, acima da barra de abas no celular. Corta só o céu se a tela for baixa. O rodapé
-   reserva a altura dela: no fim da rolagem nada fica escondido. */
+   tela, acima da barra de abas no celular: o desenho vai INTEIRO (contain) — no celular ocupa a largura toda, no
+   desktop para no teto de altura e fica centrado. O rodapé reserva o teto: no fim da rolagem nada fica escondido. */
 .ct-canal:has(> .ct-cenario--sem-faixa) { padding-bottom: clamp(32px, 6vw, 72px); }
-.ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: min(24vw, 21vh); }
+.ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: 24vh; }
 .ct-cenario-fixo { position: fixed; inset: auto 0 0; z-index: 20; pointer-events: none; }
-.ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: var(--ct-fixo-h); object-fit: cover; object-position: center bottom; }
+.ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: min(calc(var(--ct-fixo-razao, .33) * 100vw), var(--ct-fixo-h)); object-fit: contain; object-position: center bottom; }
 .ct-edicao:has(.ct-cenario-fixo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h)); }
 @media (max-width: 899.98px) { .ct-cenario-fixo { bottom: var(--scw-base-ocupada, 72px); } }
 
