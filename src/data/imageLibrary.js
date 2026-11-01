@@ -410,6 +410,15 @@ const LETREIROS_EDICAO = {
   avalie: { src: '/images/marcas-edicoes/2026.2/letreiros/avalie-sua-experiencia.webp', largura: 1400, altura: 654 },
 }
 
+/* Preço do combo desenhado (06_MATERIAIS_PDV/02_DISPLAY_MESA/07_ELEMENTOS_PNG/preco-a-letreiro.png, a peça do
+   display de mesa), recortado ao conteúdo. O valor vem impresso: só vale para combo com `valor` igual. */
+const PRECO_COMBO_EDICAO = { src: '/images/marcas-edicoes/2026.2/letreiros/combo-preco.webp', largura: 900, altura: 477, valor: 38.9 }
+
+/** Letreiro "Combo R$ 38,90" quando o preço do combo é esse; senão `null` (a página mostra o número). */
+export function precoComboEdicao(preco) {
+  return Number(preco) === PRECO_COMBO_EDICAO.valor ? PRECO_COMBO_EDICAO : null
+}
+
 /** Letreiro desenhado da edição (`elenco` · `provar` · `onde` · `rota` · `avalie`), ou `null`. */
 export function letreiroEdicao(chave) {
   return LETREIROS_EDICAO[chave] || null
@@ -614,6 +623,26 @@ const KITS_TEMA_EDICAO = {
     objetoA: { src: `${ELEMENTOS_EDICAO}/temas/wow-cookies/objeto-a.webp`, largura: 563, altura: 700 },
     objetoB: { src: `${ELEMENTOS_EDICAO}/temas/wow-cookies/objeto-b.webp`, largura: 566, altura: 700 },
   },
+}
+
+/* Cenário do combo (05_SITE/09_CENARIO_COMBO): a faixa do kit com o combo da casa desenhado dentro do tema.
+   Vai fixa no rodapé da ficha; casa sem ele usa a faixa do kit. */
+const CENARIOS_COMBO_EDICAO = {
+  'caffe-basilicos': { src: `${ELEMENTOS_EDICAO}/temas/caffe-basilicos/cenario-combo.webp`, largura: 1536, altura: 512 },
+}
+
+/** Faixa do rodapé fixo da ficha: o cenário com o combo, ou a faixa do kit; `null` sem kit. */
+export function cenarioComboEdicao(slug) {
+  return (Object.hasOwn(CENARIOS_COMBO_EDICAO, slug) && CENARIOS_COMBO_EDICAO[slug]) || kitTemaEdicao(slug)?.cenario || null
+}
+
+/* Pin do mapa por casa, desenhado a partir do tema dela (05_SITE/10_PINS_MAPA, pacote para o ChatGPT).
+   Entra aqui quando o arquivo existir: { src, largura, altura }, ponta do pin no centro da base. */
+const PINS_EDICAO = {}
+
+/** Pin desenhado do tema da casa no mapa, ou `null` (o mapa usa o marcador da edição). */
+export function pinEdicao(slug) {
+  return Object.hasOwn(PINS_EDICAO, slug) ? PINS_EDICAO[slug] : null
 }
 
 /** Kit de cenário de uma casa (`cenario` · `objetoA` · `objetoB`), ou `null` se a casa não tem kit. */

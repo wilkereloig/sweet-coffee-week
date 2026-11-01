@@ -9,17 +9,18 @@
  * pointermove com requestAnimationFrame; o CSS converte em até 8px de
  * deslocamento. Sem listener com movimento reduzido e no toque.
  *
- * `semKit="natal"` (ficha da casa): casa sem kit ganha a faixa de Natal como chão, sem objetos
+ * `semKit="natal"`: casa sem kit ganha a faixa de Natal como chão, sem objetos
  * (.ct-cenario--natal não reserva o espaço do objeto A).
+ * `faixa={false}` (ficha da casa): só os objetos no topo; a faixa vai para o <CenarioFixo> no rodapé da tela.
  */
 import React from 'react'
-import { kitTemaEdicao, cenaEdicao, srcSet } from '../../../data/imageLibrary'
+import { kitTemaEdicao, cenaEdicao, cenarioComboEdicao, srcSet } from '../../../data/imageLibrary'
 
-export function CenarioTema ({ slug, semKit = null }) {
+export function CenarioTema ({ slug, semKit = null, faixa: comFaixa = true }) {
   const kit = kitTemaEdicao(slug)
-  const chao = !kit && semKit ? cenaEdicao(semKit) : null
+  const chao = !kit && semKit && comFaixa ? cenaEdicao(semKit) : null
   const raiz = React.useRef(null)
-  const faixa = kit ? kit.cenario : chao
+  const faixa = comFaixa ? (kit ? kit.cenario : chao) : null
 
   // A faixa vai inteira: o topo (pai) precisa da proporção do arquivo para reservar a altura dela.
   React.useLayoutEffect(() => {
@@ -63,10 +64,25 @@ export function CenarioTema ({ slug, semKit = null }) {
   if (!kit) return null
   const { cenario, objetoA, objetoB } = kit
   return (
-    <div className="ct-cenario" ref={raiz} aria-hidden="true">
-      <img className="ct-cenario__faixa" src={cenario.src} srcSet={srcSet(cenario.src)} sizes="100vw" width={cenario.largura} height={cenario.altura} alt="" decoding="async" />
+    <div className={`ct-cenario${comFaixa ? '' : ' ct-cenario--sem-faixa'}`} ref={raiz} aria-hidden="true">
+      {comFaixa && <img className="ct-cenario__faixa" src={cenario.src} srcSet={srcSet(cenario.src)} sizes="100vw" width={cenario.largura} height={cenario.altura} alt="" decoding="async" />}
       <img className="ct-cenario__objeto ct-cenario__objeto--a" src={objetoA.src} width={objetoA.largura} height={objetoA.altura} alt="" decoding="async" />
       <img className="ct-cenario__objeto ct-cenario__objeto--b" src={objetoB.src} width={objetoB.largura} height={objetoB.altura} alt="" decoding="async" />
+    </div>
+  )
+}
+
+/**
+ * Faixa do mundo da casa presa ao pé da tela, de ponta a ponta (acima da barra de abas no celular): o cenário
+ * com o combo desenhado, ou a faixa do kit. Decorativa e sem clique; a ficha reserva a altura dela no fim
+ * (.ct-edicao:has(.ct-cenario-fixo)), então nada fica escondido embaixo quando a rolagem acaba.
+ */
+export function CenarioFixo ({ slug }) {
+  const faixa = cenarioComboEdicao(slug)
+  if (!faixa) return null
+  return (
+    <div className="ct-cenario-fixo" aria-hidden="true" style={{ '--ct-fixo-razao': (faixa.altura / faixa.largura).toFixed(4) }}>
+      <img src={faixa.src} srcSet={srcSet(faixa.src)} sizes="100vw" width={faixa.largura} height={faixa.altura} alt="" decoding="async" />
     </div>
   )
 }

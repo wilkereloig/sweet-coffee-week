@@ -19,8 +19,12 @@ import { Botao, Chip } from '../../componentes/sistema/pecas.jsx'
 import { useRota } from '../contexto.js'
 import { QueroIr, JaFui } from '../MarcasLover.jsx'
 import { MAPA as T, LOVER, FASE_TEXTO } from '../textos.js'
+import { pinEdicao } from '../../../data/imageLibrary'
 
-const MapaUnidades = React.lazy(() => import('../../componentes/mapa/MapaUnidades.jsx'))
+// Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela, o MapLibre de antes.
+const MapaUnidades = React.lazy(() => (import.meta.env.VITE_GOOGLE_MAPS_KEY
+  ? import('../../componentes/mapa/MapaGoogle.jsx')
+  : import('../../componentes/mapa/MapaUnidades.jsx')))
 const CHAVES_URL = ['q', 'bairro', 'aberto', 'unidade']
 
 const notaDoLugar = (c) => (!c ? T.semCoordenada : c.conferir ? (c.precisao === 'rua' ? T.aproximadaRua : T.aproximada) : '')
@@ -171,7 +175,7 @@ export function Mapa ({ navigate, dados }) {
                   <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
                     <ErroDoMapa>
                       <MapaUnidades selecionada={sel} aoSelecionar={setSel} voce={posicao}
-                        pontos={noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi }))} />
+                        pontos={noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinEdicao(p.slug) }))} />
                     </ErroDoMapa>
                   </React.Suspense>
                 ) : <button type="button" className="ct-botao" onClick={() => setVerMapa(true)}><IconeCartoon nome="mapa" tamanho={32} />{T.verMapa(noMapa.length)}</button>}

@@ -164,7 +164,9 @@ try {
     await page.waitForSelector('#combo')
     // A composição usa espaço fixo antes do "·" (a linha nunca começa com ponto): compara com espaço comum.
     const t = (await page.locator('.ct-part').innerText()).replace(/ /g, ' ')
-    for (const s of ['R$ 38,90', '[DEMO] Doce · [DEMO] Salgado · [DEMO] Bebida', 'Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Troca']) {
+    // O preço de R$ 38,90 vem na arte desenhada (precoComboEdicao): o valor fica no alt da imagem.
+    if (!(await page.locator('.ct-part img[alt="Combo R$ 38,90"]').count())) falha('participante sem a arte "Combo R$ 38,90"')
+    for (const s of ['[DEMO] Doce · [DEMO] Salgado · [DEMO] Bebida', 'Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Troca']) {
       if (!t.includes(s)) falha(`participante sem "${s}"`)
     }
     if (await page.locator('.ct-part [role="tab"], .ct-part [role="tablist"]').count()) falha('participante usa abas')
@@ -236,7 +238,7 @@ try {
     await ir(c.page, '/cartoon/participantes/demo-casa-aurora')
     await c.page.waitForSelector('#combo')
     const e = await c.page.locator('.ct-part').innerText()
-    if (e.includes('R$ 38,90') || e.includes('Horário no festival')) falha('edição encerrada ainda mostra preço ou horário')
+    if (e.includes('R$ 38,90') || await c.page.locator('.ct-part img[alt*="R$"]').count() || e.includes('Horário no festival')) falha('edição encerrada ainda mostra preço ou horário')
     if (await c.page.locator('.ct-part .ct-marca').count()) falha('edição encerrada ainda mostra "Quero ir"/"Já fui"')
     if (!e.includes('terminou')) falha('edição encerrada sem aviso')
     await c.ctx.close()

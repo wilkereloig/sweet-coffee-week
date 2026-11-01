@@ -412,6 +412,22 @@
 .ct-ficha__titulo .ct-letreiro { max-width: 16ch; }
 .ct-ficha__selos { margin-top: 4px; }
 .ct-ficha__selos .ct-selo { background: var(--ct-branco); }
+/* Topo da ficha em dois grupos com rótulo: "Como pedir" são atalhos (levam ao endereço/horário ou ao pedido) e
+   "Minha rota" são marcações do visitante — desenhos diferentes para não se confundirem. */
+.ct-ficha__grupo { display: grid; justify-items: start; gap: 8px; }
+.ct-ficha__grupo > .ct-rotulo { margin: 0; }
+.ct-ficha__modos { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ct-edicao .ct-atalho {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 14px 6px 8px;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+  color: var(--ct-chocolate); text-decoration: none;
+}
+.ct-atalho__texto { display: grid; gap: 1px; text-align: left; }
+.ct-atalho__nome { font: 800 16px/1.15 var(--ct-font); }
+.ct-atalho__dica { font: 600 13px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 2px; }
+.ct-atalho__seta { font: 900 18px/1 var(--ct-font); }
+.ct-ficha__grupo--rota { padding: 10px 14px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: rgba(253, 240, 222, .6); }
+.ct-ficha__nota { margin: 0; font: 600 13px/1.3 var(--ct-font); }
 @media (min-width: 901px) {
   .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 44px; }
   .ct-ficha__logo { --ct-desenho: clamp(170px, 15vw, 224px); }
@@ -450,6 +466,15 @@
 .ct-item > .ct-etiqueta { justify-self: start; margin: -40px 0 2px; }
 .ct-item__nome { margin: 0; font: 900 22px/1.1 var(--ct-font); }
 .ct-item__ingr { font-size: 15px; }
+.ct-item__restricoes { display: grid; gap: 6px; margin-top: 8px; padding-top: 12px; border-top: 2px dotted var(--ct-chocolate); }
+.ct-item__restricoes .ct-rotulo { margin: 0; }
+.ct-item > .ct-trocas { margin-top: 4px; }
+.ct-edicao .ct-cardapio__preco-arte { display: block; width: clamp(200px, 22vw, 300px); height: auto; rotate: -3deg; }
+.ct-cardapio__restricoes { display: grid; gap: 14px; width: 100%; max-width: none; margin-top: 32px; }
+.ct-cardapio__restricoes p { margin: 0; }
+.ct-cardapio__subtitulo { margin: 0; font: 900 var(--ct-fs-sub)/1.1 var(--ct-font); }
+.ct-cardapio__restricoes .ct-vereditos { margin: 0; }
+.ct-cardapio__restricoes .ct-confirme { margin: 0; }
 @media (min-width: 900px) {
   .ct-cardapio__grade { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 44px; }
   .ct-cardapio__itens { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
@@ -621,6 +646,13 @@
 .ct-marcador--foi::before { background: var(--ct-turquesa); }
 .ct-marcador.is-sel::before { width: 32px; height: 32px; border-width: 4px; }
 .ct-marcador--voce { width: 22px; height: 22px; cursor: default; }
+/* Pin desenhado do tema da casa: a ponta toca o lugar; selecionado cresce, quero ir/já fui ganham anel. */
+.ct-marcador--pin { width: auto; height: auto; padding: 0; translate: 0 -2px; transition: scale 180ms var(--ct-mo-quique); transform-origin: 50% 100%; }
+.ct-marcador--pin::before { content: none; }
+.ct-marcador--pin img { display: block; width: 48px; height: auto; filter: drop-shadow(2px 3px 0 rgba(58, 21, 15, .35)); }
+.ct-marcador--pin.is-sel { scale: 1.35; z-index: 2; }
+.ct-marcador--pin.ct-marcador--quero img { filter: drop-shadow(0 0 0 var(--ct-vermelho)) drop-shadow(2px 3px 0 var(--ct-vermelho)); }
+.ct-marcador--pin.ct-marcador--foi img { opacity: .7; }
 .ct-marcador--voce::before { width: 14px; height: 14px; border: 3px solid var(--ct-branco); background: var(--ct-azul); box-shadow: 0 0 0 2.5px var(--ct-chocolate); }
 .ct-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0 4px; list-style: none; font: 600 13px/1.3 var(--ct-font); }
 .ct-legenda li { display: inline-flex; align-items: center; gap: 6px; }
@@ -828,6 +860,15 @@
 }
 /* Casa sem kit (CenarioTema semKit="natal"): só a faixa de Natal como chão, sem reservar o objeto A. */
 .ct-canal:has(> .ct-cenario--natal) { padding-top: clamp(32px, 6vw, 72px); padding-right: var(--ct-trilho); }
+/* Ficha da casa: o topo leva só os objetos; a faixa (com o combo desenhado, quando existe) fica presa ao pé da
+   tela de ponta a ponta, acima da barra de abas no celular. Corta só o céu se a tela for baixa. O rodapé
+   reserva a altura dela: no fim da rolagem nada fica escondido. */
+.ct-canal:has(> .ct-cenario--sem-faixa) { padding-bottom: clamp(32px, 6vw, 72px); }
+.ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: min(24vw, 21vh); }
+.ct-cenario-fixo { position: fixed; inset: auto 0 0; z-index: 20; pointer-events: none; }
+.ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: var(--ct-fixo-h); object-fit: cover; object-position: center bottom; }
+.ct-edicao:has(.ct-cenario-fixo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h)); }
+@media (max-width: 899.98px) { .ct-cenario-fixo { bottom: var(--scw-base-ocupada, 72px); } }
 
 /* ------------------------------------------------------------- Olhinhos (§10.5)
    Padrão da cliente (MANUAL-CARTOON §1.3) nas proporções da prévia aprovada (ver Olhinhos.jsx). A pose de
@@ -876,6 +917,19 @@
 
   .ct-cenario__faixa { animation: ct-desliza 560ms cubic-bezier(.22, .9, .24, 1) both; }
   .ct-cenario__objeto { animation: ct-quica var(--ct-mo-quique-dur) var(--ct-mo-quique) both; transition: translate 140ms ease-out; }
+  /* Fotos do combo com vida: o quadro cai e quica ao aparecer, a foto assenta de um zoom leve; a do item entra
+     quando chega na tela (onde o navegador sabe; nos outros, ao abrir). Sem laço: nada fica se mexendo sozinho. */
+  @keyframes ct-assenta { from { scale: 1.12; } to { scale: 1; } }
+  .ct-cardapio__foto { transform-origin: 50% 100%; animation: ct-quica 760ms var(--ct-mo-quique) both; }
+  .ct-cardapio__foto img, .ct-item .ct-foto img { animation: ct-assenta 1400ms cubic-bezier(.22, .9, .24, 1) both; }
+  .ct-item { transform-origin: 50% 100%; animation: ct-pula var(--ct-mo-quique-dur) var(--ct-mo-quique) both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+  .ct-item:nth-child(2) { rotate: .6deg; }
+  .ct-item:nth-child(3) { rotate: -.6deg; }
+  .ct-galeria-grade__item .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
+  .ct-galeria-grade__item:hover .ct-foto img, .ct-galeria-grade__item:focus-visible .ct-foto img { scale: 1.08; }
+  .ct-edicao .ct-atalho { transition: translate 180ms var(--ct-mo-quique); }
+  .ct-edicao .ct-atalho:hover { translate: 0 -3px; }
+  .ct-cenario-fixo img { animation: ct-desliza 760ms cubic-bezier(.22, .9, .24, 1) both; }
   .ct-cenario__objeto--a { translate: calc(var(--mx, 0) * 8px) calc(var(--my, 0) * 6px); }
   .ct-cenario__objeto--b { translate: calc(var(--mx, 0) * -5px) calc(var(--my, 0) * -4px); animation-delay: 120ms; }
 

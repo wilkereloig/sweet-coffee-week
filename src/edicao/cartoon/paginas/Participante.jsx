@@ -15,7 +15,9 @@ import * as H from '../../dados/horarioFestival.js'
 import { Link, Foto, proporcaoDe, Carregando, Falha, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
-import { CenarioTema } from '../../componentes/sistema/CenarioTema.jsx'
+import { CenarioTema, CenarioFixo } from '../../componentes/sistema/CenarioTema.jsx'
+import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
+import { precoComboEdicao } from '../../../data/imageLibrary'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { Etiqueta, Placa, Botao, Quadro } from '../../componentes/sistema/pecas.jsx'
@@ -224,6 +226,14 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
   const nomesItens = itens.map((i) => i.nome).filter(Boolean)
   const selos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim')
   const instagram = p.casa.instagram && p.casa.instagram.replace(/^@/, '').trim()
+  const precoDesenhado = precoComboEdicao(combo?.preco)
+  // Atalho de cada modo no topo: no local e para viagem levam ao endereço e ao horário; delivery ao link de pedido.
+  const linkDelivery = unidades.flatMap((u) => u.combo?.canais || []).find(linkSeguro)?.link
+  const destinoModo = (k) => k !== 'delivery'
+    ? { href: '#unidades', dica: T.comoPedirDica[k] }
+    : linkDelivery
+      ? { href: String(linkDelivery).trim(), target: '_blank', rel: 'noopener noreferrer', dica: T.comoPedirDica.delivery }
+      : { href: '#atendimento', dica: T.comoPedirDica.deliveryInfo }
 
   return (
     <article className="ct-part">
@@ -234,7 +244,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
 
       {/* 1 · Topo: canal Elenco + cenário da casa (ou o chão de Natal) */}
       <TopoCanal canal="elenco" className="ct-casa ct-ficha__topo" aria-labelledby="casa-nome">
-        <CenarioTema slug={p.slug} semKit="natal" />
+        <CenarioTema slug={p.slug} semKit="natal" faixa={false} />
         <div className="ct-ficha__cabeca">
           <LogoDesenhada casa={p.casa} className="ct-ficha__logo" />
           <div className="ct-ficha__titulo">
@@ -243,12 +253,30 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
             {p.casa.tema && <p className="ct-ficha__tema">{T.tema(p.casa.tema)}</p>}
             {p.casa.apresentacao && <p className="ct-lead ct-ficha__apresentacao">{p.casa.apresentacao}</p>}
             {!encerrada && selos.length > 0 && (
-              <ul className="ct-selos ct-ficha__selos" aria-label={T.atendimentoTitulo}>
-                {selos.map((k) => <li key={k} className="ct-selo"><IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={32} /><span>{ATENDIMENTO[k].rotulo}</span></li>)}
-              </ul>
+              <nav className="ct-ficha__grupo" aria-labelledby="como-pedir-rotulo">
+                <p id="como-pedir-rotulo" className="ct-rotulo">{T.atendimentoTitulo}</p>
+                <ul className="ct-ficha__modos">
+                  {selos.map((k) => {
+                    const { dica, ...link } = destinoModo(k)
+                    return (
+                      <li key={k}>
+                        <a className="ct-atalho" {...link}>
+                          <IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={32} />
+                          <span className="ct-atalho__texto"><span className="ct-atalho__nome">{ATENDIMENTO[k].rotulo}</span><span className="ct-atalho__dica">{dica}</span></span>
+                          <span className="ct-atalho__seta" aria-hidden="true">{link.target ? '↗' : '↓'}</span>
+                        </a>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </nav>
             )}
             {rota && unidades.length > 0 && (
-              <div className="ct-ficha__marcas"><QueroIrCasa p={p} navigate={navigate} naFicha /><JaFui p={p} /></div>
+              <div className="ct-ficha__grupo ct-ficha__grupo--rota" role="group" aria-labelledby="minha-rota-rotulo">
+                <p id="minha-rota-rotulo" className="ct-rotulo">{T.minhaRota}</p>
+                <div className="ct-ficha__marcas"><QueroIrCasa p={p} navigate={navigate} naFicha /><JaFui p={p} /></div>
+                <p className="ct-ficha__nota">{T.minhaRotaNota}</p>
+              </div>
             )}
           </div>
         </div>
@@ -266,7 +294,9 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
             </Quadro>
             <div className="ct-painel ct-cardapio__painel">
               {!encerrada && (combo.preco
-                ? <div className="ct-cardapio__preco"><Placa numero={M.formatarPreco(combo.preco)} rotulo={T.precoRotulo} /><p className="ct-nota">{T.precoNota}</p></div>
+                ? <div className="ct-cardapio__preco">{precoDesenhado
+                  ? <img className="ct-cardapio__preco-arte" src={precoDesenhado.src} width={precoDesenhado.largura} height={precoDesenhado.altura} alt={`Combo ${M.formatarPreco(combo.preco)}`} />
+                  : <Placa numero={M.formatarPreco(combo.preco)} rotulo={T.precoRotulo} />}</div>
                 : <p className="ct-cardapio__preco ct-sub">{T.precoAConfirmar}</p>)}
               <div>
                 <p className="ct-rotulo">{T.noCombo}</p>
@@ -290,47 +320,38 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
                   {i.nome ? <h3 className="ct-item__nome">{i.nome}</h3> : <p className="ct-item__nome ct-ni">{T.nomeNi}</p>}
                   {i.descricao && <p>{i.descricao}</p>}
                   {i.ingredientes && <p className="ct-item__ingr"><span className="ct-rotulo">{T.ingredientes}</span> {i.ingredientes}</p>}
+                  <div className="ct-item__restricoes">
+                    <p className="ct-rotulo">{T.restricoesTitulo}</p>
+                    <Alimentar item={i} />
+                  </div>
+                  <Trocas lista={i.substituicoes} unidades={unidades} />
                 </li>
               ))}
             </ul>
           )}
+          {/* Resumo do combo inteiro para quem tem restrição; o detalhe de cada item está no cartão dele. */}
+          <div id="restricoes" className="ct-painel ct-cardapio__restricoes">
+            <h3 className="ct-cardapio__subtitulo">{T.restricoesTitulo}</h3>
+            <p>{T.restricoesLead}</p>
+            <ul className="ct-vereditos">
+              {M.RESTRICOES.map(({ chave }) => {
+                const v = M.veredito(itens, chave)
+                return (
+                  <li key={chave} className={`ct-veredito ct-veredito--${v}`}>
+                    {v === 'sim' ? <IconeCartoon nome={RESTRICAO[chave].icone} tamanho={32} /> : <span className="ct-veredito__marca" aria-hidden="true" />}
+                    <span>{RESTRICAO[chave][v]}</span>
+                  </li>
+                )
+              })}
+            </ul>
+            <p className="ct-confirme">{T.confirme}</p>
+          </div>
         </TopoCanal>
       ) : (
         <p className="ct-aviso">{FASE_TEXTO.semCombo}</p>
       )}
 
-      {/* 3 · Restrições alimentares */}
-      {combo && (
-        <section id="restricoes" className="ct-bloco ct-ficha__secao" aria-labelledby="restricoes-titulo">
-          <Letreiro id="restricoes-titulo" texto={T.restricoesTitulo} />
-          <p className="ct-lead">{T.restricoesLead}</p>
-          <ul className="ct-vereditos">
-            {M.RESTRICOES.map(({ chave }) => {
-              const v = M.veredito(itens, chave)
-              return (
-                <li key={chave} className={`ct-veredito ct-veredito--${v}`}>
-                  {v === 'sim' ? <IconeCartoon nome={RESTRICAO[chave].icone} tamanho={32} /> : <span className="ct-veredito__marca" aria-hidden="true" />}
-                  <span>{RESTRICAO[chave][v]}</span>
-                </li>
-              )
-            })}
-          </ul>
-          {itens.length > 0 && (
-            <div className="ct-restricoes">
-              {itens.map((i) => (
-                <article key={i.posicao} className="ct-restricao" aria-labelledby={`al-${i.posicao}`}>
-                  <h3 id={`al-${i.posicao}`} className="ct-restricao__nome"><span className="ct-rotulo">{T.tipos[i.tipo]}</span>{i.nome || T.nomeNi}</h3>
-                  <Alimentar item={i} />
-                  <Trocas lista={i.substituicoes} unidades={unidades} />
-                </article>
-              ))}
-            </div>
-          )}
-          <p className="ct-confirme">{T.confirme}</p>
-        </section>
-      )}
-
-      {/* 4 · Como pedir */}
+      {/* 3 · Como pedir */}
       {combo && !encerrada && (
         <section id="atendimento" className="ct-bloco ct-ficha__secao" aria-labelledby="atendimento-titulo">
           <Letreiro id="atendimento-titulo" texto={T.atendimentoTitulo} />
@@ -341,7 +362,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
             <div className="ct-ficha__fale">
               <p className="ct-rotulo">{T.faleCom}</p>
               <div className="ct-acoes">
-                {instagram && <Botao tipo="secundario" href={`https://www.instagram.com/${instagram}/`} target="_blank" rel="noopener noreferrer">@{instagram}</Botao>}
+                {instagram && <Botao tipo="secundario" href={`https://www.instagram.com/${instagram}/`} target="_blank" rel="noopener noreferrer"><ScwIcon nome="instagram" tamanho={20} />@{instagram}</Botao>}
                 {p.casa.site && linkSeguro({ link: p.casa.site }) && <Botao tipo="secundario" href={p.casa.site} target="_blank" rel="noopener noreferrer">{T.site}</Botao>}
               </div>
             </div>
@@ -349,7 +370,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
         </section>
       )}
 
-      {/* 5 · Unidades */}
+      {/* 4 · Unidades */}
       <section id="unidades" className="ct-bloco ct-ficha__secao" aria-labelledby="un-titulo">
         <Letreiro id="un-titulo" texto={T.unidadesTitulo(unidades.length)} />
         {unidades.length ? (
@@ -359,7 +380,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
         ) : <p className="ct-ni">{T.unidadesNi}</p>}
       </section>
 
-      {/* 6 · Galeria */}
+      {/* 5 · Galeria */}
       <section className="ct-bloco ct-ficha__secao" aria-labelledby="galeria-titulo">
         <Letreiro id="galeria-titulo" texto={T.galeriaTitulo} />
         {galeria.length ? <Galeria fotos={galeria} /> : (
@@ -367,7 +388,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
         )}
       </section>
 
-      {/* 7 · Avalie */}
+      {/* 6 · Avalie */}
       {avaliacaoAberta && (
         <section className="ct-bloco ct-avalie" aria-labelledby="av-titulo">
           <Letreiro id="av-titulo" texto={T.avaliarTitulo} />
@@ -375,6 +396,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
           <Link className="ct-botao" href={`${EDICAO.caminho}/avaliar?participante=${p.slug}`} navigate={navigate}>{T.avaliar}</Link>
         </section>
       )}
+      <CenarioFixo slug={p.slug} />
     </article>
   )
 }

@@ -50,6 +50,12 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     for (const p of pontos) {
       const el = document.createElement('button')
       el.type = 'button'
+      if (p.pin) {
+        const img = document.createElement('img')
+        Object.assign(img, { src: p.pin.src, alt: '', width: 48, height: Math.round(48 * p.pin.altura / p.pin.largura) })
+        el.append(img)
+        el.classList.add('ct-marcador--pin')
+      }
       el.addEventListener('click', () => aoSelecionar(p.id))
       const mk = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(m)
       marcadores.current.set(p.id, mk)
