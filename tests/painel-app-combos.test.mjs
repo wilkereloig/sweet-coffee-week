@@ -3,9 +3,11 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import {
   FILTROS_COMBOS, preenchido, filtrarCombos, contarCombos, alimentarDoItem, linhaAlergenicos, descricaoDaTroca, faltas,
-  textoDoCombo, textoDeTodos, arroba, real,
+  textoDoCombo, textoDeTodos, arroba, real, AGUARDANDO, trocasEOpcoes, enderecoTexto, foneTexto,
 } from '../painel-app/src/lib/combosTexto.js'
-import { RPC_LEITURA } from '../painel-app/src/lib/sync/dominios.js'
+import { revisar, paraTexto, marcaDoCampo, contarAlteracoes, textoDoAntes } from '../painel-app/src/lib/alteracoesCampo.js'
+import { RPC_LEITURA, dominiosDeRpc } from '../painel-app/src/lib/sync/dominios.js'
+import { migrarRota } from '../painel-app/src/lib/rota.js'
 import { carregar, html } from './_renderizar.mjs'
 
 const ler = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
@@ -83,8 +85,8 @@ test('"outro alergênico" entra com o que a marca escreveu, sem repetir o verbo'
 test('trocas: acréscimo vazio = não informado, 0 = sem acréscimo, valor = "+ R$"', () => {
   const i = { tipo: 'bebida' }
   const base = { original: 'Soda', alternativa: 'Café', disponibilidade: 'limitada' }
-  assert.equal(descricaoDaTroca(i, { ...base, acrescimo: null }), 'Bebida: Soda → Café (limitada (até acabar))')
-  assert.equal(descricaoDaTroca(i, { ...base, acrescimo: 0 }), 'Bebida: Soda → Café (limitada (até acabar); sem acréscimo)')
+  assert.equal(descricaoDaTroca(i, { ...base, acrescimo: null }), 'Bebida: Soda → Café (limitada, até acabar)')
+  assert.equal(descricaoDaTroca(i, { ...base, acrescimo: 0 }), 'Bebida: Soda → Café (limitada, até acabar; sem acréscimo)')
   assert.equal(descricaoDaTroca(i, { ...base, disponibilidade: 'sempre', acrescimo: '5.50' }), 'Bebida: Soda → Café (sempre disponível; + R$ 5,50)')
   assert.equal(descricaoDaTroca(i, { original: 'A', alternativa: 'B', modalidades: ['retirada', 'delivery'], como_solicitar: 'Peça no balcão' }),
     'Bebida: A → B (só retirada e delivery) — como pedir: Peça no balcão')
@@ -97,39 +99,43 @@ test('"ainda sem": diz o que falta, com o artigo certo', () => {
   assert.ok(faltas({ combo: { nome: 'X', descricao: 'Y', itens: [] } }).includes('nome da bebida'))
 })
 
-test('o texto de uma marca: marcador, Instagram com @, tema, combo, itens, trocas, viagem e o que falta', () => {
+test('o texto de uma marca: campos FIXOS, "Aguardando informação" no lugar, trocas e opções, lojas', () => {
   const d = combo({
     alterado_apos_aprovacao: true,
+    unidades: [{ id: 'u1', nome: 'Loja Centro', endereco: { logradouro: 'Rua A', numero: '10', bairro: 'Centro', cidade: 'Natal', uf: 'RN' }, combo: { modos: { local: 'sim', delivery: 'nao' } } }],
+    _opcoes: [{ item: 'bebida', onde: 'bebida', texto: 'Soda ou refrigerante' }],
     combo: {
       nome: 'Combo A', descricao: '', preco: 38.9,
       itens: [item('doce', 1, { alimentar: alim({ ...TODOS_NAO, vegano: 'sim' }) }), item('salgado', 2, { alimentar: [] }),
         item('bebida', 3, { substituicoes: [{ original: 'Soda', alternativa: 'Café', disponibilidade: 'sempre', acrescimo: 0 }] })],
     },
   })
-  const t = textoDoCombo(d, 3)
-  assert.equal(t.split('\n')[0], '*3. Marca A*  ✅ aprovado · a marca alterou depois de aprovado')
-  for (const linha of ['Instagram: @marcaa', 'Tema: Garfield', 'Combo: *Combo A*', '• Doce: Nome doce', '  Selos: vegano · sem glúten', '• Salgado: Nome salgado',
-    '  Alergênicos: ainda não informados.', 'Trocas:', '• Bebida: Soda → Café (sempre disponível; sem acréscimo)', 'Para viagem: sim', '⚠️ Ainda sem: descrição do combo, alergênicos do salgado.']) {
-    assert.ok(t.split('\n').includes(linha), 'faltou a linha: ' + linha)
+  const t = textoDoCombo(d, 3, { horario: () => 'todos os dias, das 15h às 22h' })
+  const linhas = t.split('\n')
+  assert.equal(linhas[0], '*3. Marca A*  ✅ aprovado · a marca alterou depois de aprovado')
+  for (const l of ['Instagram: @marcaa', 'Tema: Garfield', 'Combo: *Combo A*', 'Descrição: ' + AGUARDANDO, '*Doce:* Nome doce', '  Selos: vegano · sem glúten',
+    '*Salgado:* Nome salgado', '  Alergênicos: ' + AGUARDANDO, '  Selos: ' + AGUARDANDO, '*Trocas e opções:*', '• Bebida: Soda → Café (sempre disponível; sem acréscimo)',
+    '• Bebida: Soda ou refrigerante (na descrição da bebida)', 'Para viagem: sim', '• Loja Centro — Rua A, 10 – Centro, Natal/RN',
+    '  Atendimento: No local · Horário: todos os dias, das 15h às 22h']) {
+    assert.ok(linhas.includes(l), 'faltou a linha: ' + l)
   }
-  assert.ok(!t.includes('Descrição:'), 'descrição vazia não vira linha')
-  const sem = textoDoCombo(combo({ marca: 'B', instagram: '', tema: '', para_viagem: null, combo: { nome: '', itens: [] } }))
-  assert.ok(sem.includes('Combo: (a marca ainda não deu nome ao combo)') && !sem.includes('Instagram') && !sem.includes('Tema:') && !sem.includes('Para viagem'))
+  assert.ok(!t.includes('Ainda sem'), 'acabou a lista "Ainda sem" no fim')
+  // em branco: TODOS os campos aparecem, cada um com "Aguardando informação" no lugar
+  const b = textoDoCombo(BRANCO('Sem Nada'))
+  for (const l of ['Tema: ' + AGUARDANDO, 'Combo: ' + AGUARDANDO, 'Para viagem: ' + AGUARDANDO, '*Doce:* ' + AGUARDANDO, '*Bebida:* ' + AGUARDANDO, '*Onde encontrar:* ' + AGUARDANDO])
+    assert.ok(b.split('\n').includes(l), 'em branco, faltou: ' + l)
+  assert.ok(b.includes('Instagram: Não informado'), 'opcional vazio = "Não informado"')
 })
 
-test('o texto de todos: título do filtro, contagem, valor, data, ordem A–Z com acento, só quem preencheu e o rodapé', () => {
+test('o texto de todos: título, contagem, valor, data, ordem A–Z com acento e TODOS os participantes (inclusive em branco)', () => {
   const lista = [combo({ marca: 'Zeca' }), combo({ marca: 'Édson' }), combo({ marca: 'Caffè' }), BRANCO('Em branco')]
   const edicao = { codigo: '2026.2', nome: 'Cartoon', valor_combo: 38.9 }
-  const t = textoDeTodos(lista, { filtro: 'preenchidos', edicao, data: '31/10/2026', semNada: ['Em branco'] })
+  const t = textoDeTodos(lista, { edicao, data: '31/10/2026' })
   const linhas = t.split('\n')
-  assert.equal(linhas[0], '*COMBOS JÁ PREENCHIDOS · Sweet & Coffee Week Cartoon (2026.2)*')
-  assert.equal(linhas[1], '3 participantes · valor do combo R$ 38,90 · posição de 31/10/2026')
-  assert.deepEqual(linhas.filter((l) => /^\*\d+\. /.test(l)).map((l) => l.replace(/\*\d+\. ([^*]+)\*.*/, '$1')), ['Caffè', 'Édson', 'Zeca'])
-  assert.ok(!t.includes('Em branco*  '), 'quem não preencheu nada não ganha bloco')
-  assert.equal(linhas[linhas.length - 2], '*Ainda sem nada preenchido (1):* Em branco.')
+  assert.equal(linhas[0], '*COMBOS DOS PARTICIPANTES · Sweet & Coffee Week Cartoon (2026.2)*')
+  assert.equal(linhas[1], '4 participantes · valor do combo R$ 38,90 · posição de 31/10/2026')
+  assert.deepEqual(linhas.filter((l) => /^\*\d+\. /.test(l)).map((l) => l.replace(/\*\d+\. ([^*]+)\*.*/, '$1')), ['Caffè', 'Édson', 'Em branco', 'Zeca'])
   assert.equal(t.endsWith('\n') && !t.endsWith('\n\n'), true)
-  assert.ok(textoDeTodos([combo()], { filtro: 'aprovados', edicao }).startsWith('*COMBOS APROVADOS · '))
-  assert.ok(textoDeTodos([combo()], { filtro: 'andamento', edicao }).startsWith('*COMBOS EM ANÁLISE OU EM PREENCHIMENTO · '))
   assert.ok(textoDeTodos([combo()], { edicao }).split('\n')[1].startsWith('1 participante ·'), 'singular')
   assert.ok(!textoDeTodos([combo()], {}).includes('valor do combo'), 'sem edição, sem valor inventado')
 })
@@ -140,28 +146,100 @@ test('pequenos formatos', () => {
   assert.equal(arroba('https://instagram.com/marca'), 'https://instagram.com/marca')
   assert.equal(arroba(null), '')
   assert.equal(real(38.9), 'R$ 38,90')
+  assert.equal(foneTexto('84997056330'), '(84) 99705-6330')
+  assert.equal(enderecoTexto({ logradouro: 'Av. X', numero: 'S/N', bairro: 'Tirol', cidade: 'Natal', uf: 'RN', cep: '59000-000', referencia: 'ao lado da praça' }),
+    'Av. X, S/N – Tirol, Natal/RN – CEP 59000-000 (ao lado da praça)')
 })
 
-test('o cartão desenhado: marca, status, itens, selos, o que falta e o botão de copiar (e o cartão em branco não copia)', () => {
-  const { CartaoCombo } = carregar('painel-app/src/components/vistas/SocialCombos.jsx')
-  const d = combo({ alterado_apos_aprovacao: true, combo: { nome: 'Combo A', descricao: '', itens: [item('doce', 1, { alimentar: alim({ ...TODOS_NAO, vegano: 'sim' }) }), item('salgado', 2), item('bebida', 3)] } })
-  const h = html(CartaoCombo, { d, onCopiar() {} })
-  for (const t of ['Marca A', 'Tema: Garfield', '@marcaa', 'Combo A', 'Nome doce', 'Nome salgado', 'Nome bebida', 'vegano', 'sem glúten', 'Alterado depois de aprovado',
-    'Ainda sem: descrição do combo.', 'Copiar texto desta marca', 'Para viagem: sim']) assert.ok(h.includes(t), 'faltou no cartão: ' + t)
-  const vazio = html(CartaoCombo, { d: BRANCO('Sem Nada'), onCopiar() {} })
-  assert.ok(vazio.includes('Sem Nada') && vazio.includes('Em branco') && vazio.includes('A marca ainda não preencheu nada do combo.'))
-  assert.ok(!vazio.includes('Copiar texto desta marca'), 'não há o que copiar')
+/* ── Revisão à parte e "Novo / Alterado" ─────────────────────────────────── */
+
+test('revisão: vale só enquanto o original for o mesmo; o cadastro (objeto de entrada) não muda', () => {
+  const d = combo({
+    revisoes: {
+      'combo.nome': { original: 'Combo  A', revisado: 'Combo Alfa' }, // espaço a mais no original não importa
+      'doce.descricao': { original: 'Outro texto', revisado: 'Não pode entrar' }, // a marca mudou: revisão caduca
+      'bebida.troca0.alternativa': { original: 'cafe', revisado: 'Café' },
+    },
+    combo: { nome: 'Combo A', descricao: 'x', itens: [item('doce', 1), item('bebida', 3, { substituicoes: [{ original: 'Soda', alternativa: 'cafe' }] })] },
+  })
+  const r = revisar(d)
+  assert.equal(r.d.combo.nome, 'Combo Alfa')
+  assert.equal(r.d.combo.itens[0].descricao, 'Descrição doce', 'original mudou: fica o que a marca escreveu')
+  assert.equal(r.d.combo.itens[1].substituicoes[0].alternativa, 'Café')
+  assert.deepEqual(r.caducas, ['doce.descricao'])
+  assert.equal(d.combo.nome, 'Combo A', 'a entrada não é alterada')
+  assert.equal(d.combo.itens[1].substituicoes[0].alternativa, 'cafe')
 })
 
-test('a aba existe só para quem lê o editorial, lê pela RPC nova e nunca grava', () => {
+test('opções escritas na descrição e trocas repetidas: só valem com a descrição/troca original intacta', () => {
+  const d = combo({
+    revisoes: {
+      'opcao:bebida:1': { original: 'Descrição bebida', revisado: JSON.stringify({ item: 'bebida', texto: 'Soda ou suco' }) },
+      'opcao:combo:1': { original: 'texto antigo do combo', revisado: JSON.stringify({ item: 'bebida', texto: 'não entra' }) },
+      'ocultar:doce.troca0': { original: 'Soda → Café', revisado: 'repetida da bebida' },
+    },
+    combo: { nome: 'C', descricao: 'Novo texto', itens: [item('doce', 1, { substituicoes: [{ original: 'Soda', alternativa: 'Café' }] }), item('bebida', 3, { substituicoes: [{ original: 'Soda', alternativa: 'Café' }] })] },
+  })
+  const p = paraTexto(d)
+  assert.deepEqual(p._opcoes, [{ item: 'bebida', onde: 'bebida', texto: 'Soda ou suco' }])
+  assert.deepEqual(p._ocultas, ['doce.troca0'])
+  const tr = trocasEOpcoes(p)
+  assert.deepEqual(tr.map((x) => x.tipo + ':' + x.texto), ['bebida:Soda → Café', 'bebida:Soda ou suco'], 'a repetida do doce some; a opção entra')
+})
+
+test('marcação: novo (sem antes), alterado (com antes), apagado; o "antes" sai em português', () => {
+  const d = { alteracoes: {
+    'combo.nome': { antes: null, removido: false, em: '2026-10-31T23:00:00Z' },
+    'doce.descricao': { antes: 'Velho', removido: false, em: '2026-10-31T23:00:00Z' },
+    'combo.condicoes': { antes: 'X', removido: true, em: '2026-10-31T23:00:00Z' },
+  } }
+  assert.equal(marcaDoCampo(d, 'combo.nome').tipo, 'novo')
+  assert.equal(marcaDoCampo(d, 'doce.descricao').tipo, 'alterado')
+  assert.equal(marcaDoCampo(d, 'combo.condicoes').tipo, 'removido')
+  assert.equal(marcaDoCampo(d, 'tema'), null)
+  assert.equal(contarAlteracoes(d), 3)
+  assert.equal(textoDoAntes('doce.alimentar', JSON.stringify({ gluten: 'contem' })), 'contém glúten · sem resposta: leite, ovo, amendoim, castanhas, soja, peixe e crustáceos.')
+  assert.equal(textoDoAntes('bebida.trocas', JSON.stringify({ a: 'Soda → Café' })), 'Soda → Café')
+  assert.equal(textoDoAntes('para_viagem', 'true'), 'Sim')
+})
+
+test('o cartão: campos fixos, "Aguardando informação", marcação com o antes, "Marquei como visto" e copiar', () => {
+  const { CartaoParticipante } = carregar('painel-app/src/components/vistas/social/CartaoParticipante.jsx')
+  const bruto = combo({ alteracoes: { 'doce.nome': { antes: 'Nome antigo', removido: false, em: '2026-10-31T23:00:00Z' } } })
+  const d = paraTexto({ ...bruto, combo: { ...bruto.combo, descricao: '' } })
+  const h = html(CartaoParticipante, { d, bruto, datas: [], valorCombo: 38.9, horario: () => '', onCopiar() {}, onVisto() {}, onAbrir() {} })
+  for (const t of ['Marca A', 'Tema: Garfield', '@marcaa', 'Combo A', 'Nome doce', 'Nome salgado', 'Nome bebida', 'Trocas e opções', 'Onde encontrar',
+    AGUARDANDO, 'Alterado', 'Antes: Nome antigo', '1 alteração', 'Marquei como visto', 'Abrir ficha', 'R$ 38,90']) assert.ok(h.includes(t), 'faltou no cartão: ' + t)
+  assert.ok(!h.includes('Ainda sem'), 'sem a lista "Ainda sem"')
+  const vazio = html(CartaoParticipante, { d: paraTexto(BRANCO('Sem Nada')), bruto: BRANCO('Sem Nada'), onCopiar() {} })
+  assert.ok(vazio.includes('Sem Nada') && vazio.includes('Combo em branco') && vazio.split(AGUARDANDO).length > 10, 'em branco: todos os campos no lugar')
+  assert.ok(!vazio.includes('Marquei como visto'), 'sem alteração, sem botão de visto')
+})
+
+test('Participantes vira a página completa; a aba Combos sai e o endereço antigo cai nela', () => {
   const mod = ler('painel-app/src/components/Modulos.jsx')
-  assert.match(mod, /chave: 'combos', rotulo: 'Combos', mostrar: props\.pode\('editorial\.ler'\)/)
-  const tela = ler('painel-app/src/components/vistas/SocialCombos.jsx')
-  assert.deepEqual([...tela.matchAll(/rpc\('([a-z_]+)'/g)].map((m) => m[1]), ['editorial_combos'], 'a tela só lê')
-  assert.ok(RPC_LEITURA.has('editorial_combos'), 'leitura nova classificada para a sincronização')
-  const sql = ler('supabase/migrations/20261121_social_combos.sql')
-  assert.match(sql, /function public\.editorial_combos\(p_secret text, p_edicao text default null\)/)
-  assert.match(sql, /redes_exigir\(p_secret, 'editorial\.ler'\)/)
-  assert.doesNotMatch(sql, /\b(insert|update|delete)\b\s+(into|from)?\s*public\./i, 'a função só lê')
-  for (const p of ['supabase/reverter/20261121_social_combos.sql', 'supabase/testes/social-combos.sql']) assert.ok(existsSync(new URL('../' + p, import.meta.url)), p)
+  assert.doesNotMatch(mod, /chave: 'combos'/, 'a aba Combos saiu')
+  assert.ok(!existsSync(new URL('../painel-app/src/components/vistas/SocialCombos.jsx', import.meta.url)))
+  assert.deepEqual(migrarRota({ vista: 'social', aba: 'combos', filtros: { mostrar: 'aprovados' } }), { vista: 'social', aba: 'participantes', filtros: {} })
+  const tela = ler('painel-app/src/components/vistas/SocialParticipantes.jsx')
+  assert.match(tela, /rpc\('editorial_combos'/)
+  assert.match(tela, /rpc\('editorial_marcar_visto'/)
+  assert.ok(RPC_LEITURA.has('editorial_combos'), 'leitura classificada para a sincronização')
+  assert.ok(!RPC_LEITURA.has('editorial_marcar_visto'), 'marcar visto grava')
+  assert.deepEqual(dominiosDeRpc('editorial_marcar_visto'), ['editorial'])
+})
+
+test('banco: só a MARCA marca alteração, revisão à parte, visto por pessoa e reversão/teste existem', () => {
+  const sql = ler('supabase/migrations/20261122_social_participantes_completo.sql')
+  assert.match(sql, /v_eu := public\.meu_participante\(\);\s*if v_eu is null then return null; end if;/, 'só a marca dispara')
+  assert.match(sql, /scw\.silencioso[\s\S]*ver_como_ativo\(\)/, 'importação e "Ver como" não marcam')
+  assert.match(sql, /exception when others then\s*raise warning/, 'falha nunca derruba o salvamento')
+  assert.match(sql, /interval '10 minutes'/, 'o salvamento automático vira uma linha')
+  for (const t of ['participantes', 'participacoes', 'participantes_itens', 'declaracoes_alimentares', 'substituicoes', 'unidades', 'participacao_unidades'])
+    assert.ok(sql.includes("'" + t + "'"), 'gatilho em ' + t)
+  assert.match(sql, /revoke all on public\.alteracoes_campo, public\.editorial_vistos, public\.revisoes_texto from anon, authenticated/)
+  assert.match(sql, /if v_eu is null then raise exception 'conta_pessoal'/, 'o visto é da pessoa')
+  assert.doesNotMatch(sql, /update public\.(participacoes|participantes|participantes_itens|unidades)\b/, 'nada aqui grava no cadastro')
+  for (const p of ['supabase/reverter/20261122_social_participantes_completo.sql', 'supabase/testes/social-participantes-completo.sql'])
+    assert.ok(existsSync(new URL('../' + p, import.meta.url)), p)
 })

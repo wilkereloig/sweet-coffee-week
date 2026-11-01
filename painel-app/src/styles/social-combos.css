@@ -1,24 +1,51 @@
 /*
- * Social media › Combos (31/10/2026): um cartão por participante (o card é o `Modulo`), com os três itens lado a lado.
- * Só tokens do painel (paleta, --sup-*, --e-*, --r-*, --f-*); nenhuma regra redeclara fundo, borda ou sombra de card.
- * Nenhuma animação nova; nenhum texto em caixa-alta.
+ * Social media › Participantes, cartões completos (31/10/2026): um cartão por participante (o card é o `Modulo`), com os
+ * campos fixos em listas de definição (rótulo · valor). Só tokens do painel (paleta, --sup-*, --e-*, --r-*, --f-*); nenhuma
+ * regra redeclara fundo, borda ou sombra de card. Nenhuma animação nova; nenhum texto em caixa-alta.
  */
-.scb{display:flex;flex-direction:column;gap:var(--e-4);min-width:0}
+.scb-lista{display:flex;flex-direction:column;gap:var(--e-4);min-width:0}
+.scb-acoes{flex-wrap:wrap}
 .scb-resumo{margin:0}
-.scb-rotulo{display:block;margin:0 0 4px;font:700 12.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
-.scb-combo{margin:0 0 var(--e-2);font:400 15.5px/1.4 var(--f-texto)}
-.scb-combo b{font:700 17px/1.3 var(--f-ui);overflow-wrap:anywhere}
-.scb-texto{margin:0 0 var(--e-2);font:400 14.5px/1.5 var(--f-texto);white-space:pre-line;overflow-wrap:anywhere}
-.scb-vazio{color:var(--scw-marrom);font-style:italic}
-.scb-linha{margin:var(--e-2) 0 0;font:400 14px/1.4 var(--f-texto)}
-.scb-itens{list-style:none;margin:var(--e-3) 0;padding:0;display:grid;gap:var(--e-3);grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
-.scb-item{display:flex;flex-direction:column;gap:var(--e-2);min-width:0;padding:var(--e-3) var(--e-4);border-radius:var(--r-2);background:var(--sup-2)}
-.scb-item__tipo{display:flex;align-items:center;gap:6px;margin:0;font:700 12.5px/1.2 var(--f-ui);color:var(--scw-marrom)}
-.scb-item__nome{margin:0;font:700 15.5px/1.3 var(--f-ui);overflow-wrap:anywhere}
-.scb-item .scb-texto{margin:0}
-.scb-alerg{margin:0;font:400 13.5px/1.4 var(--f-texto);color:var(--scw-marrom)}
-.scb-trocas ul{margin:0;padding-left:18px;font:400 14px/1.5 var(--f-texto)}
-.scb-trocas li{overflow-wrap:anywhere}
-.scb-faltas{margin:var(--e-3) 0 0}
 .scb-manual{display:flex;flex-direction:column;gap:var(--e-2)}
 .scb-manual textarea{width:100%}
+
+/* "N alterações da marca desde a sua última visita" + "Marquei como visto" */
+.scb-novidades{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--e-2) var(--e-3);margin:0 0 var(--e-3);padding:var(--e-2) var(--e-3);border-radius:var(--r-2);background:color-mix(in srgb,var(--scw-laranja) 14%,var(--sup-1))}
+.scb-novidades p{display:flex;align-items:flex-start;gap:6px;margin:0;font:400 14.5px/1.4 var(--f-texto)}
+.scb-novidades p svg{flex:none;margin-top:1px}
+
+/* blocos de campos: Participante e Combo lado a lado quando cabe */
+.scb-blocos{display:grid;gap:var(--e-3);grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.scb-bloco{min-width:0;margin:0 0 var(--e-3)}
+.scb-bloco__titulo{margin:0 0 var(--e-2);font:700 15px/1.3 var(--f-ui);color:var(--scw-choco)}
+
+/* rótulo · valor, a mesma grade em todos os participantes */
+.scb-dl{display:grid;grid-template-columns:minmax(110px,160px) minmax(0,1fr);margin:0;border-radius:var(--r-2);background:var(--sup-2);overflow:hidden}
+.scb-campo{display:contents}
+.scb-campo dt,.scb-campo dd{margin:0;padding:8px var(--e-3);border-top:1px solid var(--scw-filete)}
+.scb-campo:first-child dt,.scb-campo:first-child dd{border-top:0}
+.scb-campo dt{font:700 13px/1.35 var(--f-ui);color:var(--scw-marrom)}
+.scb-campo dd{font:400 14.5px/1.45 var(--f-texto);color:var(--scw-choco);overflow-wrap:anywhere}
+.scb-campo dd b{font:700 15px/1.35 var(--f-ui)}
+.scb-campo--marcado dt,.scb-campo--marcado dd{background:color-mix(in srgb,var(--scw-amarelo) 22%,transparent)}
+.scb-aguardando{font-style:italic;color:var(--scw-laranja)}
+.scb-vazio{font-style:italic;color:var(--scw-marrom)}
+.scb-origem{display:block;margin-top:2px;font:italic 400 13px/1.35 var(--f-texto);color:var(--scw-marrom)}
+.scb-marca{display:flex;flex-wrap:wrap;align-items:center;gap:4px var(--e-2);margin-top:6px}
+.scb-antes{font:400 13px/1.35 var(--f-texto);color:var(--scw-marrom)}
+
+/* os três itens, lado a lado quando cabe; a cor do item é a do carrossel (doce rosa, salgado amarelo, bebida azul) */
+.scb-itens{list-style:none;margin:0 0 var(--e-3);padding:0;display:grid;gap:var(--e-3);grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.scb-item{display:flex;flex-direction:column;gap:var(--e-2);min-width:0;padding-top:var(--e-2);border-top:4px solid var(--scw-marrom)}
+.scb-item--doce{border-top-color:var(--scw-magenta)}
+.scb-item--salgado{border-top-color:var(--scw-amarelo)}
+.scb-item--bebida{border-top-color:var(--scw-cyan)}
+.scb-item__tipo{display:flex;align-items:center;gap:6px;margin:0;font:700 14px/1.2 var(--f-ui);color:var(--scw-choco)}
+.scb-dl--item{grid-template-columns:minmax(88px,108px) minmax(0,1fr)}
+
+.scb-unidades{display:grid;gap:var(--e-3);grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+
+@media (max-width:520px){
+  .scb-dl,.scb-dl--item{grid-template-columns:minmax(0,1fr)}
+  .scb-campo dd{border-top:0;padding-top:0}
+}

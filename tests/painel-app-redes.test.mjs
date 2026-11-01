@@ -228,11 +228,15 @@ test('banco: tabelas fechadas, função Social media sem dado.ler, toda RPC exig
   const CAMPANHAS_SQL = ler('supabase/migrations/20261031_social_campanhas.sql')
   const CHECKLIST_SQL = ler('supabase/migrations/20261101_social_checklist.sql')
   const nomesChecklist = [...CHECKLIST_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
+  // Social media › Participantes completo (31/10/2026): editorial_combos e editorial_marcar_visto.
+  const COMPLETO_SQL = ler('supabase/migrations/20261122_social_participantes_completo.sql')
+  const nomesCompleto = [...COMPLETO_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)].map((m) => m[1]).join(' ')
   const nomesCampanhas = [...CAMPANHAS_SQL.matchAll(/^grant execute on function([\s\S]*?)to anon, authenticated;/gm)][0][1]
   const todas = [...nomes, ...[...nomesPastas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
     ...[...nomesApagar.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
     ...[...nomesCampanhas.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
-    ...[...nomesChecklist.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1])]
+    ...[...nomesChecklist.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1]),
+    ...[...nomesCompleto.matchAll(/public\.((?:redes|social|editorial)_[a-z_]+)\(/g)].map((m) => m[1])]
   for (const c of chamadas) assert.ok(todas.includes(c), 'RPC chamada e não publicada: ' + c)
 })
 

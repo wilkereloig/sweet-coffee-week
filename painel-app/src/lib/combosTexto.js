@@ -17,7 +17,7 @@ export const TIPOS = [['doce', 'Doce'], ['salgado', 'Salgado'], ['bebida', 'Bebi
 const ROTULO_TIPO = Object.fromEntries(TIPOS)
 const DE = { doce: 'do doce', salgado: 'do salgado', bebida: 'da bebida' }
 export const ALERGENICOS = [['gluten', 'glúten'], ['leite', 'leite'], ['ovo', 'ovo'], ['amendoim', 'amendoim'], ['castanhas', 'castanhas'], ['soja', 'soja'], ['peixe', 'peixe'], ['crustaceos', 'crustáceos']]
-const DISPONIBILIDADE = { sempre: 'sempre disponível', sob_consulta: 'sob consulta', limitada: 'limitada (até acabar)' }
+const DISPONIBILIDADE = { sempre: 'sempre disponível', sob_consulta: 'sob consulta', limitada: 'limitada, até acabar' }
 const MODALIDADE = { local: 'no local', retirada: 'retirada', delivery: 'delivery' }
 export const MARCADOR_STATUS = {
   aprovado: '✅ aprovado',
@@ -142,63 +142,98 @@ export function faltas(d) {
 /** Marcador do status do combo para o texto ("✅ aprovado · a marca alterou depois de aprovado"). */
 export const marcadorDoStatus = (d) => (MARCADOR_STATUS[d.combo_status] || '') + (d.alterado_apos_aprovacao ? ' · a marca alterou depois de aprovado' : '')
 
-/* ── O texto ───────────────────────────────────────────────────────────────── */
+/* ── Campos fixos (31/10/2026) ─────────────────────────────────────────────────
+ * Todo participante mostra os MESMOS campos, na MESMA ordem (o Word, o cartão e o texto do WhatsApp). O que a marca ainda
+ * não respondeu aparece NO LUGAR do campo como "Aguardando informação"; campo opcional vazio, "Não informado". Acabou a
+ * lista "Ainda sem" no fim. */
+export const AGUARDANDO = 'Aguardando informação'
+export const NAO_INFORMADO = 'Não informado'
+const MODOS = { local: 'No local', retirada: 'Retirada', delivery: 'Delivery' }
 
-function blocoItem(item) {
-  const nome = t(item.nome)
-  const linhas = ['• ' + (ROTULO_TIPO[item.tipo] || item.tipo) + ': ' + (nome || '(ainda sem nome)')]
-  if (t(item.descricao)) linhas.push('  ' + t(item.descricao))
-  if (t(item.ingredientes)) linhas.push('  Ingredientes: ' + t(item.ingredientes))
-  const a = alimentarDoItem(item)
-  if (a.selos.length) linhas.push('  Selos: ' + a.selos.join(' · '))
-  linhas.push('  ' + linhaAlergenicos(a))
-  return linhas.join('\n')
+/** Selos e alergênicos de um item: '' = ainda sem resposta (vira "Aguardando informação"). */
+export function selosEAlergenicos(item) {
+  const a = alimentarDoItem(item || {})
+  return {
+    selos: a.selos.length ? a.selos.join(' · ') : a.respondidos ? 'Nenhum declarado' : '',
+    alergenicos: a.respondidos ? linhaAlergenicos(a).replace(/^Alergênicos: /, '').replace(/\.$/, '').replace(/^./, (x) => x.toUpperCase()) : '',
+  }
 }
 
-/** O bloco de UMA participação. `n` = posição na lista (opcional). */
-export function textoDoCombo(d, n = null) {
+/** As trocas cadastradas (menos as ocultas) e as opções escritas na descrição: [{ tipo, texto, daDescricao, campo }]. */
+export function trocasEOpcoes(d) {
+  const ocultas = new Set(d._ocultas || [])
+  const out = []
+  for (const [tipo] of TIPOS) {
+    const i = ((d.combo && d.combo.itens) || []).find((x) => x.tipo === tipo)
+    ;((i && i.substituicoes) || []).forEach((s, k) => {
+      if (ocultas.has(tipo + '.troca' + k)) return
+      out.push({ tipo, texto: descricaoDaTroca(i, s).replace(/^[^:]+: /, ''), daDescricao: false, campo: tipo + '.trocas' })
+    })
+  }
+  for (const o of d._opcoes || []) out.push({ tipo: o.item, texto: o.texto, daDescricao: o.onde, campo: null })
+  return out
+}
+
+export const ONDE_DESCRICAO = { combo: 'na descrição do combo', doce: 'na descrição do doce', salgado: 'na descrição do salgado', bebida: 'na descrição da bebida' }
+
+/** Endereço numa linha: "Rua, 10 – Bairro, Cidade/UF – CEP 59000-000 (referência)". */
+export function enderecoTexto(e) {
+  if (!e) return ''
+  const rua = [t(e.logradouro), t(e.numero)].filter(Boolean).join(', ')
+  const lugar = [t(e.bairro), [t(e.cidade), t(e.uf)].filter(Boolean).join('/')].filter(Boolean).join(', ')
+  return [rua, lugar, t(e.cep) && 'CEP ' + t(e.cep)].filter(Boolean).join(' – ') + (t(e.referencia) ? ' (' + t(e.referencia) + ')' : '')
+}
+export const foneTexto = (n) => { const s = t(n).replace(/\D/g, ''); return s.length === 11 ? `(${s.slice(0, 2)}) ${s.slice(2, 7)}-${s.slice(7)}` : t(n) }
+export const atendimentoTexto = (u) => Object.entries((u && u.combo && u.combo.modos) || {}).filter(([, s]) => s === 'sim').map(([m]) => MODOS[m] || m).join(' · ')
+
+/* ── O texto ───────────────────────────────────────────────────────────────── */
+
+const v = (x, vazio = AGUARDANDO) => t(x) || vazio
+
+/** O bloco de UMA participação (já revisada: `paraTexto` em alteracoesCampo.js). `horario(u)` = frase do horário. */
+export function textoDoCombo(d, n = null, { horario = () => '' } = {}) {
   const c = d.combo || {}
-  const marcador = marcadorDoStatus(d)
+  const marcador = preenchido(d) ? marcadorDoStatus(d) : '⚠️ combo ainda não preenchido'
   const L = []
   L.push('*' + (n ? n + '. ' : '') + t(d.marca) + '*' + (marcador ? '  ' + marcador : ''))
-  if (arroba(d.instagram)) L.push('Instagram: ' + arroba(d.instagram))
-  if (t(d.tema)) L.push('Tema: ' + t(d.tema))
-  L.push('Combo: ' + (t(c.nome) ? '*' + t(c.nome) + '*' : '(a marca ainda não deu nome ao combo)'))
-  if (t(c.descricao)) L.push('Descrição: ' + t(c.descricao))
-  if (t(c.condicoes)) L.push('Condições: ' + t(c.condicoes))
-  L.push('Itens do combo:')
-  for (const i of itensOrdenados(d)) L.push(blocoItem(i))
-  const trocas = trocasDoCombo(d)
-  if (trocas.length) { L.push('Trocas:'); L.push(...trocas.map((x) => '• ' + x)) }
-  if (d.para_viagem === true) L.push('Para viagem: sim')
-  else if (d.para_viagem === false) L.push('Para viagem: não')
-  const f = faltas(d)
-  if (f.length) L.push('⚠️ Ainda sem: ' + f.join(', ') + '.')
+  L.push('Instagram: ' + v(arroba(d.instagram), NAO_INFORMADO))
+  L.push('Tema: ' + v(d.tema))
+  L.push('Combo: ' + (t(c.nome) ? '*' + t(c.nome) + '*' : AGUARDANDO))
+  L.push('Descrição: ' + v(c.descricao))
+  L.push('Condições: ' + v(c.condicoes, 'nenhuma informada'))
+  L.push('Para viagem: ' + (d.para_viagem === true ? 'sim' : d.para_viagem === false ? 'não' : AGUARDANDO))
+  for (const [tipo, rotulo] of TIPOS) {
+    const i = (c.itens || []).find((x) => x.tipo === tipo) || {}
+    const sa = selosEAlergenicos(i)
+    L.push('', '*' + rotulo + ':* ' + v(i.nome))
+    L.push('  Descrição: ' + v(i.descricao))
+    if (t(i.ingredientes)) L.push('  Ingredientes: ' + t(i.ingredientes))
+    L.push('  Selos: ' + v(sa.selos))
+    L.push('  Alergênicos: ' + v(sa.alergenicos))
+  }
+  const tr = trocasEOpcoes(d)
+  L.push('', '*Trocas e opções:*' + (tr.length ? '' : ' nenhuma informada'))
+  for (const x of tr) L.push('• ' + (ROTULO_TIPO[x.tipo] || x.tipo) + ': ' + x.texto + (x.daDescricao ? ' (' + ONDE_DESCRICAO[x.daDescricao] + ')' : ''))
+  const us = d.unidades || []
+  L.push('', '*Onde encontrar:*' + (us.length ? '' : ' ' + AGUARDANDO))
+  for (const u of us) {
+    L.push('• ' + v(u.nome, 'unidade sem nome') + ' — ' + v(enderecoTexto(u.endereco)))
+    L.push('  Atendimento: ' + v(atendimentoTexto(u)) + ' · Horário: ' + v(horario(u)))
+  }
   return L.join('\n')
 }
 
-const TITULO_TEXTO = {
-  preenchidos: 'COMBOS JÁ PREENCHIDOS',
-  aprovados: 'COMBOS APROVADOS',
-  andamento: 'COMBOS EM ANÁLISE OU EM PREENCHIMENTO',
-  todos: 'COMBOS JÁ PREENCHIDOS',
-}
-
-/**
- * O texto de vários: cabeçalho, um bloco por participação (A–Z, só as que preencheram algo) e, no fim, quem ainda não
- * preencheu nada (`semNada`: nomes). `edicao` = { codigo, nome, valor_combo }; `data` = "31/10/2026".
- */
-export function textoDeTodos(lista, { filtro = 'preenchidos', edicao = null, data = '', semNada = [] } = {}) {
-  const itens = [...(lista || [])].filter(preenchido).sort((a, b) => t(a.marca).localeCompare(t(b.marca), 'pt-BR'))
+/** O texto de vários (A–Z), todos com os mesmos campos. `edicao` = { codigo, nome, valor_combo }; `data` = "31/10/2026". */
+export function textoDeTodos(lista, { edicao = null, data = '', horario } = {}) {
+  const itens = [...(lista || [])].sort((a, b) => t(a.marca).localeCompare(t(b.marca), 'pt-BR'))
   const preco = edicao && edicao.valor_combo != null ? edicao.valor_combo : null
   const nomeEdicao = edicao ? ['Sweet & Coffee Week', t(edicao.nome), edicao.codigo ? '(' + edicao.codigo + ')' : ''].filter(Boolean).join(' ') : 'Sweet & Coffee Week'
   const L = []
-  L.push('*' + (TITULO_TEXTO[filtro] || TITULO_TEXTO.preenchidos) + ' · ' + nomeEdicao + '*')
+  L.push('*COMBOS DOS PARTICIPANTES · ' + nomeEdicao + '*')
   L.push(itens.length + (itens.length === 1 ? ' participante' : ' participantes') + (preco != null ? ' · valor do combo ' + real(preco) : '') + (data ? ' · posição de ' + data : ''))
   L.push('✅ aprovado pela organização · 🔎 em análise · ✏️ em preenchimento (a marca ainda pode mudar)')
-  L.push('Selos (vegano, sem glúten…) e alergênicos são o que a própria marca declarou no cadastro; o que ficou sem resposta está dito.')
+  L.push('Selos e alergênicos são o que a própria marca declarou. “' + AGUARDANDO + '” = a marca ainda não respondeu.')
   L.push('')
-  itens.forEach((d, i) => { L.push(textoDoCombo(d, i + 1)); L.push('') })
-  if (semNada.length) L.push('*Ainda sem nada preenchido (' + semNada.length + '):* ' + semNada.join(', ') + '.')
-  return L.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
+  itens.forEach((d, i) => { L.push(textoDoCombo(d, i + 1, { horario })); L.push('', '—', '') })
+  return L.join('\n').replace(/\n{3,}/g, '\n\n').replace(/\n—\n*$/, '').trim() + '\n'
 }

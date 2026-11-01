@@ -58,6 +58,8 @@ export const ABA_INICIAL = {
  */
 export function migrarRota(r) {
   if (r && r.vista === 'operacao' && r.aba === 'redes') return { ...r, vista: 'social', aba: 'planejamento' }
+  // Social media › Combos (31/10/2026) virou a própria aba Participantes, com os cartões completos.
+  if (r && r.vista === 'social' && r.aba === 'combos') return { ...r, aba: 'participantes', filtros: {} }
   return r
 }
 

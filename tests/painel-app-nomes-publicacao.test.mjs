@@ -44,7 +44,7 @@ const CHAVES_DE_ROTA = {
   participantes: ['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento', 'localizacoes'],
   contatos: ['pessoas', 'presskit', 'vouchers', 'recebidos'],
   operacao: ['pedidos', 'fotos', 'materiais', 'qr'],
-  social: ['planejamento', 'campanhas', 'biblioteca', 'participantes', 'combos'],
+  social: ['planejamento', 'campanhas', 'biblioteca', 'participantes'],
   arquivos: ['gerais', 'participantes', 'arquivados'],
   edicao: ['configuracao', 'publicacao', 'avaliacoes', 'edicoes'],
   admin: ['equipe', 'revisao', 'importacoes', 'historico', 'formularios'],

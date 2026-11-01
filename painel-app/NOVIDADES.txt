@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Social media › Combos: todos os combos preenchidos, por participante, com botão para copiar o texto para o WhatsApp.
+Social media › Participantes: todos os combos completos à vista, texto revisado, campo marcado quando a marca muda algo e botão Baixar Word.

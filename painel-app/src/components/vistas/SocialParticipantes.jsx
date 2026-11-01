@@ -3,7 +3,6 @@ import { rpc, SUPABASE_URL } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Folha } from '../Folha'
 import { useNomeDaTela } from '../Trilha'
-import { Icone } from '../Icone'
 import { Carregando, Erro, Vazio, Selo, Botao, Secao, LogoMarca } from '../ui'
 import { confirmar } from '../Confirmar'
 import { Autor } from '../Avatar'
@@ -15,6 +14,13 @@ import { traduzirRedes } from './RedesFicha'
 import { usePendencia } from '../../lib/pendencias'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
+import { useLeitura } from '../../lib/leituraVivaReact'
+import { textoDoCombo, textoDeTodos } from '../../lib/combosTexto'
+import { paraTexto, contarAlteracoes } from '../../lib/alteracoesCampo'
+import { resumoDeLinhas, datasDoFestival } from '../../lib/horarioFestival'
+import { gerarWordCombos } from '../../lib/combosWord'
+import { CartaoParticipante } from './social/CartaoParticipante'
+import '../../styles/social-combos.css'
 
 /*
  * Social media › Participantes (17/10/2026): a ficha EDITORIAL de cada casa —
@@ -339,12 +345,19 @@ function FichaEditorial({ participacaoId, pode, navegar, onFechar, onMudou }) {
   )
 }
 
+// Ordem e situação: "alt" = só quem tem alteração da marca não vista; "menos"/"sem" = cobertura de postagens.
+const MOSTRAR = [['', 'Todos, A–Z'], ['alt', 'Só com alterações'], ['menos', 'Menos postagens primeiro'], ['sem', 'Sem postagem']]
+const hoje = () => new Date().toLocaleDateString('pt-BR')
+
 export function SocialParticipantes({ rota, navegar, pode }) {
   const f = rota.filtros || {}
   const [dados, setDados] = React.useState(null)
   const [erro, setErro] = React.useState(null)
   const [edicoes, setEdicoes] = React.useState([])
   const [busca, setBusca] = React.useState(f.q || '')
+  const [aviso, setAviso] = React.useState(null) // { ok } | { erro } | { manual: { rotulo, texto } }
+  const [marcando, setMarcando] = React.useState(null) // participacao_id | 'todos'
+  const [gerando, setGerando] = React.useState(false)
   // Duas leituras, cada uma com a sua guarda: trocou de edição antes da resposta (ou saiu, ou trocou de conta) → a velha
   // não sobrescreve a nova. A releitura por sinal é SILENCIOSA e, se falhar, MANTÉM a lista que já está na tela.
   const guardaLista = useGuarda()
@@ -367,6 +380,13 @@ export function SocialParticipantes({ rota, navegar, pode }) {
   React.useEffect(() => { carregar() }, [carregar])
   // O combo, a casa, a logo, as postagens e a versão do site de cada participante.
   useSincronizar(['editorial', 'redes', 'logos', 'participantes', 'publicacao'], async () => { if (!(await carregar(true))) throw new Error('editorial_participantes') })
+  // Os campos completos de cada participante (31/10/2026): combo, itens, trocas, unidades, revisões e o que a marca mudou.
+  // Relê sozinha quando a marca salva qualquer coisa — é o que faz a marcação "Novo / Alterado" aparecer sem recarregar.
+  const leitura = useLeitura(
+    async () => (await rpc('editorial_combos', { p_secret: lerSenha(), p_edicao: f.ed || null })) || { combos: [] },
+    ['editorial', 'participantes', 'cadastro', 'unidades', 'temas', 'publicacao', 'logos', 'edicao'], { chave: 'combos:' + (f.ed || '') },
+  )
+  const combos = leitura.dados === undefined ? null : leitura.dados
   const [erroOpcoes, setErroOpcoes] = React.useState(null)
   const temEdicoes = React.useRef(false)
   const carregarOpcoes = React.useCallback(async () => {
@@ -395,15 +415,36 @@ export function SocialParticipantes({ rota, navegar, pode }) {
     const t = setTimeout(() => mudar({ q: busca || undefined }, { substituir: true }), 300)
     return () => clearTimeout(t)
   }, [busca]) // eslint-disable-line react-hooks/exhaustive-deps
+  React.useEffect(() => {
+    if (!aviso || !aviso.ok) return undefined
+    const t = setTimeout(() => setAviso(null), 4000)
+    return () => clearTimeout(t)
+  }, [aviso])
 
-  const lista = dados ? dados.participantes || [] : []
+  const lista = React.useMemo(() => [...((dados && dados.participantes) || [])].sort((a, b) => String(a.marca || '').localeCompare(String(b.marca || ''), 'pt-BR')), [dados])
+  const edicao = combos ? combos.edicao : null
+  const datas = React.useMemo(() => (edicao && edicao.festival_inicio && edicao.festival_fim ? datasDoFestival(edicao.festival_inicio, edicao.festival_fim) : []), [edicao])
+  const horario = React.useCallback((u) => resumoDeLinhas((u && u.combo && u.combo.disponibilidade) || [], datas, ''), [datas])
+  // participacao_id → { bruto (marcações), d (revisado) }
+  const porParticipacao = React.useMemo(() => {
+    const m = new Map()
+    for (const b of (combos && combos.combos) || []) m.set(b.participacao_id, { bruto: b, d: paraTexto(b) })
+    return m
+  }, [combos])
+  const doCombo = (p) => porParticipacao.get(p.participacao_id)
+  const nDe = (p) => (doCombo(p) ? contarAlteracoes(doCombo(p).bruto) : 0)
   const q = (f.q || '').toLowerCase()
-  const porBusca = q ? lista.filter((p) => [p.marca, p.tema, p.combo_nome].some((x) => String(x || '').toLowerCase().includes(q))) : lista
+  const porBusca = q
+    ? lista.filter((p) => [p.marca, p.tema, p.combo_nome, doCombo(p) && (doCombo(p).d.combo || {}).nome].some((x) => String(x || '').toLowerCase().includes(q)))
+    : lista
+  const comAlteracao = lista.filter((p) => nDe(p) > 0)
   // Cobertura: "sem postagem" mostra quem ainda não apareceu; "menos postagens" ordena por quem precisa.
   const visiveis = f.cob === 'sem' ? porBusca.filter((p) => !Number(p.n_posts))
+    : f.cob === 'alt' ? porBusca.filter((p) => nDe(p) > 0)
     : f.cob === 'menos' ? [...porBusca].sort((a, b) => Number(a.n_posts) - Number(b.n_posts) || String(a.marca).localeCompare(String(b.marca)))
     : porBusca
   const semPost = lista.filter((p) => !Number(p.n_posts)).length
+  const nAlt = comAlteracao.reduce((s, p) => s + nDe(p), 0)
   // `item` = participante (o mesmo id dos links da postagem); a ficha lê a participação da edição.
   const doItem = f.item ? lista.find((p) => p.participante_id === f.item || p.participacao_id === f.item) : null
   // Uma releitura da lista que por um instante não traz a casa (ou a edição padrão mudou no servidor) NÃO fecha a ficha
@@ -414,6 +455,47 @@ export function SocialParticipantes({ rota, navegar, pode }) {
   else if (doItem) memoAberta.current = { chave: chaveAberta, p: doItem }
   const aberta = f.item ? doItem || (memoAberta.current.chave === chaveAberta ? memoAberta.current.p : null) : null
   useNomeDaTela('social', f.item, aberta && aberta.marca)
+
+  async function copiar(texto, rotulo) {
+    try {
+      await navigator.clipboard.writeText(texto)
+      setAviso({ ok: rotulo + ' copiado. É só colar no WhatsApp.' })
+    } catch {
+      // Sem área de transferência (contexto inseguro, permissão negada): o texto fica à vista para copiar à mão. Não finge que copiou.
+      setAviso({ manual: { rotulo, texto } })
+    }
+  }
+  const paraCopiar = visiveis.map(doCombo).filter(Boolean).map((x) => x.d)
+  async function marcarVisto(participacao) {
+    setMarcando(participacao || 'todos')
+    try {
+      await rpc('editorial_marcar_visto', { p_secret: lerSenha(), p_participacao: participacao || null, p_edicao: f.ed || null })
+      await leitura.recarregar()
+      setAviso({ ok: participacao ? 'Marcado como visto.' : 'Todas as alterações marcadas como vistas.' })
+    } catch (e) {
+      setAviso({ erro: /conta_pessoal/.test(e.message || '') ? 'Para marcar como visto, entre com a sua conta pessoal.' : traduzir(e.message) })
+    } finally {
+      setMarcando(null)
+    }
+  }
+  async function baixarWord() {
+    setGerando(true)
+    try {
+      const blob = await gerarWordCombos(paraCopiar, { edicao, posicao: hoje(), horario })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'combos-' + ((edicao && edicao.codigo) || 'edicao') + '-' + hoje().replace(/\//g, '-') + '.docx'
+      document.body.appendChild(a); a.click(); a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 60000)
+      setAviso({ ok: 'Word gerado com ' + paraCopiar.length + (paraCopiar.length === 1 ? ' participante.' : ' participantes.') })
+    } catch (e) {
+      setAviso({ erro: 'Não consegui gerar o Word: ' + (e.message || 'erro desconhecido') + '.' })
+    } finally {
+      setGerando(false)
+    }
+  }
+  const rotuloTodos = paraCopiar.length === 1 ? '1 participante' : paraCopiar.length + ' participantes'
 
   return (
     <div className="sp">
@@ -432,38 +514,55 @@ export function SocialParticipantes({ rota, navegar, pode }) {
         <label className="rd-ver">
           <span className="ui-oculto">Mostrar</span>
           <select value={f.cob || ''} onChange={(e) => mudar({ cob: e.target.value || undefined }, { substituir: true })}>
-            <option value="">Todos, A–Z</option>
-            <option value="menos">Menos postagens primeiro</option>
-            <option value="sem">Sem postagem ({semPost})</option>
+            {MOSTRAR.map(([k, r]) => <option key={k} value={k}>{r + (k === 'alt' ? ' (' + comAlteracao.length + ')' : k === 'sem' ? ' (' + semPost + ')' : '')}</option>)}
           </select>
         </label>
       </div>
+      <div className="ui-linha-acoes scb-acoes">
+        <Botao icone="copiar" disabled={!paraCopiar.length} onClick={() => copiar(textoDeTodos(paraCopiar, { edicao, data: hoje(), horario }), 'Texto de ' + rotuloTodos)}>Copiar texto de todos ({paraCopiar.length})</Botao>
+        <Botao variante="secundario" icone="baixar" disabled={!paraCopiar.length || gerando} onClick={baixarWord}>{gerando ? 'Gerando Word…' : 'Baixar Word (' + paraCopiar.length + ')'}</Botao>
+        {nAlt > 0 && <Botao variante="secundario" icone="feito" disabled={!!marcando} onClick={() => marcarVisto(null)}>Marcar tudo como visto</Botao>}
+      </div>
+      {combos && (
+        <p className="ui-nota scb-resumo">
+          {nAlt > 0
+            ? <><b>{comAlteracao.length === 1 ? '1 participante' : comAlteracao.length + ' participantes'} com alterações</b> da marca desde a sua última visita. </>
+            : 'Nenhuma alteração nova das marcas desde a sua última visita. '}
+          O que a marca ainda não respondeu aparece como “Aguardando informação”. Os textos estão revisados (ortografia e pontuação); o cadastro guarda o que a marca escreveu.
+        </p>
+      )}
+      {aviso && aviso.ok && <p className="ui-nota ui-nota--ok" role="status">{aviso.ok}</p>}
+      {aviso && aviso.erro && <p className="ui-nota ui-nota--erro" role="alert">{aviso.erro}</p>}
+      {aviso && aviso.manual && (
+        <div className="scb-manual" role="alert">
+          <p className="ui-nota ui-nota--erro">Não consegui copiar sozinho. Selecione o texto abaixo e copie ({aviso.manual.rotulo}).</p>
+          <label className="og-campo">
+            <span className="ui-oculto">{aviso.manual.rotulo}</span>
+            <textarea readOnly rows={12} value={aviso.manual.texto} onFocus={(e) => e.target.select()} />
+          </label>
+          <div className="ui-linha-acoes"><Botao variante="secundario" onClick={() => setAviso(null)}>Fechar</Botao></div>
+        </div>
+      )}
       {erroOpcoes && <Erro titulo="Não carreguei a lista de edições" texto={traduzir(erroOpcoes)} onTentar={carregarOpcoes} />}
       {erro && <Erro texto={traduzir(erro)} onTentar={() => carregar()} />}
-      {!erro && !dados && <Carregando linhas={5} />}
-      {dados && (visiveis.length ? (
-        <ul className="sp-lista">
-          {visiveis.map((p) => (
-            <li key={p.participacao_id}>
-              <button type="button" className="sp-cartao" onClick={() => mudar({ item: p.participante_id })}
-                aria-label={p.marca + (p.tema ? ', tema ' + p.tema : '') + (p.combo_nome ? ', combo ' + p.combo_nome : '') + ', ' + p.n_posts + ' postagens'}>
-                <LogoMarca url={p.logo ? urlLogo(p.logo) : null} participanteId={p.participante_id} nome={p.marca} tamanho={48} />
-                <span className="sp-cartao__corpo" aria-hidden="true">
-                  <span className="sp-cartao__marca">{p.marca}</span>
-                  <span className="rd-campo__nota">{p.tema || 'Tema pendente'} · {p.combo_nome || 'combo sem nome'}</span>
-                  <span className="sp-cartao__selos">
-                    <Selo dominio="combo" valor={p.combo_status} />
-                    {p.alterado_apos_aprovacao && <Selo tom="atencao">Alterado</Selo>}
-                    {p.no_site && <Selo tom="ok">No site</Selo>}
-                    {Number(p.n_posts) ? <span className="rd-campo__nota"><Icone nome="calendario" tamanho={16} /> {p.n_posts} {Number(p.n_posts) === 1 ? 'postagem' : 'postagens'}</span>
-                      : <Selo tom="atencao">Sem postagem</Selo>}
-                  </span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : <Vazio titulo="Nenhum participante" icone="busca">Mude a edição ou a busca.</Vazio>)}
+      {leitura.bloqueada && leitura.erro && <Erro titulo="Não carreguei os combos" texto={traduzir(leitura.erro)} onTentar={leitura.recarregar} />}
+      {leitura.falhouAtualizar && <Erro titulo="Não consegui atualizar" texto={traduzir(leitura.erro)} onTentar={leitura.recarregar} />}
+      {!erro && !leitura.bloqueada && (!dados || !combos) && <Carregando linhas={5} />}
+      {dados && combos && (visiveis.length ? (
+        <div className="scb-lista">
+          {visiveis.map((p) => {
+            const x = doCombo(p)
+            if (!x) return null
+            return (
+              <CartaoParticipante key={p.participacao_id} d={x.d} bruto={x.bruto} editorial={p} datas={datas}
+                valorCombo={edicao ? edicao.valor_combo : null} horario={horario}
+                onAbrir={() => mudar({ item: p.participante_id })}
+                onCopiar={(d) => copiar(textoDoCombo(d, null, { horario }), 'Texto de ' + d.marca)}
+                onVisto={() => marcarVisto(p.participacao_id)} marcando={marcando === p.participacao_id || marcando === 'todos'} />
+            )
+          })}
+        </div>
+      ) : <Vazio titulo="Nenhum participante" icone="busca">{f.cob === 'alt' ? 'Nenhuma alteração nova das marcas.' : 'Mude a edição ou a busca.'}</Vazio>)}
       {dados && f.item && !aberta && (
         <p className="og-aviso" role="status">Este participante não está na edição {dados.edicao}. Escolha a edição dele acima.</p>
       )}

@@ -1416,25 +1416,33 @@ testes `tests/painel-app-localizacoes.test.mjs` e `painel-app-edicao-marca.test.
   OpenStreetMap foi avaliado e descartado — em Natal ele erra a casa (testado com a Carcará: 4,8 km de diferença).
 - ⚠️ Ficou de fora: card "Localizações a conferir" na Visão geral; `verificada` segue no estado da unidade da marca, sem uso na tela.
 
-#### Social media › Combos — 31/10/2026 (pedido do Wilker)
-"Um texto com todos os participantes que já preencheram o combo, para passar para a Micaela, e uma página no painel com isso." Migration
-`20261121_social_combos.sql` (só leitura; reversão em `supabase/reverter/`, teste do banco `supabase/testes/social-combos.sql` → `TESTE_OK`),
-lógica em `lib/combosTexto.js`, tela `vistas/SocialCombos.jsx` + `styles/social-combos.css` (`scb-`), teste `tests/painel-app-combos.test.mjs`.
-- **Onde:** Social media › Combos, só com `editorial.ler` (administrador e a função Social media — a Micaela é a conta "Micka", que só vê
-  Visão geral e Social media). Uma seção por participante da edição atual; nada grava no cadastro.
-- **Leitura:** `editorial_combos(p_secret, p_edicao)` devolve, por participação (não encerrada), o `combo` de
-  `montar_publico(…, 'marca_e_combo')` — nome, descrição, condições, itens com declarações alimentares e trocas — mais tema, Instagram, status
-  e `para_viagem`. É o MESMO dado da ficha editorial: sem telefone, e-mail, CNPJ, custos nem pagamento (o teste do banco confere as chaves).
-  Classificada em `RPC_LEITURA` (`sync/dominios.js`); relê sozinha por editorial, participantes, cadastro, temas, publicacao, logos e edicao.
-- **"Preenchido"** = tem nome ou descrição do combo, ou nome/descrição de algum item (`preenchido`). Filtros: Preenchidos (padrão) · Aprovados ·
-  Em análise ou em preenchimento · Ainda em branco · Todos; o número de cada um é o tamanho da lista (teste).
-- **O texto** (`textoDoCombo` / `textoDeTodos`) é para o WhatsApp (negrito `*…*`): marcador do status, Instagram, tema, combo, 3 itens com selos
-  e alergênicos, trocas, "para viagem" e "⚠️ Ainda sem: …". Botões "Copiar texto desta marca" e "Copiar texto de todos (N)" (o que está na tela; o
-  rodapé "ainda sem nada" só sem busca). Sem área de transferência, o texto aparece numa caixa para copiar à mão — não finge que copiou.
-- ⛔ **Regras do texto:** declaração ausente = "ainda não informados" (nunca "não contém"); lactose ≠ leite; nada é reescrito (o que a marca escreveu
-  sai como veio). Selos e alergênicos são DECLARAÇÃO da marca e alguns parecem estranhos (ex.: "sem glúten" em cookie): confirmar antes de divulgar.
-- Não existe "item adicional" no cadastro: a página mostra os 3 itens (doce, salgado, bebida), as trocas (com acréscimo) e as condições do combo.
-
+#### Social media › Participantes completo — 31/10/2026 (pedido do Wilker; substitui a aba "Combos" do mesmo dia)
+"Em sequência, ordem alfabética, cada participante no seu card com tudo à vista; quando o participante atualizar, mostra aqui com uma
+sinalização no campo." Migration `20261122_social_participantes_completo.sql` (reversão em `supabase/reverter/`, teste do banco
+`supabase/testes/social-participantes-completo.sql` → `TESTE_OK`), lógica em `lib/alteracoesCampo.js` + `lib/combosTexto.js` +
+`lib/combosWord.js`, cartão `vistas/social/CartaoParticipante.jsx`, estilo `styles/social-combos.css` (`scb-`), testes
+`tests/painel-app-combos.test.mjs` e `node tests/painel-social-participantes-navegador.mjs` (de dentro de `tests/`; `DADOS=` fixture
+local, `CAPTURAS=` prints 1440/390).
+- **Onde:** Social media › Participantes (só `editorial.ler`: administrador e Social media/Micka). Um cartão por participante, A–Z
+  (ordenado NA TELA), e "Abrir ficha" segue abrindo a ficha editorial (editar textos, criar postagem). A aba Combos saiu;
+  `#social/combos` cai em Participantes (`migrarRota`).
+- **Campos FIXOS, na mesma ordem para todos** (cartão, texto do WhatsApp e Word): Participante (Instagram, Tema) · Combo (nome,
+  descrição, condições, para viagem, valor) · Doce/Salgado/Bebida (nome, descrição, ingredientes, selos, alergênicos) · Trocas e
+  opções · Onde encontrar (unidade, endereço, WhatsApp da loja, atendimento, horário no festival). Obrigatório sem resposta =
+  "Aguardando informação" NO LUGAR do campo; opcional vazio = "Não informado". ⛔ A lista "Ainda sem: …" no fim não volta.
+- **Texto revisado à parte** (`revisoes_texto`): ortografia, pontuação e maiúsculas, conferidas palavra a palavra contra o original.
+  O cadastro e o site continuam com o que a marca escreveu; a tela mostra a revisão SÓ enquanto o original for o mesmo (`revisar`:
+  mudou o original → `caducas`, volta o texto da marca). Duas revisões especiais: `opcao:<onde>:<n>` (troca/opção que a marca
+  escreveu DENTRO de uma descrição: aparece em "Trocas e opções" com "Informado na descrição de …") e `ocultar:<tipo>.troca<k>`
+  (troca repetida em outro item). A carga inicial (133 linhas, Word v3.1) fica FORA do repositório
+  (`sweet-coffee-week-dados/revisoes-combos-2026-2-carga.sql`): texto de marca não vai ao GitHub público.
+- **"Novo / Alterado" por campo** (`alteracoes_campo`): gatilho `alteracao_campo_marca` nas 7 tabelas, SÓ quando quem grava é a
+  marca (`meu_participante()`), fora de `scw.silencioso` e do "Ver como". Guarda o antes e o depois; gravações do mesmo campo em
+  10 min viram uma linha (salvamento automático). ⚠️ O "Aplicar" do /preencher é gravação da equipe e NÃO marca. A marcação some
+  por PESSOA com "Marquei como visto" (`editorial_marcar_visto`, `editorial_vistos`; só conta pessoal); filtro "Só com alterações".
+  Falha do gatilho vira `warning` e nunca derruba o salvamento da marca.
+- **Copiar e baixar:** "Copiar texto de todos" (WhatsApp) e "Baixar Word" (o mesmo documento do v3.1, gerado no navegador; a
+  biblioteca `docx` só carrega no clique) usam o que está na tela (busca e filtro).
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
 `/preencher/#<código>` (página estática `public/preencher/index.html`, mesmo padrão do `/quero-participar`):

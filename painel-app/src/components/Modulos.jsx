@@ -23,7 +23,6 @@ import { Redes, ResumoRedes } from './vistas/Redes'
 import { SocialBiblioteca } from './vistas/SocialBiblioteca'
 import { SocialCampanhas } from './vistas/SocialCampanhas'
 import { SocialParticipantes } from './vistas/SocialParticipantes'
-import { SocialCombos } from './vistas/SocialCombos'
 import { NOMES_PUBLICACAO } from '../lib/nomesPublicacao'
 import { useRotulosDasAbas } from './Trilha'
 
@@ -115,8 +114,6 @@ export function ModSocial(props) {
     { chave: 'campanhas', rotulo: 'Campanhas', render: () => <SocialCampanhas {...props} /> },
     { chave: 'biblioteca', rotulo: 'Biblioteca', render: () => <SocialBiblioteca {...props} /> },
     { chave: 'participantes', rotulo: 'Participantes', mostrar: props.pode('editorial.ler'), render: () => <SocialParticipantes {...props} /> },
-    // Os combos da edição, uma seção por participante, com o texto para copiar (31/10/2026). Só leitura.
-    { chave: 'combos', rotulo: 'Combos', mostrar: props.pode('editorial.ler'), render: () => <SocialCombos {...props} /> },
   ]} />
 }
 

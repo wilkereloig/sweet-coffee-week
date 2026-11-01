@@ -193,6 +193,7 @@ export const RPC_ESCRITA = Object.freeze({
   social_pasta_arquivar: ['biblioteca'],
   social_pasta_mover: ['biblioteca'],
   editorial_salvar: ['editorial', 'participantes', 'cadastro', 'avisos'],
+  editorial_marcar_visto: ['editorial'],
   // lado marca
   marca_concluir_cadastro: ['participantes', 'avisos'],
   marca_definir_logo: ['logos', 'participantes', 'editorial'],
