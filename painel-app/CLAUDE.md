@@ -1416,6 +1416,25 @@ testes `tests/painel-app-localizacoes.test.mjs` e `painel-app-edicao-marca.test.
   OpenStreetMap foi avaliado e descartado — em Natal ele erra a casa (testado com a Carcará: 4,8 km de diferença).
 - ⚠️ Ficou de fora: card "Localizações a conferir" na Visão geral; `verificada` segue no estado da unidade da marca, sem uso na tela.
 
+#### Social media › Combos — 31/10/2026 (pedido do Wilker)
+"Um texto com todos os participantes que já preencheram o combo, para passar para a Micaela, e uma página no painel com isso." Migration
+`20261121_social_combos.sql` (só leitura; reversão em `supabase/reverter/`, teste do banco `supabase/testes/social-combos.sql` → `TESTE_OK`),
+lógica em `lib/combosTexto.js`, tela `vistas/SocialCombos.jsx` + `styles/social-combos.css` (`scb-`), teste `tests/painel-app-combos.test.mjs`.
+- **Onde:** Social media › Combos, só com `editorial.ler` (administrador e a função Social media — a Micaela é a conta "Micka", que só vê
+  Visão geral e Social media). Uma seção por participante da edição atual; nada grava no cadastro.
+- **Leitura:** `editorial_combos(p_secret, p_edicao)` devolve, por participação (não encerrada), o `combo` de
+  `montar_publico(…, 'marca_e_combo')` — nome, descrição, condições, itens com declarações alimentares e trocas — mais tema, Instagram, status
+  e `para_viagem`. É o MESMO dado da ficha editorial: sem telefone, e-mail, CNPJ, custos nem pagamento (o teste do banco confere as chaves).
+  Classificada em `RPC_LEITURA` (`sync/dominios.js`); relê sozinha por editorial, participantes, cadastro, temas, publicacao, logos e edicao.
+- **"Preenchido"** = tem nome ou descrição do combo, ou nome/descrição de algum item (`preenchido`). Filtros: Preenchidos (padrão) · Aprovados ·
+  Em análise ou em preenchimento · Ainda em branco · Todos; o número de cada um é o tamanho da lista (teste).
+- **O texto** (`textoDoCombo` / `textoDeTodos`) é para o WhatsApp (negrito `*…*`): marcador do status, Instagram, tema, combo, 3 itens com selos
+  e alergênicos, trocas, "para viagem" e "⚠️ Ainda sem: …". Botões "Copiar texto desta marca" e "Copiar texto de todos (N)" (o que está na tela; o
+  rodapé "ainda sem nada" só sem busca). Sem área de transferência, o texto aparece numa caixa para copiar à mão — não finge que copiou.
+- ⛔ **Regras do texto:** declaração ausente = "ainda não informados" (nunca "não contém"); lactose ≠ leite; nada é reescrito (o que a marca escreveu
+  sai como veio). Selos e alergênicos são DECLARAÇÃO da marca e alguns parecem estranhos (ex.: "sem glúten" em cookie): confirmar antes de divulgar.
+- Não existe "item adicional" no cadastro: a página mostra os 3 itens (doce, salgado, bebida), as trocas (com acréscimo) e as condições do combo.
+
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
 `/preencher/#<código>` (página estática `public/preencher/index.html`, mesmo padrão do `/quero-participar`):

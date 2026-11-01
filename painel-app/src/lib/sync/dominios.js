@@ -53,7 +53,7 @@ export function limparDominios(lista) {
 // Também é a lista que o teste usa para exigir que NENHUMA RPC fique sem
 // classificação: chamada nova que não esteja aqui nem em RPC_ESCRITA reprova.
 export const RPC_LEITURA = new Set([
-  'admin_ping', 'buscar_marcas_acervo', 'editorial_ficha', 'editorial_participantes',
+  'admin_ping', 'buscar_marcas_acervo', 'editorial_combos', 'editorial_ficha', 'editorial_participantes',
   'equipe_diretorio', 'meu_perfil', 'minhas_permissoes',
   'marca_meus_vouchers', 'marca_minha_historia', 'marca_minha_logo',
   'marca_minha_publicacao', 'marca_previa_publica',
