@@ -649,17 +649,32 @@
 /* Pin desenhado do tema da casa: a ponta toca o lugar; selecionado cresce, quero ir/já fui ganham anel. */
 .ct-marcador--pin { width: auto; height: auto; padding: 0; translate: 0 -2px; transition: scale 180ms var(--ct-mo-quique); transform-origin: 50% 100%; }
 .ct-marcador--pin::before { content: none; }
-.ct-marcador--pin img { display: block; width: 48px; height: auto; filter: drop-shadow(2px 3px 0 rgba(58, 21, 15, .35)); }
+.ct-pin { position: relative; display: block; }
+.ct-pin img { display: block; width: 48px; height: auto; filter: drop-shadow(2px 3px 0 rgba(58, 21, 15, .35)); }
 .ct-marcador--pin.is-sel { scale: 1.35; z-index: 2; }
-.ct-marcador--pin.ct-marcador--quero img { filter: drop-shadow(0 0 0 var(--ct-vermelho)) drop-shadow(2px 3px 0 var(--ct-vermelho)); }
-.ct-marcador--pin.ct-marcador--foi img { opacity: .7; }
+/* Aproximado: anel tracejado em volta da ponta ("é por aqui"), nunca se passa por ponto exato. */
+.ct-marcador--aprox .ct-pin::after {
+  content: ''; position: absolute; z-index: -1; left: 50%; bottom: -6px; width: 36px; height: 13px; translate: -50% 0;
+  border: 2.5px dashed var(--ct-chocolate); border-radius: 50%; background: rgba(253, 240, 222, .75);
+}
+/* Quero ir / Já fui: selo redondo no ombro do pin, nas cores das marcações da rota. */
+.ct-marcador--quero .ct-pin::before, .ct-marcador--foi .ct-pin::before {
+  content: ''; position: absolute; top: -3px; right: -5px; width: 18px; height: 18px;
+  border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-vermelho);
+}
+.ct-marcador--foi .ct-pin::before { background: var(--ct-turquesa); }
 .ct-marcador--voce::before { width: 14px; height: 14px; border: 3px solid var(--ct-branco); background: var(--ct-azul); box-shadow: 0 0 0 2.5px var(--ct-chocolate); }
 .ct-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0 4px; list-style: none; font: 600 13px/1.3 var(--ct-font); }
 .ct-legenda li { display: inline-flex; align-items: center; gap: 6px; }
-.ct-legenda__ponto { width: 16px; height: 16px; border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); }
-.ct-legenda__ponto--aproximada { border-style: dashed; background: var(--ct-creme); }
-.ct-legenda__ponto--quero { background: var(--ct-vermelho); }
-.ct-legenda__ponto--foi { background: var(--ct-turquesa); }
+/* Legenda nos mesmos sinais do mapa: gota de pin (desenhada em CSS), anel tracejado e selos da rota. */
+.ct-legenda__nota { flex-basis: 100%; }
+.ct-legenda__ponto { position: relative; flex: none; width: 15px; height: 15px; margin: 0 4px 4px; border: 2.5px solid var(--ct-chocolate); border-radius: 50% 50% 50% 0; background: var(--ct-amarelo); rotate: -45deg; }
+.ct-legenda__ponto--aproximada { box-shadow: 0 0 0 4px var(--ct-creme), 0 0 0 6px var(--ct-chocolate); border-style: dashed; background: var(--ct-creme); }
+.ct-legenda__ponto--quero::after, .ct-legenda__ponto--foi::after {
+  content: ''; position: absolute; top: -8px; left: 50%; width: 10px; height: 10px; rotate: 45deg;
+  border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-vermelho);
+}
+.ct-legenda__ponto--foi::after { background: var(--ct-turquesa); }
 .ct-legenda__ponto--voce { width: 12px; height: 12px; border-color: var(--ct-branco); background: var(--ct-azul); box-shadow: 0 0 0 2px var(--ct-chocolate); }
 
 /* ------------------------------------------------------------- avaliação e premiação */

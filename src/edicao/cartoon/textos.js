@@ -200,6 +200,7 @@ export const MAPA = {
   semCoordenada: 'Localização no mapa em conferência.',
   aproximada: 'Ponto aproximado no mapa, em conferência.',
   aproximadaRua: 'Ponto aproximado no mapa: a rua confere, o número ainda não.',
+  legendaPins: 'Cada casa tem o seu pin, com um objeto do tema dela.',
   legenda: { conferida: 'Localização conferida', aproximada: 'Ponto aproximado, em conferência', quero: 'Quero ir', foi: 'Já fui', voce: 'Você' },
   distancia: (d, aproximada) => `${aproximada ? 'cerca de ' : ''}${d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1).replace('.', ',')} km`} em linha reta`,
   verCasa: 'Ver a casa',

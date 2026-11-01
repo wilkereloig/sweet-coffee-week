@@ -182,6 +182,7 @@ export function Mapa ({ navigate, dados }) {
             </div>
             {verMapa && noMapa.length > 0 && (
               <ul className="ct-legenda" aria-label="Legenda do mapa">
+                <li className="ct-legenda__nota">{T.legendaPins}</li>
                 {Object.entries(T.legenda).filter(([k]) => k !== 'voce' || posicao).map(([k, texto]) => <li key={k}><span className={`ct-legenda__ponto ct-legenda__ponto--${k}`} aria-hidden="true" />{texto}</li>)}
               </ul>
             )}

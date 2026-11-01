@@ -37,12 +37,13 @@ function elementoDoPonto (p, aoSelecionar) {
   el.type = 'button'
   el.className = `ct-marcador${p.pin ? ' ct-marcador--pin' : ''}`
   if (p.pin) {
+    // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui); o botão é do provedor do mapa.
+    const caixa = document.createElement('span')
+    caixa.className = 'ct-pin'
     const img = document.createElement('img')
-    img.src = p.pin.src
-    img.alt = ''
-    img.width = 48
-    img.height = Math.round(48 * p.pin.altura / p.pin.largura)
-    el.append(img)
+    Object.assign(img, { src: p.pin.src, alt: '', width: 48, height: Math.round(48 * p.pin.altura / p.pin.largura) })
+    caixa.append(img)
+    el.append(caixa)
   }
   el.addEventListener('click', () => aoSelecionar(p.id))
   return el

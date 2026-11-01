@@ -51,9 +51,13 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
       const el = document.createElement('button')
       el.type = 'button'
       if (p.pin) {
+        // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui): o MapLibre posiciona o botão.
+        const caixa = document.createElement('span')
+        caixa.className = 'ct-pin'
         const img = document.createElement('img')
         Object.assign(img, { src: p.pin.src, alt: '', width: 48, height: Math.round(48 * p.pin.altura / p.pin.largura) })
-        el.append(img)
+        caixa.append(img)
+        el.append(caixa)
         el.classList.add('ct-marcador--pin')
       }
       el.addEventListener('click', () => aoSelecionar(p.id))
