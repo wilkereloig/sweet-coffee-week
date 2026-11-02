@@ -2011,3 +2011,25 @@ busca, CSV), estilo em `styles/qr.css`, testes em `tests/painel-app-qr.test.mjs`
 - ⚠️ `qr` é chave de rota nova de Operação (entrou no contrato de `tests/painel-app-nomes-publicacao.test.mjs`).
 - **Não faz ainda:** pausar nem cadastrar peça. Fica para quando a D3 definir peças novas (peça nova também precisa do PNG do QR, que sai do
   `scripts/qr-edicao.mjs --por-peca`).
+
+#### Preenchimento automático — 02/11/2026 (pedido do Wilker: "automatize os participantes que preencheram o formulário… e gerar uma notificação")
+Marca envia o `/preencher` → entra no cadastro e em Social media › Participantes sem ninguém clicar em "Aplicar", com texto revisado
+pela API do Claude e UMA notificação (com push) que abre a ficha em Participantes. Migration `20261125_preenchimento_automatico.sql`
+(✅ aplicada pelo MCP do claude.ai; teste `supabase/testes/preenchimento-automatico.sql` → `TESTE_OK`; reversão em `supabase/reverter/`),
+edge function `supabase/functions/processar-preenchimento/` (✅ no ar, `--no-verify-jwt`, modelo `claude-sonnet-5-5`).
+- ⚠️ **Nasce DESLIGADO:** `admin_config.preenchimento_automatico = false`. Ligar = `update public.admin_config set preenchimento_automatico = true;`
+  DEPOIS de criar o secret `ANTHROPIC_API_KEY` (Supabase › Project Settings › Edge Functions › Secrets; só o Wilker mexe na chave).
+  Ligado, o aviso antigo "enviou o formulário… revise e aplique" deixa de sair no envio (senão são dois avisos).
+- **Fluxo:** gatilho `preenchimento_automatico` (pg_net, só o id) → função → `sistema_aplicar_envio` (reaproveita
+  `org_preenchimento_decidir`, que aceita `eh_servico()`; rótulo "Automático (formulário)") → `sistema_textos_para_revisar` → API →
+  `sistema_gravar_revisoes` → `sistema_finalizar_envio` (a notificação). A APLICAÇÃO vem antes da revisão: a API cair nunca a impede.
+- **O banco manda, não a API:** `sistema_gravar_revisoes` pega o ORIGINAL do banco e só grava se o texto mudou, os DÍGITOS são os
+  mesmos e o tamanho fica entre 60% e 160%; nunca sobrescreve revisão à mão sobre o mesmo original. Campos cobertos: `combo.nome|
+  descricao|condicoes`, `<tipo>.nome|descricao|ingredientes`, `<tipo>.troca<k>.alternativa|descricao|como_solicitar`. As revisões
+  especiais (`opcao:`, `ocultar:`) continuam sendo trabalho manual.
+- **"Novo/Alterado" por campo:** o gatilho `alteracao_campo_marca` só registrava a MARCA logada (`meu_participante()`); agora também
+  aceita `scw.alterou_participante`, que só `sistema_aplicar_envio` marca. ⚠️ Antes disso, "Aplicar" à mão NÃO gerava "Novo/Alterado".
+- **`pode()` aceita `scw.sistema_ativo = 'on'`** (transação de `sistema_aplicar_envio`, que só a chave de serviço executa), porque
+  `decidir` chama `org_salvar_*`. NUNCA liberar `pode` por papel de serviço: outras funções validam senha de pessoa com o cliente de serviço.
+- **Falha:** envio pendente há 2 min+ (ou aplicado sem concluir) é refeito pelo cron `scw-preenchimento-reprocessar` (5 min); pendente
+  há 30 min → aviso no formato antigo ("não consegui aplicar sozinho… revise e aplique"), uma vez (`aviso_falha_em`).
