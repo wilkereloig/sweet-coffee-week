@@ -22,6 +22,9 @@ const MAX_CARACTERES = 24000
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const CHAVE_SERVICO = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+// O secret do SCW chama-se `scw-api-key` (criado pelo Wilker); `ANTHROPIC_API_KEY` também vale.
+const chaveApi = () => Deno.env.get('ANTHROPIC_API_KEY') || Deno.env.get('scw-api-key') || ''
+
 const SISTEMA = `Você revisa textos escritos por marcas participantes de um festival de gastronomia (Sweet & Coffee Week), em português do Brasil.
 
 Para cada texto recebido, corrija SOMENTE: ortografia, acentuação, pontuação, concordância, espaços duplicados e maiúsculas (início de frase, nomes próprios). Se uma descrição inteira estiver em CAIXA ALTA, passe para caixa normal mantendo siglas e nomes próprios.
@@ -99,7 +102,7 @@ Deno.serve(async (req) => {
   let corpo: { envio_id?: unknown; diagnostico?: unknown }
   try { corpo = await req.json() } catch { return json({ ok: false, erro: 'json' }, 400) }
   // Só diz se a chave existe no ambiente da função (true/false); nunca devolve o valor.
-  if (corpo.diagnostico === 'chave') return json({ ok: true, chave: !!Deno.env.get('ANTHROPIC_API_KEY') })
+  if (corpo.diagnostico === 'chave') return json({ ok: true, chave: !!chaveApi() })
   const id = corpo.envio_id
   if (typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
     return json({ ok: false, erro: 'envio_id' }, 400)
@@ -112,7 +115,7 @@ Deno.serve(async (req) => {
 
     let revisados = 0
     let estado: 'ok' | 'sem_chave' | 'falhou' = 'ok'
-    const chave = Deno.env.get('ANTHROPIC_API_KEY')
+    const chave = chaveApi()
     if (!chave) {
       estado = 'sem_chave'
     } else {
