@@ -105,12 +105,30 @@ async function revisar(chave: string, textos: Texto[]): Promise<Revisao[]> {
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, erro: 'metodo' }, 405)
-  let corpo: { envio_id?: unknown; diagnostico?: unknown }
+  let corpo: { envio_id?: unknown; diagnostico?: unknown; revisar_participacao?: unknown }
   try { corpo = await req.json() } catch { return json({ ok: false, erro: 'json' }, 400) }
   // Só diz se a chave existe no ambiente da função (true/false); nunca devolve o valor.
   if (corpo.diagnostico === 'chave') return json({ ok: true, chave: !!chaveApi() })
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  // Modo "revisar tudo" (03/11): só a REVISÃO de uma participação, sem aplicar envio nem notificar. Só trabalha nos textos que
+  // ainda não têm revisão para o original de hoje; precisa do id (não adivinhável) e, sem texto novo, não chama a API.
+  if (corpo.revisar_participacao !== undefined) {
+    const pa = corpo.revisar_participacao
+    if (typeof pa !== 'string' || !UUID.test(pa)) return json({ ok: false, erro: 'participacao' }, 400)
+    const chave = chaveApi()
+    if (!chave) return json({ ok: false, erro: 'sem_chave' })
+    try {
+      const textos = await rpc<Texto[]>('sistema_textos_sem_revisao', { p_participacao: pa })
+      if (!textos.length) return json({ ok: true, enviados: 0, revisados: 0 })
+      const revisados = await rpc<number>('sistema_gravar_revisoes', { p_participacao: pa, p_revisoes: await revisar(chave, textos) })
+      return json({ ok: true, enviados: textos.length, revisados })
+    } catch (e) {
+      console.error('processar-preenchimento: revisar_participacao', (e as Error).message)
+      return json({ ok: false, erro: 'falhou' }, 500)
+    }
+  }
   const id = corpo.envio_id
-  if (typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+  if (typeof id !== 'string' || !UUID.test(id)) {
     return json({ ok: false, erro: 'envio_id' }, 400)
   }
 
@@ -126,7 +144,7 @@ Deno.serve(async (req) => {
       estado = 'sem_chave'
     } else {
       try {
-        const textos = await rpc<Texto[]>('sistema_textos_para_revisar', { p_participacao: ap.participacao_id })
+        const textos = await rpc<Texto[]>('sistema_textos_sem_revisao', { p_participacao: ap.participacao_id })
         if (textos.length) {
           const revisoes = await revisar(chave, textos)
           revisados = await rpc<number>('sistema_gravar_revisoes', { p_participacao: ap.participacao_id, p_revisoes: revisoes })
