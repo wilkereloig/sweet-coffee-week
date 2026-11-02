@@ -1,4 +1,4 @@
--- Teste de 20261124 (pendências da marca no Início). Não deixa rastro: termina em exceção. Esperado: "TESTE_OK".
+-- Teste de 20261124 (e 20261126: descrição da troca opcional) (pendências da marca no Início). Não deixa rastro: termina em exceção. Esperado: "TESTE_OK".
 do $$
 declare pa uuid; item uuid; s1 uuid; s2 uuid; f text[];
 begin
@@ -15,7 +15,8 @@ begin
   f := public.pendencias_marca(pa);
   if not ('combo_descricao' = any (f)) then raise exception 'faltou combo_descricao: %', f; end if;
   if 'troca:2:1:descricao' = any (f) or 'troca:2:1:alimentar' = any (f) then raise exception 'troca completa não pode pendurar: %', f; end if;
-  if not ('troca:2:2:descricao' = any (f) and 'troca:2:2:alimentar' = any (f)) then raise exception 'faltou a troca 2: %', f; end if;
+  if not ('troca:2:2:alimentar' = any (f)) then raise exception 'faltou a troca 2: %', f; end if;
+  if 'troca:2:2:descricao' = any (f) then raise exception 'descrição da troca é opcional: %', f; end if;
   -- a publicação continua com a regra antiga
   if 'combo_descricao' = any (public.pendencias_publicacao(pa)) or exists (select 1 from unnest(public.pendencias_publicacao(pa)) x where x like 'troca:%') then
     raise exception 'pendencias_publicacao não pode ganhar as pendências novas';

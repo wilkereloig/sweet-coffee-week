@@ -397,7 +397,7 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
       <button type="button" class="btn btn--mini" data-remover-troca><!--icone:excluir:16--><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6.5h16"/><path d="M9 6.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v1.5"/><path d="M6 6.5l.9 12.1A1.5 1.5 0 0 0 8.4 20h7.2a1.5 1.5 0 0 0 1.5-1.4L18 6.5"/><path d="M10 10.5V16M14 10.5V16"/></svg><!--/icone--><span>Remover</span></button>
     </div>
     <label class="campo"><span>Nome do item da troca</span><input data-t="alternativa" maxlength="200" placeholder="Ex.: cachorro-quente vegetariano"></label>
-    <label class="campo"><span>Descrição</span><textarea data-t="descricao" maxlength="600" rows="2"></textarea></label>
+    <label class="campo"><span>Descrição <em>(opcional)</em></span><textarea data-t="descricao" maxlength="600" rows="2"></textarea></label>
     <div class="alimentar"></div>
     <div class="pergunta" role="radiogroup">
       <span>Disponível</span>
@@ -636,7 +636,6 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
       tirar.classList.toggle('oculto', ops.length < 2);
       tirar.setAttribute('aria-label', 'Remover ' + rot.toLowerCase() + ' — ' + nome);
       no.querySelector('[data-t="alternativa"]').dataset.obrigatorio = nome + ' · troca ' + (k + 1) + ': nome';
-      no.querySelector('[data-t="descricao"]').dataset.obrigatorio = nome + ' · troca ' + (k + 1) + ': descrição';
     });
   }
 
@@ -1501,7 +1500,7 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
         marca(no.querySelector('[data-pergunta="troca"]'), 'pergunta--falta');
         lista.push({ texto: nome + ': tem opção de troca?', alvo: no.querySelector('[data-troca]') });
       } else if (troca.value === 'true') {
-        // Nome e descrição de cada troca já entram pelo data-obrigatorio; aqui só a pergunta dos alergênicos.
+        // Nome de cada troca já entra pelo data-obrigatorio (a descrição é opcional); aqui só a pergunta dos alergênicos.
         no.querySelectorAll('.troca-op').forEach(function (op, k) { alergenicos(alimentarDe(op), nome + ' · troca ' + (k + 1) + ': alergênicos'); });
       }
     });

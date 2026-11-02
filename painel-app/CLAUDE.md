@@ -2033,3 +2033,10 @@ edge function `supabase/functions/processar-preenchimento/` (✅ no ar, `--no-ve
   `decidir` chama `org_salvar_*`. NUNCA liberar `pode` por papel de serviço: outras funções validam senha de pessoa com o cliente de serviço.
 - **Falha:** envio pendente há 2 min+ (ou aplicado sem concluir) é refeito pelo cron `scw-preenchimento-reprocessar` (5 min); pendente
   há 30 min → aviso no formato antigo ("não consegui aplicar sozinho… revise e aplique"), uma vez (`aviso_falha_em`).
+
+#### Descrição da troca é OPCIONAL — 03/11/2026 (Wilker, vendo o Marlon cobrado depois de ele deixar só o título "Água sem Gás")
+Muda "Trocas completas" (02/11): o NOME e os 8 alergênicos da troca seguem obrigatórios; a DESCRIÇÃO deixou de ser cobrada.
+`faltasDaTroca` (edicaoMarca.js) só devolve `alimentar`; o Início (`pendencias_marca`, migration `20261126_troca_descricao_opcional.sql`,
+✅ aplicada, teste `supabase/testes/pendencias-marca.sql` → `TESTE_OK`), o "Faltam N" e a % param de pedir; o `/preencher` marca o campo
+"(opcional)" e não o valida mais. A descrição continua sendo gravada e aparecendo (Social › Participantes, site) quando a marca escreve.
+Descrição do COMBO segue obrigatória.

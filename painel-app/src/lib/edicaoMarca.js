@@ -275,10 +275,9 @@ export function corpoSubstituicao(s, nomeItem) {
 /** Grava com o nome; descrição e alergênicos que faltam viram pendência, não impedem a gravação. */
 export const substituicaoGravavel = (s) => !!texto(s.alternativa)
 
-/** O que falta numa troca com nome: 'descricao' e/ou 'alimentar' (alergênicos sem resposta). */
+/** O que falta numa troca com nome: 'alimentar' (alergênicos sem resposta). A descrição é OPCIONAL (03/11/2026, Wilker: título como "Água sem Gás" já define). */
 export function faltasDaTroca(s, porAspecto) {
   const f = []
-  if (!texto(s.descricao)) f.push('descricao')
   if (alergenicosRespondidos(porAspecto) < ASPECTOS_ALERGENICOS.length) f.push('alimentar')
   return f
 }
@@ -296,8 +295,8 @@ export function alternar(lista, valor, referencia) {
  * combo_nome · sem_unidade · unidade:<id>:endereco (rua, número, bairro, cidade e CEP)|modos|canais|horario ·
  * item:<posicao>:alimentar. Unidade ainda não gravada usa a chave local no
  * lugar do id público (o servidor nem a vê ainda).
- * Só da tela (02/11/2026, o servidor não os lista): combo_descricao e, por troca com nome,
- * troca:<posicao>:<n>:descricao|alimentar (n = a ordem da troca no item, a mesma da tela).
+ * Só da tela (02/11/2026, o servidor não os lista): combo_descricao e, por troca com nome (descrição da troca é opcional),
+ * troca:<posicao>:<n>:alimentar (n = a ordem da troca no item, a mesma da tela).
  */
 export function pendenciasEdicao({ comboNome = '', comboDescricao = '', unidades = [], itens = [], declaracoes = {}, substituicoes = [], declTrocas = {} } = {}) {
   const f = []

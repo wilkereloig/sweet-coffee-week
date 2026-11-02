@@ -254,26 +254,26 @@ test('troca: alergênicos por substituicao_id, separados dos do item', () => {
   assert.deepEqual(Object.keys(E.declaracoesPorTroca(rows, (id) => 'k-' + id)), ['k-s1'])
 })
 
-test('pendências: troca com nome sem descrição ou sem alergênicos; troca sem nome não conta; combo sem descrição', () => {
+test('pendências: troca com nome sem alergênicos (a descrição é opcional); troca sem nome não conta; combo sem descrição', () => {
   const itens = [{ id: 'i1', posicao: 1, tipo: 'doce' }, { id: 'i2', posicao: 2, tipo: 'salgado' }]
   const declaracoes = { i1: todas('nao_contem'), i2: todas('nao_contem') }
   const base = { comboNome: 'C', comboDescricao: 'D', unidades: [unidadeOk()], itens, declaracoes }
   const t = (k, item, extra) => ({ _key: k, item_id: item, alternativa: 'Troca ' + k, descricao: 'Desc', ...extra })
   const substituicoes = [
-    t('a', 'i2', { descricao: ' ' }),       // salgado, troca 1: sem descrição e sem alergênicos
+    t('a', 'i2', { descricao: ' ' }),       // salgado, troca 1: sem descrição (opcional) e sem alergênicos
     t('b', 'i2', { alternativa: '' }),      // salgado, troca 2: sem nome — não é gravada, não vira pendência
     t('c', 'i2'),                           // salgado, troca 3: completa
     t('d', 'i1'),                           // doce, troca 1: falta alergênico
   ]
   const declTrocas = { c: todas('nao_informado'), d: { leite: { estado: 'contem' } } }
   const f = E.pendenciasEdicao({ ...base, substituicoes, declTrocas })
-  assert.deepEqual(f, ['troca:1:1:alimentar', 'troca:2:1:descricao', 'troca:2:1:alimentar'])
+  assert.deepEqual(f, ['troca:1:1:alimentar', 'troca:2:1:alimentar'])
   assert.deepEqual(E.faltasDaTroca(substituicoes[2], declTrocas.c), [])
   // a pendência leva ao campo da troca (mesmo id da tela) no bloco 5
   assert.deepEqual(E.traduzirFaltando('troca:2:1:descricao', { itens }), { texto: 'Escrever a descrição da troca 1 do salgado', bloco: 5, campo: 'item-2-troca-1-descricao' })
   assert.deepEqual(E.traduzirFaltando('troca:1:1:alimentar', { itens }), { texto: 'Responder os alergênicos da troca 1 do doce', bloco: 5, campo: 'item-1-troca-1-alimentar' })
   assert.equal(E.blocoDaPendencia('troca:2:1:alimentar'), 5)
-  assert.deepEqual(E.contarPorBloco(f), { 5: 3 })
+  assert.deepEqual(E.contarPorBloco(f), { 5: 2 })
   // combo sem descrição: bloco 3, campo campo-combo_descricao
   assert.deepEqual(E.pendenciasEdicao({ ...base, comboDescricao: '  ' }), ['combo_descricao'])
   assert.deepEqual(E.pendenciasEdicao({ ...base, comboNome: '', comboDescricao: '' }).slice(0, 2), ['combo_nome', 'combo_descricao'])
