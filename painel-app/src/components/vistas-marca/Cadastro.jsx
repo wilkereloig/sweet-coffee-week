@@ -214,10 +214,14 @@ async function lerSnapshot() {
       listaItens.length ? api('substituicoes?select=*&item_id=in.(' + ids(listaItens) + ')&order=ordem,criado_em') : [],
     ])
     : [[], []]
+  // Os alergênicos das trocas (substituicao_id, 02/11/2026): só depois de saber quais trocas existem.
+  const declSubRows = novo && subRows && subRows.length
+    ? await api('declaracoes_alimentares?select=*&substituicao_id=in.(' + ids(subRows) + ')')
+    : []
   // O horário no festival já vem na linha da unidade da edição (participacao_unidades.horario_festival).
   return {
     tipo: 'ok', p, pa, edicao, tema, novo, itensRows: listaItens, puRows: listaPu, unRows: unRows || [],
-    declRows: declRows || [], subRows: subRows || [],
+    declRows: declRows || [], subRows: subRows || [], declSubRows: declSubRows || [],
   }
 }
 
@@ -269,6 +273,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const [permanentes, setPermanentes] = React.useState([]) // unidades permanentes da marca
   const [declaracoes, setDeclaracoes] = React.useState({})
   const [substituicoes, setSubstituicoes] = React.useState([])
+  const [declTrocas, setDeclTrocas] = React.useState({}) // alergênicos das trocas: { [_key da troca]: { [aspecto]: … } }
   const [pub, setPub] = React.useState(null)
   // As tabelas da camada de edição só existem com as migrations de 14/10/2026.
   // Sem elas o cadastro antigo segue abrindo, e os blocos novos dizem por quê.
@@ -325,7 +330,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const guardaPub = useGuarda()
   resumoRef.current = resumo
   vivoRef.current = {
-    marca, tema, combo, custosStr, extras, itens, unidades, declaracoes, substituicoes,
+    marca, tema, combo, custosStr, extras, itens, unidades, declaracoes, substituicoes, declTrocas,
     edicaoCodigo, statusCadastro, valorCombo, festival, permanentes, modeloNovo, participanteId, participacaoId, semParticipacao,
   }
 
@@ -383,7 +388,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         baseRef.current.participacao = corpoParticipacao(daParticipacao)
         setRevisao({ tema: snap.tema || null })
 
-        const { novo, itensRows: listaItens, puRows: listaPu, unRows: listaUn, declRows, subRows } = snap
+        const { novo, itensRows: listaItens, puRows: listaPu, unRows: listaUn, declRows, subRows, declSubRows } = snap
         const doBanco = listaPu.map((pu) => E.unidadeDeLinhas(pu, listaUn.find((u) => u.id === pu.unidade_id)))
         // Sem unidade nesta edição: com unidades guardadas, elas viram sugestão;
         // sem nenhuma, a tela mostra uma em branco para preencher.
@@ -395,11 +400,13 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         setPermanentes(listaUn)
         setDeclaracoes(E.declaracoesPorItem(declRows))
         setSubstituicoes(subs)
+        const declDasTrocas = E.declaracoesPorTroca(declSubRows)
+        setDeclTrocas(declDasTrocas)
         const base = baseRef.current
         base.itens = Object.fromEntries(listaItens.map((i) => [i.id, pedidoItem(i).corpo]))
         base.un = Object.fromEntries(listaUn.map((u) => [u.id, baseUnidade(u)]))
         base.pu = Object.fromEntries(listaPu.map((r) => [r.id, E.corpoParticipacaoUnidadeDeLinha(r)]))
-        base.decl = Object.fromEntries(declRows.map((d) => [d.id, baseDeclaracao(d)]))
+        base.decl = Object.fromEntries([...declRows, ...declSubRows].map((d) => [d.id, baseDeclaracao(d)]))
         base.sub = Object.fromEntries(subRows.map((s) => [s.id, baseSubstituicao(s)]))
         if (novo) carregarPub(pa.id)
         // Abre o primeiro bloco pendente DESTA aba (ou o primeiro dela).
@@ -408,7 +415,10 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
           tema: daParticipacao.tema, itens: listaItens, unidades: listaUnidades, custos: custosDeLinhas(pa, listaPu),
         }
         const contagem = novo
-          ? E.contarPorBloco(E.pendenciasEdicao({ comboNome: pa.combo_nome, unidades: listaUnidades, itens: listaItens, declaracoes: E.declaracoesPorItem(declRows) }))
+          ? E.contarPorBloco(E.pendenciasEdicao({
+            comboNome: pa.combo_nome, comboDescricao: pa.combo_descricao, unidades: listaUnidades, itens: listaItens,
+            declaracoes: E.declaracoesPorItem(declRows), substituicoes: subs, declTrocas: declDasTrocas,
+          }))
           : {}
         const pend = primeiroBlocoPendente(dados)
         const vis = [0, 1, 2, 3, 4, 5, 6].filter(mostra)
@@ -573,23 +583,38 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     if (modeloNovo && (mostra(4) || mostra(6))) unidades.forEach((u, i) => tarefas.push(salvarUnidade(u, i)))
     const horariosFora = modeloNovo && mostra(6) ? E.frasesHorarioNaoSalvo(unidades) : []
     if (modeloNovo && mostra(5)) {
-      for (const [itemId, porAspecto] of Object.entries(declaracoes)) {
-        for (const [aspecto, d] of Object.entries(porAspecto)) {
-          if (!E.declaracaoGravavel(aspecto, d)) continue
-          const k = 'dec-' + itemId + '-' + aspecto
-          tarefas.push(salvarFilha({
-            k, id: d.id || idsRef.current.get(k), ent: 'decl', tabela: 'declaracoes_alimentares', corpo: E.corpoDeclaracao(d), extra: { item_id: itemId, aspecto },
+      // As respostas de UM dono (item ou troca), na mesma regra: `prefixo` guarda o id devolvido pelo POST, `dono` vai no corpo.
+      const salvarDeclaracoes = (porAspecto, prefixo, dono, aoId) => Object.entries(porAspecto || {})
+        .filter(([aspecto, d]) => E.declaracaoGravavel(aspecto, d))
+        .map(([aspecto, d]) => {
+          const k = prefixo + aspecto
+          return salvarFilha({
+            k, id: d.id || idsRef.current.get(k), ent: 'decl', tabela: 'declaracoes_alimentares', corpo: E.corpoDeclaracao(d), extra: { ...dono, aspecto },
             aoVoltar: { base: 'decl', fn: (x) => { base.decl[x.id] = baseDeclaracao(x) } },
-            aoCriar: (x) => setDeclaracoes((prev) => ({ ...prev, [itemId]: { ...prev[itemId], [aspecto]: { ...(prev[itemId] || {})[aspecto], id: x.id } } })),
-          }))
-        }
+            aoCriar: (x) => aoId(aspecto, x.id),
+          })
+        })
+      const comId = (prev, dono, aspecto, id) => ({ ...prev, [dono]: { ...prev[dono], [aspecto]: { ...(prev[dono] || {})[aspecto], id } } })
+      for (const [itemId, porAspecto] of Object.entries(declaracoes)) {
+        tarefas.push(...salvarDeclaracoes(porAspecto, 'dec-' + itemId + '-', { item_id: itemId },
+          (aspecto, id) => setDeclaracoes((prev) => comId(prev, itemId, aspecto, id))))
       }
+      const nomeDoItem = (id) => (itens.find((i) => i.id === id) || {}).nome
       for (const s of substituicoes) {
         if (!E.substituicaoGravavel(s)) continue
         tarefas.push(salvarFilha({
-          k: s._key, id: s.id || idsRef.current.get(s._key), ent: 'sub', tabela: 'substituicoes', corpo: E.corpoSubstituicao(s), extra: { item_id: s.item_id },
+          k: s._key, id: s.id || idsRef.current.get(s._key), ent: 'sub', tabela: 'substituicoes', corpo: E.corpoSubstituicao(s, nomeDoItem(s.item_id)), extra: { item_id: s.item_id },
           aoVoltar: { base: 'sub', fn: (x) => { base.sub[x.id] = baseSubstituicao(x) } },
           aoCriar: (x) => setSubstituicoes((prev) => prev.map((y) => (y._key === s._key ? { ...y, id: x.id } : y))),
+        }).then((l) => {
+          // Os alergênicos da troca pedem a linha dela: troca nova grava depois do POST (que devolve o id); com o POST
+          // ainda em voo (outro salvamento), ficam para a próxima rodada. Troca órfã (a organização removeu) não grava.
+          // ponytail: troca removida com o POST dos alergênicos em voo dá erro de FK uma vez; o salvamento seguinte acerta.
+          const subId = s.id || idsRef.current.get(s._key)
+          if (!subId || vazio(l) || orfas.has('sub:' + subId)) return l
+          return Promise.all(salvarDeclaracoes(declTrocas[s._key], 'dect-' + s._key + '-', { substituicao_id: subId },
+            (aspecto, id) => setDeclTrocas((prev) => comId(prev, s._key, aspecto, id))))
+            .then((rs) => (rs.some(vazio) ? [] : l))
         }))
       }
     }
@@ -624,7 +649,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       MC.reimporConflitos(base, conflitosRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participanteId, participacaoId, marca, tema, combo, custosStr, itens, unidades, extras, declaracoes, substituicoes, modeloNovo, comboStatus, pub])
+  }, [participanteId, participacaoId, marca, tema, combo, custosStr, itens, unidades, extras, declaracoes, substituicoes, declTrocas, modeloNovo, comboStatus, pub])
 
   React.useEffect(() => { salvarRef.current = salvar }, [salvar])
 
@@ -743,6 +768,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     if (t.unidades) setUnidades((a) => MC.aplicarUnidades(a, t.unidades))
     if (t.declaracoes) setDeclaracoes((a) => MC.aplicarDeclaracoes(a, t.declaracoes))
     if (t.substituicoes) setSubstituicoes((a) => MC.aplicarSubstituicoes(a, t.substituicoes))
+    if (t.declTrocas) setDeclTrocas((a) => MC.aplicarDeclaracoes(a, t.declTrocas))
   }, [])
 
   // Outra participação (edição nova) ou o modelo novo que acabou de existir: não há o que mesclar,
@@ -803,6 +829,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
         puId: (u) => u.puId || (idsPuRef.current.get(u._key) || {}).puId || null,
         declId: (itemId, aspecto, d) => d.id || idsRef.current.get('dec-' + itemId + '-' + aspecto) || null,
         subId: (sb) => sb.id || idsRef.current.get(sb._key) || null,
+        declTrocaId: (chave, aspecto, d) => d.id || idsRef.current.get('dect-' + chave + '-' + aspecto) || null,
       },
     })
     baseRef.current = plano.base
@@ -958,7 +985,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
     adicionar(itemId) {
       tempSeqRef.current += 1
       setSubstituicoes((prev) => [...prev, {
-        _key: 'troca-' + tempSeqRef.current, id: null, item_id: itemId, original: '', alternativa: '',
+        _key: 'troca-' + tempSeqRef.current, id: null, item_id: itemId, original: '', alternativa: '', descricao: '',
         disponibilidade: 'sob_consulta', acrescimo: '', como_solicitar: '', modalidades: [], unidades: [],
       }])
     },
@@ -966,9 +993,21 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
       setSubstituicoes((prev) => prev.map((s) => (s._key === k ? { ...s, [campo]: valor } : s)))
       agendarSalvar()
     },
+    // Alergênicos e características da troca: o mesmo <Declaracoes> do item, com a chave da troca no lugar do item.
+    alterarDeclaracao(k, aspecto, campo, valor) {
+      setDeclTrocas((prev) => {
+        const daTroca = { ...(prev[k] || {}) }
+        daTroca[aspecto] = { observacao: '', ...daTroca[aspecto], [campo]: valor }
+        return { ...prev, [k]: daTroca }
+      })
+      agendarSalvar()
+    },
     remover(k) {
       const s = substituicoes.find((x) => x._key === k)
       setSubstituicoes((prev) => prev.filter((x) => x._key !== k))
+      // Os alergênicos saem junto (no banco, on delete cascade).
+      for (const d of Object.values(declTrocas[k] || {})) if (d.id) delete baseRef.current.decl[d.id]
+      setDeclTrocas((prev) => { const { [k]: _fora, ...resto } = prev; return resto })
       if (!s) return
       const id = s.id || idsRef.current.get(k)
       if (!id && postandoRef.current.has(k)) removidasRef.current.add(k)
@@ -1062,7 +1101,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   // campos obrigatórios (a logo não trava) + o que a página pública precisa (pendencias_publicacao), sem contar
   // "sem unidade" duas vezes. É o mesmo número que decide quando o cadastro vai para a conferência da organização.
   const faltaCampos = obrigatorios.filter((c) => !c.ok && c.campo !== 'logo')
-  const pendEd = modeloNovo ? E.pendenciasEdicao({ comboNome: combo.combo_nome, unidades, itens, declaracoes }) : []
+  const pendEd = modeloNovo
+    ? E.pendenciasEdicao({ comboNome: combo.combo_nome, comboDescricao: combo.combo_descricao, unidades, itens, declaracoes, substituicoes, declTrocas })
+    : []
   const pendEdicao = faltaCampos.some((c) => c.campo === 'unidade-endereco') ? pendEd.filter((c) => c !== 'sem_unidade') : pendEd
   const faltam = faltaCampos.length + pendEdicao.length
   // O que falta, a da aba aberta primeiro: o primeiro é o destino de "Ir para o que falta" (mesmo na outra aba).
@@ -1328,7 +1369,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
             {mostra(5) && <Bloco {...blocoProps(5)}>
               {modeloNovo
-                ? <Alimentar itens={itens} declaracoes={declaracoes} substituicoes={substituicoes} unidades={unidades}
+                ? <Alimentar itens={itens} declaracoes={declaracoes} substituicoes={substituicoes} declTrocas={declTrocas} unidades={unidades}
                   est={est} alterarDeclaracao={alterarDeclaracao} sub={sub} />
                 : semModelo}
             </Bloco>}

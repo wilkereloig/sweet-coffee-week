@@ -90,10 +90,11 @@ export const PARTICIPANTE = {
   vegano: { sim: 'Vegano, segundo a casa', nao: 'Não é vegano' },
   vegetariano: { sim: 'Vegetariano, segundo a casa', nao: 'Não é vegetariano' },
   acucar: { sim: 'Tem açúcar adicionado', nao: 'Sem açúcar adicionado, segundo a casa' },
-  trocas: 'Trocas possíveis',
+  // A troca é um item alternativo, pelo mesmo valor do combo; o acréscimo só aparece no registro antigo que tinha um.
+  trocas: 'Opções de troca',
   troca: {
     sempre: 'Sempre disponível', sob_consulta: 'Sob consulta', limitada: 'Disponibilidade limitada',
-    semCusto: 'sem custo', consulte: 'acréscimo: consulte a loja', acrescimo: (v) => `acréscimo de ${v}`,
+    acrescimo: (v) => `acréscimo de ${v}`, de: 'Troca', por: 'por',
   },
   antesTitulo: 'Antes de pedir',
   antesNada: 'A casa não declarou alergênicos nos componentes.',

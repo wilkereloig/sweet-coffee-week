@@ -189,15 +189,27 @@ test('camada Cartoon não lida: alimentar e trocas ficam null (erro, não vazio)
   assert.equal(c[0].trocas, null)
 })
 
-test('trocas: acréscimo zero, ausente, modalidades e unidades', () => {
+test('trocas: sem custo (acréscimo só o antigo > 0), modalidades, unidades e o nome antigo "original → alternativa"', () => {
   const [doce] = componentesDaFicha(ITENS, PUB.atual.combo.itens, (id) => (id === 'a1' ? 'Loja Tirol' : id))
   const [leite, cacau] = doce.trocas
-  assert.equal(leite.acrescimo, 'Sem acréscimo')
+  assert.equal(leite.acrescimo, '', 'troca não tem custo: 0 não vira texto')
+  assert.equal(leite.nome, 'Leite → Leite vegetal', 'registro antigo: o original era outra coisa')
   assert.equal(leite.modalidades, 'retirada')
   assert.equal(leite.unidades, 'Loja Tirol')
-  assert.equal(cacau.acrescimo, 'Acréscimo não informado')
+  assert.equal(cacau.acrescimo, '')
   assert.equal(cacau.unidades, 'todas as unidades')
   assert.equal(cacau.disponibilidade, 'Limitada (até acabar)')
+  assert.equal(textoAcrescimo(5), '+ R$ 5,00')
+})
+
+test('troca nova: nome = alternativa, descrição e alergênicos dela', () => {
+  const pub = [{ posicao: 2, tipo: 'doce', alimentar: [], substituicoes: [
+    { original: 'Bolo', alternativa: 'Bolo sem glúten', descricao: 'Com farinha de arroz', disponibilidade: 'sempre', acrescimo: 0,
+      alimentar: [{ aspecto: 'ovo', estado: 'contem' }, { aspecto: 'gluten', estado: 'nao_contem' }] }] }]
+  const [t] = componentesDaFicha(ITENS, pub).find((c) => c.posicao === 2).trocas
+  assert.equal(t.nome, 'Bolo sem glúten')
+  assert.equal(t.descricao, 'Com farinha de arroz')
+  assert.deepEqual(t.alimentar.contem, ['Ovo'])
 })
 
 /* ── Unidades ─────────────────────────────────────────────────────────────── */

@@ -1416,6 +1416,24 @@ testes `tests/painel-app-localizacoes.test.mjs` e `painel-app-edicao-marca.test.
   OpenStreetMap foi avaliado e descartado — em Natal ele erra a casa (testado com a Carcará: 4,8 km de diferença).
 - ⚠️ Ficou de fora: card "Localizações a conferir" na Visão geral; `verificada` segue no estado da unidade da marca, sem uso na tela.
 
+#### Trocas completas e bloco "O combo" — 02/11/2026 (pedido do Wilker)
+"Se tiver troca, nome e descrição do item da troca; mais de uma, adiciona outra; e as perguntas de alergênicos também para esse
+outro item" (o Marlon: cachorro-quente e, de troca, o vegetariano). Migration `20261123_trocas_completas` (APLICADA, TESTE_OK).
+- **Troca = item completo:** `substituicoes.alternativa` é o NOME da troca, `descricao` (nova, ≤600) a descrição, e os alergênicos e
+  características ficam em `declaracoes_alimentares.substituicao_id` (mesmas perguntas do item). Várias por item, em `ordem`.
+  `original` não é mais perguntado: grava o nome do próprio item (coluna segue NOT NULL). Registro antigo com original diferente do
+  item continua aparecendo "original → alternativa" (`combosTexto.nomeDaTroca`).
+- **/preencher:** cards "Opção de troca N" (nome, descrição, alergênicos do template compartilhado `tpl-alimentar`, disponibilidade),
+  "+ Adicionar outra opção de troca", Remover. Envio: `trocas: [{alternativa, descricao, disponibilidade, alimentar, outro_alergenico}]`
+  — sem `troca`/`original`. `preenchimento_estado` devolve `trocas` (e `troca`, a 1ª, para rascunho/envio antigo); o "Aplicar"
+  (`org_preenchimento_decidir`) troca a lista INTEIRA do item e aceita o envio antigo (`troca`) como lista de um.
+- **Painel da marca (Meu combo, bloco 5):** o mesmo modelo; o componente de alergênicos é o do item com `id` da troca. Pendências
+  `troca:<pos>:<n>:descricao|alimentar` (só tela da marca) e `combo_descricao` (bloco 3).
+- **O combo:** no /preencher virou bloco próprio entre Tema e Os três itens, nome e descrição OBRIGATÓRIOS; `campos_cadastro` passou a
+  15 campos-base (conta os dois).
+- ⚠️ Ficou desalinhado (aceito): `lib/guia.js camposObrigatorios` não conta nome/descrição do combo (o "% dos dados básicos" da marca
+  difere da lista da organização) e `pendencias_publicacao` (Início) não lista as pendências novas de troca.
+
 #### Social media › Participantes completo — 31/10/2026 (pedido do Wilker; substitui a aba "Combos" do mesmo dia)
 "Em sequência, ordem alfabética, cada participante no seu card com tudo à vista; quando o participante atualizar, mostra aqui com uma
 sinalização no campo." Migration `20261122_social_participantes_completo.sql` (reversão em `supabase/reverter/`, teste do banco

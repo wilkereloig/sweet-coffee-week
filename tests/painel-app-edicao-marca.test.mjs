@@ -26,18 +26,18 @@ test('a lista de alergênicos é a mesma do banco (pendencias_publicacao)', () =
 
 test('pendências: tudo respondido não pede nada', () => {
   const itens = [{ id: 'i1', posicao: 1 }]
-  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'Combo', unidades: [unidadeOk()], itens, declaracoes: { i1: todas('nao_informado') } }), [])
+  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'Combo', comboDescricao: 'Doce e café', unidades: [unidadeOk()], itens, declaracoes: { i1: todas('nao_informado') } }), [])
 })
 
 test('pendências: mesmos códigos e mesma ordem do servidor', () => {
   const itens = [{ id: 'i2', posicao: 2 }, { id: 'i1', posicao: 1 }]
   const u = unidadeOk({ bairro: '', retirada: 'nao_informado', delivery_combo: 'sim', horario_festival: [] })
-  const f = E.pendenciasEdicao({ comboNome: '  ', unidades: [u], itens, declaracoes: { i2: todas('contem') } })
+  const f = E.pendenciasEdicao({ comboNome: '  ', comboDescricao: 'D', unidades: [u], itens, declaracoes: { i2: todas('contem') } })
   assert.deepEqual(f, ['combo_nome', 'unidade:uabc123:endereco', 'unidade:uabc123:modos', 'unidade:uabc123:canais', 'unidade:uabc123:horario', 'item:1:alimentar'])
 })
 
 test('pendências: o endereço só está completo com rua, número, bairro, cidade e CEP (28/10/2026)', () => {
-  const pend = (extra) => E.pendenciasEdicao({ comboNome: 'C', unidades: [unidadeOk(extra)] }).filter((c) => c.endsWith(':endereco'))
+  const pend = (extra) => E.pendenciasEdicao({ comboNome: 'C', comboDescricao: 'D', unidades: [unidadeOk(extra)] }).filter((c) => c.endsWith(':endereco'))
   assert.deepEqual(pend({}), [])
   for (const campo of ['logradouro', 'numero', 'bairro', 'cidade', 'cep']) {
     assert.deepEqual(pend({ [campo]: '  ' }), ['unidade:uabc123:endereco'], campo + ' vazio deixa o endereço incompleto')
@@ -50,17 +50,17 @@ test('pendências: o endereço só está completo com rua, número, bairro, cida
 
 test('pendências: sem unidade participando, e a que não participa não conta', () => {
   const fora = unidadeOk({ participa: false, logradouro: '' })
-  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'C', unidades: [fora] }), ['sem_unidade'])
+  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'C', comboDescricao: 'D', unidades: [fora] }), ['sem_unidade'])
   // Unidade ainda não gravada: usa a chave local no lugar do id público.
   const nova = unidadeOk({ id_publico: null, _key: 'novo-1', cidade: '' })
-  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'C', unidades: [nova] }), ['unidade:novo-1:endereco'])
+  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'C', comboDescricao: 'D', unidades: [nova] }), ['unidade:novo-1:endereco'])
 })
 
 test('alergênicos: 7 de 8 respondidos ainda pende; "não sei" é resposta; linha ausente nunca é "não contém"', () => {
   const d = todas('nao_contem')
   delete d.soja
   assert.equal(E.alergenicosRespondidos(d), 7)
-  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'C', unidades: [unidadeOk()], itens: [{ id: 'i', posicao: 3 }], declaracoes: { i: d } }), ['item:3:alimentar'])
+  assert.deepEqual(E.pendenciasEdicao({ comboNome: 'C', comboDescricao: 'D', unidades: [unidadeOk()], itens: [{ id: 'i', posicao: 3 }], declaracoes: { i: d } }), ['item:3:alimentar'])
   assert.equal(E.alergenicosRespondidos(todas('nao_informado')), 8)
   const porItem = E.declaracoesPorItem([{ id: 'x', item_id: 'i', aspecto: 'leite', estado: 'contem', observacao: null }])
   assert.deepEqual(porItem, { i: { leite: { id: 'x', estado: 'contem', observacao: '' } } })
@@ -224,6 +224,61 @@ test('troca: não muda o valor do combo — o acréscimo vai sempre 0 (24/10/202
   assert.deepEqual(E.corpoSubstituicao(E.substituicaoDeLinha(linha)), E.corpoSubstituicao({ ...s, acrescimo: '0' }))
   assert.deepEqual(E.alternar(['delivery'], 'local', ['local', 'retirada', 'delivery']), ['local', 'delivery'])
   assert.deepEqual(E.alternar(['local', 'delivery'], 'local'), ['delivery'])
+})
+
+test('troca = item completo (02/11/2026): original é o nome do item, descrição gravada, só o nome é obrigatório para gravar', () => {
+  const s = { original: 'leite integral', alternativa: ' Cachorro-quente vegetariano ', descricao: ' Pão, salsicha de soja e molho. ', disponibilidade: 'sempre', como_solicitar: '', modalidades: [], unidades: [] }
+  const c = E.corpoSubstituicao(s, '  Cachorro-quente  ')
+  assert.equal(c.original, 'Cachorro-quente', 'o que sai é sempre o próprio item, pelo nome dele')
+  assert.equal(c.alternativa, 'Cachorro-quente vegetariano')
+  assert.equal(c.descricao, 'Pão, salsicha de soja e molho.')
+  assert.equal(E.corpoSubstituicao({ ...s, descricao: '  ' }, 'X').descricao, null)
+  // original é NOT NULL e tem 80 caracteres no banco: item sem nome vira "Item", nome longo é cortado
+  assert.equal(E.corpoSubstituicao(s, '').original, 'Item')
+  assert.equal(E.corpoSubstituicao(s, undefined).original, 'leite integral', 'sem o nome (foto de uma linha do banco) fica o gravado')
+  assert.equal(E.corpoSubstituicao(s, 'a'.repeat(120)).original.length, 80)
+  // nome basta para gravar; descrição vazia vira pendência, não trava
+  assert.equal(E.substituicaoGravavel({ alternativa: 'Vegetariano', original: '' }), true)
+  assert.equal(E.substituicaoGravavel({ alternativa: '  ', original: 'Leite' }), false)
+  assert.equal(E.substituicaoDeLinha({ id: 's9', item_id: 'i', alternativa: 'V', descricao: 'D' }).descricao, 'D')
+  assert.equal(E.substituicaoDeLinha({ id: 's9', item_id: 'i', alternativa: 'V' }).descricao, '')
+})
+
+test('troca: alergênicos por substituicao_id, separados dos do item', () => {
+  const rows = [
+    { id: 'd1', item_id: 'i1', substituicao_id: null, aspecto: 'leite', estado: 'contem' },
+    { id: 'd2', item_id: null, substituicao_id: 's1', aspecto: 'leite', estado: 'nao_contem', observacao: null },
+  ]
+  assert.deepEqual(E.declaracoesPorItem(rows), { i1: { leite: { id: 'd1', estado: 'contem', observacao: '' } } })
+  assert.deepEqual(E.declaracoesPorTroca(rows), { 'sub-s1': { leite: { id: 'd2', estado: 'nao_contem', observacao: '' } } })
+  assert.deepEqual(Object.keys(E.declaracoesPorTroca(rows, (id) => 'k-' + id)), ['k-s1'])
+})
+
+test('pendências: troca com nome sem descrição ou sem alergênicos; troca sem nome não conta; combo sem descrição', () => {
+  const itens = [{ id: 'i1', posicao: 1, tipo: 'doce' }, { id: 'i2', posicao: 2, tipo: 'salgado' }]
+  const declaracoes = { i1: todas('nao_contem'), i2: todas('nao_contem') }
+  const base = { comboNome: 'C', comboDescricao: 'D', unidades: [unidadeOk()], itens, declaracoes }
+  const t = (k, item, extra) => ({ _key: k, item_id: item, alternativa: 'Troca ' + k, descricao: 'Desc', ...extra })
+  const substituicoes = [
+    t('a', 'i2', { descricao: ' ' }),       // salgado, troca 1: sem descrição e sem alergênicos
+    t('b', 'i2', { alternativa: '' }),      // salgado, troca 2: sem nome — não é gravada, não vira pendência
+    t('c', 'i2'),                           // salgado, troca 3: completa
+    t('d', 'i1'),                           // doce, troca 1: falta alergênico
+  ]
+  const declTrocas = { c: todas('nao_informado'), d: { leite: { estado: 'contem' } } }
+  const f = E.pendenciasEdicao({ ...base, substituicoes, declTrocas })
+  assert.deepEqual(f, ['troca:1:1:alimentar', 'troca:2:1:descricao', 'troca:2:1:alimentar'])
+  assert.deepEqual(E.faltasDaTroca(substituicoes[2], declTrocas.c), [])
+  // a pendência leva ao campo da troca (mesmo id da tela) no bloco 5
+  assert.deepEqual(E.traduzirFaltando('troca:2:1:descricao', { itens }), { texto: 'Escrever a descrição da troca 1 do salgado', bloco: 5, campo: 'item-2-troca-1-descricao' })
+  assert.deepEqual(E.traduzirFaltando('troca:1:1:alimentar', { itens }), { texto: 'Responder os alergênicos da troca 1 do doce', bloco: 5, campo: 'item-1-troca-1-alimentar' })
+  assert.equal(E.blocoDaPendencia('troca:2:1:alimentar'), 5)
+  assert.deepEqual(E.contarPorBloco(f), { 5: 3 })
+  // combo sem descrição: bloco 3, campo campo-combo_descricao
+  assert.deepEqual(E.pendenciasEdicao({ ...base, comboDescricao: '  ' }), ['combo_descricao'])
+  assert.deepEqual(E.pendenciasEdicao({ ...base, comboNome: '', comboDescricao: '' }).slice(0, 2), ['combo_nome', 'combo_descricao'])
+  assert.deepEqual(E.traduzirFaltando('combo_descricao'), { texto: 'Escrever a descrição do combo', bloco: 3, campo: 'combo_descricao' })
+  assert.equal(E.blocoDaPendencia('combo_descricao'), 3)
 })
 
 test('publicação: publicada com link; retirada com motivo; nunca inventa link sem slug', () => {
@@ -608,23 +663,35 @@ test('horário incompleto conta como trabalho pela metade (atualizar versão, co
   assert.match(c, /tirarHorario\(\)/, 'sai do registro ao desmontar')
 })
 
-test('troca na tela da marca: sem campo de acréscimo, passos 1-2-3 e "não muda o valor do combo"', () => {
+test('troca na tela da marca: sem acréscimo nem "o que pode ser trocado", um item completo e "não muda o valor do combo"', () => {
   const src = ler('painel-app/src/components/vistas-marca/edicao/Alimentar.jsx')
   assert.doesNotMatch(src, /Acréscimo em reais|campo\('acrescimo'\)/)
+  assert.doesNotMatch(src, /O que pode ser trocado|campo\('original'\)/, 'original é o nome do item, gravado sozinho')
   assert.match(src, /A troca não muda o valor do combo/)
-  assert.match(src, /1\. O que pode ser trocado\?/)
+  assert.match(src, /Nome do item da troca/)
   assert.match(src, /Mais detalhes/)
+  // os alergênicos da troca são o MESMO componente do item, não uma cópia
+  assert.equal((src.match(/function Declaracoes\(/g) || []).length, 1)
+  assert.match(src, /<Declaracoes id=\{k\}/)
 })
 
 test('troca renderizada: passos, "Mais detalhes" recolhido quando vazio e aberto quando há detalhe', () => {
   const { Alimentar } = carregar('painel-app/src/components/vistas-marca/edicao/Alimentar.jsx')
   const itens = [{ id: 'i1', posicao: 1, tipo: 'doce', nome: 'Croissant' }]
-  const vazia = { _key: 'k1', item_id: 'i1', original: '', alternativa: '', disponibilidade: 'sob_consulta', acrescimo: '', como_solicitar: '', modalidades: [], unidades: [] }
-  const sub = { alterar() {}, remover() {}, adicionar() {} }
-  const props = (lista) => ({ itens, declaracoes: {}, substituicoes: lista, unidades: [], est: () => ({}), alterarDeclaracao() {}, sub })
+  const vazia = { _key: 'k1', item_id: 'i1', original: '', alternativa: '', descricao: '', disponibilidade: 'sob_consulta', acrescimo: '', como_solicitar: '', modalidades: [], unidades: [] }
+  const sub = { alterar() {}, remover() {}, adicionar() {}, alterarDeclaracao() {} }
+  const props = (lista, declTrocas = {}) => ({ itens, declaracoes: {}, substituicoes: lista, declTrocas, unidades: [], est: () => ({}), alterarDeclaracao() {}, sub })
   const h = html(Alimentar, props([vazia]))
-  assert.match(h, /1\. O que pode ser trocado\?/)
-  assert.match(h, /3\. Está disponível/)
+  assert.doesNotMatch(h, /O que pode ser trocado/)
+  assert.match(h, /Nome do item da troca/)
+  assert.match(h, /id="campo-item-1-troca-1-nome"/)
+  assert.match(h, /id="campo-item-1-troca-1-descricao"/)
+  assert.match(h, /id="campo-item-1-troca-1-alimentar"/)
+  assert.match(h, /Está disponível/)
+  // as perguntas da troca têm nome próprio (não se misturam com as do item) e mostram a resposta gravada
+  assert.match(h, /name="al-k1-gluten"/)
+  assert.match(h, /name="ca-k1-vegano"/)
+  assert.match(html(Alimentar, props([vazia], { k1: { gluten: { estado: 'contem' } } })), /name="al-k1-gluten" checked=""/)
   assert.match(h, /A troca não muda o valor do combo/)
   assert.doesNotMatch(h, /Acréscimo/)
   assert.match(h, /<details class="em-troca__mais">/)

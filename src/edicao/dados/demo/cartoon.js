@@ -48,7 +48,8 @@ export const DEMO_EDICAO = {
         itens: [
           { tipo: 'doce', posicao: 1, nome: '[DEMO] Doce', descricao: '[DEMO] Descrição do doce.', ingredientes: '[DEMO] farinha de trigo, leite, ovos, açúcar',
             alimentar: [C('gluten'), C('leite'), C('ovo'), ...['amendoim', 'castanhas', 'soja', 'peixe', 'crustaceos'].map(NAO), { aspecto: 'lactose', estado: 'sim' }],
-            substituicoes: [{ original: '[DEMO] leite integral', alternativa: '[DEMO] bebida de aveia', disponibilidade: 'sempre', acrescimo: 0, como_solicitar: '[DEMO] peça no caixa' }] },
+            substituicoes: [{ original: '[DEMO] Doce', alternativa: '[DEMO] Doce sem leite', descricao: '[DEMO] A mesma receita, com bebida de aveia no lugar do leite.', disponibilidade: 'sempre', acrescimo: 0,
+              alimentar: [C('gluten'), C('ovo'), NAO('leite')] }] },
           { tipo: 'salgado', posicao: 2, nome: '[DEMO] Salgado', descricao: '[DEMO] Descrição do salgado.', ingredientes: '[DEMO] farinha de trigo, frango',
             alimentar: [C('gluten'), { aspecto: 'amendoim', estado: 'pode_conter' }, ...['leite', 'ovo', 'castanhas', 'soja', 'peixe', 'crustaceos'].map(NAO)] },
           { tipo: 'bebida', posicao: 3, nome: '[DEMO] Bebida', descricao: '[DEMO] Descrição da bebida.', ingredientes: '[DEMO] café, leite sem lactose',

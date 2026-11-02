@@ -73,13 +73,14 @@ function abrir(snap) {
   const vivo = {
     marca, tema: pa.tema, combo: pa.combo, custosStr: pa.custosStr, extras: pa.extras, itens: structuredClone(snap.itensRows), unidades,
     declaracoes: E.declaracoesPorItem(snap.declRows), substituicoes: snap.subRows.map(E.substituicaoDeLinha),
+    declTrocas: E.declaracoesPorTroca(snap.declSubRows || []),
   }
   const base = {
     marca: corpoMarca(marca), participacao: corpoParticipacao(pa),
     itens: Object.fromEntries(snap.itensRows.map((i) => [i.id, pedidoItem(i).corpo])),
     un: Object.fromEntries(snap.unRows.map((u) => [u.id, E.corpoUnidade(E.unidadeDeLinhas(null, u))])),
     pu: Object.fromEntries(snap.puRows.map((r) => [r.id, E.corpoParticipacaoUnidadeDeLinha(r)])),
-    decl: Object.fromEntries(snap.declRows.map((d) => [d.id, E.corpoDeclaracao({ estado: d.estado, observacao: d.observacao || '' })])),
+    decl: Object.fromEntries([...snap.declRows, ...(snap.declSubRows || [])].map((d) => [d.id, E.corpoDeclaracao({ estado: d.estado, observacao: d.observacao || '' })])),
     sub: Object.fromEntries(snap.subRows.map((s) => [s.id, E.corpoSubstituicao(E.substituicaoDeLinha(s))])),
   }
   return { vivo, base }
@@ -535,6 +536,88 @@ test('troca: disponibilidade mudada, troca nova, troca removida (acréscimo não
   const depois = M.aplicarNoVivo(vivo, p.tela)
   assert.deepEqual(depois.substituicoes.map((s) => s._key), ['sub-s1', 'sub-s3'])
   semMudanca(planejar(depois, p.base, novo))
+})
+
+/* ── troca = item completo (02/11/2026): descrição e alergênicos próprios (substituicao_id) ── */
+const comTrocaCompleta = () => {
+  const snap = fotoInicial()
+  snap.subRows[0] = { ...snap.subRows[0], alternativa: 'Bolo sem glúten', descricao: 'De arroz' }
+  snap.declSubRows = [{ id: 'dt1', item_id: null, substituicao_id: 's1', aspecto: 'leite', estado: 'contem', observacao: null }]
+  return snap
+}
+
+test('troca completa: eco do salvamento não muda nada; descrição e alergênico mudados pela organização entram na tela', () => {
+  const snap = comTrocaCompleta()
+  const { vivo, base } = abrir(snap)
+  assert.deepEqual(vivo.declTrocas, { 'sub-s1': { leite: { id: 'dt1', estado: 'contem', observacao: '' } } })
+  semMudanca(planejar(vivo, base, snap))
+  const novo = clone(snap)
+  novo.subRows[0].descricao = 'De arroz e coco'
+  novo.declSubRows[0].estado = 'nao_contem'
+  const p = planejar(vivo, base, novo)
+  assert.equal(p.tela.substituicoes.porKey['sub-s1'].descricao, 'De arroz e coco')
+  assert.deepEqual(p.tela.declTrocas.porNk['sub-s1|leite'], { id: 'dt1', estado: 'nao_contem' })
+  // o rótulo diz o NOME da troca (alternativa), não o que saía
+  assert.match(p.adotados['sub:s1:descricao'].rotulo, /^Troca · Bolo sem glúten · descrição$/)
+  assert.match(p.adotados['decl:dt1:estado'].rotulo, /^Leite \(troca Bolo sem glúten\)$/)
+  const depois = M.aplicarNoVivo(vivo, p.tela)
+  assert.equal(depois.declTrocas['sub-s1'].leite.estado, 'nao_contem')
+  semMudanca(planejar(depois, p.base, novo))
+})
+
+test('troca completa: o nome do item gravado em original não conta como edição da pessoa', () => {
+  const snap = comTrocaCompleta()
+  const { vivo, base } = abrir(snap)
+  // a tela grava original = nome do item ("Bolo"); a base ainda tem o antigo ("leite") — não é conflito nem órfã
+  const novo = clone(snap)
+  novo.subRows = []
+  novo.declSubRows = []
+  const p = planejar(vivo, base, novo)
+  assert.deepEqual(p.tela.substituicoes.remover, ['sub-s1'], 'saiu calada: a pessoa não mexeu')
+  assert.deepEqual(p.orfas, [])
+  // os alergênicos saem com ela (on delete cascade), sem aviso por resposta
+  assert.deepEqual(Object.keys(p.adotados), ['sub:s1:__saiu'])
+})
+
+test('troca nova da organização chega com os alergênicos dela, num aviso só', () => {
+  const snap = comTrocaCompleta()
+  const { vivo, base } = abrir(snap)
+  const novo = clone(snap)
+  novo.subRows.push({ id: 's4', item_id: 'i2', original: 'Coxinha', alternativa: 'Coxinha de jaca', descricao: 'Vegana', disponibilidade: 'sempre', acrescimo: 0, como_solicitar: null, modalidades: [], unidades: [], ordem: 1 })
+  novo.declSubRows.push({ id: 'dt4', item_id: null, substituicao_id: 's4', aspecto: 'vegano', estado: 'sim', observacao: null })
+  const p = planejar(vivo, base, novo)
+  assert.deepEqual(p.tela.substituicoes.novas.map((s) => [s._key, s.descricao]), [['sub-s4', 'Vegana']])
+  assert.deepEqual(p.tela.declTrocas.porNk['sub-s4|vegano'], { id: 'dt4', estado: 'sim', observacao: '' })
+  assert.deepEqual(Object.keys(p.adotados), ['sub:s4:__nova'])
+  semMudanca(planejar(M.aplicarNoVivo(vivo, p.tela), p.base, novo))
+})
+
+test('troca da tela ainda com chave local (troca-N): o alergênico do servidor casa pelo id, não pela chave', () => {
+  const snap = comTrocaCompleta()
+  const { vivo, base } = abrir(snap)
+  const local = { ...vivo, substituicoes: [{ ...vivo.substituicoes[0], _key: 'troca-1' }], declTrocas: { 'troca-1': vivo.declTrocas['sub-s1'] } }
+  semMudanca(planejar(local, base, snap))
+  const novo = clone(snap)
+  novo.declSubRows[0].estado = 'pode_conter'
+  const p = planejar(local, base, novo)
+  assert.deepEqual(p.tela.declTrocas.porNk['troca-1|leite'], { id: 'dt1', estado: 'pode_conter' })
+})
+
+test('troca que a organização removeu enquanto a pessoa edita: "manter a minha" regrava a troca E os alergênicos como novos', () => {
+  const snap = comTrocaCompleta()
+  const { vivo, base } = abrir(snap)
+  const eu = { ...vivo, substituicoes: [{ ...vivo.substituicoes[0], descricao: 'De arroz, sem leite' }] }
+  const novo = clone(snap)
+  novo.subRows = []
+  novo.declSubRows = []
+  const p = planejar(eu, base, novo)
+  const c = p.conflitos['sub:s1:__removida']
+  assert.ok(c, 'vira escolha da pessoa')
+  assert.equal(c.meu, 'Bolo sem glúten')
+  assert.deepEqual(c.manterTela.declTrocas.porNk, { 'sub-s1|leite': { id: null } })
+  assert.deepEqual(c.limparIds.ids, ['sub-s1', 'dect-sub-s1-leite'])
+  // e os alergênicos da troca removida não viram avisos nem conflitos à parte
+  assert.deepEqual(Object.keys(p.conflitos), ['sub:s1:__removida'])
 })
 
 /* ── linhas em voo, removidas pela pessoa, ids ainda fora do estado ──────────── */

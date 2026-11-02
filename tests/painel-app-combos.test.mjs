@@ -82,14 +82,28 @@ test('"outro alergênico" entra com o que a marca escreveu, sem repetir o verbo'
   assert.deepEqual([n.contem, n.pode], [[], []])
 })
 
-test('trocas: acréscimo vazio = não informado, 0 = sem acréscimo, valor = "+ R$"', () => {
-  const i = { tipo: 'bebida' }
+test('troca antiga (original de outra coisa, sem descrição): "original → alternativa"; troca não tem custo, só o acréscimo antigo > 0 aparece', () => {
+  const i = { tipo: 'bebida', nome: 'Refri' }
   const base = { original: 'Soda', alternativa: 'Café', disponibilidade: 'limitada' }
   assert.equal(descricaoDaTroca(i, { ...base, acrescimo: null }), 'Bebida: Soda → Café (limitada, até acabar)')
-  assert.equal(descricaoDaTroca(i, { ...base, acrescimo: 0 }), 'Bebida: Soda → Café (limitada, até acabar; sem acréscimo)')
+  assert.equal(descricaoDaTroca(i, { ...base, acrescimo: 0 }), 'Bebida: Soda → Café (limitada, até acabar)')
   assert.equal(descricaoDaTroca(i, { ...base, disponibilidade: 'sempre', acrescimo: '5.50' }), 'Bebida: Soda → Café (sempre disponível; + R$ 5,50)')
   assert.equal(descricaoDaTroca(i, { original: 'A', alternativa: 'B', modalidades: ['retirada', 'delivery'], como_solicitar: 'Peça no balcão' }),
     'Bebida: A → B (só retirada e delivery) — como pedir: Peça no balcão')
+})
+
+test('troca nova: o nome é a alternativa (o original é o próprio item), com descrição e alergênicos da alternativa', () => {
+  const i = { tipo: 'salgado', nome: 'Cachorro-quente' }
+  const s = { original: 'Cachorro-quente', alternativa: 'Cachorro-quente vegetariano', descricao: 'Com salsicha de soja', disponibilidade: 'sempre', acrescimo: 0,
+    alimentar: [{ aspecto: 'gluten', estado: 'contem' }, { aspecto: 'soja', estado: 'contem' }, { aspecto: 'amendoim', estado: 'pode_conter' }, { aspecto: 'leite', estado: 'nao_contem' }] }
+  assert.equal(descricaoDaTroca(i, s), 'Salgado: Cachorro-quente vegetariano — Com salsicha de soja (sempre disponível; contém glúten e soja; pode conter amendoim)')
+  // original igual ao item (maiúscula/espaço não importam) e sem descrição: só o nome
+  assert.equal(descricaoDaTroca(i, { original: ' cachorro-quente ', alternativa: 'Sem pão' }), 'Salgado: Sem pão')
+  // com descrição, nem um original diferente vira seta (é registro no formato novo)
+  assert.equal(descricaoDaTroca(i, { original: 'Pão', alternativa: 'Na tigela', descricao: 'Sem o pão' }), 'Salgado: Na tigela — Sem o pão')
+  // várias trocas do mesmo item: todas, na ordem
+  const d = { combo: { itens: [{ ...i, substituicoes: [s, { original: 'Cachorro-quente', alternativa: 'Sem pão' }] }] } }
+  assert.deepEqual(trocasEOpcoes(d).map((x) => x.texto), ['Cachorro-quente vegetariano — Com salsicha de soja (sempre disponível; contém glúten e soja; pode conter amendoim)', 'Sem pão'])
 })
 
 test('"ainda sem": diz o que falta, com o artigo certo', () => {
@@ -114,7 +128,7 @@ test('o texto de uma marca: campos FIXOS, "Aguardando informação" no lugar, tr
   const linhas = t.split('\n')
   assert.equal(linhas[0], '*3. Marca A*  ✅ aprovado · a marca alterou depois de aprovado')
   for (const l of ['Instagram: @marcaa', 'Tema: Garfield', 'Combo: *Combo A*', 'Descrição: ' + AGUARDANDO, '*Doce:* Nome doce', '  Selos: vegano · sem glúten',
-    '*Salgado:* Nome salgado', '  Alergênicos: ' + AGUARDANDO, '  Selos: ' + AGUARDANDO, '*Trocas e opções:*', '• Bebida: Soda → Café (sempre disponível; sem acréscimo)',
+    '*Salgado:* Nome salgado', '  Alergênicos: ' + AGUARDANDO, '  Selos: ' + AGUARDANDO, '*Trocas e opções:*', '• Bebida: Soda → Café (sempre disponível)',
     '• Bebida: Soda ou refrigerante (na descrição da bebida)', 'Para viagem: sim', '• Loja Centro — Rua A, 10 – Centro, Natal/RN',
     '  Atendimento: No local · Horário: todos os dias, das 15h às 22h']) {
     assert.ok(linhas.includes(l), 'faltou a linha: ' + l)
@@ -169,6 +183,13 @@ test('revisão: vale só enquanto o original for o mesmo; o cadastro (objeto de 
   assert.deepEqual(r.caducas, ['doce.descricao'])
   assert.equal(d.combo.nome, 'Combo A', 'a entrada não é alterada')
   assert.equal(d.combo.itens[1].substituicoes[0].alternativa, 'cafe')
+  // a descrição da troca também se revisa pelo campo (a chave segue a posição da troca)
+  const comDescricao = revisar(combo({
+    revisoes: { 'bebida.troca0.descricao': { original: 'com leite  de aveia', revisado: 'Com leite de aveia' } },
+    combo: { nome: 'C', itens: [item('bebida', 3, { substituicoes: [{ original: 'Nome bebida', alternativa: 'Café gelado', descricao: 'com leite de aveia' }] })] },
+  }))
+  assert.equal(comDescricao.d.combo.itens[0].substituicoes[0].descricao, 'Com leite de aveia')
+  assert.deepEqual(trocasEOpcoes(comDescricao.d).map((x) => x.texto), ['Café gelado — Com leite de aveia'])
 })
 
 test('opções escritas na descrição e trocas repetidas: só valem com a descrição/troca original intacta', () => {

@@ -106,13 +106,32 @@ export function linhaAlergenicos(a) {
   return 'Alergênicos: ' + partes.join(' · ') + '.'
 }
 
-/** "Bebida: Café Carioca → Café (sempre disponível; sem acréscimo) — como pedir: …" (acréscimo vazio = não informado). */
+const mesmoNome = (a, b) => t(a).replace(/\s+/g, ' ').toLowerCase() === t(b).replace(/\s+/g, ' ').toLowerCase()
+
+/*
+ * O nome de uma troca (02/11/2026): a troca é um item alternativo, então o nome é a `alternativa` ("Cachorro-quente
+ * vegetariano"); o `original` é o próprio item. "original → alternativa" só no registro ANTIGO, em que o original era outra
+ * coisa (só o leite, só o recheio) e não há descrição. `nomeItem` = o nome do item de que a troca faz parte.
+ */
+export function nomeDaTroca(nomeItem, s) {
+  const alt = t(s && s.alternativa), orig = t(s && s.original)
+  return orig && !t(s.descricao) && !mesmoNome(orig, nomeItem) ? orig + ' → ' + alt : alt
+}
+
+/*
+ * "Bebida: Café gelado — Com leite de aveia (sempre disponível; contém leite) — como pedir: …". Troca não tem custo (valor
+ * único do combo): o acréscimo só aparece no registro antigo que tinha um. Alergênicos da alternativa só quando declarados.
+ */
 export function descricaoDaTroca(item, s) {
   const extras = []
   if (s.disponibilidade && DISPONIBILIDADE[s.disponibilidade]) extras.push(DISPONIBILIDADE[s.disponibilidade])
-  if (s.acrescimo != null) extras.push(Number(s.acrescimo) > 0 ? '+ ' + real(s.acrescimo) : 'sem acréscimo')
+  if (Number(s.acrescimo) > 0) extras.push('+ ' + real(s.acrescimo))
   if (Array.isArray(s.modalidades) && s.modalidades.length) extras.push('só ' + juntar(s.modalidades.map((x) => MODALIDADE[x] || x)))
-  let l = (ROTULO_TIPO[item.tipo] || item.tipo) + ': ' + t(s.original) + ' → ' + t(s.alternativa)
+  const a = alimentarDoItem(s)
+  if (a.contem.length) extras.push('contém ' + juntar(a.contem))
+  if (a.pode.length) extras.push('pode conter ' + juntar(a.pode))
+  let l = (ROTULO_TIPO[item.tipo] || item.tipo) + ': ' + nomeDaTroca(item.nome, s)
+  if (t(s.descricao)) l += ' — ' + t(s.descricao)
   if (extras.length) l += ' (' + extras.join('; ') + ')'
   if (t(s.como_solicitar)) l += ' — como pedir: ' + t(s.como_solicitar)
   return l

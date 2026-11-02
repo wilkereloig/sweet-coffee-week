@@ -7,10 +7,11 @@
  *   alteracoes { <campo>: { antes, removido, em } } — o que a MARCA mudou depois do "visto" de quem lê
  *
  * Campos: tema · instagram · para_viagem · combo.nome|descricao|condicoes · <tipo>.nome|descricao|ingredientes ·
- * <tipo>.alimentar · <tipo>.trocas · <tipo>.troca<k>.original|alternativa|como_solicitar · unidade:<id>.nome|endereco|
- * whatsapp|atendimento|horario. Revisões especiais: `opcao:<onde>:<n>` (opção escrita DENTRO de uma descrição: revisado =
- * JSON { item, texto }, original = a descrição inteira) e `ocultar:<tipo>.troca<k>` (troca repetida em outro item:
- * original = "original → alternativa").
+ * <tipo>.alimentar · <tipo>.trocas · <tipo>.troca<k>.original|alternativa|descricao|como_solicitar · unidade:<id>.nome|
+ * endereco|whatsapp|atendimento|horario. Revisões especiais: `opcao:<onde>:<n>` (opção escrita DENTRO de uma descrição:
+ * revisado = JSON { item, texto }, original = a descrição inteira) e `ocultar:<tipo>.troca<k>` (troca repetida em outro item:
+ * original = "original → alternativa" — a impressão digital da troca, que vale também para a troca nova, cujo original é o
+ * nome do próprio item).
  *
  * ⛔ Uma revisão só vale enquanto o ORIGINAL for o mesmo: a marca mudou o texto, a tela volta a mostrar o que ela escreveu
  * (e o campo aparece "Alterado"). Nada é inventado aqui: o texto revisado foi conferido contra o original na revisão.

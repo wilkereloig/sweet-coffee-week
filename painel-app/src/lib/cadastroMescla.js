@@ -210,6 +210,7 @@ export function aplicarNoVivo(vivo, t = {}) {
     unidades: aplicarUnidades(vivo.unidades, t.unidades),
     declaracoes: aplicarDeclaracoes(vivo.declaracoes, t.declaracoes),
     substituicoes: aplicarSubstituicoes(vivo.substituicoes, t.substituicoes),
+    declTrocas: aplicarDeclaracoes(vivo.declTrocas || {}, t.declTrocas),
   }
 }
 
@@ -238,9 +239,11 @@ const ROT_PU = {
   observacao_combo: 'O que muda no combo nesta unidade', horario_festival: 'Horário no festival',
 }
 const ROT_SUB = {
-  original: 'o que sai', alternativa: 'o que entra', disponibilidade: 'disponibilidade', acrescimo: 'acréscimo',
+  original: 'item trocado', alternativa: 'nome', descricao: 'descrição', disponibilidade: 'disponibilidade', acrescimo: 'acréscimo',
   como_solicitar: 'como pedir', modalidades: 'vale para', unidades: 'unidades',
 }
+// `original` não é campo da tela desde 02/11/2026 (= o nome do item): acompanha o servidor sem aviso.
+const CALADOS_SUB = new Set(['original'])
 const ROT_ASPECTO = {
   ...Object.fromEntries(E.ALERGENICOS_PAINEL), outro_alergenico: 'Outro alergênico',
   lactose: 'Lactose', vegano: 'Vegano', vegetariano: 'Vegetariano', acucar_adicionado: 'Açúcar adicionado',
@@ -295,11 +298,11 @@ function corpoUnidadeVivo(u) {
 
 /**
  * @param {object} p
- *   vivo:  { marca, tema, combo, custosStr, extras, itens, unidades, declaracoes, substituicoes } — a tela agora
+ *   vivo:  { marca, tema, combo, custosStr, extras, itens, unidades, declaracoes, substituicoes, declTrocas } — a tela agora
  *   base:  baseRef.current
- *   snap:  { p, pa, edicao, tema, novo, itensRows, puRows, unRows, declRows, subRows } — o servidor agora
+ *   snap:  { p, pa, edicao, tema, novo, itensRows, puRows, unRows, declRows, subRows, declSubRows } — o servidor agora
  *   mapas: { marcaDeLinha, corpoMarca, participacaoDeLinha, corpoParticipacao, pedidoItem } — as do Cadastro.jsx (donas do contrato do grant)
- *   ids:   { unId(u), puId(u), declId(itemId, aspecto, d), subId(s) } — ids já devolvidos pelo servidor e ainda fora do estado
+ *   ids:   { unId(u), puId(u), declId(itemId, aspecto, d), subId(s), declTrocaId(chaveDaTroca, aspecto, d) } — ids já devolvidos pelo servidor e ainda fora do estado
  *   esquecidas: Set de ids que a pessoa removeu
  * @returns {{ base, tela, conflitos, adotados, orfas, exibicao, servidorIds }}
  */
@@ -309,6 +312,7 @@ export function planejarMesclagem({ vivo, base, snap, mapas, ids = {}, esquecida
     puId: ids.puId || ((u) => u.puId || null),
     declId: ids.declId || ((_i, _a, d) => d.id || null),
     subId: ids.subId || ((s) => s.id || null),
+    declTrocaId: ids.declTrocaId || ((_k, _a, d) => d.id || null),
   }
   const b = clonarBase(base)
   let tela = {}
@@ -505,32 +509,102 @@ export function planejarMesclagem({ vivo, base, snap, mapas, ids = {}, esquecida
       })
     }
 
-    /* ── trocas (5) ── */
+    /* ── trocas (5): cada uma é um item completo — nome (`alternativa`), descrição e os próprios alergênicos ── */
     const subVivo = vivo.substituicoes.map((s) => ({ s, id: idDe.subId(s) })).filter((x) => x.id != null)
     const subPorChave = new Map(subVivo.map((x) => [String(x.id), x.s]))
     const subRow = new Map(snap.subRows.map((r) => [String(r.id), r]))
+    // `original` não é digitado (o salvamento grava o nome do item): do lado da tela vale o da base, então nunca conta
+    // como edição da pessoa — nem para conflito, nem para segurar como "órfã" a troca que a organização removeu.
+    const corpoSubVivo = (x) => ({ ...E.corpoSubstituicao(x.s), original: b.sub[x.id] ? b.sub[x.id].original : texto(x.s.original) })
     const rSub = mesclarColecao({
       base: b.sub,
-      locais: subVivo.map((x) => ({ chave: String(x.id), id: x.id, corpo: E.corpoSubstituicao(x.s) })),
+      locais: subVivo.map((x) => ({ chave: String(x.id), id: x.id, corpo: corpoSubVivo(x) })),
       servidor: snap.subRows.map((r) => ({ chave: String(r.id), id: r.id, corpo: E.corpoSubstituicao(E.substituicaoDeLinha(r)) })),
       esquecidas,
     })
     b.sub = rSub.base
-    const rotSub = (s, k) => 'Troca · ' + (texto(s.original) || 'sem nome') + ' · ' + (ROT_SUB[k] || k)
+    const nomeTroca = (s) => texto(s.alternativa) || 'sem nome'
+    const rotSub = (s, k) => 'Troca · ' + nomeTroca(s) + ' · ' + (ROT_SUB[k] || k)
     for (const [chave, e] of Object.entries(rSub.existentes)) {
       const s = subPorChave.get(chave)
       const st = E.substituicaoDeLinha(subRow.get(chave))
-      colher(e, { ent: 'sub', id: e.id, bloco: 5, rotulo: (k) => rotSub(s, k), telaDe: (k) => ({ substituicoes: { porKey: { [s._key]: { id: e.id, [k]: st[k] } } } }) })
+      colher(e, { ent: 'sub', id: e.id, bloco: 5, rotulo: (k) => rotSub(s, k), calados: CALADOS_SUB, telaDe: (k) => ({ substituicoes: { porKey: { [s._key]: { id: e.id, [k]: st[k] } } } }) })
       if (s.id == null || String(s.id) !== String(e.id)) poe({ substituicoes: { porKey: { [s._key]: { id: e.id } } } })
     }
-    for (const chave of rSub.novas) { poe({ substituicoes: { novas: [E.substituicaoDeLinha(subRow.get(chave))] } }); aviso('sub', chave, '__nova', 5, 'Nova troca · ' + texto(subRow.get(chave).original)) }
-    for (const chave of rSub.removidas) { const s = subPorChave.get(chave); poe({ substituicoes: { remover: [s._key] } }); aviso('sub', chave, '__saiu', 5, 'Troca removida · ' + texto(s.original)) }
+    for (const chave of rSub.novas) { poe({ substituicoes: { novas: [E.substituicaoDeLinha(subRow.get(chave))] } }); aviso('sub', chave, '__nova', 5, 'Nova troca · ' + nomeTroca(subRow.get(chave))) }
+    for (const chave of rSub.removidas) { const s = subPorChave.get(chave); poe({ substituicoes: { remover: [s._key] } }); aviso('sub', chave, '__saiu', 5, 'Troca removida · ' + nomeTroca(s)) }
+    // Chave da troca na tela, pelo id do banco: a que a tela já tem, ou a de substituicaoDeLinha (troca que acabou de chegar).
+    const chaveTroca = new Map(subVivo.map((x) => [String(x.id), x.s._key]))
+    for (const chave of rSub.novas) chaveTroca.set(chave, E.substituicaoDeLinha(subRow.get(chave))._key)
+    const declDe = (k) => (vivo.declTrocas || {})[k] || {}
     for (const chave of rSub.removidasEditando) {
       const s = subPorChave.get(chave)
+      // "Manter a minha": a troca volta a ser gravada como NOVA — e os alergênicos dela também (o banco apagou junto).
+      const aspectos = Object.keys(declDe(s._key))
       removida({
-        ent: 'sub', id: chave, bloco: 5, rotulo: 'Troca · ' + (texto(s.original) || 'sem nome') + ' · removida', meu: texto(s.original) + ' → ' + texto(s.alternativa),
-        tela: { substituicoes: { remover: [s._key] } }, manterTela: { substituicoes: { porKey: { [s._key]: { id: null } } } },
-        limparIds: { ids: [s._key] },
+        ent: 'sub', id: chave, bloco: 5, rotulo: 'Troca · ' + nomeTroca(s) + ' · removida', meu: nomeTroca(s),
+        tela: { substituicoes: { remover: [s._key] } },
+        manterTela: {
+          substituicoes: { porKey: { [s._key]: { id: null } } },
+          ...(aspectos.length ? { declTrocas: { porNk: Object.fromEntries(aspectos.map((a) => [s._key + '|' + a, { id: null }])) } } : {}),
+        },
+        limparIds: { ids: [s._key, ...aspectos.map((a) => 'dect-' + s._key + '-' + a)] },
+      })
+    }
+
+    /* ── alergênicos das trocas (5): a linha é achada por troca|aspecto. Só das trocas que seguem nos dois lados:
+       a troca que saiu leva os dela (on delete cascade), sem aviso por resposta. ── */
+    const vivas = new Set(Object.keys(rSub.existentes))
+    const novasTrocas = new Set(rSub.novas)
+    const locaisDt = []
+    for (const x of subVivo) {
+      if (!vivas.has(String(x.id))) continue
+      for (const [aspecto, d] of Object.entries(declDe(x.s._key))) {
+        locaisDt.push({ chave: x.id + '|' + aspecto, id: idDe.declTrocaId(x.s._key, aspecto, d), corpo: E.corpoDeclaracao(d) })
+      }
+    }
+    const declSub = (snap.declSubRows || []).filter((r) => vivas.has(String(r.substituicao_id)) || novasTrocas.has(String(r.substituicao_id)))
+    const declSubRow = new Map(declSub.map((r) => [r.substituicao_id + '|' + r.aspecto, r]))
+    const rDt = mesclarColecao({
+      base: b.decl,
+      locais: locaisDt,
+      servidor: declSub.map((r) => ({ chave: r.substituicao_id + '|' + r.aspecto, id: r.id, corpo: E.corpoDeclaracao({ estado: r.estado, observacao: r.observacao || '' }) })),
+      esquecidas,
+    })
+    b.decl = rDt.base
+    // Na tela a chave é a da troca (s._key), não o id: 'sub-…' ou 'troca-N'.
+    const nkTela = (nk) => { const [id, aspecto] = nk.split('|'); return { k: chaveTroca.get(id), aspecto, id } }
+    const rotDt = (nk) => {
+      const { aspecto, id } = nkTela(nk)
+      const s = subPorChave.get(id) || E.substituicaoDeLinha(subRow.get(id) || {})
+      return (ROT_ASPECTO[aspecto] || aspecto) + ' (troca ' + nomeTroca(s) + ')'
+    }
+    for (const [nk, e] of Object.entries(rDt.existentes)) {
+      const r = declSubRow.get(nk)
+      const { k, aspecto } = nkTela(nk)
+      const tnk = k + '|' + aspecto
+      const antes = locaisDt.find((l) => l.chave === nk)
+      colher(e, { ent: 'decl', id: e.id, bloco: 5, rotulo: (c) => rotDt(nk) + (c === 'observacao' ? ' · qual' : ''), telaDe: (c) => ({ declTrocas: { porNk: { [tnk]: { id: r.id, [c]: valorDecl(r, c) } } } }) })
+      if (antes && String(antes.id) !== String(r.id)) poe({ declTrocas: { porNk: { [tnk]: { id: r.id } } } })
+    }
+    for (const nk of rDt.novas) {
+      const r = declSubRow.get(nk)
+      const { k, aspecto, id } = nkTela(nk)
+      poe({ declTrocas: { porNk: { [k + '|' + aspecto]: { id: r.id, estado: r.estado, observacao: r.observacao || '' } } } })
+      if (!novasTrocas.has(id)) aviso('decl', r.id, '__nova', 5, rotDt(nk)) // troca nova: o aviso dela já basta
+    }
+    for (const nk of rDt.removidas) {
+      const { k, aspecto } = nkTela(nk)
+      poe({ declTrocas: { remover: [{ itemId: k, aspecto }] } })
+      aviso('decl', nk, '__saiu', 5, rotDt(nk) + ' · resposta removida')
+    }
+    for (const nk of rDt.removidasEditando) {
+      const l = locaisDt.find((x) => x.chave === nk)
+      const { k, aspecto } = nkTela(nk)
+      removida({
+        ent: 'decl', id: l.id, bloco: 5, rotulo: rotDt(nk) + ' · removida', meu: valorLegivel('estado', declDe(k)[aspecto].estado),
+        tela: { declTrocas: { remover: [{ itemId: k, aspecto }] } }, manterTela: { declTrocas: { porNk: { [k + '|' + aspecto]: { id: null } } } },
+        limparIds: { ids: ['dect-' + k + '-' + aspecto] },
       })
     }
   }

@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Social media › Participantes: todos os combos completos à vista, texto revisado, campo marcado quando a marca muda algo e botão Baixar Word.
+Trocas do combo: cada opção de troca com nome, descrição e alergênicos próprios, várias por item; nome e descrição do combo obrigatórios.
