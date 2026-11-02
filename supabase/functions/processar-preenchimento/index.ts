@@ -85,14 +85,20 @@ async function revisar(chave: string, textos: Texto[]): Promise<Revisao[]> {
           required: ['revisoes'],
         },
       }],
-      tool_choice: { type: 'tool', name: 'devolver_revisoes' },
+      // Sem `tool_choice` forçado: o claude-sonnet-5-5 responde 400 ("tool_choice type tool/any not supported"). A instrução do sistema pede a ferramenta.
       messages: [{ role: 'user', content: JSON.stringify({ textos: cabem }) }],
     }),
   })
   if (!r.ok) throw new Error(`anthropic: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`)
   const corpo = await r.json()
-  const uso = (corpo.content || []).find((b: { type: string }) => b.type === 'tool_use')
-  const lista = uso && uso.input && uso.input.revisoes
+  const blocos = (corpo.content || []) as { type: string; input?: { revisoes?: unknown }; text?: string }[]
+  const uso = blocos.find((b) => b.type === 'tool_use')
+  let lista = uso && uso.input && uso.input.revisoes
+  if (!lista) { // plano B: JSON no texto da resposta
+    const txt = blocos.filter((b) => b.type === 'text').map((b) => b.text || '').join('')
+    const m = /\{[\s\S]*\}/.exec(txt)
+    try { lista = m ? JSON.parse(m[0]).revisoes : null } catch { lista = null }
+  }
   if (!Array.isArray(lista)) throw new Error('anthropic: resposta sem revisoes')
   return lista.filter((x: Revisao) => x && typeof x.campo === 'string' && typeof x.revisado === 'string')
 }

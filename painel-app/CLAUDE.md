@@ -2049,3 +2049,4 @@ perderam o limite e o contador. Fica um TETO TÉCNICO de **5.000 caracteres** (`
 documento inteiro não estourar o cadastro nem o texto de post. Migration `20261127_descricoes_sem_limite.sql` (✅ aplicada, testada
 com rollback). Os NOMES (80) e a "proposta editorial" (2.000) seguem como eram. ⚠️ Quem ainda tem o painel/formulário antigo aberto
 continua com o limite de tela antigo até recarregar.
+- **Sem `tool_choice` forçado (03/11):** o `claude-sonnet-5-5` responde 400 ("tool_choice type tool/any not supported") — a função pede a ferramenta pela instrução do sistema e, se vier texto, lê o JSON dele. 1º teste real da API: Casa Alice Doceria, 3 campos revisados ("Cafe carioca" → "Café carioca", "ninho" → "Ninho", pontuação do combo), sem mudar informação.
