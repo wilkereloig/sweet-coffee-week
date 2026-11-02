@@ -1084,7 +1084,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
 
   // A logo é o 17º campo: quem sabe se está confirmada é o resumo (banco).
   const logoOk = !!(resumo && resumo.campo && (resumo.campo('logo') || {}).estado !== 'falta')
-  const dadosProgresso = { marca, tema, itens, unidades, custos, logo: logoOk }
+  const dadosProgresso = { marca, tema, combo, itens, unidades, custos, logo: logoOk }
   const prog = progressoCampos(dadosProgresso)
   // Estado de cada campo: completo/falta ao vivo; o que a organização disse
   // (alteração pedida, em análise, aprovado) vem do resumo.
@@ -1104,7 +1104,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
   const pendEd = modeloNovo
     ? E.pendenciasEdicao({ comboNome: combo.combo_nome, comboDescricao: combo.combo_descricao, unidades, itens, declaracoes, substituicoes, declTrocas })
     : []
-  const pendEdicao = faltaCampos.some((c) => c.campo === 'unidade-endereco') ? pendEd.filter((c) => c !== 'sem_unidade') : pendEd
+  // Nome e descrição do combo já são campos obrigatórios (02/11/2026): a pendência de mesmo código não conta de novo.
+  const jaContados = new Set(faltaCampos.map((c) => c.campo))
+  const pendEdicao = pendEd.filter((c) => !jaContados.has(c) && !(c === 'sem_unidade' && jaContados.has('unidade-endereco')))
   const faltam = faltaCampos.length + pendEdicao.length
   // O que falta, a da aba aberta primeiro: o primeiro é o destino de "Ir para o que falta" (mesmo na outra aba).
   const proximaFalta = E.faltasDoCadastro({ faltaCampos, pendEdicao, unidades, itens, visiveis })[0] || null

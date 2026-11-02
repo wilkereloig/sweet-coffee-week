@@ -1431,8 +1431,11 @@ outro item" (o Marlon: cachorro-quente e, de troca, o vegetariano). Migration `2
   `troca:<pos>:<n>:descricao|alimentar` (só tela da marca) e `combo_descricao` (bloco 3).
 - **O combo:** no /preencher virou bloco próprio entre Tema e Os três itens, nome e descrição OBRIGATÓRIOS; `campos_cadastro` passou a
   15 campos-base (conta os dois).
-- ⚠️ Ficou desalinhado (aceito): `lib/guia.js camposObrigatorios` não conta nome/descrição do combo (o "% dos dados básicos" da marca
-  difere da lista da organização) e `pendencias_publicacao` (Início) não lista as pendências novas de troca.
+- **% e Início alinhados (mesmo dia):** `guia.js camposObrigatorios` conta `combo_nome`/`combo_descricao` (bloco 3; 15 campos, igual a
+  `campos_cadastro`); o que o servidor já lista não conta de novo (`resumoMarca.duplicado`, `pendEdicao` no Cadastro). O Início lê
+  `marca_previa_publica.faltando` = `pendencias_marca` (20261124): `pendencias_publicacao` + `combo_descricao` + `troca:<pos>:<n>:descricao|alimentar`.
+  ⚠️ `pendencias_publicacao` NÃO ganhou essas: ela trava `publicar_participacao` e `marca_concluir_cadastro`, e as trocas antigas não têm
+  descrição — o site de ninguém deixa de publicar por isso.
 
 #### Social media › Participantes completo — 31/10/2026 (pedido do Wilker; substitui a aba "Combos" do mesmo dia)
 "Em sequência, ordem alfabética, cada participante no seu card com tudo à vista; quando o participante atualizar, mostra aqui com uma

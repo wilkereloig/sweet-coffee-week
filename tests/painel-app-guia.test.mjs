@@ -13,27 +13,37 @@ const itens = [
 ]
 const base = {
   participante: { nome_marca: 'Casa', responsavel: 'Ana', telefone: '(84) 99999-8888' },
-  participacao: { id: 'pa', logo_id: 'l1', tema_combo: 'Moana', tema_justificativa: 'x', combo_preco: 39.9, combo_status: 'rascunho', status_cadastro: 'em_preenchimento' },
+  participacao: { id: 'pa', logo_id: 'l1', tema_combo: 'Moana', tema_justificativa: 'x', combo_nome: 'Combo Moana', combo_descricao: 'Um combo de teste.', combo_preco: 39.9, combo_status: 'rascunho', status_cadastro: 'em_preenchimento' },
   itens,
   unidades: [{ endereco: 'Rua A' }],
 }
 
-test('13 campos fixos + os custos que se aplicam — a mesma conta do banco (campos_cadastro)', () => {
+test('15 campos fixos (nome e descrição do combo inclusos, 02/11/2026) + os custos que se aplicam — a mesma conta do banco (campos_cadastro)', () => {
   const lista = camposObrigatorios({ marca: {}, tema: {}, itens: [], unidades: [] })
-  assert.equal(lista.length, 13)
+  assert.equal(lista.length, 15)
+  assert.ok(lista.some((c) => c.campo === 'combo_nome' && c.bloco === 3) && lista.some((c) => c.campo === 'combo_descricao' && c.bloco === 3))
   assert.ok(!lista.some((c) => c.campo === 'combo_preco'), 'o valor do combo é da organização')
   const comCustos = camposObrigatorios({ marca: {}, tema: {}, itens: [], unidades: [], custos: { viagem: true, delivery: true } })
-  assert.equal(comCustos.length, 15)
+  assert.equal(comCustos.length, 17)
   assert.ok(lista.some((c) => c.campo === 'logo' && c.bloco === 0), 'a logo é campo do bloco 0')
   assert.equal(lista.filter((c) => c.ok).length, 0)
   // Sem item criado não há campo para abrir.
   assert.equal(lista.filter((c) => c.bloco === 2 && c.campo === null).length, 6)
 })
 
+test('nome e descrição do combo: contam no % e, vindo também do servidor, contam UMA vez no Início', () => {
+  const semCombo = { ...base, participacao: { ...base.participacao, combo_nome: '', combo_descricao: '' }, faltandoEdicao: ['combo_nome', 'combo_descricao'] }
+  const r = resumoMarca(semCombo)
+  assert.equal(r.progresso.feitos, 12)
+  assert.equal(r.pendencias.filter((p) => p.campo === 'combo_nome').length, 1)
+  assert.equal(r.pendencias.filter((p) => p.campo === 'combo_descricao').length, 1)
+  assert.equal(r.envio.faltam, resumoMarca({ ...base, faltandoEdicao: [] }).envio.faltam + 2)
+})
+
 test('progresso é campo preenchido ÷ obrigatório, nada inventado', () => {
   const r = resumoMarca(base)
-  assert.deepEqual(r.progresso, { feitos: 12, total: 13, pct: 92 })
-  assert.deepEqual(progressoCampos({ marca: {}, tema: {}, itens: [], unidades: [] }), { feitos: 0, total: 13, pct: 0 })
+  assert.deepEqual(r.progresso, { feitos: 14, total: 15, pct: 93 })
+  assert.deepEqual(progressoCampos({ marca: {}, tema: {}, itens: [], unidades: [] }), { feitos: 0, total: 15, pct: 0 })
 })
 
 test('pendência de campo leva ao campo exato, na aba certa', () => {
