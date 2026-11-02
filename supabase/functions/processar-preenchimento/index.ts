@@ -48,7 +48,8 @@ async function rpc<T = unknown>(nome: string, args: Record<string, unknown>): Pr
     body: JSON.stringify(args),
   })
   if (!r.ok) throw new Error(`${nome}: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`)
-  return (await r.json()) as T
+  const t = await r.text() // função `returns void` responde com corpo vazio
+  return (t ? JSON.parse(t) : null) as T
 }
 
 async function revisar(chave: string, textos: Texto[]): Promise<Revisao[]> {
@@ -95,8 +96,10 @@ async function revisar(chave: string, textos: Texto[]): Promise<Revisao[]> {
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, erro: 'metodo' }, 405)
-  let corpo: { envio_id?: unknown }
+  let corpo: { envio_id?: unknown; diagnostico?: unknown }
   try { corpo = await req.json() } catch { return json({ ok: false, erro: 'json' }, 400) }
+  // Só diz se a chave existe no ambiente da função (true/false); nunca devolve o valor.
+  if (corpo.diagnostico === 'chave') return json({ ok: true, chave: !!Deno.env.get('ANTHROPIC_API_KEY') })
   const id = corpo.envio_id
   if (typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
     return json({ ok: false, erro: 'envio_id' }, 400)

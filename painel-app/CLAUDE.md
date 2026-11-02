@@ -2040,3 +2040,4 @@ Muda "Trocas completas" (02/11): o NOME e os 8 alergênicos da troca seguem obri
 ✅ aplicada, teste `supabase/testes/pendencias-marca.sql` → `TESTE_OK`), o "Faltam N" e a % param de pedir; o `/preencher` marca o campo
 "(opcional)" e não o valida mais. A descrição continua sendo gravada e aparecendo (Social › Participantes, site) quando a marca escreve.
 Descrição do COMBO segue obrigatória.
+- **Diagnóstico da chave (03/11):** `POST {"diagnostico":"chave"}` na função devolve `{ok:true, chave:true|false}` — só diz se `ANTHROPIC_API_KEY` existe no ambiente dela, nunca o valor. ⚠️ `rpc()` da função lê o corpo como TEXTO: função SQL `returns void` responde com corpo vazio (o `r.json()` direto virou 500 no 1º envio real, Caffè Basilico's, depois de aplicar e notificar).
