@@ -42,7 +42,7 @@ export const CHAVE_NOVA_POSTAGEM = 'scw_social_nova_postagem'
 const fotoUrl = (path) => (path ? SUPABASE_URL + '/storage/v1/object/public/edicao-publico/' + path.split('/').map(encodeURIComponent).join('/') : null)
 const PAPEL_FOTO = { combo_principal: 'Principal do combo', combo_galeria: 'Galeria do combo', item: 'Componente', loja: 'Loja' }
 const TIPO_ITEM = { doce: 'Doce', salgado: 'Salgado', bebida: 'Bebida' }
-const LIMITES = { combo_nome: 80, combo_descricao: 400, combo_proposta: 2000, item_nome: 80, item_descricao: 400 }
+const LIMITES = { combo_nome: 80, combo_descricao: 5000, combo_proposta: 2000, item_nome: 80, item_descricao: 5000 }
 const ROTULO = { combo_nome: 'Nome do combo', combo_descricao: 'Descrição do combo', combo_proposta: 'Proposta / apresentação editorial' }
 const n = (v) => (v == null ? '' : String(v))
 

@@ -73,8 +73,8 @@ function Trocas({ it, lista, declTrocas, unidades, sub }) {
               <input id={idDe('nome')} maxLength={200} value={s.alternativa} onChange={campo('alternativa')}
                 placeholder="Ex.: cachorro-quente vegetariano" aria-invalid={semNome ? true : undefined} /></label>
             {semNome && <span className="gm-campo-erro">Escreva o nome do item da troca para ela ser gravada.</span>}
-            <label><span>Descrição <Opcional /> <Contador valor={s.descricao} max={600} /></span>
-              <textarea id={idDe('descricao')} maxLength={600} value={s.descricao || ''} onChange={campo('descricao')}
+            <label><span>Descrição <Opcional /></span>
+              <textarea id={idDe('descricao')} maxLength={5000} value={s.descricao || ''} onChange={campo('descricao')}
                 placeholder="O que vem nele e como é servido." /></label>
             <Escolhas nome={'disp-' + k} legenda="Está disponível…" opcoes={DISPONIBILIDADES} valor={s.disponibilidade}
               onMudar={(v) => sub.alterar(k, 'disponibilidade', v)} />

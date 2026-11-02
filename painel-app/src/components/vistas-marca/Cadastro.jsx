@@ -1301,7 +1301,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                       )}
                       <label><span>Nome <EstadoCampo e={est('item-' + it.posicao + '-nome')} /></span><input id={'campo-item-' + it.posicao + '-nome'} maxLength={80} value={it.nome || ''} onChange={(e) => alterarItem(it.id, 'nome', e.target.value)} /><Correcao e={est('item-' + it.posicao + '-nome')} /></label>
                       <label><span>Descrição <em>(como conversa com o tema)</em> <EstadoCampo e={est('item-' + it.posicao + '-descricao')} /></span>
-                        <textarea id={'campo-item-' + it.posicao + '-descricao'} maxLength={300} value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
+                        <textarea id={'campo-item-' + it.posicao + '-descricao'} maxLength={5000} value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
                         <Correcao e={est('item-' + it.posicao + '-descricao')} />
                       </label>
                     </div>
@@ -1318,8 +1318,8 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                       <input id="campo-combo_nome" maxLength={80} value={combo.combo_nome} onChange={(e) => alterarCombo('combo_nome', e.target.value)} />
                       <Correcao e={est('combo_nome')} />
                     </label>
-                    <label><span>Descrição do combo <EstadoCampo e={est('combo_descricao')} /> <Contador valor={combo.combo_descricao} max={400} /></span>
-                      <textarea id="campo-combo_descricao" maxLength={400} value={combo.combo_descricao} onChange={(e) => alterarCombo('combo_descricao', e.target.value)} />
+                    <label><span>Descrição do combo <EstadoCampo e={est('combo_descricao')} /></span>
+                      <textarea id="campo-combo_descricao" maxLength={5000} value={combo.combo_descricao} onChange={(e) => alterarCombo('combo_descricao', e.target.value)} />
                       <Correcao e={est('combo_descricao')} />
                     </label>
                     <label><span>Condições <Opcional /> <EstadoCampo e={est('combo_condicoes')} /> <Contador valor={combo.combo_condicoes} max={280} /></span>
