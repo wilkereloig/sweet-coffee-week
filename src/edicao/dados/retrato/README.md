@@ -16,12 +16,14 @@ No DEV cada página mostra a faixa tracejada "Retrato local do painel · dd/mm" 
 1. **Ler o banco** (só `SELECT`): rodar `scripts/edicao/retrato-local.sql` pelo MCP `supabase-scw` (`execute_sql`). Se a resposta for grande, o MCP grava num arquivo e informa o caminho.
 2. **Gravar o arquivo**: `node scripts/edicao/retrato-salvar.mjs <caminho-da-resposta>` (recusa se aparecer campo privado).
 3. **Coordenadas**: `node scripts/edicao/geocodificar-retrato.mjs` (Nominatim, 1 requisição por segundo, ~45 s; só preenche quem está sem coordenada).
-4. **Logos desenhadas**: `python -I scripts/edicao/logos-desenhadas.py` (Pillow; lê o Dropbox da edição, gera `public/retrato-local/logos-desenhadas/` e acrescenta `casa.logo_desenhada` ao retrato).
+4. **Logos desenhadas**: `python -I scripts/edicao/logos-desenhadas.py` (Pillow; lê o Dropbox da edição e gera, VERSIONADOS desde 03/11, `public/images/marcas-edicoes/2026.2/logos-desenhadas/` — P&B, colorida e o pin do mapa — mais `src/data/logosDesenhadasEdicao.js`; acrescenta `casa.logo_desenhada` ao retrato).
 5. **Fotos dos combos**: `python -I scripts/edicao/fotos-combo.py` (lê `03_COMBOS/02_ARTES/<marca>/`, a maior versão `aprovada-vN` de cada peça; gera `public/retrato-local/combos/<slug>/` em 1200 × 1500 e preenche `combo.fotos.principal`, `itens[].foto` e `combo.fotos.galeria` com cortados e opções). Leva uns 3 minutos.
 
 Os passos 3 a 5 reescrevem o `cartoon.local.json`, então vêm depois do 2. Conferir tudo: `npm run test:cartoon`.
 
-**Última leitura: 28/10/2026** (27 casas, 40 unidades, banco ainda em fase `preparacao`, nenhuma casa publicada).
+**Última leitura: 03/11/2026 00:25** (27 casas, 41 unidades, banco ainda em fase `preparacao`, nenhuma casa publicada). O retrato guarda também `criterios` da avaliação.
+
+6. **Fotos para a produção** (lista 13, B2): aplicar a migration `20261129_item_fotos_publicas` e rodar `node --env-file=.env.local scripts/edicao/subir-fotos-combo.mjs` (só o plano) e depois com `--gravar` — sobe as fotos ao bucket `edicao-publico` e registra em `midias_participacao` como aprovadas. Precisa de `SUPABASE_SERVICE_ROLE_KEY` no `.env.local`.
 
 ## O que tem
 
