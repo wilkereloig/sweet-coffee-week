@@ -158,12 +158,26 @@ export const PARTICIPANTE = {
   localizacaoConferencia: 'Localização no mapa em conferência.',
   galeriaTitulo: 'Galeria',
   galeriaReserva: 'Galeria em produção',
+  fotoRotulo: { cortado: 'Detalhe', opcao: 'Outra opção' },
+  fotosDaCasa: 'Fotos da casa',
   avaliarTitulo: 'Avalie sua experiência',
   avaliarTexto: 'Provou o combo? Conte como foi. As avaliações do público ajudam a escolher os destaques do Sweet Awards.',
   avaliar: 'Avaliar esta casa',
   inexistente: 'Não encontramos essa casa na Cartoon.',
   retirado: 'Esta página saiu do ar.',
   naoDivulgado: 'O elenco desta edição será revelado em breve.',
+}
+
+/**
+ * Ícones de CONTORNO (icones/interface, 20 px) por assunto — lista 13, P2: o mesmo assunto tem o mesmo ícone em
+ * todas as páginas. A ilustração da edição (IconeCartoon) fica para navegação e modos de atendimento.
+ */
+export const ICONE = {
+  tipo: { doce: 'cupcake', salgado: 'coxinha', bebida: 'xicara' },
+  restricoes: 'alerta', contem: 'atencao', podeConter: 'duvida', naoContem: 'sucesso', naoInformado: 'pendente',
+  caracteristicas: 'informacao', ingredientes: 'ficha', trocas: 'ciclo', condicoes: 'documento', noCombo: 'combo',
+  endereco: 'local', horario: 'horario', comoChegar: 'trajeto', whatsapp: 'mensagem', mapa: 'local', instagram: 'instagram',
+  site: 'link-externo', fotos: 'imagem', avaliar: 'estrela',
 }
 
 export const CENA_TEXTO = {

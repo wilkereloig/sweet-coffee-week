@@ -192,7 +192,7 @@ test('link do canal de delivery: só endereço web; javascript:/data: nunca vira
   assert.equal(C.erroLinkCanal('wa.me/55'), '')
   // O href da ficha e o da página pública também checam (o dado já gravado antes não é confiável).
   assert.match(ler('painel-app/src/components/vistas/FichaVisao.jsx'), /linkWebSeguro\(c\.link\) \? <a className="og-link" href=\{linkWebSeguro\(c\.link\)\}/)
-  assert.match(ler('src/edicao/cartoon/paginas/Participante.jsx'), /\.filter\(\(c\) => \/\^https\?:/)
+  assert.match(ler('src/edicao/cartoon/paginas/participante/ComoPedir.jsx'), /\.filter\(\(c\) => \/\^https\?:/)
   assert.match(ler('painel-app/src/components/vistas-marca/edicao/Atendimento.jsx'), /erroLinkCanal\(u\.canais\[c\.tipo\]\)/)
 })
 

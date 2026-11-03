@@ -1,5 +1,5 @@
 import React from 'react'
-import { FichaParticipante } from '../../../../../src/edicao/cartoon/paginas/Participante.jsx'
+import { FichaParticipante } from '../../../../../src/edicao/cartoon/paginas/participante/index.jsx'
 import '../../../../../src/styles/scw-cartoon.css'
 
 /*

@@ -3,12 +3,30 @@
  * Só composição: o desenho mora em scw-cartoon.css, sobre os tokens --ct-*.
  */
 import React from 'react'
+import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
 import { Link } from '../base.jsx'
 import { IconeCartoon } from './IconeCartoon.jsx'
 
-/** Fita com o nome da seção: amarela; `cor="azul"` no canal Serviço ("como funciona"), em texto grande. */
-export function Etiqueta ({ children, as: Tag = 'p', cor, ...resto }) {
-  return <Tag className={`ct-etiqueta${cor ? ` ct-etiqueta--${cor}` : ''}`} {...resto}>{children}</Tag>
+/**
+ * Fita com o nome da seção: amarela; `cor="azul"` no canal Serviço ("como funciona"), em texto grande.
+ * `icone`: ícone de CONTORNO do sistema (icones/interface, 20 px) antes do texto — leitura rápida do assunto
+ * (Doce, Salgado, Bebida). Ilustração da edição (IconeCartoon) fica para navegação e modos de atendimento.
+ */
+export function Etiqueta ({ children, as: Tag = 'p', cor, icone, ...resto }) {
+  return (
+    <Tag className={`ct-etiqueta${cor ? ` ct-etiqueta--${cor}` : ''}${icone ? ' ct-etiqueta--icone' : ''}`} {...resto}>
+      {icone && <ScwIcon nome={icone} tamanho={20} />}{children}
+    </Tag>
+  )
+}
+
+/** Rótulo de tópico (caixa-alta pequena) com ícone de contorno: diz de que se está falando antes do conteúdo. */
+export function Rotulo ({ children, icone, as: Tag = 'p', className = '', ...resto }) {
+  return (
+    <Tag className={`ct-rotulo${icone ? ' ct-rotulo--icone' : ''} ${className}`.trim()} {...resto}>
+      {icone && <ScwIcon nome={icone} tamanho={20} />}<span>{children}</span>
+    </Tag>
+  )
 }
 
 /** Dado curto em chocolate. */

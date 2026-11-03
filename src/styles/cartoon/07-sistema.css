@@ -32,6 +32,43 @@
 }
 /* Creme sobre azul fecha ~3,5:1: a fita azul é sempre texto grande (19px/800). Preto fica só no traço de desenho. */
 .ct-etiqueta--azul { background: var(--ct-azul); color: var(--ct-creme); font-size: 19px; }
+/* Com ícone de contorno (lista 13, P2): o ícone vem antes do texto, na tinta da fita. */
+.ct-etiqueta--icone { display: inline-flex; align-items: center; gap: 6px; padding-left: 10px; }
+.ct-etiqueta--icone svg, .ct-rotulo--icone svg { flex: none; }
+.ct-rotulo--icone { display: flex; align-items: center; gap: 6px; }
+
+/* Galeria de um assunto (Galeria.jsx): trilho com rolagem nativa e encaixe por foto, setas sobre a foto, contagem
+   + legenda curta ("Detalhe", "Outra opção") e pontos embaixo. Pontos com alvo de 44 px; o desenho é o ::before. */
+.ct-galeria-item { display: grid; gap: 8px; min-width: 0; }
+.ct-galeria-item__palco { position: relative; min-width: 0; }
+.ct-galeria-item__trilho {
+  display: flex; margin: 0; padding: 0; list-style: none; border-radius: var(--ct-raio);
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+.ct-galeria-item__trilho::-webkit-scrollbar { display: none; }
+.ct-galeria-item__slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; }
+.ct-galeria-item__ampliar { position: relative; display: block; width: 100%; padding: 0; border: 0; border-radius: var(--ct-raio); background: none; cursor: zoom-in; }
+.ct-galeria-item__lupa {
+  position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 36px; height: 36px;
+  border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); color: var(--ct-chocolate);
+}
+.ct-galeria-item__seta {
+  position: absolute; top: 50%; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; translate: 0 -50%;
+  border: var(--ct-traco); border-radius: 50%; background: var(--ct-creme); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); cursor: pointer;
+}
+.ct-galeria-item__seta--antes { left: 8px; }
+.ct-galeria-item__seta--depois { right: 8px; }
+.ct-galeria-item__seta:disabled { visibility: hidden; }
+.ct-galeria-item__pe { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; }
+.ct-galeria-item__legenda { display: flex; align-items: center; gap: 8px; margin: 0; font: 700 14px/1.2 var(--ct-font); }
+.ct-galeria-item__legenda strong { padding: 3px 10px 2px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-amarelo); font: 800 13px/1.2 var(--ct-font); }
+.ct-galeria-item__pontos { display: flex; margin: 0; padding: 0; list-style: none; }
+.ct-galeria-item__ponto { position: relative; width: 30px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; }
+.ct-galeria-item__ponto::before {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; translate: -50% -50%;
+  border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); transition: scale var(--ct-mo), background-color var(--ct-mo);
+}
+.ct-galeria-item__ponto[aria-current='true']::before { background: var(--ct-chocolate); scale: 1.35; }
 .ct-pilula {
   display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 999px;
   background: var(--ct-chocolate); color: var(--ct-creme); font: 800 15px/1 var(--ct-font);
@@ -127,12 +164,19 @@
 }
 /* Casa sem kit (CenarioTema semKit="natal"): só a faixa de Natal como chão, sem reservar o objeto A. */
 .ct-canal:has(> .ct-cenario--natal) { padding-top: clamp(32px, 6vw, 72px); padding-right: var(--ct-trilho); }
-/* Ficha da casa: o topo leva só os objetos; a faixa (com o combo desenhado, quando existe) fica presa ao pé da
-   tela, acima da barra de abas no celular: o desenho vai INTEIRO (contain) — no celular ocupa a largura toda, no
-   desktop para no teto de altura e fica centrado. O rodapé reserva o teto: no fim da rolagem nada fica escondido. */
+/* Ficha da casa: o topo leva só os objetos do kit (sem a faixa). */
 .ct-canal:has(> .ct-cenario--sem-faixa) { padding-bottom: clamp(32px, 6vw, 72px); }
-.ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: 24vh; }
-.ct-cenario-fixo { position: fixed; inset: auto 0 0; z-index: 20; pointer-events: none; }
-.ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: min(calc(var(--ct-fixo-razao, .33) * 100vw), var(--ct-fixo-h)); object-fit: contain; object-position: center bottom; }
+/* Faixa presa ao pé da tela (lista 13, P1 — Wilker, 03/11): acompanha a LARGURA da página em qualquer tela
+   (altura = largura × --ct-fixo-razao, a razão do arquivo, que o CenarioFixo põe também na raiz) e fica BEM
+   baixa: no começo só uns 18% da altura da tela à mostra (e ao menos 40% do desenho abaixo da borda);
+   com a rolagem ela sobe e aparece inteira no fim da página (09-movimento.css). O rodapé reserva a altura
+   inteira: no fim nada fica coberto. Celular: acima da barra de abas. */
+.ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: calc(var(--ct-fixo-razao, .33) * 100vw); }
+.ct-cenario-fixo {
+  --ct-fixo-desce: max(40%, calc(100% - 18svh));
+  position: fixed; inset: auto 0 0; z-index: 20; pointer-events: none;
+  translate: 0 var(--ct-fixo-desce);
+}
+.ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: auto; }
 .ct-edicao:has(.ct-cenario-fixo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h)); }
 @media (max-width: 899.98px) { .ct-cenario-fixo { bottom: var(--scw-base-ocupada, 72px); } }

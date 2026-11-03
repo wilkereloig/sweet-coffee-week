@@ -74,14 +74,24 @@ export function CenarioTema ({ slug, semKit = null, faixa: comFaixa = true }) {
 
 /**
  * Faixa do mundo da casa presa ao pé da tela, de ponta a ponta (acima da barra de abas no celular): o cenário
- * com o combo desenhado, ou a faixa do kit. Decorativa e sem clique; a ficha reserva a altura dela no fim
- * (.ct-edicao:has(.ct-cenario-fixo)), então nada fica escondido embaixo quando a rolagem acaba.
+ * com o combo desenhado, ou a faixa do kit. Acompanha a largura da página (altura = largura × razão do arquivo),
+ * começa baixa e sobe com a rolagem até aparecer inteira no fim (lista 13, P1). Decorativa e sem clique.
+ * A razão também vai para a raiz .ct-edicao: é lá que o rodapé lê a altura a reservar, para nada ficar
+ * escondido embaixo da faixa quando a rolagem acaba.
  */
 export function CenarioFixo ({ slug }) {
   const faixa = cenarioComboEdicao(slug)
+  const ref = React.useRef(null)
+  const razao = faixa ? (faixa.altura / faixa.largura).toFixed(4) : null
+  React.useEffect(() => {
+    const raiz = ref.current?.closest('.ct-edicao')
+    if (!raiz || !razao) return undefined
+    raiz.style.setProperty('--ct-fixo-razao', razao)
+    return () => raiz.style.removeProperty('--ct-fixo-razao')
+  }, [razao])
   if (!faixa) return null
   return (
-    <div className="ct-cenario-fixo" aria-hidden="true" style={{ '--ct-fixo-razao': (faixa.altura / faixa.largura).toFixed(4) }}>
+    <div ref={ref} className="ct-cenario-fixo" aria-hidden="true" style={{ '--ct-fixo-razao': razao }}>
       <img src={faixa.src} srcSet={srcSet(faixa.src)} sizes="100vw" width={faixa.largura} height={faixa.altura} alt="" decoding="async" />
     </div>
   )

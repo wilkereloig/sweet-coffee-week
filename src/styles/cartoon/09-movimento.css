@@ -31,11 +31,16 @@
   .ct-item { transform-origin: 50% 100%; animation: ct-pula var(--ct-mo-quique-dur) var(--ct-mo-quique) both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
   .ct-item:nth-child(2) { rotate: .6deg; }
   .ct-item:nth-child(3) { rotate: -.6deg; }
-  .ct-galeria-grade__item .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
-  .ct-galeria-grade__item:hover .ct-foto img, .ct-galeria-grade__item:focus-visible .ct-foto img { scale: 1.08; }
+  .ct-galeria-item__ampliar .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
+  .ct-galeria-item__ampliar:hover .ct-foto img, .ct-galeria-item__ampliar:focus-visible .ct-foto img { scale: 1.08; }
   .ct-edicao .ct-atalho { transition: translate 180ms var(--ct-mo-quique); }
   .ct-edicao .ct-atalho:hover { translate: 0 -3px; }
   .ct-cenario-fixo img { animation: ct-desliza 760ms cubic-bezier(.22, .9, .24, 1) both; }
+  /* A faixa do pé fica baixa enquanto se lê e sobe no último trecho da rolagem: inteira no fim (lista 13, P1). */
+  @supports (animation-timeline: scroll()) {
+    @keyframes ct-faixa-sobe { 0%, 82% { translate: 0 var(--ct-fixo-desce); } 100% { translate: 0 0; } }
+    .ct-cenario-fixo { animation: ct-faixa-sobe linear both; animation-timeline: scroll(root); }
+  }
   .ct-cenario__objeto--a { translate: calc(var(--mx, 0) * 8px) calc(var(--my, 0) * 6px); }
   .ct-cenario__objeto--b { translate: calc(var(--mx, 0) * -5px) calc(var(--my, 0) * -4px); animation-delay: 120ms; }
 

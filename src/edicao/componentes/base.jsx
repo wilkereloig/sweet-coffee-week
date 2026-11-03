@@ -80,3 +80,8 @@ export function AvisoRetrato ({ retrato }) {
   if (!import.meta.env.DEV || !retrato?.lido_em) return null
   return <p className="ct-aviso ct-aviso--retrato" role="note">Retrato local do painel · {diaMesDoRetrato(retrato.lido_em)}</p>
 }
+
+/** Os três avisos de origem do dado, na ordem de sempre: toda página usa este, não os três soltos. */
+export function Avisos ({ desatualizado = false, demo = false, retrato = null }) {
+  return <><AvisoDesatualizado ativo={desatualizado} /><AvisoDemo ativo={demo} /><AvisoRetrato retrato={retrato} /></>
+}

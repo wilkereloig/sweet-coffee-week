@@ -5,8 +5,8 @@
 Fonte (Dropbox da edição): 02_ARTES/<pasta>/<pasta>_<peça>_aprovada-vN.png, só a raiz
 de cada pasta (com-tarja/ fica de fora). De cada peça vale a maior versão N.
     combo            -> combo.fotos.principal
-    doce/salgado/... -> itens[].foto, pelo tipo do item
-    o resto (doce-cortado, salgado-cortado, bebida2, doce2...) -> combo.fotos.galeria
+    doce/salgado/... -> itens[].foto, pelo tipo do item; + itens[].fotos (galeria do item)
+    doce-cortado, doce2, bebida2... -> itens[].fotos do mesmo tipo, com rotulo Detalhe / Outra opção
 Saída (fora do git, public/retrato-local/ está no .gitignore):
     public/retrato-local/combos/<slug>/<peça>.webp   1200 x 1500 (4:5, o formato da sessão)
 
@@ -64,10 +64,21 @@ def gravar(arquivo: Path, slug: str, peca: str, alt: str) -> dict:
     return {'path': f'/retrato-local/combos/{slug}/{peca}.webp', 'largura': TAMANHO[0], 'altura': TAMANHO[1], 'alt': alt}
 
 
+def tipo_da_peca(peca: str) -> str:
+    """doce-cortado, doce-calda, doce2 -> doce; bebida3, bebida-servindo -> bebida."""
+    return peca.split('-', 1)[0].rstrip('0123456789')
+
+
+def eh_opcao(peca: str) -> bool:
+    """doce2, bebida3: outra opção do item. Com sufixo (cortado, calda, servindo…): detalhe do mesmo item."""
+    return '-' not in peca and peca != tipo_da_peca(peca)
+
+
 def rotulo_galeria(peca: str) -> str:
-    base, cortado = peca.removesuffix('-cortado'), peca.endswith('-cortado')
-    tipo = ROTULO.get(base.rstrip('0123456789'), base).lower()
-    return f'{tipo.capitalize()} cortado' if cortado else f'Outra opção de {tipo}'
+    tipo = ROTULO.get(tipo_da_peca(peca), tipo_da_peca(peca)).lower()
+    if eh_opcao(peca):
+        return f'Outra opção de {tipo}'
+    return f'{tipo.capitalize()} cortado' if peca.endswith('-cortado') else f'{tipo.capitalize()} em detalhe'
 
 
 def main() -> None:
@@ -98,8 +109,18 @@ def main() -> None:
             if arq:
                 desc = f": {item['nome']}" if item.get('nome') else ''
                 item['foto'] = gravar(arq, slug, item['tipo'], f"{ROTULO.get(item['tipo'], item['tipo'])} do combo da {nome}{desc}")
+            # Galeria DO ITEM (lista 13, P3): a principal, o detalhe partido e as outras opções do mesmo tipo.
+            extras = sorted((k for k in achadas if tipo_da_peca(k) == item['tipo']),
+                            key=lambda k: ORDEM_GALERIA.index(k) if k in ORDEM_GALERIA else len(ORDEM_GALERIA))
+            fotos = [item['foto']] if item.get('foto') else []
+            for k in extras:
+                f = gravar(achadas.pop(k), slug, k, f'{rotulo_galeria(k)} do combo da {nome}')
+                f['rotulo'] = 'Outra opção' if eh_opcao(k) else 'Detalhe'
+                fotos.append(f)
+            if len(fotos) > 1:
+                item['fotos'] = fotos
         resto = sorted(achadas, key=lambda k: ORDEM_GALERIA.index(k) if k in ORDEM_GALERIA else len(ORDEM_GALERIA))
-        if resto:
+        if resto:  # peça que não é de nenhum item do combo (raro): fica na galeria do combo
             combo['fotos']['galeria'] = [gravar(achadas[k], slug, k, f'{rotulo_galeria(k)} do combo da {nome}') for k in resto]
         com.append(slug)
     sem += [s for s, p in casas.items() if p.get('combo') and s not in com and s not in sem]

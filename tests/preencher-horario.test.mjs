@@ -889,25 +889,25 @@ test('site: o horário da unidade sai em frases — dia sem período não abre; 
 })
 
 test('site: nenhum texto "horário da loja" nem "horário do combo" nas páginas da edição', () => {
-  for (const arq of ['src/edicao/cartoon/paginas/Participante.jsx', 'src/edicao/cartoon/textos.js', 'src/edicao/dados/demo/cartoon.js']) {
+  for (const arq of ['src/edicao/cartoon/paginas/participante/index.jsx', 'src/edicao/cartoon/paginas/participante/Unidades.jsx', 'src/edicao/cartoon/textos.js', 'src/edicao/dados/demo/cartoon.js']) {
     const t = ler(arq)
     assert.doesNotMatch(t, /horário da loja|Horário da loja|horario_loja|horarioLoja|Horário do combo|horarioCombo/, arq)
   }
   assert.match(ler('src/edicao/cartoon/textos.js'), /horarioFestival: 'Horário no festival'/)
   // A ficha mostra o horário dia a dia (E6, 28/10) com as regras do mesmo módulo: dia sem linha = não abre; sem as datas da
   // edição (ou sem linha dentro delas), cai nas frases de sempre.
-  const ficha = ler('src/edicao/cartoon/paginas/Participante.jsx')
+  const ficha = ler('src/edicao/cartoon/paginas/participante/Unidades.jsx')
   assert.match(ficha, /<Dias linhas=\{u\.combo\?\.disponibilidade\} periodo=\{periodo\} \/>/)
   assert.match(ficha, /H\.diasDeLinhas\(linhas, datas\)/)
   assert.match(ficha, /M\.horarioNoFestival\(linhas, periodo\)/)
-  assert.match(ler('src/edicao/cartoon/paginas/Participante.jsx'), /periodo=\{edicao\?\.edicao\}/, 'o período da edição chega à unidade')
+  assert.match(ler('src/edicao/cartoon/paginas/participante/index.jsx'), /periodo=\{edicao\?\.edicao\}/, 'o período da edição chega à unidade')
 })
 
 test('site: as telas passam o período da edição a estadoAgora (dia sem linha DENTRO do festival é "sem combo hoje", não "fora do período")', () => {
-  assert.match(ler('src/edicao/cartoon/paginas/Participante.jsx'), /M\.estadoAgora\(u, undefined, periodo\)/)
+  assert.match(ler('src/edicao/cartoon/paginas/participante/Unidades.jsx'), /M\.estadoAgora\(u, undefined, periodo\)/)
   assert.match(ler('src/edicao/cartoon/paginas/Mapa.jsx'), /M\.estadoAgora\(u, undefined, dados\?\.edicao\)/)
   assert.match(ler('src/edicao/cartoon/paginas/MinhaRota.jsx'), /M\.estadoAgora\(pa\.unidade, undefined, dados\?\.edicao\)/)
-  for (const arq of ['Participante', 'Mapa', 'MinhaRota']) {
+  for (const arq of ['participante/Unidades', 'Mapa', 'MinhaRota']) {
     assert.doesNotMatch(ler('src/edicao/cartoon/paginas/' + arq + '.jsx'), /estadoAgora\((u|pa\.unidade)\)/, arq + ' ainda chama estadoAgora sem o período')
   }
 })
