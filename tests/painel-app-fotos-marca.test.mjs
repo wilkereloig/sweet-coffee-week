@@ -672,3 +672,18 @@ test('foto por link (pasta do Dropbox, migration 20261129): detalhe sem formato/
   assert.match(fonte, /ehLinkExterno\(a\) && \(\s*<a className="og-btn og-btn--mini" href=\{a\.url_externa\} target="_blank" rel="noopener noreferrer"/)
   assert.match(fonte, /itens=\{arquivos\.filter\(\(a\) => !ehLinkExterno\(a\)\)/)
 })
+
+test('foto por link: a prévia (mosaico em `previa_dados`, migration 20261131) aparece direto, sem assinar; sem ela, ícone e nome', () => {
+  const { Miniatura } = carregar(VISTAS + 'fotos/Miniatura.jsx')
+  const dados = 'data:image/webp;base64,UklGRg=='
+  const link = { id: 'l1', nome: 'Fotos do combo — pasta no Dropbox', url_externa: 'https://www.dropbox.com/scl/fo/abc/x?rlkey=k&dl=0' }
+  const com = html(Miniatura, { arquivo: { ...link, previa_dados: dados } })
+  assert.ok(com.includes('<img src="' + dados + '" alt=""'), 'a imagem da prévia vem na própria linha')
+  assert.doesNotMatch(com, /fm-mini--sem/)
+  const sem = html(Miniatura, { arquivo: link })
+  assert.match(sem, /fm-mini--sem/, 'sem prévia: ícone + nome, como antes')
+  assert.doesNotMatch(sem, /<img/)
+  // a prévia só nasce na linha de link e a lista da equipe não a carrega
+  assert.match(ler('supabase/migrations/20261131_arquivo_previa_dados.sql'), /url_externa is not null and length\(previa_dados\) <= 150000/)
+  assert.doesNotMatch(ler('painel-app/src/components/vistas/ArquivosOrg.jsx'), /previa_dados/)
+})

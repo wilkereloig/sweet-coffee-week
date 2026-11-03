@@ -2067,4 +2067,11 @@ no Dropbox e o painel mostra um item "Fotos do combo" que abre o link. Migration
 - **Pastas no Dropbox:** `09_ENTREGAS/fotos-participantes/<marca>/` (só a versão mais nova de cada foto aprovada + `Carrossel com tarja/` com as lâminas 01–07; sem a
   08 de arte final, sem `_versoes-anteriores`). Links públicos criados NO DROPBOX (o conector do Claude só cria link privado por convite de e-mail, e o Dropbox avisaria
   a marca na hora). Os endereços ficam em `clientes/sweet-coffee-week-dados/` (fora do repositório público).
-- Marlon já tem as fotos como arquivos no Storage (14 ativas, sem link): fica como está.
+- Marlon ganhou o link também (03/11): continua com os 14 arquivos do Storage e agora tem a pasta no Dropbox como as outras 26 (27 marcas com link).
+- **Prévia do cartão (03/11, Wilker: "tem como adicionar uma prévia das fotos?"):** `arquivos.previa_dados` (migration `20261131_arquivo_previa_dados.sql`, ✅ aplicada; teste
+  `supabase/testes/arquivo-previa-dados.sql` → `TESTE_OK`; reversão em `supabase/reverter/`). É um MOSAICO WebP 640×480 (Combo grande + Doce, Salgado e Bebida empilhados;
+  30–62 KB) guardado na linha como data URL — o `previa_path` não serve porque o link não tem arquivo no Storage. CHECK: só linha de link, só WebP, ≤ 150.000 caracteres.
+  `Miniatura.jsx` desenha direto (sem assinar); sem prévia ou imagem que falha → ícone + nome. A marca lê pela tabela (`select=*`, só a linha dela); `get_arquivos_admin`
+  NÃO devolve a coluna. Trocar a prévia é UPDATE (não notifica). **Para refazer:** gerar o mosaico das fotos originais da pasta do Dropbox (Pillow, cobrir/cortar; 4:5 → 384×480
+  à esquerda e 3 células 251×156 à direita, vão de 5 px, fundo #F1DFC4, qualidade 74) e gravar por UPDATE em `arquivos.previa_dados` — o texto base64 passa de 1 MB no total,
+  então NÃO cabe numa chamada SQL do MCP: use uma função temporária com token descartável (foi o que se fez; já desativada, `previa-upload-temp` responde 410 e pode ser apagada no painel).
