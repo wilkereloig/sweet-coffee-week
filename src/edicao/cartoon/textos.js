@@ -10,15 +10,14 @@ export const PERIODO = '5 a 15 de novembro'
 const C = EDICAO.caminho
 
 /* Páginas da edição (§10.6). `aba` = rótulo curto da barra do celular; `icone` = ícone ilustrado (nunca sozinho).
-   Cabeçalho e menu do celular listam todas; a barra de abas mostra Início · Casas · Mapa · Rota · Avaliar, e
-   Avaliar dá lugar a Prêmio quando os resultados saem (index.jsx). */
+   Cabeçalho, menu do celular e barra de abas mostram as mesmas cinco. Avaliar e Premiação são UMA página
+   (Sweet Awards, lista 13 N1): /avaliar e /premiacao abrem nela; depois dos resultados a aba vira "Prêmios". */
 export const NAV = [
   { cena: 'entrada', rotulo: 'Início', aba: 'Início', icone: 'inicio', href: C },
   { cena: 'participantes', rotulo: 'Casas', aba: 'Casas', icone: 'casas', href: `${C}/participantes` },
   { cena: 'mapa', rotulo: 'Mapa', aba: 'Mapa', icone: 'mapa', href: `${C}/mapa` },
   { cena: 'minha-rota', rotulo: 'Minha rota', aba: 'Rota', icone: 'rota', href: `${C}/minha-rota` },
-  { cena: 'avaliar', rotulo: 'Avaliar', aba: 'Avaliar', icone: 'avaliar', href: `${C}/avaliar` },
-  { cena: 'premiacao', rotulo: 'Premiação', aba: 'Prêmio', icone: 'premio', href: `${C}/premiacao` },
+  { cena: 'avaliar', rotulo: 'Sweet Awards', aba: 'Avaliar', abaResultados: 'Prêmios', icone: 'avaliar', iconeResultados: 'premio', href: `${C}/avaliar` },
 ]
 
 export const MENU = { abrir: 'Menu', titulo: 'Páginas da Cartoon', fechar: 'Fechar' }
@@ -258,38 +257,87 @@ export const ROTA = {
   encerrada: 'A edição terminou. As casas seguem no catálogo como registro.',
 }
 
-/* Avaliar (§10.7, canal Serviço). Os passos descrevem o formulário que existe: casa, notas, nome e e-mail. */
-export const AVALIAR = {
-  titulo: 'Avalie sua experiência',
-  lead: 'Provou o combo? Conte como foi: as avaliações do público ajudam a escolher os destaques do Sweet Awards.',
-  passosTitulo: 'Como avaliar',
+/*
+ * Sweet Awards (lista 13, N1): avaliar + premiação numa página só (canal Gala). Durante o festival: como funciona,
+ * o que se avalia e o formulário em 3 passos; depois, os premiados no lugar do formulário. Nada de data de
+ * resultado além do fim do festival (D-15); categorias de prêmio não aparecem como definitivas (D-06).
+ * Perguntas e ajudas por critério: as da Lovers 2026.1 (src/data/_arquivo/sweetAwards.js), adaptadas à Cartoon.
+ */
+export const AWARDS = {
+  titulo: 'Sweet Awards',
+  rotulo: 'Avaliação e premiação da Cartoon',
+  lead: 'Aqui você é o jurado. Provou o combo de uma casa? Dê as suas notas: a avaliação do público escolhe os destaques do Sweet Awards.',
+  trofeuAlt: 'Troféu de ouro do Sweet Awards: uma fatia de bolo provada, com a colher de sobremesa cravada, sobre a base no formato do selo',
+  irAvaliar: 'Avaliar agora',
+  verPremiados: 'Ver os premiados',
+  comoTitulo: 'Como funciona',
   passos: [
     { titulo: 'Prove o combo', texto: 'Numa casa participante: no local, para levar ou por delivery, conforme a casa.', icone: 'no-local' },
-    { titulo: 'Dê as notas', texto: 'Escolha a casa e dê uma nota para cada item do combo.', icone: 'avaliar' },
-    { titulo: 'Envie', texto: 'Com seu nome e e-mail. Uma avaliação por casa: se avaliar de novo, vale a mais recente.', icone: 'compartilhar' },
+    { titulo: 'Dê as notas', texto: 'Escolha a casa e dê uma nota de 5 a 10 para cada item. Leva uns dois minutos.', icone: 'avaliar' },
+    { titulo: 'Acompanhe o resultado', texto: 'Os destaques saem depois do festival, aqui nesta página.', icone: 'premio' },
   ],
-  abre: (quando) => `A avaliação abre ${quando}.`,
-  abreLead: 'Enquanto isso, escolha as casas que quer provar.',
+  oQueTitulo: 'O que você avalia',
+  escala: 'Notas de 5 (menor) a 10 (maior).',
+  criterios: {
+    doce: { pergunta: 'Que nota você dá para o doce?', ajuda: 'Sabor e qualidade do item doce.' },
+    salgado: { pergunta: 'Que nota você dá para o salgado?', ajuda: 'Sabor e qualidade do item salgado.' },
+    bebida: { pergunta: 'Que nota você dá para a bebida?', ajuda: 'Sabor e harmonia da bebida com o combo.' },
+    apresentacao: { pergunta: 'Que nota você dá para a apresentação?', ajuda: 'Capricho e beleza na montagem do combo.' },
+    criatividade: { pergunta: 'Que nota você dá para a criatividade?', ajuda: 'Originalidade e ousadia do combo dentro do tema da casa.' },
+    atendimento: { pergunta: 'Que nota você dá para o atendimento?', ajuda: 'Simpatia, agilidade e cuidado da equipe.' },
+    encantamento: { pergunta: 'Que nota você dá para o encantamento em loja?', ajuda: 'Como a casa viveu o tema: ambientação, ações, vestimenta, cantinho para fotos. Pediu por delivery? Avalie o que chegou até você.' },
+  },
+  pergunta: (rotulo) => `Que nota você dá para ${rotulo.toLowerCase()}?`,
   formTitulo: 'Sua avaliação',
+  passosForm: ['A casa', 'Suas notas', 'Seus dados'],
+  passoDe: (n, total) => `Passo ${n} de ${total}`,
+  casaTitulo: 'Qual casa você quer avaliar?',
+  casaBusca: 'Buscar casa',
+  casaNenhuma: 'Nenhuma casa com esse nome.',
+  unidade: 'Em qual unidade?',
+  unidadeEscolha: 'Escolha a unidade',
+  notasTitulo: (casa) => `Suas notas para ${casa}`,
+  dadosTitulo: 'Quase lá: quem está avaliando?',
+  comentario: 'Quer contar algo para a casa? (opcional)',
+  nome: 'Seu nome',
+  email: 'Seu e-mail',
+  emailAjuda: 'Só para evitar avaliação repetida: uma por e-mail em cada casa, e vale a mais recente.',
+  novidades: 'Quero receber novidades do Sweet & Coffee Week (opcional)',
+  privacidade: 'Ao enviar, você concorda com o uso dos dados descrito na',
+  privacidadeLink: 'Política de Privacidade',
+  continuar: 'Continuar',
+  voltar: 'Voltar',
+  enviar: 'Enviar avaliação',
+  enviando: 'Enviando…',
+  verificando: 'Confirmando que você não é um robô…',
+  faltaCasa: 'Escolha a casa (e a unidade, se houver mais de uma).',
+  faltaNotas: (n) => (n === 1 ? 'Falta 1 nota.' : `Faltam ${n} notas.`),
+  faltaDados: 'Preencha nome e e-mail.',
+  okTitulo: 'Avaliação registrada',
+  okTexto: (casa) => `Obrigado por avaliar ${casa}. Se avaliar a mesma casa de novo com este e-mail, vale a avaliação mais recente.`,
+  avaliarOutra: 'Avaliar outra casa',
   verCasas: 'Ver as casas',
   abrirMapa: 'Abrir o mapa',
-  premiacao: 'Ver a premiação',
-}
-
-/* Premiação (§10.7, canal Gala). Nada de data de resultado além do fim do festival (D-15). */
-export const PREMIACAO = {
-  titulo: 'Sweet Awards',
-  rotulo: 'Premiação da Cartoon',
-  lead: 'As casas da Cartoon concorrem ao Sweet Awards. O público avalia durante o festival, e as categorias e o resultado são publicados aqui.',
+  abre: (quando) => `A avaliação abre ${quando}.`,
+  abreLead: 'Enquanto isso, escolha as casas que quer provar.',
   depois: (dia) => (dia ? `Resultados depois de ${dia}.` : 'Resultados depois do festival.'),
-  trofeuAlt: 'Troféu de ouro do Sweet Awards: uma fatia de bolo provada, com a colher de sobremesa cravada, sobre a base no formato do selo',
-  avaliar: 'Avaliar',
-  comoAvaliar: 'Ver como avaliar',
   resultadosTitulo: 'Os premiados',
   trilha: { sweet_lovers: 'Sweet Lovers (avaliação do público)', juri_tecnico: 'Júri técnico' },
   lugar: { 1: '1º lugar', 2: '2º lugar', 3: '3º lugar' },
   empate: ' (empate)',
   falha: 'Não conseguimos carregar os resultados agora.',
+  recado: {
+    avaliacao_fechada: 'A avaliação não está aberta agora.',
+    avaliacao_nao_aberta: 'A avaliação ainda não abriu.',
+    avaliacao_encerrada: 'A avaliação desta edição foi encerrada.',
+    participante_inelegivel: 'Esta casa não está disponível para avaliação.',
+    unidade_inelegivel: 'Esta unidade não está disponível para avaliação.',
+    email_invalido: 'Confira o e-mail.',
+    nome_invalido: 'Confira o nome.',
+    notas_incompletas: 'Dê uma nota para cada item.',
+    nota_invalida: 'Alguma nota ficou fora da escala.',
+    padrao: 'Não enviamos ainda. Confira a conexão e tente de novo: suas notas continuam aqui.',
+  },
 }
 
 export const RODAPE = {

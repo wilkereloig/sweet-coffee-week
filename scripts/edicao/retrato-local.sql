@@ -56,6 +56,10 @@ select jsonb_build_object(
     'aberta', coalesce(ed.avaliacao_aberta and now() between ed.avaliacao_abre_em and ed.avaliacao_fecha_em, false),
     'abre_em', ed.avaliacao_abre_em, 'fecha_em', ed.avaliacao_fecha_em),
   'resultados_publicos', false,
+  -- Critérios da avaliação (o site só os usa com avaliacao.aberta, a mesma trava de criterios_avaliacao).
+  'criterios', (select coalesce(jsonb_agg(jsonb_build_object('chave', c.chave, 'rotulo', c.rotulo, 'minimo', c.minimo, 'maximo', c.maximo)
+                                  order by c.ordem), '[]'::jsonb)
+                  from public.edicao_criterios c where c.edicao_codigo = ed.codigo),
   'participantes', (
     select coalesce(jsonb_agg(
              case when tema is null then r else jsonb_set(r, '{casa,tema}', to_jsonb(tema)) end

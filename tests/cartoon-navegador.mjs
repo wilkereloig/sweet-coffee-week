@@ -124,7 +124,7 @@ try {
       ['/cartoon/combos/demo-casa-aurora', '[DEMO] Casa Aurora'],
       ['/cartoon/mapa', 'Mapa'],
       ['/cartoon/minha-rota', 'Minha rota'],
-      ['/cartoon/avaliar', 'Avalie sua experiência'],
+      ['/cartoon/avaliar', 'Sweet Awards'],
       ['/cartoon/premiacao', 'Sweet Awards'],
       ['/cartoon/nao-existe', 'Não encontramos essa página da Cartoon'],
       ['/cartoon/participantes/casa-que-nao-existe', 'Não encontramos essa casa na Cartoon.'],

@@ -28,8 +28,7 @@ import { Catalogo } from './paginas/Catalogo.jsx'
 import { Participante } from './paginas/participante/index.jsx'
 import { Mapa } from './paginas/mapa/index.jsx'
 import { MinhaRota } from './paginas/MinhaRota.jsx'
-import { Avaliar } from './paginas/Avaliar.jsx'
-import { Premiacao } from './paginas/Premiacao.jsx'
+import { SweetAwards } from './paginas/awards/index.jsx'
 
 // Vitrine do sistema visual (docs/cartoon-2026-2/10 §10.12): só no DEV. Fora
 // dele o import nem existe no código, então a vitrine não entra no build.
@@ -101,7 +100,7 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
 
 const TITULOS = {
   participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
-  avaliar: 'Avaliar', premiacao: 'Premiação', sistema: 'Sistema visual', inexistente: 'Página não encontrada',
+  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
@@ -115,9 +114,9 @@ export function CartoonPage ({ path, navigate }) {
   useReservaDaBase(abasRef)
   const selo = seloEdicao()
   const dados = ed.dados
-  const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena
-  // Barra do celular: cinco atalhos; depois dos resultados, Avaliar dá lugar a Prêmio (§10.6).
-  const abas = NAV.filter((n) => n.cena !== (dados?.resultados_publicos ? 'avaliar' : 'premiacao'))
+  const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena
+  // Barra do celular: os cinco atalhos; depois dos resultados, a aba do Sweet Awards vira "Prêmios" (§10.6).
+  const abas = NAV.map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
   const paradas = rota.ids.length
   const linkNav = (item, className, filhos) => (
     <Link href={item.href} navigate={navigate} className={className} aria-current={ativa === item.cena ? 'page' : undefined}>
@@ -143,8 +142,8 @@ export function CartoonPage ({ path, navigate }) {
       case 'participante': conteudo = <Participante key={slug} slug={slug} foco={foco} navigate={navigate} edicao={dados} />; break
       case 'mapa': conteudo = <Mapa navigate={navigate} dados={dados} />; break
       case 'minha-rota': conteudo = <MinhaRota navigate={navigate} dados={dados} />; break
-      case 'avaliar': conteudo = <Avaliar navigate={navigate} dados={dados} />; break
-      case 'premiacao': conteudo = <Premiacao navigate={navigate} dados={dados} />; break
+      case 'avaliar':
+      case 'premiacao': conteudo = <SweetAwards navigate={navigate} dados={dados} foco={cena} />; break
       case 'sistema': conteudo = <React.Suspense fallback={<Carregando texto="Carregando a vitrine…" />}><Sistema /></React.Suspense>; break
       default:
         conteudo = (

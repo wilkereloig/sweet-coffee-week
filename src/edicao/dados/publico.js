@@ -137,6 +137,9 @@ export async function carregarCriterios (codigo) {
   if (demoLigado()) return [
     { chave: 'doce', rotulo: 'Doce', minimo: 5, maximo: 10 }, { chave: 'salgado', rotulo: 'Salgado', minimo: 5, maximo: 10 },
     { chave: 'bebida', rotulo: 'Bebida', minimo: 5, maximo: 10 }]
+  // Retrato local: os critérios vêm no arquivo, com a mesma trava do servidor (só com a avaliação aberta).
+  const retrato = await doRetrato(codigo)
+  if (retrato) return retrato.avaliacao?.aberta ? (retrato.criterios || []) : []
   return rpc('criterios_avaliacao', { p_edicao: codigo })
 }
 
