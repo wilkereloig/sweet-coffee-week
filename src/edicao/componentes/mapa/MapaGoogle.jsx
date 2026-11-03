@@ -9,6 +9,7 @@
  * (AdvancedMarkerElement) com um <button> nomeado dentro: a seleção sincroniza com a lista, como no outro mapa.
  */
 import React from 'react'
+import { pinDaCasa } from './pin.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
@@ -36,15 +37,8 @@ function elementoDoPonto (p, aoSelecionar) {
   const el = document.createElement('button')
   el.type = 'button'
   el.className = `ct-marcador${p.pin ? ' ct-marcador--pin' : ''}`
-  if (p.pin) {
-    // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui); o botão é do provedor do mapa.
-    const caixa = document.createElement('span')
-    caixa.className = 'ct-pin'
-    const img = document.createElement('img')
-    Object.assign(img, { src: p.pin.src, alt: '', width: 48, height: Math.round(48 * p.pin.altura / p.pin.largura) })
-    caixa.append(img)
-    el.append(caixa)
-  }
+  // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui); o botão é do provedor do mapa.
+  if (p.pin) el.append(pinDaCasa(p.pin))
   el.addEventListener('click', () => aoSelecionar(p.id))
   return el
 }

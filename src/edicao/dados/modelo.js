@@ -310,6 +310,7 @@ export function unidadesDoMapa (lista = [], f = {}, marcas = {}, { agora = new D
   return filtrar(lista, { q: f.q })
     .flatMap((p) => (p.unidades || []).map((u) => ({ p, u, quero: rota.includes(u.id), foi: foiNa(p) })))
     .filter(({ u, quero, foi }) => (!bairro || normalizar(u.endereco?.bairro || '') === bairro)
+      && (!f.modo || u.combo?.modos?.[f.modo] === 'sim')
       && (!f.aberto || estadoAgora(u, agora, periodo).estado === 'aberto')
       && (!f.queroIr || quero) && (!f.jaFui || foi))
     .map((x) => ({ ...x, dist: posicao && x.u.coordenada ? km(posicao, x.u.coordenada) : null }))

@@ -58,8 +58,15 @@
 .ct-mapa__item { border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-mapa__item.is-visitada { background: var(--ct-creme); }
 .ct-mapa__item.is-sel { background: var(--ct-amarelo); }
-.ct-mapa__sel { display: grid; gap: 2px; width: 100%; min-height: 56px; padding: 12px 14px 8px; border: 0; border-radius: var(--ct-raio-p); background: none; color: inherit; font: 500 15px/1.4 var(--ct-font); text-align: left; cursor: pointer; }
+.ct-mapa__sel { display: flex; align-items: flex-start; gap: 12px; width: 100%; min-height: 56px; padding: 12px 14px 8px; border: 0; border-radius: var(--ct-raio-p); background: none; color: inherit; font: 500 15px/1.4 var(--ct-font); text-align: left; cursor: pointer; }
 .ct-mapa__sel strong { font: 800 17px/1.3 var(--ct-font); }
+.ct-mapa__sel-texto { display: grid; gap: 2px; min-width: 0; }
+/* A logo do pin repete na linha da lista e no cartão: liga a linha ao ponto no mapa. */
+.ct-edicao .ct-mapa__logo { flex: none; width: auto; max-width: calc(var(--ct-logo-lado, 44px) * 2); height: var(--ct-logo-lado, 44px); padding: 2px 4px; border: 2.5px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-branco); object-fit: contain; }
+.ct-mapa__logo--inicial { display: inline-grid; place-items: center; width: var(--ct-logo-lado, 44px); background: var(--ct-amarelo); font: 900 18px/1 var(--ct-font); }
+.ct-mapa__estado { justify-self: start; margin-top: 2px; padding: 2px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 700 13px/1.3 var(--ct-font); }
+.ct-mapa__estado--aberto { background: var(--ct-turquesa); }
+.ct-mapa__estado--abre_hoje { background: var(--ct-amarelo); }
 .ct-mapa__sel .ct-nota { margin: 0; }
 .ct-mapa__local { font: 700 13px/1.4 var(--ct-font); }
 /* Ponto aproximado: o mesmo anel tracejado do marcador, para a lista e o mapa dizerem a mesma coisa. */
@@ -69,6 +76,21 @@
 .ct-mapa__area > .ct-nota { margin: 16px; }
 .ct-mapa__mapa { width: 100%; height: min(62svh, 520px); }
 @media (min-width: 900px) { .ct-mapa__area { min-height: 320px; } .ct-mapa__mapa { height: min(calc(100svh - 190px), 680px); } }
+/* Cartão da casa escolhida (lista 13, M2): junto do mapa; no desktop o mapa encolhe para o cartão caber na coluna presa. */
+.ct-mapa__cartao { display: grid; gap: 12px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra); }
+.ct-mapa__cartao p { margin: 0; }
+.ct-mapa__cartao-cabeca { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.ct-mapa__cartao-cabeca .ct-rotulo { margin: 0; }
+.ct-mapa__cartao-nome { margin: 0; font: 900 clamp(20px, 2vw, 24px)/1.1 var(--ct-font); }
+.ct-mapa__fechar { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); color: var(--ct-chocolate); cursor: pointer; }
+.ct-mapa__cartao-linha { display: flex; align-items: center; gap: 8px; }
+.ct-mapa__cartao .ct-agora { font: 700 15px/1.3 var(--ct-font); }
+.ct-mapa__modos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ct-mapa__modos li { display: inline-flex; align-items: center; gap: 4px; padding: 2px 12px 2px 4px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 700 14px/1.2 var(--ct-font); }
+.ct-mapa__cartao .ct-acoes { margin-top: 0; }
+.ct-mapa__cartao .ct-mapa__marcas { padding: 0; }
+.ct-mapa__dica { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 12px 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); font: 600 14px/1.4 var(--ct-font); }
+@media (min-width: 900px) { .ct-mapa__lado:has(.ct-mapa__cartao) .ct-mapa__mapa { height: max(300px, calc(100svh - 540px)); } }
 /* Controles do MapLibre com alvo de 44 px: (0,2,1) vence o .maplibregl-ctrl-group button (0,1,1) do pacote. */
 .ct-mapa__mapa .maplibregl-ctrl-group button { width: 44px; height: 44px; }
 .ct-mapa__mapa .maplibregl-ctrl-attrib a { display: inline-flex; align-items: center; min-height: 44px; }
@@ -81,20 +103,28 @@
 .ct-marcador--foi::before { background: var(--ct-turquesa); }
 .ct-marcador.is-sel::before { width: 32px; height: 32px; border-width: 4px; }
 .ct-marcador--voce { width: 22px; height: 22px; cursor: default; }
-/* Pin desenhado do tema da casa: a ponta toca o lugar; selecionado cresce, quero ir/já fui ganham anel. */
-.ct-marcador--pin { width: auto; height: auto; padding: 0; translate: 0 -2px; transition: scale 180ms var(--ct-mo-quique); transform-origin: 50% 100%; }
+/* Pin da casa (lista 13, M1): placa com a logo desenhada colorida (na proporção dela) + ponta que toca o lugar.
+   Selecionado cresce e ganha o anel amarelo; aproximado leva o anel tracejado no chão; quero ir / já fui, o selo
+   no ombro. A cabeça fica por cima da ponta (a ponta é um quadrado girado, só com as bordas de baixo). */
+.ct-marcador--pin { width: auto; height: auto; padding: 0; transition: scale 180ms var(--ct-mo-quique); transform-origin: 50% 100%; }
 .ct-marcador--pin::before { content: none; }
-.ct-pin { position: relative; display: block; }
-.ct-pin img { display: block; width: 48px; height: auto; filter: drop-shadow(2px 3px 0 rgba(58, 21, 15, .35)); }
-.ct-marcador--pin.is-sel { scale: 1.35; z-index: 2; }
+.ct-pin { position: relative; display: grid; justify-items: center; }
+.ct-pin__cabeca {
+  position: relative; z-index: 1; display: block; padding: 2px 4px; overflow: hidden;
+  border: 3px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-branco); box-shadow: 2px 3px 0 rgba(58, 21, 15, .35);
+}
+.ct-edicao .ct-pin__cabeca img { display: block; width: auto; max-width: 88px; height: 40px; object-fit: contain; }
+.ct-pin__ponta { width: 16px; height: 16px; margin-top: -11px; rotate: 45deg; border: solid var(--ct-chocolate); border-width: 0 3px 3px 0; background: var(--ct-branco); }
+.ct-marcador--pin.is-sel { scale: 1.3; z-index: 2; }
+.ct-marcador--pin.is-sel .ct-pin__cabeca { box-shadow: 0 0 0 4px var(--ct-amarelo), 2px 3px 0 4px rgba(58, 21, 15, .35); }
 /* Aproximado: anel tracejado em volta da ponta ("é por aqui"), nunca se passa por ponto exato. */
 .ct-marcador--aprox .ct-pin::after {
-  content: ''; position: absolute; z-index: -1; left: 50%; bottom: -6px; width: 36px; height: 13px; translate: -50% 0;
+  content: ''; position: absolute; z-index: -1; left: 50%; bottom: -7px; width: 38px; height: 14px; translate: -50% 0;
   border: 2.5px dashed var(--ct-chocolate); border-radius: 50%; background: rgba(253, 240, 222, .75);
 }
 /* Quero ir / Já fui: selo redondo no ombro do pin, nas cores das marcações da rota. */
 .ct-marcador--quero .ct-pin::before, .ct-marcador--foi .ct-pin::before {
-  content: ''; position: absolute; top: -3px; right: -5px; width: 18px; height: 18px;
+  content: ''; position: absolute; z-index: 2; top: -4px; right: -6px; width: 18px; height: 18px;
   border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-vermelho);
 }
 .ct-marcador--foi .ct-pin::before { background: var(--ct-turquesa); }

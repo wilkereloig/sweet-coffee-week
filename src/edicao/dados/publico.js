@@ -15,6 +15,15 @@
  */
 import { SUPABASE_URL, SUPABASE_KEY } from '../../lib/supabaseConfig'
 import { urlDaImagem, escolherFonte } from './modelo.js'
+import { logoDesenhadaEdicao } from '../../data/logosDesenhadasEdicao.js'
+
+/** O que o banco não guarda e o site tem versionado (a logo desenhada da casa): completa, sem sobrescrever. */
+function comArte (p) {
+  const par = p?.casa && !p.casa.logo_desenhada ? logoDesenhadaEdicao(p.slug) : null
+  return par ? { ...p, casa: { ...p.casa, logo_desenhada: par } } : p
+}
+const edicaoComArte = (d) => (d?.participantes ? { ...d, participantes: d.participantes.map(comArte) } : d)
+const participanteComArte = (r) => (r?.participante ? { ...r, participante: comArte(r.participante) } : r)
 
 const VALIDADE = 5 * 60 * 1000
 const memoria = new Map()
@@ -83,16 +92,16 @@ async function comCache (chave, buscar) {
 export async function carregarEdicao (codigo, { sinal } = {}) {
   if (demoLigado()) {
     const { DEMO_EDICAO } = await import('./demo/cartoon.js')
-    return { ...DEMO_EDICAO, desatualizado: false, demo: true }
+    return edicaoComArte({ ...DEMO_EDICAO, desatualizado: false, demo: true })
   }
   const retrato = await doRetrato(codigo)
-  if (retrato) return { ...retrato, desatualizado: false }
+  if (retrato) return edicaoComArte({ ...retrato, desatualizado: false })
   const dados = await comCache(`scw:edicao:${codigo}`, async () => {
     const d = await rpc('edicao_publica', { p_edicao: codigo }, sinal)
     if (!d) throw new Error('edicao_inexistente')
     return d
   })
-  return dados
+  return edicaoComArte(dados)
 }
 
 /**
@@ -100,7 +109,11 @@ export async function carregarEdicao (codigo, { sinal } = {}) {
  * estado = publicado · retirado · nao_divulgado · inexistente.
  * Primeiro tenta a lista da edição já em cache (evita segunda ida ao banco).
  */
-export async function carregarParticipante (codigo, slug, { sinal } = {}) {
+export async function carregarParticipante (codigo, slug, opcoes = {}) {
+  return participanteComArte(await buscarParticipante(codigo, slug, opcoes))
+}
+
+async function buscarParticipante (codigo, slug, { sinal } = {}) {
   if (demoLigado()) {
     const { DEMO_EDICAO } = await import('./demo/cartoon.js')
     const p = DEMO_EDICAO.participantes.find((x) => x.slug === slug)

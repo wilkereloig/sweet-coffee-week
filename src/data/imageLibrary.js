@@ -696,7 +696,15 @@ const PINS_EDICAO = {
   'wow-cookies': { src: `${ELEMENTOS_EDICAO}/pins/wow-cookies.webp`, largura: 144, altura: 184 },
 }
 
-/** Pin desenhado do tema da casa no mapa, ou `null` (o mapa usa o marcador da edição). */
+/**
+ * Logo desenhada da casa na Cartoon (P&B + colorida e o pin do mapa) — arte da edição, versionada e gerada por
+ * scripts/edicao/logos-desenhadas.py (lista 13, B7). O banco não guarda esse par: a camada de dados completa
+ * `casa.logo_desenhada` com isto. `null` se a casa não tem desenho.
+ */
+export { logoDesenhadaEdicao } from './logosDesenhadasEdicao.js'
+
+/** Pin desenhado do TEMA da casa (objeto do kit). Desde 03/11 o mapa usa a logo desenhada (lista 13, M1). */
+
 export function pinEdicao(slug) {
   return Object.hasOwn(PINS_EDICAO, slug) ? PINS_EDICAO[slug] : null
 }

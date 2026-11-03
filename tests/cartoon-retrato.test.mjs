@@ -39,7 +39,7 @@ test('o retrato e a pasta de imagens estão no .gitignore (repositório público
 
 // ------------------------------------------------------------- publico.js real, com e sem o retrato
 const ARQUIVOS_DO_MODULO = ['src/edicao/dados/publico.js', 'src/edicao/dados/modelo.js', 'src/edicao/dados/horarioFestival.js',
-  'src/edicao/dados/demo/cartoon.js', 'src/lib/supabaseConfig.js']
+  'src/edicao/dados/demo/cartoon.js', 'src/lib/supabaseConfig.js', 'src/data/logosDesenhadasEdicao.js']
 
 /** Projeto mínimo em pasta temporária com o publico.js de verdade; `retrato` (objeto) vira o cartoon.local.json dele. */
 async function carregarPublico (retrato) {
@@ -205,7 +205,8 @@ test('retrato local: logos desenhadas existem e as duas versões têm exatamente
   for (const p of com) {
     const l = p.casa.logo_desenhada
     for (const v of ['pb', 'cor']) {
-      assert.match(l[v], new RegExp(`^/retrato-local/logos-desenhadas/${p.slug}-${v}\\.webp$`))
+      // Desde 03/11 (lista 13, B7) as logos desenhadas são arquivos versionados do site, não do retrato local.
+      assert.match(l[v], new RegExp(`^/images/marcas-edicoes/2026\\.2/logos-desenhadas/${p.slug}-${v}\\.webp$`))
       assert.ok(fs.existsSync(path.join(RAIZ, 'public', l[v])), `arquivo ausente: ${l[v]}`)
     }
     const a = medidaWebp(path.join(RAIZ, 'public', l.pb))
