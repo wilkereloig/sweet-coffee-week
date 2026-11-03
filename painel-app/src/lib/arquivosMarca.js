@@ -139,6 +139,9 @@ export function tipoDeAbertura(a) {
 }
 
 /** Todo arquivo baixa; só o que o navegador mostra também abre. `dica` explica a ausência do "Abrir". */
+/** Arquivo que é um LINK (pasta do Dropbox), não um arquivo no Storage (migration 20261129): abre o endereço, não assina nem baixa. */
+export const ehLinkExterno = (a) => !!(a && a.url_externa)
+
 export function acoesDoArquivo(a) {
   const abrir = tipoDeAbertura(a) !== 'outro'
   return { abrir, baixar: true, dica: abrir ? '' : 'Este formato não abre no navegador: use “Baixar” (a seta para baixo) e abra o arquivo depois, no aparelho.' }

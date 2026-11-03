@@ -59,6 +59,8 @@ export function ArquivosOrg({ pode, aba = 'gerais' }) {
       : !a.arquivado && (aba === 'gerais' ? a.escopo === 'geral' : a.escopo === 'marca' && (!marcaFiltro || a.participacao_id === marcaFiltro)))
 
   async function baixar(a) {
+    // Arquivo que é link (pasta do Dropbox): só abre o endereço (migration 20261129).
+    if (a.url_externa) { window.open(a.url_externa, '_blank', 'noopener,noreferrer'); return }
     // A janela abre NO clique, antes do await (bloqueador de pop-up do iOS).
     const janela = window.open('', '_blank')
     try {
@@ -160,15 +162,15 @@ export function ArquivosOrg({ pode, aba = 'gerais' }) {
                 </span>
                 <span className="og-item__cel"><span className="ui-oculto">Para: </span>{a.escopo === 'geral' ? 'Todas as marcas' : (a.marca || 'Uma marca')}</span>
                 <span className="og-item__cel"><span className="ui-oculto">Categoria: </span>{categoria}</span>
-                <span className="og-item__cel"><span className="ui-oculto">Formato: </span>{[tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho)].filter(Boolean).join(' · ')}</span>
+                <span className="og-item__cel"><span className="ui-oculto">Formato: </span>{(a.url_externa ? 'Pasta no Dropbox' : [tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho)].filter(Boolean).join(' · '))}</span>
                 <span className="og-item__cel"><span className="ui-oculto">Publicado: </span>{dataCurta(a.publicado_em || a.created_at)}</span>
                 <span className="og-item__cel" data-vazio={a.exige_leitura ? undefined : '1'}><span className="ui-oculto">Leitura: </span>{a.exige_leitura ? (Number(a.leituras || 0) === 1 ? '1 confirmou' : Number(a.leituras || 0) + ' confirmaram') : '—'}</span>
               </div>
               <span className="og-item__acoes">
-                <BotaoIcone icone="baixar" rotulo="Baixar" alvo={a.nome} onClick={() => baixar(a)} />
+                <BotaoIcone icone="baixar" rotulo={a.url_externa ? 'Abrir link' : 'Baixar'} alvo={a.nome} onClick={() => baixar(a)} />
                 {podeGerir && !a.arquivado && <>
                   <BotaoIcone icone="editar" rotulo="Editar" alvo={a.nome} onClick={() => setFolha({ tipo: 'editar', arquivo: a })} />
-                  <BotaoSubstituir alvo={a.nome} ocupado={ocupado === a.id} onArquivo={(f) => substituir(a, f)} />
+                  {!a.url_externa && <BotaoSubstituir alvo={a.nome} ocupado={ocupado === a.id} onArquivo={(f) => substituir(a, f)} />}
                   <BotaoIcone icone="arquivar" rotulo="Arquivar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, true)} />
                 </>}
                 {podeGerir && a.arquivado && <BotaoIcone icone="restaurar" rotulo="Restaurar" alvo={a.nome} disabled={ocupado === a.id} onClick={() => arquivar(a, false)} />}

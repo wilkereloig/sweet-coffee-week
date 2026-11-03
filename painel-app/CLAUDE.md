@@ -2051,3 +2051,20 @@ com rollback). Os NOMES (80) e a "proposta editorial" (2.000) seguem como eram. 
 continua com o limite de tela antigo até recarregar.
 - **Sem `tool_choice` forçado (03/11):** o `claude-sonnet-5-5` responde 400 ("tool_choice type tool/any not supported") — a função pede a ferramenta pela instrução do sistema e, se vier texto, lê o JSON dele. 1º teste real da API: Casa Alice Doceria, 3 campos revisados ("Cafe carioca" → "Café carioca", "ninho" → "Ninho", pontuação do combo), sem mudar informação.
 - **Revisar tudo (03/11, Wilker: "revise todos os dados"):** `POST {"revisar_participacao":"<id>"}` revisa UMA participação sem aplicar envio nem notificar; só manda à API os textos SEM revisão para o original de hoje (`sistema_textos_sem_revisao`, migration `20261128_textos_sem_revisao.sql`) — as 133 revisões do Word e as automáticas ficam. Rodado nas 27 participações da edição: 12 campos novos em 8 marcas, 0 erro. Revisão que mexe em NOME de produto (ex.: "Burguer" → "Burger") é desfeita à mão: o prompt só autoriza corrigir grafia, e o modelo às vezes decide que estilo é erro.
+
+#### Fotos do combo por LINK (Dropbox) e aviso no dia 5 — 03/11/2026 (Wilker: "uma forma de disponibilizar essas fotos sem ocupar espaço")
+O Supabase free já está em ~1,04 GB (`redes` 773 MB + `arquivos` 261 MB; limite 1 GB; o painel do Supabase avisa cota excedida e restrição a
+partir de 23/11). As fotos aprovadas (180 em PNG ≈ 700 MB + 178 lâminas do carrossel ≈ 63 MB) NÃO vão para o Storage: cada marca ganha uma pasta
+no Dropbox e o painel mostra um item "Fotos do combo" que abre o link. Migrations `20261129_arquivo_por_link.sql` e
+`20261130_aviso_fotos_dia5.sql` (✅ aplicadas; testes `supabase/testes/arquivo-por-link.sql` e `aviso-fotos-dia5.sql` → `TESTE_OK`; reversão em `supabase/reverter/`).
+- **`arquivos.url_externa`**: exatamente um entre `path` (Storage) e `url_externa`; só `https://…dropbox.com/…`. `get_arquivos_admin` devolve o link.
+  Marca: `FotosOficiais.jsx` mostra "Abrir as fotos" (anchor `_blank`, `noopener`), sem Baixar/ZIP (`ehLinkExterno`, `lib/arquivosMarca.js`; `detalheDaFoto`
+  diz "Pasta no Dropbox"). Equipe: `ArquivosOrg.jsx` abre o link e não oferece "Substituir".
+- **Publicar SEM avisar:** o aviso por arquivo (`gerar_notificacoes`) só dispara no **INSERT já publicado**. Insira com `publicado_em` nulo e depois
+  `update … set publicado_em = now()` — o UPDATE não avisa ninguém.
+- **Aviso único em 05/11/2026 09:00 (Natal):** `avisar_fotos_do_combo()` por pg_cron (`scw-aviso-fotos-dia5`, `0 12 5 11 *` UTC). Só avisa marca com pasta publicada
+  (arquivo de link, categoria `combo`) e que ainda não recebeu o aviso; depois do dia 5 desagenda o job. `avisar_fotos_do_combo(true)` força (teste).
+- **Pastas no Dropbox:** `09_ENTREGAS/fotos-participantes/<marca>/` (só a versão mais nova de cada foto aprovada + `Carrossel com tarja/` com as lâminas 01–07; sem a
+  08 de arte final, sem `_versoes-anteriores`). Links públicos criados NO DROPBOX (o conector do Claude só cria link privado por convite de e-mail, e o Dropbox avisaria
+  a marca na hora). Os endereços ficam em `clientes/sweet-coffee-week-dados/` (fora do repositório público).
+- Marlon já tem as fotos como arquivos no Storage (14 ativas, sem link): fica como está.

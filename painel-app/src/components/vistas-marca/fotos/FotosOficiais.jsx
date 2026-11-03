@@ -2,7 +2,7 @@ import React from 'react'
 import { api, obterArquivoMarca } from '../../../lib/marcaApi'
 import { dataHoraExtensa } from '../../../lib/central'
 import { plataforma } from '../../../lib/instalar'
-import { acoesDoArquivo, notaDeAbertura, leituraProvisoria, mapaDeLeituras } from '../../../lib/arquivosMarca'
+import { acoesDoArquivo, notaDeAbertura, leituraProvisoria, mapaDeLeituras, ehLinkExterno } from '../../../lib/arquivosMarca'
 import { useEntrega, BotoesEntrega, EstadoEntrega } from '../../vistas/BaixarArquivo'
 import { situacaoDaLeitura, detalheDaFoto, situacaoDaConferencia } from '../../../lib/fotosMarca'
 import { MacroSecao, Carregando, Erro, Selo, Vazio, traduzirErro, Botao } from '../../ui'
@@ -117,11 +117,11 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
         <Erro titulo="Não deu para verificar suas conferências" texto="Não conseguimos ver quais fotos você já conferiu. Tente de novo antes de confirmar." onTentar={tentarDeNovo} />
       )}
       {situacao === 'pronto' && arquivos.length > 0 && <p className="ui-nota">{notaDeAbertura(plat, { fotos: true })}</p>}
-      {situacao === 'pronto' && arquivos.length > 1 && (
+      {situacao === 'pronto' && arquivos.filter((a) => !ehLinkExterno(a)).length > 1 && (
         <>
           <div className="ui-linha-acoes">
             <BotoesEntrega entrega={entrega} nomeZip="Fotos oficiais" rotuloBaixar="Baixar todas (ZIP)"
-              itens={arquivos.map((a) => ({ path: a.path, nome: a.nome, mime: a.mime, tamanho: a.tamanho }))} />
+              itens={arquivos.filter((a) => !ehLinkExterno(a)).map((a) => ({ path: a.path, nome: a.nome, mime: a.mime, tamanho: a.tamanho }))} />
           </div>
           <EstadoEntrega entrega={entrega} />
         </>
@@ -144,14 +144,22 @@ export function FotosOficiais({ participacao, alvo, consumirAlvo, recarregarResu
                   {conf === 'pendente' && lidos[a.id] && <span>Esta versão foi publicada depois da sua conferência de {dataHoraExtensa(lidos[a.id])}. Confira e confirme de novo.</span>}
                 </div>
                 <div className="ui-linha-acoes">
-                  {acoesDoArquivo(a).abrir && (
+                  {/* Pasta no Dropbox (migration 20261129): abre o endereço; não há arquivo no Storage para assinar nem baixar daqui. */}
+                  {ehLinkExterno(a) && (
+                    <a className="og-btn og-btn--mini" href={a.url_externa} target="_blank" rel="noopener noreferrer" aria-label={'Abrir as fotos: ' + a.nome}>
+                      <Icone nome="link-externo" tamanho={16} />Abrir as fotos
+                    </a>
+                  )}
+                  {!ehLinkExterno(a) && acoesDoArquivo(a).abrir && (
                     <button className="og-btn og-btn--vazado og-btn--mini" type="button" aria-label={'Abrir ' + a.nome} disabled={ocupadoAqui} onClick={() => acessar(a, 'abrir')}>
                       <Icone nome="link-externo" tamanho={16} />{ocupadoAqui && ocupado.modo === 'abrir' ? 'Abrindo…' : 'Abrir'}
                     </button>
                   )}
-                  <Botao variante="secundario" icone="baixar" soIcone aria-label={'Baixar ' + a.nome} aria-busy={ocupadoAqui && ocupado.modo === 'baixar' ? 'true' : undefined} disabled={ocupadoAqui} onClick={() => acessar(a, 'baixar')}>
-                    {ocupadoAqui && ocupado.modo === 'baixar' ? 'Preparando…' : 'Baixar'}
-                  </Botao>
+                  {!ehLinkExterno(a) && (
+                    <Botao variante="secundario" icone="baixar" soIcone aria-label={'Baixar ' + a.nome} aria-busy={ocupadoAqui && ocupado.modo === 'baixar' ? 'true' : undefined} disabled={ocupadoAqui} onClick={() => acessar(a, 'baixar')}>
+                      {ocupadoAqui && ocupado.modo === 'baixar' ? 'Preparando…' : 'Baixar'}
+                    </Botao>
+                  )}
                   {conf === 'pendente' && (
                     <button className="og-btn og-btn--mini" type="button" aria-label={'Conferi as fotos: ' + a.nome} disabled={confirmando === a.id} onClick={() => conferir(a)}>
                       {confirmando === a.id ? 'Registrando…' : 'Conferi as fotos'}
