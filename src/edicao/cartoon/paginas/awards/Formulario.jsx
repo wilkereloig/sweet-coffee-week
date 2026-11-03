@@ -54,7 +54,8 @@ function Turnstile ({ aoToken, aoEstado }) {
       s.id = 'cf-turnstile-api'
       s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
       s.async = true
-      s.onload = desenhar
+      // Carregou mas sem a API (filtro de conteúdo, resposta trocada): não adianta esperar os 10 s.
+      s.onload = () => (window.turnstile ? desenhar() : aoEstado('indisponivel'))
       s.onerror = () => aoEstado('indisponivel')
       document.head.appendChild(s)
     } else document.getElementById('cf-turnstile-api').addEventListener('load', desenhar)
@@ -82,9 +83,13 @@ export function Formulario ({ dados, criterios, navigate }) {
     const r = lerRascunho()
     const q = new URLSearchParams(location.search)
     const slug = q.get('participante') || r.slug || ''
-    return { slug, unidade: q.get('unidade') || r.unidade || '', nome: r.nome || '', email: r.email || '',
-      notas: r.notas || {}, comentario: r.comentario || '', novidades: false, passo: slug ? 2 : 1 }
-  }, [])
+    const unidade = q.get('unidade') || r.unidade || ''
+    // Vindo da ficha da casa, já pula para as notas — menos quando a casa tem várias unidades e falta escolher uma.
+    const varias = (elegiveis.find((p) => p.slug === slug)?.unidades || []).length > 1
+    const pronta = slug && elegiveis.some((p) => p.slug === slug) && (!varias || unidade)
+    return { slug, unidade, nome: r.nome || '', email: r.email || '',
+      notas: r.notas || {}, comentario: r.comentario || '', novidades: false, passo: pronta ? 2 : 1 }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- estado inicial, lido uma vez
   const [form, setForm] = React.useState(inicial)
   const [busca, setBusca] = React.useState('')
   const [estado, setEstado] = React.useState('editando') // editando · enviando · enviado · erro

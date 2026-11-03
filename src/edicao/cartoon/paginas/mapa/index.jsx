@@ -25,10 +25,10 @@ import { MAPA as T, LOVER, FASE_TEXTO, ATENDIMENTO } from '../../textos.js'
 import { Cartao } from './Cartao.jsx'
 import { LogoDoPin, pinDaCasa } from './LogoDoPin.jsx'
 
-// Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela, o MapLibre de antes.
-const MapaUnidades = React.lazy(() => (import.meta.env.VITE_GOOGLE_MAPS_KEY
-  ? import('../../../componentes/mapa/MapaGoogle.jsx')
-  : import('../../../componentes/mapa/MapaUnidades.jsx')))
+// Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
+// ou não carregar —, o MapLibre (OpenFreeMap), que não pede chave. A página só conhece a interface comum.
+const MapaGoogle = React.lazy(() => import('../../../componentes/mapa/MapaGoogle.jsx'))
+const MapaLibre = React.lazy(() => import('../../../componentes/mapa/MapaUnidades.jsx'))
 const VAZIO = { q: '', bairro: '', modo: '', aberto: false, queroIr: false, jaFui: false }
 
 const notaDoLugar = (c) => (!c ? T.semCoordenada : c.conferir ? (c.precisao === 'rua' ? T.aproximadaRua : T.aproximada) : '')
@@ -44,6 +44,9 @@ export function Mapa ({ navigate, dados }) {
   const [geo, setGeo] = React.useState(typeof navigator !== 'undefined' && 'geolocation' in navigator ? 'disponivel' : 'indisponivel')
   // Desktop: o mapa já vem (a área está na tela). Celular: só pelo botão, para não baixar o mapa sem pedido.
   const [verMapa, setVerMapa] = React.useState(() => matchMedia('(min-width: 900px)').matches)
+  const [provedor, setProvedor] = React.useState(import.meta.env.VITE_GOOGLE_MAPS_KEY ? 'google' : 'maplibre')
+  const usarReserva = React.useCallback(() => setProvedor('maplibre'), [])
+  const MapaUnidades = provedor === 'google' ? MapaGoogle : MapaLibre
   const lista = dados?.participantes || []
   const periodo = dados?.edicao
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, periodo), [lista, periodo])
@@ -170,7 +173,7 @@ export function Mapa ({ navigate, dados }) {
                 : verMapa ? (
                   <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
                     <ErroDoMapa>
-                      <MapaUnidades selecionada={sel} aoSelecionar={escolher} voce={posicao}
+                      <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined}
                         pontos={noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDaCasa(p) }))} />
                     </ErroDoMapa>
                   </React.Suspense>

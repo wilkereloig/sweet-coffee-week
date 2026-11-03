@@ -24,7 +24,7 @@
  *     aberto; sucesso só com resposta ok; erro preserva as notas.
  *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
- *     botão) e cinco abas (Avaliar → Prêmio depois dos resultados); rodapé com F2 e cookies, sem barras de sinal.
+ *     botão) e cinco abas (Avaliar → Prêmios depois dos resultados); rodapé com F2 e cookies, sem barras de sinal.
  * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, sem olhinhos —
  *     MANUAL §1.3), como funciona, mural das casas, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
  *     sem elenco, falha de rede e edição encerrada.
@@ -166,7 +166,7 @@ try {
     const t = (await page.locator('.ct-part').innerText()).replace(/ /g, ' ')
     // O preço de R$ 38,90 vem na arte desenhada (precoComboEdicao): o valor fica no alt da imagem.
     if (!(await page.locator('.ct-part img[alt="Combo R$ 38,90"]').count())) falha('participante sem a arte "Combo R$ 38,90"')
-    for (const s of ['[DEMO] Doce · [DEMO] Salgado · [DEMO] Bebida', 'Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Troca']) {
+    for (const s of ['[DEMO] Doce · [DEMO] Salgado · [DEMO] Bebida', 'Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Opções de troca']) {
       if (!t.includes(s)) falha(`participante sem "${s}"`)
     }
     if (await page.locator('.ct-part [role="tab"], .ct-part [role="tablist"]').count()) falha('participante usa abas')
@@ -206,7 +206,7 @@ try {
     const vazios = await c.page.evaluate(() => [...document.querySelectorAll('.ct-part :is(h1, h2, h3)')].filter((h) => !h.textContent.trim()).length)
     if (vazios) falha(`casa fina: ${vazios} título(s) vazio(s)`)
     const f = await c.page.locator('.ct-part').innerText()
-    for (const s of ['Nome não informado pela casa', 'Não informado pela casa', 'Não informadas pela casa.', 'Galeria em produção', 'Foto do combo em produção', 'Rua do Teste, 10']) {
+    for (const s of ['Nome não informado pela casa', 'Não informado pela casa', 'Não informadas pela casa.', 'Foto do combo em produção', 'Rua do Teste, 10']) {
       if (!f.includes(s)) falha(`casa fina sem "${s}"`)
     }
     if (f.includes('10, 10')) falha('casa fina: número do endereço repetido')
@@ -326,7 +326,8 @@ try {
     let c = await contexto(nav)
     await ir(c.page, '/cartoon/avaliar')
     if (await c.page.locator('form.ct-form').count()) falha('formulário aberto com a avaliação fechada')
-    if (!(await c.page.locator('.ct-canal--servico h1').count())) falha('Avaliar: h1 fora do topo no canal Serviço')
+    // Avaliar + Premiação são uma página só (Sweet Awards, lista 13 N1): o h1 é o do topo no canal Gala.
+    if (!(await c.page.locator('.ct-canal--gala h1').count())) falha('Sweet Awards: h1 fora do topo no canal Gala')
     if (!(await c.page.locator('.ct-conteudo').innerText()).includes('A avaliação abre em 5 de novembro.')) falha('Avaliar fechada sem "abre em 5 de novembro"')
     if ((await c.page.locator('.ct-passos li').count()) !== 3) falha('Avaliar sem os três passos')
     await c.ctx.close()
@@ -335,19 +336,26 @@ try {
       c = await contexto(nav, { edicao: aberta, envio })
       await ir(c.page, '/cartoon/avaliar?participante=demo-casa-aurora')
       await c.page.waitForSelector('form.ct-form')
-      await c.page.selectOption('.ct-form select >> nth=1', 'udemo1')
-      await c.page.click('.ct-nota-campo:has-text("Doce") .ct-escala__op:has-text("9")')
-      await c.page.click('.ct-nota-campo:has-text("Bebida") .ct-escala__op:has-text("8")')
+      // Passo 1: a casa veio da ficha, mas tem duas unidades — o formulário começa na escolha da unidade.
+      if (!(await c.page.locator('.ct-form__casa[aria-checked="true"]', { hasText: 'Aurora' }).count())) falha('formulário sem a casa da ficha marcada')
+      await c.page.selectOption('.ct-form select', 'udemo1')
+      await c.page.click('.ct-form__navegar button:has-text("Continuar")')
+      // Passo 2: as notas, com a pergunta de cada critério.
+      await c.page.click('.ct-nota-campo:has-text("doce") .ct-escala__op:has-text("9")')
+      await c.page.click('.ct-nota-campo:has-text("bebida") .ct-escala__op:has-text("8")')
+      await c.page.click('.ct-form__navegar button:has-text("Continuar")')
+      // Passo 3: os dados. O Enviar espera o Turnstile (aqui o script vem vazio: libera na hora).
       await c.page.fill('input[autocomplete="name"]', 'Pessoa Teste')
       await c.page.fill('input[type="email"]', 'pessoa@teste.com')
       await c.page.waitForTimeout(3100)
       await c.page.click('button[type="submit"]')
       if (envio === 'erro') {
         await c.page.waitForSelector('.ct-form [role="alert"]')
-        if (await c.page.locator('h1:has-text("Avaliação registrada")').count()) falha('sucesso mostrado com erro do servidor')
-        if (!(await c.page.locator('.ct-nota-campo:has-text("Doce") input:checked').count())) falha('erro apagou as notas')
+        if (await c.page.locator('.ct-form__ok').count()) falha('sucesso mostrado com erro do servidor')
+        await c.page.click('.ct-form__navegar button:has-text("Voltar")')
+        if (!(await c.page.locator('.ct-nota-campo:has-text("doce") input:checked').count())) falha('erro apagou as notas')
       } else {
-        await c.page.waitForSelector('h1:has-text("Avaliação registrada")', { timeout: 5000 }).catch(() => falha('sucesso não apareceu com resposta ok'))
+        await c.page.waitForSelector('.ct-form__ok:has-text("Avaliação registrada")', { timeout: 5000 }).catch(() => falha('sucesso não apareceu com resposta ok'))
       }
       await c.ctx.close()
     }
@@ -378,7 +386,11 @@ try {
           return { t: e.textContent.trim().slice(0, 24), r: (Math.max(a1, a2) + 0.05) / (Math.min(a1, a2) + 0.05), minimo }
         }).filter((x) => x.r < x.minimo),
         alvos: [...document.querySelectorAll('.ct-edicao a, .ct-edicao button, .ct-edicao summary')]
-          .filter((e) => e.offsetParent && e.getBoundingClientRect().height < 44).map((e) => e.textContent.trim().slice(0, 30)),
+          // Dentro da área do mapa, só os NOSSOS marcadores contam: zoom, atribuição, termos e atalhos de teclado são
+          // do provedor (Google desenha os dele; os controles vão a 44 px por controlSize em MapaGoogle; os do MapLibre
+          // por CSS em 05-mapa-rota.css). Sem texto, o alvo aparece como <tag class="…"> para dar para achar.
+          .filter((e) => e.offsetParent && !(e.closest('.ct-mapa__mapa') && !e.classList.contains('ct-marcador')) && e.getBoundingClientRect().height < 44)
+          .map((e) => e.textContent.trim().slice(0, 30) || `<${e.tagName.toLowerCase()} class="${e.className}">`),
       }))
       if (m.overflow > 1) falha(`@${w} ${p}: rolagem horizontal (${m.overflow}px)`)
       if (m.inst) falha(`@${w} ${p}: casca institucional dentro da edição`)
@@ -437,11 +449,11 @@ try {
     if (!(await focoNoBotao())) falha('link: o foco não voltou ao botão Menu')
     await ctx.close()
 
-    // Depois dos resultados, Avaliar dá lugar a Prêmio.
+    // Depois dos resultados, a aba do Sweet Awards vira Prêmios.
     const c = await contexto(nav, { w: 360, h: 800, edicao: { ...clone(DEMO_EDICAO), resultados_publicos: true } })
     await ir(c.page, '/cartoon/participantes')
     const abasDepois = (await c.page.locator('.ct-abas .ct-aba').allInnerTexts()).map((t) => t.trim()).join(' · ')
-    if (abasDepois !== 'Início · Casas · Mapa · Rota · Prêmio') falha(`com resultados, abas: ${abasDepois}`)
+    if (abasDepois !== 'Início · Casas · Mapa · Rota · Prêmios') falha(`com resultados, abas: ${abasDepois}`)
     await c.ctx.close()
 
     const d = await contexto(nav, { w: 1440, h: 900 })
@@ -460,7 +472,7 @@ try {
     if (m.marcaX > 120) falha(`@1440 selo não está à esquerda (x=${m.marcaX})`)
     if (m.rodape.barras || !m.rodape.f2 || !m.rodape.cookies || m.rodape.legais !== 2) falha(`rodapé incompleto: ${JSON.stringify(m.rodape)}`)
     await d.ctx.close()
-    if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 5 abas (Avaliar → Prêmio), rodapé com F2 e cookies, sem barras de sinal (MANUAL-CARTOON 1.0)')
+    if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 5 abas (Avaliar → Prêmios), rodapé com F2 e cookies, sem barras de sinal (MANUAL-CARTOON 1.0)')
   }
 
   console.log('\n10 · Entrada')

@@ -13,6 +13,10 @@ import { pinDaCasa } from './pin.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
+// Chave recusada (domínio fora da lista, cota, faturamento): o Google não rejeita o script — chama este global.
+// Quem estiver na tela troca para o mapa reserva (MapLibre) em vez de mostrar o aviso de erro do Google.
+let avisarFalha = null
+if (typeof window !== 'undefined') window.gm_authFailure = () => avisarFalha?.()
 const NATAL = { lat: -5.81, lng: -35.21 }
 
 let carregando = null
@@ -43,7 +47,7 @@ function elementoDoPonto (p, aoSelecionar) {
   return el
 }
 
-export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null }) {
+export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null, aoFalhar = null }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const libs = React.useRef(null)
@@ -54,6 +58,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
 
   React.useEffect(() => {
     let vivo = true
+    avisarFalha = aoFalhar
     carregarGoogle()
       .then(async (g) => {
         const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([g.importLibrary('maps'), g.importLibrary('marker')])
@@ -62,10 +67,11 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
         mapa.current = new Map(caixa.current, {
           center: NATAL, zoom: 12, mapId: MAP_ID, gestureHandling: 'cooperative',
           streetViewControl: false, mapTypeControl: false, fullscreenControl: true, clickableIcons: false,
+          controlSize: 44, // zoom, tela cheia e câmera do Google com alvo de toque de 44 px (o padrão é 40)
         })
         setPronto(true)
       })
-      .catch(() => vivo && setErro(true))
+      .catch(() => { if (vivo) (aoFalhar ? aoFalhar() : setErro(true)) })
     return () => {
       vivo = false
       for (const mk of marcadores.current.values()) mk.map = null
