@@ -24,6 +24,7 @@ import { camposObrigatorios, dadosDeLinhas, blocoDoCampo, CAMPOS_APONTAVEIS, lin
 import { traduzirFaltando } from './edicaoMarca.js'
 import { rotulo } from './status.js'
 import { NOMES_PUBLICACAO } from './nomesPublicacao.js'
+import { nomeDaTroca } from './combosTexto.js'
 
 const txt = (v) => (v == null ? '' : String(v).trim())
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
@@ -178,12 +179,17 @@ export function alimentarDoItem(lista) {
 const DISPONIBILIDADE = { sempre: 'Sempre disponível', sob_consulta: 'Sob consulta', limitada: 'Limitada (até acabar)' }
 const MODALIDADE = { local: 'consumo no local', retirada: 'retirada', delivery: 'delivery' }
 
-/** Uma troca legível. `nomeUnidade(id_publico)` traduz as unidades. */
-export function trocaLegivel(s, nomeUnidade = (x) => x) {
+/*
+ * Uma troca legível. `nomeUnidade(id_publico)` traduz as unidades; `nomeItem` é o item de que a troca faz parte. Desde
+ * 02/11/2026 a troca é um item alternativo: `nome` = a alternativa ("original → alternativa" só no registro antigo, ver
+ * nomeDaTroca) e `descricao` a dela. Troca não tem custo: `acrescimo` só sai quando o registro antigo tinha um valor.
+ */
+export function trocaLegivel(s, nomeUnidade = (x) => x, nomeItem = '') {
   return {
     original: txt(s.original), alternativa: txt(s.alternativa),
+    nome: nomeDaTroca(nomeItem, s), descricao: txt(s.descricao),
     disponibilidade: DISPONIBILIDADE[s.disponibilidade] || txt(s.disponibilidade) || 'Não informado',
-    acrescimo: textoAcrescimo(s.acrescimo),
+    acrescimo: Number(s.acrescimo) > 0 ? textoAcrescimo(s.acrescimo) : '',
     comoSolicitar: txt(s.como_solicitar),
     modalidades: (s.modalidades || []).length ? s.modalidades.map((m) => MODALIDADE[m] || m).join(', ') : 'todas as formas de atendimento',
     unidades: (s.unidades || []).length ? s.unidades.map(nomeUnidade).join(', ') : 'todas as unidades',
@@ -214,7 +220,7 @@ export function componentesDaFicha(itens, publicos, nomeUnidade) {
         id: it.id, posicao: it.posicao, tipo: it.tipo, rotuloTipo: TIPO[it.tipo] || 'Componente',
         nome: txt(it.nome), descricao: txt(it.descricao), ingredientes: txt(it.ingredientes),
         alimentar: pub ? alimentarDoItem(pub.alimentar || []) : null,
-        trocas: pub ? (pub.substituicoes || []).map((s) => trocaLegivel(s, nomeUnidade)) : null,
+        trocas: pub ? (pub.substituicoes || []).map((s) => trocaLegivel(s, nomeUnidade, it.nome)) : null,
         legado: { selos, substituicao: it.tem_substituicao ? txt(it.substituicao) : '' },
       }
     })

@@ -27,6 +27,9 @@
    uma confirmação só, opcionais recolhidos.
    Horário (23/10, pedido do Wilker): uma pergunta só por loja —
    como ela funciona em cada dia do festival, dia a dia.
+   Trocas (02/11, pedido do Wilker): lista de itens completos, cada um
+   com nome, descrição e os mesmos alergênicos do item. "O combo" vira
+   bloco próprio, com nome e descrição obrigatórios.
    ───────────────────────────────────────────────────────────── */
 @font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Regular.woff2') format('woff2');font-weight:500;font-display:swap}
 @font-face{font-family:'Nexa Slab';src:url('/fonts/nexa-slab/NexaSlab-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
@@ -136,7 +139,13 @@ fieldset{border:0;padding:0;margin:0}
 .hresumo--falta{background:rgba(255,72,16,.08);border:1.5px solid var(--scw-laranja)}
 .progresso{font-family:var(--f-ui);margin:0 0 8px;font-size:14px;font-weight:700;color:var(--scw-marrom);text-align:center}
 .progresso--ok{color:var(--scw-choco)}
-.troca{margin-top:4px;padding:4px 14px 14px;border-radius:var(--r);background:rgba(248,228,193,.55)}
+.troca{margin-top:4px}
+/* Trocas (02/11/2026): cada opção é um item completo, com nome, descrição e alergênicos próprios. */
+.troca-op{margin-top:10px;padding:12px 14px 14px;border-radius:var(--r);background:rgba(248,228,193,.55)}
+.troca-op:first-child{margin-top:0}
+.troca-op__cabeca{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px}
+.troca-op__cabeca h4{font-family:var(--f-ui);font-weight:700;font-size:15px;margin:0}
+.troca__mais{margin-top:10px}
 
 details.mais{margin-top:12px}
 details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font-weight:700;font-size:15px;color:var(--scw-marrom)}
@@ -240,13 +249,19 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
         </details>
       </fieldset>
 
-      <fieldset class="cartao bloco" data-bloco="combo">
-        <legend class="sr">Tema e combo</legend>
-        <div class="bloco__cabeca"><span class="bloco__disco" aria-hidden="true"><!--icone:tema:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8.27 14.82A6.5 6.5 0 1 1 15.73 14.82C14.9 15.6 14.5 16.4 14.5 17.5h-5C9.5 16.4 9.1 15.6 8.27 14.82Z"/><path d="M10 21h4"/></svg><!--/icone--></span><h2>Tema e combo</h2></div>
+      <fieldset class="cartao bloco" data-bloco="tema">
+        <legend class="sr">Tema</legend>
+        <div class="bloco__cabeca"><span class="bloco__disco" aria-hidden="true"><!--icone:tema:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8.27 14.82A6.5 6.5 0 1 1 15.73 14.82C14.9 15.6 14.5 16.4 14.5 17.5h-5C9.5 16.4 9.1 15.6 8.27 14.82Z"/><path d="M10 21h4"/></svg><!--/icone--></span><h2>Tema</h2></div>
         <label class="campo"><span>Desenho que inspira o combo</span><input name="combo.tema_combo" maxlength="120" data-obrigatorio="Desenho do tema"></label>
         <label class="campo"><span>Como o desenho aparece no combo?</span><textarea name="combo.tema_justificativa" maxlength="800" data-obrigatorio="Como o desenho aparece"></textarea></label>
-        <label class="campo"><span>Nome do combo <em>(opcional)</em></span><input name="combo.combo_nome" maxlength="80"></label>
-        <label class="campo"><span>Descrição para o site <em>(opcional)</em></span><textarea name="combo.combo_descricao" maxlength="400"></textarea></label>
+      </fieldset>
+
+      <!-- O combo (02/11/2026, pedido do Wilker): nome e descrição passam a ser obrigatórios, num bloco próprio. -->
+      <fieldset class="cartao bloco" data-bloco="combo">
+        <legend class="sr">O combo</legend>
+        <div class="bloco__cabeca"><span class="bloco__disco" aria-hidden="true"><!--icone:combo:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 8.5a4.25 4.25 0 0 1 8.5 0Z"/><path d="M3.5 8.5l1.2 8.5h2.8"/><path d="M9.5 11.5h9V16a4 4 0 0 1-4 4h-1a4 4 0 0 1-4-4Z"/><path d="M18.5 12.5h.5a2.25 2.25 0 0 1 0 4.5h-.5"/></svg><!--/icone--></span><h2>O combo</h2></div>
+        <label class="campo"><span>Nome do combo</span><input name="combo.combo_nome" maxlength="80" data-obrigatorio="Nome do combo"></label>
+        <label class="campo"><span>Descrição do combo <em>(um texto curto apresentando o combo como um todo)</em></span><textarea name="combo.combo_descricao" maxlength="5000" data-obrigatorio="Descrição do combo"></textarea></label>
         <div class="pergunta" role="radiogroup" aria-labelledby="pr-viagem-t" data-pergunta="viagem">
           <span id="pr-viagem-t">Pode ser para viagem?</span>
           <div class="opcoes">
@@ -314,46 +329,10 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
   <div class="item">
     <h3 data-titulo></h3>
     <label class="campo"><span>Nome</span><input data-k="nome" maxlength="120"></label>
-    <label class="campo"><span>Descrição</span><textarea data-k="descricao" maxlength="600" rows="2"></textarea></label>
+    <label class="campo"><span>Descrição</span><textarea data-k="descricao" maxlength="5000" rows="2"></textarea></label>
     <!-- Ingredientes não são mais pedidos (19/10/2026): o que importa é o alergênico. O valor já cadastrado só atravessa, intacto. -->
     <input type="hidden" data-k="ingredientes">
-    <div class="pergunta" role="group" data-pergunta="alergenicos">
-      <span>Contém algum destes?</span>
-      <div class="opcoes">
-        <label class="opcao"><input type="checkbox" data-alergenico="gluten">Glúten</label>
-        <label class="opcao"><input type="checkbox" data-alergenico="leite">Leite</label>
-        <label class="opcao"><input type="checkbox" data-alergenico="ovo">Ovo</label>
-        <label class="opcao"><input type="checkbox" data-alergenico="amendoim">Amendoim</label>
-        <label class="opcao"><input type="checkbox" data-alergenico="castanhas">Castanhas</label>
-        <label class="opcao"><input type="checkbox" data-alergenico="soja">Soja</label>
-        <label class="opcao"><input type="checkbox" data-alergenico="peixe">Peixe</label>
-        <label class="opcao"><input type="checkbox" data-alergenico="crustaceos">Crustáceos</label>
-        <label class="opcao"><input type="checkbox" data-nenhum>Nenhum</label>
-      </div>
-    </div>
-    <div class="pergunta" role="group">
-      <span>Este item é… <em class="nota-curta">(marque o que vale)</em></span>
-      <div class="opcoes">
-        <label class="opcao"><input type="checkbox" data-carac="vegano" data-valor="sim">Vegano</label>
-        <label class="opcao"><input type="checkbox" data-carac="vegetariano" data-valor="sim">Vegetariano</label>
-        <label class="opcao"><input type="checkbox" data-carac="lactose" data-valor="nao">Sem lactose</label>
-        <label class="opcao"><input type="checkbox" data-carac="acucar_adicionado" data-valor="nao">Sem açúcar adicionado</label>
-      </div>
-    </div>
-    <details class="mais">
-      <summary><!--icone:mais:20--><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg><!--/icone-->Pode ter traços (contato cruzado)?</summary>
-      <div class="opcoes" role="group" aria-label="Pode conter traços de">
-        <label class="opcao"><input type="checkbox" data-traco="gluten">Glúten</label>
-        <label class="opcao"><input type="checkbox" data-traco="leite">Leite</label>
-        <label class="opcao"><input type="checkbox" data-traco="ovo">Ovo</label>
-        <label class="opcao"><input type="checkbox" data-traco="amendoim">Amendoim</label>
-        <label class="opcao"><input type="checkbox" data-traco="castanhas">Castanhas</label>
-        <label class="opcao"><input type="checkbox" data-traco="soja">Soja</label>
-        <label class="opcao"><input type="checkbox" data-traco="peixe">Peixe</label>
-        <label class="opcao"><input type="checkbox" data-traco="crustaceos">Crustáceos</label>
-      </div>
-      <label class="campo"><span>Outro alergênico</span><input data-k="outro_alergenico" maxlength="160" placeholder="Ex.: gergelim"></label>
-    </details>
+    <div class="alimentar"></div>
     <div class="pergunta" role="radiogroup" data-pergunta="troca">
       <span>Tem opção de troca? <em class="nota-curta">(ex.: versão sem glúten, leite vegetal)</em></span>
       <div class="opcoes">
@@ -361,20 +340,72 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
         <label class="opcao"><input type="radio" data-troca value="false">Não</label>
       </div>
     </div>
+    <!-- Trocas (02/11/2026, pedido do Wilker): uma lista de itens completos (nome, descrição, alergênicos). A troca é sempre do próprio item. -->
     <div class="troca oculto">
-      <div class="dupla">
-        <label class="campo"><span>Troca o quê?</span><input data-t="original" maxlength="80" placeholder="Ex.: pão comum"></label>
-        <label class="campo"><span>Por o quê?</span><input data-t="alternativa" maxlength="200" placeholder="Ex.: pão sem glúten"></label>
-      </div>
-      <div class="pergunta" role="radiogroup">
-        <span>Disponível</span>
-        <div class="opcoes">
-          <label class="opcao"><input type="radio" data-disp value="sempre">Sempre</label>
-          <label class="opcao"><input type="radio" data-disp value="sob_consulta">Sob consulta</label>
-          <label class="opcao"><input type="radio" data-disp value="limitada">Até acabar</label>
-        </div>
-      </div>
+      <div data-trocas></div>
+      <button type="button" class="btn btn--mini troca__mais" data-add-troca><!--icone:mais:20--><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg><!--/icone--><span>Adicionar outra opção de troca</span></button>
       <p class="nota-curta" style="margin-top:10px">A troca não muda o valor do combo.</p>
+    </div>
+  </div>
+</template>
+
+<!-- Alergênicos e características: as MESMAS perguntas no item e em cada opção de troca (montarAlimentar / lerAlimentar). -->
+<template id="tpl-alimentar">
+  <div class="pergunta" role="group" data-pergunta="alergenicos">
+    <span>Contém algum destes?</span>
+    <div class="opcoes">
+      <label class="opcao"><input type="checkbox" data-alergenico="gluten">Glúten</label>
+      <label class="opcao"><input type="checkbox" data-alergenico="leite">Leite</label>
+      <label class="opcao"><input type="checkbox" data-alergenico="ovo">Ovo</label>
+      <label class="opcao"><input type="checkbox" data-alergenico="amendoim">Amendoim</label>
+      <label class="opcao"><input type="checkbox" data-alergenico="castanhas">Castanhas</label>
+      <label class="opcao"><input type="checkbox" data-alergenico="soja">Soja</label>
+      <label class="opcao"><input type="checkbox" data-alergenico="peixe">Peixe</label>
+      <label class="opcao"><input type="checkbox" data-alergenico="crustaceos">Crustáceos</label>
+      <label class="opcao"><input type="checkbox" data-nenhum>Nenhum</label>
+    </div>
+  </div>
+  <div class="pergunta" role="group">
+    <span>Este item é… <em class="nota-curta">(marque o que vale)</em></span>
+    <div class="opcoes">
+      <label class="opcao"><input type="checkbox" data-carac="vegano" data-valor="sim">Vegano</label>
+      <label class="opcao"><input type="checkbox" data-carac="vegetariano" data-valor="sim">Vegetariano</label>
+      <label class="opcao"><input type="checkbox" data-carac="lactose" data-valor="nao">Sem lactose</label>
+      <label class="opcao"><input type="checkbox" data-carac="acucar_adicionado" data-valor="nao">Sem açúcar adicionado</label>
+    </div>
+  </div>
+  <details class="mais">
+    <summary><!--icone:mais:20--><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg><!--/icone-->Pode ter traços (contato cruzado)?</summary>
+    <div class="opcoes" role="group" aria-label="Pode conter traços de">
+      <label class="opcao"><input type="checkbox" data-traco="gluten">Glúten</label>
+      <label class="opcao"><input type="checkbox" data-traco="leite">Leite</label>
+      <label class="opcao"><input type="checkbox" data-traco="ovo">Ovo</label>
+      <label class="opcao"><input type="checkbox" data-traco="amendoim">Amendoim</label>
+      <label class="opcao"><input type="checkbox" data-traco="castanhas">Castanhas</label>
+      <label class="opcao"><input type="checkbox" data-traco="soja">Soja</label>
+      <label class="opcao"><input type="checkbox" data-traco="peixe">Peixe</label>
+      <label class="opcao"><input type="checkbox" data-traco="crustaceos">Crustáceos</label>
+    </div>
+    <label class="campo"><span>Outro alergênico</span><input data-outro maxlength="160" placeholder="Ex.: gergelim"></label>
+  </details>
+</template>
+
+<template id="tpl-troca">
+  <div class="troca-op">
+    <div class="troca-op__cabeca">
+      <h4 data-titulo></h4>
+      <button type="button" class="btn btn--mini" data-remover-troca><!--icone:excluir:16--><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6.5h16"/><path d="M9 6.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v1.5"/><path d="M6 6.5l.9 12.1A1.5 1.5 0 0 0 8.4 20h7.2a1.5 1.5 0 0 0 1.5-1.4L18 6.5"/><path d="M10 10.5V16M14 10.5V16"/></svg><!--/icone--><span>Remover</span></button>
+    </div>
+    <label class="campo"><span>Nome do item da troca</span><input data-t="alternativa" maxlength="200" placeholder="Ex.: cachorro-quente vegetariano"></label>
+    <label class="campo"><span>Descrição <em>(opcional)</em></span><textarea data-t="descricao" maxlength="5000" rows="2"></textarea></label>
+    <div class="alimentar"></div>
+    <div class="pergunta" role="radiogroup">
+      <span>Disponível</span>
+      <div class="opcoes">
+        <label class="opcao"><input type="radio" data-disp value="sempre">Sempre</label>
+        <label class="opcao"><input type="radio" data-disp value="sob_consulta">Sob consulta</label>
+        <label class="opcao"><input type="radio" data-disp value="limitada">Até acabar</label>
+      </div>
     </div>
   </div>
 </template>
@@ -526,80 +557,143 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     else campos[0].value = nome.indexOf('custo_') > -1 ? dinheiro(v) : txt(v);
   }
 
+  // Alergênicos e características (item e cada opção de troca): o mesmo molde, a mesma leitura e a mesma régua.
+  // cx = a caixa .alimentar; al = { aspecto: estado }; outro = o "outro alergênico" em texto.
+  function montarAlimentar(cx, al, outro) {
+    al = al || {};
+    cx.appendChild(clonar('tpl-alimentar'));
+    // Alergênico: marcado = contém; traço = pode conter. "Nenhum" só se algo foi declarado e nada contém.
+    var algumDeclarado = false, algumContem = false;
+    cx.querySelectorAll('[data-alergenico]').forEach(function (c) {
+      var e = al[c.dataset.alergenico];
+      if (e && e !== 'nao_informado') algumDeclarado = true;
+      c.checked = e === 'contem';
+      if (c.checked) algumContem = true;
+    });
+    cx.querySelectorAll('[data-traco]').forEach(function (c) {
+      c.checked = al[c.dataset.traco] === 'pode_conter';
+      if (c.checked) algumContem = true;
+    });
+    cx.querySelector('[data-nenhum]').checked = algumDeclarado && !algumContem;
+    // Característica: marcado = valor declarado; guarda o anterior para saber se desmarcou.
+    cx.querySelectorAll('[data-carac]').forEach(function (c) {
+      c.dataset.antes = al[c.dataset.carac] || '';
+      c.checked = al[c.dataset.carac] === c.dataset.valor;
+    });
+    cx.querySelector('[data-outro]').value = txt(outro);
+  }
+  function alimentarRespondido(cx) {
+    return !!cx.querySelector('[data-nenhum]:checked') || !!cx.querySelector('[data-alergenico]:checked');
+  }
+  function lerAlimentar(cx) {
+    var it = { alimentar: {}, outro_alergenico: cx.querySelector('[data-outro]').value.trim() };
+    if (alimentarRespondido(cx)) {
+      cx.querySelectorAll('[data-alergenico]').forEach(function (c) {
+        var a = c.dataset.alergenico;
+        it.alimentar[a] = c.checked ? 'contem' : cx.querySelector('[data-traco="' + a + '"]').checked ? 'pode_conter' : 'nao_contem';
+      });
+    }
+    cx.querySelectorAll('[data-carac]').forEach(function (c) {
+      if (c.checked) it.alimentar[c.dataset.carac] = c.dataset.valor;
+      else if (c.dataset.antes === c.dataset.valor) it.alimentar[c.dataset.carac] = 'nao_informado';
+    });
+    return it;
+  }
+  // A caixa .alimentar que é do próprio nó (o item tem as das trocas dentro dele).
+  function alimentarDe(no) { return no.querySelector(':scope > .alimentar'); }
+
+  var contadorTroca = 0;    // nome único dos grupos de rádio de cada opção de troca
+  function adicionarTroca(item, t) {
+    t = t || {};
+    var no = clonar('tpl-troca').firstElementChild;
+    contadorTroca += 1;
+    no.querySelector('[data-t="alternativa"]').value = txt(t.alternativa);
+    no.querySelector('[data-t="descricao"]').value = txt(t.descricao);
+    montarAlimentar(alimentarDe(no), t.alimentar, t.outro_alergenico);
+    no.querySelectorAll('[data-disp]').forEach(function (c) {
+      c.name = 'disp-' + contadorTroca;
+      c.checked = c.value === (t.disponibilidade || 'sempre');
+    });
+    no.querySelector('[data-remover-troca]').addEventListener('click', function () {
+      var lista = no.parentNode;
+      no.remove();
+      numerarTrocas(item);
+      (lista.querySelector('[data-t="alternativa"]') || item.querySelector('[data-add-troca]')).focus();
+      reavaliar();
+    });
+    item.querySelector('[data-trocas]').appendChild(no);
+    numerarTrocas(item);
+    return no;
+  }
+  // "Opção de troca 1, 2…": título, nome nas pendências e o Remover (só com mais de uma).
+  function numerarTrocas(item) {
+    var nome = ITENS[Number(item.dataset.posicao) - 1];
+    var ops = item.querySelectorAll('.troca-op');
+    ops.forEach(function (no, k) {
+      var rot = 'Opção de troca ' + (k + 1);
+      var tirar = no.querySelector('[data-remover-troca]');
+      no.querySelector('[data-titulo]').textContent = rot;
+      tirar.classList.toggle('oculto', ops.length < 2);
+      tirar.setAttribute('aria-label', 'Remover ' + rot.toLowerCase() + ' — ' + nome);
+      no.querySelector('[data-t="alternativa"]').dataset.obrigatorio = nome + ' · troca ' + (k + 1) + ': nome';
+    });
+  }
+
   function montarItens(itens) {
     var caixa = document.getElementById('pr-itens');
     for (var i = 1; i <= 3; i++) {
       var it = (itens || []).filter(function (x) { return Number(x.posicao) === i; })[0] || {};
-      var al = it.alimentar || {};
       var no = clonar('tpl-item').firstElementChild;
       no.dataset.posicao = i;
       no.querySelector('[data-titulo]').textContent = ITENS[i - 1];
       no.querySelectorAll('[data-k]').forEach(function (c) {
         c.value = txt(it[c.dataset.k]);
-        if (c.dataset.k !== 'outro_alergenico' && c.dataset.k !== 'ingredientes') c.dataset.obrigatorio = ITENS[i - 1] + ' · ' + c.closest('label').firstChild.textContent;
+        if (c.dataset.k !== 'ingredientes') c.dataset.obrigatorio = ITENS[i - 1] + ' · ' + c.closest('label').firstChild.textContent;
       });
-      // Alergênico: marcado = contém; traço = pode conter. "Nenhum" só se algo foi declarado e nada contém.
-      var algumDeclarado = false, algumContem = false;
-      no.querySelectorAll('[data-alergenico]').forEach(function (c) {
-        var e = al[c.dataset.alergenico];
-        if (e && e !== 'nao_informado') algumDeclarado = true;
-        c.checked = e === 'contem';
-        if (c.checked) algumContem = true;
-      });
-      no.querySelectorAll('[data-traco]').forEach(function (c) {
-        c.checked = al[c.dataset.traco] === 'pode_conter';
-        if (c.checked) algumContem = true;
-      });
-      no.querySelector('[data-nenhum]').checked = algumDeclarado && !algumContem;
-      // Característica: marcado = valor declarado; guarda o anterior para saber se desmarcou.
-      no.querySelectorAll('[data-carac]').forEach(function (c) {
-        c.dataset.antes = al[c.dataset.carac] || '';
-        c.checked = al[c.dataset.carac] === c.dataset.valor;
-      });
+      montarAlimentar(alimentarDe(no), it.alimentar, it.outro_alergenico);
       // Troca: nomes de grupo únicos por item.
       no.querySelectorAll('[data-troca]').forEach(function (c) { c.name = 'troca-' + i; c.checked = it.tem_troca != null && String(it.tem_troca) === c.value; });
-      no.querySelectorAll('[data-disp]').forEach(function (c) { c.name = 'disp-' + i; });
-      var t = it.troca || {};
-      no.querySelector('[data-t="original"]').value = txt(t.original || it.nome);
-      no.querySelector('[data-t="alternativa"]').value = txt(t.alternativa);
-      var disp = no.querySelector('[data-disp][value="' + (t.disponibilidade || 'sempre') + '"]');
-      if (disp) disp.checked = true;
-      no.querySelector('[data-t="alternativa"]').dataset.obrigatorio = ITENS[i - 1] + ' · troca por o quê';
-      // "Nenhum" e os alergênicos se excluem.
+      // Lista de trocas; servidor antigo ou rascunho antigo trazem uma só, em `troca`. Sempre há pelo menos um cartão (vazio).
+      var trocas = Array.isArray(it.trocas) ? it.trocas : it.troca ? [it.troca] : [];
+      (trocas.length ? trocas : [null]).forEach(function (t) { adicionarTroca(no, t); });
+      no.querySelector('[data-add-troca]').addEventListener('click', function (ev) {
+        var item = ev.currentTarget.closest('.item');
+        adicionarTroca(item).querySelector('[data-t="alternativa"]').focus();
+        reavaliar();
+      });
+      // "Nenhum" e os alergênicos se excluem (no item e em cada troca).
       no.addEventListener('change', function (ev) {
-        var alvo = ev.target, item = alvo.closest('.item');
-        if (alvo.matches('[data-nenhum]') && alvo.checked) item.querySelectorAll('[data-alergenico]').forEach(function (c) { c.checked = false; });
-        if (alvo.matches('[data-alergenico]') && alvo.checked) item.querySelector('[data-nenhum]').checked = false;
+        var alvo = ev.target, cx = alvo.closest('.alimentar');
+        if (!cx) return;
+        if (alvo.matches('[data-nenhum]') && alvo.checked) cx.querySelectorAll('[data-alergenico]').forEach(function (c) { c.checked = false; });
+        if (alvo.matches('[data-alergenico]') && alvo.checked) cx.querySelector('[data-nenhum]').checked = false;
       });
       caixa.appendChild(no);
     }
   }
 
   function lerItem(no) {
-    var it = { posicao: Number(no.dataset.posicao), alimentar: {} };
+    var it = { posicao: Number(no.dataset.posicao) };
     no.querySelectorAll('[data-k]').forEach(function (c) { it[c.dataset.k] = c.value.trim(); });
-    var respondeu = no.querySelector('[data-nenhum]').checked || !!no.querySelector('[data-alergenico]:checked');
-    if (respondeu) {
-      no.querySelectorAll('[data-alergenico]').forEach(function (c) {
-        var a = c.dataset.alergenico;
-        it.alimentar[a] = c.checked ? 'contem' : no.querySelector('[data-traco="' + a + '"]').checked ? 'pode_conter' : 'nao_contem';
-      });
-    }
-    no.querySelectorAll('[data-carac]').forEach(function (c) {
-      if (c.checked) it.alimentar[c.dataset.carac] = c.dataset.valor;
-      else if (c.dataset.antes === c.dataset.valor) it.alimentar[c.dataset.carac] = 'nao_informado';
-    });
+    var al = lerAlimentar(alimentarDe(no));
+    it.alimentar = al.alimentar;
+    it.outro_alergenico = al.outro_alergenico;
     var troca = no.querySelector('[data-troca]:checked');
     if (troca) {
       it.tem_troca = troca.value === 'true';
       if (it.tem_troca) {
-        var disp = no.querySelector('[data-disp]:checked');
-        it.troca = {
-          // Em branco = o próprio item (o nome digitado agora, não o do cadastro antigo).
-          original: no.querySelector('[data-t="original"]').value.trim() || no.querySelector('[data-k="nome"]').value.trim(),
-          alternativa: no.querySelector('[data-t="alternativa"]').value.trim(),
-          disponibilidade: disp ? disp.value : 'sempre'
-        };
+        it.trocas = [];
+        no.querySelectorAll('.troca-op').forEach(function (op) {
+          var disp = op.querySelector('[data-disp]:checked');
+          var a = lerAlimentar(alimentarDe(op));
+          it.trocas.push({
+            alternativa: op.querySelector('[data-t="alternativa"]').value.trim(),
+            descricao: op.querySelector('[data-t="descricao"]').value.trim(),
+            disponibilidade: disp ? disp.value : 'sempre',
+            alimentar: a.alimentar,
+            outro_alergenico: a.outro_alergenico
+          });
+        });
       }
     }
     return it;
@@ -1395,13 +1489,19 @@ details.mais>summary{font-family:var(--f-ui);display:inline-flex;align-items:cen
     }
     document.querySelectorAll('#pr-itens .item').forEach(function (no) {
       var nome = ITENS[Number(no.dataset.posicao) - 1];
-      if (!no.querySelector('[data-nenhum]:checked') && !no.querySelector('[data-alergenico]:checked')) {
-        marca(no.querySelector('[data-pergunta="alergenicos"]'), 'pergunta--falta');
-        lista.push({ texto: nome + ': contém algum alergênico?', alvo: no.querySelector('[data-alergenico]') });
+      function alergenicos(cx, texto) {
+        if (alimentarRespondido(cx)) return;
+        marca(cx.querySelector('[data-pergunta="alergenicos"]'), 'pergunta--falta');
+        lista.push({ texto: texto, alvo: cx.querySelector('[data-alergenico]') });
       }
-      if (!no.querySelector('[data-troca]:checked')) {
+      alergenicos(alimentarDe(no), nome + ': contém algum alergênico?');
+      var troca = no.querySelector('[data-troca]:checked');
+      if (!troca) {
         marca(no.querySelector('[data-pergunta="troca"]'), 'pergunta--falta');
         lista.push({ texto: nome + ': tem opção de troca?', alvo: no.querySelector('[data-troca]') });
+      } else if (troca.value === 'true') {
+        // Nome de cada troca já entra pelo data-obrigatorio (a descrição é opcional); aqui só a pergunta dos alergênicos.
+        no.querySelectorAll('.troca-op').forEach(function (op, k) { alergenicos(alimentarDe(op), nome + ' · troca ' + (k + 1) + ': alergênicos'); });
       }
     });
     lojas.forEach(function (u, i) {

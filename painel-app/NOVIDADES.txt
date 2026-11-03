@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Press Kit: retirar pessoa da lista e desfazer. Novo: Participantes › Localizações, e o endereço agora pede número e CEP.
+Trocas do combo: cada opção de troca com nome, descrição e alergênicos próprios, várias por item; nome e descrição do combo obrigatórios.

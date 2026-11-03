@@ -263,10 +263,12 @@ function Componente({ c, fotos, f, onTentar }) {
             <ul className="fg-trocas">
               {c.trocas.map((t, i) => (
                 <li key={i}>
-                  <b>{t.original} → {t.alternativa}</b>
-                  <span>{[t.disponibilidade, t.acrescimo, 'em ' + t.modalidades, t.unidades].join(' · ')}</span>
+                  <b>{t.nome}</b>
+                  {t.descricao && <span>{t.descricao}</span>}
+                  <span>{[t.disponibilidade, t.acrescimo, 'em ' + t.modalidades, t.unidades].filter(Boolean).join(' · ')}</span>
                   {t.comoSolicitar && <span>Como pedir: {t.comoSolicitar}</span>}
                   {t.alimentar && t.alimentar.contem.length > 0 && <span>A alternativa contém: {t.alimentar.contem.join(', ')}</span>}
+                  {t.alimentar && t.alimentar.podeConter.length > 0 && <span>A alternativa pode conter: {t.alimentar.podeConter.join(', ')}</span>}
                 </li>
               ))}
             </ul>

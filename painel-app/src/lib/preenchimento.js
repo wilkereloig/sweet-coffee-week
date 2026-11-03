@@ -171,7 +171,9 @@ const ASPECTOS = [
 // Ausente = "sem resposta" — nunca "não contém" (regra da camada de edição).
 const ESTADO_ALIMENTAR = { contem: 'Contém', nao_contem: 'Não contém', pode_conter: 'Pode conter', sim: 'Sim', nao: 'Não', nao_informado: 'Sem resposta' }
 // Troca não tem custo: o combo tem valor único (só embalagem e entrega somam).
-const ROTULOS_TROCA = [['original', 'Troca o quê'], ['alternativa', 'Por o quê'], ['disponibilidade', 'Disponível']]
+// Desde 02/11/2026 a troca é um item alternativo com nome (`alternativa`), descrição e alergênicos próprios; o `original` é o
+// próprio item (implícito, o envio novo nem traz). "Troca o quê" só aparece em envio ANTIGO, que ainda trazia o original.
+const ROTULOS_TROCA = [['original', 'Troca o quê'], ['alternativa', 'Nome'], ['descricao', 'Descrição'], ['disponibilidade', 'Disponível']]
 const DISPONIBILIDADE = { sempre: 'Sempre', sob_consulta: 'Sob consulta', limitada: 'Até acabar' }
 const DIGITOS = new Set(['cep', 'whatsapp', 'telefone', 'cnpj'])
 const DINHEIRO = new Set(['custo_embalagem', 'custo_delivery'])
@@ -209,6 +211,27 @@ function comparar(grupo, rotulos, atual = {}, novo = {}, lista) {
   }
 }
 
+// Declarações (do item ou de uma troca): só os aspectos que o envio traz; ausente no banco = sem resposta.
+function compararAlimentar(grupo, antes = {}, novo = {}, lista) {
+  const alAntes = (antes && antes.alimentar) || {}, alNovo = (novo && novo.alimentar) || {}
+  for (const [a, r] of ASPECTOS) {
+    if (!(a in alNovo)) continue
+    const de = alAntes[a] || 'nao_informado'
+    if (de !== alNovo[a]) lista.push({ grupo, campo: r, de: normal('alimentar.' + a, de), para: normal('alimentar.' + a, alNovo[a]) })
+  }
+  comparar(grupo, [['outro_alergenico', 'Outro alergênico']], antes, novo, lista)
+}
+
+// As trocas de um item como lista: `trocas` (desde 02/11/2026) ou a `troca` única de antes (envio ou estado antigo).
+const listaDeTrocas = (x) => (Array.isArray(x && x.trocas) ? x.trocas : x && x.troca ? [x.troca] : [])
+// O original igual ao próprio item é o implícito: não vira linha "Troca o quê" (só o original de outra coisa, do envio antigo).
+const semOriginalImplicito = (tr, nomeItem) => {
+  if (!tr || texto(tr.original).toLowerCase() !== texto(nomeItem).toLowerCase()) return tr || {}
+  const resto = { ...tr }
+  delete resto.original
+  return resto
+}
+
 // Os dias do festival para ler as linhas do horário: os da edição, quando ela está à mão. Sem eles o módulo (frasesDeLinhas, a única
 // função que transforma linhas em frases) só fala dos dias que as próprias linhas citam — nunca "todos os dias".
 const datasDaEdicao = (edicao) => (edicao && edicao.inicio ? datasDoFestival(texto(edicao.inicio).slice(0, 10), texto(edicao.fim).slice(0, 10)) : [])
@@ -234,17 +257,20 @@ export function diferencasEnvio(atual = {}, enviado = {}, edicao = null) {
     const antes = (atual.itens || []).find((x) => Number(x.posicao) === pos) || {}
     const grupo = ITENS[pos - 1]
     comparar(grupo, ROTULOS_ITEM, antes, it, lista)
-    // Declarações: só os aspectos que o envio traz; ausente no banco = sem resposta.
-    const alAntes = antes.alimentar || {}, alNovo = it.alimentar || {}
-    for (const [a, r] of ASPECTOS) {
-      if (!(a in alNovo)) continue
-      const de = alAntes[a] || 'nao_informado'
-      if (de !== alNovo[a]) lista.push({ grupo, campo: r, de: normal('alimentar.' + a, de), para: normal('alimentar.' + a, alNovo[a]) })
-    }
-    comparar(grupo, [['outro_alergenico', 'Outro alergênico']], antes, it, lista)
+    compararAlimentar(grupo, antes, it, lista)
     if (typeof it.tem_troca === 'boolean') {
       if (it.tem_troca !== !!antes.tem_troca) lista.push({ grupo, campo: 'Tem troca', de: antes.tem_troca == null ? '' : (antes.tem_troca ? 'Sim' : 'Não'), para: it.tem_troca ? 'Sim' : 'Não' })
-      if (it.tem_troca && it.troca) comparar(grupo + ' · troca', ROTULOS_TROCA, antes.troca || {}, it.troca, lista)
+      if (it.tem_troca) {
+        // Pela posição: a 1ª troca enviada contra a 1ª do cadastro, e assim por diante; troca nova sai "do vazio".
+        const de = listaDeTrocas(antes), para = listaDeTrocas(it)
+        para.forEach((tr, k) => {
+          const g = grupo + ' · troca ' + (k + 1)
+          comparar(g, ROTULOS_TROCA, de[k] || {}, semOriginalImplicito(tr, it.nome ?? antes.nome), lista)
+          compararAlimentar(g, de[k] || {}, tr || {}, lista)
+        })
+        // Só o envio novo (lista) diz quais saem; o antigo trazia uma troca só e não mexia nas outras.
+        if (Array.isArray(it.trocas)) for (let k = para.length; k < de.length; k++) lista.push({ grupo: grupo + ' · troca ' + (k + 1), campo: 'Opção de troca', de: 'Existe', para: 'Removida' })
+      }
     }
   }
   const unidadesAtuais = atual.unidades || []

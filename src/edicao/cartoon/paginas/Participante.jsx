@@ -49,28 +49,39 @@ function Alimentar ({ item }) {
   )
 }
 
-function Trocas ({ lista, unidades }) {
+// Desde 02/11/2026 a troca é um item alternativo (nome, descrição e alergênicos próprios); o original é o próprio item.
+// "Troca X por Y" só no registro antigo, em que o original era outra coisa e não havia descrição.
+const plano = (v) => String(v ?? '').replace(/\s+/g, ' ').trim().toLowerCase()
+const trocaAntiga = (s, nomeItem) => !!s.original && !s.descricao && plano(s.original) !== plano(nomeItem)
+const alergenicosDaTroca = (s, estado) => (s.alimentar || []).filter((d) => d.estado === estado)
+  .map((d) => (d.aspecto === 'outro_alergenico' && d.observacao) || M.rotuloAspecto(d.aspecto))
+
+function Trocas ({ lista, unidades, nomeItem }) {
   if (!lista?.length) return null
   const nomeUnidade = (id) => unidades.find((u) => u.id === id)?.nome || unidades.find((u) => u.id === id)?.endereco?.bairro || id
   return (
     <details className="ct-trocas">
       <summary>{T.trocas} ({lista.length})</summary>
       <ul>
-        {lista.map((s, i) => (
-          <li key={i}>
-            <p>Troca <strong>{s.original}</strong> por <strong>{s.alternativa}</strong></p>
-            <p className="ct-trocas__meta">
-              {[T.troca[s.disponibilidade],
-                s.acrescimo === 0 ? T.troca.semCusto : s.acrescimo ? T.troca.acrescimo(M.formatarPreco(s.acrescimo)) : T.troca.consulte,
-                s.como_solicitar,
-                s.unidades?.length ? `só em ${M.juntar(s.unidades.map(nomeUnidade))}` : null,
-              ].filter(Boolean).join(' · ')}
-            </p>
-            {s.alimentar?.some((d) => d.estado === 'contem') && (
-              <p className="ct-trocas__meta">{T.contem}: {M.juntar(s.alimentar.filter((d) => d.estado === 'contem').map((d) => M.rotuloAspecto(d.aspecto)))}</p>
-            )}
-          </li>
-        ))}
+        {lista.map((s, i) => {
+          const contem = alergenicosDaTroca(s, 'contem'), pode = alergenicosDaTroca(s, 'pode_conter')
+          return (
+            <li key={i}>
+              {trocaAntiga(s, nomeItem)
+                ? <p>{T.troca.de} <strong>{s.original}</strong> {T.troca.por} <strong>{s.alternativa}</strong></p>
+                : <p><strong>{s.alternativa}</strong>{s.descricao ? ` — ${s.descricao}` : ''}</p>}
+              <p className="ct-trocas__meta">
+                {[T.troca[s.disponibilidade],
+                  s.acrescimo > 0 ? T.troca.acrescimo(M.formatarPreco(s.acrescimo)) : null,
+                  s.como_solicitar,
+                  s.unidades?.length ? `só em ${M.juntar(s.unidades.map(nomeUnidade))}` : null,
+                ].filter(Boolean).join(' · ')}
+              </p>
+              {contem.length > 0 && <p className="ct-trocas__meta">{T.contem}: {M.juntar(contem)}</p>}
+              {pode.length > 0 && <p className="ct-trocas__meta">{T.podeConter}: {M.juntar(pode)}</p>}
+            </li>
+          )
+        })}
       </ul>
     </details>
   )
@@ -324,7 +335,7 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
                     <p className="ct-rotulo">{T.restricoesTitulo}</p>
                     <Alimentar item={i} />
                   </div>
-                  <Trocas lista={i.substituicoes} unidades={unidades} />
+                  <Trocas lista={i.substituicoes} unidades={unidades} nomeItem={i.nome} />
                 </li>
               ))}
             </ul>

@@ -223,6 +223,19 @@ export function declaracoesPorItem(rows) {
   }
   return m
 }
+/**
+ * As declarações das TROCAS (`substituicao_id`, 02/11/2026) → { [chave da troca na tela]: { [aspecto]: … } }.
+ * A chave padrão é a de `substituicaoDeLinha` ('sub-<id>'); a mesclagem passa a dela.
+ */
+export function declaracoesPorTroca(rows, chaveDe = (subId) => 'sub-' + subId) {
+  const m = {}
+  for (const d of rows || []) {
+    if (!d.substituicao_id) continue
+    const k = chaveDe(d.substituicao_id)
+    ;(m[k] = m[k] || {})[d.aspecto] = { id: d.id, estado: d.estado, observacao: d.observacao || '' }
+  }
+  return m
+}
 export const corpoDeclaracao = (d) => ({ estado: d.estado, observacao: ouNulo(d.observacao) })
 
 /** O check do banco: "outro" respondido sem dizer qual não grava. */
@@ -237,20 +250,37 @@ const paraStr = (n) => (n == null ? '' : String(n).replace('.', ','))
 export function substituicaoDeLinha(s) {
   return {
     _key: 'sub-' + s.id, id: s.id, item_id: s.item_id, original: s.original || '', alternativa: s.alternativa || '',
-    disponibilidade: s.disponibilidade || 'sob_consulta', acrescimo: paraStr(s.acrescimo), como_solicitar: s.como_solicitar || '',
+    descricao: s.descricao || '', disponibilidade: s.disponibilidade || 'sob_consulta', acrescimo: paraStr(s.acrescimo), como_solicitar: s.como_solicitar || '',
     modalidades: [...(s.modalidades || [])], unidades: [...(s.unidades || [])],
   }
 }
-/** A troca não muda o valor do combo (24/10/2026, decisão do Wilker): o acréscimo sai da tela e vai sempre 0
- *  — o mesmo que o /preencher grava. A coluna fica no banco só pelo dado antigo. */
-export function corpoSubstituicao(s) {
+/** `original` (NOT NULL no banco) = o nome do próprio item: a troca é sempre do item inteiro (02/11/2026). */
+export const originalDaTroca = (nomeItem) => texto(nomeItem).slice(0, 80).trim() || 'Item'
+
+/**
+ * A troca não muda o valor do combo (24/10/2026, decisão do Wilker): o acréscimo sai da tela e vai sempre 0
+ * — o mesmo que o /preencher grava. A coluna fica no banco só pelo dado antigo.
+ * A troca é um ITEM COMPLETO (02/11/2026, decisão do Wilker): `alternativa` = nome do item da troca, `descricao`
+ * nova, e os alergênicos dela em `declaracoes_alimentares.substituicao_id`. "O que pode ser trocado?" saiu da tela:
+ * com `nomeItem`, `original` vira o nome do item; sem ele (foto de uma linha do banco), fica o que estava gravado.
+ */
+export function corpoSubstituicao(s, nomeItem) {
   return {
-    original: texto(s.original), alternativa: texto(s.alternativa), disponibilidade: s.disponibilidade,
+    original: nomeItem === undefined ? texto(s.original) : originalDaTroca(nomeItem),
+    alternativa: texto(s.alternativa), descricao: ouNulo(s.descricao), disponibilidade: s.disponibilidade,
     acrescimo: 0,
     como_solicitar: ouNulo(s.como_solicitar), modalidades: [...s.modalidades], unidades: [...s.unidades],
   }
 }
-export const substituicaoGravavel = (s) => !!(texto(s.original) && texto(s.alternativa))
+/** Grava com o nome; descrição e alergênicos que faltam viram pendência, não impedem a gravação. */
+export const substituicaoGravavel = (s) => !!texto(s.alternativa)
+
+/** O que falta numa troca com nome: 'alimentar' (alergênicos sem resposta). A descrição é OPCIONAL (03/11/2026, Wilker: título como "Água sem Gás" já define). */
+export function faltasDaTroca(s, porAspecto) {
+  const f = []
+  if (alergenicosRespondidos(porAspecto) < ASPECTOS_ALERGENICOS.length) f.push('alimentar')
+  return f
+}
 
 /** Liga/desliga um valor numa lista, mantendo a ordem de uma lista de referência. */
 export function alternar(lista, valor, referencia) {
@@ -265,10 +295,13 @@ export function alternar(lista, valor, referencia) {
  * combo_nome · sem_unidade · unidade:<id>:endereco (rua, número, bairro, cidade e CEP)|modos|canais|horario ·
  * item:<posicao>:alimentar. Unidade ainda não gravada usa a chave local no
  * lugar do id público (o servidor nem a vê ainda).
+ * Só da tela (02/11/2026, o servidor não os lista): combo_descricao e, por troca com nome (descrição da troca é opcional),
+ * troca:<posicao>:<n>:alimentar (n = a ordem da troca no item, a mesma da tela).
  */
-export function pendenciasEdicao({ comboNome = '', unidades = [], itens = [], declaracoes = {} } = {}) {
+export function pendenciasEdicao({ comboNome = '', comboDescricao = '', unidades = [], itens = [], declaracoes = {}, substituicoes = [], declTrocas = {} } = {}) {
   const f = []
   if (!texto(comboNome)) f.push('combo_nome')
+  if (!texto(comboDescricao)) f.push('combo_descricao')
   const participam = unidades.filter((u) => u.participa !== false)
   if (!participam.length) f.push('sem_unidade')
   for (const u of participam) {
@@ -282,6 +315,10 @@ export function pendenciasEdicao({ comboNome = '', unidades = [], itens = [], de
   }
   for (const i of [...itens].sort((a, b) => a.posicao - b.posicao)) {
     if (alergenicosRespondidos(declaracoes[i.id]) < ASPECTOS_ALERGENICOS.length) f.push('item:' + i.posicao + ':alimentar')
+    substituicoes.filter((s) => s.item_id === i.id).forEach((s, n) => {
+      if (!substituicaoGravavel(s)) return // sem nome não é gravada: o erro fica junto do campo
+      for (const falta of faltasDaTroca(s, declTrocas[s._key])) f.push('troca:' + i.posicao + ':' + (n + 1) + ':' + falta)
+    })
   }
   return f
 }
@@ -299,11 +336,11 @@ const CAMPO_DO_LEGADO = {
 export function blocoDaPendencia(codigo) {
   const c = String(codigo || '')
   if (c in BLOCO_DO_LEGADO) return BLOCO_DO_LEGADO[c]
-  if (c === 'combo_nome') return 3
+  if (c === 'combo_nome' || c === 'combo_descricao') return 3
   if (c === 'sem_unidade') return 4
   if (/^unidade:.+:endereco$/.test(c)) return 4
   if (/^unidade:.+:(modos|canais|horario)$/.test(c)) return 6
-  if (/^item:\d+:alimentar$/.test(c)) return 5
+  if (/^item:\d+:alimentar$/.test(c) || /^troca:\d+:\d+:(descricao|alimentar)$/.test(c)) return 5
   return null
 }
 
@@ -314,6 +351,8 @@ export function contarPorBloco(codigos) {
 }
 
 const ROTULO_ITEM = { doce: 'do doce', salgado: 'do salgado', bebida: 'da bebida' }
+/** id do campo de uma troca (sem o 'campo-'): item-<posicao>-troca-<n>-nome|descricao|alimentar. */
+export const idCampoTroca = (posicao, n, parte) => 'item-' + posicao + '-troca-' + n + '-' + parte
 
 /**
  * Código de `faltando` (envio, prévia) → { texto, bloco, campo } em português,
@@ -323,6 +362,7 @@ export function traduzirFaltando(codigo, { unidades = [], itens = [] } = {}) {
   const c = String(codigo || '')
   if (c in NOMES_FALTANDO) return { texto: cap(NOMES_FALTANDO[c]), bloco: BLOCO_DO_LEGADO[c] ?? null, campo: CAMPO_DO_LEGADO[c] || null }
   if (c === 'combo_nome') return { texto: 'Dar um nome ao combo', bloco: 3, campo: 'combo_nome' }
+  if (c === 'combo_descricao') return { texto: 'Escrever a descrição do combo', bloco: 3, campo: 'combo_descricao' }
   if (c === 'sem_unidade') return { texto: 'Marcar ao menos uma unidade que participa da edição', bloco: 4, campo: 'unidade-endereco' }
   let m = /^unidade:(.+):(endereco|modos|canais|horario)$/.exec(c)
   if (m) {
@@ -338,6 +378,14 @@ export function traduzirFaltando(codigo, { unidades = [], itens = [] } = {}) {
   if (m) {
     const it = itens.find((x) => String(x.posicao) === m[1])
     return { texto: 'Responder os alergênicos ' + ((it && ROTULO_ITEM[it.tipo]) || 'do item ' + m[1]), bloco: 5, campo: 'item-' + m[1] + '-alimentar' }
+  }
+  m = /^troca:(\d+):(\d+):(descricao|alimentar)$/.exec(c)
+  if (m) {
+    const it = itens.find((x) => String(x.posicao) === m[1])
+    const de = 'da troca ' + m[2] + ' ' + ((it && ROTULO_ITEM[it.tipo]) || 'do item ' + m[1])
+    return m[3] === 'descricao'
+      ? { texto: 'Escrever a descrição ' + de, bloco: 5, campo: idCampoTroca(m[1], m[2], 'descricao') }
+      : { texto: 'Responder os alergênicos ' + de, bloco: 5, campo: idCampoTroca(m[1], m[2], 'alimentar') }
   }
   return { texto: c, bloco: null, campo: null }
 }

@@ -1416,6 +1416,54 @@ testes `tests/painel-app-localizacoes.test.mjs` e `painel-app-edicao-marca.test.
   OpenStreetMap foi avaliado e descartado — em Natal ele erra a casa (testado com a Carcará: 4,8 km de diferença).
 - ⚠️ Ficou de fora: card "Localizações a conferir" na Visão geral; `verificada` segue no estado da unidade da marca, sem uso na tela.
 
+#### Trocas completas e bloco "O combo" — 02/11/2026 (pedido do Wilker)
+"Se tiver troca, nome e descrição do item da troca; mais de uma, adiciona outra; e as perguntas de alergênicos também para esse
+outro item" (o Marlon: cachorro-quente e, de troca, o vegetariano). Migration `20261123_trocas_completas` (APLICADA, TESTE_OK).
+- **Troca = item completo:** `substituicoes.alternativa` é o NOME da troca, `descricao` (nova, ≤600) a descrição, e os alergênicos e
+  características ficam em `declaracoes_alimentares.substituicao_id` (mesmas perguntas do item). Várias por item, em `ordem`.
+  `original` não é mais perguntado: grava o nome do próprio item (coluna segue NOT NULL). Registro antigo com original diferente do
+  item continua aparecendo "original → alternativa" (`combosTexto.nomeDaTroca`).
+- **/preencher:** cards "Opção de troca N" (nome, descrição, alergênicos do template compartilhado `tpl-alimentar`, disponibilidade),
+  "+ Adicionar outra opção de troca", Remover. Envio: `trocas: [{alternativa, descricao, disponibilidade, alimentar, outro_alergenico}]`
+  — sem `troca`/`original`. `preenchimento_estado` devolve `trocas` (e `troca`, a 1ª, para rascunho/envio antigo); o "Aplicar"
+  (`org_preenchimento_decidir`) troca a lista INTEIRA do item e aceita o envio antigo (`troca`) como lista de um.
+- **Painel da marca (Meu combo, bloco 5):** o mesmo modelo; o componente de alergênicos é o do item com `id` da troca. Pendências
+  `troca:<pos>:<n>:descricao|alimentar` (só tela da marca) e `combo_descricao` (bloco 3).
+- **O combo:** no /preencher virou bloco próprio entre Tema e Os três itens, nome e descrição OBRIGATÓRIOS; `campos_cadastro` passou a
+  15 campos-base (conta os dois).
+- **% e Início alinhados (mesmo dia):** `guia.js camposObrigatorios` conta `combo_nome`/`combo_descricao` (bloco 3; 15 campos, igual a
+  `campos_cadastro`); o que o servidor já lista não conta de novo (`resumoMarca.duplicado`, `pendEdicao` no Cadastro). O Início lê
+  `marca_previa_publica.faltando` = `pendencias_marca` (20261124): `pendencias_publicacao` + `combo_descricao` + `troca:<pos>:<n>:descricao|alimentar`.
+  ⚠️ `pendencias_publicacao` NÃO ganhou essas: ela trava `publicar_participacao` e `marca_concluir_cadastro`, e as trocas antigas não têm
+  descrição — o site de ninguém deixa de publicar por isso.
+
+#### Social media › Participantes completo — 31/10/2026 (pedido do Wilker; substitui a aba "Combos" do mesmo dia)
+"Em sequência, ordem alfabética, cada participante no seu card com tudo à vista; quando o participante atualizar, mostra aqui com uma
+sinalização no campo." Migration `20261122_social_participantes_completo.sql` (reversão em `supabase/reverter/`, teste do banco
+`supabase/testes/social-participantes-completo.sql` → `TESTE_OK`), lógica em `lib/alteracoesCampo.js` + `lib/combosTexto.js` +
+`lib/combosWord.js`, cartão `vistas/social/CartaoParticipante.jsx`, estilo `styles/social-combos.css` (`scb-`), testes
+`tests/painel-app-combos.test.mjs` e `node tests/painel-social-participantes-navegador.mjs` (de dentro de `tests/`; `DADOS=` fixture
+local, `CAPTURAS=` prints 1440/390).
+- **Onde:** Social media › Participantes (só `editorial.ler`: administrador e Social media/Micka). Um cartão por participante, A–Z
+  (ordenado NA TELA), e "Abrir ficha" segue abrindo a ficha editorial (editar textos, criar postagem). A aba Combos saiu;
+  `#social/combos` cai em Participantes (`migrarRota`).
+- **Campos FIXOS, na mesma ordem para todos** (cartão, texto do WhatsApp e Word): Participante (Instagram, Tema) · Combo (nome,
+  descrição, condições, para viagem, valor) · Doce/Salgado/Bebida (nome, descrição, ingredientes, selos, alergênicos) · Trocas e
+  opções · Onde encontrar (unidade, endereço, WhatsApp da loja, atendimento, horário no festival). Obrigatório sem resposta =
+  "Aguardando informação" NO LUGAR do campo; opcional vazio = "Não informado". ⛔ A lista "Ainda sem: …" no fim não volta.
+- **Texto revisado à parte** (`revisoes_texto`): ortografia, pontuação e maiúsculas, conferidas palavra a palavra contra o original.
+  O cadastro e o site continuam com o que a marca escreveu; a tela mostra a revisão SÓ enquanto o original for o mesmo (`revisar`:
+  mudou o original → `caducas`, volta o texto da marca). Duas revisões especiais: `opcao:<onde>:<n>` (troca/opção que a marca
+  escreveu DENTRO de uma descrição: aparece em "Trocas e opções" com "Informado na descrição de …") e `ocultar:<tipo>.troca<k>`
+  (troca repetida em outro item). A carga inicial (133 linhas, Word v3.1) fica FORA do repositório
+  (`sweet-coffee-week-dados/revisoes-combos-2026-2-carga.sql`): texto de marca não vai ao GitHub público.
+- **"Novo / Alterado" por campo** (`alteracoes_campo`): gatilho `alteracao_campo_marca` nas 7 tabelas, SÓ quando quem grava é a
+  marca (`meu_participante()`), fora de `scw.silencioso` e do "Ver como". Guarda o antes e o depois; gravações do mesmo campo em
+  10 min viram uma linha (salvamento automático). ⚠️ O "Aplicar" do /preencher é gravação da equipe e NÃO marca. A marcação some
+  por PESSOA com "Marquei como visto" (`editorial_marcar_visto`, `editorial_vistos`; só conta pessoal); filtro "Só com alterações".
+  Falha do gatilho vira `warning` e nunca derruba o salvamento da marca.
+- **Copiar e baixar:** "Copiar texto de todos" (WhatsApp) e "Baixar Word" (o mesmo documento do v3.1, gerado no navegador; a
+  biblioteca `docx` só carrega no clique) usam o que está na tela (busca e filtro).
 #### Link de preenchimento das marcas — 16/10/2026 (pedido do Wilker)
 As marcas da edição **não** recebem acesso ao painel agora. Cada participação ganha um link único
 `/preencher/#<código>` (página estática `public/preencher/index.html`, mesmo padrão do `/quero-participar`):
@@ -1963,3 +2011,43 @@ busca, CSV), estilo em `styles/qr.css`, testes em `tests/painel-app-qr.test.mjs`
 - ⚠️ `qr` é chave de rota nova de Operação (entrou no contrato de `tests/painel-app-nomes-publicacao.test.mjs`).
 - **Não faz ainda:** pausar nem cadastrar peça. Fica para quando a D3 definir peças novas (peça nova também precisa do PNG do QR, que sai do
   `scripts/qr-edicao.mjs --por-peca`).
+
+#### Preenchimento automático — 02/11/2026 (pedido do Wilker: "automatize os participantes que preencheram o formulário… e gerar uma notificação")
+Marca envia o `/preencher` → entra no cadastro e em Social media › Participantes sem ninguém clicar em "Aplicar", com texto revisado
+pela API do Claude e UMA notificação (com push) que abre a ficha em Participantes. Migration `20261125_preenchimento_automatico.sql`
+(✅ aplicada pelo MCP do claude.ai; teste `supabase/testes/preenchimento-automatico.sql` → `TESTE_OK`; reversão em `supabase/reverter/`),
+edge function `supabase/functions/processar-preenchimento/` (✅ no ar, `--no-verify-jwt`, modelo `claude-sonnet-5-5`).
+- ⚠️ **Nasce DESLIGADO:** `admin_config.preenchimento_automatico = false`. Ligar = `update public.admin_config set preenchimento_automatico = true;`
+  DEPOIS de criar o secret `ANTHROPIC_API_KEY` (Supabase › Project Settings › Edge Functions › Secrets; só o Wilker mexe na chave).
+  Ligado, o aviso antigo "enviou o formulário… revise e aplique" deixa de sair no envio (senão são dois avisos).
+- **Fluxo:** gatilho `preenchimento_automatico` (pg_net, só o id) → função → `sistema_aplicar_envio` (reaproveita
+  `org_preenchimento_decidir`, que aceita `eh_servico()`; rótulo "Automático (formulário)") → `sistema_textos_para_revisar` → API →
+  `sistema_gravar_revisoes` → `sistema_finalizar_envio` (a notificação). A APLICAÇÃO vem antes da revisão: a API cair nunca a impede.
+- **O banco manda, não a API:** `sistema_gravar_revisoes` pega o ORIGINAL do banco e só grava se o texto mudou, os DÍGITOS são os
+  mesmos e o tamanho fica entre 60% e 160%; nunca sobrescreve revisão à mão sobre o mesmo original. Campos cobertos: `combo.nome|
+  descricao|condicoes`, `<tipo>.nome|descricao|ingredientes`, `<tipo>.troca<k>.alternativa|descricao|como_solicitar`. As revisões
+  especiais (`opcao:`, `ocultar:`) continuam sendo trabalho manual.
+- **"Novo/Alterado" por campo:** o gatilho `alteracao_campo_marca` só registrava a MARCA logada (`meu_participante()`); agora também
+  aceita `scw.alterou_participante`, que só `sistema_aplicar_envio` marca. ⚠️ Antes disso, "Aplicar" à mão NÃO gerava "Novo/Alterado".
+- **`pode()` aceita `scw.sistema_ativo = 'on'`** (transação de `sistema_aplicar_envio`, que só a chave de serviço executa), porque
+  `decidir` chama `org_salvar_*`. NUNCA liberar `pode` por papel de serviço: outras funções validam senha de pessoa com o cliente de serviço.
+- **Falha:** envio pendente há 2 min+ (ou aplicado sem concluir) é refeito pelo cron `scw-preenchimento-reprocessar` (5 min); pendente
+  há 30 min → aviso no formato antigo ("não consegui aplicar sozinho… revise e aplique"), uma vez (`aviso_falha_em`).
+
+#### Descrição da troca é OPCIONAL — 03/11/2026 (Wilker, vendo o Marlon cobrado depois de ele deixar só o título "Água sem Gás")
+Muda "Trocas completas" (02/11): o NOME e os 8 alergênicos da troca seguem obrigatórios; a DESCRIÇÃO deixou de ser cobrada.
+`faltasDaTroca` (edicaoMarca.js) só devolve `alimentar`; o Início (`pendencias_marca`, migration `20261126_troca_descricao_opcional.sql`,
+✅ aplicada, teste `supabase/testes/pendencias-marca.sql` → `TESTE_OK`), o "Faltam N" e a % param de pedir; o `/preencher` marca o campo
+"(opcional)" e não o valida mais. A descrição continua sendo gravada e aparecendo (Social › Participantes, site) quando a marca escreve.
+Descrição do COMBO segue obrigatória.
+- **Diagnóstico da chave (03/11):** `POST {"diagnostico":"chave"}` na função devolve `{ok:true, chave:true|false}` — só diz se a chave existe (secret `scw-api-key`, nome criado pelo Wilker; `ANTHROPIC_API_KEY` também vale) no ambiente dela, nunca o valor. ⚠️ `rpc()` da função lê o corpo como TEXTO: função SQL `returns void` responde com corpo vazio (o `r.json()` direto virou 500 no 1º envio real, Caffè Basilico's, depois de aplicar e notificar).
+
+#### Descrições sem limite visível — 03/11/2026 (Wilker, repassando a pergunta da Jolie: "os combos têm limite de caracteres pra descrição dos itens?" — "se tiver limite, retire")
+As descrições do ITEM (era 300 no painel da marca, 600 no /preencher, 400 na ficha da organização), da TROCA (600) e do COMBO (400)
+perderam o limite e o contador. Fica um TETO TÉCNICO de **5.000 caracteres** (`maxLength` 5000 nas telas; checks de
+`participacoes.combo_descricao` e `substituicoes.descricao`; `org_preenchimento_decidir` e `editorial_salvar`) para colar um
+documento inteiro não estourar o cadastro nem o texto de post. Migration `20261127_descricoes_sem_limite.sql` (✅ aplicada, testada
+com rollback). Os NOMES (80) e a "proposta editorial" (2.000) seguem como eram. ⚠️ Quem ainda tem o painel/formulário antigo aberto
+continua com o limite de tela antigo até recarregar.
+- **Sem `tool_choice` forçado (03/11):** o `claude-sonnet-5-5` responde 400 ("tool_choice type tool/any not supported") — a função pede a ferramenta pela instrução do sistema e, se vier texto, lê o JSON dele. 1º teste real da API: Casa Alice Doceria, 3 campos revisados ("Cafe carioca" → "Café carioca", "ninho" → "Ninho", pontuação do combo), sem mudar informação.
+- **Revisar tudo (03/11, Wilker: "revise todos os dados"):** `POST {"revisar_participacao":"<id>"}` revisa UMA participação sem aplicar envio nem notificar; só manda à API os textos SEM revisão para o original de hoje (`sistema_textos_sem_revisao`, migration `20261128_textos_sem_revisao.sql`) — as 133 revisões do Word e as automáticas ficam. Rodado nas 27 participações da edição: 12 campos novos em 8 marcas, 0 erro. Revisão que mexe em NOME de produto (ex.: "Burguer" → "Burger") é desfeita à mão: o prompt só autoriza corrigir grafia, e o modelo às vezes decide que estilo é erro.

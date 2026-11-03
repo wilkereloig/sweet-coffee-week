@@ -313,9 +313,43 @@ test('diferença: alimentar e troca, com ausente = sem resposta', () => {
     'Doce · Leite: Sem resposta → Não contém',
     'Doce · Vegano: Sem resposta → Sim',
     'Doce · Tem troca: Não → Sim',
-    'Doce · troca · Troca o quê:  → Bolo',
-    'Doce · troca · Por o quê:  → Bolo sem glúten',
-    'Doce · troca · Disponível:  → Sob consulta',
+    // envio ANTIGO (troca única): o original igual ao próprio item é o implícito e não vira linha
+    'Doce · troca 1 · Nome:  → Bolo sem glúten',
+    'Doce · troca 1 · Disponível:  → Sob consulta',
+  ])
+})
+
+test('diferença: várias trocas por posição, com descrição e alergênicos próprios; a que sai aparece "Removida"', () => {
+  const atual = { itens: [{ posicao: 2, nome: 'Cachorro-quente', tem_troca: true,
+    troca: { id: 't1', original: 'Cachorro-quente', alternativa: 'Cachorro-quente vegetariano', disponibilidade: 'sempre' },
+    trocas: [
+      { id: 't1', original: 'Cachorro-quente', alternativa: 'Cachorro-quente vegetariano', descricao: '', disponibilidade: 'sempre', alimentar: { gluten: 'contem' } },
+      { id: 't2', original: 'Cachorro-quente', alternativa: 'Sem pão', descricao: 'Na tigela', disponibilidade: 'limitada', alimentar: {} },
+    ] }] }
+  const enviado = { itens: [{ posicao: 2, nome: 'Cachorro-quente', tem_troca: true, trocas: [
+    { alternativa: 'Cachorro-quente vegetariano', descricao: 'Salsicha de soja', disponibilidade: 'sempre', alimentar: { gluten: 'contem', soja: 'contem' }, outro_alergenico: '' },
+  ] }] }
+  const linha = (x) => x.grupo + ' · ' + x.campo + ': ' + x.de + ' → ' + x.para
+  assert.deepEqual(diferencasEnvio(atual, enviado).map(linha), [
+    'Salgado · troca 1 · Descrição:  → Salsicha de soja',
+    'Salgado · troca 1 · Soja: Sem resposta → Contém',
+    'Salgado · troca 2 · Opção de troca: Existe → Removida',
+  ])
+  // troca nova: sai "do vazio", com os alergênicos dela
+  const nova = diferencasEnvio({ itens: [{ posicao: 1, nome: 'Bolo', tem_troca: false, trocas: [] }] },
+    { itens: [{ posicao: 1, nome: 'Bolo', tem_troca: true, trocas: [{ alternativa: 'Bolo sem glúten', descricao: 'Farinha de arroz', disponibilidade: 'sob_consulta', alimentar: { gluten: 'nao_contem' } }] }] })
+  assert.deepEqual(nova.map(linha), [
+    'Doce · Tem troca: Não → Sim',
+    'Doce · troca 1 · Nome:  → Bolo sem glúten',
+    'Doce · troca 1 · Descrição:  → Farinha de arroz',
+    'Doce · troca 1 · Disponível:  → Sob consulta',
+    'Doce · troca 1 · Glúten: Sem resposta → Não contém',
+  ])
+  // envio antigo com original de OUTRA coisa ainda mostra "Troca o quê"; e não remove as outras trocas do cadastro
+  const antigo = diferencasEnvio(atual, { itens: [{ posicao: 2, nome: 'Cachorro-quente', tem_troca: true, troca: { original: 'Pão', alternativa: 'Pão sem glúten', disponibilidade: 'sempre' } }] })
+  assert.deepEqual(antigo.map(linha), [
+    'Salgado · troca 1 · Troca o quê: Cachorro-quente → Pão',
+    'Salgado · troca 1 · Nome: Cachorro-quente vegetariano → Pão sem glúten',
   ])
 })
 

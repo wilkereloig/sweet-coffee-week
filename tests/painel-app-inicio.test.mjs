@@ -20,7 +20,7 @@ const itens = [
 ]
 const completo = {
   participante: { nome_marca: 'Casa', responsavel: 'Ana', telefone: '(84) 99999-8888' },
-  participacao: { id: 'pa', edicao_codigo: '2026.2', logo_id: 'l1', tema_combo: 'Moana', tema_justificativa: 'x', combo_status: 'rascunho', status_cadastro: 'em_preenchimento', foto_liberacao: 'liberado' },
+  participacao: { id: 'pa', edicao_codigo: '2026.2', logo_id: 'l1', tema_combo: 'Moana', tema_justificativa: 'x', combo_nome: 'Combo Moana', combo_descricao: 'Um combo de teste.', combo_status: 'rascunho', status_cadastro: 'em_preenchimento', foto_liberacao: 'liberado' },
   itens,
   unidades: [{ endereco: 'Rua A', id_publico: 'u1', participa: true }],
   agora: '2026-10-22T12:00:00Z',

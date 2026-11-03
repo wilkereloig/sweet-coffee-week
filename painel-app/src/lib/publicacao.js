@@ -8,6 +8,7 @@
  */
 import { rotuloAspecto, formatarPreco } from '../../../src/edicao/dados/modelo.js'
 import { frasesDeLinhas } from './horarioFestival.js'
+import { nomeDaTroca } from './combosTexto.js'
 
 export const URL_SITE_PARTICIPANTE = 'https://www.sweetcoffeeweek.com.br/cartoon/participantes/'
 export const urlPublicaParticipante = (slug) => (slug ? URL_SITE_PARTICIPANTE + slug : '')
@@ -109,8 +110,10 @@ const CANAL = { aplicativo: 'Aplicativo', whatsapp: 'WhatsApp', site: 'Site' }
 const txt = (v) => (v == null ? '' : String(v).trim())
 const alimentar = (lista) => (lista || [])
   .map((d) => rotuloAspecto(d.aspecto) + ': ' + (ESTADO_AL[d.estado] || d.estado) + (d.observacao ? ' (' + d.observacao + ')' : '')).join('; ')
-const substituicoes = (lista) => (lista || []).map((s) => [
-  txt(s.original) + ' → ' + txt(s.alternativa),
+// A troca pelo nome da alternativa (o original é o próprio item, `nomeItem`); "original → alternativa" só no registro antigo.
+const substituicoes = (lista, nomeItem) => (lista || []).map((s) => [
+  nomeDaTroca(nomeItem, s),
+  txt(s.descricao),
   [DISP[s.disponibilidade] || s.disponibilidade, s.acrescimo && 'acréscimo ' + s.acrescimo, s.como_solicitar,
     (s.modalidades || []).length && 'em ' + s.modalidades.join(', '), (s.unidades || []).length && 'unidades ' + s.unidades.join(', '),
     (s.alimentar || []).length && alimentar(s.alimentar)].filter(Boolean).join(', '),
@@ -153,7 +156,7 @@ export function camposPublicos(c) {
       add(k + '.descricao', r + ' · descrição', i.descricao)
       add(k + '.ingredientes', r + ' · ingredientes', i.ingredientes)
       add(k + '.alimentar', r + ' · alergênicos e características', alimentar(i.alimentar))
-      add(k + '.substituicoes', r + ' · substituições', substituicoes(i.substituicoes))
+      add(k + '.substituicoes', r + ' · substituições', substituicoes(i.substituicoes, i.nome))
       add(k + '.foto', r + ' · foto', i.foto && i.foto.path)
     }
   }

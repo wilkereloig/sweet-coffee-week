@@ -47,6 +47,6 @@ test('telas: avatar de marca e listas usam o mapa; logo_definir_mini classificad
   assert.match(ler('components/Avatar.jsx'), /minis\.porConta\[id\]/)
   assert.match(ler('components/PainelShell.jsx'), /LogosMiniContexto\.Provider/)
   assert.match(ler('lib/sync/dominios.js'), /'logo_definir_mini'/)
-  for (const f of ['Marcas', 'Preenchimento', 'Publicacao', 'Redes', 'SocialBiblioteca', 'Edicao', 'AcessoMarca', 'Producao', 'RedesFicha', 'Vouchers', 'Mesa', 'SocialParticipantes'])
+  for (const f of ['Marcas', 'Preenchimento', 'Publicacao', 'Redes', 'SocialBiblioteca', 'Edicao', 'AcessoMarca', 'Producao', 'RedesFicha', 'Vouchers', 'Mesa', 'social/CartaoParticipante'])
     assert.match(ler('components/vistas/' + f + '.jsx'), /participanteId=\{/, f)
 })

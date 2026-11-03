@@ -63,7 +63,7 @@ const vazio = (v) => !String(v == null ? '' : v).trim()
  * pode ser para viagem, delivery se alguma unidade entrega). O valor do combo
  * saiu: é da organização. Mudou aqui, muda lá.
  */
-export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades = [], custos = {}, logo = false } = {}) {
+export function camposObrigatorios({ marca = {}, tema = {}, combo = {}, itens = [], unidades = [], custos = {}, logo = false } = {}) {
   const c = (bloco, campo, rotulo, ok) => ({ bloco, campo, rotulo, ok: !!ok })
   const lista = [
     c(0, 'nome_marca', 'Nome da marca', !vazio(marca.nome_marca)),
@@ -72,6 +72,9 @@ export function camposObrigatorios({ marca = {}, tema = {}, itens = [], unidades
     c(0, 'logo', 'Logo do estabelecimento', logo),
     c(1, 'tema_combo', 'Tema do combo', !vazio(tema.tema_combo)),
     c(1, 'tema_justificativa', 'Por que esse tema', !vazio(tema.tema_justificativa)),
+    // Nome e descrição do combo (02/11/2026): obrigatórios, como em campos_cadastro (15 campos-base).
+    c(3, 'combo_nome', 'Nome do combo', !vazio(combo.combo_nome)),
+    c(3, 'combo_descricao', 'Descrição do combo', !vazio(combo.combo_descricao)),
   ]
   const ordenados = itensEmOrdem(itens)
   for (let i = 0; i < TIPOS.length; i++) {
@@ -101,6 +104,7 @@ export function dadosDeLinhas({ participante = {}, participacao = {}, itens = []
   return {
     marca: { nome_marca: participante.nome_marca, responsavel: participante.responsavel, telefone: participante.telefone },
     tema: { tema_combo: participacao.tema_combo, tema_justificativa: participacao.tema_justificativa },
+    combo: { combo_nome: participacao.combo_nome, combo_descricao: participacao.combo_descricao },
     itens, unidades,
     logo: !!participacao.logo_id,
     custos: custosDeLinhas(participacao, unidades),
@@ -152,7 +156,7 @@ const ETAPAS = [
 export function resumoMarca(d = {}) {
   const participacao = d.participacao || null
   if (!participacao) {
-    return { semParticipacao: true, progresso: { feitos: 0, total: 13, pct: 0 }, envio: { faltam: 0, itens: [], pronto: false, conhecido: false },
+    return { semParticipacao: true, progresso: { feitos: 0, total: 15, pct: 0 }, envio: { faltam: 0, itens: [], pronto: false, conhecido: false },
       etapas: [], pendencias: [], proxima: null, contagem: {}, campo: () => null, combo: null }
   }
   const dados = dadosDeLinhas(d)
@@ -171,7 +175,9 @@ export function resumoMarca(d = {}) {
   // A mesma falta de endereço vem dos dois lados (campo obrigatório e `unidade:<id>:endereco`/`sem_unidade`
   // do servidor): quando o servidor já a lista, vale a dele (leva à unidade certa) e o campo básico não conta de novo.
   const enderecoNoServidor = conhecido && d.faltandoEdicao.some((c) => c === 'sem_unidade' || /^unidade:.+:endereco$/.test(c))
-  const duplicado = (x) => enderecoNoServidor && x.campo === 'unidade-endereco'
+  // Nome e descrição do combo também vêm dos dois lados (campo e código `combo_nome`/`combo_descricao`): vale o do servidor.
+  const doServidor = new Set(conhecido ? d.faltandoEdicao : [])
+  const duplicado = (x) => (enderecoNoServidor && x.campo === 'unidade-endereco') || doServidor.has(x.campo)
   const faltasEdicao = (conhecido ? d.faltandoEdicao : [])
     .map((c) => ({ codigo: c, ...traduzirFaltando(c, { unidades: d.unidades || [], itens: d.itens || [] }) }))
   // A logo não trava a conclusão (marca_concluir_cadastro, que o banco roda a cada salvamento); o resto, sim.
