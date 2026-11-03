@@ -1,0 +1,58 @@
+/* Camada Cartoon · Movimento (entrada e gesto; tudo dentro de prefers-reduced-motion). Entra por src/styles/scw-cartoon.css (a ordem dos @import é a da cascata). */
+/* ------------------------------------------------------------- movimento de desenho animado (§10.15)
+   Antecipação, exagero e quique, UMA vez ao montar (ou no gesto). Nada em laço, nada perto de conteúdo.
+   Tudo aqui só existe com movimento permitido; o bloco "reduce" abaixo continua valendo. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes ct-pula { from { transform: translateY(22px) scale(.94, 1.06); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes ct-balanca { 0% { transform: rotate(-5deg); } 35% { transform: rotate(3deg); } 65% { transform: rotate(-1deg); } 100% { transform: rotate(0); } }
+  @keyframes ct-balanca-hover { 0% { transform: rotate(-5deg); } 35% { transform: rotate(3deg); } 65% { transform: rotate(-1deg); } 100% { transform: rotate(0); } }
+  @keyframes ct-aperta { 0% { transform: translateY(0); } 35% { transform: translateY(-4px) scale(1.02, .98); } 100% { transform: translateY(-3px); } }
+  @keyframes ct-pulinho { 0% { transform: none; } 30% { transform: translateY(-7px) scale(.96, 1.06); } 60% { transform: translateY(0) scale(1.05, .95); } 100% { transform: none; } }
+  @keyframes ct-quica { from { transform: translateY(70%) scale(.85, 1.15); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes ct-desliza { from { transform: translateY(40%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .ct-letreiro { transform-origin: 50% 100%; animation: ct-pula var(--ct-mo-quique-dur) var(--ct-mo-quique) both; }
+  /* No hover a placa balança de novo: a lista de animações ganha uma 2ª; a de entrada segue concluída e não repete ao sair. */
+  .ct-placa { transform-origin: 50% 0; animation: ct-balanca 700ms ease-out both; }
+  .ct-placa:hover { animation: ct-balanca 700ms ease-out both, ct-balanca-hover 700ms ease-out; }
+  .ct-cartao__link:is(:hover, :focus-visible) { animation: ct-aperta 520ms ease-out; }
+  .ct-cartao__espia { transition: translate 460ms var(--ct-mo-quique), rotate 460ms var(--ct-mo-quique); }
+  .ct-edicao :is(a, button):is(:hover, :focus-visible) .ct-icone { animation: ct-pulinho 520ms ease-out; }
+  @keyframes ct-folha-sobe { from { transform: translateY(100%); } to { transform: none; } }
+  .ct-folha[open] { animation: ct-folha-sobe 300ms cubic-bezier(.22, .9, .24, 1); }
+
+  .ct-cenario__faixa { animation: ct-desliza 560ms cubic-bezier(.22, .9, .24, 1) both; }
+  .ct-cenario__objeto { animation: ct-quica var(--ct-mo-quique-dur) var(--ct-mo-quique) both; transition: translate 140ms ease-out; }
+  /* Fotos do combo com vida: o quadro cai e quica ao aparecer, a foto assenta de um zoom leve; a do item entra
+     quando chega na tela (onde o navegador sabe; nos outros, ao abrir). Sem laço: nada fica se mexendo sozinho. */
+  @keyframes ct-assenta { from { scale: 1.12; } to { scale: 1; } }
+  .ct-cardapio__foto { transform-origin: 50% 100%; animation: ct-quica 760ms var(--ct-mo-quique) both; }
+  .ct-cardapio__foto img, .ct-item .ct-foto img { animation: ct-assenta 1400ms cubic-bezier(.22, .9, .24, 1) both; }
+  .ct-item { transform-origin: 50% 100%; animation: ct-pula var(--ct-mo-quique-dur) var(--ct-mo-quique) both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+  .ct-item:nth-child(2) { rotate: .6deg; }
+  .ct-item:nth-child(3) { rotate: -.6deg; }
+  .ct-galeria-grade__item .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
+  .ct-galeria-grade__item:hover .ct-foto img, .ct-galeria-grade__item:focus-visible .ct-foto img { scale: 1.08; }
+  .ct-edicao .ct-atalho { transition: translate 180ms var(--ct-mo-quique); }
+  .ct-edicao .ct-atalho:hover { translate: 0 -3px; }
+  .ct-cenario-fixo img { animation: ct-desliza 760ms cubic-bezier(.22, .9, .24, 1) both; }
+  .ct-cenario__objeto--a { translate: calc(var(--mx, 0) * 8px) calc(var(--my, 0) * 6px); }
+  .ct-cenario__objeto--b { translate: calc(var(--mx, 0) * -5px) calc(var(--my, 0) * -4px); animation-delay: 120ms; }
+
+  /* Olhinhos: troca de pose interpolada com quique; olhar com atraso; piscada rápida; traços de ação saltam. */
+  .ct-olho, .ct-olho__abre, .ct-olho__pupila, .ct-olho__sobrancelha, .ct-olhinhos__corpo { transition: transform 420ms var(--ct-mo-quique); }
+  .ct-olho__olhar { transition: transform 280ms cubic-bezier(.22, .9, .24, 1); }
+  .ct-olho__pisca { transition: transform 120ms ease-out; }
+  .ct-olhinhos--pisca .ct-olho__pisca { transition-duration: 70ms; transition-timing-function: ease-in; }
+  @keyframes ct-olhinhos-troca { 0% { transform: none; } 30% { transform: scale(.95, 1.06); } 65% { transform: scale(1.04, .96); } 100% { transform: none; } }
+  .ct-olhinhos--troca .ct-olhinhos__quique { animation: ct-olhinhos-troca 460ms ease-out; }
+  @keyframes ct-olhinhos-traco { from { opacity: 0; transform: scale(.4); } }
+  .ct-olhinhos__traco { animation: ct-olhinhos-traco 300ms var(--ct-mo-quique) both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Logo desenhada: colorida direto, sem tinta (§10.14). */
+  .ct-desenho__cor { -webkit-mask-image: none; mask-image: none; }
+  .ct-edicao *, .ct-edicao *::before { transition: none !important; animation: none !important; }
+  .ct-edicao .ct-botao:hover, .ct-cartao__link:is(:hover, :focus-visible) { transform: none; }
+}

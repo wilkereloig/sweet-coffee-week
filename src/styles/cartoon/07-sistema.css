@@ -1,0 +1,138 @@
+/* Camada Cartoon · Peças do sistema (letreiro, etiqueta, placa, quadro, canal, cenário). Entra por src/styles/scw-cartoon.css (a ordem dos @import é a da cascata). */
+/* ------------------------------------------------------------- sistema (docs/cartoon-2026-2/10 §10.4) */
+.ct-letreiro { margin: 0 0 16px; text-wrap: balance; }
+.ct-letreiro--imagem img { display: block; width: min(560px, 100%); height: auto; }
+/* Letreiro em texto: cor de ação, contorno chocolate por fora (paint-order) e sombra curta. */
+.ct-letreiro--titulo, .ct-letreiro--display {
+  --ct-letra: var(--ct-vermelho);
+  --ct-contorno: var(--ct-chocolate);
+  --ct-sombra-letra: .05em .06em 0 var(--ct-chocolate);
+  color: var(--ct-letra);
+  font-family: var(--ct-font); font-weight: 900;
+  -webkit-text-stroke: .1em var(--ct-contorno);
+  paint-order: stroke fill;
+  text-shadow: var(--ct-sombra-letra);
+}
+.ct-letreiro--titulo { font-size: var(--ct-fs-titulo); line-height: 1.02; }
+.ct-letreiro--display { font-size: var(--ct-fs-display); line-height: .98; }
+.ct-letreiro--cor-amarelo { --ct-letra: var(--ct-amarelo); }
+/* Chocolate com contorno chocolate fecha os vãos das letras: o contorno vira creme (respiro)
+   e a sombra amarela sai além dele, como letreiro de desenho animado. */
+.ct-letreiro--cor-chocolate {
+  --ct-letra: var(--ct-chocolate);
+  --ct-contorno: var(--ct-creme);
+  --ct-sombra-letra: .09em .1em 0 var(--ct-amarelo);
+}
+
+.ct-etiqueta {
+  display: inline-block; margin: 0 0 12px; padding: 6px 14px 5px;
+  border: var(--ct-traco); background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p);
+  font: 800 var(--ct-fs-servico)/1.2 var(--ct-font); letter-spacing: .1em; text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+/* Creme sobre azul fecha ~3,5:1: a fita azul é sempre texto grande (19px/800). Preto fica só no traço de desenho. */
+.ct-etiqueta--azul { background: var(--ct-azul); color: var(--ct-creme); font-size: 19px; }
+.ct-pilula {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 999px;
+  background: var(--ct-chocolate); color: var(--ct-creme); font: 800 15px/1 var(--ct-font);
+}
+/* Vermelho sobre creme fecha ~3,9:1: carimbo é sempre texto grande (20px/900). */
+.ct-carimbo {
+  display: inline-grid; place-items: center; padding: 8px 14px; border: 3px solid var(--ct-vermelho); border-radius: var(--ct-raio-p); background: var(--ct-creme);
+  color: var(--ct-vermelho); font: 900 20px/1 var(--ct-font); text-transform: uppercase; transform: rotate(-6deg);
+}
+.ct-placa {
+  display: inline-grid; gap: 2px; margin: 0; padding: 12px 18px 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p);
+  box-shadow: var(--ct-sombra); color: var(--ct-chocolate); text-align: center;
+}
+.ct-placa__numero { font: 900 clamp(28px, 4vw, 44px)/1 var(--ct-font); }
+.ct-placa__rotulo { font: 700 var(--ct-fs-servico)/1.2 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-placa--amarelo { background: var(--ct-amarelo); }
+.ct-placa--creme { background: var(--ct-creme); }
+.ct-placa--turquesa { background: var(--ct-turquesa); }
+
+.ct-quadro { position: relative; display: inline-grid; place-items: center; padding: 14px; border: var(--ct-traco); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-quadro--fita::before, .ct-quadro--fita::after {
+  content: ''; position: absolute; width: 56px; height: 18px;
+  border: 1.5px solid rgba(58, 21, 15, .35); background: rgba(253, 185, 1, .85);
+}
+.ct-quadro--fita::before { top: -9px; left: -14px; transform: rotate(-35deg); }
+.ct-quadro--fita::after { right: -14px; bottom: -9px; transform: rotate(-35deg); }
+
+/* Logo desenhada (§10.14, LogoDesenhada.jsx): o rascunho P&B embaixo; a colorida por cima, revelada por
+   máscara radial que cresce a partir de --x/--y (a tinta espalhando). @property deixa --ct-tinta animar; sem
+   suporte, a cor só aparece de uma vez. O lado do quadro vem de --ct-desenho, que cada lugar define. */
+@property --ct-tinta { syntax: '<percentage>'; inherits: false; initial-value: -24%; }
+.ct-desenho-quadro { padding: 10px; }
+.ct-desenho { position: relative; display: block; width: var(--ct-desenho, 160px); aspect-ratio: 1; overflow: hidden; background: var(--ct-branco); }
+.ct-desenho img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.ct-desenho__cor {
+  --ct-tinta: -24%;
+  -webkit-mask-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), #000 var(--ct-tinta), transparent calc(var(--ct-tinta) + 22%));
+          mask-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), #000 var(--ct-tinta), transparent calc(var(--ct-tinta) + 22%));
+  transition: --ct-tinta 900ms cubic-bezier(.3, .7, .2, 1);
+}
+.ct-desenho.is-pintada .ct-desenho__cor { --ct-tinta: 100%; }
+.ct-desenho--inicial { display: grid; place-items: center; background: var(--ct-amarelo); font: 900 calc(var(--ct-desenho, 160px) * .45)/1 var(--ct-font); }
+
+/* skewY e não rotate: rotate alarga a caixa e abriria rolagem lateral. */
+
+.ct-canal { display: grid; justify-items: start; gap: 8px; padding: clamp(32px, 6vw, 72px) var(--ct-trilho); border-bottom: var(--ct-traco); color: var(--ct-chocolate); }
+.ct-canal--estreia { background: var(--ct-amarelo); }
+.ct-canal--elenco { background: var(--ct-creme); }
+.ct-canal--cardapio { background: var(--ct-rosa); color: var(--ct-creme); }
+.ct-canal--rota { background: var(--ct-turquesa); }
+.ct-canal--gala { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-canal--servico { background: var(--ct-creme); border-top: 12px solid var(--ct-azul); }
+/* Rosa é moldura, não superfície de leitura (creme sobre rosa fecha ~4:1): texto pequeno dentro do canal
+   Cardápio vai em painel creme (manual v03, canal 3; decisão do Wilker, 28/10). Serve em qualquer canal. */
+.ct-painel {
+  max-width: 62ch; padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio);
+  background: var(--ct-creme); color: var(--ct-chocolate);
+}
+.ct-painel > :first-child { margin-top: 0; }
+.ct-painel > :last-child { margin-bottom: 0; }
+/* Anel de foco amarelo SÓ sobre chocolate (≥ 3:1). (0,4,0) vence o anel da camada e o reset do site. */
+.ct-edicao :is(.ct-rodape, .ct-canal--gala) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--ct-amarelo); }
+
+/* ------------------------------------------------------------- elementos novos da edição (§10.15) */
+/* Ícone ilustrado: tamanho vem dos atributos (32/48/64). Nunca sozinho: o texto vem ao lado. */
+.ct-icone { display: inline-block; flex: none; vertical-align: middle; }
+
+/* Cenário por tema: camada decorativa no topo da ficha da casa (<CenarioTema> como 1º filho do TopoCanal).
+   O topo reserva o espaço do cenário em padding — faixa embaixo, objeto A ao lado do nome (acima no celular) — e o
+   texto fica acima (z-index): o cenário nunca cobre texto. A faixa vai INTEIRA, sem recorte (Wilker, 28/10): altura
+   = largura × --ct-cen-razao (altura/largura do arquivo, posta no topo pelo CenarioTema). Padding em % e cqw medem
+   a largura, então a reserva acompanha a faixa em qualquer tela. */
+.ct-canal:has(> .ct-cenario) {
+  --ct-cen-a: clamp(88px, 24vw, 120px);
+  position: relative; isolation: isolate; overflow: hidden;
+  padding-top: calc(var(--ct-cen-a) + 32px);
+  padding-bottom: calc(clamp(32px, 6vw, 72px) + var(--ct-cen-razao, .2) * 100%);
+}
+.ct-canal:has(> .ct-cenario) > :not(.ct-cenario) { position: relative; z-index: 1; }
+.ct-cenario { position: absolute; inset: 0; z-index: 0; pointer-events: none; container-type: size; --ct-cen-faixa: calc(var(--ct-cen-razao, .2) * 100cqw); }
+.ct-cenario img { position: absolute; display: block; }
+.ct-cenario__faixa { left: 0; bottom: 0; width: 100%; height: auto; }
+.ct-cenario__objeto--a { top: 24px; left: var(--ct-trilho); width: auto; height: var(--ct-cen-a); }
+.ct-cenario__objeto--b { right: var(--ct-trilho); bottom: 4px; width: clamp(72px, 12vw, 140px); height: calc(var(--ct-cen-faixa) * .9); object-fit: contain; object-position: right bottom; }
+@media (min-width: 901px) {
+  .ct-canal:has(> .ct-cenario) {
+    --ct-cen-aw: clamp(150px, 17vw, 250px);
+    padding-top: clamp(32px, 6vw, 72px);
+    padding-right: calc(var(--ct-trilho) + var(--ct-cen-aw) + 24px);
+  }
+  .ct-cenario__objeto--a { top: auto; left: auto; right: var(--ct-trilho); bottom: calc(var(--ct-cen-faixa) * .4); width: var(--ct-cen-aw); height: auto; }
+  .ct-cenario__objeto--b { right: auto; left: var(--ct-trilho); object-position: left bottom; }
+}
+/* Casa sem kit (CenarioTema semKit="natal"): só a faixa de Natal como chão, sem reservar o objeto A. */
+.ct-canal:has(> .ct-cenario--natal) { padding-top: clamp(32px, 6vw, 72px); padding-right: var(--ct-trilho); }
+/* Ficha da casa: o topo leva só os objetos; a faixa (com o combo desenhado, quando existe) fica presa ao pé da
+   tela, acima da barra de abas no celular: o desenho vai INTEIRO (contain) — no celular ocupa a largura toda, no
+   desktop para no teto de altura e fica centrado. O rodapé reserva o teto: no fim da rolagem nada fica escondido. */
+.ct-canal:has(> .ct-cenario--sem-faixa) { padding-bottom: clamp(32px, 6vw, 72px); }
+.ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: 24vh; }
+.ct-cenario-fixo { position: fixed; inset: auto 0 0; z-index: 20; pointer-events: none; }
+.ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: min(calc(var(--ct-fixo-razao, .33) * 100vw), var(--ct-fixo-h)); object-fit: contain; object-position: center bottom; }
+.ct-edicao:has(.ct-cenario-fixo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h)); }
+@media (max-width: 899.98px) { .ct-cenario-fixo { bottom: var(--scw-base-ocupada, 72px); } }

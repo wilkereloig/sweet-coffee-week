@@ -1,0 +1,70 @@
+/* Camada Cartoon · Avaliação e premiação. Entra por src/styles/scw-cartoon.css (a ordem dos @import é a da cascata). */
+/* ------------------------------------------------------------- avaliação e premiação */
+.ct-form { display: grid; gap: 16px; max-width: 680px; }
+.ct-nota-campo { margin: 0; padding: 14px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-branco); }
+.ct-nota-campo legend { padding: 0 6px; font: 700 16px/1.2 var(--ct-font); }
+.ct-escala { display: flex; flex-wrap: wrap; gap: 8px; }
+.ct-escala__op { position: relative; }
+.ct-escala__op input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.ct-escala__op span {
+  display: inline-grid; place-items: center; min-width: 46px; height: 46px; border: var(--ct-traco); border-radius: 12px;
+  background: var(--ct-creme); font: 900 18px/1 var(--ct-font);
+}
+.ct-escala__op input:checked + span { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-escala__op input:focus-visible + span { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
+.ct-armadilha { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.ct-turnstile:empty { display: none; }
+/* Avaliar: topo no canal Serviço (creme com a faixa azul), letreiro em CSS. (0,2,0) pelo mesmo motivo do canal Rota.
+   Fora da janela, o estado "abre em …" num cartão tracejado no lugar do formulário. */
+.ct-canal.ct-servico-topo { gap: 12px; padding-block: clamp(28px, 4.5vw, 56px); }
+
+/* Cenografia do topo (<CenaTopo>, família 2): objeto à direita do texto no desktop, ocupando o vazio;
+   no celular, pequeno, depois do texto e encostado à direita. */
+.ct-edicao .ct-topo__cena { justify-self: end; width: clamp(84px, 24vw, 120px); height: auto; margin-top: -8px; rotate: 4deg; }
+@media (min-width: 900px) {
+  .ct-canal:has(> .ct-topo__cena) { grid-template-columns: minmax(0, 1fr) auto; column-gap: 48px; }
+  .ct-canal:has(> .ct-topo__cena) > :not(.ct-topo__cena) { grid-column: 1; }
+  .ct-edicao .ct-topo__cena { grid-column: 2; grid-row: 1 / span 4; align-self: center; width: clamp(170px, 16vw, 230px); }
+}
+.ct-servico-topo .ct-letreiro, .ct-servico-topo .ct-lead { margin: 0; }
+.ct-avaliar__fechada { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px 16px; max-width: 760px; padding: clamp(18px, 3vw, 28px); border: 2.5px dashed var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-branco); }
+.ct-avaliar__fechada p { margin: 0 0 6px; }
+.ct-avaliar__olhos { width: clamp(80px, 14vw, 120px); }
+
+/* Premiação: topo no canal Gala (chocolate) — texto | o troféu oficial sob o holofote. A luz é CSS com as cores da
+   paleta; o dourado só existe no arquivo do troféu (§10.3). (0,2,0): .ct-canal vem depois no arquivo. */
+.ct-canal.ct-gala { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 24px 48px; overflow: hidden; }
+@media (min-width: 900px) { .ct-canal.ct-gala { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.ct-gala__texto { display: grid; justify-items: start; gap: 12px; min-width: 0; }
+.ct-gala__texto > * { margin: 0; }
+.ct-gala__texto .ct-acoes:empty { display: none; }
+/* Marca própria e permanente do Sweet Awards (22/10), sem o letreiro da edição. */
+.ct-gala__marca { padding-bottom: 8px; line-height: 0; }
+.ct-edicao .ct-gala__marca img { width: clamp(200px, 26vw, 320px); height: auto; }
+.ct-gala__palco { position: relative; justify-self: center; width: min(58vw, 300px); margin: 0; padding: 40px 0 18px; }
+/* Holofote: um cone de luz creme que desce do alto sobre o troféu; no chão, a elipse amarela onde ele pousa. */
+.ct-gala__palco::before {
+  content: ''; position: absolute; top: -80px; bottom: 0; left: -45%; right: -45%;
+  background: conic-gradient(from 0deg at 50% 0, transparent 158deg, color-mix(in srgb, var(--ct-creme) 24%, transparent) 168deg 192deg, transparent 202deg);
+  -webkit-mask-image: linear-gradient(#000 55%, transparent);
+          mask-image: linear-gradient(#000 55%, transparent);
+}
+.ct-gala__palco::after {
+  content: ''; position: absolute; left: 4%; right: 4%; bottom: 0; height: 22%; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ct-amarelo) 55%, transparent), transparent);
+}
+.ct-edicao .ct-gala__palco img { position: relative; z-index: 1; width: 100%; height: auto; }
+/* Olhinhos no alto do palco, à esquerda do troféu, olhando para ele. No chocolate, a sobrancelha (solta do
+   olho) sumiria em preto: vai em creme. */
+.ct-gala__olhos { --ct-olhinhos-solto: var(--ct-creme); position: absolute; z-index: 2; top: 0; left: -22%; width: clamp(76px, 8vw, 112px); }
+/* Letreiro amarelo sobre chocolate: o contorno chocolate some no fundo; a sombra vermelha dá o volume de letreiro. */
+.ct-canal--gala .ct-letreiro { --ct-sombra-letra: .06em .07em 0 var(--ct-vermelho); }
+.ct-podios { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; }
+.ct-podio { display: grid; align-content: start; justify-items: start; gap: 8px; padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-podio__cat { margin: 0; font: 900 22px/1.1 var(--ct-font); }
+.ct-podio__lugares { display: grid; gap: 8px; width: 100%; margin: 0; padding: 0; list-style: none; }
+.ct-podio__linha { display: grid; grid-template-columns: 118px minmax(0, 1fr); align-items: center; gap: 10px; font: 700 16px/1.3 var(--ct-font); }
+.ct-podio__lugar { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 10px 0 6px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 800 14px/1 var(--ct-font); }
+/* O metal do troféu (ouro, prata, cobre) diz a colocação; a pílula fica creme nas três. */
+.ct-edicao .ct-podio__lugar img { width: auto; height: 32px; }
+.ct-podio__linha a { display: inline-flex; align-items: center; min-height: 44px; }

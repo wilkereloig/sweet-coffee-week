@@ -23,6 +23,8 @@ test('Grandstander servida pelo projeto e declarada só na camada da edição', 
 })
 
 const CSS = 'src/styles/scw-cartoon.css'
+// O índice só tem a fonte, os tokens e os @import; as regras moram em src/styles/cartoon/ (03/11/2026).
+const lerCss = () => [CSS, ...cssDe('src/styles/cartoon')].map(ler).join('\n')
 const tokens = () => Object.fromEntries([...ler(CSS).matchAll(/--ct-([a-z]+):\s*(#[0-9A-Fa-f]{6})\s*;/g)].map(([, n, h]) => [n, h.toUpperCase()]))
 const lum = (hex) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
@@ -36,7 +38,7 @@ test('paleta do manual v03, e nada da paleta antiga', () => {
     creme: '#FDF0DE', amarelo: '#FDB901', chocolate: '#3A150F', preto: '#050505', vermelho: '#ED1C20',
     rosa: '#E8195A', branco: '#FCFCFC', azul: '#0184E4', turquesa: '#05BEBA', roxo: '#6424AB',
   })
-  const css = ler(CSS)
+  const css = lerCss()
   for (const velho of [/#FAC506/i, /#FDF2DF/i, /amarelo-heroi/, /var\(--scw-font/, /rgba\(\s*5\s*,\s*5\s*,\s*5\s*,/]) {
     assert.doesNotMatch(css, velho, `ainda usa ${velho}`)
   }
@@ -63,13 +65,13 @@ test('anel de foco: chocolate nos fundos claros, amarelo só sobre chocolate (�
     assert.ok(contraste(t.chocolate, t[fundo]) >= 3, `anel chocolate sobre ${fundo} < 3:1`)
   }
   assert.ok(contraste(t.amarelo, t.chocolate) >= 3, 'anel amarelo sobre chocolate < 3:1')
-  const css = ler(CSS)
+  const css = lerCss()
   assert.match(css, /:focus-visible\s*{\s*outline:\s*3px solid var\(--ct-chocolate\)/)
   assert.doesNotMatch(css, /outline[^;]*var\(--ct-azul\)/, 'sobrou anel azul')
 })
 
 test('preto só no traço de desenho; texto e contorno de interface em chocolate', () => {
-  const css = ler(CSS)
+  const css = lerCss()
   const usos = css.split('\n').filter((l) => l.includes('var(--ct-preto)')).map((l) => l.trim())
   assert.deepEqual(usos, ['--ct-tinta-desenho: var(--ct-preto); /* nanquim do desenho (olhinhos); o preto não sai daqui */'])
   assert.match(css, /--ct-traco:\s*2\.5px solid var\(--ct-chocolate\)/)
@@ -77,7 +79,7 @@ test('preto só no traço de desenho; texto e contorno de interface em chocolate
 
 test('contador da Minha rota com contraste de texto pequeno', () => {
   const t = tokens()
-  const regra = ler(CSS).match(/\.ct-contador\s*{([^}]*)}/)[1]
+  const regra = lerCss().match(/\.ct-contador\s*{([^}]*)}/)[1]
   const fundo = regra.match(/background:\s*var\(--ct-([a-z]+)\)/)[1]
   const tinta = regra.match(/(?:^|[\s;])color:\s*var\(--ct-([a-z]+)\)/)[1]
   assert.ok(contraste(t[tinta], t[fundo]) >= 4.5, `${tinta} sobre ${fundo} < 4,5 em texto de 13px`)

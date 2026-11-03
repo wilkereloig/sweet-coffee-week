@@ -1,0 +1,148 @@
+/* Camada Cartoon · Casca (cabeçalho, menu, rodapé, abas), tipografia, botões, foto e logo. Entra por src/styles/scw-cartoon.css (a ordem dos @import é a da cascata). */
+.ct-edicao a { color: inherit; }
+/* Anel de foco: chocolate fecha ≥ 3:1 em creme, amarelo, turquesa, rosa e branco (tests/cartoon-sistema.test.mjs mede).
+   Só sobre chocolate (.ct-rodape, .ct-canal--gala) ele vira amarelo — regras no fim do arquivo.
+   :is() leva a especificidade a (0,3,0): vence o reset .scw-raiz a/button/…:focus-visible (0,2,1), que pintaria o anel de cyan. */
+.ct-edicao :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; border-radius: 6px; }
+.ct-edicao img { max-width: 100%; }
+.ct-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ------------------------------------------------------------- casca (§10.6) */
+/* Cabeçalho creme igual em todas as páginas: selo à esquerda (nunca centralizado). Celular: selo + "Menu";
+   a partir de 900 a navegação aparece e o cabeçalho fica preso ao topo. Quebras da camada: 600 / 900 / 1200. */
+.ct-topo {
+  position: relative; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px 24px;
+  padding: 8px var(--ct-trilho);
+  background: var(--ct-creme); border-bottom: var(--ct-traco);
+}
+.ct-topo__marca { display: inline-flex; flex: none; min-height: 44px; align-items: center; }
+.ct-topo__marca img { display: block; width: auto; height: 52px; }
+.ct-topo__nav { display: none; }
+.ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.ct-topo__nav a {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px;
+  border-radius: 22px; font: 800 16px/1 var(--ct-font); text-decoration: none;
+  transition: background-color var(--ct-mo), color var(--ct-mo);
+}
+.ct-topo__nav a:hover { background: var(--ct-amarelo); }
+.ct-edicao .ct-topo__nav a[aria-current='page'] { background: var(--ct-chocolate); color: var(--ct-creme); }
+@media (min-width: 900px) {
+  .ct-topo { position: sticky; top: 0; padding-block: 10px; }
+  .ct-topo__marca img { height: 60px; }
+  .ct-topo__nav { display: block; }
+  /* (0,3,0): .ct-edicao .ct-botao (0,2,0) vem depois no arquivo e daria display ao botão de novo. */
+  .ct-edicao .ct-topo__menu.ct-botao { display: none; }
+}
+.ct-contador {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px;
+  border-radius: 11px; border: 2px solid var(--ct-chocolate); background: var(--ct-amarelo); color: var(--ct-chocolate); font: 700 13px/1 var(--ct-font);
+}
+.ct-conteudo { flex: 1; padding-bottom: 32px; }
+
+/* Menu do celular: folha (<dialog> modal) colada na base. O <dialog> não tem padding: clique nele = clique no véu. */
+.ct-folha {
+  inset: auto 0 0; width: 100%; max-width: none; max-height: min(88svh, 680px); margin: auto 0 0; padding: 0; overflow: auto;
+  border: var(--ct-traco); border-bottom: 0; border-radius: 24px 24px 0 0;
+  background: var(--ct-creme); color: var(--ct-chocolate);
+}
+.ct-folha::backdrop { background: rgba(58, 21, 15, .6); }
+.ct-folha__corpo { display: grid; gap: 14px; padding: 14px var(--ct-trilho) calc(20px + env(safe-area-inset-bottom)); }
+.ct-folha__cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ct-folha__titulo { margin: 0; font: 800 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-folha__lista { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 600px) { .ct-folha__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ct-folha__link {
+  display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 16px 6px 10px;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco);
+  font: 800 18px/1.2 var(--ct-font); text-decoration: none;
+}
+.ct-edicao .ct-folha__link[aria-current='page'] { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-folha__link--fora { padding-left: 16px; border-style: dashed; background: transparent; }
+
+/* Rodapé chocolate: a assinatura com a realização F2, as páginas, o festival e os documentos. */
+.ct-rodape { padding: 0 0 40px; background: var(--ct-chocolate); color: var(--ct-creme); font: 500 15px/1.5 var(--ct-font); }
+.ct-rodape__corpo { display: grid; gap: 24px 40px; padding: 32px var(--ct-trilho) 0; }
+@media (min-width: 600px) { .ct-rodape__corpo { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .ct-rodape__corpo { grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)); } }
+.ct-rodape__assina { display: grid; align-content: start; gap: 16px; }
+@media (min-width: 600px) and (max-width: 1199.98px) { .ct-rodape__assina { grid-column: 1 / -1; } }
+.ct-rodape p { max-width: 46ch; margin: 0; }
+.ct-rodape__realiza { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font: 700 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-rodape__realiza img { display: block; width: auto; height: 22px; }
+.ct-rodape__titulo { font: 800 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; color: var(--ct-amarelo); }
+.ct-rodape__links { display: flex; flex-wrap: wrap; gap: 0 20px; margin: 0; padding: 0; list-style: none; }
+.ct-rodape__grupo .ct-rodape__links { display: grid; grid-template-columns: repeat(2, max-content); gap: 0 28px; margin-top: 4px; }
+.ct-rodape__links a, .ct-rodape__botao { display: inline-flex; align-items: center; min-height: 44px; font: 700 15px/1.2 var(--ct-font); }
+.ct-rodape__botao { padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
+.ct-rodape__legais { grid-column: 1 / -1; padding-top: 12px; border-top: 1.5px solid rgba(253, 240, 222, .25); }
+
+/* Barra de abas do celular (< 900): creme com contorno, cinco atalhos com ícone + texto, alvo ≥ 44 px. A altura
+   real vai para --scw-base-ocupada (useReservaDaBase): a página reserva esse espaço, e o aviso de cookies sobe acima. */
+.ct-abas { display: none; }
+@media (max-width: 899.98px) {
+  .ct-abas {
+    position: fixed; inset: auto 0 0; z-index: 30; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: var(--ct-creme); border-top: var(--ct-traco);
+  }
+  .ct-edicao .ct-aba {
+    position: relative; display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 56px; padding: 4px 2px;
+    border-radius: var(--ct-raio-p); font: 800 13px/1.1 var(--ct-font); text-align: center; text-decoration: none;
+  }
+  .ct-edicao .ct-aba[aria-current='page'] { background: var(--ct-amarelo); box-shadow: inset 0 0 0 2px var(--ct-chocolate); }
+  .ct-aba .ct-contador { position: absolute; top: 2px; right: 10%; }
+  .ct-edicao { padding-bottom: calc(var(--scw-base-ocupada, 72px) + var(--scw-aviso-h, 0px)); }
+}
+
+/* ------------------------------------------------------------- tipografia e blocos */
+.ct-bloco { padding: clamp(32px, 5vw, 64px) var(--ct-trilho) 0; }
+.ct-bloco__cabeca { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+.ct-h1 { max-width: 20ch; margin: 0 0 12px; font: 900 var(--ct-fs-display)/.95 var(--ct-font); text-wrap: balance; }
+.ct-h2 { max-width: 24ch; margin: 0 0 16px; font: 900 var(--ct-fs-titulo)/1 var(--ct-font); text-wrap: balance; }
+.ct-sub { margin: 0 0 8px; font: 800 var(--ct-fs-sub)/1.1 var(--ct-font); }
+.ct-lead { max-width: 52ch; margin: 0 0 20px; font: 600 clamp(18px, 1.4vw, 21px)/1.45 var(--ct-font); }
+.ct-rotulo { margin: 0 0 6px; font: 700 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-nota { max-width: 62ch; margin: 8px 0 0; font: 500 14px/1.5 var(--ct-font); }
+.ct-edicao p { max-width: 68ch; }
+.ct-aviso {
+  max-width: 68ch; margin: 16px var(--ct-trilho) 0; padding: 12px 16px;
+  border: var(--ct-traco); border-radius: 12px; background: var(--ct-branco); font: 500 15px/1.5 var(--ct-font);
+}
+.ct-bloco .ct-aviso { margin-inline: 0; }
+.ct-aviso--demo { background: var(--ct-turquesa); }
+/* Faixa do retrato local (só no DEV, E3): discreta, tracejada — não é conteúdo da edição. */
+.ct-aviso--retrato { padding: 6px 12px; border-width: 1.5px; border-style: dashed; background: transparent; font-size: 13px; }
+
+.ct-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
+/* Prefixo .ct-edicao de propósito: `.ct-edicao a { color: inherit }` (0,1,1) venceria
+   `.ct-botao` (0,1,0) e o link-botão sairia preto sobre preto (CLAUDE.md §10.1). */
+.ct-edicao .ct-botao {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px;
+  border: var(--ct-traco); border-radius: 999px; background: var(--ct-amarelo); color: var(--ct-chocolate);
+  box-shadow: var(--ct-sombra-p);
+  font: 800 16px/1 var(--ct-font); text-decoration: none; cursor: pointer;
+  transition: transform var(--ct-mo), box-shadow var(--ct-mo), background-color var(--ct-mo);
+}
+.ct-edicao .ct-botao:hover { transform: translate(-1px, -1px); box-shadow: var(--ct-sombra); }
+.ct-edicao .ct-botao:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ct-chocolate); }
+.ct-edicao .ct-botao:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
+/* Creme sobre vermelho fecha ~3,9:1: só texto grande (19px/800). */
+.ct-edicao .ct-botao--acao { background: var(--ct-vermelho); color: var(--ct-creme); font-size: 19px; }
+.ct-edicao .ct-botao--contorno { background: var(--ct-creme); color: var(--ct-chocolate); }
+.ct-edicao .ct-botao--feito { background: var(--ct-turquesa); color: var(--ct-chocolate); }
+/* Sobre fundo amarelo (canal Estreia: o topo da Entrada) o botão primário amarelo some: ali vira o de ação.
+   Decisão do Wilker, 28/10. Creme sobre vermelho só fecha como texto grande: 19px/800. Contorno e "feito" ficam como são. */
+.ct-edicao .ct-canal--estreia .ct-botao:not(.ct-botao--contorno, .ct-botao--feito) { background: var(--ct-vermelho); color: var(--ct-creme); font: 800 19px/1 var(--ct-font); }
+.ct-link {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none;
+  color: inherit; font: 700 15px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.ct-estado { padding: clamp(32px, 6vw, 80px) var(--ct-trilho); }
+.ct-estado__titulo { margin: 0 0 8px; font: 900 clamp(24px, 2.8vw, 36px)/1.05 var(--ct-font); }
+
+.ct-foto { aspect-ratio: var(--ct-proporcao, 1 / 1); position: relative; overflow: hidden; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); }
+.ct-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ct-foto--reserva { display: grid; place-items: center; padding: 16px; background: var(--ct-branco); text-align: center; }
+.ct-foto--reserva span { font: 700 14px/1.3 var(--ct-font); }
+.ct-logo { flex: none; border: var(--ct-traco); border-radius: 50%; object-fit: cover; background: var(--ct-branco); }
+.ct-logo--monograma { display: inline-grid; place-items: center; background: var(--ct-amarelo); font: 900 1.4em/1 var(--ct-font); }

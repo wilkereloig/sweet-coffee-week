@@ -92,7 +92,7 @@ test('estilo da edição não vaza para o institucional nem para o painel', () =
     }
   }
   varrer('src'); varrer('painel-app/src')
-  const vaza = arquivos.filter((f) => !f.endsWith('scw-cartoon.css') && /--ct-|\bct-(edicao|topo|cena|rodape|botao)\b/.test(ler(f)))
+  const vaza = arquivos.filter((f) => !f.endsWith('scw-cartoon.css') && !/styles[\\/]cartoon[\\/]/.test(f) && /--ct-|\bct-(edicao|topo|cena|rodape|botao)\b/.test(ler(f)))
   assert.deepEqual(vaza, [])
   assert.match(ler('src/edicao/cartoon/index.jsx'), /scw-cartoon\.css/)
   assert.doesNotMatch(ler('src/main.jsx'), /scw-cartoon/)

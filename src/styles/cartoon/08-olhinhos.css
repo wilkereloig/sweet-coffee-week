@@ -1,0 +1,23 @@
+/* Camada Cartoon · Olhinhos. Entra por src/styles/scw-cartoon.css (a ordem dos @import é a da cascata). */
+/* ------------------------------------------------------------- Olhinhos (§10.5)
+   Padrão da cliente (MANUAL-CARTOON §1.3) nas proporções da prévia aprovada (ver Olhinhos.jsx). A pose de
+   cada parte (giro, inclinação, expressão) vem inline do componente; aqui só a cor, a piscada e o olhar do
+   cursor. O movimento entre poses fica no bloco de movimento abaixo: com "reduzir movimento" a troca é seca. */
+.ct-olhinhos { display: block; max-width: 100%; height: auto; overflow: visible; }
+.ct-olhinhos--espia { overflow: hidden; } /* espiando: o que desce atrás da borda some no pé do desenho */
+.ct-olhinhos--direita { transform: scaleX(-1); }
+.ct-olho__sombra { fill: color-mix(in srgb, var(--ct-creme) 80%, var(--ct-amarelo)); } /* sombra cel: um tom abaixo do creme */
+.ct-olho__fundo { fill: var(--ct-creme); }
+.ct-olho__contorno, .ct-olho__iris { fill: var(--ct-tinta-desenho); }
+.ct-olho__brilho { fill: var(--ct-branco); }
+.ct-olho__sobrancelha { fill: var(--ct-olhinhos-solto, var(--ct-tinta-desenho)); stroke: var(--ct-olhinhos-solto, var(--ct-tinta-desenho)); stroke-width: 2; stroke-linejoin: round; }
+.ct-olhinhos__traco { fill: none; stroke: var(--ct-olhinhos-solto, var(--ct-tinta-desenho)); stroke-width: 4.5; stroke-linecap: round; }
+.ct-olho__fechado { fill: none; stroke: var(--ct-olhinhos-solto, var(--ct-tinta-desenho)); stroke-width: 7; stroke-linecap: round; }
+.ct-olhinhos__borda { fill: var(--ct-creme); stroke: var(--ct-tinta-desenho); stroke-width: 5; stroke-linejoin: round; }
+.ct-olhinhos__guia { fill: none; stroke: var(--ct-azul); stroke-width: 1; stroke-dasharray: 4 3; }
+
+/* Camadas ligadas por classe: a caixa do próprio desenho é a origem. As de pose (inline) giram em 0 0. */
+.ct-olho__pisca, .ct-olhinhos__quique, .ct-olhinhos__traco { transform-box: fill-box; transform-origin: center; }
+.ct-olho__olhar { transform: translate(var(--ox, 0px), var(--oy, 0px)); }
+/* Piscada: o olho fecha achatando no meio (sem pálpebra com vinco); as sobrancelhas ficam. */
+.ct-olhinhos--pisca .ct-olho__pisca { transform: scaleY(.08); }
