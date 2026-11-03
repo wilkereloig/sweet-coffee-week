@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Quer participar do próximo Sweet &amp; Coffee Week?</title>
-<meta name="description" content="Cafeteria, doceria, confeitaria ou sorveteria com vontade de fazer parte do Sweet &amp; Coffee Week? Conte pra gente quem é você.">
+<title>Quer participar das próximas edições do Sweet &amp; Coffee Week?</title>
+<meta name="description" content="Cafeteria, doceria, confeitaria ou sorveteria com vontade de fazer parte das próximas edições do Sweet &amp; Coffee Week? Conte pra gente quem é você.">
 <link rel="canonical" href="https://sweetcoffeeweek.com.br/quero-participar">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sweetcoffeeweek.com.br/quero-participar">
-<meta property="og:title" content="Quer participar do próximo Sweet &amp; Coffee Week?">
+<meta property="og:title" content="Quer participar das próximas edições do Sweet &amp; Coffee Week?">
 <meta property="og:description" content="Se o seu negócio tem sabor, criatividade e uma experiência própria para apresentar, queremos conhecer você.">
 <meta property="og:locale" content="pt_BR">
 <style>
@@ -323,14 +323,14 @@ body{
   <div class="pa-hero__grade">
     <div class="pa-hero__texto">
       <p class="pa-hero__pill">Participar</p>
-      <h1 class="scw-h1">Quer participar do próximo <span class="pa-hero__destaque">Sweet&nbsp;&amp; Coffee&nbsp;Week?</span></h1>
+      <h1 class="scw-h1">Quer participar das próximas edições do <span class="pa-hero__destaque">Sweet&nbsp;&amp; Coffee&nbsp;Week?</span></h1>
 
       <p class="pa-hero__chamada">Cafeterias, docerias, confeitarias, sorveterias e outras casas de Natal e região.</p>
 
       <p class="pa-hero__lead">Sete campos, menos de um minuto. A equipe analisa o interesse e entra em contato.</p>
 
       <div class="pa-hero__acoes">
-        <a class="scw-btn scw-btn--creme" href="#formulario">Começar o pré-cadastro</a>
+        <a class="scw-btn scw-btn--creme" href="#formulario">Registrar interesse</a>
       </div>
     </div>
 
@@ -481,7 +481,7 @@ body{
 
 <section class="pa-indica scw-secao">
   <h2 class="scw-h2">Conhece um negócio que combina com o festival?</h2>
-  <p class="scw-corpo">Envie este link para quem você gostaria de ver na próxima edição.</p>
+  <p class="scw-corpo">Envie este link para quem você gostaria de ver nas próximas edições.</p>
   <div class="pa-indica__acoes">
     <a class="scw-btn pa-whats" id="share-whatsapp" href="#" target="_blank" rel="noopener"><!--icone:mensagem:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20.2l1.1-4.4A8 8 0 1 1 20 12Z"/></svg><!--/icone--><span>Enviar no WhatsApp</span></a>
     <button type="button" class="scw-btn scw-btn--vazado" id="share-copiar"><!--icone:copiar:24--><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></svg><!--/icone--><span>Copiar link</span></button>
@@ -513,7 +513,7 @@ const CONFIG = {
   // diretorio e o link cai no fallback do SPA — a pessoa que recebe o convite
   // aterrissa na home, nao no formulario.
   urlPublica: 'https://sweetcoffeeweek.com.br/quero-participar/',
-  convite: 'Achei que o Sweet & Coffee Week combina com o seu negócio. É o festival de doçaria e café de Natal. Dá para se inscrever por aqui:',
+  convite: 'Achei que o Sweet & Coffee Week combina com o seu negócio. É o festival de doçaria e café de Natal. Dá para registrar o interesse em participar por aqui:',
   // Para onde as respostas vao.
   //
   // Hoje: Supabase, RPC submit_quero_participar. Grava na tabela
@@ -943,7 +943,7 @@ const convite = CONFIG.convite + ' ' + url;
 document.getElementById('share-url').textContent = url;
 document.getElementById('share-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(convite);
 document.getElementById('share-email').href = 'mailto:?subject=' +
-  encodeURIComponent('Sweet & Coffee Week: inscrição para participar') +
+  encodeURIComponent('Sweet & Coffee Week: interesse em participar') +
   '&body=' + encodeURIComponent(convite);
 
 document.getElementById('share-copiar').addEventListener('click', async (ev) => {

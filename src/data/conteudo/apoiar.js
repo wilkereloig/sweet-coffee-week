@@ -121,12 +121,12 @@ export const FORMATOS = {
 export const PROPOSTA = {
   rotulo: 'Conversar com a organização',
   titulo: 'Conte como sua marca quer',
-  destaque: 'entrar na edição.',
+  destaque: 'apoiar as próximas edições.',
   texto: 'A organização responde pelo contato informado para conversar sobre formatos, disponibilidade e condições.',
   sucessoTitulo: 'Proposta registrada.',
   sucesso: 'A organização do Sweet & Coffee Week recebeu sua proposta e retorna pelo contato informado para conversar sobre formato e disponibilidade.',
   privacidade: 'Usamos estes dados só para analisar a proposta e falar com você sobre ela.',
-  barra: 'Apoio para a próxima edição: fale com a organização.',
+  barra: 'Apoio para as próximas edições: fale com a organização.',
   barraAcao: 'Conversar sobre apoio',
 }
 

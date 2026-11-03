@@ -26,7 +26,7 @@ const FAQ_DADOS = (function () {
     awards: { rota: 'awards', label: 'Ver o histórico do Sweet Awards' },
     edicoes: { rota: 'edicoes', label: 'Ver o histórico de edições' },
     formulario: { ancora: '#mensagem', label: 'Ir para o formulário' },
-    preCadastro: { ancora: '#pre-cadastro', label: 'Ir para o pré-cadastro' },
+    preCadastro: { ancora: '#pre-cadastro', label: 'Ir para o registro de interesse' },
     instagram: { url: 'https://www.instagram.com/sweetcoffeeweek/', label: '@sweetcoffeeweek' },
     // Pendentes de rota própria — respostas apontam para canais oficiais até existirem:
     mapa: null,
@@ -266,7 +266,7 @@ const FAQ_DADOS = (function () {
 
     // ---------- Participação de estabelecimentos ----------
     { id: 'como-demonstrar-interesse-em-participar', cat: 'participacao', p: 'Como uma marca gastronômica demonstra interesse em participar?',
-      r: ['A marca preenche o pré-cadastro na página Participar ou fala com a organização pelo canal indicado. Quando um novo processo de seleção abrir, a equipe envia as orientações.'],
+      r: ['A marca registra o interesse pelo formulário da página Participar, para as próximas edições, ou fala com a organização pelo canal indicado. Quando um novo processo de seleção abrir, a equipe envia as orientações.'],
       k: ['participar', 'inscricao', 'pre-cadastro', 'marca', 'interesse'], link: 'participar' },
     { id: 'quais-tipos-de-negocios', cat: 'participacao', p: 'Quais tipos de negócios podem participar?',
       r: ['A seleção pode incluir cafeterias, docerias, confeitarias, restaurantes, sorveterias, padarias, marcas autorais e outros negócios gastronômicos compatíveis com a proposta da edição.'],
@@ -274,8 +274,8 @@ const FAQ_DADOS = (function () {
     { id: 'e-obrigatorio-ter-loja-fisica', cat: 'participacao', p: 'É obrigatório ter loja física?',
       r: ['Depende do formato da edição. Marcas sem ponto físico podem ser aceitas quando houver estrutura de produção, retirada, entrega ou participação presencial compatível com o regulamento.'],
       k: ['loja fisica', 'ponto', 'delivery', 'sem loja'] },
-    { id: 'pre-cadastro-garante-participacao', cat: 'participacao', p: 'O pré-cadastro garante participação?',
-      r: ['Não. O pré-cadastro registra o interesse da marca. A participação depende da análise da organização, da disponibilidade de vagas, da adequação ao projeto e do cumprimento dos requisitos.'],
+    { id: 'pre-cadastro-garante-participacao', cat: 'participacao', p: 'Registrar interesse garante participação?',
+      r: ['Não. O formulário registra o interesse da marca. A participação depende da análise da organização, da disponibilidade de vagas, da adequação ao projeto e do cumprimento dos requisitos.'],
       k: ['pre-cadastro', 'garante', 'vaga', 'selecao'] },
     { id: 'como-os-participantes-sao-selecionados', cat: 'participacao', p: 'Como os participantes são selecionados?',
       r: ['A organização pode considerar qualidade, regularidade do negócio, capacidade operacional, atendimento, localização, proposta de combo, alinhamento com o tema e disponibilidade de vagas.'],

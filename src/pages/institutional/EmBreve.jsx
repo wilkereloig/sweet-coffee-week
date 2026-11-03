@@ -123,8 +123,8 @@ const CATEGORIAS = [
 ]
 
 const PASSOS = [
-  { n: '01', t: 'Pré-cadastro', d: 'Você conta quem é, o que serve e o que torna a sua casa especial.', cor: 'var(--scw-amarelo)', icone: 'documento' },
-  { n: '02', t: 'Conversa', d: 'A organização entra em contato para entender o encaixe com a próxima edição.', cor: 'var(--scw-cyan)', icone: 'depoimento' },
+  { n: '01', t: 'Registro de interesse', d: 'Você conta quem é, o que serve e o que torna a sua casa especial.', cor: 'var(--scw-amarelo)', icone: 'documento' },
+  { n: '02', t: 'Conversa', d: 'A organização entra em contato para entender o encaixe com as próximas edições.', cor: 'var(--scw-cyan)', icone: 'depoimento' },
   { n: '03', t: 'Cadastro do combo', d: 'Quem seguir adiante monta o combo — um doce, um salgado e uma bebida.', cor: 'var(--scw-laranja)', icone: 'combo' },
 ]
 
@@ -407,7 +407,7 @@ function BarraAcao() {
         href={PRE_CADASTRO}
         onAnimationEnd={() => setBatendo(false)}
       >
-        Abrir o pré-cadastro{SETA}
+        Registrar interesse{SETA}
       </a>
     </div>
   )
@@ -428,13 +428,13 @@ export function EmBrevePage() {
       <header className="eb-hero">
         <div className="eb-hero__grade">
         <div className="eb-hero__conteudo motion-stagger">
-          <span className="scw-pill eb-pill">Pré-cadastro aberto</span>
+          <span className="scw-pill eb-pill">Próximas edições</span>
           <h1 className="scw-h1 eb-h1">
             Uma <em className="scw-italico eb-h1__dest">nova edição</em> do Sweet &amp; Coffee Week vem aí.
           </h1>
           <p className="scw-lead eb-lead">
-            São 16 edições transformando Natal numa rota de doce, salgado e café. A próxima
-            está sendo preparada, e o pré-cadastro para os estabelecimentos já está aberto.
+            São 16 edições transformando Natal numa rota de doce, salgado e café. Os
+            estabelecimentos que quiserem participar das próximas já podem registrar o interesse.
           </p>
         </div>
           <GaleriaEdicoes />
@@ -507,7 +507,7 @@ export function EmBrevePage() {
       <section className="scw-secao scw-secao--creme eb-passos">
         <div className="eb-cabeca motion-reveal-up">
           <span className="scw-rotulo">Como funciona</span>
-          <h2 className="scw-h2">Três passos até a próxima edição.</h2>
+          <h2 className="scw-h2">Três passos até as próximas edições.</h2>
         </div>
         <ol className="scw-grade eb-passos__grade motion-stagger" style={{ '--scw-min': '260px' }}>
           {PASSOS.map((p) => (
@@ -526,9 +526,9 @@ export function EmBrevePage() {
       {/* 7 — FECHO */}
       <section className="scw-secao scw-secao--choco eb-fecho">
         <div className="eb-fecho__inner motion-stagger">
-          <h2 className="scw-h2 eb-fecho__h2">O pré-cadastro é o primeiro passo.</h2>
+          <h2 className="scw-h2 eb-fecho__h2">Registrar o interesse é o primeiro passo.</h2>
           <p className="scw-corpo eb-fecho__txt">
-            A próxima edição está sendo montada agora. O pré-cadastro é o primeiro passo.
+            Registrar o interesse é o primeiro passo para as próximas edições.
             Não compromete nada.
           </p>
           <span className="eb-fecho__selo"><ScwIcon nome="coracao" tamanho={32} /></span>

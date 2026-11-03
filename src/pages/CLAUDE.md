@@ -2,6 +2,13 @@
 
 ## 7 · As páginas
 
+> ⚠️ **Linguagem de participação desde 03/11/2026** (pedido do Wilker: "pré-cadastro precisa sair… tudo sobre
+> participação é para a próxima edição"). A Cartoon já tem as casas confirmadas: o texto público não diz mais
+> "pré-cadastro" nem "inscrição aberta"; os botões dizem **"Registrar interesse"** e Participar/Apoiar falam das
+> **próximas edições**, sem prometer vaga (§8.4). Onde este capítulo citar "Fazer pré-cadastro" ou "pré-cadastro
+> aberto", leia "Registrar interesse" / "registro de interesse". Ficaram como estavam, por serem código: o
+> `status: 'pre-cadastro'` de `src/data/proximaEdicao.js`, as âncoras `#pre-cadastro` e a rota `/quero-participar/`.
+
 ### 7.1 Home / O Festival — `/`, amarelo `#FDBB1A`
 
 ⛔ **Não alterar sem solicitação explícita.** É a página-mãe: as demais usam a Home como

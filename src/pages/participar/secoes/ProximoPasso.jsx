@@ -30,7 +30,7 @@ export function ProximoPasso() {
           ))}
         </ul>
         <a className="scw-btn scw-btn--pagina pa-cta__botao" href={PRE_CADASTRO}>
-          Fazer pré-cadastro <Seta />
+          Registrar interesse <Seta />
         </a>
       </div>
     </section>

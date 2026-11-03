@@ -33,7 +33,7 @@ export function ParticiparPage() {
       <Depois />
       <ProximoPasso />
       <BarraAcao texto={PROXIMO.barra}>
-        <a href={PRE_CADASTRO} className="scw-btn scw-btn--solido">Fazer pré-cadastro <Seta /></a>
+        <a href={PRE_CADASTRO} className="scw-btn scw-btn--solido">Registrar interesse <Seta /></a>
       </BarraAcao>
     </>
   )

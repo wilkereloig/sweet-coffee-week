@@ -51,7 +51,7 @@ export const destaqueEdicao = {
   /* Opcional: sem pré-cadastro aberto, a abertura fica só com "Conhecer o
      festival". href externo ou com barra final (§10.4-b). */
   acao: PROX.status === 'pre-cadastro' && PROX.preCadastro
-    ? { rotulo: 'Fazer pré-cadastro', href: PROX.preCadastro }
+    ? { rotulo: 'Registrar interesse', href: PROX.preCadastro }
     : null,
 }
 

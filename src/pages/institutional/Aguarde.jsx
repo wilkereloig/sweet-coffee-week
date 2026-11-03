@@ -22,8 +22,7 @@ export function AguardePage() {
       <span className="ag-rotulo">{F.years.value} anos de Sweet & Coffee Week</span>
       <h1 id="ag-titulo" className="ag-titulo">A próxima edição está chegando.</h1>
       <p className="ag-lead">
-        O pré-cadastro de marcas ainda não abriu. Siga a gente no Instagram pra
-        saber assim que abrir.
+        Siga a gente no Instagram pra acompanhar as novidades do festival.
       </p>
       <a className="ag-cta" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
         <ScwIcon nome="instagram" tamanho={20} />

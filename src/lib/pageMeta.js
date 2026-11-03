@@ -27,7 +27,7 @@ export function metaForPath(path) {
   if (p.startsWith('/sweet-awards') || p.startsWith('/historico-sweet-awards'))
     return { title: `Histórico do Sweet Awards | ${BASE}`, description: 'Veja o histórico de vencedores do Sweet Awards por edição, trilha e categoria, com os destaques premiados de cada ano do Sweet & Coffee Week desde as primeiras premiações registradas.' }
   if (p.startsWith('/participar'))
-    return { title: `Participar | Inscreva sua marca no ${BASE}`, description: 'Docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas podem demonstrar interesse em participar das próximas edições do Sweet & Coffee Week.' }
+    return { title: `Participar | Interesse nas próximas edições do ${BASE}`, description: 'Docerias, cafeterias, confeitarias, restaurantes e marcas gastronômicas podem demonstrar interesse em participar das próximas edições do Sweet & Coffee Week.' }
   if (p.startsWith('/apoiar'))
     return { title: `Apoiar | Patrocínio e parcerias ${BASE}`, description: 'Conheça oportunidades de apoio, patrocínio e ativação de marca no Sweet & Coffee Week, festival gastronômico que movimenta Natal e conecta marcas aos Sweet Lovers.' }
   if (p.startsWith('/privacidade'))

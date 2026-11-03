@@ -127,13 +127,13 @@ const RAW = [
     category: 'estabelecimentos',
     question: 'Como uma marca gastronômica demonstra interesse em participar?',
     answer:
-      'Estabelecimentos interessados devem preencher o pré-cadastro disponível na página Participar. A organização analisa os interesses recebidos de acordo com o planejamento, o perfil da edição e a disponibilidade de vagas.',
+      'Estabelecimentos interessados registram o interesse pelo formulário da página Participar, para as próximas edições. A organização analisa os interesses recebidos de acordo com o planejamento, o perfil da edição e a disponibilidade de vagas.',
     terms: ['participar', 'pre-cadastro', 'inscricao', 'cadastro', 'entrar na rota'],
   },
   {
     id: 'pre-cadastro-garante',
     category: 'estabelecimentos',
-    question: 'O pré-cadastro garante participação?',
+    question: 'Registrar interesse garante participação?',
     answer:
       'Não. O envio demonstra interesse, mas a participação depende de curadoria, alinhamento com a edição, estrutura do estabelecimento e disponibilidade de vagas.',
     terms: ['garantia', 'vaga', 'selecao', 'curadoria'],

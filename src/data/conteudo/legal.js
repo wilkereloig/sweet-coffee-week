@@ -54,7 +54,7 @@ export const DOCUMENTOS = {
         id: 'alcance',
         titulo: 'Onde esta política vale',
         blocos: [
-          'Vale para o site institucional do festival (sweetcoffeeweek.com.br), incluindo o formulário de pré-cadastro em [/quero-participar](/quero-participar/).',
+          'Vale para o site institucional do festival (sweetcoffeeweek.com.br), incluindo o formulário de interesse em participar em [/quero-participar](/quero-participar/).',
           'O Painel SCW é uma área restrita, usada pela organização e pelas marcas participantes que receberam acesso. O que acontece lá está na seção [Painel SCW](#painel). Para visitar o site, nada do painel é pedido.',
         ],
       },
@@ -65,9 +65,9 @@ export const DOCUMENTOS = {
           '**Ao navegar.** Não pedimos cadastro. Como em qualquer site, o seu navegador envia dados técnicos (endereço IP, tipo de navegador e a página pedida) aos serviços que entregam o site e as fontes de texto — ver [Fornecedores](#fornecedores).',
           '**Formulário de Contato.** Nome, e-mail, assunto e mensagem, usados para responder o que você escreveu.',
           '**Formulário de Apoio.** Nome, empresa ou marca, e-mail e/ou WhatsApp, segmento, tipo de apoio e mensagem, usados para analisar a proposta e falar com você sobre ela.',
-          '**Pré-cadastro (/quero-participar).** Nome, WhatsApp, e-mail, nome do estabelecimento, tipo de negócio, Instagram e cidade, usados para analisar o interesse em participar e falar com você sobre as próximas edições. O pré-cadastro não garante vaga.',
+          '**Interesse em participar (/quero-participar).** Nome, WhatsApp, e-mail, nome do estabelecimento, tipo de negócio, Instagram e cidade, usados para analisar o interesse em participar e falar com você sobre as próximas edições. Enviar o formulário não garante vaga.',
           '**Análise de acesso.** Para saber quantas pessoas visitam o site e quais páginas funcionam melhor, usamos o Google Analytics, com base no legítimo interesse do festival em medir a própria audiência. Ele registra as páginas visitadas, o título da página e dados técnicos do navegador e do dispositivo, com um identificador guardado em cookie. Mandamos o endereço reduzido à página (sem parâmetros que possam conter dados digitados) e nenhum conteúdo de formulário. Os recursos de anúncios e de personalização ficam desligados. Você pode recusar no aviso ou em “Preferências de cookies”, no rodapé; navegadores com o sinal Global Privacy Control ligado já chegam com a medição recusada.',
-          '**Proteção contra abuso.** Os formulários passam por verificações automáticas antes de gravar: um campo escondido que só robôs preenchem e um tempo mínimo de preenchimento. No pré-cadastro, a página também carrega a verificação Turnstile, da Cloudflare. Tentativas bloqueadas podem gerar um registro técnico com o endereço IP no serviço que recebe os envios.',
+          '**Proteção contra abuso.** Os formulários passam por verificações automáticas antes de gravar: um campo escondido que só robôs preenchem e um tempo mínimo de preenchimento. No formulário de interesse em participar, a página também carrega a verificação Turnstile, da Cloudflare. Tentativas bloqueadas podem gerar um registro técnico com o endereço IP no serviço que recebe os envios.',
         ],
       },
       {
@@ -88,7 +88,7 @@ export const DOCUMENTOS = {
               '**Supabase** — banco de dados, recebimento dos formulários e login do painel.',
               '**Adobe Fonts** e **Google Fonts** — fontes de texto, carregadas em todas as páginas. Esses serviços recebem os dados técnicos da requisição.',
               '**Google Analytics** — análise de acesso, enquanto você não recusar.',
-              '**Cloudflare Turnstile** — verificação contra envio automatizado no pré-cadastro.',
+              '**Cloudflare Turnstile** — verificação contra envio automatizado no formulário de interesse em participar.',
             ],
           },
         ],
@@ -177,7 +177,7 @@ export const DOCUMENTOS = {
         id: 'categorias',
         titulo: 'As duas categorias',
         blocos: [
-          '**Funcionamento e segurança — sempre ativo.** Guarda a sua escolha sobre cookies e, se você entrar no Painel SCW, mantém o login enquanto a aba estiver aberta. No pré-cadastro, a verificação da Cloudflare protege o formulário contra envio automatizado. Nada disso mede audiência.',
+          '**Funcionamento e segurança — sempre ativo.** Guarda a sua escolha sobre cookies e, se você entrar no Painel SCW, mantém o login enquanto a aba estiver aberta. No formulário de interesse em participar, a verificação da Cloudflare protege o envio contra uso automatizado. Nada disso mede audiência.',
           '**Análise de acesso — ligada, com recusa a um clique.** O Google Analytics conta visitas e mostra quais páginas são mais acessadas. Depois de recusar, o site não carrega a ferramenta nem envia nada ao Google Analytics. Navegadores com o sinal Global Privacy Control ligado já chegam com a medição recusada.',
           'Não há cookies de publicidade, de personalização ou de marketing no site.',
         ],
@@ -198,7 +198,7 @@ export const DOCUMENTOS = {
               ],
             },
           },
-          'O pré-cadastro carrega a verificação Turnstile num quadro da Cloudflare; ela funciona dentro desse quadro e não é usada para medir audiência. As fontes de texto vêm da Adobe e do Google em todas as páginas e não dependem da sua escolha — ver a [Política de Privacidade](#/privacidade).',
+          'O formulário de interesse em participar carrega a verificação Turnstile num quadro da Cloudflare; ela funciona dentro desse quadro e não é usada para medir audiência. As fontes de texto vêm da Adobe e do Google em todas as páginas e não dependem da sua escolha — ver a [Política de Privacidade](#/privacidade).',
         ],
       },
       {
@@ -298,7 +298,7 @@ export const DOCUMENTOS = {
             lista: [
               '**Contato** — a mensagem chega à equipe da organização.',
               '**Apoio** — a proposta é analisada pela organização; enviar não garante patrocínio nem parceria.',
-              '**Pré-cadastro** — registra o interesse em participar. Não garante vaga: a participação em cada edição é confirmada pela organização, com regras próprias.',
+              '**Interesse em participar** — o formulário registra o interesse. Não garante vaga: a participação em cada edição é confirmada pela organização, com regras próprias.',
             ],
           },
           'Como os dados enviados são tratados está na [Política de Privacidade](#/privacidade).',

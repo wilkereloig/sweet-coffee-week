@@ -124,18 +124,18 @@ export const FACA_PARTE = {
   titulo: { antes: 'Um festival feito por ', destaque: 'casas e parceiros.', depois: '' },
   participar: {
     eixo: 'Para casas',
-    titulo: 'Quer criar um combo para a próxima edição?',
+    titulo: 'Quer criar um combo para as próximas edições?',
     texto: 'Cafeterias, confeitarias, docerias, padarias, sorveterias, bistrôs e restaurantes de Natal e região.',
     proxima: 'Próxima edição',
     // ponytail: só o estado de hoje tem texto; outro status some com a linha até a Home ser revista.
-    estado: { 'pre-cadastro': 'pré-cadastro aberto' },
-    nota: 'O pré-cadastro registra o interesse. A participação depende da curadoria e das vagas da edição.',
-    acao: 'Fazer pré-cadastro',
+    estado: { 'pre-cadastro': 'casas já confirmadas' },
+    nota: 'O registro de interesse vale para as próximas edições. A participação depende da curadoria e das vagas de cada edição.',
+    acao: 'Registrar interesse',
     link: 'Como participar',
   },
   apoiar: {
     eixo: 'Para empresas',
-    titulo: 'Apoie a próxima edição.',
+    titulo: 'Apoie as próximas edições.',
     texto: 'Patrocínio, ativação de marca, mídia ou brindes, ao lado das casas e do público do festival.',
     acao: 'Quero apoiar',
   },

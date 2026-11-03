@@ -76,7 +76,7 @@ export const CAMINHOS = [
     cor: 'var(--scw-cyan)',
     tinta: 'var(--scw-choco)',
     titulo: 'Quero participar com a minha casa.',
-    texto: 'O pré-cadastro fica na página Participar. A participação passa por curadoria.',
+    texto: 'O registro de interesse para as próximas edições fica na página Participar. A participação passa por curadoria.',
     link: 'Ir para Participar',
     rota: '/participar',
   },

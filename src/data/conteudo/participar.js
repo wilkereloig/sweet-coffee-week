@@ -5,7 +5,7 @@
  * proximaEdicao.js (campo null = não exibir, A4).
  *
  * Jornada (12/10/2026): abertura → depoimentos → para quem é e como funciona →
- * o que a participação oferece → depois do pré-cadastro → próximo passo.
+ * o que a participação oferece → depois do registro → próximo passo.
  * Cada fato abaixo tem fonte na central de dúvidas (faqCentral.js, assunto
  * "Participação de estabelecimentos") ou no código anterior da página — nada
  * de regra nova inventada aqui.
@@ -21,15 +21,18 @@ import { proximaEdicao as PROX } from '../proximaEdicao.js'
 export const semRepetir = (rotulo, mede) =>
   mede.toLowerCase().startsWith(rotulo.toLowerCase()) ? mede.slice(rotulo.length).trim() : mede
 
-const edicaoDoMes = PROX.tema && PROX.periodo
-  ? `a edição ${PROX.tema}, de ${PROX.periodo},`
-  : PROX.mes ? `a edição de ${PROX.mes}` : 'a próxima edição'
+/* Desde 03/11/2026 (pedido do Wilker) a participação é sobre as PRÓXIMAS
+   edições: a que vem aí já tem as casas confirmadas. A frase só sai com tema e
+   período confirmados em proximaEdicao.js (A4). */
+const edicaoAtual = PROX.tema && PROX.periodo
+  ? `As casas da edição ${PROX.tema}, de ${PROX.periodo}, já estão confirmadas. `
+  : ''
 
 export const ABERTURA = {
-  titulo: 'Sua marca na',
-  destaque: 'próxima edição.',
-  lead: `O pré-cadastro para ${edicaoDoMes} está aberto. Ele registra o interesse da sua casa; quem escolhe as participantes é a curadoria.`,
-  acao: 'Fazer pré-cadastro',
+  titulo: 'Sua marca nas',
+  destaque: 'próximas edições.',
+  lead: `${edicaoAtual}Para as próximas edições, registre o interesse da sua casa: quem escolhe as participantes é a curadoria.`,
+  acao: 'Registrar interesse',
   secundaria: 'Ver como funciona',
 }
 
@@ -90,18 +93,18 @@ export const NUMEROS = {
   ],
 }
 
-/* 05 Depois do pré-cadastro — só passos que existem de fato. Curadoria e
+/* 05 Depois do registro de interesse — só passos que existem de fato. Curadoria e
    condições comerciais: faqCentral (como-os-participantes-sao-selecionados,
    existe-taxa-de-participacao). Alteração de combo aprovado passa pela
    organização (alterar-combo-depois-de-aprovado). Nó numa cor do ciclo
    filtrada pelo chocolate (§6.3). */
 export const DEPOIS = {
-  rotulo: 'Depois do pré-cadastro',
-  titulo: 'Do pré-cadastro',
+  rotulo: 'Depois do registro',
+  titulo: 'Do interesse',
   destaque: 'à estreia do combo.',
   apoio: 'A participação depende da curadoria e das vagas de cada edição.',
   passos: [
-    { titulo: 'Pré-cadastro', texto: 'Um formulário curto sobre você e o estabelecimento.', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
+    { titulo: 'Registro de interesse', texto: 'Um formulário curto sobre você e o estabelecimento.', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
     { titulo: 'Curadoria', texto: 'A organização avalia o perfil, a capacidade de atendimento e o alinhamento com a edição. As condições comerciais são apresentadas nessa etapa.', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
     { titulo: 'Aprovação e painel', texto: 'Casa aprovada recebe acesso ao painel da marca, onde cadastra o combo e acompanha os pedidos da organização.', cor: 'var(--scw-magenta)', tinta: 'var(--scw-creme)' },
     { titulo: 'Combo aprovado', texto: 'A organização confere o combo antes da estreia. Mudanças depois disso passam por ela.', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
@@ -111,16 +114,16 @@ export const DEPOIS = {
 
 /* 06 Próximo passo — a chamada para /quero-participar/ (o formulário mora lá). */
 export const PROXIMO = {
-  rotulo: 'Pré-cadastro',
+  rotulo: 'Registro de interesse',
   titulo: 'Comece a',
   destaque: 'jornada da sua marca.',
-  texto: 'Depois do envio, a equipe avalia o perfil e retorna pelos canais que você informar.',
+  texto: 'Depois do envio, a equipe avalia o perfil e retorna pelos canais que você informar quando um novo processo de seleção abrir.',
   lista: [
     { icone: 'horario', texto: 'Dois passos, sete campos, menos de um minuto' },
     { icone: 'loja', texto: 'Seus dados e os do estabelecimento' },
     { icone: 'cadeado', texto: 'Usados só pela organização, para contato e curadoria' },
   ],
-  barra: 'Inscrições passam por curadoria.',
+  barra: 'A participação passa por curadoria.',
 }
 
 /* ⛔ Barra final obrigatória (§10.4-b): sem ela a rota cai no fallback do SPA. */
