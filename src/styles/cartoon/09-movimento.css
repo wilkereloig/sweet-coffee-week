@@ -27,7 +27,8 @@
      quando chega na tela (onde o navegador sabe; nos outros, ao abrir). Sem laço: nada fica se mexendo sozinho. */
   @keyframes ct-assenta { from { scale: 1.12; } to { scale: 1; } }
   .ct-cardapio__foto { transform-origin: 50% 100%; animation: ct-quica 760ms var(--ct-mo-quique) both; }
-  .ct-cardapio__foto img, .ct-item .ct-foto img { animation: ct-assenta 1400ms cubic-bezier(.22, .9, .24, 1) both; }
+  /* backwards, não both: depois de assentar, o scale volta a ser do CSS — e o zoom do hover funciona. */
+  .ct-cardapio__foto img, .ct-item .ct-foto img { animation: ct-assenta 1400ms cubic-bezier(.22, .9, .24, 1) backwards; }
   .ct-item { transform-origin: 50% 100%; animation: ct-pula var(--ct-mo-quique-dur) var(--ct-mo-quique) both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
   .ct-item:nth-child(2) { rotate: .6deg; }
   .ct-item:nth-child(3) { rotate: -.6deg; }

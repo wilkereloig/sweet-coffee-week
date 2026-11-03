@@ -81,6 +81,9 @@ def recorte_do_pin(caminho: Path) -> Image.Image:
 
 
 def main() -> None:
+    # Sem o Dropbox (F: desmontado), a lista sairia vazia e o site perderia TODAS as logos desenhadas e pins.
+    if not (FONTE / 'PRETAS').is_dir() or not (FONTE / 'COLORIDAS').is_dir():
+        sys.exit(f'pasta das ilustrações não encontrada: {FONTE} (Dropbox montado?) — nada foi alterado')
     SAIDA.mkdir(parents=True, exist_ok=True)
     pares = {}
     for pb in sorted((FONTE / 'PRETAS').glob('*_A-rascunho.png')):
@@ -100,6 +103,8 @@ def main() -> None:
             'cor': f'{URL}/{slug}-cor.webp',
             'largura': LADO, 'altura': LADO,
         }
+    if not pares:
+        sys.exit('nenhum par P&B + colorido encontrado — a lista não foi regravada')
     print(f'{len(pares)} pares gerados em {SAIDA}')
     with open(LISTA, 'w', encoding='utf-8', newline='\n') as f:
         f.write('// GERADO por scripts/edicao/logos-desenhadas.py — não editar à mão. Sem dependências: a camada de\n'

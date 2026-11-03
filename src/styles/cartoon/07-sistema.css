@@ -58,7 +58,8 @@
 }
 .ct-galeria-item__seta--antes { left: 8px; }
 .ct-galeria-item__seta--depois { right: 8px; }
-.ct-galeria-item__seta:disabled { visibility: hidden; }
+/* Controles redondos mantêm o anel redondo no foco: o anel da camada (01-base, 0,3,0) traz border-radius 6px. */
+.ct-edicao .ct-galeria-item__seta:focus-visible, .ct-edicao .ct-mapa__fechar:focus-visible { border-radius: 50%; }
 .ct-galeria-item__pe { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; }
 .ct-galeria-item__legenda { display: flex; align-items: center; gap: 8px; margin: 0; font: 700 14px/1.2 var(--ct-font); }
 .ct-galeria-item__legenda strong { padding: 3px 10px 2px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-amarelo); font: 800 13px/1.2 var(--ct-font); }
@@ -178,5 +179,6 @@
   translate: 0 var(--ct-fixo-desce);
 }
 .ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: auto; }
+html:has(.ct-cenario-fixo) { scroll-padding-bottom: calc(20svh + var(--scw-base-ocupada, 0px)); }
 .ct-edicao:has(.ct-cenario-fixo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h)); }
 @media (max-width: 899.98px) { .ct-cenario-fixo { bottom: var(--scw-base-ocupada, 72px); } }

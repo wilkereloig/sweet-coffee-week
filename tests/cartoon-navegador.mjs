@@ -337,7 +337,7 @@ try {
       await ir(c.page, '/cartoon/avaliar?participante=demo-casa-aurora')
       await c.page.waitForSelector('form.ct-form')
       // Passo 1: a casa veio da ficha, mas tem duas unidades — o formulário começa na escolha da unidade.
-      if (!(await c.page.locator('.ct-form__casa[aria-checked="true"]', { hasText: 'Aurora' }).count())) falha('formulário sem a casa da ficha marcada')
+      if (!(await c.page.locator('.ct-form__casa:has(input:checked)', { hasText: 'Aurora' }).count())) falha('formulário sem a casa da ficha marcada')
       await c.page.selectOption('.ct-form select', 'udemo1')
       await c.page.click('.ct-form__navegar button:has-text("Continuar")')
       // Passo 2: as notas, com a pergunta de cada critério.

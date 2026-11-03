@@ -88,14 +88,17 @@
 .ct-form__cabeca .ct-rotulo { margin: 0; }
 .ct-form__titulo { margin: 0; font: 900 var(--ct-fs-sub)/1.15 var(--ct-font); }
 .ct-form__titulo:focus { outline: none; }
-.ct-form__casas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ct-form__casas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+/* Cada casa é um rádio nativo dentro do rótulo: o cartão inteiro é o alvo, o círculo some, o foco vai para o cartão. */
 .ct-form__casa {
-  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 6px 12px 6px 6px;
+  position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 6px 12px 6px 6px;
   border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); color: var(--ct-chocolate);
-  font: 800 15px/1.2 var(--ct-font); text-align: left; cursor: pointer; transition: background-color var(--ct-mo), translate var(--ct-mo);
+  font: 800 15px/1.2 var(--ct-font); cursor: pointer; transition: background-color var(--ct-mo);
 }
+.ct-form__casa input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .ct-form__casa:hover { background: var(--ct-creme); }
-.ct-form__casa[aria-checked='true'] { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-form__casa:has(input:checked) { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-form__casa:has(input:focus-visible) { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
 .ct-form__navegar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .ct-form__navegar .ct-nota { margin: 0; flex-basis: 100%; }
 .ct-nota-campo legend { display: flex; align-items: center; gap: 8px; }

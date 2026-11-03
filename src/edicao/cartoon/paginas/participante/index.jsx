@@ -102,7 +102,8 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
           <Link className="ct-botao" href={`${EDICAO.caminho}/avaliar?participante=${p.slug}`} navigate={navigate}><ScwIcon nome={ICONE.avaliar} tamanho={20} />{T.avaliar}</Link>
         </section>
       )}
-      <CenarioFixo slug={p.slug} />
+      {/* Só no site: na prévia do painel (sem navigate) a faixa presa ao pé cobriria a interface do painel. */}
+      {navigate && <CenarioFixo slug={p.slug} />}
     </article>
   )
 }

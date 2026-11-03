@@ -82,11 +82,15 @@ export function Formulario ({ dados, criterios, navigate }) {
   const inicial = React.useMemo(() => {
     const r = lerRascunho()
     const q = new URLSearchParams(location.search)
-    const slug = q.get('participante') || r.slug || ''
-    const unidade = q.get('unidade') || r.unidade || ''
+    const pedida = q.get('participante') || r.slug || ''
+    const casaPedida = elegiveis.find((p) => p.slug === pedida)
+    const slug = casaPedida ? pedida : ''
+    // Unidade vinda do endereço ou do rascunho só vale se for desta casa (senão o envio cairia num recado genérico).
+    const unidadePedida = q.get('unidade') || r.unidade || ''
+    const unidade = (casaPedida?.unidades || []).some((u) => u.id === unidadePedida) ? unidadePedida : ''
     // Vindo da ficha da casa, já pula para as notas — menos quando a casa tem várias unidades e falta escolher uma.
-    const varias = (elegiveis.find((p) => p.slug === slug)?.unidades || []).length > 1
-    const pronta = slug && elegiveis.some((p) => p.slug === slug) && (!varias || unidade)
+    const varias = (casaPedida?.unidades || []).length > 1
+    const pronta = !!casaPedida && (!varias || unidade)
     return { slug, unidade, nome: r.nome || '', email: r.email || '',
       notas: r.notas || {}, comentario: r.comentario || '', novidades: false, passo: pronta ? 2 : 1 }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps -- estado inicial, lido uma vez
@@ -170,17 +174,18 @@ export function Formulario ({ dados, criterios, navigate }) {
           <label className="ct-campo ct-campo--busca"><span className="ct-sr">{T.casaBusca}</span>
             <input type="search" value={busca} placeholder={T.casaBusca} onChange={(e) => setBusca(e.target.value)} />
           </label>
+          {/* Rádios nativos: as setas trocam a casa, o Tab entra e sai do grupo de uma vez (o navegador cuida). */}
           {visiveis.length ? (
-            <ul className="ct-form__casas" role="radiogroup" aria-labelledby="av-p1">
+            <fieldset className="ct-form__casas">
+              <legend className="ct-sr">{T.casaTitulo}</legend>
               {visiveis.map((p) => (
-                <li key={p.slug}>
-                  <button type="button" role="radio" aria-checked={form.slug === p.slug} className="ct-form__casa"
-                    onClick={() => setForm((f) => ({ ...f, slug: p.slug, unidade: '' }))}>
-                    <LogoDoPin p={p} tamanho={40} /><span>{p.casa.nome}</span>
-                  </button>
-                </li>
+                <label key={p.slug} className="ct-form__casa">
+                  <input type="radio" name="av-casa" value={p.slug} checked={form.slug === p.slug}
+                    onChange={() => setForm((f) => ({ ...f, slug: p.slug, unidade: '' }))} />
+                  <LogoDoPin p={p} tamanho={40} /><span>{p.casa.nome}</span>
+                </label>
               ))}
-            </ul>
+            </fieldset>
           ) : <p className="ct-nota">{T.casaNenhuma}</p>}
           {unidades.length > 1 && (
             <label className="ct-campo"><span>{T.unidade}</span>

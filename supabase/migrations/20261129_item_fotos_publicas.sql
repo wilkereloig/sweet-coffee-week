@@ -7,6 +7,8 @@
 --
 -- Mesmo padrão de 20261123_trocas_completas: lê a definição em vigor e troca só o trecho, idempotente.
 -- Reverter: supabase/reverter/20261129_item_fotos_publicas.sql.
+-- ⚠️ O site público lê o conteúdo CONGELADO na publicação (edicao_publica -> publicacoes.conteudo): a galeria
+-- por item só aparece para o público depois de cada casa ser (re)publicada no painel.
 
 alter table public.midias_participacao add column if not exists rotulo text
   check (rotulo is null or char_length(rotulo) <= 40);

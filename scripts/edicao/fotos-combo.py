@@ -91,6 +91,7 @@ def main() -> None:
             p['combo']['fotos'] = {}
             for item in p['combo'].get('itens', []):
                 item.pop('foto', None)
+                item.pop('fotos', None)
     com, sem = [], []
     for pasta in sorted(d for d in FONTE.iterdir() if d.is_dir() and not d.name.startswith('_')):
         slug = APELIDOS.get(pasta.name, pasta.name)
@@ -117,6 +118,8 @@ def main() -> None:
                 f = gravar(achadas.pop(k), slug, k, f'{rotulo_galeria(k)} do combo da {nome}')
                 f['rotulo'] = 'Outra opção' if eh_opcao(k) else 'Detalhe'
                 fotos.append(f)
+            if fotos and not item.get('foto'):
+                item['foto'] = fotos[0]  # sem a peça principal, a primeira extra faz o papel dela
             if len(fotos) > 1:
                 item['fotos'] = fotos
         resto = sorted(achadas, key=lambda k: ORDEM_GALERIA.index(k) if k in ORDEM_GALERIA else len(ORDEM_GALERIA))

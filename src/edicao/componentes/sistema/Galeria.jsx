@@ -1,6 +1,7 @@
 /*
  * Galeria de um assunto (o item do combo, as fotos da casa) — lista 13, P3.
- * Carrossel com rolagem nativa (arrastar no toque, Shift+roda no mouse), setas e pontos para quem não arrasta,
+ * Carrossel com rolagem nativa (arrastar no toque, Shift+roda no mouse), setas e pontos para quem não arrasta —
+ * as setas dão a volta (na última, a próxima é a primeira): nenhum botão some com o foco nele —
  * e a foto ampliada num <dialog> com anterior/próxima e as setas do teclado. Uma foto só: sem carrossel, só a
  * ampliação. `fotos`: [{ path, alt, largura, altura, rotulo? }] — `rotulo` ("Detalhe", "Outra opção") vira a
  * legenda curta da foto da vez.
@@ -21,14 +22,15 @@ export function Galeria ({ fotos, nome, proporcao = '4 / 5', prioridade = false,
     const t = trilho.current
     if (t) setAtual(Math.min(lista.length - 1, Math.max(0, Math.round(t.scrollLeft / t.clientWidth))))
   }
+  const volta = (n) => (n + lista.length) % lista.length
   const irPara = (n) => {
     const t = trilho.current
     if (t) t.scrollTo({ left: n * t.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
   const abrir = (n) => { setAmpliada(n); caixa.current?.showModal() }
   const teclas = (e) => {
-    if (e.key === 'ArrowRight') setAmpliada((n) => Math.min(lista.length - 1, n + 1))
-    if (e.key === 'ArrowLeft') setAmpliada((n) => Math.max(0, n - 1))
+    if (e.key === 'ArrowRight') setAmpliada((n) => volta(n + 1))
+    if (e.key === 'ArrowLeft') setAmpliada((n) => volta(n - 1))
   }
 
   if (!lista.length) return <Foto foto={null} proporcao={proporcao} reserva={reserva} />
@@ -52,10 +54,10 @@ export function Galeria ({ fotos, nome, proporcao = '4 / 5', prioridade = false,
         </ul>
         {varias && (
           <>
-            <button type="button" className="ct-galeria-item__seta ct-galeria-item__seta--antes" onClick={() => irPara(atual - 1)} disabled={atual === 0} aria-label="Foto anterior">
+            <button type="button" className="ct-galeria-item__seta ct-galeria-item__seta--antes" onClick={() => irPara(volta(atual - 1))} aria-label="Foto anterior">
               <ScwIcon nome="seta-esquerda" tamanho={20} />
             </button>
-            <button type="button" className="ct-galeria-item__seta ct-galeria-item__seta--depois" onClick={() => irPara(atual + 1)} disabled={atual === lista.length - 1} aria-label="Próxima foto">
+            <button type="button" className="ct-galeria-item__seta ct-galeria-item__seta--depois" onClick={() => irPara(volta(atual + 1))} aria-label="Próxima foto">
               <ScwIcon nome="seta-direita" tamanho={20} />
             </button>
           </>
@@ -80,9 +82,9 @@ export function Galeria ({ fotos, nome, proporcao = '4 / 5', prioridade = false,
         onClick={(e) => { if (e.target === caixa.current) caixa.current.close() }}>
         <Foto foto={lista[ampliada]} proporcao={proporcaoDe(lista[ampliada], '4 / 5')} />
         <div className="ct-acoes">
-          {varias && <button type="button" className="ct-botao ct-botao--contorno" disabled={ampliada === 0} onClick={() => setAmpliada(ampliada - 1)}>Anterior</button>}
+          {varias && <button type="button" className="ct-botao ct-botao--contorno" onClick={() => setAmpliada(volta(ampliada - 1))}>Anterior</button>}
           {varias && <span aria-live="polite">{ampliada + 1} de {lista.length}{lista[ampliada]?.rotulo ? ` · ${lista[ampliada].rotulo}` : ''}</span>}
-          {varias && <button type="button" className="ct-botao ct-botao--contorno" disabled={ampliada === lista.length - 1} onClick={() => setAmpliada(ampliada + 1)}>Próxima</button>}
+          {varias && <button type="button" className="ct-botao ct-botao--contorno" onClick={() => setAmpliada(volta(ampliada + 1))}>Próxima</button>}
           <button type="button" className="ct-botao" onClick={() => caixa.current.close()}>Fechar</button>
         </div>
       </dialog>

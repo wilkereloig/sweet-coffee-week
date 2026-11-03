@@ -23,7 +23,7 @@ Os passos 3 a 5 reescrevem o `cartoon.local.json`, então vêm depois do 2. Conf
 
 **Última leitura: 03/11/2026 00:25** (27 casas, 41 unidades, banco ainda em fase `preparacao`, nenhuma casa publicada). O retrato guarda também `criterios` da avaliação.
 
-6. **Fotos para a produção** (lista 13, B2): aplicar a migration `20261129_item_fotos_publicas` e rodar `node --env-file=.env.local scripts/edicao/subir-fotos-combo.mjs` (só o plano) e depois com `--gravar` — sobe as fotos ao bucket `edicao-publico` e registra em `midias_participacao` como aprovadas. Precisa de `SUPABASE_SERVICE_ROLE_KEY` no `.env.local`.
+6. **Fotos para a produção** (lista 13, B2): aplicar a migration `20261129_item_fotos_publicas` e rodar `node --env-file=.env.local scripts/edicao/subir-fotos-combo.mjs` (só o plano) e depois com `--gravar` — sobe as fotos ao bucket `edicao-publico` e registra em `midias_participacao` como aprovadas. Precisa de `SUPABASE_SERVICE_ROLE_KEY` no `.env.local`. **Depois, republicar cada casa no painel**: o site público lê o conteúdo congelado na publicação.
 
 ## O que tem
 
