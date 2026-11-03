@@ -10,7 +10,7 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { letreiroEdicao, cenaEdicao, seloEdicao, srcSet } from '../../../data/imageLibrary'
-import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato, Falha, Carregando } from '../../componentes/base.jsx'
+import { Link, Avisos, Falha, Carregando } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
@@ -35,9 +35,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
 
   return (
     <>
-      <AvisoDesatualizado ativo={dados?.desatualizado} />
-      <AvisoDemo ativo={dados?.demo} />
-      <AvisoRetrato retrato={dados?.retrato} />
+      <Avisos desatualizado={dados?.desatualizado} demo={dados?.demo} retrato={dados?.retrato} />
 
       <TopoCanal canal="estreia" className="ct-estreia" aria-labelledby="ct-estreia-titulo">
         <div className="ct-estreia__texto">

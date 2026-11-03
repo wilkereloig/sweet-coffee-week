@@ -9,7 +9,7 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { resolverParadas, linksDeRota, idsDaBusca, progresso } from '../../rota/minhaRota.js'
-import { Link, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
+import { Link, Avisos } from '../../componentes/base.jsx'
 import { TopoCanal, CenaTopo } from '../../componentes/sistema/TopoCanal.jsx'
 import { letreiroEdicao } from '../../../data/imageLibrary'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
@@ -44,9 +44,7 @@ export function MinhaRota ({ navigate, dados }) {
 
   const avisos = (
     <>
-      <AvisoDesatualizado ativo={dados?.desatualizado} />
-      <AvisoDemo ativo={dados?.demo} />
-      <AvisoRetrato retrato={dados?.retrato} />
+      <Avisos desatualizado={dados?.desatualizado} demo={dados?.demo} retrato={dados?.retrato} />
     </>
   )
   const topo = (texto, comProgresso = false) => (

@@ -3,7 +3,7 @@
  * /cartoon/combos (o combo à frente). Mesma coleção, mesmos filtros, mesma página de destino.
  * Topo no canal Elenco com o letreiro desenhado e a contagem real; o cartão tem a foto do combo
  * como protagonista e, sem foto, a logo desenhada no Quadro ("Foto em produção").
- * Filtros moram na query string (replaceState) e só aparecem os que o dado responde; a posição
+ * Filtros moram na query string (useEnderecoDaBusca) e só aparecem os que o dado responde; a posição
  * de rolagem volta quando o visitante retorna de uma casa. "Quero ir" e "Já fui" ficam abaixo do cartão,
  * fora do link (área própria, nunca botão dentro de link).
  */
@@ -11,15 +11,17 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { letreiroEdicao, kitTemaEdicao } from '../../../data/imageLibrary'
-import { Link, Foto, proporcaoDe, AvisoDesatualizado, AvisoDemo, AvisoRetrato } from '../../componentes/base.jsx'
+import { Link, Foto, proporcaoDe, Avisos } from '../../componentes/base.jsx'
+import { useEnderecoDaBusca } from '../useEnderecoDaBusca.js'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Placa, Chip } from '../../componentes/sistema/pecas.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
+import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { QueroIrCasa, JaFui } from '../MarcasLover.jsx'
-import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM } from '../textos.js'
+import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM, ICONE } from '../textos.js'
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
 // [chave do filtro, chave da restrição em M.RESTRICOES]
@@ -71,7 +73,11 @@ function Cartao ({ p, modo, navigate, encerrada }) {
         <div className="ct-cartao__corpo">
           <h2 className="ct-cartao__nome">{modo === 'combos' && nomeCombo ? nomeCombo : p.casa.nome}</h2>
           {modo === 'combos' ? nomeCombo && <p className="ct-cartao__sub">{p.casa.nome}</p> : nomeCombo && <p className="ct-cartao__sub">{nomeCombo}</p>}
-          {modo === 'combos' && nomesItens.length > 0 && <p className="ct-cartao__sub">{nomesItens.join(' · ')}</p>}
+          {modo === 'combos' && nomesItens.length > 0 && (
+            <ul className="ct-cartao__itens">
+              {itens.filter((i) => i.nome).map((i) => <li key={i.posicao}><ScwIcon nome={ICONE.tipo[i.tipo]} tamanho={16} /><span>{i.nome}</span></li>)}
+            </ul>
+          )}
           {p.casa.tema && <p className="ct-cartao__tema">{T.tema(p.casa.tema)}</p>}
           {(bairros.length > 0 || us.length > 1) && (
             <p className="ct-cartao__onde">{[bairros.join(' · '), us.length > 1 ? T.unidades(us.length) : null].filter(Boolean).join(' · ')}</p>
@@ -107,22 +113,13 @@ export function Catalogo ({ modo, navigate, dados }) {
     : <Letreiro nivel={1} id="cat-titulo" texto={T.titulo} imagem={letreiroEdicao('elenco')} />
 
   React.useEffect(() => { restaurarPosicao() }, [])
-  React.useEffect(() => {
-    // Os filtros entram no endereço; ?preview e ?demo (revisão) continuam.
-    const q = new URLSearchParams(M.buscaDosFiltros(f))
-    const atual = new URLSearchParams(location.search)
-    for (const k of ['preview', 'demo']) if (atual.has(k)) q.set(k, atual.get(k))
-    const s = q.toString()
-    history.replaceState(history.state, '', location.pathname + (s ? `?${s}` : ''))
-  }, [f])
+  useEnderecoDaBusca(M.buscaDosFiltros(f)) // os filtros entram no endereço; ?preview e ?demo continuam
 
   const muda = (k, v) => setF((x) => ({ ...x, [k]: v }))
   const limpar = () => setF(VAZIO)
   const avisos = (
     <>
-      <AvisoDesatualizado ativo={dados.desatualizado} />
-      <AvisoDemo ativo={dados.demo} />
-      <AvisoRetrato retrato={dados.retrato} />
+      <Avisos desatualizado={dados.desatualizado} demo={dados.demo} retrato={dados.retrato} />
     </>
   )
 

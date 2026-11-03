@@ -113,3 +113,8 @@
 /* Tema da casa (D-17: só depois do post de Confirmados). Vermelho é ação focal; aqui a tinta é chocolate. */
 .ct-cartao__tema { margin: 0; font: 700 13px/1.35 var(--ct-font); }
 .ct-ficha__tema { margin: 4px 0 12px; font: 700 clamp(17px, 1.6vw, 21px)/1.3 var(--ct-font); }
+
+/* Itens do combo no cartão (modo Combos): o ícone de contorno do tipo antes do nome (lista 13, P2). */
+.ct-cartao__itens { display: grid; gap: 2px; margin: 2px 0 0; padding: 0; list-style: none; font: 600 14px/1.35 var(--ct-font); }
+.ct-cartao__itens li { display: flex; align-items: flex-start; gap: 6px; }
+.ct-cartao__itens svg { flex: none; margin-top: 2px; }
