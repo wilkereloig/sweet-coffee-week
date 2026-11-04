@@ -22,6 +22,18 @@
   .ct-letreiro.is-espera :is(.ct-letreiro__letra, .ct-letreiro__apoio) { opacity: 0; }
   .ct-letreiro.is-entrou .ct-letreiro__apoio { transform-origin: 0 100%; animation: ct-pula 520ms var(--ct-mo-quique) both; }
   .ct-letreiro.is-entrou .ct-letreiro__letra { transform-origin: 50% 100%; animation: ct-letra-pula 640ms var(--ct-mo-quique) both; animation-delay: calc(120ms + var(--i) * 28ms); }
+  /* Peças de gibi (repaginação de 04/11), uma vez, sem laço: a explosão estoura girando, a mesa e o objeto do topo
+     caem e quicam por cima dela, a luva cutuca a ação duas vezes; os objetos dos passos e das cabeças pulam quando
+     chegam na tela (onde o navegador sabe; nos outros, ao abrir). */
+  @keyframes ct-estoura { from { scale: .3; rotate: -25deg; opacity: 0; } to { scale: 1; rotate: 0deg; opacity: 1; } }
+  @keyframes ct-cutuca { 0%, 100% { translate: 0 0; } 40% { translate: 12px 0; } 65% { translate: 4px 0; } }
+  .ct-estreia__explosao, .ct-catalogo__explosao, .ct-ficha__explosao { animation: ct-estoura 620ms var(--ct-mo-quique) both; }
+  .ct-estreia__mesa, .ct-catalogo__desenho { transform-origin: 50% 100%; animation: ct-quica 760ms var(--ct-mo-quique) 140ms both; }
+  .ct-edicao .ct-estreia__luva { animation: ct-cutuca 700ms ease-in-out 1100ms 2; }
+  .ct-passos__desenho, .ct-cabeca-desenho .ct-gibi {
+    transform-origin: 50% 100%; animation: ct-pula var(--ct-mo-quique-dur) var(--ct-mo-quique) both;
+    animation-timeline: view(); animation-range: entry 0% entry 80%;
+  }
   /* Botão: "boing" no hover — estica, encolhe e assenta (scale, separado do translate do estado). */
   @keyframes ct-boing { 0% { scale: 1; } 30% { scale: 1.07 .93; } 60% { scale: .97 1.04; } 100% { scale: 1; } }
   .ct-edicao .ct-botao:hover { animation: ct-boing 460ms ease-out; }

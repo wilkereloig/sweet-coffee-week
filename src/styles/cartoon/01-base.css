@@ -20,13 +20,15 @@
 .ct-topo__marca img { display: block; width: auto; height: 52px; }
 .ct-topo__nav { display: none; }
 .ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 0; list-style: none; }
+/* Links do topo como etiquetas de gibi (repaginação de 04/11): no hover ganham a borda e a sombra dura; a página atual é
+   a etiqueta amarela inclinada ("ENTROU PARA O ELENCO"), como as das peças. A borda transparente reserva o espaço. */
 .ct-topo__nav a {
   display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px;
-  border-radius: 22px; font: 800 16px/1 var(--ct-font); text-decoration: none;
-  transition: background-color var(--ct-mo), color var(--ct-mo);
+  border: 3px solid transparent; border-radius: 10px; font: 800 16px/1 var(--ct-font); text-decoration: none;
+  transition: background-color var(--ct-mo), border-color var(--ct-mo), box-shadow var(--ct-mo), rotate var(--ct-mo);
 }
-.ct-topo__nav a:hover { background: var(--ct-amarelo); }
-.ct-edicao .ct-topo__nav a[aria-current='page'] { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-topo__nav a:hover { border-color: var(--ct-chocolate); background: var(--ct-branco); box-shadow: 3px 3px 0 var(--ct-chocolate); }
+.ct-edicao .ct-topo__nav a[aria-current='page'] { border-color: var(--ct-chocolate); background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: 3px 3px 0 var(--ct-chocolate); rotate: -2deg; }
 @media (min-width: 900px) {
   .ct-topo { position: sticky; top: 0; padding-block: 10px; }
   .ct-topo__marca img { height: 60px; }
