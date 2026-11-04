@@ -258,7 +258,7 @@ export const MAPA = {
   sicredi: (nome, endereco) => `${nome}, agência da patrocinadora${endereco ? `: ${endereco}` : ''}`,
   parada: (n) => `Parada ${n} da sua rota`,
   carimbada: (n) => (n === 1 ? 'Carimbada' : `Carimbada ${n} vezes`),
-  avaliarMais2: 'Avaliar e ganhar +2',
+  avaliarMais2: 'Avaliar e validar o carimbo',
   avaliada: 'Avaliada',
 }
 

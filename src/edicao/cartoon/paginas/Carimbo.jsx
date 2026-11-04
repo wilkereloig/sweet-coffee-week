@@ -1,7 +1,11 @@
 /*
- * Mapa da Doçura — a página que o QR do balcão abre (/cartoon/carimbo/<código>; docs/cartoon-2026-2/14 §14.3).
- * Sem mapa no aparelho: começa um (sem senha) ou cola o link pessoal. Com mapa: um toque pede a posição e
- * carimba. Regras e limites são do banco (`mapa_carimbar`); aqui só se pede, mostra e explica.
+ * Caça aos Carimbos — a página que o QR abre (docs/cartoon-2026-2/14 §14.3 e §14.14):
+ *   /cartoon/carimbo/<código da unidade>  QR do balcão (8 caracteres);
+ *   /cartoon/carimbo/<slug da casa>        QR do display de mesa (/q/d1-<casa>): mostra "Ver o combo" e "Carimbar",
+ *                                          e o banco escolhe a unidade da casa mais perto do celular.
+ * Sem mapa no aparelho: começa um (sem senha) ou cola o link pessoal. Com mapa: um toque pede a posição e carimba.
+ * Primeira vez na casa = carimbo PENDENTE até avaliar o combo (Wilker, 04/11). Regras e limites são do banco
+ * (`mapa_carimbar` / `mapa_carimbar_casa`); aqui só se pede, mostra e explica.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
@@ -9,6 +13,7 @@ import { Link, Logo } from '../../componentes/base.jsx'
 import * as C from '../../rota/carimbo.js'
 
 const pontos = (n) => `${n} ${n === 1 ? 'ponto' : 'pontos'}`
+const SLUG_CASA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const COMO_LIGAR = [
   ['No iPhone', 'Ajustes › Privacidade e Segurança › Serviços de Localização › Safari (ou o navegador que você usa) › "Durante o Uso".'],
@@ -103,14 +108,16 @@ function ComecarMapa ({ aoAbrir }) {
 }
 
 export function Carimbo ({ codigo, navigate, dados }) {
-  const valido = C.FORMATO_QR.test(codigo || '')
+  const porUnidade = C.FORMATO_QR.test(codigo || '')
+  const porCasa = !porUnidade && SLUG_CASA.test(codigo || '')
+  const valido = porUnidade || porCasa
   const [chave, setChave] = React.useState(() => C.lerChave(EDICAO.codigo))
   const [estado, setEstado] = React.useState('pronto') // pronto · carimbando · ok · recusa
   const [r, setR] = React.useState(null)
   const [novo, setNovo] = React.useState(false)
   const [mapa, setMapa] = React.useState(null)
   const titulo = React.useRef(null)
-  const casa = (dados?.participantes || []).find((p) => p.slug === r?.slug)?.casa
+  const casa = (dados?.participantes || []).find((p) => p.slug === (r?.slug || (porCasa ? codigo : null)))?.casa
 
   React.useEffect(() => { if (estado === 'ok' || estado === 'recusa') titulo.current?.focus() }, [estado])
 
@@ -118,7 +125,10 @@ export function Carimbo ({ codigo, navigate, dados }) {
     setEstado('carimbando'); setR(null)
     const pos = await C.pedirPosicao()
     try {
-      const resp = await C.chamar('mapa_carimbar', { p_chave: k, p_qr: codigo, p_lat: pos.lat ?? null, p_lng: pos.lng ?? null, p_precisao: pos.precisao ?? null })
+      const onde = { p_lat: pos.lat ?? null, p_lng: pos.lng ?? null, p_precisao: pos.precisao ?? null }
+      const resp = porCasa
+        ? await C.chamar('mapa_carimbar_casa', { p_chave: k, p_slug: codigo, ...onde })
+        : await C.chamar('mapa_carimbar', { p_chave: k, p_qr: codigo, ...onde })
       if (resp?.motivo === 'mapa_desconhecido') { C.apagarChave(EDICAO.codigo); setChave(null); setEstado('pronto'); return }
       setR(resp?.motivo === 'sem_localizacao' ? { ...resp, posicao: pos.erro } : resp)
       setEstado(resp?.ok ? 'ok' : 'recusa')
@@ -139,7 +149,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
     const m = C.mensagemRecusa({ motivo: 'qr_invalido' })
     return (
       <section className="ct-bloco ct-carimbar">
-        <p className="ct-rotulo">Mapa da Doçura</p>
+        <p className="ct-rotulo">Caça aos Carimbos</p>
         <h1 className="ct-h1">{m.titulo}</h1>
         <p className="ct-lead">{m.texto}</p>
         {links}
@@ -151,17 +161,20 @@ export function Carimbo ({ codigo, navigate, dados }) {
     const nome = casa?.nome || 'a casa'
     return (
       <section className="ct-bloco ct-carimbar ct-carimbar--ok">
-        <p className="ct-rotulo">Mapa da Doçura</p>
-        <h1 ref={titulo} tabIndex={-1} className="ct-h1">Carimbado! +1</h1>
+        <p className="ct-rotulo">Caça aos Carimbos</p>
+        <h1 ref={titulo} tabIndex={-1} className="ct-h1">{r.avaliou ? 'Carimbado! +1' : 'Carimbo pendente'}</h1>
         <div className="ct-carimbar__casa">
           {casa && <Logo casa={casa} tamanho={88} />}
-          <p className="ct-lead">{r.primeira ? `Primeira visita na ${nome}.` : `Mais uma visita na ${nome}.`} Você tem {pontos(r.pontos)}.</p>
+          <p className="ct-lead">
+            {r.primeira ? `Primeira visita na ${nome}.` : `Mais uma visita na ${nome}.`}
+            {r.avaliou ? ` Você tem ${pontos(r.pontos)}.` : ' Falta um passo para o carimbo valer.'}
+          </p>
         </div>
-        {r.primeira && !r.avaliou && (
+        {!r.avaliou && (
           <div className="ct-carimbar__avaliar">
-            <p className="ct-sub">Ganhe mais 2 pontos</p>
-            <p className="ct-nota">Avalie o combo da {nome} com o mesmo e-mail do seu mapa.</p>
-            <div className="ct-acoes"><button type="button" className="ct-botao" onClick={avaliar}>Avaliar o combo e ganhar +2</button></div>
+            <p className="ct-sub">Avalie o combo para validar</p>
+            <p className="ct-nota">O carimbo da {nome} conta depois da avaliação do combo, feita com o mesmo e-mail do seu mapa. Avaliou, ele vale e a casa ainda dá +2 pontos.</p>
+            <div className="ct-acoes"><button type="button" className="ct-botao" onClick={avaliar}>Avaliar o combo e validar</button></div>
           </div>
         )}
         {novo && <GuardarMapa chave={chave} />}
@@ -177,7 +190,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
     const deNovo = ['longe', 'sem_localizacao', 'rede'].includes(r?.motivo)
     return (
       <section className="ct-bloco ct-carimbar">
-        <p className="ct-rotulo">Mapa da Doçura</p>
+        <p className="ct-rotulo">Caça aos Carimbos</p>
         <h1 ref={titulo} tabIndex={-1} className="ct-h1">{m.titulo}</h1>
         <p className="ct-lead">{m.texto}</p>
         {r?.motivo === 'sem_localizacao' && (
@@ -194,9 +207,15 @@ export function Carimbo ({ codigo, navigate, dados }) {
 
   return (
     <section className="ct-bloco ct-carimbar">
-      <p className="ct-rotulo">Mapa da Doçura</p>
-      <h1 className="ct-h1">Carimbe sua visita</h1>
-      <p className="ct-lead">Cada leitura vale 1 ponto e cada ponto é um número no sorteio de itens do festival. Avaliar o combo da casa vale mais 2.</p>
+      <p className="ct-rotulo">Caça aos Carimbos</p>
+      <h1 className="ct-h1">{porCasa && casa ? casa.nome : 'Carimbe sua visita'}</h1>
+      {porCasa && casa && <div className="ct-carimbar__casa"><Logo casa={casa} tamanho={88} /></div>}
+      <p className="ct-lead">Comeu o combo? Carimbe e junte pontos para os vouchers e o prêmio final. Na primeira vez na casa, avalie o combo para o carimbo valer.</p>
+      {porCasa && (
+        <div className="ct-acoes">
+          <Link href={`${EDICAO.caminho}/participantes/${codigo}`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver o combo</Link>
+        </div>
+      )}
       {chave
         ? (
           <>

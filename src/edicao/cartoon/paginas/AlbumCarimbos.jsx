@@ -43,9 +43,14 @@ export function AlbumCarimbos ({ dados, navigate, meu }) {
     <section className="ct-bloco ct-album" aria-labelledby="album-titulo">
       <h2 id="album-titulo" className="ct-h2">Mapa da Doçura de {mapa.apelido}</h2>
       <p className="ct-lead">
-        <strong>{album.pontos} {album.pontos === 1 ? 'ponto' : 'pontos'}</strong> · {album.visitadas} de {album.total} casas carimbadas
+        <strong>{album.pontos} {album.pontos === 1 ? 'ponto' : 'pontos'}</strong> · {album.visitadas} de {album.total} casas validadas
         {album.posicao ? ` · ${album.posicao}º no ranking` : ''}
       </p>
+      {album.pendentes > 0 && (
+        <p className="ct-nota">
+          {album.pendentes === 1 ? '1 carimbo pendente' : `${album.pendentes} casas com carimbo pendente`}: avalie o combo para o carimbo valer.
+        </p>
+      )}
       <ul className="ct-album__grade">
         {album.casas.map((c) => {
           const p = (dados?.participantes || []).find((x) => x.slug === c.slug)
@@ -63,7 +68,7 @@ export function AlbumCarimbos ({ dados, navigate, meu }) {
               </Link>
               {c.podeAvaliar && (
                 <button type="button" className="ct-album__avaliar" onClick={() => navigate(C.prepararAvaliacao({ caminho: C_, slug: c.slug, mapa }))}>
-                  Avaliar e ganhar +2
+                  Avaliar e validar
                 </button>
               )}
               {c.avaliou && <span className="ct-album__selo">Avaliada</span>}

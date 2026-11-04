@@ -39,7 +39,8 @@ export function destinoDoCodigo (bruto) {
   if (!codigo) return base
   if (GERAIS.has(codigo)) return base + GERAIS.get(codigo)
   const [prefixo, ...resto] = codigo.split('-')
-  if (prefixo === 'd1' && resto.length) return `${base}/participantes/${resto.join('-')}`
+  // Face do combo do display (Caça aos Carimbos, 04/11): abre a tela da casa com 'Ver o combo' e 'Carimbar'.
+  if (prefixo === 'd1' && resto.length) return `${base}/carimbo/${resto.join('-')}`
   if (prefixo === 'd2') return `${base}/avaliar`
   if (prefixo === 'mapa') return `${base}/mapa`
   return base

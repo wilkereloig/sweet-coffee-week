@@ -61,7 +61,8 @@ test('álbum: cor no primeiro carimbo, ×N, avaliação pendente e ordem da edi�
   assert.deepEqual(a.casas.map((c) => c.podeAvaliar), [false, false, true])
   assert.equal(a.casas[1].carimbos, 2)
   assert.equal(a.casas[2].nome, 'c')
-  assert.deepEqual([a.visitadas, a.total, a.pontos, a.posicao], [2, 3, 5, 3])
+  // Carimbo pendente (Caça aos Carimbos, 04/11): a casa sem avaliação não conta como validada.
+  assert.deepEqual([a.visitadas, a.pendentes, a.total, a.pontos, a.posicao], [1, 1, 3, 5, 3])
   assert.deepEqual(C.estadoAlbum(participantes, null).visitadas, 0)
 })
 
@@ -90,4 +91,19 @@ test('rotas do carimbo e do regulamento; regulamento sem "Sweet" sozinho e com l
   for (const t of [REGULAMENTO.titulo, REGULAMENTO.apoio, ...textos]) assert.doesNotMatch(t, /\bSweet\b(?! (Lovers?|Awards|&))/, t)
   assert.ok(REGULAMENTO.secoes.some(([, itens]) => itens.some((x) => x.aDefinir)), 'o que falta decidir fica marcado')
   assert.ok(textos.some((t) => /12 horas/.test(t)) && textos.some((t) => /não é guardada/.test(t)))
+})
+
+test('QR do display carimba pela casa e o carimbo fica pendente até a avaliação (Caça aos Carimbos, 04/11)', async () => {
+  const { readFileSync } = await import('node:fs')
+  const { resolverCena } = await import('../src/edicao/rotas.js')
+  const { destinoDoCodigo } = await import('../src/edicao/qrPontos.js')
+  assert.equal(destinoDoCodigo('d1-cookitos'), '/cartoon/carimbo/cookitos')
+  assert.deepEqual(resolverCena('/cartoon/carimbo/cookitos'), { cena: 'carimbo', codigo: 'cookitos' })
+  const pagina = readFileSync(new URL('../src/edicao/cartoon/paginas/Carimbo.jsx', import.meta.url), 'utf8')
+  assert.match(pagina, /mapa_carimbar_casa/)
+  assert.match(pagina, /Ver o combo/)
+  const sql = readFileSync(new URL('../supabase/migrations/20261202_carimbo_por_casa_pendente.sql', import.meta.url), 'utf8')
+  assert.match(sql, /grant execute on function public\.mapa_carimbar_casa\(text, text, numeric, numeric, numeric\) to anon, authenticated/)
+  assert.match(sql, /return public\.mapa_carimbar\(p_chave, v_qr/, 'a casa passa pela mesma regra do QR da unidade')
+  assert.match(sql, /validadas as/, 'o placar só conta casas avaliadas')
 })

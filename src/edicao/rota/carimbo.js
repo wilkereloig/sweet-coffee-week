@@ -90,7 +90,9 @@ export function mensagemCriar (erro) {
 
 /**
  * Álbum das casas, na ordem da edição. `participantes` = os publicados (slug, casa); `mapa` = resposta de
- * `mapa_ler` (ou null). Casa colorida = pelo menos um carimbo; "pode avaliar" = carimbada e sem avaliação.
+ * `mapa_ler` (ou null). Casa colorida = pelo menos um carimbo. Carimbo PENDENTE (Caça aos Carimbos, 04/11): a casa
+ * carimbada só conta depois da avaliação do combo — `podeAvaliar` = pendente; `visitadas` conta só as validadas
+ * (o "mapa completo" é todas validadas). Os pontos vêm do banco (`carimbo_placar`), já com a mesma regra.
  */
 export function estadoAlbum (participantes = [], mapa = null) {
   const porSlug = new Map((mapa?.casas || []).map((c) => [c.slug, c]))
@@ -99,7 +101,12 @@ export function estadoAlbum (participantes = [], mapa = null) {
     const carimbos = c?.carimbos || 0
     return { slug: p.slug, nome: p.casa?.nome || p.slug, carimbos, avaliou: !!c?.avaliou, colorida: carimbos > 0, podeAvaliar: carimbos > 0 && !c?.avaliou }
   })
-  return { casas, visitadas: casas.filter((c) => c.colorida).length, total: casas.length, pontos: mapa?.pontos || 0, posicao: mapa?.posicao ?? null }
+  return {
+    casas,
+    visitadas: casas.filter((c) => c.colorida && c.avaliou).length,
+    pendentes: casas.filter((c) => c.podeAvaliar).length,
+    total: casas.length, pontos: mapa?.pontos || 0, posicao: mapa?.posicao ?? null,
+  }
 }
 
 /** Chamada anônima ao banco. Erro do PostgREST (exceção da função) vira `Error(<mensagem>)`, ex.: 'email_invalido'. */

@@ -34,8 +34,8 @@ function bancoFalso (resposta = null, status = 200) {
 
 test('regra do código: cada peça leva para o destino certo e o resto vai para a entrada da edição', () => {
   const casos = [
-    ['d1-cookitos', '/cartoon/participantes/cookitos'],
-    ['d1-casa-1190-restaurante-e-coffee', '/cartoon/participantes/casa-1190-restaurante-e-coffee'],
+    ['d1-cookitos', '/cartoon/carimbo/cookitos'],
+    ['d1-casa-1190-restaurante-e-coffee', '/cartoon/carimbo/casa-1190-restaurante-e-coffee'],
     ['d2-cookitos', '/cartoon/avaliar'],
     ['pl-geral', '/cartoon'],
     ['inicio', '/cartoon'],
@@ -46,7 +46,7 @@ test('regra do código: cada peça leva para o destino certo e o resto vai para 
     ['teste', '/cartoon'],
     ['d1', '/cartoon'], // sem casa
     ['qualquer-outra-coisa', '/cartoon'],
-    ['D1-Cookitos', '/cartoon/participantes/cookitos'], // maiúscula é normalizada
+    ['D1-Cookitos', '/cartoon/carimbo/cookitos'], // maiúscula é normalizada
     ['', '/cartoon'], [null, '/cartoon'], [undefined, '/cartoon'],
     ['../etc/passwd', '/cartoon'], ['d1-a b', '/cartoon'], ['d1--x', '/cartoon'], ['d1-x-', '/cartoon'],
     ['x'.repeat(81), '/cartoon'],
@@ -68,7 +68,7 @@ test('leitura normal: conta uma vez e redireciona 302 para a página da casa, co
     cab: { 'x-vercel-ip-country': 'BR', 'x-vercel-ip-country-region': 'RN', 'x-vercel-ip-city': 'Natal' },
   }), { fetchImpl })
   assert.equal(r.status, 302)
-  assert.equal(r.headers.get('location'), `${ORIGEM}/cartoon/participantes/cookitos?${UTM}&utm_content=d1-cookitos`)
+  assert.equal(r.headers.get('location'), `${ORIGEM}/cartoon/carimbo/cookitos?${UTM}&utm_content=d1-cookitos`)
   assert.equal(r.headers.get('cache-control'), 'no-store', 'redirecionamento em cache faria a leitura não contar')
   assert.equal(r.headers.get('x-robots-tag'), 'noindex')
   assert.equal(chamadas.length, 1)
@@ -136,7 +136,7 @@ test('NUNCA quebra: banco lento é abandonado no limite e o QR redireciona do me
   const r = await responder(pedido('d1-cookitos'), { fetchImpl: lento, limiteMs: 25 })
   assert.ok(Date.now() - t0 < 1000, 'esperou o banco além do limite')
   assert.equal(r.status, 302)
-  assert.equal(r.headers.get('location'), `${ORIGEM}/cartoon/participantes/cookitos?${UTM}&utm_content=d1-cookitos`)
+  assert.equal(r.headers.get('location'), `${ORIGEM}/cartoon/carimbo/cookitos?${UTM}&utm_content=d1-cookitos`)
 })
 
 test('destino manual do banco vale; o que não é caminho do próprio site é ignorado', async () => {

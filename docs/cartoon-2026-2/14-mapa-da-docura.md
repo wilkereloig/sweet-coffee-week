@@ -362,3 +362,22 @@ impressão, ainda a definir.
   `tests/cartoon-navegador.mjs` (vistas fora do DEV, lista, marcadores, filtros, perto de mim).
 - **[A DEFINIR]** depois da arte final: tamanho das casas e da bandeira, rótulos dos marcos perto da borda, aprovar
   (`--aprovada`); posições das 25 unidades que hoje vêm só do bairro, depois de conferidas em Participantes › Localizações.
+
+## 14.14 · Caça aos Carimbos: QR do display e carimbo pendente (04/11/2026)
+
+- **[Decisão]** Wilker, 04/11: a ativação se chama **Caça aos Carimbos** (Mapa da Doçura é o nome do mapa). Regras completas
+  no documento interno `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/04_SINALIZACAO/caca-aos-carimbos/caca-aos-carimbos-regras.pdf`:
+  5 vouchers digitais (dias 7 a 11/11, um por dia, mais carimbos acumulados desde 5/11, 1 por pessoa, empate por
+  sorteio) e prêmio final (press kit + surpresa) por sorteio entre quem completou o mapa, cada carimbo uma chance.
+- **[Decisão]** O **QR do display de mesa** (face do combo, `/q/d1-<casa>`) também carimba: `destinoDoCodigo` leva a
+  `/cartoon/carimbo/<slug>`, que mostra o nome e a logo da casa, **"Ver o combo"** e o botão de carimbar. A página aceita os
+  dois formatos (código de 8 caracteres da unidade ou slug da casa; nenhum slug da edição tem o formato do código).
+  `mapa_carimbar_casa(chave, slug, lat, lng, precisão)` escolhe a unidade da casa mais perto do celular e chama
+  `mapa_carimbar` (mesmas regras: janela da avaliação, distância, 12 h por casa e por e-mail).
+- **[Decisão]** **Carimbo pendente até a avaliação:** os carimbos de uma casa só contam depois que o mapa avaliou o combo
+  dela; avaliada, vale os carimbos + 2. Voltas contam sem nova avaliação. `carimbo_placar` conta só casas validadas
+  (`avaliadas` = `casas`); o álbum mostra "X de 27 casas validadas" e os pendentes com "Avaliar e validar".
+- Migration `20261202_carimbo_por_casa_pendente.sql` (só funções, nenhuma tabela) — **aplicar só com o ok do Wilker**.
+- [A DEFINIR] Os "números da sorte" de `get_mapa_carimbos` ainda seguem a regra antiga (todo mapa, avaliação = 2 números):
+  ajustar para "só quem completou, 1 número por carimbo validado" e a apuração diária dos vouchers no painel.
+  O texto da página `/cartoon/regulamento` também precisa ser reescrito com as regras novas.
