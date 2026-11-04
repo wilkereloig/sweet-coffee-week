@@ -2069,3 +2069,27 @@ testes em `tests/painel-app-vouchers.test.mjs`.
 - **Contatos › ficha da pessoa** conta "disponíveis" só dos impressos (`x.canal !== 'virtual'`): o destinar de lá chama `destinar_vouchers`.
 - ⚠️ Não verificado em navegador nem em aparelho (câmera, `BarcodeDetector`, abertura do QR no iPhone). Verificado: testes (687 do painel, 73 da
   edição), teste SQL no banco e build.
+
+#### Fotos do combo por LINK (Dropbox) e aviso no dia 5 — 03/11/2026 (Wilker: "uma forma de disponibilizar essas fotos sem ocupar espaço")
+O Supabase free já está em ~1,04 GB (`redes` 773 MB + `arquivos` 261 MB; limite 1 GB; o painel do Supabase avisa cota excedida e restrição a
+partir de 23/11). As fotos aprovadas (180 em PNG ≈ 700 MB + 178 lâminas do carrossel ≈ 63 MB) NÃO vão para o Storage: cada marca ganha uma pasta
+no Dropbox e o painel mostra um item "Fotos do combo" que abre o link. Migrations `20261129_arquivo_por_link.sql` e
+`20261130_aviso_fotos_dia5.sql` (✅ aplicadas; testes `supabase/testes/arquivo-por-link.sql` e `aviso-fotos-dia5.sql` → `TESTE_OK`; reversão em `supabase/reverter/`).
+- **`arquivos.url_externa`**: exatamente um entre `path` (Storage) e `url_externa`; só `https://…dropbox.com/…`. `get_arquivos_admin` devolve o link.
+  Marca: `FotosOficiais.jsx` mostra "Abrir as fotos" (anchor `_blank`, `noopener`), sem Baixar/ZIP (`ehLinkExterno`, `lib/arquivosMarca.js`; `detalheDaFoto`
+  diz "Pasta no Dropbox"). Equipe: `ArquivosOrg.jsx` abre o link e não oferece "Substituir".
+- **Publicar SEM avisar:** o aviso por arquivo (`gerar_notificacoes`) só dispara no **INSERT já publicado**. Insira com `publicado_em` nulo e depois
+  `update … set publicado_em = now()` — o UPDATE não avisa ninguém.
+- **Aviso único em 05/11/2026 09:00 (Natal):** `avisar_fotos_do_combo()` por pg_cron (`scw-aviso-fotos-dia5`, `0 12 5 11 *` UTC). Só avisa marca com pasta publicada
+  (arquivo de link, categoria `combo`) e que ainda não recebeu o aviso; depois do dia 5 desagenda o job. `avisar_fotos_do_combo(true)` força (teste).
+- **Pastas no Dropbox:** `09_ENTREGAS/fotos-participantes/<marca>/` (só a versão mais nova de cada foto aprovada + `Carrossel com tarja/` com as lâminas 01–07; sem a
+  08 de arte final, sem `_versoes-anteriores`). Links públicos criados NO DROPBOX (o conector do Claude só cria link privado por convite de e-mail, e o Dropbox avisaria
+  a marca na hora). Os endereços ficam em `clientes/sweet-coffee-week-dados/` (fora do repositório público).
+- Marlon ganhou o link também (03/11): continua com os 14 arquivos do Storage e agora tem a pasta no Dropbox como as outras 26 (27 marcas com link).
+- **Prévia do cartão (03/11, Wilker: "tem como adicionar uma prévia das fotos?"):** `arquivos.previa_dados` (migration `20261131_arquivo_previa_dados.sql`, ✅ aplicada; teste
+  `supabase/testes/arquivo-previa-dados.sql` → `TESTE_OK`; reversão em `supabase/reverter/`). É um MOSAICO WebP 640×480 (Combo grande + Doce, Salgado e Bebida empilhados;
+  30–62 KB) guardado na linha como data URL — o `previa_path` não serve porque o link não tem arquivo no Storage. CHECK: só linha de link, só WebP, ≤ 150.000 caracteres.
+  `Miniatura.jsx` desenha direto (sem assinar); sem prévia ou imagem que falha → ícone + nome. A marca lê pela tabela (`select=*`, só a linha dela); `get_arquivos_admin`
+  NÃO devolve a coluna. Trocar a prévia é UPDATE (não notifica). **Para refazer:** gerar o mosaico das fotos originais da pasta do Dropbox (Pillow, cobrir/cortar; 4:5 → 384×480
+  à esquerda e 3 células 251×156 à direita, vão de 5 px, fundo #F1DFC4, qualidade 74) e gravar por UPDATE em `arquivos.previa_dados` — o texto base64 passa de 1 MB no total,
+  então NÃO cabe numa chamada SQL do MCP: use uma função temporária com token descartável (foi o que se fez; já desativada, `previa-upload-temp` responde 410 e pode ser apagada no painel).

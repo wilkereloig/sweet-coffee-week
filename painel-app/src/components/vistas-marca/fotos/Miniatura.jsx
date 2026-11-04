@@ -12,6 +12,8 @@ import { ehImagem } from '../../../lib/fotosMarca'
  *   · se a imagem não abrir (endereço vencido, rede), assina UMA vez de novo; se falhar outra vez, mostra o ícone
  *     e o nome — a falha de uma miniatura nunca derruba a lista.
  * Arquivo que não é imagem (PDF, vídeo) nem tenta: ícone e nome.
+ * Exceção: a pasta do Dropbox (link, migration 20261129) não tem arquivo para assinar — a prévia é o mosaico que já vem na
+ * própria linha (`previa_dados`, data URL WebP, migration 20261131): aparece direto, sem assinar nada. Imagem que não abre → ícone.
  */
 export function Miniatura({ arquivo }) {
   const quadro = React.useRef(null)
@@ -20,6 +22,7 @@ export function Miniatura({ arquivo }) {
   const [carregou, setCarregou] = React.useState(false)
   const tentouDeNovo = React.useRef(false)
   const imagem = ehImagem(arquivo)
+  const dados = arquivo.previa_dados || null
 
   const assinar = React.useCallback(async () => {
     try { return await assinarDownload(arquivo.path) } catch { return null }
@@ -48,14 +51,16 @@ export function Miniatura({ arquivo }) {
     if (u) setUrl(u); else setFalhou(true)
   }
 
-  const sem = !imagem || falhou
+  const sem = (!imagem && !dados) || falhou
   return (
-    <div ref={quadro} className={'fm-mini' + (sem ? ' fm-mini--sem' : '') + (carregou ? ' is-carregou' : '')}>
+    <div ref={quadro} className={'fm-mini' + (sem ? ' fm-mini--sem' : '') + (carregou || (dados && !sem) ? ' is-carregou' : '')}>
       {sem ? (
         <span className="fm-mini__sem" role="img" aria-label={'Sem prévia: ' + arquivo.nome}>
           <Icone nome={imagem ? 'imagem' : 'documento'} tamanho={24} />
           <span>{arquivo.nome}</span>
         </span>
+      ) : dados ? (
+        <img src={dados} alt="" decoding="async" onError={() => setFalhou(true)} />
       ) : (
         <>
           {!carregou && <span className="fm-mini__espera" aria-hidden="true"><Icone nome="imagem" tamanho={24} /></span>}

@@ -252,6 +252,7 @@ export const ehImagem = (a) => /^image\//.test((a && a.mime) || '') || /\.(jpe?g
 
 /** "Imagem JPG · 2,3 MB · versão 2 · 21/10/2026" — só o que o dado tem. */
 export function detalheDaFoto(a) {
+  if (a.url_externa) return ['Pasta no Dropbox', dataCurta(a.publicado_em || a.created_at)].filter(Boolean).join(' · ')
   return [tipoLegivel(a.mime, a.path), tamanhoLegivel(a.tamanho), a.versao ? 'versão ' + a.versao : '', dataCurta(a.publicado_em || a.created_at)]
     .filter(Boolean).join(' · ')
 }

@@ -9,7 +9,7 @@ import {
   interpretarReserva, textoDeConfirmarReserva, situacaoDaLeitura, pendenciasDeFotos, ehImagem, detalheDaFoto, situacaoDaConferencia,
   A_CONFIRMAR, TEXTO_CONCORRENCIA, capitalizar, minuscula, fraseDaSessao, notaDoAgendamento,
 } from '../painel-app/src/lib/fotosMarca.js'
-import { notaDeAbertura } from '../painel-app/src/lib/arquivosMarca.js'
+import { notaDeAbertura, ehLinkExterno } from '../painel-app/src/lib/arquivosMarca.js'
 import { ativarVerComo, obterArquivoMarca } from '../painel-app/src/lib/marcaApi.js'
 import { resumoMarca, fotosDaParticipacao } from '../painel-app/src/lib/guia.js'
 import { TONS } from '../painel-app/src/lib/status.js'
@@ -400,9 +400,10 @@ test('fotos oficiais: "Baixar todas (ZIP)" e "Salvar ou compartilhar" com 2+ fot
   assert.match(fo, /const entrega = useEntrega\(\{ obter: obterArquivoMarca, quem: 'marca' \}\)/, 'a marca passa o próprio caminho de busca e diz quem é (mensagens sem \"escolha menos\")')
   assert.match(fo, /import \{ useEntrega, BotoesEntrega, EstadoEntrega \} from '\.\.\/\.\.\/vistas\/BaixarArquivo'/)
   assert.match(fo, /import \{ api, obterArquivoMarca \} from '\.\.\/\.\.\/\.\.\/lib\/marcaApi'/)
-  const bloco = fo.slice(fo.indexOf("arquivos.length > 1 && ("), fo.indexOf('<ul className="fm-fotos">'))
+  // (20261129) o ZIP só leva as fotos que são arquivo no Storage: a pasta do Dropbox é link e fica de fora dele
+  const bloco = fo.slice(fo.indexOf("arquivos.filter((a) => !ehLinkExterno(a)).length > 1 && ("), fo.indexOf('<ul className="fm-fotos">'))
   assert.match(bloco, /<BotoesEntrega entrega=\{entrega\} nomeZip="Fotos oficiais" rotuloBaixar="Baixar todas \(ZIP\)"/)
-  assert.match(bloco, /itens=\{arquivos\.map\(\(a\) => \(\{ path: a\.path, nome: a\.nome, mime: a\.mime, tamanho: a\.tamanho \}\)\)\}/)
+  assert.match(bloco, /itens=\{arquivos\.filter\(\(a\) => !ehLinkExterno\(a\)\)\.map\(\(a\) => \(\{ path: a\.path, nome: a\.nome, mime: a\.mime, tamanho: a\.tamanho \}\)\)\}/)
   assert.match(bloco, /<EstadoEntrega entrega=\{entrega\} \/>/)
   // A equipe segue com o caminho de sempre (arquivo-url); o rótulo próprio é o nome acessível (WCAG 2.5.3).
   const ent = ler('painel-app/src/components/vistas/BaixarArquivo.jsx')
@@ -658,4 +659,31 @@ test('estilo da aba: só tokens (sem hex, raio ou fonte literal), sem caixa-alta
   }
   for (const m of css.matchAll(/font:[^;}]*?\d+(?:\.\d+)?px\/[\d.]+\s+([^;}]+)/g)) assert.match(m[1].trim(), /^var\(--f-/, 'família literal: ' + m[1])
   for (const m of css.matchAll(/font:\s*(\d{3})\b/g)) assert.ok(['400', '700'].includes(m[1]), 'peso fora de 400/700: ' + m[1])
+})
+
+test('foto por link (pasta do Dropbox, migration 20261129): detalhe sem formato/tamanho e tela sem baixar', () => {
+  const link = { id: 'l1', nome: 'Fotos do combo', url_externa: 'https://www.dropbox.com/scl/fo/abc/x?rlkey=k&dl=0', publicado_em: '2026-11-05T12:00:00Z' }
+  assert.equal(ehLinkExterno(link), true)
+  assert.equal(ehLinkExterno({ path: 'a/b.png' }), false)
+  assert.equal(ehLinkExterno(null), false)
+  assert.match(detalheDaFoto(link), /^Pasta no Dropbox · 05\/11\/(20)?26$/)
+  // a tela abre o endereço em outra aba, sem assinar nem baixar nada do Storage
+  const fonte = readFileSync(new URL('../painel-app/src/components/vistas-marca/fotos/FotosOficiais.jsx', import.meta.url), 'utf8')
+  assert.match(fonte, /ehLinkExterno\(a\) && \(\s*<a className="og-btn og-btn--mini" href=\{a\.url_externa\} target="_blank" rel="noopener noreferrer"/)
+  assert.match(fonte, /itens=\{arquivos\.filter\(\(a\) => !ehLinkExterno\(a\)\)/)
+})
+
+test('foto por link: a prévia (mosaico em `previa_dados`, migration 20261131) aparece direto, sem assinar; sem ela, ícone e nome', () => {
+  const { Miniatura } = carregar(VISTAS + 'fotos/Miniatura.jsx')
+  const dados = 'data:image/webp;base64,UklGRg=='
+  const link = { id: 'l1', nome: 'Fotos do combo — pasta no Dropbox', url_externa: 'https://www.dropbox.com/scl/fo/abc/x?rlkey=k&dl=0' }
+  const com = html(Miniatura, { arquivo: { ...link, previa_dados: dados } })
+  assert.ok(com.includes('<img src="' + dados + '" alt=""'), 'a imagem da prévia vem na própria linha')
+  assert.doesNotMatch(com, /fm-mini--sem/)
+  const sem = html(Miniatura, { arquivo: link })
+  assert.match(sem, /fm-mini--sem/, 'sem prévia: ícone + nome, como antes')
+  assert.doesNotMatch(sem, /<img/)
+  // a prévia só nasce na linha de link e a lista da equipe não a carrega
+  assert.match(ler('supabase/migrations/20261131_arquivo_previa_dados.sql'), /url_externa is not null and length\(previa_dados\) <= 150000/)
+  assert.doesNotMatch(ler('painel-app/src/components/vistas/ArquivosOrg.jsx'), /previa_dados/)
 })
