@@ -1,7 +1,13 @@
 // Voucher virtual — página do link (src/edicao/rota/voucherVirtual.js; decisões do Wilker, 04/11/2026).
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import * as V from '../src/edicao/rota/voucherVirtual.js'
+import { COR_DO_VOUCHER, CARTAO, VERSO_QR, VERSO_CODIGO, arteDoVoucher } from '../src/data/voucherArteEdicao.js'
+
+const PUB = fileURLToPath(new URL('../public/', import.meta.url))
+const noDisco = (src) => existsSync(PUB + src.replace(/^\//, ''))
 
 const TOKEN = 'abcdefgh2345'
 
@@ -56,4 +62,24 @@ test('consultar: formato ruim nem chega à rede; resposta vazia vira null; erro 
   assert.deepEqual(await V.consultar(TOKEN, { buscar: buscar({ codigo: 'SCW-2ZMRN', estado: 'valido' }) }), { codigo: 'SCW-2ZMRN', estado: 'valido' })
   assert.equal(await V.consultar(TOKEN, { buscar: buscar(null) }), null)
   await assert.rejects(V.consultar(TOKEN, { buscar: async () => ({ ok: false, status: 500, json: async () => null }) }))
+})
+
+test('arte do voucher: 27 casas, 9 por cor, toda imagem existe no disco; casa sem cartão não ganha arte', () => {
+  const slugs = Object.keys(COR_DO_VOUCHER)
+  assert.equal(slugs.length, 27)
+  for (const cor of ['amarelo', 'turquesa', 'roxo']) assert.equal(slugs.filter((s) => COR_DO_VOUCHER[s] === cor).length, 9, cor)
+  for (const s of slugs) {
+    const a = arteDoVoucher(s)
+    assert.ok(noDisco(a.frente), `frente ausente: ${a.frente}`)
+    assert.ok(noDisco(a.verso), `verso ausente: ${a.verso}`)
+    assert.equal(a.largura / a.altura, CARTAO.largura / CARTAO.altura, 'proporção do cartão')
+  }
+  assert.equal(arteDoVoucher('delas-cafe-bistro'), null)
+  assert.equal(arteDoVoucher(undefined), null)
+})
+
+test('arte do voucher: QR e código cabem dentro do cartão, e o QR fica à direita do texto do verso', () => {
+  assert.ok(VERSO_QR.x >= 0 && VERSO_QR.x + VERSO_QR.lado <= CARTAO.largura)
+  assert.ok(VERSO_QR.y >= 0 && VERSO_QR.y + VERSO_QR.lado < VERSO_CODIGO.y, 'o código fica abaixo do QR')
+  assert.ok(VERSO_CODIGO.y < CARTAO.altura && Math.abs(VERSO_CODIGO.x - (VERSO_QR.x + VERSO_QR.lado / 2)) < 0.5, 'código centrado sob o QR')
 })

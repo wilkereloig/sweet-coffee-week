@@ -13,3 +13,8 @@
 .ct-voucher__qr { display: block; width: 160px; height: 160px; margin: 0 0 12px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
 .ct-voucher__qr--vazio { opacity: .5; }
 .ct-voucher__codigo-apagado { text-decoration: line-through; }
+/* Cartão-voucher em tela: a arte do impresso (84 x 54 mm) em SVG; o botão vira a frente e o verso. */
+.ct-voucher__cartao { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin: 4px 0 12px; }
+.ct-vcard { display: block; width: 100%; height: auto; aspect-ratio: 84 / 54; filter: drop-shadow(0 3px 0 rgba(58, 21, 15, .35)); }
+.ct-vcard__codigo { font-family: var(--ct-font); font-weight: 700; letter-spacing: .05em; fill: #000; }
+.ct-vcard__contorno { fill: none; stroke: #3A150F; stroke-width: .6px; }

@@ -19,6 +19,7 @@
     "test:casca-institucional": "node tests/casca-institucional.mjs",
     "test:cartoon-navegador": "node tests/cartoon-navegador.mjs",
     "test:cartoon-sistema": "node tests/cartoon-sistema-navegador.mjs",
+    "test:cartoon-voucher": "node tests/cartoon-voucher-virtual-navegador.mjs",
     "test:rotas-edicao": "node --test tests/rotas-edicao.test.mjs",
     "qr:edicao": "node scripts/qr-edicao.mjs",
     "test:cartoon": "node --test tests/rotas-edicao.test.mjs tests/cartoon-modelo.test.mjs tests/cartoon-rota.test.mjs tests/cartoon-retrato.test.mjs tests/cartoon-sistema.test.mjs tests/cartoon-carimbo.test.mjs tests/cartoon-voucher-virtual.test.mjs tests/cartoon-mundo.test.mjs",

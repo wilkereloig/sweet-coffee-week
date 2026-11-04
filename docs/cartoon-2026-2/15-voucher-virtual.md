@@ -1,6 +1,6 @@
 # 15 · Voucher virtual
 
-**Estado (04/11/2026): migration APLICADA no banco (projeto `dgfmoibynftadsyjcclg`, `TESTE_OK`), site testado, NADA publicado e nenhum voucher virtual gerado ainda.** Decisões do Wilker (chat 4bb80e0c): vale só na casa que cedeu, com **cota extra de 2 por marca** (não sai dos 7 impressos), entrega por **link**, validação pela marca **digitando o código ou lendo o QR**. O cartão impresso (cartão de crédito Sicredi) tem a arte em `…/07_VOUCHERS/04_CARTAO_SICREDI/`; a arte virtual é a mesma, em tela, e ainda não foi feita.
+**Estado (04/11/2026): migration APLICADA no banco (projeto `dgfmoibynftadsyjcclg`, `TESTE_OK`), site testado, NADA publicado e nenhum voucher virtual gerado ainda.** Decisões do Wilker (chat 4bb80e0c): vale só na casa que cedeu, com **cota extra de 2 por marca** (não sai dos 7 impressos), entrega por **link**, validação pela marca **digitando o código ou lendo o QR**. O cartão impresso (cartão de crédito Sicredi) tem a arte em `…/07_VOUCHERS/04_CARTAO_SICREDI/`; **a arte virtual é a mesma, em tela, e foi feita em 04/11** (ver "Arte em tela").
 
 ## Como funciona
 
@@ -31,10 +31,17 @@ O código tem 5 caracteres (~33 milhões). Com uma página pública por código,
 - **Organização:** Contatos › Vouchers › seletor "Canal" (Impressos · Virtuais): gerar, destinar, **copiar link** e **copiar mensagem**.
 - **Marca:** o cartão de vouchers mostra os virtuais; o campo do código é preenchido por **`/painel/?voucher=SCW-XXXXX`** (QR aberto pela câmera do celular, guardado antes do login) ou por **"Ler o QR do cliente"** no painel (só onde há `BarcodeDetector`). Ler só preenche; **registrar é sempre um toque da marca**.
 
+## Arte em tela (04/11/2026)
+
+A página mostra o cartão da casa em SVG (`viewBox` 84 × 54 mm = o corte do impresso): a **frente** é a do impresso de cada casa (com o nome do titular) e o **verso** é o da cor dela **sem QR e sem código**; o QR (só os módulos, 16,42 mm) e o código entram por cima, nas posições do impresso. Botão "Ver o verso" / "Ver a frente" vira a face. O QR grande e o código abaixo do cartão continuam sendo o que a marca lê.
+- Imagens: `public/images/marcas-edicoes/2026.2/voucher/` (27 `frente-<slug>.webp` + 3 `verso-<cor>.webp`, 1008 × 648, 1,8 MB no total). Dados: `src/data/voucherArteEdicao.js` (**gerado**: cor de cada casa, medidas, `arteDoVoucher(slug)`). Casa sem cartão impresso (hoje Delas Café Bistrô e Docinhos da Lalá) cai no bloco com logo e nome, sem cartão.
+- Gerado por scripts da pasta da edição (`07_VOUCHERS/04_CARTAO_SICREDI/_bastidores/`): `gerar_versos_virtual.jsx` (Illustrator, numa cópia do `.ai`), `arte_voucher_virtual.py` (exporta e gera o `.js`), `previa_voucher_virtual.py` (prévia ao lado do impresso).
+- Testes: `tests/cartoon-voucher-virtual.test.mjs` (27 casas, 9 por cor, arquivos no disco, geometria) e `npm run build && npm run test:cartoon-voucher` (navegador, com o RPC interceptado e o relógio dentro da validade).
+
 ## Falta
 
 1. **Gerar os virtuais** (hoje 0): pelo painel (Contatos › Vouchers › Virtuais › Gerar), 2 por marca ativa. Aguarda o Wilker mandar o voucher final.
-2. **Arte** do voucher virtual (cartão em tela, 4:5) a partir do `.ai` do Wilker; a página `/cartoon/voucher/<token>` hoje é só texto, QR e código, sem o cartão.
+2. ~~Arte do voucher virtual~~ — feita em 04/11 (ver acima). Falta o Wilker ver no aparelho.
 3. **Publicar** (decisão do Wilker): sem `CARTOON_PUBLICA` o cliente não abre o link. Painel e página só vão ao ar com o commit e o push.
 4. **Verificar em aparelho:** abrir o QR no iPhone e no Android, e a câmera do painel (Chrome Android).
 5. Quantidade (2) e validade (5 a 15/11, fuso de Natal, em `voucherVirtual.js`) estão decididas; mudar a cota é uma coluna, sem código.
