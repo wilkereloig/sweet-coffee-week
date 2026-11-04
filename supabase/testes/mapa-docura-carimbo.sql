@@ -65,9 +65,10 @@ begin
   perform public.carimbo_qr_novo(null, pu);
   if public.mapa_carimbar(ch3, qr, lat, lng, 20) ->> 'motivo' <> 'qr_invalido' then raise exception '7d'; end if;
 
-  -- 8) apagar o mapa leva os carimbos
-  if not public.mapa_apagar(ch3) or exists (select 1 from public.carimbos k join public.mapas_lover m on m.id = k.mapa_id
-                                            where m.email_norm = 'longe@exemplo.com') then raise exception '8'; end if;
+  -- 8) apagar o mapa leva os carimbos. Em duas etapas: num OR o Postgres pode avaliar o exists ANTES do apagar.
+  if not public.mapa_apagar(ch3) then raise exception '8a'; end if;
+  if exists (select 1 from public.carimbos k join public.mapas_lover m on m.id = k.mapa_id
+              where m.email_norm = 'longe@exemplo.com') then raise exception '8b'; end if;
 
   raise exception 'TESTE_OK';
 end $$;
