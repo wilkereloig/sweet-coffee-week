@@ -315,30 +315,7 @@ export const MUNDO_EDICAO = {
       "y": 0.3223
     }
   ],
-  "docerias": [
-    "boldfood-confeitaria-inclusiva",
-    "caffe-basilicos",
-    "carcara",
-    "caroli-douces",
-    "casa-1190-restaurante-e-coffee",
-    "cookitos",
-    "delicato-bolos",
-    "diva-do-cafe",
-    "jolie-cafe-patisserie",
-    "just-food-e-coffee",
-    "mangai",
-    "marianas-confeitaria",
-    "marlon-vinicius-confeitaria-e-cafe",
-    "mr-cupcake-confeitaria",
-    "o-maestro-cafe",
-    "padoca-do-bosque",
-    "paneer-patisserie",
-    "parma-doces",
-    "sabor-de-pao",
-    "sweet-duo-confeitaria",
-    "vivianne-castro-doces",
-    "wow-cookies"
-  ],
+  "docerias": [],
   "logos": [
     "adocee-doceria",
     "boldfood-confeitaria-inclusiva",

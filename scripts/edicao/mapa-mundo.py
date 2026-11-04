@@ -1,6 +1,6 @@
 """Mundo da Doçura (mapa desenhado da Cartoon, docs/cartoon-2026-2/14 §14.12-§14.13) -> arquivos do site.
 
-    python -I scripts/edicao/mapa-mundo.py [posicoes.json] [arte-base.png] [--aprovada]
+    python -I scripts/edicao/mapa-mundo.py [posicoes.json] [arte-base.png] [--aprovada] [--docerias]
 
 Fonte (Dropbox da edição, 06_MATERIAIS_PDV/03_MAPA_IMPRESSO/):
     01_RASCUNHO_POSICOES/_bastidores/posicoes-arte-vN.json   posição de cada unidade NA ARTE (0-1), número da casa,
@@ -20,6 +20,8 @@ Saída VERSIONADA (arte da edição, pública como os pins e as logos desenhadas
     src/data/mundoEdicao.js  — os dados (gerado; o imageLibrary monta os caminhos)
 
 `--aprovada` marca a arte como aprovada pelo Wilker: só então a vista Mundo aparece fora do DEV.
+`--docerias` põe as docerias soltas por cima do chão. Desde 04/11 o conceito é outro (Wilker): os mundos dos temas
+vêm pintados NO chão, perto de cada pin, e as docerias saíram da prévia. O código continua, desligado por padrão.
 Confere que toda unidade do retrato local tem posição; a que faltar sai na tela (fica só na lista e no Google).
 Idempotente: apaga as bases e docerias antigas e regera tudo.
 """
@@ -69,7 +71,7 @@ for w in larguras:
 
 # Docerias: a maior versão de cada casa; só PNG com alfa, só slug que existe no retrato.
 docerias = {}
-for f in GERACOES.glob('doceria_*_v*.png'):
+for f in (GERACOES.glob('doceria_*_v*.png') if '--docerias' in sys.argv else []):
     m = re.fullmatch(r'doceria_(.+)_v(\d+)\.png', f.name)
     if m and m.group(1) in slugs and int(m.group(2)) >= docerias.get(m.group(1), (0, None))[0]:
         docerias[m.group(1)] = (int(m.group(2)), f)

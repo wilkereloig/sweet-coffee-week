@@ -339,8 +339,9 @@ impressão, ainda a definir.
   a v1 tem casa-cogumelo, casa-abacaxi, castelo e arco-íris); de preferência ≥ 2048 px no lado menor.
 - **Pin da casa = LOGO OFICIAL, com o TEMA ao lado** (Wilker, 03/11): o script reduz a logo para 128 px (a sincronizada
   da pasta PRINCIPAIS; senão a do cadastro). O tema aparece com zoom, no foco, no ponteiro e na casa escolhida — no zoom 1
-  os 41 rótulos cobririam o mapa. A doceria desenhada, quando existe, fica embaixo do pin. Os pins temáticos antigos
-  (`05_SITE/10_PINS_MAPA`) não são mais o pin do mapa.
+  os 41 rótulos cobririam o mapa. Os pins temáticos antigos (`05_SITE/10_PINS_MAPA`) não são mais o pin do mapa.
+- **[Decisão]** Wilker, 04/11: os mundos dos 27 temas vêm **pintados no chão**, perto de cada pin (fonte: `03_MAPA_IMPRESSO/BRIEFING-DO-MAPA.md`).
+  As docerias soltas saíram da prévia (o script só as põe com `--docerias`); o rótulo do tema ao lado do pin fica até o chão novo chegar.
 - **v2 em paisagem girada** (1536 × 1024, mar em cima, norte à esquerda): o site aceita qualquer proporção; no celular a
   paisagem ganha 62% da altura da tela e rola de lado dentro da janela.
 - **Acessibilidade:** cada casa é um `<button>` com nome falado ("3. Caroli Douces, tema …, parada 2 da sua rota, carimbada"), na
