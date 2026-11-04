@@ -104,7 +104,7 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
 
 const TITULOS = {
   participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
-  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Carimbo do Mapa da Doçura', voucher: 'Voucher virtual', regulamento: 'Regulamento do Mapa da Doçura', inexistente: 'Página não encontrada',
+  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
