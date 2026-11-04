@@ -6,6 +6,7 @@ import React from 'react'
 import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
 import { Link } from '../base.jsx'
 import { IconeCartoon } from './IconeCartoon.jsx'
+import { gibiEdicao } from '../../../data/imageLibrary'
 
 /**
  * Fita com o nome da seção: amarela; `cor="azul"` no canal Serviço ("como funciona"), em texto grande.
@@ -27,6 +28,14 @@ export function Rotulo ({ children, icone, as: Tag = 'p', className = '', ...res
       {icone && <ScwIcon nome={icone} tamanho={20} />}<span>{children}</span>
     </Tag>
   )
+}
+
+/**
+ * Preço em letreiro, como o "COMBO R$ 38,90" da arte final do carrossel: rótulo branco em cima e o valor vermelho com
+ * volume. O espaço entre os dois é texto: a frase lida é "Combo R$ 38,90".
+ */
+export function Preco ({ rotulo, valor, as: Tag = 'p', className = '' }) {
+  return <Tag className={`ct-preco ${className}`.trim()}><span className="ct-preco__combo">{rotulo}</span> <span className="ct-preco__valor">{valor}</span></Tag>
 }
 
 /** Dado curto em chocolate. */
@@ -77,14 +86,34 @@ export function Chip ({ ativo, icone, onClick, children, className = '' }) {
   )
 }
 
-/** Passos numerados com o ícone da edição (Entrada "Como funciona", Avaliar "Como avaliar"). `passos`: [{ titulo, texto, icone }]. */
+/**
+ * Desenho de gibi da edição (imageLibrary `gibiEdicao`: mesa, palco, objetos, luvas). Sempre decorativo: alt vazio e
+ * aria-hidden; o texto que ele acompanha diz tudo. `prioridade` para o que aparece na primeira tela.
+ */
+export function Gibi ({ chave, className = '', prioridade = false }) {
+  const g = gibiEdicao(chave)
+  if (!g) return null
+  return (
+    <img className={`ct-gibi ${className}`.trim()} src={g.src} width={g.largura} height={g.altura} alt="" aria-hidden="true"
+      decoding="async" loading={prioridade ? 'eager' : 'lazy'} {...(prioridade ? { fetchpriority: 'high' } : {})} />
+  )
+}
+
+/* Cada passo ganha o objeto desenhado do assunto (repaginação de 04/11); sem objeto, o ícone ilustrado de antes. */
+const DESENHO_DO_PASSO = { casas: 'loja', 'no-local': 'bandeja', avaliar: 'prancheta', premio: 'megafone' }
+
+/**
+ * Passos numerados como tira de gibi (Entrada "Como funciona", Avaliar "Como avaliar"): cada passo é um quadro com a
+ * caixa do número no canto, o objeto desenhado e o texto. `passos`: [{ titulo, texto, icone }].
+ */
 export function Passos ({ passos }) {
   return (
     <ol className="ct-passos">
       {passos.map((p, i) => (
         <li key={p.titulo}>
-          <IconeCartoon nome={p.icone} tamanho={64} />
-          <h3 className="ct-passos__titulo"><span className="ct-passos__n" aria-hidden="true">{i + 1}</span>{p.titulo}</h3>
+          <span className="ct-passos__n" aria-hidden="true">{i + 1}</span>
+          {DESENHO_DO_PASSO[p.icone] ? <Gibi chave={DESENHO_DO_PASSO[p.icone]} className="ct-passos__desenho" /> : <IconeCartoon nome={p.icone} tamanho={64} />}
+          <h3 className="ct-passos__titulo">{p.titulo}</h3>
           <p>{p.texto}</p>
         </li>
       ))}

@@ -1,20 +1,20 @@
 /* Camada Cartoon · Casas e Combos. Entra por src/styles/scw-cartoon.css (a ordem dos @import é a da cascata). */
 /* ------------------------------------------------------------- catálogo (E6, §10.7) */
-/* Topo no canal Elenco: o letreiro e, ao lado (a partir de 900), a placa com a contagem real + a chamada. */
-.ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 12px 56px; padding-block: clamp(28px, 4.5vw, 56px); }
-.ct-catalogo__chamada { min-width: 0; }
+/* Topo amarelo com retícula (repaginação de 04/11): o letreiro, o preço em letreiro (combos) ou a contagem (casas) com
+   a chamada; à direita, o objeto desenhado do assunto (bandeja nos combos, lojinha nas casas) sobre a explosão.
+   Celular: o desenho sai — a vitrine sobe para logo depois do topo. */
+.ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 12px 40px; overflow: hidden; padding-block: clamp(28px, 4.5vw, 56px); }
+.ct-catalogo__chamada { display: grid; justify-items: start; gap: 14px; min-width: 0; }
 .ct-catalogo__topo .ct-letreiro { margin: 0; }
-.ct-catalogo__topo .ct-letreiro--imagem img { width: min(560px, 100%); }
-.ct-catalogo__apoio { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px 24px; }
-.ct-catalogo__apoio .ct-lead { max-width: 26ch; margin: 0; }
-.ct-catalogo__apoio .ct-placa { flex: none; rotate: -3deg; }
-/* Combos: o letreiro desenhado do preço ("Combo R$ 38,90", peça do display de mesa) no lugar da placa de contagem. */
-.ct-catalogo__preco { display: block; width: clamp(150px, 22vw, 240px); height: auto; rotate: -3deg; }
-/* Linha própria, acima da placa e à direita: na diagonal oposta ao letreiro, sem apertar o lead. */
-.ct-catalogo__olhos { grid-column: 1 / -1; grid-row: 1; justify-self: end; width: clamp(80px, 9vw, 132px); }
+.ct-catalogo__dados { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 26px; }
+.ct-catalogo__dados .ct-lead { max-width: 30ch; margin: 0; }
+.ct-catalogo__cena { position: relative; display: none; place-items: center; isolation: isolate; width: 100%; max-width: 360px; justify-self: end; padding: 6%; }
+.ct-catalogo__explosao { inset: 0; width: 100%; --ct-cor-explosao: var(--ct-turquesa); }
+.ct-edicao .ct-catalogo__desenho { position: relative; z-index: 1; display: block; width: 78%; height: auto; rotate: -6deg; }
 /* (0,2,0), como a regra de base acima: com um seletor só, ela vencia e o desktop ficava em uma coluna. */
 @media (min-width: 900px) {
-  .ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 560px) minmax(0, 1fr); }
+  .ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr) minmax(0, 360px); }
+  .ct-catalogo__cena { display: grid; }
 }
 .ct-catalogo__corpo { padding-top: clamp(24px, 3.5vw, 40px); }
 .ct-catalogo__resumo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 16px; min-height: 44px; margin: 0 0 12px; }
@@ -68,15 +68,16 @@
 @media (min-width: 900px) { .ct-elenco { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 24px; } }
 @media (min-width: 1200px) { .ct-elenco { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .ct-elenco .ct-cartao { min-width: 0; }
-.ct-elenco .ct-cartao__link { position: relative; grid-template-rows: auto 1fr auto; box-shadow: var(--ct-sombra-p); }
-.ct-elenco .ct-cartao__link:is(:hover, :focus-visible) { box-shadow: var(--ct-sombra); }
-.ct-cartao__visual { position: relative; overflow: hidden; container-type: inline-size; border-bottom: var(--ct-traco); background: var(--ct-creme); }
+.ct-elenco .ct-cartao__link { position: relative; grid-template-rows: auto 1fr auto; }
+.ct-cartao__visual { position: relative; overflow: hidden; container-type: inline-size; border-bottom: 3px solid var(--ct-chocolate); background: var(--ct-creme); }
+.ct-cartao__visual .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
+.ct-cartao__link:is(:hover, :focus-visible) .ct-cartao__visual .ct-foto img { scale: 1.06; }
 .ct-cartao__visual .ct-foto { border-bottom: 0; }
 /* Sem foto: a logo desenhada no Quadro é o protagonista, com a reserva honesta embaixo. */
 .ct-cartao__reserva { --ct-desenho: min(44cqi, 150px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; aspect-ratio: 4 / 3; padding: 12px; }
 .ct-cartao__aviso { padding: 3px 10px; border: 1.5px dashed var(--ct-chocolate); border-radius: 999px; background: var(--ct-branco); font: 700 12px/1.3 var(--ct-font); letter-spacing: .04em; text-align: center; }
 .ct-elenco .ct-cartao__corpo { align-content: start; gap: 6px; padding: 14px 16px 18px; }
-.ct-elenco .ct-cartao__nome { font-size: 20px; }
+.ct-elenco .ct-cartao__nome { font-size: 20px; text-transform: uppercase; }
 .ct-elenco .ct-cartao__sub { font-weight: 600; }
 .ct-cartao__onde { margin: 2px 0 4px; font: 700 13px/1.3 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
 /* Selos ao pé do cartão (3ª linha da grade): ficam alinhados entre os cartões da mesma fileira. */
@@ -106,12 +107,15 @@
   .ct-elenco .ct-cartao__espia { width: 44px; }
 }
 
+/* Quadro de gibi (repaginação de 04/11): borda chocolate de 3 px, sombra dura; no hover sobe torto, a sombra cresce e o
+   corpo vira amarelo. Foto sem borda própria: quem separa é a borda de baixo do visual. */
 .ct-cartao__link {
-  display: grid; height: 100%; gap: 0; border: var(--ct-traco); border-radius: var(--ct-raio); overflow: hidden;
-  background: var(--ct-branco); text-decoration: none; transition: transform var(--ct-mo), background-color var(--ct-mo);
+  display: grid; height: 100%; gap: 0; border: 3px solid var(--ct-chocolate); border-radius: 16px; overflow: hidden;
+  background: var(--ct-branco); box-shadow: 6px 6px 0 var(--ct-chocolate); text-decoration: none;
+  transition: translate var(--ct-mo), rotate var(--ct-mo), box-shadow var(--ct-mo), background-color var(--ct-mo);
 }
-.ct-cartao__link:is(:hover, :focus-visible) { transform: translateY(-3px); background: var(--ct-amarelo); }
-.ct-cartao__link .ct-foto { border: 0; border-bottom: var(--ct-traco); border-radius: 0; }
+.ct-cartao__link:is(:hover, :focus-visible) { translate: -3px -5px; rotate: -1.2deg; box-shadow: 10px 10px 0 var(--ct-chocolate); background: var(--ct-amarelo); }
+.ct-cartao__link .ct-foto { border: 0; border-radius: 0; }
 .ct-cartao__corpo { display: grid; gap: 4px; padding: 14px 16px 18px; }
 .ct-cartao__nome { margin: 0; font: 900 19px/1.1 var(--ct-font); }
 .ct-cartao__sub { margin: 0; font: 500 14px/1.4 var(--ct-font); }

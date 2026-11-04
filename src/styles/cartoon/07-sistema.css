@@ -1,44 +1,114 @@
 /* Camada Cartoon · Peças do sistema (letreiro, etiqueta, placa, quadro, canal, cenário). Entra por src/styles/scw-cartoon.css (a ordem dos @import é a da cascata). */
 /* ------------------------------------------------------------- sistema (docs/cartoon-2026-2/10 §10.4) */
-.ct-letreiro { margin: 0 0 16px; text-wrap: balance; }
-.ct-letreiro--imagem img { display: block; width: min(560px, 100%); height: auto; }
-/* Letreiro em texto (revisão de 03/11): imita o letreiro desenhado da edição — letra amarela, contorno chocolate por fora
-   (paint-order) e sombra curta vermelha. Antes era vermelho: título vermelho competia com o vermelho da ação focal
-   (botão) e a página alternava dois estilos de título no mesmo nível. */
-.ct-letreiro--titulo, .ct-letreiro--display {
+/* Letreiro de gibi (repaginação de 04/11, §10.17) — o desenho das peças aprovadas (carrossel de combos,
+   Confirmados, Júri): Grandstander 900 caixa-alta, letra a letra levemente torta, contorno chocolate por fora
+   (paint-order) e volume 3D em degraus de sombra. A etiqueta de apoio é branca, borda chocolate, inclinada.
+   As cores por papel: amarelo (padrão, como "CONFIRMADO") · vermelho (chamada, como "ENTRA EM CENA!") ·
+   chocolate (nome longo, sombra amarela) · creme (sobre fundo escuro). */
+.ct-letreiro {
   --ct-letra: var(--ct-amarelo);
   --ct-contorno: var(--ct-chocolate);
-  --ct-sombra-letra: .05em .07em 0 var(--ct-vermelho);
-  color: var(--ct-letra);
-  font-family: var(--ct-font); font-weight: 900;
-  -webkit-text-stroke: .12em var(--ct-contorno);
-  paint-order: stroke fill;
-  text-shadow: var(--ct-sombra-letra);
+  --ct-volume: var(--ct-chocolate);
+  /* O tamanho da letra segue a largura do PRÓPRIO título (cqi), não a da tela: palavra não quebra no meio, então em
+     coluna estreita (cartão, vão do topo com cenário, celular) a letra encolhe em vez de vazar. Com inline-size
+     containment a largura não vem do conteúdo: width 100% é obrigatório (em grade com justify-items start ele zeraria). */
+  container-type: inline-size; width: 100%;
+  margin: 0 0 clamp(18px, 2.4vw, 28px); font-family: var(--ct-font); color: var(--ct-chocolate);
 }
-.ct-letreiro--titulo { font-size: var(--ct-fs-titulo); line-height: 1.02; }
-.ct-letreiro--display { font-size: var(--ct-fs-display); line-height: .98; }
-/* Sobre o rosa (bloco do combo) a sombra vermelha some: lá ela é chocolate. */
-.ct-letreiro--cor-amarelo { --ct-letra: var(--ct-amarelo); --ct-sombra-letra: .05em .06em 0 var(--ct-chocolate); }
-/* Chocolate com contorno chocolate fecha os vãos das letras: o contorno vira creme (respiro)
-   e a sombra amarela sai além dele, como letreiro de desenho animado. */
-.ct-letreiro--cor-chocolate {
-  --ct-letra: var(--ct-chocolate);
-  --ct-contorno: var(--ct-creme);
-  --ct-sombra-letra: .09em .1em 0 var(--ct-amarelo);
+.ct-letreiro__desenho { display: grid; justify-items: start; gap: .1em; }
+.ct-letreiro__apoio {
+  position: relative; z-index: 1; margin-left: .15em; padding: .42em .8em .36em;
+  border: 3px solid var(--ct-chocolate); border-radius: 8px; background: var(--ct-branco); box-shadow: 4px 4px 0 var(--ct-chocolate);
+  font: 800 clamp(14px, 1.3vw, 18px)/1 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; rotate: -3deg;
 }
+.ct-letreiro__linha {
+  position: relative; display: block; max-width: 18ch; padding: 0 .12em .14em 0;
+  color: var(--ct-letra); font-weight: 900; line-height: .98; letter-spacing: .015em; text-transform: uppercase; text-wrap: balance;
+  -webkit-text-stroke: .11em var(--ct-contorno); paint-order: stroke fill;
+  /* Volume: degraus da sombra na cor do volume; o último, no contorno, fecha a borda de baixo. */
+  text-shadow: .025em .035em 0 var(--ct-volume), .05em .07em 0 var(--ct-volume), .075em .105em 0 var(--ct-volume), .1em .14em 0 var(--ct-contorno);
+}
+.ct-letreiro--titulo .ct-letreiro__linha { font-size: clamp(30px, 10cqi, 64px); }
+.ct-letreiro--display .ct-letreiro__linha { font-size: clamp(34px, 14cqi, 96px); max-width: 14ch; }
+.ct-letreiro__palavra { position: relative; display: inline-block; white-space: nowrap; }
+.ct-letreiro__letra { display: inline-block; }
+.ct-letreiro__letra:nth-child(3n + 1) { rotate: -2.5deg; }
+.ct-letreiro__letra:nth-child(3n + 2) { rotate: 2deg; translate: 0 -.035em; }
+.ct-letreiro__letra:nth-child(4n) { rotate: -1deg; translate: 0 .03em; }
+/* Riscos de ênfase (os traços curtos das peças), no chocolate: antes da primeira palavra e depois da última — presos
+   às palavras, e não à caixa do título, acompanham o texto quando ele quebra linha. */
+.ct-letreiro__palavra:first-child::before, .ct-letreiro__palavra:last-child::after {
+  content: ''; position: absolute; top: .02em; width: .5em; height: .55em; background: var(--ct-chocolate);
+  -webkit-mask: var(--ct-riscos) center / contain no-repeat; mask: var(--ct-riscos) center / contain no-repeat;
+}
+.ct-letreiro__palavra:first-child::before { right: calc(100% + .12em); scale: -1 1; }
+.ct-letreiro__palavra:last-child::after { left: calc(100% + .06em); }
+@media (max-width: 599.98px) { .ct-letreiro__palavra:first-child::before { display: none; } }
+.ct-letreiro--cor-vermelho { --ct-letra: var(--ct-vermelho); }
+.ct-letreiro--cor-chocolate { --ct-letra: var(--ct-chocolate); --ct-contorno: var(--ct-creme); --ct-volume: var(--ct-amarelo); }
+.ct-letreiro--cor-chocolate .ct-letreiro__linha { -webkit-text-stroke-width: .07em; }
+.ct-letreiro--cor-chocolate .ct-letreiro__palavra::before, .ct-letreiro--cor-chocolate .ct-letreiro__palavra::after { display: none; }
+.ct-letreiro--cor-creme { --ct-letra: var(--ct-creme); }
 
+/* Etiqueta: a fita das peças ("ENTROU PARA O ELENCO", "DECIFRE A PISTA") — amarela, borda e sombra chocolate. */
 .ct-etiqueta {
-  display: inline-block; margin: 0 0 12px; padding: 6px 14px 5px;
-  border: var(--ct-traco); background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p);
-  font: 800 var(--ct-fs-servico)/1.2 var(--ct-font); letter-spacing: .1em; text-transform: uppercase;
-  transform: rotate(-3deg);
+  display: inline-block; margin: 0 0 14px; padding: 7px 14px 6px;
+  border: 3px solid var(--ct-chocolate); border-radius: 6px; background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: 4px 4px 0 var(--ct-chocolate);
+  font: 800 15px/1.2 var(--ct-font); letter-spacing: .06em; text-transform: uppercase;
+  rotate: -2deg;
 }
-/* Creme sobre azul fecha ~3,5:1: a fita azul é sempre texto grande (19px/800). Preto fica só no traço de desenho. */
+/* Creme sobre azul fecha ~3,5:1: a fita azul é sempre texto grande (19px/800). */
 .ct-etiqueta--azul { background: var(--ct-azul); color: var(--ct-creme); font-size: 19px; }
+.ct-etiqueta--branca { background: var(--ct-branco); }
 /* Com ícone de contorno (lista 13, P2): o ícone vem antes do texto, na tinta da fita. */
 .ct-etiqueta--icone { display: inline-flex; align-items: center; gap: 6px; padding-left: 10px; }
 .ct-etiqueta--icone svg, .ct-rotulo--icone svg { flex: none; }
 .ct-rotulo--icone { display: flex; align-items: center; gap: 6px; }
+
+/* Fita vermelha da data (o "5 A 15 DE NOVEMBRO" das peças): pontas recortadas em V. O contorno vem do invólucro
+   (.ct-fita-moldura): o filtro do pai desenha depois do recorte do filho, então a borda acompanha o V.
+   Creme sobre vermelho só em texto grande (≥ 19px/800). */
+.ct-fita-moldura {
+  display: inline-block; rotate: -2deg;
+  filter: drop-shadow(2.5px 0 0 var(--ct-chocolate)) drop-shadow(-2.5px 0 0 var(--ct-chocolate)) drop-shadow(0 2.5px 0 var(--ct-chocolate)) drop-shadow(0 -2.5px 0 var(--ct-chocolate)) drop-shadow(4px 4px 0 var(--ct-chocolate));
+}
+.ct-fita {
+  display: block; padding: .5em 1.5em .42em; background: var(--ct-vermelho); color: var(--ct-creme);
+  font: 900 clamp(19px, 2vw, 26px)/1 var(--ct-font); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap;
+  clip-path: polygon(0 0, 100% 0, calc(100% - .7em) 50%, 100% 100%, 0 100%, .7em 50%);
+}
+
+/* Explosão de gibi (o estouro atrás do quadro dos Confirmados): estrela recortada em máscara, chocolate atrás como
+   contorno e retícula de pontos por dentro. Decorativa, sempre atrás. */
+.ct-explosao { position: absolute; z-index: 0; aspect-ratio: 1; pointer-events: none; }
+.ct-explosao::before, .ct-explosao::after { content: ''; position: absolute; inset: 0; -webkit-mask: var(--ct-estouro) center / 100% 100% no-repeat; mask: var(--ct-estouro) center / 100% 100% no-repeat; }
+.ct-explosao::before { background: var(--ct-chocolate); scale: 1.04; }
+.ct-explosao::after { background: radial-gradient(circle, var(--ct-cor-ponto, rgba(255, 255, 255, .5)) 22%, transparent 27%) 0 0 / 13px 13px, var(--ct-cor-explosao, var(--ct-turquesa)); }
+
+/* Retícula (os pontinhos de gibi do fundo amarelo do carrossel): pontos em chocolate a 13% sobre a chapa. */
+.ct-reticula { background-image: radial-gradient(circle, rgba(58, 21, 15, .13) 1.6px, transparent 2.1px); background-size: 15px 15px; }
+
+/* Preço em letreiro (Preco, pecas.jsx): o "COMBO R$ 38,90" da arte final — rótulo branco, valor vermelho com volume. */
+.ct-preco { display: inline-grid; justify-items: start; margin: 0; rotate: -4deg; font-family: var(--ct-font); text-transform: uppercase; }
+.ct-preco__combo, .ct-preco__valor { font-weight: 900; line-height: .92; -webkit-text-stroke: .12em var(--ct-chocolate); paint-order: stroke fill; }
+.ct-preco__combo { margin-left: .2em; color: var(--ct-branco); font-size: clamp(22px, 2.3vw, 30px); text-shadow: .06em .08em 0 var(--ct-chocolate); }
+.ct-preco__valor {
+  color: var(--ct-vermelho); font-size: clamp(40px, 4.4vw, 60px); white-space: nowrap;
+  text-shadow: .025em .035em 0 var(--ct-chocolate), .05em .07em 0 var(--ct-chocolate), .075em .1em 0 var(--ct-chocolate);
+}
+/* Contagem em etiqueta branca ("27 CASAS"): mesma família da etiqueta, para dado curto. */
+.ct-contagem {
+  display: inline-block; margin: 0; padding: 8px 14px 7px; border: 3px solid var(--ct-chocolate); border-radius: 8px; background: var(--ct-branco); box-shadow: 4px 4px 0 var(--ct-chocolate);
+  font: 800 15px/1 var(--ct-font); letter-spacing: .05em; text-transform: uppercase;
+}
+
+/* Carimbo redondo ("NOTA 10" do Júri): vermelho, letra creme grande, anel creme por dentro. Texto grande só. */
+.ct-selo-nota {
+  display: inline-grid; place-content: center; width: 7.6em; aspect-ratio: 1; border: 4px solid var(--ct-chocolate); border-radius: 50%;
+  background: var(--ct-vermelho); box-shadow: inset 0 0 0 6px var(--ct-vermelho), inset 0 0 0 9px var(--ct-creme), 4px 4px 0 var(--ct-chocolate);
+  color: var(--ct-creme); font: 900 15px/1 var(--ct-font); text-align: center; text-transform: uppercase; rotate: -10deg;
+}
+.ct-selo-nota strong { display: block; font-size: 2.6em; line-height: .9; }
 
 /* Galeria de um assunto (Galeria.jsx): trilho com rolagem nativa e encaixe por foto, setas sobre a foto, contagem
    + legenda curta ("Detalhe", "Outra opção") e pontos embaixo. Pontos com alvo de 44 px; o desenho é o ::before. */
@@ -92,13 +162,14 @@
 .ct-placa--creme { background: var(--ct-creme); }
 .ct-placa--turquesa { background: var(--ct-turquesa); }
 
-.ct-quadro { position: relative; display: inline-grid; place-items: center; padding: 14px; border: var(--ct-traco); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+/* Quadro dos Confirmados: papel branco, borda chocolate, sombra dura e fita crepe nas duas pontas de cima. */
+.ct-quadro { position: relative; display: inline-grid; place-items: center; padding: 14px; border: 3px solid var(--ct-chocolate); border-radius: 4px; background: var(--ct-branco); box-shadow: 6px 6px 0 var(--ct-chocolate); }
 .ct-quadro--fita::before, .ct-quadro--fita::after {
-  content: ''; position: absolute; width: 56px; height: 18px;
-  border: 1.5px solid rgba(58, 21, 15, .35); background: rgba(253, 185, 1, .85);
+  content: ''; position: absolute; z-index: 2; top: -12px; width: 64px; height: 22px;
+  border-inline: 2px dashed rgba(58, 21, 15, .25); background: rgba(253, 220, 120, .88);
 }
-.ct-quadro--fita::before { top: -9px; left: -14px; transform: rotate(-35deg); }
-.ct-quadro--fita::after { right: -14px; bottom: -9px; transform: rotate(-35deg); }
+.ct-quadro--fita::before { left: -16px; rotate: -32deg; }
+.ct-quadro--fita::after { right: -16px; rotate: 32deg; }
 
 /* Logo desenhada (§10.14, LogoDesenhada.jsx): o rascunho P&B embaixo; a colorida por cima, revelada por
    máscara radial que cresce a partir de --x/--y (a tinta espalhando). @property deixa --ct-tinta animar; sem
@@ -119,12 +190,12 @@
 /* skewY e não rotate: rotate alarga a caixa e abriria rolagem lateral. */
 
 .ct-canal { display: grid; justify-items: start; gap: 8px; padding: clamp(32px, 6vw, 72px) var(--ct-trilho); border-bottom: var(--ct-traco); color: var(--ct-chocolate); }
-.ct-canal--estreia { background: var(--ct-amarelo); }
-.ct-canal--elenco { background: var(--ct-creme); }
-.ct-canal--cardapio { background: var(--ct-rosa); color: var(--ct-creme); }
-.ct-canal--rota { background: var(--ct-turquesa); }
-.ct-canal--gala { background: var(--ct-chocolate); color: var(--ct-creme); }
-.ct-canal--servico { background: var(--ct-creme); border-top: 12px solid var(--ct-azul); }
+.ct-canal--estreia { background-color: var(--ct-amarelo); }
+.ct-canal--elenco { background-color: var(--ct-creme); }
+.ct-canal--cardapio { background-color: var(--ct-rosa); color: var(--ct-creme); }
+.ct-canal--rota { background-color: var(--ct-turquesa); }
+.ct-canal--gala { background-color: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-canal--servico { background-color: var(--ct-creme); border-top: 12px solid var(--ct-azul); }
 /* Rosa é moldura, não superfície de leitura (creme sobre rosa fecha ~4:1): texto pequeno dentro do canal
    Cardápio vai em painel creme (manual v03, canal 3; decisão do Wilker, 28/10). Serve em qualquer canal. */
 .ct-painel {
@@ -133,8 +204,27 @@
 }
 .ct-painel > :first-child { margin-top: 0; }
 .ct-painel > :last-child { margin-bottom: 0; }
-/* Anel de foco amarelo SÓ sobre chocolate (≥ 3:1). (0,4,0) vence o anel da camada e o reset do site. */
-.ct-edicao :is(.ct-rodape, .ct-canal--gala) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--ct-amarelo); }
+/* Palco (repaginação de 04/11; o post do Júri "ENTRA EM CENA!"): a cena desenhada do palco cobre o bloco (cortinas,
+   holofotes, o roxo estrelado); o conteúdo fica centrado no vão entre as cortinas e o troféu pousa no círculo de luz do
+   chão. Creme sobre o roxo (> 9:1). Entrada ("Avalie") e Sweet Awards (topo). Vem depois do .ct-canal: no topo da
+   premiação, ele manda na geometria e na cor. */
+.ct-palco {
+  position: relative; isolation: isolate; display: grid; justify-items: center; overflow: hidden;
+  padding: clamp(84px, 11vw, 150px) var(--ct-trilho) clamp(20px, 3vw, 36px); border-block: 3px solid var(--ct-chocolate);
+  background-color: var(--ct-roxo); color: var(--ct-creme); text-align: center;
+}
+.ct-edicao .ct-palco__fundo { position: absolute; inset: 0; z-index: -1; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+.ct-palco__corpo { display: grid; justify-items: center; gap: 4px; max-width: 640px; }
+.ct-palco__corpo > * { margin-block: 0; }
+.ct-palco__corpo .ct-letreiro { margin-bottom: 14px; }
+.ct-palco__corpo .ct-letreiro__desenho { justify-items: center; }
+.ct-palco__corpo .ct-letreiro__linha { margin-inline: auto; text-align: center; }
+.ct-palco__texto { max-width: 46ch; font: 600 clamp(17px, 1.4vw, 20px)/1.45 var(--ct-font); }
+.ct-palco__corpo .ct-acoes { justify-content: center; }
+.ct-edicao .ct-palco__trofeu { display: block; width: clamp(96px, 11vw, 150px); height: auto; margin-top: clamp(16px, 2.5vw, 28px); filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .35)); }
+
+/* Anel de foco amarelo SÓ sobre chocolate e sobre o roxo do palco (≥ 3:1). (0,4,0) vence o anel da camada e o reset do site. */
+.ct-edicao :is(.ct-rodape, .ct-canal--gala, .ct-palco) :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: var(--ct-amarelo); }
 
 /* ------------------------------------------------------------- elementos novos da edição (§10.15) */
 /* Ícone ilustrado: tamanho vem dos atributos (32/48/64). Nunca sozinho: o texto vem ao lado. */

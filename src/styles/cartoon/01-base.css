@@ -116,16 +116,19 @@
 .ct-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
 /* Prefixo .ct-edicao de propósito: `.ct-edicao a { color: inherit }` (0,1,1) venceria
    `.ct-botao` (0,1,0) e o link-botão sairia preto sobre preto (CLAUDE.md §10.1). */
+/* Botão de gibi (repaginação de 04/11): o "CONHEÇA OS DETALHES DO COMBO" do carrossel — caixa de canto
+   arredondado, borda chocolate de 3 px, sombra dura e caixa-alta. No hover ele dá um "boing" (estica e assenta,
+   09-movimento.css) e a sombra cresce; no clique afunda até a sombra. */
 .ct-edicao .ct-botao {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px;
-  border: var(--ct-traco); border-radius: 999px; background: var(--ct-amarelo); color: var(--ct-chocolate);
-  box-shadow: var(--ct-sombra-p);
-  font: 800 16px/1 var(--ct-font); text-decoration: none; cursor: pointer;
-  transition: transform var(--ct-mo), box-shadow var(--ct-mo), background-color var(--ct-mo);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 24px;
+  border: 3px solid var(--ct-chocolate); border-radius: 14px; background: var(--ct-amarelo); color: var(--ct-chocolate);
+  box-shadow: 5px 5px 0 var(--ct-chocolate);
+  font: 800 16px/1 var(--ct-font); letter-spacing: .04em; text-transform: uppercase; text-decoration: none; cursor: pointer;
+  transition: translate var(--ct-mo), box-shadow var(--ct-mo), background-color var(--ct-mo);
 }
-.ct-edicao .ct-botao:hover { transform: translate(-1px, -1px); box-shadow: var(--ct-sombra); }
-.ct-edicao .ct-botao:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ct-chocolate); }
-.ct-edicao .ct-botao:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
+.ct-edicao .ct-botao:hover { translate: -2px -2px; box-shadow: 7px 7px 0 var(--ct-chocolate); }
+.ct-edicao .ct-botao:active { translate: 5px 5px; box-shadow: 0 0 0 var(--ct-chocolate); }
+.ct-edicao .ct-botao:disabled { opacity: .45; cursor: default; translate: none; box-shadow: none; }
 /* Creme sobre vermelho fecha ~3,9:1: só texto grande (19px/800). */
 .ct-edicao .ct-botao--acao { background: var(--ct-vermelho); color: var(--ct-creme); font-size: 19px; }
 .ct-edicao .ct-botao--contorno { background: var(--ct-creme); color: var(--ct-chocolate); }

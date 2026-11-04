@@ -74,7 +74,7 @@ test('preto só no traço de desenho; texto e contorno de interface em chocolate
   const css = lerCss()
   const usos = css.split('\n').filter((l) => l.includes('var(--ct-preto)')).map((l) => l.trim())
   assert.deepEqual(usos, ['--ct-tinta-desenho: var(--ct-preto); /* nanquim do desenho (olhinhos); o preto não sai daqui */'])
-  assert.match(css, /--ct-traco:\s*2\.5px solid var\(--ct-chocolate\)/)
+  assert.match(css, /--ct-traco:\s*3px solid var\(--ct-chocolate\)/) // traço de gibi, repaginação de 04/11
 })
 
 test('contador da Minha rota com contraste de texto pequeno', () => {

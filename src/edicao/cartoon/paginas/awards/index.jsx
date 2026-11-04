@@ -17,7 +17,7 @@ import { TopoCanal } from '../../../componentes/sistema/TopoCanal.jsx'
 import { Olhinhos } from '../../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
-import { Botao, Etiqueta, Passos } from '../../../componentes/sistema/pecas.jsx'
+import { Botao, Passos, Gibi } from '../../../componentes/sistema/pecas.jsx'
 import { AWARDS as T, FASE_TEXTO, ICONE } from '../../textos.js'
 import { Formulario } from './Formulario.jsx'
 import { Resultados } from './Resultados.jsx'
@@ -73,7 +73,7 @@ export function SweetAwards ({ navigate, dados, foco }) {
   // A lista "O que você avalia" saiu (03/11): o formulário já faz cada pergunta com a ajuda dela, e fechada não há critérios.
   const secaoComo = !resultados && !encerrada && (
     <section id="como" className="ct-bloco ct-awards__secao" aria-labelledby="aw-como">
-      <Etiqueta as="h2" cor="azul" id="aw-como">{T.comoTitulo}</Etiqueta>
+      <Letreiro id="aw-como" texto={T.comoTitulo} />
       <Passos passos={T.passos} />
     </section>
   )
@@ -87,13 +87,14 @@ export function SweetAwards ({ navigate, dados, foco }) {
   return (
     <>
       <Avisos desatualizado={dados?.desatualizado} demo={dados?.demo} retrato={dados?.retrato} />
-      <TopoCanal canal="gala" className="ct-gala" aria-labelledby="pr-titulo">
-        <div className="ct-gala__texto">
+      <TopoCanal canal="gala" className="ct-gala ct-palco" aria-labelledby="pr-titulo">
+        <Gibi chave="palco" className="ct-palco__fundo" prioridade />
+        <div className="ct-palco__corpo">
           <h1 id="pr-titulo" className="ct-gala__marca">
             <img src={MARCA_SWEET_AWARDS.src} width={MARCA_SWEET_AWARDS.largura} height={MARCA_SWEET_AWARDS.altura} alt="" decoding="async" />
             <span className="ct-sr">{T.titulo}</span>
           </h1>
-          <p className="ct-lead">{T.lead}</p>
+          <p className="ct-palco__texto">{T.lead}</p>
           {!resultados && <p className="ct-sub">{T.depois(fim ? `${fim[2]}/${fim[1]}` : '')}</p>}
           <div className="ct-acoes">
             {resultados ? <Botao href="#resultados">{T.verPremiados}</Botao>
@@ -101,9 +102,9 @@ export function SweetAwards ({ navigate, dados, foco }) {
           </div>
         </div>
         <figure className="ct-gala__palco">
-          {/* Encantados com o troféu: no alto do palco, olhando para baixo, para ele. */}
-          <Olhinhos expressao="encantado" olhar={{ x: 0.5, y: 0.7 }} tamanho={112} className="ct-gala__olhos" />
-          <img src={trofeu.src} srcSet={srcSet(trofeu.src)} sizes="(max-width: 899px) 60vw, 340px" width={trofeu.largura} height={trofeu.altura} alt={T.trofeuAlt} decoding="async" />
+          {/* Encantados com o troféu: ao lado dele no palco, olhando para ele. */}
+          <Olhinhos expressao="encantado" olhar={{ x: 0.8, y: 0.3 }} tamanho={112} className="ct-gala__olhos" />
+          <img className="ct-palco__trofeu" src={trofeu.src} srcSet={srcSet(trofeu.src)} sizes="(max-width: 899px) 60vw, 340px" width={trofeu.largura} height={trofeu.altura} alt={T.trofeuAlt} decoding="async" />
         </figure>
       </TopoCanal>
 

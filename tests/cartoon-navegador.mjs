@@ -131,7 +131,8 @@ try {
     ]
     const antes = falhas.length
     await ir(page, '/cartoon')
-    if (!(await page.locator('h1.ct-letreiro--imagem img[src*="hora-de-provar"]').count())) falha('/cartoon: h1 sem o letreiro desenhado')
+    // Repaginação de 04/11: o letreiro é CSS (etiqueta de apoio + letras); o nome inteiro vai no aria-label.
+    if ((await page.locator('h1.ct-letreiro').getAttribute('aria-label')) !== 'Agora é hora de provar!' || !(await page.locator('h1 .ct-letreiro__apoio').count())) falha('/cartoon: h1 sem o letreiro de gibi')
     for (const [p, t] of [['/cartoon', 'Agora é hora de provar!'], ...CENAS]) {
       await ir(page, p)
       await page.waitForFunction((t) => document.querySelector('h1')?.textContent?.trim() === t, t, { timeout: 5000 }).catch(() => {})
@@ -164,8 +165,8 @@ try {
     await page.waitForSelector('#combo')
     // A composição usa espaço fixo antes do "·" (a linha nunca começa com ponto): compara com espaço comum.
     const t = (await page.locator('.ct-part').innerText()).replace(/ /g, ' ')
-    // O preço de R$ 38,90 vem na arte desenhada (precoComboEdicao): o valor fica no alt da imagem.
-    if (!(await page.locator('.ct-part img[alt="Combo R$ 38,90"]').count())) falha('participante sem a arte "Combo R$ 38,90"')
+    // O preço de R$ 38,90 vem no preço em letreiro (Preco, repaginação de 04/11): texto de verdade, não imagem.
+    if ((await page.locator('.ct-part .ct-preco').first().textContent())?.trim() !== 'Combo R$ 38,90') falha('participante sem o preço "Combo R$ 38,90"')
     for (const s of ['[DEMO] Doce · [DEMO] Salgado · [DEMO] Bebida', 'Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Opções de troca']) {
       if (!t.includes(s)) falha(`participante sem "${s}"`)
     }
@@ -254,7 +255,7 @@ try {
     await page.waitForFunction(() => new URLSearchParams(location.search).get('modo') === 'delivery')
     if ((await page.locator('.ct-cartao').count()) !== 1) falha(`filtro delivery: ${await page.locator('.ct-cartao').count()} cartões`)
     // Rola até o cartão ANTES de medir: o clique do Playwright rolaria até ele de novo e a posição guardada
-    // seria outra. O topo do elenco (letreiro desenhado) deixa o cartão abaixo da dobra em 500 px de altura.
+    // seria outra. O topo do elenco (letreiro) deixa o cartão abaixo da dobra em 500 px de altura.
     await page.locator('.ct-cartao__link').first().scrollIntoViewIfNeeded()
     const y0 = await page.evaluate(() => scrollY)
     if (y0 === 0) falha('catálogo: o teste não rolou, a posição não foi verificada')
@@ -480,35 +481,33 @@ try {
     const antes = falhas.length
     const { ctx, page, erros } = await contexto(nav, { w: 1440, h: 900 })
     await ir(page, '/cartoon')
-    await page.waitForSelector('.ct-vitrine')
+    await page.waitForSelector('.ct-laminas')
     const e = await page.evaluate(() => {
       const txt = (s) => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || ''
-      const placa = (s) => [...document.querySelectorAll(`${s} .ct-placa span`)].map((x) => x.textContent.trim()).join(' ')
       return {
         canal: !!document.querySelector('.ct-canal--estreia h1'),
-        tela: placa('.ct-estreia__tela'),
-        casas: placa('.ct-estreia__casas'),
+        mesa: !!document.querySelector('.ct-estreia__cena img.ct-gibi[src*="gibi/mesa"]'),
         acao: getComputedStyle(document.querySelector('.ct-estreia .ct-botao')).backgroundColor,
         olhos: document.querySelectorAll('.ct-estreia .ct-olhinhos').length,
-        como: txt('h2.ct-etiqueta--azul'),
-        passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-icone')?.getAttribute('src')?.match(/icones\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.replace(/^\d/, '').trim()]),
+        como: txt('#ct-como'),
+        passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-gibi')?.getAttribute('src')?.match(/objetos\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.trim()]),
         // Vitrine (03/11): ordem sorteada por dia, então a conferência é do CONJUNTO; casa sem foto leva à página dela.
-        vitrine: [...document.querySelectorAll('.ct-vitrine__link')].map((a) => a.getAttribute('href').split('?')[0]).sort(),
+        vitrine: [...document.querySelectorAll('.ct-lamina__link')].map((a) => a.getAttribute('href').split('?')[0]).sort(),
         fatos: [...document.querySelectorAll('.ct-estreia__fatos li')].map((li) => li.textContent.trim()),
         bairros: [...document.querySelectorAll('.ct-bairro')].map((a) => `${a.firstChild.textContent}:${a.querySelector('.ct-bairro__n').textContent}`),
-        avalie: txt('.ct-entrada__avalie .ct-lead'),
+        avalie: txt('.ct-entrada__avalie .ct-palco__texto'),
         avaliar: !!document.querySelector('.ct-entrada__avalie a[href^="/cartoon/avaliar"]'),
         duvidas: document.querySelectorAll('.ct-duvidas details').length,
         chao: !!document.querySelector('.ct-onde img.ct-onde__chao[src*="natal"]'),
       }
     })
     if (!e.canal) falha('Entrada: h1 fora do topo no canal Estreia')
-    if (e.tela !== '5 a 15 de novembro') falha(`Entrada: placa da TV "${e.tela}"`)
-    if (e.casas !== '3 casas no elenco') falha(`Entrada: placa de casas "${e.casas}"`)
+    if (!e.mesa) falha('Entrada: topo sem a mesa do combo desenhada')
     if (e.acao !== 'rgb(237, 28, 32)') falha(`Entrada: botão sobre amarelo não é o de ação (${e.acao})`)
-    if (e.olhos) falha(`Entrada: ${e.olhos} par(es) de olhinhos no topo, onde selo e letreiro já são grandes (MANUAL §1.3)`)
-    if (e.como !== 'Como funciona') falha(`Entrada: etiqueta azul "${e.como}"`)
-    if (JSON.stringify(e.passos) !== JSON.stringify([['casas', 'Escolha a casa'], ['no-local', 'Prove o combo'], ['avaliar', 'Avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
+    // Repaginação de 04/11: os olhinhos espiam de trás da mesa, como na arte final do carrossel (um par só).
+    if (e.olhos !== 1) falha(`Entrada: ${e.olhos} par(es) de olhinhos no topo (espera 1, espiando da mesa)`)
+    if (e.como !== 'Como funciona') falha(`Entrada: título "${e.como}"`)
+    if (JSON.stringify(e.passos) !== JSON.stringify([['loja', 'Escolha a casa'], ['bandeja', 'Prove o combo'], ['prancheta', 'Avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
     if (JSON.stringify(e.vitrine) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/${p.combo?.fotos?.principal ? 'combos' : 'participantes'}/${p.slug}`).sort())) falha(`Entrada: vitrine ${JSON.stringify(e.vitrine)}`)
     if (JSON.stringify(e.fatos) !== JSON.stringify(['5 a 15 de novembro', 'Combo R$ 38,90', '3 casas'])) falha(`Entrada: fatos do topo ${JSON.stringify(e.fatos)}`)
     if (JSON.stringify(e.bairros) !== JSON.stringify(['Tirol:2', 'Lagoa Nova:1', 'Ponta Negra:1'])) falha(`Entrada: bairros ${JSON.stringify(e.bairros)}`)
@@ -527,8 +526,8 @@ try {
     await ir(c.page, '/cartoon')
     const fechado = await c.page.locator('.ct-conteudo').innerText()
     if (!fechado.includes('será revelado em breve')) falha('Entrada sem elenco não diz "em breve"')
-    if (await c.page.locator('.ct-estreia__casas, .ct-vitrine, .ct-onde').count()) falha('Entrada sem elenco mostrou placa de casas, vitrine ou bairros')
-    if ((await c.page.locator('.ct-estreia__tela .ct-placa span').allTextContents()).join(' ') !== '5 a 15 de novembro') falha('Entrada sem elenco perdeu a placa do período')
+    if (await c.page.locator('.ct-estreia__casas, .ct-laminas, .ct-onde').count()) falha('Entrada sem elenco mostrou placa de casas, vitrine ou bairros')
+    if ((await c.page.locator('.ct-estreia__fatos .ct-fita').textContent())?.trim() !== '5 a 15 de novembro') falha('Entrada sem elenco perdeu a fita do período')
     await c.ctx.close()
     c = await contexto(nav, { edicao: 'falha' })
     await ir(c.page, '/cartoon')
@@ -538,12 +537,12 @@ try {
     await c.ctx.close()
     c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), fase: 'encerrada' } })
     await ir(c.page, '/cartoon')
-    await c.page.waitForSelector('.ct-vitrine')
+    await c.page.waitForSelector('.ct-laminas')
     const enc = await c.page.locator('.ct-conteudo').innerText()
     if (!enc.includes('terminou') || await c.page.locator('.ct-entrada__como, .ct-onde').count()) falha('Entrada encerrada: sem aviso, ou ainda com Como funciona/Onde ficam')
     if (!enc.includes('A avaliação desta edição foi encerrada.')) falha('Entrada encerrada: Avalie sem o texto de encerrada')
     await c.ctx.close()
-    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, sem olhinhos), vitrine de combos, como funciona, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
+    if (falhas.length === antes) ok('Entrada: topo Estreia (mesa do combo, olhinhos espiando, fatos na fita e no preço, ação vermelha), vitrine de combos, como funciona, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
   }
 
   console.log('\n11 · Mapa')

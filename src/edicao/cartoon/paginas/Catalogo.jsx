@@ -1,7 +1,8 @@
 /*
  * Catálogo (§5.2; docs/cartoon-2026-2/10 §10.7): /cartoon/participantes (a casa à frente) e
  * /cartoon/combos (o combo à frente). Mesma coleção, mesmos filtros, mesma página de destino.
- * Topo no canal Elenco com o letreiro desenhado e a contagem real; o cartão tem a foto do combo
+ * Topo amarelo com retícula (repaginação de 04/11, §10.17): o letreiro, o preço em letreiro (combos) ou a contagem
+ * real (casas) e o objeto desenhado do assunto; o cartão tem a foto do combo
  * como protagonista e, sem foto, a logo desenhada no Quadro ("Foto em produção").
  * Filtros moram na query string (useEnderecoDaBusca) e só aparecem os que o dado responde; a posição
  * de rolagem volta quando o visitante retorna de uma casa. "Quero ir" e "Já fui" ficam abaixo do cartão,
@@ -10,13 +11,12 @@
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { letreiroEdicao, kitTemaEdicao, precoComboEdicao } from '../../../data/imageLibrary'
+import { kitTemaEdicao } from '../../../data/imageLibrary'
 import { Link, Foto, proporcaoDe, Avisos } from '../../componentes/base.jsx'
 import { useEnderecoDaBusca } from '../useEnderecoDaBusca.js'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
-import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
-import { Placa, Chip } from '../../componentes/sistema/pecas.jsx'
+import { Chip, Gibi, Preco } from '../../componentes/sistema/pecas.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
@@ -109,12 +109,10 @@ export function Catalogo ({ modo, navigate, dados }) {
   const ativos = [f.bairro, f.modo, f.hoje, f.vegano, f.semAcucar, f.semGluten, f.semLactose].filter(Boolean).length
   const restricoes = FILTROS_RESTRICAO.filter(([k]) => opcoes[k])
   const combos = modo === 'combos'
-  // O preço é o da edição (o mesmo em todas as casas): no topo dos combos, o letreiro desenhado "Combo R$ …".
+  // O preço é o da edição (o mesmo em todas as casas): no topo dos combos, o preço em letreiro "Combo R$ …".
   const preco = lista.find((p) => p.combo?.preco)?.combo.preco
-  const precoArte = combos && preco ? precoComboEdicao(preco) : null
-  const titulo = combos
-    ? <Letreiro nivel={1} id="cat-titulo" texto={T.tituloCombos} />
-    : <Letreiro nivel={1} id="cat-titulo" texto={T.titulo} imagem={letreiroEdicao('elenco')} />
+  const precoTexto = combos && preco ? M.formatarPreco(preco) : null
+  const titulo = <Letreiro nivel={1} id="cat-titulo" texto={combos ? T.tituloCombos : T.titulo} />
 
   React.useEffect(() => { restaurarPosicao() }, [])
   useEnderecoDaBusca(M.buscaDosFiltros(f)) // os filtros entram no endereço; ?preview e ?demo continuam
@@ -131,7 +129,7 @@ export function Catalogo ({ modo, navigate, dados }) {
     return (
       <>
         {avisos}
-        <TopoCanal canal="elenco" className="ct-catalogo__topo" aria-labelledby="cat-titulo">
+        <TopoCanal canal="estreia" className="ct-catalogo__topo ct-reticula" aria-labelledby="cat-titulo">
           <div className="ct-catalogo__chamada">{titulo}<p className="ct-lead">{FASE_TEXTO.semElenco}</p></div>
         </TopoCanal>
       </>
@@ -141,15 +139,19 @@ export function Catalogo ({ modo, navigate, dados }) {
   return (
     <div className="ct-catalogo">
       {avisos}
-      <TopoCanal canal="elenco" className="ct-catalogo__topo" aria-labelledby="cat-titulo">
-        <div className="ct-catalogo__chamada">{titulo}</div>
-        <div className={`ct-catalogo__apoio${precoArte ? ' ct-catalogo__apoio--preco' : ''}`}>
-          {precoArte
-            ? <img className="ct-catalogo__preco" src={precoArte.src} width={precoArte.largura} height={precoArte.altura} alt={`Combo ${M.formatarPreco(preco)}`} decoding="async" />
-            : <Placa numero={String(lista.length)} rotulo={combos ? T.placaCombos(lista.length) : T.placa(lista.length)} />}
-          <p className="ct-lead">{combos ? T.leadCombos(lista.length) : T.lead}</p>
-          {/* Encantados com o elenco: olham para o letreiro, na diagonal oposta a ele. Só nas casas (§10.5). */}
-          {!combos && <Olhinhos expressao="encantado" lado="direita" tamanho={132} className="ct-catalogo__olhos" />}
+      <TopoCanal canal="estreia" className="ct-catalogo__topo ct-reticula" aria-labelledby="cat-titulo">
+        <div className="ct-catalogo__chamada">
+          {titulo}
+          <div className="ct-catalogo__dados">
+            {precoTexto
+              ? <Preco rotulo={T.precoRotulo} valor={precoTexto} />
+              : <p className="ct-contagem">{lista.length} {combos ? T.placaCombos(lista.length) : T.placa(lista.length)}</p>}
+            <p className="ct-lead">{combos ? T.leadCombos(lista.length) : T.lead}</p>
+          </div>
+        </div>
+        <div className="ct-catalogo__cena" aria-hidden="true">
+          <span className="ct-explosao ct-catalogo__explosao" />
+          <Gibi chave={combos ? 'bandeja' : 'loja'} className="ct-catalogo__desenho" prioridade />
         </div>
       </TopoCanal>
 

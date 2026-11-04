@@ -403,3 +403,45 @@ A revisão partiu de uma crítica visual das capturas em 360, 768 e 1440. O mapa
 Ficaram de fora, como próxima rodada:
 - institucional: faixa de 4 números em 3+1 a 768 na Home, degradê da faixa de palavras (verde e cinza fora da paleta), rodapé em 2 colunas no celular, rodapé dos cartões de Edições;
 - a fita do `Quadro` sobre nomes curtos.
+
+## 10.17 Repaginação de 04/11: a língua das peças aprovadas
+
+Pedido do Wilker: "Eu preciso de uma repaginação completa [...] o manual deve ser só um tiro inicial de referência [...] eu não gosto dos elementos de título [...] gostaria de um site que lembrasse o universo da animação." Correção dele no meio do trabalho: o KV "A cidade virou desenho" é antigo e nunca foi usado. A referência são as **últimas peças aprovadas**:
+
+- a arte final do carrossel de combos (`11_CARROSSEL_COMBOS/arte-final-combo_v02.png`) e as lâminas de foto;
+- os posts de Confirmados (v7);
+- o post do Júri técnico;
+- o display de mesa;
+- a peça de imprensa.
+
+A língua é de **gibi pop**:
+
+- fundo chapado com retícula de pontos;
+- explosão em quadrinho atrás da foto ou do desenho;
+- letreiro gordo com contorno chocolate e volume;
+- etiqueta branca ou amarela inclinada;
+- fita vermelha da data;
+- quadro com fita crepe;
+- olhinhos espiando;
+- objetos desenhados a nanquim com riscos de movimento.
+
+| Antes | Agora |
+|---|---|
+| Letreiros desenhados em imagem (`letreiroEdicao`) | **Letreiro em CSS** (`Letreiro.jsx`): Grandstander 900 em caixa-alta, letra a letra levemente torta, contorno chocolate (`paint-order`) e volume em degraus de sombra; etiqueta de apoio branca acima ("Agora é hora de" / "PROVAR!"; um `Apoio: destaque` se divide sozinho no ":"); riscos de ênfase presos à primeira e à última palavra. Tamanho pela largura do próprio título (`container-type: inline-size`, `cqi`): palavra não quebra no meio, então em coluna estreita a letra encolhe em vez de vazar. As letras pulam em fila ao entrar na tela (uma vez, só com movimento permitido). Props estáveis; `imagem` é aceita e ignorada |
+| Preço na arte desenhada (`precoComboEdicao`) | **`Preco`** (pecas.jsx): "COMBO" branco + "R$ 38,90" vermelho com volume, texto de verdade |
+| TV antiga com placas no topo da Entrada | **Mesa do combo** desenhada (a da arte final do carrossel) sobre a explosão turquesa, olhinhos espiando; fatos na fita vermelha (período), no preço em letreiro e na etiqueta de casas |
+| Vitrine em cartões com nome embaixo | **Lâminas do carrossel** (`.ct-laminas`): foto inteira, a casa em amarelo com a barra amarela e o combo em creme sobre a sombra da base, logo no canto; fundo turquesa com retícula |
+| Passos com ícone pequeno | **Tira de gibi**: quadro branco, caixa amarela do número no canto, objeto desenhado (lojinha, bandeja, prancheta, megafone) |
+| Avalie e topo do Awards em chapa chocolate | **Palco** (`.ct-palco`): cena desenhada com cortinas e holofotes; o troféu no círculo de luz |
+| Dúvidas em lista | **Balões de fala**, rabinho alternando o lado |
+| Traço 2,5 px, sombra 3–4 px | **Traço 3 px, sombra dura 4–6 px** (tokens: alcança todas as páginas, inclusive mapa e rota) |
+| Botão em pílula | **Botão de gibi**: canto 14 px, caixa-alta, sombra dura, "boing" no hover |
+
+**Elementos novos** (`gibiEdicao`, imageLibrary):
+
+- **Peças:** mesa, palco, 6 objetos e 4 luvas.
+- **Geração:** no Codex (`codex exec`, sem API), com as peças aprovadas como referência.
+- **Prompts e gerações:** `05_SITE/11_REPAGINACAO_DESENHO`.
+- **Recorte:** `python -I scripts/edicao/elementos-gibi.py "<geracoes>"`. O fundo chapado que toca a borda vira transparente, a franja do contorno vira tinta com alfa, e cada célula da grade vira uma peça.
+
+**Conserto de nome.** O bloco da vitrine da Entrada se chamava `.ct-vitrine`, o mesmo nome do invólucro de `/cartoon/sistema`. O CSS da Entrada transformava a página do sistema numa faixa de rolar de lado, e os selos dela ficavam sobre o cenário. Esse defeito vinha desde 03/11. Agora o bloco se chama `.ct-laminas`.

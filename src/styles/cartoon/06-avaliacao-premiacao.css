@@ -35,34 +35,16 @@
 .ct-avaliar__fechada p { margin: 0 0 6px; }
 .ct-avaliar__olhos { width: clamp(80px, 14vw, 120px); }
 
-/* Premiação: topo no canal Gala (chocolate) — texto | o troféu oficial sob o holofote. A luz é CSS com as cores da
-   paleta; o dourado só existe no arquivo do troféu (§10.3). (0,2,0): .ct-canal vem depois no arquivo. */
-.ct-canal.ct-gala { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 24px 48px; overflow: hidden; }
-@media (min-width: 900px) { .ct-canal.ct-gala { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
-.ct-gala__texto { display: grid; justify-items: start; gap: 12px; min-width: 0; }
-.ct-gala__texto > * { margin: 0; }
-.ct-gala__texto .ct-acoes:empty { display: none; }
+/* Premiação: topo no palco (.ct-palco, 07-sistema.css; repaginação de 04/11) — a marca do Sweet Awards no vão entre as
+   cortinas, a chamada e as ações; o troféu oficial no círculo de luz, com os olhinhos encantados ao lado. */
+.ct-gala .ct-acoes:empty { display: none; }
 /* Marca própria e permanente do Sweet Awards (22/10), sem o letreiro da edição. */
-.ct-gala__marca { padding-bottom: 8px; line-height: 0; }
-.ct-edicao .ct-gala__marca img { width: clamp(200px, 26vw, 320px); height: auto; }
-.ct-gala__palco { position: relative; justify-self: center; width: min(58vw, 300px); margin: 0; padding: 40px 0 18px; }
-/* Holofote: um cone de luz creme que desce do alto sobre o troféu; no chão, a elipse amarela onde ele pousa. */
-.ct-gala__palco::before {
-  content: ''; position: absolute; top: -80px; bottom: 0; left: -45%; right: -45%;
-  background: conic-gradient(from 0deg at 50% 0, transparent 158deg, color-mix(in srgb, var(--ct-creme) 24%, transparent) 168deg 192deg, transparent 202deg);
-  -webkit-mask-image: linear-gradient(#000 55%, transparent);
-          mask-image: linear-gradient(#000 55%, transparent);
-}
-.ct-gala__palco::after {
-  content: ''; position: absolute; left: 4%; right: 4%; bottom: 0; height: 22%; border-radius: 50%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--ct-amarelo) 55%, transparent), transparent);
-}
-.ct-edicao .ct-gala__palco img { position: relative; z-index: 1; width: 100%; height: auto; }
-/* Olhinhos no alto do palco, à esquerda do troféu, olhando para ele. No chocolate, a sobrancelha (solta do
-   olho) sumiria em preto: vai em creme. */
-.ct-gala__olhos { --ct-olhinhos-solto: var(--ct-creme); position: absolute; z-index: 2; top: 0; left: -22%; width: clamp(76px, 8vw, 112px); }
-/* Letreiro amarelo sobre chocolate: o contorno chocolate some no fundo; a sombra vermelha dá o volume de letreiro. */
-.ct-canal--gala .ct-letreiro { --ct-sombra-letra: .06em .07em 0 var(--ct-vermelho); }
+.ct-gala__marca { margin: 0 0 8px; line-height: 0; }
+.ct-edicao .ct-gala__marca img { width: clamp(200px, 24vw, 300px); height: auto; }
+.ct-gala__palco { position: relative; margin: 0; }
+.ct-edicao .ct-gala .ct-palco__trofeu { width: clamp(130px, 15vw, 210px); }
+/* Olhinhos à esquerda do troféu, olhando para ele. No roxo, a sobrancelha (solta do olho) vai em creme. */
+.ct-gala__olhos { --ct-olhinhos-solto: var(--ct-creme); position: absolute; z-index: 2; top: 18%; left: -62%; width: clamp(70px, 7vw, 104px); }
 .ct-podios { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; }
 .ct-podio { display: grid; align-content: start; justify-items: start; gap: 8px; padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-podio__cat { margin: 0; font: 900 22px/1.1 var(--ct-font); }

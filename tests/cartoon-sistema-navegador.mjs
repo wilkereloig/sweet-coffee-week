@@ -148,7 +148,8 @@ try {
     await page.screenshot({ path: join(CAPTURAS, `sistema-${w}.png`), fullPage: true })
 
     // Movimento: o letreiro anima por padrão e fica parado com prefers-reduced-motion (o 2º só prova algo se o 1º existir).
-    const animacao = () => page.evaluate(() => getComputedStyle(document.querySelector('.ct-letreiro')).animationName)
+    // Repaginação de 04/11: quem anima são as letras do letreiro (pulam em fila ao entrar na tela).
+    const animacao = () => page.evaluate(() => getComputedStyle(document.querySelector('.ct-letreiro__letra')).animationName)
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     const com = await animacao()
     await page.emulateMedia({ reducedMotion: 'reduce' })

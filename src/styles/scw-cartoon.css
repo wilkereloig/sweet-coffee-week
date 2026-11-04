@@ -48,6 +48,11 @@
   --ct-turquesa: #05BEBA;
   --ct-roxo: #6424AB;
 
+  /* Formas de gibi (repaginação de 04/11, §10.17), usadas como máscara — a cor vem do background de quem usa:
+     os riscos de ênfase ao lado do letreiro e a estrela da explosão atrás de foto ou desenho. */
+  --ct-riscos: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 44'%3E%3Cg fill='none' stroke='%23000' stroke-width='4.5' stroke-linecap='round'%3E%3Cpath d='M5 12 17 3'/%3E%3Cpath d='M7 22h15'/%3E%3Cpath d='M5 32l12 9'/%3E%3C/g%3E%3C/svg%3E");
+  --ct-estouro: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50.0 2.4 56.2 14.8 66.7 4.2 67.7 19.3 81.1 12.9 78.0 26.5 90.4 26.6 84.8 37.3 95.9 41.9 86.8 50.0 96.0 58.1 83.3 62.1 91.6 74.0 79.3 74.6 80.2 86.0 68.0 81.2 66.7 95.8 56.7 88.1 50.0 98.5 43.6 86.1 32.9 96.9 32.3 80.6 18.2 87.9 22.3 73.3 9.3 73.5 16.6 62.2 3.1 58.3 11.8 50.0 3.6 41.8 14.9 37.2 7.8 25.6 22.0 26.5 18.9 12.9 32.3 19.4 34.0 6.1 43.8 14.6'/%3E%3C/svg%3E");
+
   --ct-font: 'Grandstander', system-ui, sans-serif;
   --ct-fs-display: clamp(40px, 6vw, 72px);
   --ct-fs-titulo: clamp(28px, 3.6vw, 44px);
@@ -55,11 +60,12 @@
   --ct-fs-texto: clamp(17px, 0.4vw + 15.5px, 18px);
   --ct-fs-servico: 14px;
 
-  --ct-traco: 2.5px solid var(--ct-chocolate);
+  /* Traço e sombra de gibi (repaginação de 04/11): mais grossos, como nas peças aprovadas — vale para todas as páginas. */
+  --ct-traco: 3px solid var(--ct-chocolate);
   --ct-tinta-desenho: var(--ct-preto); /* nanquim do desenho (olhinhos); o preto não sai daqui */
   --ct-traco-desenho: 2.5px solid var(--ct-tinta-desenho);
-  --ct-sombra: 4px 4px 0 var(--ct-chocolate);
-  --ct-sombra-p: 3px 3px 0 var(--ct-chocolate);
+  --ct-sombra: 6px 6px 0 var(--ct-chocolate);
+  --ct-sombra-p: 4px 4px 0 var(--ct-chocolate);
   --ct-raio: 18px;
   --ct-raio-p: 14px;
   --ct-trilho: max(clamp(16px, 5vw, 96px), calc((100% - 1440px) / 2));

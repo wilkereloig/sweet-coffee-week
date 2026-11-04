@@ -11,11 +11,24 @@
   @keyframes ct-quica { from { transform: translateY(70%) scale(.85, 1.15); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes ct-desliza { from { transform: translateY(40%); opacity: 0; } to { transform: none; opacity: 1; } }
 
-  .ct-letreiro { transform-origin: 50% 100%; animation: ct-pula var(--ct-mo-quique-dur) var(--ct-mo-quique) both; }
+  /* Letreiro (repaginação de 04/11): cada letra cai, estica e assenta, em fila; a etiqueta de apoio pula antes.
+     transform (e não translate/rotate) porque a letra já tem translate/rotate próprios de desenho torto. */
+  @keyframes ct-letra-pula {
+    0% { transform: translateY(.55em) scale(.55, 1.45); opacity: 0; }
+    55% { transform: translateY(-.12em) scale(1.12, .88); opacity: 1; }
+    80% { transform: translateY(0) scale(.97, 1.03); }
+    100% { transform: none; opacity: 1; }
+  }
+  .ct-letreiro.is-espera :is(.ct-letreiro__letra, .ct-letreiro__apoio) { opacity: 0; }
+  .ct-letreiro.is-entrou .ct-letreiro__apoio { transform-origin: 0 100%; animation: ct-pula 520ms var(--ct-mo-quique) both; }
+  .ct-letreiro.is-entrou .ct-letreiro__letra { transform-origin: 50% 100%; animation: ct-letra-pula 640ms var(--ct-mo-quique) both; animation-delay: calc(120ms + var(--i) * 28ms); }
+  /* Botão: "boing" no hover — estica, encolhe e assenta (scale, separado do translate do estado). */
+  @keyframes ct-boing { 0% { scale: 1; } 30% { scale: 1.07 .93; } 60% { scale: .97 1.04; } 100% { scale: 1; } }
+  .ct-edicao .ct-botao:hover { animation: ct-boing 460ms ease-out; }
   /* No hover a placa balança de novo: a lista de animações ganha uma 2ª; a de entrada segue concluída e não repete ao sair. */
   .ct-placa { transform-origin: 50% 0; animation: ct-balanca 700ms ease-out both; }
   .ct-placa:hover { animation: ct-balanca 700ms ease-out both, ct-balanca-hover 700ms ease-out; }
-  .ct-cartao__link:is(:hover, :focus-visible) { animation: ct-aperta 520ms ease-out; }
+  .ct-cartao__link:is(:hover, :focus-visible), .ct-lamina__link:is(:hover, :focus-visible) { animation: ct-boing 460ms ease-out; }
   .ct-cartao__espia { transition: translate 460ms var(--ct-mo-quique), rotate 460ms var(--ct-mo-quique); }
   .ct-edicao :is(a, button):is(:hover, :focus-visible) .ct-icone { animation: ct-pulinho 520ms ease-out; }
   @keyframes ct-folha-sobe { from { transform: translateY(100%); } to { transform: none; } }

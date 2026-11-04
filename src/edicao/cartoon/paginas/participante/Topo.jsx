@@ -12,9 +12,8 @@ import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { CenarioTema } from '../../../componentes/sistema/CenarioTema.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { LogoDesenhada } from '../../../componentes/sistema/LogoDesenhada.jsx'
-import { Quadro } from '../../../componentes/sistema/pecas.jsx'
+import { Quadro, Preco } from '../../../componentes/sistema/pecas.jsx'
 import { Foto } from '../../../componentes/base.jsx'
-import { precoComboEdicao } from '../../../../data/imageLibrary'
 import { PARTICIPANTE as T, ATENDIMENTO } from '../../textos.js'
 import { QueroIrCasa, JaFui } from '../../MarcasLover.jsx'
 import { linkSeguro } from './ComoPedir.jsx'
@@ -23,7 +22,6 @@ export function Topo ({ p, encerrada, rota, navigate }) {
   const unidades = p.unidades || []
   const foto = p.combo?.fotos?.principal
   const preco = !encerrada ? p.combo?.preco : null
-  const precoArte = preco ? precoComboEdicao(preco) : null
   const selos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim')
   // Atalho de cada modo: no local e para viagem levam ao endereço e ao horário; delivery ao link de pedido.
   const linkDelivery = unidades.flatMap((u) => u.combo?.canais || []).find(linkSeguro)?.link
@@ -34,20 +32,19 @@ export function Topo ({ p, encerrada, rota, navigate }) {
       : { href: '#atendimento', dica: T.comoPedirDica.deliveryInfo }
 
   return (
-    <TopoCanal canal="elenco" className="ct-casa ct-ficha__topo" aria-labelledby="casa-nome">
+    <TopoCanal canal="elenco" className="ct-casa ct-ficha__topo ct-reticula" aria-labelledby="casa-nome">
       <CenarioTema slug={p.slug} semKit="natal" faixa={false} />
       <div className="ct-ficha__cabeca">
         <LogoDesenhada casa={p.casa} className="ct-ficha__logo" />
         <div className="ct-ficha__titulo">
-          <Letreiro nivel={1} id="casa-nome" tamanho="display" cor="chocolate" texto={p.casa.nome} />
+          <Letreiro nivel={1} id="casa-nome" tamanho="display" texto={p.casa.nome} />
           {p.casa.tema && <p className="ct-ficha__tema">{T.tema(p.casa.tema)}</p>}
           {p.casa.apresentacao && <p className="ct-lead ct-ficha__apresentacao">{p.casa.apresentacao}</p>}
-          {preco && (precoArte
-            ? <img className="ct-ficha__preco" src={precoArte.src} width={precoArte.largura} height={precoArte.altura} alt={`Combo ${M.formatarPreco(preco)}`} decoding="async" />
-            : <p className="ct-ficha__preco-texto">Combo {M.formatarPreco(preco)}</p>)}
+          {preco && <Preco rotulo={T.precoRotulo} valor={M.formatarPreco(preco)} className="ct-ficha__preco" />}
         </div>
         {foto && (
           <a className="ct-ficha__vitrine" href="#combo" aria-label={T.verCombo}>
+            <span className="ct-explosao ct-ficha__explosao" aria-hidden="true" />
             <Quadro className="ct-ficha__foto"><Foto foto={foto} proporcao="4 / 5" alt={foto.alt || ''} prioridade /></Quadro>
           </a>
         )}
