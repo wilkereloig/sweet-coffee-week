@@ -21,6 +21,7 @@ import { abrirPreferencias } from '../../lib/consentimento'
 import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
+import ScwIcon from '../../components/scw-icons/ScwIcon.jsx'
 import { RotaContexto } from './contexto.js'
 import { NAV, MENU, CENA_TEXTO, RODAPE } from './textos.js'
 import { Entrada } from './paginas/Entrada.jsx'
@@ -76,7 +77,7 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
   return (
     <>
       <button type="button" className="ct-botao ct-botao--contorno ct-topo__menu" aria-haspopup="dialog" aria-expanded={aberto} aria-controls="ct-menu"
-        onClick={() => { ref.current.showModal(); setAberto(true) }}>{MENU.abrir}</button>
+        onClick={() => { ref.current.showModal(); setAberto(true) }}><ScwIcon nome="menu" tamanho={20} />{MENU.abrir}</button>
       <dialog id="ct-menu" ref={ref} className="ct-folha" aria-labelledby="ct-menu-titulo"
         onClose={() => setAberto(false)} onClick={(e) => { if (e.target === e.currentTarget) fechar() }} onKeyDown={prende}>
         <div className="ct-folha__corpo">

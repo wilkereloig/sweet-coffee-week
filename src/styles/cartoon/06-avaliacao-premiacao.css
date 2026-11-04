@@ -68,7 +68,6 @@
 .ct-podio__linha a { display: inline-flex; align-items: center; min-height: 44px; }
 
 /* Sweet Awards numa página só (lista 13, N1/A1): o que se avalia, o formulário em 3 passos e o "registrada". */
-.ct-awards__secao { scroll-margin-top: 84px; }
 .ct-awards__criterios { display: grid; gap: 10px; max-width: 760px; margin-top: 28px; padding: 18px 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); }
 .ct-awards__criterios .ct-sub, .ct-awards__criterios .ct-nota { margin: 0; }
 .ct-awards__lista { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }

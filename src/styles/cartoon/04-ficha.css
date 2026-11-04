@@ -43,10 +43,10 @@
 .ct-ficha__foto .ct-foto { border-radius: 10px; }
 .ct-ficha__vitrine:is(:hover, :focus-visible) .ct-ficha__foto { rotate: 0deg; translate: 0 -3px; }
 .ct-ficha__preco { margin-top: 6px; }
-/* Celular: a foto do combo abre a ficha (primeira tela), o nome vem logo abaixo com a logo pequena ao lado. O objeto A
-   do kit ficaria atrás da foto: sai no celular (o B segue no pé do topo). */
+/* Celular (04/11): quem chega pelo QR do prisma confere primeiro a casa — logo pequena e nome em cima, a foto do
+   combo logo abaixo, ainda na primeira tela. O objeto A do kit ficaria atrás da foto: sai no celular. */
 @media (max-width: 900px) {
-  .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'foto foto' 'logo titulo' 'acoes acoes'; align-items: center; gap: 18px 14px; }
+  .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'logo titulo' 'foto foto' 'acoes acoes'; align-items: center; gap: 18px 14px; }
   .ct-ficha__logo { --ct-desenho: 72px; }
   .ct-ficha__vitrine { justify-self: stretch; max-width: none; }
   .ct-ficha__topo .ct-cenario__objeto--a { display: none; }
@@ -66,7 +66,7 @@
 }
 
 /* 2 · O combo (canal Cardápio): o rosa é moldura; foto no quadro, preço em placa e texto no painel creme, itens em cartões. */
-.ct-cardapio { gap: 0; scroll-margin-top: 84px; }
+.ct-cardapio { gap: 0; }
 .ct-cardapio > .ct-etiqueta { margin-bottom: 10px; }
 .ct-cardapio > .ct-letreiro { max-width: 20ch; margin: 0 0 28px; }
 .ct-cardapio__grade { display: grid; gap: 28px; width: 100%; align-items: start; }
@@ -184,6 +184,8 @@
 .ct-unidade__obs, .ct-unidade__ni { font-size: 15px; }
 .ct-unidade__frases { margin: 0; padding-left: 18px; }
 .ct-unidade .ct-acoes { margin-top: 6px; }
+/* Celular: as ações da unidade (como chegar, WhatsApp, mapa) em coluna com a mesma largura, sem a escada torta. */
+@media (max-width: 599.98px) { .ct-unidade .ct-acoes { display: grid; } .ct-edicao .ct-unidade .ct-acoes .ct-botao { width: 100%; } }
 .ct-dias { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
 @media (min-width: 1200px) { .ct-dias { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .ct-dia { display: grid; gap: 1px; padding: 7px 10px; border: 1.5px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-creme); }
