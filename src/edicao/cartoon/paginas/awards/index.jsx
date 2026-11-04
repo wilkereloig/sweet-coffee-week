@@ -103,7 +103,6 @@ export function SweetAwards ({ navigate, dados, foco }) {
         </div>
         <figure className="ct-gala__palco">
           {/* Encantados com o troféu: ao lado dele no palco, olhando para ele. */}
-          <Olhinhos expressao="encantado" olhar={{ x: 0.8, y: 0.3 }} tamanho={112} className="ct-gala__olhos" />
           <img className="ct-palco__trofeu" src={trofeu.src} srcSet={srcSet(trofeu.src)} sizes="(max-width: 899px) 60vw, 340px" width={trofeu.largura} height={trofeu.altura} alt={T.trofeuAlt} decoding="async" />
         </figure>
       </TopoCanal>

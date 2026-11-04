@@ -47,8 +47,6 @@
 .ct-edicao .ct-gala__marca img { width: clamp(200px, 24vw, 300px); height: auto; }
 .ct-gala__palco { position: relative; margin: 0; }
 .ct-edicao .ct-gala .ct-palco__trofeu { width: clamp(130px, 15vw, 210px); }
-/* Olhinhos à esquerda do troféu, olhando para ele. No roxo, a sobrancelha (solta do olho) vai em creme. */
-.ct-gala__olhos { --ct-olhinhos-solto: var(--ct-creme); position: absolute; z-index: 2; top: 18%; left: -62%; width: clamp(70px, 7vw, 104px); }
 .ct-podios { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; }
 .ct-podio { display: grid; align-content: start; justify-items: start; gap: 8px; padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-podio__cat { margin: 0; font: 900 22px/1.1 var(--ct-font); }
