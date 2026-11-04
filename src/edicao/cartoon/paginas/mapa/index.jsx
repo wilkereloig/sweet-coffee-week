@@ -95,7 +95,7 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const casasMundo = comMundo ? casasNoMundo(mundo.unidades, todas).map(({ u, p, x, y, numero }) => {
     const c = carimboDe.get(p.slug)
     return {
-      id: u.id, x, y, numero, titulo: M.tituloDaUnidade(p, u), tema: p.casa?.tema || '', doceria: mundo.doceria(p.slug), pin: mundo.logo(p.slug), inicial: inicial(p),
+      id: u.id, x, y, numero, titulo: M.tituloDaUnidade(p, u), tema: p.casa?.tema || '', doceria: mundo.doceria(p.slug), bandeira: mundo.bandeira(numero), pin: mundo.logo(p.slug), inicial: inicial(p),
       apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, carimbos: c?.carimbos || 0, avaliou: !!c?.avaliou,
     }
   }) : []

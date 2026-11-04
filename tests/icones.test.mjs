@@ -53,7 +53,9 @@ test('IconeUi (casca do site) só pede desenho de interface', () => {
 })
 
 test('SVG de interface só nasce no registro (sem desenho solto em tela)', () => {
-  const soltos = CODIGO.filter((a) => /\.jsx$/.test(a) && /<svg\b/.test(ler(a)) && !a.endsWith('scw-icons/registro.jsx'))
+  // Exceção consciente: o traçado da rota do Mundo da Doçura é dado desenhado (caminho entre as paradas), não ícone.
+  const NAO_E_ICONE = ['src/edicao/cartoon/paginas/mapa/Mundo.jsx']
+  const soltos = CODIGO.filter((a) => /\.jsx$/.test(a) && /<svg\b/.test(ler(a)) && !a.endsWith('scw-icons/registro.jsx') && !NAO_E_ICONE.includes(a))
   assert.deepEqual(soltos, [])
 })
 

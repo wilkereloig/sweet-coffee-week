@@ -343,7 +343,14 @@ impressão, ainda a definir.
 - **[Decisão]** Wilker, 04/11: **sinalização = bandeirinha numerada + legenda**, igual no site e no impresso (regra 14 do
   `BRIEFING-DO-MAPA.md`). Número = `numero` da casa (1–27, ordem da rota); unidades da mesma casa repetem o número. No site,
   zoom 1 mostra o número no pin; a logo entra com zoom, no foco, no ponteiro e na casa escolhida. Sicredi = bandeira verde
-  com a logo. [A DEFINIR] o desenho da bandeira e a cor da Sicredi chegam com o chão aprovado; hoje o número é um disco amarelo.
+  com a logo.
+- **v2 aplicada no site (04/11, candidata — o Wilker ainda avalia a versão de impressão):** chão
+  `mapa-mundos-polaroid_v3_alta-4x-fiel.jpg` (6144 × 4096; o script aceita arte maior que o quadro na mesma proporção e
+  gera 1024/2048/3072) + `posicoes-arte-v2.json` (41 unidades, 3 Sicredi, 4 marcos; os `mundos[]` não são usados no site).
+  Pin = as bandeiras aprovadas de `04_SINALIZACAO/bandeiras/` (27 + Sicredi), aparadas a 144 px; no site a bandeira
+  acompanha o mapa (`3.6cqi`, 28–60 px) dentro de um botão de no mínimo 44 px, com o pé do mastro no ponto. O rótulo do
+  tema saiu (temas pintados no chão; o tema segue no nome acessível). O carimbo virou selo amarelo com ✓ e ×N, não mais
+  bandeira, para não confundir com a sinalização. `--aprovada` só depois do ok do Wilker.
 - **[Decisão]** Wilker, 04/11: os mundos dos 27 temas vêm **pintados no chão**, perto de cada pin (fonte: `03_MAPA_IMPRESSO/BRIEFING-DO-MAPA.md`).
   As docerias soltas saíram da prévia (o script só as põe com `--docerias`); o rótulo do tema ao lado do pin fica até o chão novo chegar.
 - **v2 em paisagem girada** (1536 × 1024, mar em cima, norte à esquerda): o site aceita qualquer proporção; no celular a
