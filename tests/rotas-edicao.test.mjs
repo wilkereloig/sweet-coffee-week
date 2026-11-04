@@ -14,8 +14,8 @@ const FECHADA = {}
 const PUBLICA = { edicaoPublica: true }
 const ENTRADA = { edicaoPublica: true, entradaEdicao: true }
 
-test('interruptores do domínio começam desligados e coerentes', () => {
-  assert.equal(CARTOON_PUBLICA, false)
+test('interruptores do domínio coerentes: Cartoon pública, entrada institucional', () => {
+  assert.equal(CARTOON_PUBLICA, true)
   assert.equal(ENTRADA_PRINCIPAL, 'institucional')
   assert.equal(INICIO_INSTITUCIONAL, '/')
   assert.ok(['institucional', 'cartoon'].includes(ENTRADA_PRINCIPAL))

@@ -109,8 +109,8 @@ try {
   {
     const { ctx, page } = await contexto(nav)
     await page.goto(`${BASE}/cartoon`, { waitUntil: 'networkidle' })
-    if (await page.locator('.ct-edicao').count()) falha('sem preview, /cartoon mostrou a edição')
-    else ok('sem preview, /cartoon cai na Home institucional')
+    if (await page.locator('.ct-edicao').count()) ok('rota pública: /cartoon abre sem preview')
+    else falha('com CARTOON_PUBLICA ligada, /cartoon não abriu sem preview')
     await ctx.close()
   }
 

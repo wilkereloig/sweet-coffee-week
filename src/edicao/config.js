@@ -17,7 +17,7 @@ export const EDICAO = {
 }
 
 // false: /cartoon só abre em DEV e em *.vercel.app?preview=1. true: aberta ao público.
-export const CARTOON_PUBLICA = false
+export const CARTOON_PUBLICA = true
 
 // 'institucional': / mostra a Home do festival. 'cartoon': / mostra a entrada da
 // edição e a Home institucional passa a viver em /festival. Exige CARTOON_PUBLICA.
