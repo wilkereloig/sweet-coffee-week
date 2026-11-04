@@ -13,6 +13,7 @@ import { MateriaisEdicao } from './vistas/MateriaisEdicao'
 import { QrCodes } from './vistas/QrCodes'
 import { CarimbosMapa } from './vistas/CarimbosMapa'
 import { ArquivosOrg } from './vistas/ArquivosOrg'
+import { LinksCombos } from './vistas/LinksCombos'
 import { Equipe } from './vistas/Equipe'
 import { ComEdicaoAtual, useEdicoes, AbaConfiguracao, AbaTemas, AbaVendas, AbaRevisao, AbaImportacoes, AbaEdicoes } from './vistas/Edicao'
 import { Carregando, Erro } from './ui'
@@ -122,6 +123,7 @@ export function ModArquivos(props) {
   return <Modulo id="arquivos" {...props} abas={[
     { chave: 'gerais', rotulo: 'Para todas as marcas', render: () => <ArquivosOrg {...props} aba="gerais" /> },
     { chave: 'participantes', rotulo: 'Por participante', render: () => <ArquivosOrg {...props} aba="participantes" /> },
+    { chave: 'links', rotulo: 'Links dos combos', render: () => <LinksCombos /> },
     { chave: 'arquivados', rotulo: 'Arquivados', render: () => <ArquivosOrg {...props} aba="arquivados" /> },
   ]} />
 }

@@ -137,7 +137,7 @@ function rotaCrua(link) {
 
 const ABA_PARTICIPANTES = new Set(['lista', 'candidaturas', 'temas', 'vendas', 'publicacao', 'preenchimento', 'localizacoes'])
 const ABA_CONTATOS = new Set(['pessoas', 'presskit', 'vouchers', 'recebidos'])
-const ABA_ARQUIVOS = new Set(['gerais', 'participantes', 'arquivados'])
+const ABA_ARQUIVOS = new Set(['gerais', 'participantes', 'links', 'arquivados'])
 
 /*
  * Ficha do participante (15/10/2026): quatro vistas no lugar das dez abas.

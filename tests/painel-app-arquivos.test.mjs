@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { CATEGORIAS_ARQUIVO, agruparPorCategoria, tamanhoLegivel, tipoLegivel, caminhoSubstituto } from '../painel-app/src/lib/arquivos.js'
+import { CATEGORIAS_ARQUIVO, linksDosCombos, agruparPorCategoria, tamanhoLegivel, tipoLegivel, caminhoSubstituto } from '../painel-app/src/lib/arquivos.js'
 
 test('as categorias da tela são exatamente as do CHECK do banco', () => {
   const sql = readFileSync(new URL('../supabase/migrations/20260930_etapa4_arquivos.sql', import.meta.url), 'utf8')
@@ -39,4 +39,18 @@ test('o substituto fica na mesma pasta e dentro do limite de nome', () => {
   assert.ok(p.endsWith('logo-novo.png'))
   assert.ok(p.split('/')[1].length <= 120)
   assert.match(p.split('/')[1], /^[A-Za-z0-9._-]+$/)
+})
+
+test('links dos combos: só pasta externa de marca, não arquivada, em ordem de nome', () => {
+  const l = linksDosCombos([
+    { id: 1, escopo: 'marca', categoria: 'combo', marca: 'Wow Cookies', url_externa: 'https://d/1' },
+    { id: 2, escopo: 'marca', categoria: 'combo', marca: 'Adocee Doceria', url_externa: 'https://d/2' },
+    { id: 3, escopo: 'marca', categoria: 'combo', marca: 'Ágata', url_externa: 'https://d/3' },
+    { id: 4, escopo: 'marca', categoria: 'combo', marca: 'Bolomania', url_externa: 'https://d/4', arquivado: true },
+    { id: 5, escopo: 'marca', categoria: 'combo', marca: 'Cookitos', path: 'x/foto.jpg' },
+    { id: 6, escopo: 'geral', categoria: 'combo', marca: null, url_externa: 'https://d/6' },
+    { id: 7, escopo: 'marca', categoria: 'guia', marca: 'Mangai', url_externa: 'https://d/7' },
+  ])
+  assert.deepEqual(l.map((x) => x.id), [2, 3, 1])
+  assert.deepEqual(linksDosCombos(null), [])
 })

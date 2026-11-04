@@ -16,6 +16,13 @@ export const CATEGORIAS_ARQUIVO = [
 ]
 const POR_CHAVE = Object.fromEntries(CATEGORIAS_ARQUIVO.map((c) => [c.chave, c]))
 
+/** Pastas de fotos dos combos no Dropbox (uma por marca), em ordem de nome — a aba "Links dos combos". */
+export function linksDosCombos(lista) {
+  return (lista || [])
+    .filter((a) => a.escopo === 'marca' && a.categoria === 'combo' && a.url_externa && !a.arquivado)
+    .sort((x, y) => (x.marca || '').localeCompare(y.marca || '', 'pt-BR'))
+}
+
 /** Lista → grupos na ordem das categorias, só os que têm arquivo. */
 export function agruparPorCategoria(lista) {
   const grupos = CATEGORIAS_ARQUIVO.map((c) => ({ ...c, itens: [] }))

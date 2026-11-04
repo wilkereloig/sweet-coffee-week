@@ -2093,3 +2093,12 @@ no Dropbox e o painel mostra um item "Fotos do combo" que abre o link. Migration
   NÃO devolve a coluna. Trocar a prévia é UPDATE (não notifica). **Para refazer:** gerar o mosaico das fotos originais da pasta do Dropbox (Pillow, cobrir/cortar; 4:5 → 384×480
   à esquerda e 3 células 251×156 à direita, vão de 5 px, fundo #F1DFC4, qualidade 74) e gravar por UPDATE em `arquivos.previa_dados` — o texto base64 passa de 1 MB no total,
   então NÃO cabe numa chamada SQL do MCP: use uma função temporária com token descartável (foi o que se fez; já desativada, `previa-upload-temp` responde 410 e pode ser apagada no painel).
+
+#### Arquivos › Links dos combos — 04/11/2026 (pedido do Wilker)
+"Uma seção com todos os links dos combos dos participantes, para todo mundo do painel ter acesso." Só tela, sem migration: a aba
+`links` do módulo Arquivos (`vistas/LinksCombos.jsx`) lista, A–Z, as pastas de fotos no Dropbox que cada marca já vê em Fotos —
+`arquivos` com `escopo = 'marca'`, `categoria = 'combo'` e `url_externa`, não arquivadas (`linksDosCombos` em `lib/arquivos.js`, teste em
+`tests/painel-app-arquivos.test.mjs`). Mesma leitura (`get_arquivos_admin`) de Por participante: não há cópia, link novo ou trocado aparece
+sozinho. Só leitura (abrir a pasta, copiar o link, "Copiar todos" = `marca: link` por linha); publicar ou trocar o link continua em
+Por participante. Visível a toda a equipe da organização; a marca nunca vê os links das outras. ⚠️ Chave de rota nova `links`
+(`ABA_ARQUIVOS` em `lib/rota.js`; o contrato de rotas do teste `painel-app-nomes-publicacao` ganhou `links`).
