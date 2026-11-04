@@ -26,7 +26,7 @@
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
  *     botão) e cinco abas (Avaliar → Prêmios depois dos resultados); rodapé com F2 e cookies, sem barras de sinal.
  * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, sem olhinhos —
- *     MANUAL §1.3), como funciona, mural das casas, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
+ *     MANUAL §1.3), vitrine dos combos (foto, sem foto: a logo), como funciona, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
  *     sem elenco, falha de rede e edição encerrada.
  * 11. MAPA — topo no canal Rota; uma linha por unidade; sem coordenada = "em conferência"; aproximada dita assim
  *     na lista e no marcador; ?bairro= (contrato da Entrada) filtra a unidade; quero ir e já fui como filtro;
@@ -120,7 +120,7 @@ try {
     const CENAS = [
       ['/cartoon/participantes', 'Estrelando: nosso elenco!'],
       ['/cartoon/participantes/demo-casa-aurora', '[DEMO] Casa Aurora'],
-      ['/cartoon/combos', 'Os combos da Cartoon'],
+      ['/cartoon/combos', 'Escolha seu combo'],
       ['/cartoon/combos/demo-casa-aurora', '[DEMO] Casa Aurora'],
       ['/cartoon/mapa', 'Mapa'],
       ['/cartoon/minha-rota', 'Minha rota'],
@@ -480,7 +480,7 @@ try {
     const antes = falhas.length
     const { ctx, page, erros } = await contexto(nav, { w: 1440, h: 900 })
     await ir(page, '/cartoon')
-    await page.waitForSelector('.ct-mural')
+    await page.waitForSelector('.ct-vitrine')
     const e = await page.evaluate(() => {
       const txt = (s) => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || ''
       const placa = (s) => [...document.querySelectorAll(`${s} .ct-placa span`)].map((x) => x.textContent.trim()).join(' ')
@@ -492,7 +492,9 @@ try {
         olhos: document.querySelectorAll('.ct-estreia .ct-olhinhos').length,
         como: txt('h2.ct-etiqueta--azul'),
         passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-icone')?.getAttribute('src')?.match(/icones\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.replace(/^\d/, '').trim()]),
-        mural: [...document.querySelectorAll('.ct-mural__link')].map((a) => a.getAttribute('href').split('?')[0]),
+        // Vitrine (03/11): ordem sorteada por dia, então a conferência é do CONJUNTO; casa sem foto leva à página dela.
+        vitrine: [...document.querySelectorAll('.ct-vitrine__link')].map((a) => a.getAttribute('href').split('?')[0]).sort(),
+        fatos: [...document.querySelectorAll('.ct-estreia__fatos li')].map((li) => li.textContent.trim()),
         bairros: [...document.querySelectorAll('.ct-bairro')].map((a) => `${a.firstChild.textContent}:${a.querySelector('.ct-bairro__n').textContent}`),
         avalie: txt('.ct-entrada__avalie .ct-lead'),
         avaliar: !!document.querySelector('.ct-entrada__avalie a[href^="/cartoon/avaliar"]'),
@@ -507,7 +509,8 @@ try {
     if (e.olhos) falha(`Entrada: ${e.olhos} par(es) de olhinhos no topo, onde selo e letreiro já são grandes (MANUAL §1.3)`)
     if (e.como !== 'Como funciona') falha(`Entrada: etiqueta azul "${e.como}"`)
     if (JSON.stringify(e.passos) !== JSON.stringify([['casas', 'Escolha a casa'], ['no-local', 'Prove o combo'], ['avaliar', 'Avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
-    if (JSON.stringify(e.mural) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/participantes/${p.slug}`))) falha(`Entrada: mural ${JSON.stringify(e.mural)}`)
+    if (JSON.stringify(e.vitrine) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/${p.combo?.fotos?.principal ? 'combos' : 'participantes'}/${p.slug}`).sort())) falha(`Entrada: vitrine ${JSON.stringify(e.vitrine)}`)
+    if (JSON.stringify(e.fatos) !== JSON.stringify(['5 a 15 de novembro', 'Combo R$ 38,90', '3 casas'])) falha(`Entrada: fatos do topo ${JSON.stringify(e.fatos)}`)
     if (JSON.stringify(e.bairros) !== JSON.stringify(['Tirol:2', 'Lagoa Nova:1', 'Ponta Negra:1'])) falha(`Entrada: bairros ${JSON.stringify(e.bairros)}`)
     if (!e.chao) falha('Entrada: Onde ficam sem a faixa de Natal')
     if (e.avalie !== 'A avaliação abre em 5 de novembro.' || !e.avaliar) falha(`Entrada: Avalie "${e.avalie}"`)
@@ -524,7 +527,7 @@ try {
     await ir(c.page, '/cartoon')
     const fechado = await c.page.locator('.ct-conteudo').innerText()
     if (!fechado.includes('será revelado em breve')) falha('Entrada sem elenco não diz "em breve"')
-    if (await c.page.locator('.ct-estreia__casas, .ct-mural, .ct-onde').count()) falha('Entrada sem elenco mostrou placa de casas, mural ou bairros')
+    if (await c.page.locator('.ct-estreia__casas, .ct-vitrine, .ct-onde').count()) falha('Entrada sem elenco mostrou placa de casas, vitrine ou bairros')
     if ((await c.page.locator('.ct-estreia__tela .ct-placa span').allTextContents()).join(' ') !== '5 a 15 de novembro') falha('Entrada sem elenco perdeu a placa do período')
     await c.ctx.close()
     c = await contexto(nav, { edicao: 'falha' })
@@ -535,12 +538,12 @@ try {
     await c.ctx.close()
     c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), fase: 'encerrada' } })
     await ir(c.page, '/cartoon')
-    await c.page.waitForSelector('.ct-mural')
+    await c.page.waitForSelector('.ct-vitrine')
     const enc = await c.page.locator('.ct-conteudo').innerText()
     if (!enc.includes('terminou') || await c.page.locator('.ct-entrada__como, .ct-onde').count()) falha('Entrada encerrada: sem aviso, ou ainda com Como funciona/Onde ficam')
     if (!enc.includes('A avaliação desta edição foi encerrada.')) falha('Entrada encerrada: Avalie sem o texto de encerrada')
     await c.ctx.close()
-    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, sem olhinhos), como funciona, mural, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
+    if (falhas.length === antes) ok('Entrada: topo Estreia (TV com o período, placa de casas, ação vermelha, sem olhinhos), vitrine de combos, como funciona, bairros → Mapa filtrado, Avalie, Dúvidas; sem elenco, falha e encerrada')
   }
 
   console.log('\n11 · Mapa')

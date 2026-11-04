@@ -7,12 +7,11 @@
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import * as M from '../../../dados/modelo.js'
-import { precoComboEdicao } from '../../../../data/imageLibrary'
 import { TopoCanal } from '../../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Galeria } from '../../../componentes/sistema/Galeria.jsx'
-import { Etiqueta, Placa, Quadro, Rotulo } from '../../../componentes/sistema/pecas.jsx'
+import { Etiqueta, Quadro, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { PARTICIPANTE as T, RESTRICAO, ICONE } from '../../textos.js'
 import { Alimentar, Trocas } from './Alimentar.jsx'
 
@@ -29,7 +28,7 @@ function Item ({ i, unidades }) {
     <li className="ct-item">
       <Etiqueta icone={ICONE.tipo[i.tipo]}>{T.tipos[i.tipo]}</Etiqueta>
       {fotos.length > 0 && <Galeria fotos={fotos} nome={i.nome || T.tipos[i.tipo]} proporcao="4 / 5" />}
-      {i.nome ? <h3 className="ct-item__nome">{i.nome}</h3> : <p className="ct-item__nome ct-ni">{T.nomeNi}</p>}
+      {i.nome ? <h3 className="ct-item__nome">{M.caixaLegivel(i.nome)}</h3> : <p className="ct-item__nome ct-ni">{T.nomeNi}</p>}
       {descricao && <p className="ct-item__descricao">{descricao}</p>}
       {i.ingredientes && (
         <div className="ct-item__bloco">
@@ -51,28 +50,31 @@ export function Combo ({ p, combo, itens, encerrada }) {
   const nomeCombo = combo.nome ? M.caixaLegivel(combo.nome) : T.comboSemNome(p.casa.nome)
   const nomesItens = itens.map((i) => i.nome).filter(Boolean)
   const alerta = M.fraseAlerta(itens)
-  const precoDesenhado = precoComboEdicao(combo.preco)
   const unidades = p.unidades || []
+  // A foto principal já está no topo da ficha: aqui o quadro só volta com fotos a mais (ou com a reserva, sem foto).
+  const extras = fotos.galeria || []
+  const comQuadro = !fotos.principal || extras.length > 0
+  // Descrição por item nos cartões abaixo: a do combo inteiro repetiria o mesmo texto ("DOCE: … SALGADO: …").
+  const descricaoPorItem = itens.length > 0 && itens.every((i) => i.descricao)
   return (
     <TopoCanal canal="cardapio" className="ct-cardapio" id="combo" aria-labelledby="combo-titulo">
       <Etiqueta icone={ICONE.noCombo}>{T.comboTitulo}</Etiqueta>
       <Letreiro nivel={2} id="combo-titulo" texto={nomeCombo} cor="amarelo" />
-      <div className="ct-cardapio__grade">
-        <Quadro className="ct-cardapio__foto">
-          <Galeria fotos={[fotos.principal, ...(fotos.galeria || [])]} nome={nomeCombo} proporcao="4 / 5" prioridade reserva={T.fotoReserva} />
-        </Quadro>
+      <div className={`ct-cardapio__grade${comQuadro ? '' : ' ct-cardapio__grade--so-painel'}`}>
+        {comQuadro && (
+          <Quadro className="ct-cardapio__foto">
+            <Galeria fotos={[fotos.principal, ...extras]} nome={nomeCombo} proporcao="4 / 5" prioridade reserva={T.fotoReserva} />
+          </Quadro>
+        )}
         <div className="ct-painel ct-cardapio__painel">
-          {!encerrada && (combo.preco
-            ? <div className="ct-cardapio__preco">{precoDesenhado
-              ? <img className="ct-cardapio__preco-arte" src={precoDesenhado.src} width={precoDesenhado.largura} height={precoDesenhado.altura} alt={`Combo ${M.formatarPreco(combo.preco)}`} />
-              : <Placa numero={M.formatarPreco(combo.preco)} rotulo={T.precoRotulo} />}</div>
-            : <p className="ct-cardapio__preco ct-sub">{T.precoAConfirmar}</p>)}
+          {/* O preço mora no topo da ficha (letreiro desenhado); aqui só a falta dele. */}
+          {!encerrada && !combo.preco && <p className="ct-cardapio__preco ct-sub">{T.precoAConfirmar}</p>}
           <div>
             <Rotulo icone={ICONE.noCombo}>{T.noCombo}</Rotulo>
             {/* Espaço fixo antes do ponto: a linha nunca começa com "·". */}
             <p className="ct-cardapio__composicao">{(nomesItens.length ? nomesItens : itens.map((i) => T.tipos[i.tipo])).join(' · ')}</p>
           </div>
-          {combo.descricao && <p>{combo.descricao}</p>}
+          {combo.descricao && !descricaoPorItem && <p>{combo.descricao}</p>}
           <div>
             <Rotulo icone={ICONE.condicoes}>{T.condicoes}</Rotulo>
             <p className={combo.condicoes ? '' : 'ct-ni'}>{combo.condicoes || T.condicoesNi}</p>

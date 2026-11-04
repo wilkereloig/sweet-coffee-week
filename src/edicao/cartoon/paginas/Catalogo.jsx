@@ -10,7 +10,7 @@
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { letreiroEdicao, kitTemaEdicao } from '../../../data/imageLibrary'
+import { letreiroEdicao, kitTemaEdicao, precoComboEdicao } from '../../../data/imageLibrary'
 import { Link, Foto, proporcaoDe, Avisos } from '../../componentes/base.jsx'
 import { useEnderecoDaBusca } from '../useEnderecoDaBusca.js'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
@@ -75,7 +75,7 @@ function Cartao ({ p, modo, navigate, encerrada }) {
           {modo === 'combos' ? nomeCombo && <p className="ct-cartao__sub">{p.casa.nome}</p> : nomeCombo && <p className="ct-cartao__sub">{nomeCombo}</p>}
           {modo === 'combos' && nomesItens.length > 0 && (
             <ul className="ct-cartao__itens">
-              {itens.filter((i) => i.nome).map((i) => <li key={i.posicao}><ScwIcon nome={ICONE.tipo[i.tipo]} tamanho={16} /><span>{i.nome}</span></li>)}
+              {itens.filter((i) => i.nome).map((i) => <li key={i.posicao}><ScwIcon nome={ICONE.tipo[i.tipo]} tamanho={16} /><span>{M.caixaLegivel(i.nome)}</span></li>)}
             </ul>
           )}
           {p.casa.tema && <p className="ct-cartao__tema">{T.tema(p.casa.tema)}</p>}
@@ -108,7 +108,11 @@ export function Catalogo ({ modo, navigate, dados }) {
   const filtrados = React.useMemo(() => M.filtrar(lista, f), [lista, f])
   const ativos = [f.bairro, f.modo, f.hoje, f.vegano, f.semAcucar, f.semGluten, f.semLactose].filter(Boolean).length
   const restricoes = FILTROS_RESTRICAO.filter(([k]) => opcoes[k])
-  const titulo = modo === 'combos'
+  const combos = modo === 'combos'
+  // O preço é o da edição (o mesmo em todas as casas): no topo dos combos, o letreiro desenhado "Combo R$ …".
+  const preco = lista.find((p) => p.combo?.preco)?.combo.preco
+  const precoArte = combos && preco ? precoComboEdicao(preco) : null
+  const titulo = combos
     ? <Letreiro nivel={1} id="cat-titulo" texto={T.tituloCombos} />
     : <Letreiro nivel={1} id="cat-titulo" texto={T.titulo} imagem={letreiroEdicao('elenco')} />
 
@@ -139,11 +143,13 @@ export function Catalogo ({ modo, navigate, dados }) {
       {avisos}
       <TopoCanal canal="elenco" className="ct-catalogo__topo" aria-labelledby="cat-titulo">
         <div className="ct-catalogo__chamada">{titulo}</div>
-        <div className="ct-catalogo__apoio">
-          <Placa numero={String(lista.length)} rotulo={T.placa(lista.length)} />
-          <p className="ct-lead">{T.lead}</p>
-          {/* Encantados com o elenco: olham para o letreiro, na diagonal oposta a ele. */}
-          <Olhinhos expressao="encantado" lado="direita" tamanho={132} className="ct-catalogo__olhos" />
+        <div className={`ct-catalogo__apoio${precoArte ? ' ct-catalogo__apoio--preco' : ''}`}>
+          {precoArte
+            ? <img className="ct-catalogo__preco" src={precoArte.src} width={precoArte.largura} height={precoArte.altura} alt={`Combo ${M.formatarPreco(preco)}`} decoding="async" />
+            : <Placa numero={String(lista.length)} rotulo={combos ? T.placaCombos(lista.length) : T.placa(lista.length)} />}
+          <p className="ct-lead">{combos ? T.leadCombos(lista.length) : T.lead}</p>
+          {/* Encantados com o elenco: olham para o letreiro, na diagonal oposta a ele. Só nas casas (§10.5). */}
+          {!combos && <Olhinhos expressao="encantado" lado="direita" tamanho={132} className="ct-catalogo__olhos" />}
         </div>
       </TopoCanal>
 
@@ -197,7 +203,7 @@ export function Catalogo ({ modo, navigate, dados }) {
         </div>
 
         <div className="ct-catalogo__resumo">
-          <p className="ct-catalogo__conta" aria-live="polite">{T.contagem(filtrados.length, lista.length)}</p>
+          <p className="ct-catalogo__conta" aria-live="polite">{combos ? T.contagemCombos(filtrados.length, lista.length) : T.contagem(filtrados.length, lista.length)}</p>
           {(ativos > 0 || f.q) && <button type="button" className="ct-link" onClick={limpar}>{T.limpar}</button>}
         </div>
 

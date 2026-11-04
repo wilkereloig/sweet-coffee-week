@@ -37,10 +37,13 @@
   .ct-edicao .ct-atalho { transition: translate 180ms var(--ct-mo-quique); }
   .ct-edicao .ct-atalho:hover { translate: 0 -3px; }
   .ct-cenario-fixo img { animation: ct-desliza 760ms cubic-bezier(.22, .9, .24, 1) both; }
-  /* A faixa do pé fica baixa enquanto se lê e sobe no último trecho da rolagem: inteira no fim (lista 13, P1). */
+  /* A faixa do pé (lista 13, P1) fica ESCONDIDA enquanto se lê e sobe no último trecho da rolagem: inteira no fim,
+     com o rodapé reservando a altura dela (nada fica coberto no fim). Sem scroll-timeline: no fluxo (07-sistema.css). */
   @supports (animation-timeline: scroll()) {
-    @keyframes ct-faixa-sobe { 0%, 82% { translate: 0 var(--ct-fixo-desce); } 100% { translate: 0 0; } }
-    .ct-cenario-fixo { animation: ct-faixa-sobe linear both; animation-timeline: scroll(root); }
+    @keyframes ct-faixa-sobe { 0%, 86% { translate: 0 100%; } 100% { translate: 0 0; } }
+    .ct-cenario-fixo { position: fixed; inset: auto 0 0; z-index: 20; margin: 0; translate: 0 100%; animation: ct-faixa-sobe linear both; animation-timeline: scroll(root); }
+    .ct-edicao:has(.ct-cenario-fixo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h)); }
+    @media (max-width: 899.98px) { .ct-cenario-fixo { bottom: var(--scw-base-ocupada, 72px); } }
   }
   .ct-cenario__objeto--a { translate: calc(var(--mx, 0) * 8px) calc(var(--my, 0) * 6px); }
   .ct-cenario__objeto--b { translate: calc(var(--mx, 0) * -5px) calc(var(--my, 0) * -4px); animation-delay: 120ms; }

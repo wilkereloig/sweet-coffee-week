@@ -2,20 +2,23 @@
 /* ------------------------------------------------------------- sistema (docs/cartoon-2026-2/10 §10.4) */
 .ct-letreiro { margin: 0 0 16px; text-wrap: balance; }
 .ct-letreiro--imagem img { display: block; width: min(560px, 100%); height: auto; }
-/* Letreiro em texto: cor de ação, contorno chocolate por fora (paint-order) e sombra curta. */
+/* Letreiro em texto (revisão de 03/11): imita o letreiro desenhado da edição — letra amarela, contorno chocolate por fora
+   (paint-order) e sombra curta vermelha. Antes era vermelho: título vermelho competia com o vermelho da ação focal
+   (botão) e a página alternava dois estilos de título no mesmo nível. */
 .ct-letreiro--titulo, .ct-letreiro--display {
-  --ct-letra: var(--ct-vermelho);
+  --ct-letra: var(--ct-amarelo);
   --ct-contorno: var(--ct-chocolate);
-  --ct-sombra-letra: .05em .06em 0 var(--ct-chocolate);
+  --ct-sombra-letra: .05em .07em 0 var(--ct-vermelho);
   color: var(--ct-letra);
   font-family: var(--ct-font); font-weight: 900;
-  -webkit-text-stroke: .1em var(--ct-contorno);
+  -webkit-text-stroke: .12em var(--ct-contorno);
   paint-order: stroke fill;
   text-shadow: var(--ct-sombra-letra);
 }
 .ct-letreiro--titulo { font-size: var(--ct-fs-titulo); line-height: 1.02; }
 .ct-letreiro--display { font-size: var(--ct-fs-display); line-height: .98; }
-.ct-letreiro--cor-amarelo { --ct-letra: var(--ct-amarelo); }
+/* Sobre o rosa (bloco do combo) a sombra vermelha some: lá ela é chocolate. */
+.ct-letreiro--cor-amarelo { --ct-letra: var(--ct-amarelo); --ct-sombra-letra: .05em .06em 0 var(--ct-chocolate); }
 /* Chocolate com contorno chocolate fecha os vãos das letras: o contorno vira creme (respiro)
    e a sombra amarela sai além dele, como letreiro de desenho animado. */
 .ct-letreiro--cor-chocolate {
@@ -173,12 +176,9 @@
    com a rolagem ela sobe e aparece inteira no fim da página (09-movimento.css). O rodapé reserva a altura
    inteira: no fim nada fica coberto. Celular: acima da barra de abas. */
 .ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: calc(var(--ct-fixo-razao, .33) * 100vw); }
-.ct-cenario-fixo {
-  --ct-fixo-desce: max(40%, calc(100% - 18svh));
-  position: fixed; inset: auto 0 0; z-index: 20; pointer-events: none;
-  translate: 0 var(--ct-fixo-desce);
-}
+/* Revisão de 03/11 (crítica visual): baixa, ela ainda cobria 18% da tela — no celular, somada às abas, um terço da
+   leitura (o nome do item, "Como pedir"). Agora: SEM animação de rolagem (movimento reduzido, navegador sem
+   scroll-timeline) a faixa fica no fluxo, no fim da ficha, inteira e sem cobrir nada; COM ela, fica escondida enquanto
+   se lê e sobe só no último trecho (09-movimento.css). */
+.ct-cenario-fixo { position: relative; pointer-events: none; margin-top: clamp(32px, 6vw, 72px); }
 .ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: auto; }
-html:has(.ct-cenario-fixo) { scroll-padding-bottom: calc(20svh + var(--scw-base-ocupada, 0px)); }
-.ct-edicao:has(.ct-cenario-fixo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h)); }
-@media (max-width: 899.98px) { .ct-cenario-fixo { bottom: var(--scw-base-ocupada, 72px); } }

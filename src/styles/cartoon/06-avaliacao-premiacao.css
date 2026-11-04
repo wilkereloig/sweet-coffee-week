@@ -2,8 +2,12 @@
 /* ------------------------------------------------------------- avaliação e premiação */
 .ct-form { display: grid; gap: 16px; max-width: 680px; }
 .ct-nota-campo { margin: 0; padding: 14px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-branco); }
-.ct-nota-campo legend { padding: 0 6px; font: 700 16px/1.2 var(--ct-font); }
-.ct-escala { display: flex; flex-wrap: wrap; gap: 8px; }
+/* A pergunta fica DENTRO do quadro (float): em duas linhas, sobre a borda, ela cortava o contorno. */
+.ct-nota-campo legend { float: left; width: 100%; margin: 0 0 6px; padding: 0; font: 700 16px/1.25 var(--ct-font); }
+.ct-nota-campo legend + * { clear: both; }
+/* 5 a 10 numa linha só, em qualquer largura (no celular o 10 caía sozinho na segunda linha). */
+.ct-escala { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 6px; max-width: 420px; }
+.ct-escala__op span { width: 100%; }
 .ct-escala__op { position: relative; }
 .ct-escala__op input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .ct-escala__op span {
@@ -97,6 +101,17 @@
 }
 .ct-form__casa input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .ct-form__casa:hover { background: var(--ct-creme); }
+/* Foto do combo na opção da casa e no lembrete do passo 2. */
+.ct-form__casa-foto { flex: none; display: block; width: 52px; overflow: hidden; border: 2px solid var(--ct-chocolate); border-radius: 10px; }
+.ct-form__casa-foto .ct-foto { border: 0; border-radius: 0; }
+.ct-form__casa-texto { display: grid; gap: 1px; min-width: 0; }
+.ct-form__casa-combo { font: 600 13px/1.25 var(--ct-font); }
+.ct-form__lembrete {
+  display: flex; align-items: center; gap: 12px; justify-self: start; padding: 6px 16px 6px 6px;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+  font: 800 16px/1.2 var(--ct-font);
+}
+.ct-form__lembrete .ct-form__casa-foto { width: 64px; }
 .ct-form__casa:has(input:checked) { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
 .ct-form__casa:has(input:focus-visible) { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
 .ct-form__navegar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }

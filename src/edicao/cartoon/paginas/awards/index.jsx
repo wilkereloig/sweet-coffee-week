@@ -18,7 +18,7 @@ import { Olhinhos } from '../../../componentes/sistema/Olhinhos.jsx'
 import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao, Etiqueta, Passos } from '../../../componentes/sistema/pecas.jsx'
-import { AWARDS as T, FASE_TEXTO, ICONE, TIPO_ORDEM } from '../../textos.js'
+import { AWARDS as T, FASE_TEXTO, ICONE } from '../../textos.js'
 import { Formulario } from './Formulario.jsx'
 import { Resultados } from './Resultados.jsx'
 
@@ -70,12 +70,25 @@ export function SweetAwards ({ navigate, dados, foco }) {
     )
   }
 
+  // A lista "O que você avalia" saiu (03/11): o formulário já faz cada pergunta com a ajuda dela, e fechada não há critérios.
+  const secaoComo = !resultados && !encerrada && (
+    <section id="como" className="ct-bloco ct-awards__secao" aria-labelledby="aw-como">
+      <Etiqueta as="h2" cor="azul" id="aw-como">{T.comoTitulo}</Etiqueta>
+      <Passos passos={T.passos} />
+    </section>
+  )
+  const secaoAvaliacao = avaliacao && (
+    <section id="avaliacao" className="ct-bloco ct-awards__secao ct-avaliar" aria-labelledby="aw-avaliacao">
+      <Letreiro id="aw-avaliacao" texto={T.formTitulo} />
+      {avaliacao}
+    </section>
+  )
+
   return (
     <>
       <Avisos desatualizado={dados?.desatualizado} demo={dados?.demo} retrato={dados?.retrato} />
       <TopoCanal canal="gala" className="ct-gala" aria-labelledby="pr-titulo">
         <div className="ct-gala__texto">
-          <p className="ct-rotulo">{T.rotulo}</p>
           <h1 id="pr-titulo" className="ct-gala__marca">
             <img src={MARCA_SWEET_AWARDS.src} width={MARCA_SWEET_AWARDS.largura} height={MARCA_SWEET_AWARDS.altura} alt="" decoding="async" />
             <span className="ct-sr">{T.titulo}</span>
@@ -96,33 +109,8 @@ export function SweetAwards ({ navigate, dados, foco }) {
 
       {resultados && <Resultados navigate={navigate} />}
 
-      {!resultados && !encerrada && (
-        <section id="como" className="ct-bloco ct-awards__secao" aria-labelledby="aw-como">
-          <Etiqueta as="h2" cor="azul" id="aw-como">{T.comoTitulo}</Etiqueta>
-          <Passos passos={T.passos} />
-          {Array.isArray(criterios) && criterios.length > 0 && (
-            <div className="ct-awards__criterios">
-              <h3 className="ct-sub">{T.oQueTitulo}</h3>
-              <ul className="ct-awards__lista">
-                {criterios.map((c) => (
-                  <li key={c.chave}>
-                    {TIPO_ORDEM.includes(c.chave) ? <ScwIcon nome={ICONE.tipo[c.chave]} tamanho={20} /> : <ScwIcon nome="estrela" tamanho={20} />}
-                    <span><strong>{c.rotulo}</strong>{T.criterios[c.chave]?.ajuda ? ` · ${T.criterios[c.chave].ajuda}` : ''}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="ct-nota">{T.escala}</p>
-            </div>
-          )}
-        </section>
-      )}
-
-      {avaliacao && (
-        <section id="avaliacao" className="ct-bloco ct-awards__secao ct-avaliar" aria-labelledby="aw-avaliacao">
-          <Letreiro id="aw-avaliacao" texto={T.formTitulo} />
-          {avaliacao}
-        </section>
-      )}
+      {/* Aberta: o formulário logo depois do topo (quem chega pelo QR da mesa quer avaliar); "Como funciona" vem depois. */}
+      {aberta ? <>{secaoAvaliacao}{secaoComo}</> : <>{secaoComo}{secaoAvaliacao}</>}
     </>
   )
 }

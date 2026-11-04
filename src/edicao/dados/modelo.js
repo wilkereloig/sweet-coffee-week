@@ -115,7 +115,9 @@ export function estadoModo (p, k) {
 const MIUDAS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'as', 'os', 'em', 'no', 'na', 'nos', 'nas', 'com', 'para'])
 export function caixaLegivel (s) {
   const t = String(s ?? '')
-  if (!/\p{Lu}/u.test(t) || /\p{Ll}/u.test(t)) return t
+  // Caixa alta com conectivo minúsculo ("PAVLOVA da ALEGRIA") também conta: o conectivo não decide a caixa.
+  const semMiudas = t.replace(/\p{L}+/gu, (w) => (MIUDAS.has(w) ? '' : w))
+  if (!/\p{Lu}/u.test(t) || /\p{Ll}/u.test(semMiudas)) return t
   return t.toLowerCase().replace(/[\p{L}\p{N}]+/gu, (w, i) => (i > 0 && MIUDAS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
 }
 

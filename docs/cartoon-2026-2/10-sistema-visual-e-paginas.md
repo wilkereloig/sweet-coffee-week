@@ -379,3 +379,27 @@ Tudo vai para a vitrine, com uma ficha de casa de exemplo, para aprovação. Só
   - preço do combo como dado público;
   - letreiros novos a gerar.
 - **Da organização, no painel:** coordenadas das unidades. Hoje só 2 das 40 têm coordenada, então o mapa aparece quase vazio até a conferência.
+
+## 10.16 Revisão de 03/11: o site vende
+
+Pedido do Wilker: "O que a gente precisa do site é vender. Mostrar foto [...] já mostrar os participantes, ser fácil de ver os combos, a página de cada participante [...] que dê desejo."
+
+A revisão partiu de uma crítica visual das capturas em 360, 768 e 1440. O mapa, a rota e o carimbo ficaram fora: são de outra frente.
+
+| Onde | Antes | Agora |
+|---|---|---|
+| **Entrada** · topo | Data e casas só nas placas da TV (abaixo da dobra no celular); ação "Ver as casas" | Celular: período, "Combo R$ …" e nº de casas em pílulas antes das ações; a TV sai abaixo de 600 px. Computador: o preço no letreiro desenhado (`combo-preco.webp`). Ação principal: **Ver os combos** |
+| **Entrada** · "Nosso elenco" | Mural de logos desenhadas (≈1.700 px no celular), depois de "Como funciona" | **Vitrine de 8 combos em foto**, logo depois do topo, cada um com a logo desenhada num selo e levando a `/combos/<casa>`. Ordem sorteada por dia (`doDia`), para nenhuma casa ficar sempre na frente. Celular: faixa com `scroll-snap`; a partir de 600 px, grade. Depois: Como funciona · Onde ficam · Avalie · Dúvidas |
+| **Casas e Combos** · celular | Casas em linha com miniatura de 116 px; combos um por linha (21.574 px de página) | **Vitrine em 2 colunas** nos dois modos, com a foto como protagonista. No cartão: nome, casa e bairro. Tema, itens, selos e as marcas da rota ficam na ficha. Combos: 6.015 px |
+| **Combos** · topo | Igual ao de Casas (placa "27 casas no elenco") | "Escolha seu combo" + o letreiro do preço + "N combos com doce, salgado e bebida…"; contagem em combos; olhinhos só em Casas (§10.5) |
+| **Ficha** · topo | Logo e nome; a foto do combo vinha depois, no bloco rosa | **Foto do combo no topo**. Computador: à direita do nome. Celular: abrindo a ficha, com o nome e a logo pequena logo abaixo. Leva ao bloco do combo. O preço fica no letreiro desenhado. O rótulo "Casa participante da…" saiu |
+| **Ficha** · bloco do combo | Foto repetida, preço repetido, descrição do combo inteiro repetindo os 3 itens | O quadro só volta com fotos a mais. O preço fica no topo (aqui só "a confirmar"). A descrição do combo some quando cada item tem a sua |
+| **Ficha** · faixa do pé (`CenarioFixo`) | Baixa, mas cobrindo 18% da tela enquanto se lê (no celular, um terço com as abas) | **Escondida enquanto se lê**, sobe só no último trecho. Sem scroll-timeline ou com movimento reduzido: no fluxo, no fim da ficha |
+| **Sweet Awards** | "Como funciona" + lista "O que você avalia" antes do formulário; rótulo em caixa alta no topo | Com a avaliação aberta, **o formulário vem logo depois do topo**. A lista de critérios saiu: o formulário já pergunta cada um. O rótulo do topo saiu |
+| **Formulário** | Casas pela logo pequena; escala 5–10 quebrava o 10 no celular | Casas pela **foto do combo** + nome do combo. No passo 2, lembrete com a foto. A escala fica numa linha. A pergunta fica dentro do quadro |
+| **Títulos em texto** (`Letreiro` sem imagem) | Vermelhos, competindo com o vermelho da ação | **Imitam o letreiro desenhado:** amarelo, contorno chocolate e sombra curta vermelha (sobre o rosa, sombra chocolate) |
+| **Nomes em caixa alta** | "PAVLOVA da ALEGRIA" passava como veio | `caixaLegivel` trata o conectivo minúsculo como neutro. Os itens no cartão, na ficha e no formulário saem legíveis |
+
+Ficaram de fora, como próxima rodada:
+- institucional: faixa de 4 números em 3+1 a 768 na Home, degradê da faixa de palavras (verde e cinza fora da paleta), rodapé em 2 colunas no celular, rodapé dos cartões de Edições;
+- a fita do `Quadro` sobre nomes curtos.

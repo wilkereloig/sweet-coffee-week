@@ -8,6 +8,8 @@
 .ct-catalogo__apoio { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px 24px; }
 .ct-catalogo__apoio .ct-lead { max-width: 26ch; margin: 0; }
 .ct-catalogo__apoio .ct-placa { flex: none; rotate: -3deg; }
+/* Combos: o letreiro desenhado do preço ("Combo R$ 38,90", peça do display de mesa) no lugar da placa de contagem. */
+.ct-catalogo__preco { display: block; width: clamp(150px, 22vw, 240px); height: auto; rotate: -3deg; }
 /* Linha própria, acima da placa e à direita: na diagonal oposta ao letreiro, sem apertar o lead. */
 .ct-catalogo__olhos { grid-column: 1 / -1; grid-row: 1; justify-self: end; width: clamp(80px, 9vw, 132px); }
 /* (0,2,0), como a regra de base acima: com um seletor só, ela vencia e o desktop ficava em uma coluna. */
@@ -87,18 +89,21 @@
 }
 @media (hover: none) { .ct-cartao__espia { translate: 14% -10%; rotate: 8deg; } }
 .ct-cartao__link:is(:hover, :focus-visible) .ct-cartao__espia { translate: 10% -6%; rotate: -8deg; }
-/* Celular: no elenco de casas o cartão vira linha (logo + nome), para ler as casas de relance; nos combos a foto segue protagonista. */
+/* Celular (revisão de 03/11, "o site tem que vender"): vitrine de DUAS colunas, a foto do combo como protagonista nos
+   dois modos (antes: casas em linha com miniatura de 116 px, combos um por linha — 21 mil px de página). No cartão
+   fica o que decide o toque: foto, nome e onde; tema, itens, selos e as marcas da rota moram na ficha da casa. */
 @media (max-width: 599px) {
-  .ct-elenco--participantes .ct-cartao__link { grid-template: 'visual corpo' auto 'selos selos' auto / 116px minmax(0, 1fr); }
-  .ct-elenco--participantes .ct-cartao__visual { grid-area: visual; border-bottom: 0; border-right: var(--ct-traco); }
-  .ct-elenco--participantes .ct-cartao__corpo { grid-area: corpo; }
-  .ct-elenco--participantes .ct-cartao__selos { grid-area: selos; padding: 10px 12px 12px; border-top: var(--ct-traco); }
-  .ct-elenco--participantes .ct-cartao__visual .ct-foto { height: 100%; aspect-ratio: auto; }
-  .ct-elenco--participantes .ct-cartao__reserva { --ct-desenho: 70px; height: 100%; aspect-ratio: auto; gap: 14px; padding: 16px 6px 12px; }
-  .ct-elenco--participantes .ct-cartao__aviso { padding-inline: 6px; font-size: 12px; letter-spacing: 0; }
-  .ct-elenco--participantes .ct-cartao__corpo { padding: 12px 14px 14px; }
-  .ct-elenco--participantes .ct-cartao--espia .ct-cartao__corpo { padding-right: 52px; }
-  .ct-elenco--participantes .ct-cartao__espia { width: 60px; }
+  .ct-elenco { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
+  .ct-elenco .ct-cartao { gap: 0; }
+  .ct-elenco .ct-cartao__link { grid-template-rows: auto 1fr; }
+  .ct-elenco .ct-cartao__corpo { gap: 3px; padding: 10px 10px 12px; }
+  .ct-elenco .ct-cartao__nome { font-size: 15px; line-height: 1.12; overflow-wrap: anywhere; }
+  .ct-elenco .ct-cartao__sub { font-size: 13px; line-height: 1.3; }
+  .ct-elenco .ct-cartao__onde { margin: 2px 0 0; font-size: 11px; letter-spacing: .04em; }
+  .ct-elenco :is(.ct-cartao__tema, .ct-cartao__itens, .ct-cartao__selos, .ct-cartao__marcas) { display: none; }
+  .ct-elenco .ct-cartao__reserva { --ct-desenho: 84px; aspect-ratio: 4 / 5; gap: 10px; padding: 10px 6px; }
+  .ct-elenco .ct-cartao__aviso { padding-inline: 6px; font-size: 11px; letter-spacing: 0; }
+  .ct-elenco .ct-cartao__espia { width: 44px; }
 }
 
 .ct-cartao__link {

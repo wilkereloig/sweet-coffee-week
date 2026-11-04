@@ -1,5 +1,7 @@
 /*
  * 1 · Topo da casa: canal Elenco + cenário do tema (só os objetos; a faixa com o combo fica fixa no pé — CenarioFixo).
+ * Revisão de 03/11 ("a foto vende sozinha"): a foto do combo sobe para o topo, ao lado do nome (celular: logo depois
+ * dele), levando ao bloco do combo; o preço da edição fica à vista no letreiro desenhado.
  * Dois grupos com rótulo e desenhos diferentes para não se confundirem: "Como pedir" são ATALHOS (levam ao endereço
  * e horário, ou ao link de pedido) e "Minha rota" são MARCAÇÕES do visitante (ficam salvas no aparelho).
  */
@@ -10,12 +12,18 @@ import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { CenarioTema } from '../../../componentes/sistema/CenarioTema.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { LogoDesenhada } from '../../../componentes/sistema/LogoDesenhada.jsx'
+import { Quadro } from '../../../componentes/sistema/pecas.jsx'
+import { Foto } from '../../../componentes/base.jsx'
+import { precoComboEdicao } from '../../../../data/imageLibrary'
 import { PARTICIPANTE as T, ATENDIMENTO } from '../../textos.js'
 import { QueroIrCasa, JaFui } from '../../MarcasLover.jsx'
 import { linkSeguro } from './ComoPedir.jsx'
 
 export function Topo ({ p, encerrada, rota, navigate }) {
   const unidades = p.unidades || []
+  const foto = p.combo?.fotos?.principal
+  const preco = !encerrada ? p.combo?.preco : null
+  const precoArte = preco ? precoComboEdicao(preco) : null
   const selos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim')
   // Atalho de cada modo: no local e para viagem levam ao endereço e ao horário; delivery ao link de pedido.
   const linkDelivery = unidades.flatMap((u) => u.combo?.canais || []).find(linkSeguro)?.link
@@ -31,10 +39,19 @@ export function Topo ({ p, encerrada, rota, navigate }) {
       <div className="ct-ficha__cabeca">
         <LogoDesenhada casa={p.casa} className="ct-ficha__logo" />
         <div className="ct-ficha__titulo">
-          <p className="ct-rotulo">{T.selo}</p>
           <Letreiro nivel={1} id="casa-nome" tamanho="display" cor="chocolate" texto={p.casa.nome} />
           {p.casa.tema && <p className="ct-ficha__tema">{T.tema(p.casa.tema)}</p>}
           {p.casa.apresentacao && <p className="ct-lead ct-ficha__apresentacao">{p.casa.apresentacao}</p>}
+          {preco && (precoArte
+            ? <img className="ct-ficha__preco" src={precoArte.src} width={precoArte.largura} height={precoArte.altura} alt={`Combo ${M.formatarPreco(preco)}`} decoding="async" />
+            : <p className="ct-ficha__preco-texto">Combo {M.formatarPreco(preco)}</p>)}
+        </div>
+        {foto && (
+          <a className="ct-ficha__vitrine" href="#combo" aria-label={T.verCombo}>
+            <Quadro className="ct-ficha__foto"><Foto foto={foto} proporcao="4 / 5" alt={foto.alt || ''} prioridade /></Quadro>
+          </a>
+        )}
+        <div className="ct-ficha__acoes">
           {!encerrada && selos.length > 0 && (
             <nav className="ct-ficha__grupo" aria-labelledby="como-pedir-rotulo">
               <p id="como-pedir-rotulo" className="ct-rotulo">{T.atendimentoTitulo}</p>

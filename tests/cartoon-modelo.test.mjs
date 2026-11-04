@@ -147,6 +147,7 @@ test('caixa de leitura e endereço: só exibição, sem número repetido', () =>
   assert.equal(M.caixaLegivel('COMBO K POP STAR'), 'Combo K Pop Star')
   assert.equal(M.caixaLegivel('O CHAMADO DO MAR'), 'O Chamado do Mar')
   assert.equal(M.caixaLegivel('Piquenique do pica pau'), 'Piquenique do pica pau', 'caixa mista fica como veio')
+  assert.equal(M.caixaLegivel('PAVLOVA da ALEGRIA'), 'Pavlova da Alegria', 'conectivo minúsculo não decide a caixa')
   assert.equal(M.caixaLegivel(''), '')
   assert.equal(M.caixaLegivel(null), '')
   const adocee = { logradouro: 'AV PRAIA DE PONTA NEGRA N 8880', numero: '8880', bairro: 'Ponta Negra', cidade: 'Natal' }

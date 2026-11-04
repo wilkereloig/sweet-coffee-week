@@ -17,6 +17,7 @@ import { criarEnvioProtegido } from '../../../../lib/enviarFormulario'
 import { Link } from '../../../componentes/base.jsx'
 import { AWARDS as T, PARTICIPANTE as TP, ICONE, TIPO_ORDEM } from '../../textos.js'
 import { LogoDoPin } from '../mapa/LogoDoPin.jsx'
+import { Foto } from '../../../componentes/base.jsx'
 import * as M from '../../../dados/modelo.js'
 
 const TURNSTILE_SITE_KEY = '0x4AAAAAAEbvMJDSlYJpLY3b' // pública, a mesma de /quero-participar/
@@ -182,7 +183,14 @@ export function Formulario ({ dados, criterios, navigate }) {
                 <label key={p.slug} className="ct-form__casa">
                   <input type="radio" name="av-casa" value={p.slug} checked={form.slug === p.slug}
                     onChange={() => setForm((f) => ({ ...f, slug: p.slug, unidade: '' }))} />
-                  <LogoDoPin p={p} tamanho={40} /><span>{p.casa.nome}</span>
+                  {/* Quem provou lembra do combo: a foto dele identifica a casa (sem foto, a logo). */}
+                  {p.combo?.fotos?.principal
+                    ? <span className="ct-form__casa-foto"><Foto foto={p.combo.fotos.principal} proporcao="1 / 1" alt="" /></span>
+                    : <LogoDoPin p={p} tamanho={40} />}
+                  <span className="ct-form__casa-texto">
+                    <span>{p.casa.nome}</span>
+                    {p.combo?.nome && <span className="ct-form__casa-combo">{M.caixaLegivel(p.combo.nome)}</span>}
+                  </span>
                 </label>
               ))}
             </fieldset>
@@ -205,6 +213,13 @@ export function Formulario ({ dados, criterios, navigate }) {
       {form.passo === 2 && casa && (
         <div className="ct-form__passo">
           <CabecaPasso n={2} total={total} titulo={T.notasTitulo(casa.casa.nome)} id="av-p2" focar={trocouPasso.current} />
+          {/* Lembrete do que está sendo avaliado: a foto e o nome do combo. */}
+          {casa.combo?.fotos?.principal && (
+            <div className="ct-form__lembrete">
+              <span className="ct-form__casa-foto"><Foto foto={casa.combo.fotos.principal} proporcao="1 / 1" alt="" /></span>
+              <span>{casa.combo.nome ? M.caixaLegivel(casa.combo.nome) : casa.casa.nome}</span>
+            </div>
+          )}
           <p className="ct-nota">{T.escala}</p>
           {criterios.map((c) => {
             const texto = T.criterios[c.chave]
@@ -215,7 +230,7 @@ export function Formulario ({ dados, criterios, navigate }) {
                   {TIPO_ORDEM.includes(c.chave) && <ScwIcon nome={ICONE.tipo[c.chave]} tamanho={20} />}
                   <span>{texto?.pergunta || T.pergunta(c.rotulo)}</span>
                 </legend>
-                {item && <p className="ct-nota-campo__item">{TP.tipos[c.chave]}: <strong>{item}</strong></p>}
+                {item && <p className="ct-nota-campo__item">{TP.tipos[c.chave]}: <strong>{M.caixaLegivel(item)}</strong></p>}
                 {texto?.ajuda && <p className="ct-nota-campo__ajuda">{texto.ajuda}</p>}
                 <div className="ct-escala">
                   {Array.from({ length: c.maximo - c.minimo + 1 }, (_, i) => c.minimo + i).map((n) => (
