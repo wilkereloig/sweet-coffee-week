@@ -39,7 +39,11 @@
    cortinas, a chamada e as ações; o troféu oficial no círculo de luz, com os olhinhos encantados ao lado. */
 .ct-gala .ct-acoes:empty { display: none; }
 /* Marca própria e permanente do Sweet Awards (22/10), sem o letreiro da edição. */
-.ct-gala__marca { margin: 0 0 8px; line-height: 0; }
+.ct-gala__marca { padding-bottom: 6px; line-height: 0; }
+/* Respiro entre marca, chamada, data e ações pelo gap: o ".ct-palco__corpo > *" (07) zera a margem de cada filho. */
+.ct-gala .ct-palco__corpo { gap: 14px; }
+/* "Resultados depois de 15/11": etiqueta amarela de gibi, a data que o público espera (retoque de 04/11). */
+.ct-gala__quando { margin-top: 4px; }
 .ct-edicao .ct-gala__marca img { width: clamp(200px, 24vw, 300px); height: auto; }
 .ct-gala__palco { position: relative; margin: 0; }
 .ct-edicao .ct-gala .ct-palco__trofeu { width: clamp(130px, 15vw, 210px); }

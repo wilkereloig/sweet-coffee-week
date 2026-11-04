@@ -108,7 +108,10 @@
 .ct-item__restricoes .ct-rotulo { margin: 0; }
 .ct-item > .ct-trocas { margin-top: 4px; }
 .ct-edicao .ct-cardapio__preco-arte { display: block; width: clamp(200px, 22vw, 300px); height: auto; rotate: -3deg; }
-.ct-cardapio__restricoes { display: grid; gap: 14px; width: 100%; max-width: none; margin-top: 32px; }
+/* Largura cheia, com os 4 vereditos numa fileira no desktop. (0,2,0): o .ct-painel (62ch) vem depois, no 07-sistema, e
+   deixava o quadro em meia largura com o lado direito vazio. */
+.ct-painel.ct-cardapio__restricoes { display: grid; gap: 14px; width: 100%; max-width: none; margin-top: 32px; }
+.ct-cardapio__restricoes > p { max-width: 70ch; }
 .ct-cardapio__restricoes p { margin: 0; }
 .ct-cardapio__subtitulo { display: flex; align-items: center; gap: 10px; margin: 0; font: 900 var(--ct-fs-sub)/1.1 var(--ct-font); }
 .ct-cardapio__restricoes .ct-vereditos { margin: 0; }

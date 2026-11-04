@@ -613,7 +613,8 @@ try {
     await ir(c.page, '/cartoon/premiacao')
     if (!(await c.page.locator('.ct-canal--gala h1').count())) falha('Premiação: h1 fora do topo no canal Gala')
     if (!(await c.page.locator('.ct-gala__palco img[src*="trofeu-ouro"]').count())) falha('Premiação sem o troféu v15 de ouro')
-    if (!(await c.page.locator('.ct-gala').innerText()).includes('Resultados depois de 15/11.')) falha('Premiação sem "resultados depois de 15/11"')
+    // textContent: a data mora numa etiqueta em caixa-alta (CSS), e innerText devolveria o texto já transformado.
+    if (!(await c.page.locator('.ct-gala').textContent()).includes('Resultados depois de 15/11.')) falha('Premiação sem "resultados depois de 15/11"')
     await c.ctx.close()
     const resultados = [
       { trilha: 'sweet_lovers', categoria: '[DEMO] Categoria A', colocacao: 1, nome: '[DEMO] Casa Aurora', slug: 'demo-casa-aurora' },
@@ -625,7 +626,7 @@ try {
     await c.page.waitForSelector('.ct-podio')
     const podios = await c.page.locator('.ct-podio').evaluateAll((l) => l.map((a) => [a.querySelector('.ct-podio__cat').textContent, [...a.querySelectorAll('.ct-podio__lugar')].map((x) => x.textContent).join(',')]))
     if (JSON.stringify(podios) !== JSON.stringify([['[DEMO] Categoria A', '1º lugar'], ['[DEMO] Categoria B', '1º lugar,3º lugar']])) falha(`pódio inventou colocação: ${JSON.stringify(podios)}`)
-    if ((await c.page.locator('.ct-gala').innerText()).includes('Resultados depois de')) falha('com resultados, ainda diz "resultados depois de"')
+    if ((await c.page.locator('.ct-gala').textContent()).includes('Resultados depois de')) falha('com resultados, ainda diz "resultados depois de"')
     if ((await c.page.locator('h1').count()) !== 1) falha('Premiação com resultados: mais de um <h1>')
     await c.ctx.close()
     if (falhas.length === antes) ok('Premiação: canal Gala com o troféu e "depois de 15/11"; pódio só com as colocações registradas')

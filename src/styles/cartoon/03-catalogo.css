@@ -67,7 +67,9 @@
 @media (min-width: 600px) { .ct-elenco { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 20px; } }
 @media (min-width: 900px) { .ct-elenco { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 24px; } }
 @media (min-width: 1200px) { .ct-elenco { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.ct-elenco .ct-cartao { min-width: 0; }
+/* O cartão: o link em cima e, no pé, as marcas da rota (05-mapa-rota.css). Mora aqui, antes do bloco do celular, que
+   zera o vão quando as marcas somem (antes a regra morava no 05, depois deste arquivo, e o "gap: 0" do celular perdia). */
+.ct-elenco .ct-cartao { display: grid; grid-template-rows: 1fr auto; gap: 10px; min-width: 0; }
 .ct-elenco .ct-cartao__link { position: relative; grid-template-rows: auto 1fr auto; }
 .ct-cartao__visual { position: relative; overflow: hidden; container-type: inline-size; border-bottom: 3px solid var(--ct-chocolate); background: var(--ct-creme); }
 .ct-cartao__visual .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
@@ -108,13 +110,20 @@
 }
 
 /* Quadro de gibi (repaginação de 04/11): borda chocolate de 3 px, sombra dura; no hover sobe torto, a sombra cresce e o
-   corpo vira amarelo. Foto sem borda própria: quem separa é a borda de baixo do visual. */
-.ct-cartao__link {
-  display: grid; height: 100%; gap: 0; border: 3px solid var(--ct-chocolate); border-radius: 16px; overflow: hidden;
-  background: var(--ct-branco); box-shadow: 6px 6px 0 var(--ct-chocolate); text-decoration: none;
+   quadro vira amarelo. Foto sem borda própria: quem separa é a borda de baixo do visual.
+   A moldura é do <li> (retoque de 04/11): "Quero ir" e "Já fui" ficam dentro dela, no pé, e não soltos embaixo do
+   quadro. O link é a parte de cima; o hover ou o foco nele sobe o quadro inteiro. */
+.ct-cartao {
+  border: 3px solid var(--ct-chocolate); border-radius: 16px; background: var(--ct-branco); box-shadow: 6px 6px 0 var(--ct-chocolate);
   transition: translate var(--ct-mo), rotate var(--ct-mo), box-shadow var(--ct-mo), background-color var(--ct-mo);
 }
-.ct-cartao__link:is(:hover, :focus-visible) { translate: -3px -5px; rotate: -1.2deg; box-shadow: 10px 10px 0 var(--ct-chocolate); background: var(--ct-amarelo); }
+.ct-cartao:has(> .ct-cartao__link:is(:hover, :focus-visible)) { translate: -3px -5px; rotate: -1.2deg; box-shadow: 10px 10px 0 var(--ct-chocolate); background: var(--ct-amarelo); }
+/* O link recorta a foto e o objeto que espia (overflow) nos cantos de cima; sem as marcas, nos quatro. */
+.ct-cartao__link { --ct-raio-link: 13px 13px 0 0; display: grid; height: 100%; gap: 0; border-radius: var(--ct-raio-link); overflow: hidden; text-decoration: none; }
+.ct-cartao__link:last-child { --ct-raio-link: 13px; }
+/* Anel por dentro: por fora ele cairia em cima da borda chocolate e sumiria. (0,3,0) vence o anel base do 01-base. */
+.ct-edicao .ct-cartao__link:focus-visible { outline-offset: -7px; border-radius: var(--ct-raio-link); }
+.ct-cartao__marcas { margin: 0 16px 16px; padding-top: 12px; border-top: 2px dotted var(--ct-chocolate); }
 .ct-cartao__link .ct-foto { border: 0; border-radius: 0; }
 .ct-cartao__corpo { display: grid; gap: 4px; padding: 14px 16px 18px; }
 .ct-cartao__nome { margin: 0; font: 900 19px/1.1 var(--ct-font); }

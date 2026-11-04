@@ -40,7 +40,7 @@
   /* No hover a placa balança de novo: a lista de animações ganha uma 2ª; a de entrada segue concluída e não repete ao sair. */
   .ct-placa { transform-origin: 50% 0; animation: ct-balanca 700ms ease-out both; }
   .ct-placa:hover { animation: ct-balanca 700ms ease-out both, ct-balanca-hover 700ms ease-out; }
-  .ct-cartao__link:is(:hover, :focus-visible), .ct-lamina__link:is(:hover, :focus-visible) { animation: ct-boing 460ms ease-out; }
+  .ct-cartao:has(> .ct-cartao__link:is(:hover, :focus-visible)), .ct-lamina__link:is(:hover, :focus-visible) { animation: ct-boing 460ms ease-out; }
   .ct-cartao__espia { transition: translate 460ms var(--ct-mo-quique), rotate 460ms var(--ct-mo-quique); }
   .ct-edicao :is(a, button):is(:hover, :focus-visible) .ct-icone { animation: ct-pulinho 520ms ease-out; }
   @keyframes ct-folha-sobe { from { transform: translateY(100%); } to { transform: none; } }
@@ -88,5 +88,5 @@
   /* Logo desenhada: colorida direto, sem tinta (§10.14). */
   .ct-desenho__cor { -webkit-mask-image: none; mask-image: none; }
   .ct-edicao *, .ct-edicao *::before { transition: none !important; animation: none !important; }
-  .ct-edicao .ct-botao:hover, .ct-cartao__link:is(:hover, :focus-visible) { transform: none; }
+  .ct-edicao .ct-botao:hover { transform: none; }
 }

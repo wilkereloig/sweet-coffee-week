@@ -95,7 +95,7 @@ export function SweetAwards ({ navigate, dados, foco }) {
             <span className="ct-sr">{T.titulo}</span>
           </h1>
           <p className="ct-palco__texto">{T.lead}</p>
-          {!resultados && <p className="ct-sub">{T.depois(fim ? `${fim[2]}/${fim[1]}` : '')}</p>}
+          {!resultados && <p className="ct-etiqueta ct-gala__quando">{T.depois(fim ? `${fim[2]}/${fim[1]}` : '')}</p>}
           <div className="ct-acoes">
             {resultados ? <Botao href="#resultados">{T.verPremiados}</Botao>
               : aberta ? <Botao href="#avaliacao"><ScwIcon nome={ICONE.avaliar} tamanho={20} />{T.irAvaliar}</Botao> : null}

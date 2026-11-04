@@ -12,7 +12,6 @@
 .ct-edicao a.ct-marca { text-decoration: none; }
 .ct-marca > span { text-align: left; }
 .ct-marca__nota { display: block; margin-top: 2px; font: 600 12px/1.2 var(--ct-font); }
-.ct-elenco .ct-cartao { display: grid; grid-template-rows: 1fr auto; gap: 10px; }
 .ct-cartao__marcas, .ct-ficha__marcas { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* Progresso "x de N casas": ícone da edição + texto + barra nativa (<progress>), sem transição. */
