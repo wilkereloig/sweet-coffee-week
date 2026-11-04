@@ -30,7 +30,7 @@ Decisões do Wilker (03/11/2026):
 | Regra | Valor |
 |---|---|
 | Quem dá o carimbo | o lojista, no painel da marca, lendo o QR (ou digitando o código de 6 dígitos) |
-| Limite | **1 carimbo por casa por dia** (dia no fuso de Natal). Garantido pelo banco |
+| Limite | **Várias casas no mesmo dia, à vontade.** Na **mesma casa**, 1 carimbo por dia (dia no fuso de Natal). Garantido pelo banco |
 | Primeira visita a uma casa | o carimbo só **vale** depois de existir a avaliação daquela casa com o e-mail do mapa. Aí a casa ganha cor |
 | Visitas seguintes | valem na hora, sem nova avaliação (a avaliação é uma por e-mail por casa) |
 | Sorteio | cada carimbo válido = **1 número da sorte** (sequência única da edição) |
@@ -89,7 +89,8 @@ Aba **Edição › Carimbos** (permissão `dado.ler`; números da sorte e contat
 
 - totais (mapas, carimbos, válidos, pendentes de avaliação) e carimbos por casa por dia;
 - ranking completo (apelido, e-mail, WhatsApp, válidos, casas diferentes, hora do último);
-- **alertas**: mesmo mapa com carimbos em casas diferentes a menos de 10 min; mais de 6 carimbos no mesmo dia;
+- **alertas**: mesmo mapa com carimbos em casas diferentes a menos de 10 min (rodar várias casas no mesmo dia
+  é o esperado e não gera alerta — Wilker, 03/11);
 - **lista dos números da sorte válidos** para o sorteio (exporta CSV);
 - **link novo** para um mapa (perdeu o aparelho).
 
@@ -165,3 +166,33 @@ Turnstile na criação · carimbo por unidade · alerta por distância real · m
 | 04/11 | **ok para aplicar a migration**; preencher os [A DEFINIR] do regulamento; enviar o aviso no painel e no WhatsApp das marcas | Wilker |
 | 04/11 | teste no celular de verdade: um iPhone e um Android, nos dois papéis | Wilker + Claude |
 | 05/11 | publica junto com o site (as flags da publicação já previstas; nada novo a ligar) | Wilker |
+
+## 14.11 Mapa impresso — fundido com o digital (planejado; não desenvolver agora)
+
+**[Decisão]** Pedido do Wilker (03/11/2026): o Mapa da Doçura digital e o mapa impresso são **o mesmo mapa**. O
+impresso serve de **sinalização** e para quem quer o mapa na mão; o carimbo continua só no digital.
+
+- **Arte:** mapa de Natal **desenhado**, misturado com o mundo da edição Cartoon. Pontos da cidade como na faixa
+  `elementos/cena/natal` (Forte dos Reis Magos, Ponte Newton Navarro, farol, dunas). Morro do Careca é duna —
+  nunca Pão de Açúcar (memória "Natal nunca Rio"). Cada casa com um cantinho do seu tema, sem personagem, sem
+  logo de terceiro.
+- **Cada casa:** **número + nome + logo desenhada** quando couber (a colorida tem 480 px: ~4 cm a 300 dpi, o
+  bastante para logo pequena). Sem espaço: **pin com número + nome**, e o tema da casa na legenda lateral
+  (número · nome · tema · bairro).
+- **Marcas na peça:** selo da edição; **Senac como apoio** (espaço reduzido); **Sicredi como patrocínio**
+  (decisão do Wilker, 03/11). Arquivos recebidos copiados para
+  `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/00_REFERENCIAS/` no Dropbox da edição (Sicredi em PDF com área de proteção;
+  Senac de 22/10).
+- **Fusão com o digital:**
+  - a **mesma numeração** das casas no impresso, nos pins do mapa do site e no álbum do Mapa da Doçura;
+  - **QR no impresso** abrindo o Mapa da Doçura por um código novo no contador `/q/` (ex.: `mapa-impresso`),
+    que já entra na aba Operação › QR Codes;
+  - texto curto no impresso: como pedir o carimbo e onde está o regulamento;
+  - a mesma arte vira a fase 2 do mapa digital (§14.8), com as casas ganhando cor sobre o desenho.
+- **Pontos de atenção:**
+  - **localização:** só 15 das 41 unidades têm coordenada conferida (03/11). A posição no desenho é aproximada
+    por bairro e precisa ser conferida antes de imprimir;
+  - 7 casas têm várias unidades: **um número por casa**, pin repetido em cada unidade;
+  - não há modelo do Wilker para mapa nas pastas da edição (03/11): conferir antes de diagramar se ele tem um.
+- **[A DEFINIR]** formato (A3 dobrado? A2 de parede?), tiragem, onde distribuir e onde fixar, data de
+  impressão, ordem da numeração (por bairro ou alfabética), e se o Sicredi também aparece no site da edição.
