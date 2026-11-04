@@ -38,6 +38,7 @@ export const DOMINIOS = Object.freeze([
   'respostas',      // formulários do site
   'atividade',      // histórico de alterações
   'configuracao',   // configurações da organização
+  'carimbos',       // Mapa da Doçura: carimbos, QR das unidades, mapas
 ])
 const CONJUNTO = new Set(DOMINIOS)
 export const ehDominio = (d) => CONJUNTO.has(d)
@@ -55,7 +56,7 @@ export function limparDominios(lista) {
 export const RPC_LEITURA = new Set([
   'admin_ping', 'buscar_marcas_acervo', 'editorial_combos', 'editorial_ficha', 'editorial_participantes',
   'equipe_diretorio', 'meu_perfil', 'minhas_permissoes',
-  'marca_meus_vouchers', 'marca_minha_historia', 'marca_minha_logo',
+  'marca_carimbos_hoje', 'marca_meus_vouchers', 'marca_minha_historia', 'marca_minha_logo',
   'marca_minha_publicacao', 'marca_previa_publica',
   // org_preenchimento(s) leem (e, na primeira vez, criam o link: o banco avisa por
   // gatilho). Se avisassem daqui, a tela que as chama recarregaria para sempre.
@@ -203,6 +204,10 @@ export const RPC_ESCRITA = Object.freeze({
   marca_ler_mensagens: ['mensagens', 'avisos'],
   marca_responder_solicitacao: ['pedidos', 'avisos'],
   marca_usar_voucher: ['vouchers'],
+  // Mapa da Doçura (organização)
+  carimbo_anular: ['carimbos'],
+  carimbo_qr_novo: ['carimbos'],
+  mapa_nova_chave: ['carimbos'],
   marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
   marcar_senha_trocada: ['perfis'],
 })

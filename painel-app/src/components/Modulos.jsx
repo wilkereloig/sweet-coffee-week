@@ -11,6 +11,7 @@ import { Vouchers } from './vistas/Vouchers'
 import { Producao } from './vistas/Producao'
 import { MateriaisEdicao } from './vistas/MateriaisEdicao'
 import { QrCodes } from './vistas/QrCodes'
+import { CarimbosMapa } from './vistas/CarimbosMapa'
 import { ArquivosOrg } from './vistas/ArquivosOrg'
 import { Equipe } from './vistas/Equipe'
 import { ComEdicaoAtual, useEdicoes, AbaConfiguracao, AbaTemas, AbaVendas, AbaRevisao, AbaImportacoes, AbaEdicoes } from './vistas/Edicao'
@@ -147,6 +148,8 @@ export function ModEdicao(props) {
     // Chave de rota `publicacao` mantida; nome visível: "Liberação no site" (a edição inteira, não uma marca).
     { chave: 'publicacao', rotulo: NOMES_PUBLICACAO.edicao.rotulo, render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <ChavesEdicao edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
     { chave: 'avaliacoes', rotulo: 'Avaliações', mostrar: props.pode('relatorio.ler'), render: () => <ComEdicaoAtual registrarAtualizar={props.registrarAtualizar}>{(atual) => <Avaliacoes edicao={atual} pode={props.pode} />}</ComEdicaoAtual> },
+    // Mapa da Doçura (docs/cartoon-2026-2/14 §14.5): carimbos, auditoria do pódio e adesivos do balcão.
+    { chave: 'carimbos', rotulo: 'Carimbos', mostrar: props.pode('dado.ler'), render: () => <CarimbosMapa pode={props.pode} registrarAtualizar={props.registrarAtualizar} /> },
     { chave: 'edicoes', rotulo: 'Todas as edições', render: () => <TodasEdicoes registrarAtualizar={props.registrarAtualizar} /> },
   ]} />
 }

@@ -8,7 +8,7 @@
  */
 import { EDICAO } from './config.js'
 
-export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'inexistente']
+export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'carimbo', 'regulamento', 'inexistente']
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -21,6 +21,8 @@ export function resolverCena (path = '', base = EDICAO.caminho) {
   if (partes.length === 0) return { cena: 'entrada' }
   const [primeira, slug, ...sobra] = partes
   if (sobra.length) return { cena: 'inexistente' }
+  // QR do balcão (Mapa da Doçura): a página valida o formato e explica um código ruim, em vez de 404.
+  if (primeira === 'carimbo') return slug ? { cena: 'carimbo', codigo: slug.toLowerCase() } : { cena: 'inexistente' }
   if (primeira === 'participantes' || primeira === 'combos') {
     if (!slug) return { cena: primeira }
     if (!SLUG.test(slug)) return { cena: 'inexistente' }
@@ -28,6 +30,6 @@ export function resolverCena (path = '', base = EDICAO.caminho) {
       ? { cena: 'participante', slug, foco: 'combo' }
       : { cena: 'participante', slug }
   }
-  if (!slug && ['mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema'].includes(primeira)) return { cena: primeira }
+  if (!slug && ['mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'regulamento'].includes(primeira)) return { cena: primeira }
   return { cena: 'inexistente' }
 }

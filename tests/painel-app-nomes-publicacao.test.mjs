@@ -46,7 +46,7 @@ const CHAVES_DE_ROTA = {
   operacao: ['pedidos', 'fotos', 'materiais', 'qr'],
   social: ['planejamento', 'campanhas', 'biblioteca', 'participantes'],
   arquivos: ['gerais', 'participantes', 'arquivados'],
-  edicao: ['configuracao', 'publicacao', 'avaliacoes', 'edicoes'],
+  edicao: ['configuracao', 'publicacao', 'avaliacoes', 'carimbos', 'edicoes'],
   admin: ['equipe', 'revisao', 'importacoes', 'historico', 'formularios'],
 }
 // Onde cada assunto mora: [módulo, chave de rota].

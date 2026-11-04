@@ -1,7 +1,7 @@
 # 14 · Mapa da Doçura — QR no balcão, sorteio e pódio
 
-**Estado (03/11/2026):** desenho **revisto e aprovado pelo Wilker** (QR fixo na unidade + avaliação), nada
-construído. Abre **junto com o site, em 05/11**. O primeiro desenho (o lojista lendo o QR do visitante) caiu no
+**Estado (03/11/2026):** desenho **revisto e aprovado pelo Wilker** (QR fixo na unidade + avaliação). **Código escrito em
+03/11** (site, painel e migration `20261130_mapa_docura_carimbo.sql`, **não aplicada**). Abre **junto com o site, em 05/11**. O primeiro desenho (o lojista lendo o QR do visitante) caiu no
 mesmo dia — ver §14.1.
 Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]**.
 Nome de trabalho: "Mapa da Doçura" (o nome da página do mapa segue em aberto, §10 do doc 10).

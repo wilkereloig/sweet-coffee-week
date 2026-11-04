@@ -1,0 +1,25 @@
+/* Edição › Carimbos — Mapa da Doçura (vistas/CarimbosMapa.jsx). Prefixo cm-. */
+.cm-alertas { display: grid; gap: var(--e-2); margin: 0; padding: 0; list-style: none; }
+.cm-alertas li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); padding: var(--e-2) var(--e-3); border-radius: var(--r-2); background: var(--sup-2); }
+
+.cm-adesivos { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--e-3); margin: 0; padding: 0; list-style: none; }
+.cm-adesivo { display: grid; justify-items: center; gap: 4px; padding: var(--e-3); border: 2px dashed var(--scw-choco); border-radius: var(--r-2); background: var(--scw-creme); text-align: center; }
+.cm-adesivo p { margin: 0; }
+.cm-adesivo__marca { font: 700 12px/1.2 var(--f-ui); letter-spacing: .04em; }
+.cm-adesivo__qr { display: block; width: 100%; max-width: 160px; aspect-ratio: 1; }
+.cm-adesivo__chamada { font: 700 14px/1.2 var(--f-ui); }
+.cm-adesivo__casa { font: 700 16px/1.2 var(--f-titulo); }
+.cm-adesivo__unidade { font: 400 13px/1.3 var(--f-texto); }
+.cm-adesivo__tela { font: 400 12px/1.4 var(--f-texto); color: var(--scw-marrom); }
+.cm-adesivo__alerta { font-weight: 700; }
+.cm-adesivo__trocar { min-height: 44px; padding: 0 4px; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+
+/* Impressão: só com body.cm-imprimindo (o botão liga e o afterprint desliga) — imprimir outra tela do painel não é afetado. */
+@media print {
+  body.cm-imprimindo * { visibility: hidden; }
+  body.cm-imprimindo .cm-adesivos, body.cm-imprimindo .cm-adesivos * { visibility: visible; }
+  body.cm-imprimindo .cm-adesivos { position: absolute; inset: 0 auto auto 0; width: 100%; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+  body.cm-imprimindo .cm-adesivo { break-inside: avoid; border-color: var(--scw-choco); background: var(--scw-creme); }
+  body.cm-imprimindo .cm-adesivo__tela { display: none; }
+  body.cm-imprimindo .cm-adesivo__qr { max-width: 48mm; }
+}

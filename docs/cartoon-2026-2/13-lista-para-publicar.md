@@ -45,7 +45,10 @@ destaque 6 · consentimento 12 · QR 15 · edições 16 · formulários/Turnstil
 4. **Chave do Google na Vercel:** `VITE_GOOGLE_MAPS_KEY` (e o domínio do site na lista de endereços da chave). Sem ela, o mapa é o MapLibre.
 5. **Painel (D2):** Caroli Douces sem descrição do combo e salgado sem nome; 3 itens sem restrições; "DOCE:/SALGADO:" no começo das descrições de Adocee e Bolomania (o site esconde o prefixo, mas o painel ainda tem).
 6. **Mapa (B6):** 25 unidades sem coordenada conferida — conferir no painel; no ar, só as conferidas aparecem no mapa.
-7. **Em aberto, sem urgência:** imagem de compartilhamento própria da Cartoon (og); `proximaEdicao.status` interno ainda se chama `pre-cadastro`;
+7. **Mapa da Doçura (doc 14):** aplicar a migration `20261130_mapa_docura_carimbo` (teste `supabase/testes/mapa-docura-carimbo.sql` → `TESTE_OK`);
+   no painel, Edição › Carimbos › **Imprimir adesivos** e colar um em cada unidade; preencher os [A DEFINIR] em `src/edicao/cartoon/regulamento.js`.
+   O carimbo só funciona com a janela da avaliação aberta (item 2) e confere a localização pelas coordenadas do item 6.
+8. **Em aberto, sem urgência:** imagem de compartilhamento própria da Cartoon (og); `proximaEdicao.status` interno ainda se chama `pre-cadastro`;
    a rota antiga `/em-breve` ainda abre por endereço direto.
 
 Decisões técnicas tomadas sem perguntar (o Wilker pediu "tome as melhores decisões"):

@@ -29,6 +29,8 @@ import { Participante } from './paginas/participante/index.jsx'
 import { Mapa } from './paginas/mapa/index.jsx'
 import { MinhaRota } from './paginas/MinhaRota.jsx'
 import { SweetAwards } from './paginas/awards/index.jsx'
+import { Carimbo } from './paginas/Carimbo.jsx'
+import { Regulamento } from './paginas/Regulamento.jsx'
 
 // Vitrine do sistema visual (docs/cartoon-2026-2/10 §10.12): só no DEV. Fora
 // dele o import nem existe no código, então a vitrine não entra no build.
@@ -100,12 +102,12 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
 
 const TITULOS = {
   participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
-  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', inexistente: 'Página não encontrada',
+  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Carimbo do Mapa da Doçura', regulamento: 'Regulamento do Mapa da Doçura', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
   const pedida = resolverCena(path)
-  const { slug, foco } = pedida
+  const { slug, foco, codigo } = pedida
   const cena = pedida.cena === 'sistema' && !Sistema ? 'inexistente' : pedida.cena
   const ed = useEdicao()
   const rota = useMinhaRota(EDICAO.codigo)
@@ -114,7 +116,7 @@ export function CartoonPage ({ path, navigate }) {
   useReservaDaBase(abasRef)
   const selo = seloEdicao()
   const dados = ed.dados
-  const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena
+  const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena === 'carimbo' ? 'minha-rota' : cena
   // Barra do celular: os cinco atalhos; depois dos resultados, a aba do Sweet Awards vira "Prêmios" (§10.6).
   const abas = NAV.map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
   const paradas = rota.ids.length
@@ -129,7 +131,7 @@ export function CartoonPage ({ path, navigate }) {
   }, [cena])
 
   // Páginas que dependem da lista da edição esperam por ela; o participante busca o seu.
-  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente'].includes(cena)
+  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'carimbo', 'regulamento'].includes(cena)
   let conteudo
   if (precisaLista && ed.estado === 'carregando') conteudo = <Carregando texto="Carregando a edição…" />
   else if (precisaLista && ed.estado === 'falha') {
@@ -144,6 +146,8 @@ export function CartoonPage ({ path, navigate }) {
       case 'minha-rota': conteudo = <MinhaRota navigate={navigate} dados={dados} />; break
       case 'avaliar':
       case 'premiacao': conteudo = <SweetAwards navigate={navigate} dados={dados} foco={cena} />; break
+      case 'carimbo': conteudo = <Carimbo key={codigo} codigo={codigo} navigate={navigate} dados={dados} />; break
+      case 'regulamento': conteudo = <Regulamento navigate={navigate} />; break
       case 'sistema': conteudo = <React.Suspense fallback={<Carregando texto="Carregando a vitrine…" />}><Sistema /></React.Suspense>; break
       default:
         conteudo = (

@@ -17,6 +17,7 @@ import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { Placa, Botao } from '../../componentes/sistema/pecas.jsx'
 import { useRota } from '../contexto.js'
 import { JaFui } from '../MarcasLover.jsx'
+import { AlbumCarimbos } from './AlbumCarimbos.jsx'
 import { ROTA as T } from '../textos.js'
 
 export function MinhaRota ({ navigate, dados }) {
@@ -73,6 +74,7 @@ export function MinhaRota ({ navigate, dados }) {
     <div className="ct-rota">
       {avisos}
       {topo(T.lead, !vendoCompartilhada)}
+      {!vendoCompartilhada && <AlbumCarimbos dados={dados} navigate={navigate} />}
 
       <section className="ct-bloco ct-rota__secao" aria-labelledby="rota-quero">
         {vendoCompartilhada && (
