@@ -377,7 +377,7 @@ impressão, ainda a definir.
 - **[Decisão]** **Carimbo pendente até a avaliação:** os carimbos de uma casa só contam depois que o mapa avaliou o combo
   dela; avaliada, vale os carimbos + 2. Voltas contam sem nova avaliação. `carimbo_placar` conta só casas validadas
   (`avaliadas` = `casas`); o álbum mostra "X de 27 casas validadas" e os pendentes com "Avaliar e validar".
-- Migration `20261202_carimbo_por_casa_pendente.sql` (só funções, nenhuma tabela) — **aplicar só com o ok do Wilker**.
+- Migration `20261202_carimbo_por_casa_pendente.sql` (só funções, nenhuma tabela) — ✅ **aplicada em 04/11/2026** com o ok do Wilker; teste `supabase/testes/caca-carimbos.sql` → `TESTE_OK`.
 - **Apuração no painel** (Edição › Carimbos): `get_caca_apuracao` (mesma migration) dá, para os dias 7 a 11/11 (corte 23h59 de
   Natal), o top 10 em carimbos validados acumulados — validado ATÉ aquela hora (carimbo e avaliação) —, o sorteio final (só quem
   validou todas as casas, 1 chance por carimbo, CSV com as faixas de números) e as reservas por casas. O sistema não guarda o
