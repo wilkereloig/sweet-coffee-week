@@ -54,7 +54,10 @@ test('dados gerados: toda posição dentro da arte, toda imagem no disco, toda u
     assert.ok(Number.isInteger(u.numero) && u.numero >= 1, `${id} sem número`)
   }
   for (const p of [...m.marcos, ...m.sicredi]) assert.ok(p.nome && p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1, p.nome)
-  const retrato = JSON.parse(readFileSync(new URL('../src/edicao/dados/retrato/cartoon.local.json', import.meta.url), 'utf8'))
+  // O retrato é local (fora do git, repositório público): num clone limpo essa conferência não roda.
+  const arquivo = new URL('../src/edicao/dados/retrato/cartoon.local.json', import.meta.url)
+  if (!existsSync(arquivo)) return
+  const retrato = JSON.parse(readFileSync(arquivo, 'utf8'))
   const ids = (retrato.participantes || retrato).flatMap((p) => (p.unidades || []).map((u) => u.id))
   assert.deepEqual(ids.filter((id) => !m.unidades[id]), [], 'unidade sem lugar no mundo: rodar scripts/edicao/mapa-mundo.py')
 })
