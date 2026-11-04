@@ -1,6 +1,6 @@
 # 15 · Voucher virtual
 
-**Estado (04/11/2026): migration APLICADA no banco (projeto `dgfmoibynftadsyjcclg`, `TESTE_OK`), site testado, NADA publicado e nenhum voucher virtual gerado ainda.** Decisões do Wilker (chat 4bb80e0c): vale só na casa que cedeu, com **cota extra de 2 por marca** (não sai dos 7 impressos), entrega por **link**, validação pela marca **digitando o código ou lendo o QR**. O cartão impresso (cartão de crédito Sicredi) tem a arte em `…/07_VOUCHERS/04_CARTAO_SICREDI/`; **a arte virtual é a mesma, em tela, e foi feita em 04/11** (ver "Arte em tela").
+**Estado (04/11/2026): migration APLICADA no banco (projeto `dgfmoibynftadsyjcclg`, `TESTE_OK`), site testado, NADA publicado. Vouchers virtuais GERADOS em 04/11/2026 (54 = 2 por marca das 27 casas com cartão; ver "Falta" 1).** Decisões do Wilker (chat 4bb80e0c): vale só na casa que cedeu, com **cota extra de 2 por marca** (não sai dos 7 impressos), entrega por **link**, validação pela marca **digitando o código ou lendo o QR**. O cartão impresso (cartão de crédito Sicredi) tem a arte em `…/07_VOUCHERS/04_CARTAO_SICREDI/`; **a arte virtual é a mesma, em tela, e foi feita em 04/11** (ver "Arte em tela").
 
 ## Como funciona
 
@@ -40,7 +40,7 @@ A página mostra o cartão da casa em SVG (`viewBox` 84 × 54 mm = o corte do im
 
 ## Falta
 
-1. **Gerar os virtuais** (hoje 0): pelo painel (Contatos › Vouchers › Virtuais › Gerar), 2 por marca ativa. Aguarda o Wilker mandar o voucher final.
+1. ~~Gerar os virtuais~~ — **feito em 04/11/2026** (ordem do Wilker): 54 vouchers `canal='virtual'`, 2 por marca nas 27 casas elegíveis (Delas Café Bistrô e Docinhos da Lalá estão `encerrado` e ficam de fora, como no impresso), todos `disponivel` com token de 12 letras, códigos e tokens únicos, 189 impressos intactos. Gerado por SQL com a mesma regra de `gerar_vouchers_virtuais` (a função exige o segredo de um usuário do painel) e registrado em `auditoria` (`vouchers.gerados_virtuais`, 54). **Falta destinar:** pelo painel (Contatos › Vouchers › Virtuais), ligar cada voucher a um contato e copiar o link/mensagem.
 2. ~~Arte do voucher virtual~~ — feita em 04/11 (ver acima). Falta o Wilker ver no aparelho.
 3. **Publicar** (decisão do Wilker): sem `CARTOON_PUBLICA` o cliente não abre o link. Painel e página só vão ao ar com o commit e o push.
 4. **Verificar em aparelho:** abrir o QR no iPhone e no Android, e a câmera do painel (Chrome Android).
