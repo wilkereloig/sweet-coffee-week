@@ -39,11 +39,12 @@ test('dados gerados: toda posição dentro da arte, toda imagem no disco, toda u
   const m = mundoEdicao()
   const pub = fileURLToPath(new URL('../public/', import.meta.url))
   const noDisco = (src) => existsSync(join(pub, src.replace(/^\//, '')))
-  assert.ok(m.quadro[1] > m.quadro[0], 'o mundo é retrato')
+  assert.ok(m.quadro.every((n) => Number.isInteger(n) && n > 0), 'quadro da arte (retrato na v1, paisagem girada na v2)')
   assert.ok(noDisco(m.base.src), m.base.src)
   for (const parte of m.base.srcSet.split(', ')) assert.ok(noDisco(parte.split(' ')[0]), parte)
   assert.ok(noDisco(m.sicrediLogo))
   for (const s of m.docerias) assert.ok(noDisco(m.doceria(s)), s)
+  for (const s of m.logos) assert.ok(noDisco(m.logo(s)), s)
   assert.equal(m.doceria('casa-que-nao-existe'), null)
   for (const [id, u] of Object.entries(m.unidades)) {
     assert.match(id, /^u[0-9a-f]{6}$/)

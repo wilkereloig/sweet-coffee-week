@@ -1,11 +1,12 @@
 /*
  * Mundo da Doçura — Natal desenhada como mapa de jogo (docs/cartoon-2026-2/14 §14.12–§14.13). A arte é uma imagem;
  * por cima, em posições de 0 a 1, os marcos (nome escrito por código), as agências Sicredi e as casas — cada casa
- * um <button> de verdade, na ordem do caminho do mapa (a ordem do teclado), com a doceria desenhada ou, enquanto
- * ela não existe, o pin com a logo. A rota do visitante é um traçado SVG esquemático entre as paradas (não segue
+ * um <button> de verdade, na ordem do caminho do mapa (a ordem do teclado): o PIN com a logo oficial e o tema ao lado
+ * (pedido do Wilker, 03/11; o tema aparece com zoom, no foco e na casa escolhida). A doceria desenhada da casa, quando
+ * existe, fica embaixo do pin, como decoração. A rota do visitante é um traçado SVG esquemático entre as paradas (não segue
  * rua): para chegar, o cartão da casa e o painel da rota abrem o Google Maps.
  * Zoom por botões (3 níveis) e arraste: rolagem nativa da janela (toque e trackpad) + arraste com o mouse.
- * `casas`: [{ id, x, y, numero, titulo, doceria, pin, inicial, apagada, parada, carimbos, avaliou }].
+ * `casas`: [{ id, x, y, numero, titulo, tema, doceria, pin, inicial, apagada, parada, carimbos, avaliou }].
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
@@ -78,14 +79,16 @@ export function Mundo ({ mundo, casas, trilha, selecionada, aoSelecionar }) {
               <img src={mundo.sicrediLogo} alt="" draggable={false} />
             </span>
           ))}
+          {casas.map((c) => c.doceria && (
+            <img key={`d-${c.id}`} className="ct-mundo__doceria" style={pos(c)} src={c.doceria} alt="" loading="lazy" decoding="async" draggable={false} />
+          ))}
           {casas.map((c) => (
             <button key={c.id} type="button" data-casa={c.id} style={pos(c)} aria-pressed={c.id === selecionada} aria-label={T.casaNoMundo(c)}
               className={`ct-mundo__casa${c.doceria ? ' ct-mundo__casa--doceria' : ''}${c.id === selecionada ? ' is-sel' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.carimbos ? ' is-carimbada' : ''}`}
               onClick={() => aoSelecionar(c.id === selecionada ? '' : c.id)}>
-              {c.doceria
-                ? <img className="ct-mundo__doceria" src={c.doceria} alt="" loading="lazy" decoding="async" draggable={false} />
-                : <span className="ct-mundo__pin">{c.pin ? <img src={c.pin} alt="" loading="lazy" draggable={false} /> : <span aria-hidden="true">{c.inicial}</span>}</span>}
+              <span className="ct-mundo__pin">{c.pin ? <img src={c.pin} alt="" loading="lazy" draggable={false} /> : <span aria-hidden="true">{c.inicial}</span>}</span>
               <span className="ct-mundo__num" aria-hidden="true">{c.numero}</span>
+              {c.tema && <span className="ct-mundo__tema" aria-hidden="true">{c.tema}</span>}
               {c.parada && <span className="ct-mundo__parada" aria-hidden="true">{c.parada}</span>}
               {c.carimbos > 0 && <span className="ct-mundo__bandeira" aria-hidden="true">{c.carimbos > 1 ? `×${c.carimbos}` : ''}</span>}
               {c.avaliou && <span className="ct-mundo__estrela" aria-hidden="true"><ScwIcon nome="estrela" tamanho={16} /></span>}

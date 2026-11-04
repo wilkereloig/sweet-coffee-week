@@ -707,7 +707,8 @@ export { logoDesenhadaEdicao } from './logosDesenhadasEdicao.js'
 /**
  * Mundo da Doçura — o mapa desenhado da Cartoon (docs/cartoon-2026-2/14 §14.13). Dados gerados por
  * scripts/edicao/mapa-mundo.py (posições de 0 a 1 na arte, número da casa, marcos, Sicredi) + os caminhos:
- * `base` ({src, srcSet}), `sicrediLogo` e `doceria(slug)` (`null` enquanto a casa não tem doceria desenhada).
+ * `base` ({src, srcSet}), `sicrediLogo`, `logo(slug)` (o pin: a logo oficial reduzida) e `doceria(slug)` — os dois
+ * `null` quando a casa não tem o arquivo.
  */
 const MUNDO_PASTA = '/images/marcas-edicoes/2026.2/mundo'
 export function mundoEdicao() {
@@ -718,6 +719,7 @@ export function mundoEdicao() {
     base: { src: base(m.larguras[0]), srcSet: m.larguras.map((w) => `${base(w)} ${w}w`).join(', ') },
     sicrediLogo: `${MUNDO_PASTA}/sicredi.webp`,
     doceria: (slug) => (m.docerias.includes(slug) ? `${MUNDO_PASTA}/docerias/${slug}.webp` : null),
+    logo: (slug) => (m.logos.includes(slug) ? `${MUNDO_PASTA}/logos/${slug}.webp` : null),
   }
 }
 

@@ -7,8 +7,9 @@
   border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-azul); box-shadow: var(--ct-sombra-p); cursor: grab;
 }
 .ct-mundo__janela.is-zoom { max-height: 78svh; }
-/* Zoom 1 = o mundo inteiro: no celular, a largura da tela (rola com a página); no desktop, cabe na altura da janela. */
-.ct-mundo__palco { position: relative; width: calc(var(--zoom, 1) * 100%); max-width: none; margin-inline: auto; }
+/* Zoom 1 = o mundo inteiro: retrato no celular ocupa a largura da tela; paisagem (v2) ganha 62% da altura da tela e rola
+   de lado dentro da janela. No desktop, cabe na altura da janela. */
+.ct-mundo__palco { position: relative; width: calc(var(--zoom, 1) * max(100%, 62svh * var(--proporcao, 1))); max-width: none; margin-inline: auto; }
 @media (min-width: 900px) {
   .ct-mundo__janela { --ct-mundo-alto: calc(100svh - 150px); max-height: var(--ct-mundo-alto); }
   .ct-mundo__palco { width: calc(var(--zoom, 1) * min(100%, var(--ct-mundo-alto) * var(--proporcao))); }
@@ -33,25 +34,40 @@
 }
 .ct-mundo__sicredi img { display: block; width: auto; height: 18px; }
 
-/* Casa = botão. A base da doceria pousa no ponto; o pin (sem doceria ainda) fica centrado um pouco acima. */
+/* Casa = botão com o PIN (logo oficial; a ponta toca o ponto). Com doceria desenhada, o pin flutua acima dela. */
+.ct-mundo__doceria {
+  position: absolute; z-index: 1; width: clamp(48px, 10%, 170px); translate: -50% -72%; pointer-events: none; user-select: none;
+  filter: drop-shadow(2px 3px 0 color-mix(in srgb, var(--ct-chocolate) 35%, transparent));
+}
 .ct-mundo__casa {
-  position: absolute; z-index: 2; display: grid; place-items: end center; width: clamp(44px, 8%, 140px); aspect-ratio: 1;
-  padding: 0; border: 0; border-radius: 12px; background: none; color: var(--ct-chocolate); translate: -50% -60%; cursor: pointer;
+  position: absolute; z-index: 2; display: grid; place-items: center; width: clamp(44px, 6.5%, 96px); aspect-ratio: 1;
+  padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ct-chocolate); translate: -50% -100%; cursor: pointer;
   transition: transform var(--ct-mo), opacity var(--ct-mo), filter var(--ct-mo);
 }
-.ct-mundo__casa--doceria { width: clamp(52px, 11%, 180px); translate: -50% -88%; }
+.ct-mundo__casa--doceria { translate: -50% -160%; }
+.ct-mundo__casa::after { /* a ponta do pin */
+  content: ''; position: absolute; top: 92%; left: 50%; width: 12px; height: 10px; translate: -50% 0;
+  background: var(--ct-chocolate); clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
 .ct-mundo__casa:hover { transform: translateY(-4px); }
 .ct-mundo__casa:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
 .ct-mundo__casa.is-sel { z-index: 3; transform: translateY(-4px) scale(1.08); filter: drop-shadow(0 0 6px var(--ct-amarelo)); }
 .ct-mundo__casa.is-apagada { opacity: .35; }
-.ct-mundo__doceria { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 3px 0 color-mix(in srgb, var(--ct-chocolate) 35%, transparent)); }
 .ct-mundo__pin {
-  display: grid; place-items: center; width: 100%; height: 100%; padding: 14%; overflow: hidden;
+  display: grid; place-items: center; width: 100%; height: 100%; overflow: hidden;
   border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
   font: 900 18px/1 var(--ct-font);
 }
-.ct-mundo__pin img { width: 100%; height: 100%; object-fit: contain; }
-.ct-mundo__casa.is-carimbada .ct-mundo__pin { background: var(--ct-amarelo); }
+.ct-mundo__pin img { width: 100%; height: 100%; object-fit: cover; } /* logo preenche o slot (§6.12) */
+.ct-mundo__casa.is-carimbada .ct-mundo__pin { border-color: var(--ct-amarelo); box-shadow: 0 0 0 2.5px var(--ct-chocolate), var(--ct-sombra-p); }
+/* Tema ao lado do pin: com zoom, no foco, no ponteiro e na casa escolhida (no zoom 1, 41 rótulos cobririam o mapa). */
+.ct-mundo__tema {
+  position: absolute; top: 50%; left: calc(100% + 6px); display: none; width: max-content; max-width: 16ch; translate: 0 -50%;
+  padding: 2px 8px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); color: var(--ct-chocolate);
+  font: 700 12px/1.25 var(--ct-font); text-align: left;
+}
+.ct-mundo__janela.is-zoom .ct-mundo__tema, .ct-mundo__casa:hover .ct-mundo__tema,
+.ct-mundo__casa:focus-visible .ct-mundo__tema, .ct-mundo__casa.is-sel .ct-mundo__tema { display: block; }
 
 /* Selos da casa: número (ordem do caminho), parada da rota (turquesa = canal Rota, tinta chocolate), bandeira do
    carimbo com ×N e estrela da avaliação. */

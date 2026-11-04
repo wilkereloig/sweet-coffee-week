@@ -244,8 +244,9 @@ export const MAPA = {
   previa: 'Prévia com a arte provisória: só aparece no ambiente de desenvolvimento.',
   aproximar: 'Aproximar', afastar: 'Afastar', zoom: 'Zoom do desenho',
   credito: 'Base geográfica © colaboradores do OpenStreetMap',
-  casaNoMundo: ({ numero, titulo, parada, carimbos, avaliou }) => [
+  casaNoMundo: ({ numero, titulo, tema, parada, carimbos, avaliou }) => [
     `${numero}. ${titulo}`,
+    tema && `tema ${tema}`,
     parada && `parada ${parada} da sua rota`,
     carimbos > 0 && (carimbos === 1 ? 'carimbada' : `carimbada ${carimbos} vezes`),
     avaliou && 'avaliada',

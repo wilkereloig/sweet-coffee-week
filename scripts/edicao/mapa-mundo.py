@@ -15,6 +15,7 @@ caminhos novos; o código do site não muda.
 Saída VERSIONADA (arte da edição, pública como os pins e as logos desenhadas):
     public/images/marcas-edicoes/2026.2/mundo/base-vN-<largura>.webp   1024, 2048 (se couber) e a largura original
     public/images/marcas-edicoes/2026.2/mundo/docerias/<slug>.webp      384 px no lado maior
+    public/images/marcas-edicoes/2026.2/mundo/logos/<slug>.webp         pin da casa = LOGO OFICIAL (Wilker, 03/11), 128 px
     public/images/marcas-edicoes/2026.2/mundo/sicredi.webp              logo aparada com respiro, 96 px de altura
     src/data/mundoEdicao.js  — os dados (gerado; o imageLibrary monta os caminhos)
 
@@ -53,7 +54,8 @@ ids = {u['id'] for p in casas for u in p.get('unidades', [])}
 
 SAIDA.mkdir(parents=True, exist_ok=True)
 (SAIDA / 'docerias').mkdir(exist_ok=True)
-for velho in [*SAIDA.glob('base-v*.webp'), *(SAIDA / 'docerias').glob('*.webp')]:
+(SAIDA / 'logos').mkdir(exist_ok=True)
+for velho in [*SAIDA.glob('base-v*.webp'), *(SAIDA / 'docerias').glob('*.webp'), *(SAIDA / 'logos').glob('*.webp')]:
     velho.unlink()
 
 # Chão: larguras para o srcset (o zoom do site vai até 2,25x).
@@ -76,6 +78,35 @@ for slug, (_, f) in sorted(docerias.items()):
     im = im.crop(im.getbbox())
     im.thumbnail((384, 384), Image.LANCZOS)
     im.save(SAIDA / 'docerias' / f'{slug}.webp', quality=85, method=6)
+
+# Pin da casa: a LOGO OFICIAL, reduzida (41 pins de 800 px pesariam ~4 MB). Ordem: a sincronizada da pasta PRINCIPAIS
+# (public/logos/participants/<slug>.png, scripts/sincronizar-logos-oficiais.py); a do cadastro quando é arquivo do site;
+# a do cadastro no Storage (bucket público `logos`, a que a marca confirmou no painel).
+import io, urllib.request
+STORAGE = 'https://dgfmoibynftadsyjcclg.supabase.co/storage/v1/object/public/logos/'  # mesmo projeto de src/lib/supabaseConfig.js
+
+def abrir_logo(p):
+    logo = (p.get('casa', {}).get('logo') or {}).get('path') or ''
+    for c in [f'/logos/participants/{p["slug"]}.png', logo if logo.startswith('/') else '']:
+        if c and (RAIZ / 'public' / c.lstrip('/')).exists():
+            return Image.open(RAIZ / 'public' / c.lstrip('/'))
+    if logo and not logo.startswith('/'):
+        try:
+            with urllib.request.urlopen(STORAGE + logo, timeout=20) as r:
+                return Image.open(io.BytesIO(r.read()))
+        except Exception as e:
+            print('logo do Storage não baixou:', p['slug'], e)
+    return None
+
+logos = []
+for p in casas:
+    im = abrir_logo(p)
+    if im is None:
+        continue
+    im = im.convert('RGBA')
+    im.thumbnail((128, 128), Image.LANCZOS)
+    im.save(SAIDA / 'logos' / f'{p["slug"]}.webp', quality=88, method=6)
+    logos.append(p['slug'])
 
 # Sicredi: logo oficial do PDF, aparada no desenho com respiro de 35% da altura (área de proteção reduzida
 # para caber no marcador; a logo em si não muda).
@@ -101,6 +132,7 @@ dados = {
     'sicredi': [{'nome': s['nome'], 'endereco': agencias.get(s['nome'], {}).get('endereco', ''), 'x': s['x'], 'y': s['y']}
                 for s in pos.get('sicredi', [])],
     'docerias': sorted(docerias),
+    'logos': sorted(logos),
 }
 DADOS.write_text(
     '// GERADO por scripts/edicao/mapa-mundo.py — não editar à mão. Os caminhos das imagens o imageLibrary monta\n'
@@ -110,6 +142,9 @@ DADOS.write_text(
 
 faltam = sorted(ids - set(unidades))
 print(f'v{VERSAO} {"APROVADA" if APROVADA else "provisória"} · base {larguras} · {len(unidades)}/{len(ids)} unidades'
-      f' · {len(dados["marcos"])} marcos · {len(dados["sicredi"])} Sicredi · {len(docerias)} docerias {sorted(docerias)}')
+      f' · {len(dados["marcos"])} marcos · {len(dados["sicredi"])} Sicredi · {len(logos)} logos · {len(docerias)} docerias {sorted(docerias)}')
 if faltam:
     print('SEM POSIÇÃO (só lista e Google):', ', '.join(faltam))
+sem_logo = sorted(slugs - set(logos))
+if sem_logo:
+    print('SEM LOGO (pin com a inicial):', ', '.join(sem_logo))
