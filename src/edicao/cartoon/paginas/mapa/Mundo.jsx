@@ -1,8 +1,9 @@
 /*
  * Mundo da Doçura — Natal desenhada como mapa de jogo (docs/cartoon-2026-2/14 §14.12–§14.13). A arte é uma imagem;
  * por cima, em posições de 0 a 1, os marcos (nome escrito por código), as agências Sicredi e as casas — cada casa
- * um <button> de verdade, na ordem do caminho do mapa (a ordem do teclado): o PIN com a logo oficial e o tema ao lado
- * (pedido do Wilker, 03/11; o tema aparece com zoom, no foco e na casa escolhida). A doceria desenhada da casa, quando
+ * um <button> de verdade, na ordem do caminho do mapa (a ordem do teclado). No zoom 1 o pin mostra o NÚMERO da casa
+ * (bandeirinha numerada, Wilker 04/11); com zoom, no foco e na casa escolhida, a logo oficial e o tema ao lado
+ * (pedido do Wilker, 03/11). A doceria desenhada da casa, quando
  * existe, fica embaixo do pin, como decoração. A rota do visitante é um traçado SVG esquemático entre as paradas (não segue
  * rua): para chegar, o cartão da casa e o painel da rota abrem o Google Maps.
  * Zoom por botões (3 níveis) e arraste: rolagem nativa da janela (toque e trackpad) + arraste com o mouse.

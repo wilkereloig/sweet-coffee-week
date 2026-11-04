@@ -75,7 +75,14 @@
   position: absolute; display: grid; place-items: center; min-width: 24px; height: 24px; padding: 0 6px;
   border: 2px solid var(--ct-chocolate); border-radius: 999px; color: var(--ct-chocolate); font: 900 13px/1 var(--ct-font);
 }
-.ct-mundo__num { bottom: -2px; left: -4px; background: var(--ct-amarelo); }
+/* Sinalização = NÚMERO da casa (Wilker 04/11, regra 14 do BRIEFING-DO-MAPA: bandeirinha numerada + legenda, igual no
+   impresso). No zoom 1 o número cobre o pin; a logo aparece com zoom, no ponteiro, no foco e na casa escolhida, e o
+   número vira selo no canto. Forma provisória: o desenho da bandeira chega com o chão aprovado. */
+.ct-mundo__num { inset: 0; height: auto; border-width: 2.5px; border-radius: 50%; background: var(--ct-amarelo); font-size: clamp(15px, 1.5vw, 24px); }
+.ct-mundo__janela.is-zoom .ct-mundo__num, .ct-mundo__casa:hover .ct-mundo__num,
+.ct-mundo__casa:focus-visible .ct-mundo__num, .ct-mundo__casa.is-sel .ct-mundo__num {
+  inset: auto auto -2px -4px; height: 24px; border-width: 2px; border-radius: 999px; font-size: 13px;
+}
 .ct-mundo__parada { top: -6px; right: -6px; min-width: 26px; height: 26px; background: var(--ct-turquesa); }
 .ct-mundo__estrela { right: -6px; bottom: -2px; padding: 0; background: var(--ct-amarelo); }
 .ct-mundo__bandeira {
