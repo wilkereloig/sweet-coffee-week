@@ -906,8 +906,9 @@ test('site: nenhum texto "horário da loja" nem "horário do combo" nas páginas
 test('site: as telas passam o período da edição a estadoAgora (dia sem linha DENTRO do festival é "sem combo hoje", não "fora do período")', () => {
   assert.match(ler('src/edicao/cartoon/paginas/participante/Unidades.jsx'), /M\.estadoAgora\(u, undefined, periodo\)/)
   assert.match(ler('src/edicao/cartoon/paginas/mapa/index.jsx'), /M\.estadoAgora\(u, undefined, dados\?\.edicao\)/)
-  assert.match(ler('src/edicao/cartoon/paginas/MinhaRota.jsx'), /M\.estadoAgora\(pa\.unidade, undefined, dados\?\.edicao\)/)
-  for (const arq of ['participante/Unidades', 'mapa/index', 'MinhaRota']) {
+  // A Minha rota virou o painel da página do mapa (unificação de 04/11): a lista de paradas mora em mapa/PainelRota.
+  assert.match(ler('src/edicao/cartoon/paginas/mapa/PainelRota.jsx'), /M\.estadoAgora\(pa\.unidade, undefined, dados\?\.edicao\)/)
+  for (const arq of ['participante/Unidades', 'mapa/index', 'mapa/PainelRota']) {
     assert.doesNotMatch(ler('src/edicao/cartoon/paginas/' + arq + '.jsx'), /estadoAgora\((u|pa\.unidade)\)/, arq + ' ainda chama estadoAgora sem o período')
   }
 })
