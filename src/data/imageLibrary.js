@@ -486,30 +486,6 @@ export function cenaEdicao(chave) {
   return Object.hasOwn(CENAS_EDICAO, chave) ? CENAS_EDICAO[chave] : null
 }
 
-/* Elementos de gibi da repaginação de 04/11 (§10.17), no traço das peças aprovadas (carrossel de combos,
-   Confirmados, Júri, imprensa): gerados no Codex (05_SITE/11_REPAGINACAO_DESENHO) e recortados por
-   scripts/edicao/elementos-gibi.py. Fundo transparente, exceto o palco (cena inteira). */
-const GIBI_EDICAO = `${ELEMENTOS_EDICAO}/gibi`
-const ELEMENTOS_GIBI = {
-  mesa: { src: `${GIBI_EDICAO}/mesa.webp`, largura: 1200, altura: 777 },
-  palco: { src: `${GIBI_EDICAO}/palco.webp`, largura: 1536, altura: 864 },
-  loja: { src: `${GIBI_EDICAO}/objetos/loja.webp`, largura: 480, altura: 465 },
-  bandeja: { src: `${GIBI_EDICAO}/objetos/bandeja.webp`, largura: 480, altura: 448 },
-  prancheta: { src: `${GIBI_EDICAO}/objetos/prancheta.webp`, largura: 445, altura: 480 },
-  pino: { src: `${GIBI_EDICAO}/objetos/pino.webp`, largura: 378, altura: 473 },
-  megafone: { src: `${GIBI_EDICAO}/objetos/megafone.webp`, largura: 480, altura: 444 },
-  despertador: { src: `${GIBI_EDICAO}/objetos/despertador.webp`, largura: 480, altura: 471 },
-  'luva-aponta': { src: `${GIBI_EDICAO}/luvas/aponta.webp`, largura: 360, altura: 234 },
-  'luva-joinha': { src: `${GIBI_EDICAO}/luvas/joinha.webp`, largura: 278, altura: 340 },
-  'luva-segura': { src: `${GIBI_EDICAO}/luvas/segura.webp`, largura: 335, altura: 255 },
-  'luva-acena': { src: `${GIBI_EDICAO}/luvas/acena.webp`, largura: 360, altura: 320 },
-}
-
-/** Elemento de gibi da edição (`mesa` · `palco` · objetos · `luva-*`) com a medida do arquivo, ou `null`. Decorativo. */
-export function gibiEdicao(chave) {
-  return Object.hasOwn(ELEMENTOS_GIBI, chave) ? ELEMENTOS_GIBI[chave] : null
-}
-
 /* Kit de cenário por casa (§10.15, família 3): as 27 casas da edição (piloto + 24 de 31/10). */
 const KITS_TEMA_EDICAO = {
   'casa-alice-doceria': {
