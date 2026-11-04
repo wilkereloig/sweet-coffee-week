@@ -468,7 +468,7 @@ try {
       return {
         posicao: getComputedStyle(document.querySelector('.ct-topo')).position, nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu'), abas: v('.ct-abas'),
         marcaX: Math.round(document.querySelector('.ct-topo__marca').getBoundingClientRect().left),
-        rodape: { barras: !!document.querySelector('.ct-barras'), f2: !!document.querySelector('.ct-rodape img[alt="F2 Experience"]'),
+        rodape: { barras: !!document.querySelector('.ct-barras'), f2: !!document.querySelector('.ct-marcas img[alt="F2 Experience"]'),
           cookies: [...document.querySelectorAll('.ct-rodape button')].some((b) => b.textContent.includes('Preferências de cookies')),
           legais: document.querySelectorAll('.ct-rodape a[href="/privacidade"], .ct-rodape a[href="/termos"]').length },
       }

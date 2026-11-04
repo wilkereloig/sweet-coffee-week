@@ -1,13 +1,16 @@
 /*
  * Voucher virtual — a página que o link do voucher abre (/cartoon/voucher/<token>).
- * Mostra o cartão da casa (a mesma arte do impresso, frente e verso), o código SCW-XXXXX e o QR que a marca lê para dar baixa; o estado vem do banco
+ * Um vale no KV da edição (pedido do Wilker, 04/11; substitui o cartão em tela): a pessoa vê a casa e o combo e toca em
+ * "Abrir voucher"; o vale abre no picote e mostra o QR que a marca lê e o código SCW-XXXXX. O estado vem do banco
  * (`voucher_virtual_ver`) e a data é conferida aqui. A página não dá baixa: quem valida é a marca, no painel dela.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
-import { Link, Logo, Carregando } from '../../componentes/base.jsx'
+import { Link, Logo, Foto, Carregando } from '../../componentes/base.jsx'
+import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import * as V from '../../rota/voucherVirtual.js'
-import { arteDoVoucher, CARTAO, VERSO_QR, VERSO_CODIGO } from '../../../data/voucherArteEdicao.js'
+import { MARCAS_PARCEIROS } from '../../../data/imageLibrary'
+import { MARCAS } from '../textos.js'
 
 /** QR como imagem (data URL). `opcoes` do pacote `qrcode`; o pacote só é baixado quando a página precisa dele. */
 function useQr (valor, opcoes) {
@@ -24,8 +27,6 @@ function useQr (valor, opcoes) {
 }
 
 const QR_GRANDE = { margin: 1, width: 320, color: { dark: '#3A150F', light: '#FDF0DE' } }
-// No cartão, só os módulos (margem 0) e fundo transparente: o verso já tem a caixa branca do impresso.
-const QR_NO_CARTAO = { margin: 0, width: 480, color: { dark: '#3A150F', light: '#0000' } }
 
 function Qr ({ valor }) {
   const url = useQr(valor, QR_GRANDE)
@@ -34,26 +35,42 @@ function Qr ({ valor }) {
     : <div className="ct-voucher__qr ct-voucher__qr--vazio" aria-hidden="true" />
 }
 
-/**
- * O cartão do impresso, em tela: a frente é a arte da casa; o verso é a arte da cor dela, sem QR e sem código, e os dois
- * entram aqui por cima, em milímetros (viewBox 84 x 54 = o corte do cartão). O QR do cartão é pequeno de propósito, só
- * para o verso ficar completo: quem lê é o QR grande da página.
- */
-function Cartao ({ arte, face, codigo, valorQr, casa }) {
-  const id = React.useId()
-  const qr = useQr(valorQr, QR_NO_CARTAO)
-  const verso = face === 'verso'
+/** O vale: fechado mostra a casa e o combo; "Abrir voucher" solta a parte de baixo do picote, com o QR e o código. */
+function Vale ({ r, p, nome, m, titulo, origem }) {
+  const [aberto, setAberto] = React.useState(false)
+  const codigo = React.useRef(null)
+  const foto = p?.combo?.fotos?.principal
+  const abrir = () => { setAberto(true); requestAnimationFrame(() => codigo.current?.focus()) }
+  const sicredi = MARCAS_PARCEIROS.sicredi
   return (
-    <svg className="ct-vcard" viewBox={`0 0 ${CARTAO.largura} ${CARTAO.altura}`} role="img"
-      aria-label={verso ? `Verso do cartão-voucher, com o código ${codigo}` : `Frente do cartão-voucher da ${casa}`}>
-      <defs><clipPath id={id}><rect width={CARTAO.largura} height={CARTAO.altura} rx={CARTAO.raio} /></clipPath></defs>
-      <g clipPath={`url(#${id})`}>
-        <image href={verso ? arte.verso : arte.frente} width={CARTAO.largura} height={CARTAO.altura} preserveAspectRatio="none" />
-        {verso && qr && <image href={qr} x={VERSO_QR.x} y={VERSO_QR.y} width={VERSO_QR.lado} height={VERSO_QR.lado} />}
-        {verso && <text className="ct-vcard__codigo" x={VERSO_CODIGO.x} y={VERSO_CODIGO.y} fontSize={VERSO_CODIGO.corpo} textAnchor="middle">{codigo}</text>}
-      </g>
-      <rect className="ct-vcard__contorno" x=".3" y=".3" width={CARTAO.largura - 0.6} height={CARTAO.altura - 0.6} rx={CARTAO.raio - 0.3} />
-    </svg>
+    <article className={`ct-vale${aberto ? ' is-aberto' : ''}`}>
+      <div className="ct-vale__topo ct-reticula">
+        <p className="ct-etiqueta">Voucher digital</p>
+        <div ref={titulo} tabIndex={-1} className="ct-vale__titulo"><Letreiro nivel={1} id="vale-titulo" tamanho="display" texto="Vale 1 combo" /></div>
+        <div className="ct-vale__casa">
+          {p?.casa && <Logo casa={p.casa} tamanho={64} />}
+          <p>{nome}</p>
+        </div>
+        {foto && <div className="ct-vale__foto"><Foto foto={foto} proporcao="4 / 3" alt={foto.alt || ''} prioridade /></div>}
+        <p className="ct-vale__validade">Válido de {V.VALIDADE.texto}</p>
+        {!aberto && <button type="button" className="ct-botao ct-botao--acao" onClick={abrir}>Abrir voucher</button>}
+      </div>
+      <div className="ct-vale__picote" aria-hidden="true" />
+      <div className="ct-vale__dobra">
+        <div className="ct-vale__miolo">
+          <p className="ct-lead">{m.titulo}</p>
+          <Qr valor={V.linkDaBaixa(origem, r.codigo)} />
+          <p ref={codigo} tabIndex={-1} className="ct-voucher__codigo" aria-label={`Código ${r.codigo}`}>{r.codigo}</p>
+          <p>{m.texto}</p>
+          <p className="ct-nota">Vale 1 combo da edição Cartoon do Sweet &amp; Coffee Week, uma vez só. Uso pessoal e intransferível. Venda proibida. Não inclui taxa de entrega, embalagem ou itens adicionais.</p>
+        </div>
+      </div>
+      <div className="ct-vale__patrocinio">
+        <p className="ct-marcas__rotulo">{MARCAS.patrocinio}</p>
+        <img src={sicredi.src} alt={sicredi.alt} width={sicredi.largura} height={sicredi.altura} loading="lazy" decoding="async" />
+        <p>{MARCAS.fraseSicredi}</p>
+      </div>
+    </article>
   )
 }
 
@@ -62,7 +79,6 @@ export function VoucherVirtual ({ token, navigate, dados }) {
   const [estado, setEstado] = React.useState(valido ? 'carregando' : 'desconhecido') // carregando · ok · desconhecido · rede
   const [r, setR] = React.useState(null)
   const titulo = React.useRef(null)
-  const [face, setFace] = React.useState('frente') // frente · verso do cartão
 
   const buscar = React.useCallback(() => {
     setEstado('carregando')
@@ -73,8 +89,8 @@ export function VoucherVirtual ({ token, navigate, dados }) {
   React.useEffect(() => { if (valido) buscar() }, [valido, buscar])
   React.useEffect(() => { if (estado !== 'carregando') titulo.current?.focus() }, [estado])
 
-  const casa = (dados?.participantes || []).find((p) => p.slug === r?.slug)?.casa
-  const nome = r?.marca || casa?.nome || 'a casa'
+  const p = (dados?.participantes || []).find((x) => x.slug === r?.slug)
+  const nome = r?.marca || p?.casa?.nome || 'a casa'
   const sit = estado === 'ok' ? V.situacao(r) : 'desconhecido'
   const m = estado === 'rede'
     ? { titulo: 'Sem conexão agora', texto: 'Confira a internet do celular e tente de novo.' }
@@ -101,30 +117,9 @@ export function VoucherVirtual ({ token, navigate, dados }) {
     )
   }
 
-  const origem = globalThis.location?.origin || ''
-  const arte = arteDoVoucher(r.slug)
   return (
-    <section className="ct-bloco ct-voucher ct-voucher--ok">
-      <p className="ct-rotulo">Voucher virtual · {V.VALIDADE.texto}</p>
-      <h1 ref={titulo} tabIndex={-1} className="ct-h1">{m.titulo}</h1>
-      {arte && (
-        <div className="ct-voucher__cartao">
-          <Cartao arte={arte} face={face} codigo={r.codigo} valorQr={V.linkDaBaixa(origem, r.codigo)} casa={nome} />
-          <button type="button" className="ct-botao ct-botao--contorno" onClick={() => setFace(face === 'frente' ? 'verso' : 'frente')}>
-            {face === 'frente' ? 'Ver o verso' : 'Ver a frente'}
-          </button>
-        </div>
-      )}
-      {!arte && (
-        <div className="ct-voucher__casa">
-          {casa && <Logo casa={casa} tamanho={88} />}
-          <p className="ct-lead">{nome}</p>
-        </div>
-      )}
-      <p className="ct-voucher__codigo" aria-label={`Código ${r.codigo}`}>{r.codigo}</p>
-      <Qr valor={V.linkDaBaixa(origem, r.codigo)} />
-      <p className="ct-lead">{m.texto}</p>
-      <p className="ct-nota">Vale 1 combo da edição Cartoon do Sweet &amp; Coffee Week, uma vez só. Uso pessoal e intransferível. Venda proibida. Não inclui taxa de entrega, embalagem ou itens adicionais.</p>
+    <section className="ct-bloco ct-voucher">
+      <Vale r={r} p={p} nome={nome} m={m} titulo={titulo} origem={globalThis.location?.origin || ''} />
       {links}
     </section>
   )

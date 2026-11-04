@@ -462,6 +462,14 @@ export const MARCA_SWEET_AWARDS = { src: '/images/sweet-awards/marca-creme.svg',
 /** Marca da realizadora (F2 Experience), a mesma da seção de realização da Home. */
 export const LOGO_F2 = { src: '/images/logo-f2experience.svg', largura: 694, altura: 89, alt: 'F2 Experience' }
 
+/* Patrocínio e apoio da edição 2026.2. Sicredi = arquivo original, versão preferencial positiva: só sobre branco
+   (manual de identidade p. 16-17; em outro fundo é a versão Box de Reserva). Mínimo digital: 80 px de largura. */
+export const MARCAS_PARCEIROS = {
+  sicredi: { src: '/images/marcas-edicoes/2026.2/parceiros/sicredi.svg', largura: 629, altura: 161, alt: 'Sicredi' },
+  senac: { src: '/images/marcas-edicoes/2026.2/parceiros/senac.png', largura: 480, altura: 76, alt: 'Senac' },
+  espacoReduzido: { src: '/images/marcas-edicoes/2026.2/parceiros/espaco-reduzido.png', largura: 640, altura: 66, alt: 'Espaço Reduzido' },
+}
+
 /* Elementos novos da edição 2026.2 (docs/cartoon-2026-2/10 §10.15), gerados por
    scripts/edicao/elementos-edicao.py a partir das folhas do 05_ELEMENTOS_v01.
    Fundo transparente; largura/altura são as do arquivo (o teste confere).

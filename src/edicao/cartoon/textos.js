@@ -191,6 +191,12 @@ export const ICONE = {
   site: 'link-externo', fotos: 'imagem', avaliar: 'estrela',
 }
 
+/* Faixa de marcas (rodapé e telas da ativação). A frase é do Wilker, 04/11; marca aprovada pela Sicredi antes de mudar. */
+export const MARCAS = {
+  realizacao: 'Realização', patrocinio: 'Patrocínio', apoio: 'Apoio',
+  fraseSicredi: 'A Sicredi apoia a cultura e o comércio de Natal.',
+}
+
 export const CENA_TEXTO = {
   mapaEmBreve: { titulo: 'O mapa chega em breve', apoio: 'Enquanto isso, veja todas as casas e os combos da Cartoon.' },
   inexistente: { titulo: 'Não encontramos essa página da Cartoon', apoio: 'Confira o endereço ou volte para a entrada da edição.' },
@@ -381,7 +387,6 @@ export const AWARDS = {
 
 export const RODAPE = {
   assinatura: 'Sweet & Coffee Week Cartoon é uma edição do Sweet & Coffee Week.',
-  realizacao: 'Realização',
   paginas: 'A edição',
   festival: 'O festival',
   legais: 'Documentos',

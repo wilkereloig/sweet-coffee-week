@@ -15,12 +15,13 @@ import { EDICAO, INICIO_INSTITUCIONAL } from '../config.js'
 import { resolverCena } from '../rotas.js'
 import { carregarEdicao } from '../dados/publico.js'
 import { useMinhaRota } from '../rota/useMinhaRota.js'
-import { seloEdicao, LOGO_F2, srcSet } from '../../data/imageLibrary'
+import { seloEdicao, srcSet } from '../../data/imageLibrary'
 import { LINKS_LEGAIS } from '../../components/SiteFooter'
 import { abrirPreferencias } from '../../lib/consentimento'
 import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
+import { FaixaMarcas } from '../componentes/sistema/Marcas.jsx'
 import ScwIcon from '../../components/scw-icons/ScwIcon.jsx'
 import { RotaContexto, MAPA_NO_AR } from './contexto.js'
 import { NAV, MENU, CENA_TEXTO, RODAPE } from './textos.js'
@@ -198,14 +199,11 @@ export function CartoonPage ({ path, navigate }) {
         <div className="ct-conteudo">{conteudo}</div>
         <p className="ct-sr" aria-live="polite">{rota.anuncio}</p>
 
+        <FaixaMarcas comFrase={CENAS_DO_MAPA.includes(cena)} />
         <footer className="ct-rodape">
           <div className="ct-rodape__corpo">
             <div className="ct-rodape__assina">
               <p>{RODAPE.assinatura}</p>
-              <p className="ct-rodape__realiza">
-                <span>{RODAPE.realizacao}</span>
-                <img src={LOGO_F2.src} alt={LOGO_F2.alt} width={LOGO_F2.largura} height={LOGO_F2.altura} loading="lazy" />
-              </p>
             </div>
             <nav className="ct-rodape__grupo" aria-labelledby="ct-rodape-edicao">
               <p id="ct-rodape-edicao" className="ct-rodape__titulo">{RODAPE.paginas}</p>

@@ -69,6 +69,20 @@
 .ct-edicao .ct-folha__link[aria-current='page'] { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
 .ct-folha__link--fora { padding-left: 16px; border-style: dashed; background: transparent; }
 
+/* Faixa de marcas: branco puro de propósito (fora dos tokens da edição), o fundo da versão preferencial da Sicredi.
+   Sicredi é o logo maior; entre os grupos o gap passa da área de convivência do manual (2x; x = altura do logotipo ≈ 19 px). */
+.ct-marcas { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 36px 72px; padding: 28px var(--ct-trilho); background: #fff; color: var(--ct-chocolate); }
+.ct-marcas__grupo { display: grid; grid-auto-rows: auto; grid-template-rows: auto 48px; justify-items: center; align-items: center; gap: 12px; }
+.ct-edicao .ct-marcas__rotulo { margin: 0; font: 700 13px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
+.ct-marcas__logos { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px 44px; }
+.ct-edicao .ct-marcas img { display: block; width: auto; max-width: none; }
+.ct-edicao img.ct-marcas__sicredi { height: 42px; }
+.ct-edicao img.ct-marcas__f2 { height: 16px; }
+.ct-edicao img.ct-marcas__senac { height: 28px; }
+.ct-edicao img.ct-marcas__espaco { height: 14px; }
+/* A frase fica fora da área de reserva do logo (x ≈ 19 px, somada ao gap do grupo). */
+.ct-edicao .ct-marcas__frase { margin: 8px 0 0; font: italic 600 15px/1.4 'Exo 2', var(--ct-font); text-align: center; }
+
 /* Rodapé chocolate: a assinatura com a realização F2, as páginas, o festival e os documentos. */
 .ct-rodape { padding: 0 0 40px; background: var(--ct-chocolate); color: var(--ct-creme); font: 500 15px/1.5 var(--ct-font); }
 .ct-rodape__corpo { display: grid; gap: 24px 40px; padding: 32px var(--ct-trilho) 0; }
@@ -77,8 +91,6 @@
 .ct-rodape__assina { display: grid; align-content: start; gap: 16px; }
 @media (min-width: 600px) and (max-width: 1199.98px) { .ct-rodape__assina { grid-column: 1 / -1; } }
 .ct-rodape p { max-width: 46ch; margin: 0; }
-.ct-rodape__realiza { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font: 700 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
-.ct-rodape__realiza img { display: block; width: auto; height: 22px; }
 .ct-rodape__titulo { font: 800 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; color: var(--ct-amarelo); }
 .ct-rodape__links { display: flex; flex-wrap: wrap; gap: 0 20px; margin: 0; padding: 0; list-style: none; }
 .ct-rodape__grupo .ct-rodape__links { display: grid; grid-template-columns: repeat(2, max-content); gap: 0 28px; margin-top: 4px; }

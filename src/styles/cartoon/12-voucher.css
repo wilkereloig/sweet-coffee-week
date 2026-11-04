@@ -1,20 +1,46 @@
-/* Voucher virtual — página do link (/cartoon/voucher/<token>). Só tokens da edição. */
+/* Voucher virtual — página do link (/cartoon/voucher/<token>). Só tokens da edição.
+   Um vale de gibi: topo amarelo com a casa e o combo, picote, miolo creme que abre com o QR, pé branco com o patrocínio
+   (branco puro: é o fundo da versão preferencial da Sicredi). */
 .ct-voucher { max-width: 560px; }
-.ct-voucher__casa { display: flex; align-items: center; gap: 16px; margin: 4px 0 8px; }
-.ct-voucher__casa .ct-lead { margin: 0; }
-.ct-voucher--ok {
-  padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p);
+.ct-voucher .ct-acoes { justify-content: center; }
+.ct-vale { --ct-vale-furo: 13px; max-width: 460px; margin-inline: auto; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-creme); box-shadow: var(--ct-sombra); }
+.ct-vale__topo { display: grid; justify-items: center; gap: 14px; padding: 22px 18px 24px; border-radius: calc(var(--ct-raio) - 3px) calc(var(--ct-raio) - 3px) 0 0; background-color: var(--ct-amarelo); text-align: center; }
+.ct-vale__topo p { margin: 0; }
+.ct-edicao .ct-vale__titulo:focus-visible, .ct-edicao .ct-voucher__codigo:focus-visible { outline: none; }
+.ct-vale__titulo { display: grid; justify-items: center; }
+.ct-vale__titulo .ct-letreiro { margin: 0; justify-items: center; text-align: center; }
+.ct-vale__casa { display: flex; align-items: center; justify-content: center; gap: 12px; font: 800 20px/1.15 var(--ct-font); text-align: left; }
+.ct-vale__foto { width: 100%; overflow: hidden; border: var(--ct-traco); border-radius: var(--ct-raio-p); }
+.ct-vale__foto .ct-foto { border: 0; border-radius: 0; }
+.ct-vale__validade { font: 800 16px/1.2 var(--ct-font); }
+/* Picote: linha tracejada com um furo em cada lado (o furo tem a cor do fundo da página). */
+.ct-vale__picote { position: relative; border-top: 3px dashed var(--ct-chocolate); }
+.ct-vale__picote::before, .ct-vale__picote::after {
+  content: ''; position: absolute; top: calc(var(--ct-vale-furo) * -1 - 2px); width: calc(var(--ct-vale-furo) * 2); height: calc(var(--ct-vale-furo) * 2);
+  border: var(--ct-traco); border-radius: 50%; background: var(--ct-creme); clip-path: inset(0 0 0 50%);
 }
+.ct-vale__picote::before { left: calc(var(--ct-vale-furo) * -1 - 3px); }
+.ct-vale__picote::after { right: calc(var(--ct-vale-furo) * -1 - 3px); clip-path: inset(0 50% 0 0); }
+/* A dobra: fechada não ocupa altura nem recebe foco (visibility); o "Abrir voucher" solta a linha da grade. */
+.ct-vale__dobra { display: grid; grid-template-rows: 0fr; visibility: hidden; }
+.ct-vale.is-aberto .ct-vale__dobra { grid-template-rows: 1fr; visibility: visible; }
+.ct-vale__miolo { display: grid; justify-items: center; gap: 12px; min-height: 0; overflow: hidden; text-align: center; }
+.ct-vale.is-aberto .ct-vale__miolo { padding: 22px 18px; }
+.ct-vale__miolo p { margin: 0; }
+.ct-vale__miolo .ct-lead { font-weight: 800; }
 .ct-voucher__codigo {
-  margin: 8px 0 12px; padding: 10px 16px; display: inline-block;
-  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme);
+  padding: 10px 16px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco);
   font: 900 clamp(26px, 8vw, 38px)/1.1 var(--ct-font); letter-spacing: .06em; user-select: all;
 }
-.ct-voucher__qr { display: block; width: 160px; height: 160px; margin: 0 0 12px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
+.ct-voucher__qr { display: block; width: 200px; height: 200px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
 .ct-voucher__qr--vazio { opacity: .5; }
 .ct-voucher__codigo-apagado { text-decoration: line-through; }
-/* Cartão-voucher em tela: a arte do impresso (84 x 54 mm) em SVG; o botão vira a frente e o verso. */
-.ct-voucher__cartao { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin: 4px 0 12px; }
-.ct-vcard { display: block; width: 100%; height: auto; aspect-ratio: 84 / 54; filter: drop-shadow(0 3px 0 rgba(58, 21, 15, .35)); }
-.ct-vcard__codigo { font-family: var(--ct-font); font-weight: 700; letter-spacing: .05em; fill: #000; }
-.ct-vcard__contorno { fill: none; stroke: #3A150F; stroke-width: .6px; }
+.ct-vale__patrocinio { display: grid; justify-items: center; gap: 10px; padding: 18px 16px 20px; border-top: var(--ct-traco); border-radius: 0 0 calc(var(--ct-raio) - 3px) calc(var(--ct-raio) - 3px); background: #fff; text-align: center; }
+.ct-vale__patrocinio p { margin: 0; }
+.ct-vale__patrocinio > p:last-child { margin-top: 6px; font: italic 600 15px/1.4 'Exo 2', var(--ct-font); text-wrap: balance; }
+.ct-edicao .ct-vale__patrocinio img { display: block; width: auto; max-width: none; height: 38px; }
+@media (prefers-reduced-motion: no-preference) {
+  .ct-vale__dobra { transition: grid-template-rows 480ms cubic-bezier(.22, .9, .24, 1); }
+  .ct-vale.is-aberto .ct-vale__miolo > * { animation: ct-vale-sobe 420ms 180ms cubic-bezier(.22, .9, .24, 1) both; }
+  @keyframes ct-vale-sobe { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+}
