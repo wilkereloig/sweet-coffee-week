@@ -19,6 +19,10 @@ export const EDICAO = {
 // false: /cartoon só abre em DEV e em *.vercel.app?preview=1. true: aberta ao público.
 export const CARTOON_PUBLICA = true
 
+// false: mapa, Minha rota e Caça aos Carimbos ficam só em DEV e em *.vercel.app?preview=1; no domínio somem da
+// navegação e o QR d1-<casa> abre a ficha da casa. true: tudo no ar, e o d1-<casa> volta a abrir o carimbo.
+export const MAPA_PUBLICO = false
+
 // 'institucional': / mostra a Home do festival. 'cartoon': / mostra a entrada da
 // edição e a Home institucional passa a viver em /festival. Exige CARTOON_PUBLICA.
 export const ENTRADA_PRINCIPAL = 'institucional'

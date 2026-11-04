@@ -10,6 +10,7 @@
  * O mapa interativo NÃO carrega aqui.
  */
 import React from 'react'
+import { MAPA_NO_AR } from '../contexto.js'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { imagemPublica } from '../../dados/publico.js'
@@ -127,7 +128,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           )}
           <div className="ct-acoes ct-estreia__acoes">
             <Botao tipo="acao" href={`${C}/${comCombos ? 'combos' : 'participantes'}`} navigate={navigate}>{comCombos ? T.acaoCombos : T.acaoParticipantes}</Botao>
-            {!encerrada && <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}>{T.acaoMapa}</Botao>}
+            {!encerrada && MAPA_NO_AR && <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}>{T.acaoMapa}</Botao>}
             <Gibi chave="luva-aponta" className="ct-estreia__luva" />
           </div>
         </div>
@@ -161,7 +162,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
         </section>
       )}
 
-      {!encerrada && bairros.length > 0 && (
+      {!encerrada && MAPA_NO_AR && bairros.length > 0 && (
         <section className="ct-onde" aria-labelledby="ct-onde">
           <div className="ct-bloco ct-onde__corpo">
             <div className="ct-cabeca-desenho">

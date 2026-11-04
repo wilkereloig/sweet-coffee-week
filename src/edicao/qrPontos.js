@@ -15,7 +15,7 @@
  *           d2-<slug>, pl-…  sem peça impressa desde 30/10/2026 (a avaliação virou um QR só); a regra fica
  *           qualquer outro                                                → entrada da edição (nunca erro)
  */
-import { EDICAO } from './config.js'
+import { EDICAO, MAPA_PUBLICO } from './config.js'
 
 // Mesmo desenho do slug da casa: minúsculas e dígitos, hífen só entre eles.
 const CODIGO = /^[a-z0-9]+(-[a-z0-9]+)*$/
@@ -40,8 +40,8 @@ export function destinoDoCodigo (bruto) {
   if (GERAIS.has(codigo)) return base + GERAIS.get(codigo)
   const [prefixo, ...resto] = codigo.split('-')
   // Face do combo do display (Caça aos Carimbos, 04/11): abre a tela da casa com 'Ver o combo' e 'Carimbar'.
-  if (prefixo === 'd1' && resto.length) return `${base}/carimbo/${resto.join('-')}`
+  if (prefixo === 'd1' && resto.length) return `${base}/${MAPA_PUBLICO ? 'carimbo' : 'participantes'}/${resto.join('-')}`
   if (prefixo === 'd2') return `${base}/avaliar`
-  if (prefixo === 'mapa') return `${base}/mapa`
+  if (prefixo === 'mapa') return MAPA_PUBLICO ? `${base}/mapa` : base
   return base
 }

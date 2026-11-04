@@ -21,6 +21,7 @@ import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { QueroIrCasa, JaFui } from '../MarcasLover.jsx'
+import { MAPA_NO_AR } from '../contexto.js'
 import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM, ICONE } from '../textos.js'
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
@@ -89,7 +90,7 @@ function Cartao ({ p, modo, navigate, encerrada }) {
           </ul>
         )}
       </Link>
-      {!encerrada && (p.unidades || []).length > 0 && (
+      {!encerrada && MAPA_NO_AR && (p.unidades || []).length > 0 && (
         <div className="ct-cartao__marcas">
           <QueroIrCasa p={p} navigate={navigate} />
           <JaFui p={p} />

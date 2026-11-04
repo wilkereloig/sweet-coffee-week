@@ -19,6 +19,7 @@ import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao, Passos, Gibi } from '../../../componentes/sistema/pecas.jsx'
 import { AWARDS as T, FASE_TEXTO, ICONE } from '../../textos.js'
+import { MAPA_NO_AR } from '../../contexto.js'
 import { Formulario } from './Formulario.jsx'
 import { Resultados } from './Resultados.jsx'
 
@@ -62,7 +63,7 @@ export function SweetAwards ({ navigate, dados, foco }) {
           {!encerrada && (
             <div className="ct-acoes">
               <Botao href={`${C}/participantes`} navigate={navigate}>{T.verCasas}</Botao>
-              <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}><IconeCartoon nome="mapa" tamanho={32} />{T.abrirMapa}</Botao>
+              {MAPA_NO_AR && <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}><IconeCartoon nome="mapa" tamanho={32} />{T.abrirMapa}</Botao>}
             </div>
           )}
         </div>

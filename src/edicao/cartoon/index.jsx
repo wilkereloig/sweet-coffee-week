@@ -22,7 +22,7 @@ import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
 import ScwIcon from '../../components/scw-icons/ScwIcon.jsx'
-import { RotaContexto } from './contexto.js'
+import { RotaContexto, MAPA_NO_AR } from './contexto.js'
 import { NAV, MENU, CENA_TEXTO, RODAPE } from './textos.js'
 import { Entrada } from './paginas/Entrada.jsx'
 import { Catalogo } from './paginas/Catalogo.jsx'
@@ -102,15 +102,19 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
   )
 }
 
+// Sem o mapa no ar, a navegação fica sem Mapa e Minha rota, e estas páginas mostram o "em breve".
+const PAGINAS = NAV.filter((n) => MAPA_NO_AR || !['mapa', 'minha-rota'].includes(n.cena))
+const CENAS_DO_MAPA = ['mapa', 'minha-rota', 'carimbo', 'regulamento']
+
 const TITULOS = {
-  participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
+  'mapa-em-breve': 'Mapa', participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
   avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
   const pedida = resolverCena(path)
   const { slug, foco, codigo, token } = pedida
-  const cena = pedida.cena === 'sistema' && !Sistema ? 'inexistente' : pedida.cena
+  const cena = pedida.cena === 'sistema' && !Sistema ? 'inexistente' : !MAPA_NO_AR && CENAS_DO_MAPA.includes(pedida.cena) ? 'mapa-em-breve' : pedida.cena
   const ed = useEdicao()
   const rota = useMinhaRota(EDICAO.codigo)
   // A barra de abas do celular é fixa na base: o aviso de cookies sobe acima dela.
@@ -120,7 +124,7 @@ export function CartoonPage ({ path, navigate }) {
   const dados = ed.dados
   const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena === 'carimbo' ? 'minha-rota' : cena
   // Barra do celular: os cinco atalhos; depois dos resultados, a aba do Sweet Awards vira "Prêmios" (§10.6).
-  const abas = NAV.map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
+  const abas = PAGINAS.map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
   const paradas = rota.ids.length
   const linkNav = (item, className, filhos) => (
     <Link href={item.href} navigate={navigate} className={className} aria-current={ativa === item.cena ? 'page' : undefined}>
@@ -133,7 +137,7 @@ export function CartoonPage ({ path, navigate }) {
   }, [cena])
 
   // Páginas que dependem da lista da edição esperam por ela; o participante busca o seu.
-  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'carimbo', 'voucher', 'regulamento'].includes(cena)
+  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'mapa-em-breve', 'carimbo', 'voucher', 'regulamento'].includes(cena)
   let conteudo
   if (precisaLista && ed.estado === 'carregando') conteudo = <Carregando texto="Carregando a edição…" />
   else if (precisaLista && ed.estado === 'falha') {
@@ -152,6 +156,15 @@ export function CartoonPage ({ path, navigate }) {
       case 'voucher': conteudo = <VoucherVirtual key={token} token={token} navigate={navigate} dados={dados} />; break
       case 'regulamento': conteudo = <Regulamento navigate={navigate} />; break
       case 'sistema': conteudo = <React.Suspense fallback={<Carregando texto="Carregando a vitrine…" />}><Sistema /></React.Suspense>; break
+      case 'mapa-em-breve':
+        conteudo = (
+          <section className="ct-bloco">
+            <h1 className="ct-h1">{CENA_TEXTO.mapaEmBreve.titulo}</h1>
+            <p className="ct-lead">{CENA_TEXTO.mapaEmBreve.apoio}</p>
+            <div className="ct-acoes"><Link href={`${EDICAO.caminho}/participantes`} navigate={navigate} className="ct-botao">Ver as casas</Link></div>
+          </section>
+        )
+        break
       default:
         conteudo = (
           <section className="ct-bloco">
@@ -167,7 +180,7 @@ export function CartoonPage ({ path, navigate }) {
   }
 
   return (
-    <RotaContexto.Provider value={rota}>
+    <RotaContexto.Provider value={MAPA_NO_AR ? rota : null}>
       <div className="ct-edicao">
         <header className="ct-topo">
           <Link href={EDICAO.caminho} navigate={navigate} className="ct-topo__marca" aria-label={`${EDICAO.nome}, início`}>
@@ -175,11 +188,11 @@ export function CartoonPage ({ path, navigate }) {
           </Link>
           <nav className="ct-topo__nav" aria-label="Navegação da edição">
             <ul>
-              {NAV.filter((n) => n.cena !== 'entrada').map((item) => <li key={item.cena}>{linkNav(item, undefined, item.rotulo)}</li>)}
+              {PAGINAS.filter((n) => n.cena !== 'entrada').map((item) => <li key={item.cena}>{linkNav(item, undefined, item.rotulo)}</li>)}
               <li><Link href={INICIO_INSTITUCIONAL} navigate={navigate}>{RODAPE.sobre}</Link></li>
             </ul>
           </nav>
-          <MenuCelular itens={NAV} ativa={ativa} navigate={navigate} paradas={paradas} />
+          <MenuCelular itens={PAGINAS} ativa={ativa} navigate={navigate} paradas={paradas} />
         </header>
 
         <div className="ct-conteudo">{conteudo}</div>
@@ -197,7 +210,7 @@ export function CartoonPage ({ path, navigate }) {
             <nav className="ct-rodape__grupo" aria-labelledby="ct-rodape-edicao">
               <p id="ct-rodape-edicao" className="ct-rodape__titulo">{RODAPE.paginas}</p>
               <ul className="ct-rodape__links">
-                {NAV.map((item) => <li key={item.cena}><Link href={item.href} navigate={navigate}>{item.rotulo}</Link></li>)}
+                {PAGINAS.map((item) => <li key={item.cena}><Link href={item.href} navigate={navigate}>{item.rotulo}</Link></li>)}
               </ul>
             </nav>
             <nav className="ct-rodape__grupo" aria-labelledby="ct-rodape-festival">

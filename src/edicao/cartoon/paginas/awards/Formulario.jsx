@@ -21,6 +21,7 @@ import { Foto } from '../../../componentes/base.jsx'
 import * as M from '../../../dados/modelo.js'
 import { lerPerfil, gravarPerfil } from '../../../rota/carimbo.js'
 import { CacaAposAvaliar } from '../Carimbo.jsx'
+import { MAPA_NO_AR } from '../../contexto.js'
 
 const TURNSTILE_SITE_KEY = '0x4AAAAAAEbvMJDSlYJpLY3b' // pública, a mesma de /quero-participar/
 const RASCUNHO = 'scw:cartoon:avaliacao:rascunho'
@@ -155,7 +156,7 @@ export function Formulario ({ dados, criterios, navigate }) {
           <button type="button" className="ct-botao" onClick={() => { setForm((f) => ({ ...f, slug: '', unidade: '', notas: {}, comentario: '', passo: 1 })); setEstado('editando') }}>{T.avaliarOutra}</button>
           <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.verCasas}</Link>
         </div>
-        <CacaAposAvaliar casa={casa?.casa.nome} navigate={navigate} />
+        {MAPA_NO_AR && <CacaAposAvaliar casa={casa?.casa.nome} navigate={navigate} />}
       </div>
     )
   }

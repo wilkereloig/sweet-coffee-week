@@ -12,6 +12,7 @@ import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao } from '../../../componentes/sistema/pecas.jsx'
 import { PARTICIPANTE as T, ICONE } from '../../textos.js'
 import { QueroIr } from '../../MarcasLover.jsx'
+import { MAPA_NO_AR } from '../../contexto.js'
 
 /** O horário no festival, dia a dia (5 a 15/11), com o dia de hoje marcado. Sem as datas da edição, em frases. */
 function Dias ({ linhas, periodo }) {
@@ -50,7 +51,7 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo }) {
           {rota && <QueroIr u={u} nome={M.tituloDaUnidade({ casa }, u)} />}
           {comoChegar && <Botao tipo="secundario" href={comoChegar} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.comoChegar} tamanho={20} />{T.comoChegar}</Botao>}
           {u.whatsapp && <Botao tipo="secundario" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.whatsapp} tamanho={20} />{T.whatsapp}</Botao>}
-          {u.coordenada && navigate && <Botao tipo="secundario" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}><ScwIcon nome={ICONE.mapa} tamanho={20} />{T.verNoMapa}</Botao>}
+          {MAPA_NO_AR && u.coordenada && navigate && <Botao tipo="secundario" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}><ScwIcon nome={ICONE.mapa} tamanho={20} />{T.verNoMapa}</Botao>}
         </div>
       </div>
       {comCombo && (

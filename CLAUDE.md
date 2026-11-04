@@ -215,7 +215,8 @@ arquivos da tarefa em questão.
 | `COMING_SOON_PUBLICATION` | `false` | landing `EmBreve` em toda rota — desligada em 26/08/2026 |
 | `AGUARDE_ONLY_PUBLICATION` | `false` | página de espera em `/`, Contato e Participar por link — desligada em 18/09/2026 |
 | `PARTICIPAR_ONLY_PUBLICATION` | `false` | toda rota renderizava Participar, sem menu — **desligada em 13/10/2026**: institucional completo publicado |
-| `CARTOON_PUBLICA` (`src/edicao/config.js`) | `false` | `true` abre `/cartoon` ao público; `false` deixa a edição só em preview |
+| `CARTOON_PUBLICA` (`src/edicao/config.js`) | `true` | `true` abre `/cartoon` ao público (desde 04/11/2026); `false` deixa a edição só em preview |
+| `MAPA_PUBLICO` (`src/edicao/config.js`) | `false` | `false`: mapa, Minha rota e Caça aos Carimbos só em preview, e o QR `d1-<casa>` abre a ficha; `true`: tudo no ar e o `d1-` abre o carimbo |
 | `ENTRADA_PRINCIPAL` (`src/edicao/config.js`) | `'institucional'` | `'cartoon'` faz `/` mostrar a entrada da edição e muda a Home institucional para `/festival`. Exige `CARTOON_PUBLICA`. Os outros quatro interruptores da edição (participantes, combos, avaliação, resultados) moram no banco — `docs/cartoon-2026-2/02-arquitetura-rotas-fases.md` §2.6 |
 | `INSTITUTIONAL_PREVIEW` | *computado* | `true` em DEV e em previews `*.vercel.app?preview=1`; **sempre `false`** no domínio oficial. É **aditivo** — libera revisão sem mexer nas outras |
 

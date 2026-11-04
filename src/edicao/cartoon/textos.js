@@ -192,6 +192,7 @@ export const ICONE = {
 }
 
 export const CENA_TEXTO = {
+  mapaEmBreve: { titulo: 'O mapa chega em breve', apoio: 'Enquanto isso, veja todas as casas e os combos da Cartoon.' },
   inexistente: { titulo: 'Não encontramos essa página da Cartoon', apoio: 'Confira o endereço ou volte para a entrada da edição.' },
 }
 
