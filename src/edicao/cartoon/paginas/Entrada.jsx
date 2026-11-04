@@ -62,7 +62,6 @@ function Vitrine ({ elenco, navigate }) {
     <ul className="ct-laminas">
       {escolhidas.map((p) => {
         const foto = p.combo?.fotos?.principal
-        const nomeCombo = p.combo?.nome ? M.caixaLegivel(p.combo.nome) : ''
         return (
           <li key={p.slug}>
             <Link className="ct-lamina__link" href={`${C}/${foto ? 'combos' : 'participantes'}/${p.slug}`} navigate={navigate}>
@@ -79,7 +78,8 @@ function Vitrine ({ elenco, navigate }) {
               )}
               <span className="ct-lamina__legenda">
                 <span className="ct-lamina__casa">{p.casa.nome}</span>
-                {nomeCombo && <span className="ct-lamina__combo">{nomeCombo}</span>}
+                {/* Na lâmina vai o tema da casa, não o nome do combo (pedido do Wilker, 04/11). */}
+                {p.casa.tema && <span className="ct-lamina__tema">{p.casa.tema}</span>}
               </span>
             </Link>
           </li>

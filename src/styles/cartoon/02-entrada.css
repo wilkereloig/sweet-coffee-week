@@ -71,7 +71,7 @@
 /* A barra amarela à esquerda do nome, como nas lâminas do carrossel. */
 .ct-lamina__legenda::before { content: ''; position: absolute; left: 14px; top: 44px; bottom: 14px; width: 4px; border-radius: 2px; background: var(--ct-amarelo); }
 .ct-lamina__casa { color: var(--ct-amarelo); font: 900 clamp(16px, 1.3vw, 19px)/1.1 var(--ct-font); text-transform: uppercase; text-wrap: balance; }
-.ct-lamina__combo { color: var(--ct-creme); font: 700 14px/1.25 var(--ct-font); text-wrap: balance; }
+.ct-lamina__tema { color: var(--ct-creme); font: 700 14px/1.25 var(--ct-font); text-wrap: balance; }
 .ct-lamina__selo {
   position: absolute; right: 10px; top: 10px; display: grid; place-items: center; width: clamp(50px, 24%, 66px); aspect-ratio: 1;
   overflow: hidden; border: 3px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-branco);
