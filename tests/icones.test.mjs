@@ -55,7 +55,8 @@ test('IconeUi (casca do site) só pede desenho de interface', () => {
 test('SVG de interface só nasce no registro (sem desenho solto em tela)', () => {
   // Exceção consciente: o traçado da rota do Mundo da Doçura é dado desenhado (caminho entre as paradas), não ícone.
   // Os Olhinhos são personagem da Cartoon (manual §1.3), não ícone: o desenho tem expressões e giro próprios.
-  const NAO_E_ICONE = ['src/edicao/cartoon/paginas/mapa/Mundo.jsx', 'src/edicao/componentes/sistema/Olhinhos.jsx']
+  // O cartão do voucher virtual é a arte do impresso em SVG (imagem + QR + código em mm), não ícone.
+  const NAO_E_ICONE = ['src/edicao/cartoon/paginas/mapa/Mundo.jsx', 'src/edicao/componentes/sistema/Olhinhos.jsx', 'src/edicao/cartoon/paginas/VoucherVirtual.jsx']
   const soltos = CODIGO.filter((a) => /\.jsx$/.test(a) && /<svg\b/.test(ler(a)) && !a.endsWith('scw-icons/registro.jsx') && !NAO_E_ICONE.includes(a))
   assert.deepEqual(soltos, [])
 })
