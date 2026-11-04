@@ -187,9 +187,12 @@ impresso serve de **sinalização** e para quem quer o mapa na mão; o carimbo c
   - **[Fato]** Localizador de agências da própria Sicredi, 03/11/2026 — três agências na região (Macaíba e
     Extremoz: nenhuma):
     - **Natal (sede):** Rua Tuiuti, 765;
-    - **Parnamirim, Shopping Cidade Verde:** Av. Ayrton Senna, 1995, salas L28 e L29;
-    - **São Gonçalo do Amarante:** Av. Bacharel Tomaz Landim, s/n, Conjunto Jardim Lola — a oeste do Potengi;
-      o enquadramento do mapa já abre até lá.
+    - **Parnamirim, Shopping Cidade Verde:** Av. Ayrton Senna, 1995, salas L28 e L29 (o Google Maps mostra
+      2349 na mesma avenida: **confirmar o número** com a Sicredi antes de imprimir);
+    - **São Gonçalo do Amarante:** Shopping Carajás, Av. Bacharel Tomaz Landim, s/n, Conjunto Jardim Lola — a
+      oeste do Potengi; o enquadramento do mapa já abre até lá.
+  - **[Fato]** A busca "Sicredi" no Google Maps (link do Wilker, 03/11) traz as mesmas 3 e nenhuma outra na
+    região.
   - **[A DEFINIR]** se a Sicredi quer mais algum ponto (ativação no festival, quiosque) além das agências.
 - **Fusão com o digital:**
   - a **mesma numeração** das casas no impresso, nos pins do mapa do site e no álbum do Mapa da Doçura;
