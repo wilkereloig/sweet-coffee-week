@@ -172,10 +172,8 @@ Turnstile na criação · carimbo por unidade · alerta por distância real · m
 **[Decisão]** Pedido do Wilker (03/11/2026): o Mapa da Doçura digital e o mapa impresso são **o mesmo mapa**. O
 impresso serve de **sinalização** e para quem quer o mapa na mão; o carimbo continua só no digital.
 
-- **Arte:** mapa de Natal **desenhado**, misturado com o mundo da edição Cartoon. Pontos da cidade como na faixa
-  `elementos/cena/natal` (Forte dos Reis Magos, Ponte Newton Navarro, farol, dunas). Morro do Careca é duna —
-  nunca Pão de Açúcar (memória "Natal nunca Rio"). Cada casa com um cantinho do seu tema, sem personagem, sem
-  logo de terceiro.
+- **Arte:** Natal desenhada como **mapa de mundo de videogame** ("mundo do Switch", nas palavras do Wilker),
+  no traço da Cartoon. Como é feita: §14.12.
 - **Cada casa:** **número + nome + logo desenhada** quando couber (a colorida tem 480 px: ~4 cm a 300 dpi, o
   bastante para logo pequena). Sem espaço: **pin com número + nome**, e o tema da casa na legenda lateral
   (número · nome · tema · bairro).
@@ -190,9 +188,68 @@ impresso serve de **sinalização** e para quem quer o mapa na mão; o carimbo c
   - texto curto no impresso: como pedir o carimbo e onde está o regulamento;
   - a mesma arte vira a fase 2 do mapa digital (§14.8), com as casas ganhando cor sobre o desenho.
 - **Pontos de atenção:**
-  - **localização:** só 15 das 41 unidades têm coordenada conferida (03/11). A posição no desenho é aproximada
-    por bairro e precisa ser conferida antes de imprimir;
+  - **localização:** a posição no desenho vem do **bairro** (§14.12), não da coordenada — só 15 das 41 unidades
+    têm coordenada conferida (03/11). Conferir o bairro de cada unidade antes de imprimir;
   - 7 casas têm várias unidades: **um número por casa**, pin repetido em cada unidade;
   - não há modelo do Wilker para mapa nas pastas da edição (03/11): conferir antes de diagramar se ele tem um.
 - **[A DEFINIR]** formato (A3 dobrado? A2 de parede?), tiragem, onde distribuir e onde fixar, data de
-  impressão, ordem da numeração (por bairro ou alfabética), e se o Sicredi também aparece no site da edição.
+  impressão, e se o Sicredi também aparece no site da edição.
+
+## 14.12 Como o mapa é desenhado — mundo de jogo esquemático
+
+**[Decisão]** Wilker, 03/11/2026: entre (A) Google só recolorido, (B) desenho fiel encaixado no Google e (C) mundo
+de jogo esquemático, **C**. O mapa mantém a geografia real (litoral, Potengi, ordem dos bairros) e encurta o
+espaço vazio, como mapa de metrô. Não é preciso no GPS: "Como chegar" continua abrindo o Google, e a página do
+mapa do Google continua no site para quem navega.
+
+**Regras de partida**
+
+- **[Fato]** Os termos do Google Maps proíbem criar mapa a partir do dele. A base geográfica vem do
+  **OpenStreetMap** (o mapa reserva do site já usa), que permite derivado com o crédito "© colaboradores do
+  OpenStreetMap" no rodapé da peça e da página.
+- **[Decisão]** Estilo de mundo de jogo (caminhos, regiões, casas como "fases"), **sem nada da Nintendo**:
+  nenhum personagem, cano, cogumelo, estrela ou elemento reconhecível de jogo existente. Traço da Cartoon
+  (nanquim, cor chapada, sombra), não 3D de brinquedo — a identidade é a da edição.
+- **[Fato]** Natal não é Rio: Morro do Careca é duna, nunca Pão de Açúcar (memória "Natal nunca Rio").
+
+**Onde as casas estão** — **[Fato]** banco, 03/11: 41 unidades em 15 bairros. Capim Macio sozinho tem 10
+(grafado de dois jeitos no banco, "Capim Macio" e "Capim macio": normalizar); Lagoa Nova e Tirol, 5 cada; Ponta
+Negra, 4; Candelária e Nova Parnamirim, 3; Lagoa Seca, Pitimbu e Potengi, 2; Barro Vermelho, Centro
+(Parnamirim), Cidade da Esperança, Neópolis e Petrópolis, 1. Na escala real a Zona Sul vira um amontoado: por isso
+o esquemático.
+
+**[Proposta]** Regiões como "mundos" do mapa, cada uma com um marco desenhado:
+
+| Região | Bairros das casas | Marco |
+|---|---|---|
+| Zona Norte | Potengi | Ponte Newton Navarro |
+| Zona Leste | Tirol, Petrópolis, Lagoa Seca, Barro Vermelho | Forte dos Reis Magos |
+| Zona Oeste | Cidade da Esperança | (a definir) |
+| Zona Sul | Capim Macio, Lagoa Nova, Candelária, Neópolis, Pitimbu | Arena das Dunas · Parque das Dunas |
+| Ponta Negra | Ponta Negra | Morro do Careca (duna) |
+| Parnamirim | Nova Parnamirim, Centro | Cajueiro de Pirangi |
+
+**[Proposta]** Numeração = a ordem do caminho pontilhado (Norte → Leste → Oeste → Sul → Ponta Negra →
+Parnamirim). A legenda do impresso sai agrupada por região. Casa com unidades em regiões diferentes: o número vem
+da primeira unidade no caminho e se repete nas outras.
+
+**Como fazer**
+
+1. **Rascunho de posições (script):** contorno de Natal e Parnamirim, Potengi e mar a partir do OpenStreetMap;
+   uma bolinha numerada por unidade dentro do seu bairro; regiões e caminho. O Wilker confere e ajusta **antes
+   de qualquer arte**.
+2. **Arte numa imagem só** (como o Wilker prefere), com o rascunho e a faixa `elementos/cena/natal` como
+   referência: terreno, mar, caminhos, marcos e uma **plataforma vazia em cada bolinha**. Nada de texto nem de
+   logo na arte.
+3. **As casas entram por código:** número, logo desenhada de verdade e nome sobre cada plataforma. Logo nunca
+   sai da IA, e 27 nomes escritos por IA sairiam errados.
+4. **Site:** vista de jogo do Mapa da Doçura — fase visitada ganha cor e bandeira, o caminho até ela se pinta;
+   tocar na casa abre o cartão com "Como chegar". Imagem com zoom e arraste; as casas são botões de verdade
+   (acessíveis), não pontos dentro da imagem.
+5. **Impresso:** a mesma arte com legenda, QR, selo, Senac (apoio) e Sicredi (patrocínio). A imagem da IA sai
+   com ~2.000 px e o A3 pede ~5.000 px: ampliar (Magnific) ou gerar em partes; texto e logos entram em vetor ou
+   alta resolução, nítidos.
+
+**Ordem:** o carimbo (§14.1–14.10) abre no dia 5 com o álbum de logos; o mapa desenhado entra quando a arte for
+aprovada e substitui o álbum como vista principal (o álbum fica como lista). O impresso depende da data de
+impressão, ainda a definir.
