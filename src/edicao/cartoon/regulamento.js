@@ -2,7 +2,7 @@
  * Regulamento da Caça aos Carimbos (docs/cartoon-2026-2/14-mapa-da-docura.md §14.14; regras do Wilker de 04/11/2026,
  * documento interno 04_SINALIZACAO/caca-aos-carimbos/caca-aos-carimbos-regras.pdf).
  * Só o que está decidido. O que falta decidir vai como { aDefinir } e aparece marcado na página —
- * nada inventado (A4). O prêmio surpresa NÃO é revelado aqui (só na entrega).
+ * nada inventado (A4). A surpresa NÃO é revelada aqui (só na entrega).
  */
 export const REGULAMENTO = {
   titulo: 'Regulamento da Caça aos Carimbos',
@@ -36,7 +36,7 @@ export const REGULAMENTO = {
     ]],
     ['Prêmio final', [
       'Concorre quem completar o mapa até o fim do festival (15/11).',
-      'São 3 ganhadores, cada um leva o press kit oficial da edição e um prêmio surpresa.',
+      'São 3 ganhadores, cada um leva o press kit oficial da edição e uma surpresa.',
       'Mais de 3 mapas completos: sorteio em que cada carimbo válido é uma chance — quem comeu mais combos tem mais chances. Saem 3 ganhadores, e quem foi sorteado não volta para o sorteio seguinte. A lista dos concorrentes (apelido e número de chances) é publicada antes do sorteio.',
       'Até 3 mapas completos: todos ganham, e as vagas que sobrarem vão para quem tem mais casas carimbadas (empate: mais carimbos; persistindo, sorteio). Nenhum prêmio fica sem dono.',
       'Ganhar voucher não tira ninguém do prêmio final.',
