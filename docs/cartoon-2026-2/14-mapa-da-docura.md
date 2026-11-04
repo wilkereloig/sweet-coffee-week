@@ -181,6 +181,16 @@ impresso serve de **sinalização** e para quem quer o mapa na mão; o carimbo c
   (decisão do Wilker, 03/11). Arquivos recebidos copiados para
   `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/00_REFERENCIAS/` no Dropbox da edição (Sicredi em PDF com área de proteção;
   Senac de 22/10).
+- **[Decisão]** **Os pontos da Sicredi entram no mapa** (Wilker, 03/11), no impresso e no digital, com marcador
+  próprio, diferente das casas (no rascunho: quadrado verde com "S"; na arte, a marca da Sicredi). Fonte da
+  lista: `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/01_RASCUNHO_POSICOES/_bastidores/pontos-sicredi.json`.
+  - **[Fato]** 03/11: o OpenStreetMap tem **um** ponto Sicredi em Natal (perto de Tirol/Petrópolis), sem
+    endereço; o diretório de cooperativas da Sicredi lista a Sicredi RN na Rua Tuiuti, 765, Natal; a Sicredi RN
+    diz estar em 11 municípios-polo, entre eles Natal, Parnamirim e São Gonçalo do Amarante. O localizador de
+    agências do site da Sicredi não abriu para leitura automática.
+  - **[A DEFINIR]** a lista oficial dos pontos que a Sicredi quer no mapa (agências, sede, ativação no
+    festival), com endereço — vem do cliente/Sicredi. Ponto em São Gonçalo do Amarante obriga a abrir o
+    enquadramento para oeste do Potengi.
 - **Fusão com o digital:**
   - a **mesma numeração** das casas no impresso, nos pins do mapa do site e no álbum do Mapa da Doçura;
   - **QR no impresso** abrindo o Mapa da Doçura por um código novo no contador `/q/` (ex.: `mapa-impresso`),

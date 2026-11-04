@@ -39,6 +39,9 @@ const MARCOS = [ // centros lidos do OpenStreetMap em 03/11/2026
   { nome: 'Parque das Dunas', lat: -5.8272, lon: -35.1905 },
   { nome: 'Morro do Careca (duna)', lat: -5.8838, lon: -35.1644 },
 ]
+// Pontos da Sicredi (patrocínio, pedido do Wilker 03/11): lista em _bastidores/pontos-sicredi.json —
+// { nome, endereco, lat, lon, confirmado }. Não confirmado sai tracejado.
+const SICREDI = JSON.parse(readFileSync(`${PASTA}/_bastidores/pontos-sicredi.json`, 'utf8'))
 const sem = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 
 // ── centro de cada bairro (OSM admin_level 10); "Centro" de Parnamirim é o do sul
@@ -84,7 +87,7 @@ const mapa = (ll) => lente(proj(ll))
 // ── recorte e escala para a tela: o enquadramento é o das casas e dos marcos (a lente entorta as bordas do
 // retângulo, então cantos não servem), com folga; a geografia de fora é cortada
 const W = 1760, H = 1500, AREA = { x: 40, y: 90, w: 980, h: 1370 }, FOLGA = 1500 // metros
-const chave_ = [...unidades, ...MARCOS].map(mapa)
+const chave_ = [...unidades, ...MARCOS, ...SICREDI].map(mapa)
 const minX = Math.min(...chave_.map((c) => c.x)) - FOLGA, maxX = Math.max(...chave_.map((c) => c.x)) + FOLGA * 1.6
 const minY = Math.min(...chave_.map((c) => c.y)) - FOLGA, maxY = Math.max(...chave_.map((c) => c.y)) + FOLGA
 const esc = Math.min(AREA.w / (maxX - minX), AREA.h / (maxY - minY))
@@ -96,6 +99,7 @@ for (const u of unidades) Object.assign(u, tela(u))
 // ── afasta bolinhas encostadas (mola de volta ao lugar real; poucas centenas de passos bastam para 41 pontos)
 const MIN = 50
 const origem = unidades.map((u) => ({ x: u.x, y: u.y }))
+const fixos = SICREDI.map(tela)
 for (let passo = 0; passo < 400; passo++) {
   for (let i = 0; i < unidades.length; i++) {
     for (let j = i + 1; j < unidades.length; j++) {
@@ -106,6 +110,10 @@ for (let passo = 0; passo < 400; passo++) {
       const emp = (MIN - d) / 2
       a.x -= (dx / d) * emp; a.y -= (dy / d) * emp; b.x += (dx / d) * emp; b.y += (dy / d) * emp
     }
+  }
+  for (const f of fixos) for (const u of unidades) { // ponto Sicredi não se mexe: a bolinha é que sai de cima
+    const dx = u.x - f.x, dy = u.y - f.y, d = Math.hypot(dx, dy) || 1
+    if (d < MIN) { u.x += (dx / d) * (MIN - d); u.y += (dy / d) * (MIN - d) }
   }
   unidades.forEach((u, i) => { u.x += (origem[i].x - u.x) * 0.02; u.y += (origem[i].y - u.y) * 0.02 })
 }
@@ -187,6 +195,12 @@ function rotular (texto, ax, ay, tamanho, desvios) {
   ocupados.push(c)
   return { x: c.x, y: c.y + h * 0.8 }
 }
+const sicredi = SICREDI.map((s) => {
+  const p = tela(s)
+  ocupados.push({ x: p.x - 15, y: p.y - 15, w: 30, h: 30 })
+  const r = rotular(s.nome, p.x, p.y, 13, [[20, 0], [-20, 0], [0, -26], [0, 26]])
+  return `<g><rect x="${(p.x - 14).toFixed(1)}" y="${(p.y - 14).toFixed(1)}" width="28" height="28" rx="7" fill="#3FA535" stroke="#3A150F" stroke-width="2.5" ${s.confirmado ? '' : 'stroke-dasharray="5 3"'}/><text x="${p.x.toFixed(1)}" y="${(p.y + 6).toFixed(1)}" class="sic" text-anchor="middle">S</text><text x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" class="marco">${esc_(s.nome)}${s.confirmado ? '' : ' (a confirmar)'}</text></g>`
+}).join('')
 const marcos = MARCOS.map((m) => {
   const p = tela(m)
   ocupados.push({ x: p.x - 12, y: p.y - 14, w: 24, h: 22 })
@@ -223,16 +237,17 @@ for (const r of REGIOES) {
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <rect width="${W}" height="${H}" fill="#F4E6CF"/>
 <clipPath id="area"><rect x="${AREA.x}" y="${AREA.y}" width="${AREA.w}" height="${AREA.h}" rx="18"/></clipPath>
-<g clip-path="url(#area)"><rect x="${AREA.x}" y="${AREA.y}" width="${AREA.w}" height="${AREA.h}" fill="#EFE3C4"/>${mar}${estuario}${rios}${costa}${trilha}${marcos}${rotulosRegiao}${bolinhas}</g>
+<g clip-path="url(#area)"><rect x="${AREA.x}" y="${AREA.y}" width="${AREA.w}" height="${AREA.h}" fill="#EFE3C4"/>${mar}${estuario}${rios}${costa}${trilha}${marcos}${rotulosRegiao}${bolinhas}${sicredi}</g>
 <rect x="${AREA.x}" y="${AREA.y}" width="${AREA.w}" height="${AREA.h}" rx="18" fill="none" stroke="#3A150F" stroke-width="3"/>
 <text x="40" y="58" class="titulo">Mapa da Doçura · rascunho de posições v1</text>
 <text x="${LX}" y="58" class="sub">Casas pela ordem do caminho</text>
 ${legenda}
-<g transform="translate(${LX} ${Math.max(ly + 20, 1290)})">
+<g transform="translate(${LX} ${Math.max(ly + 20, 1260)})">
   <circle cx="14" cy="0" r="12" fill="#FCFCFC" stroke="#3A150F" stroke-width="2.5"/><text x="36" y="5" class="leg">unidade com localização conferida</text>
   <circle cx="14" cy="32" r="12" fill="#FDF0DE" stroke="#3A150F" stroke-width="2.5" stroke-dasharray="5 3"/><text x="36" y="37" class="leg">posição pelo centro do bairro</text>
   <path d="M2,64h26" stroke="#ED1C20" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round"/><text x="36" y="69" class="leg">caminho (ordem da numeração)</text>
   <path d="M14,88l11,20h-22z" fill="#FDB901" stroke="#3A150F" stroke-width="2"/><text x="36" y="103" class="leg">marco da cidade</text>
+  <rect x="2" y="120" width="24" height="24" rx="6" fill="#3FA535" stroke="#3A150F" stroke-width="2.5"/><text x="14" y="138" class="sic" text-anchor="middle">S</text><text x="36" y="137" class="leg">ponto Sicredi (patrocínio)</text>
 </g>
 <text x="${AREA.x}" y="${H - 14}" class="credito">Esquemático: a Zona Sul está ampliada e a distância não é real. Base geográfica © colaboradores do OpenStreetMap.</text>
 </svg>`
@@ -245,7 +260,7 @@ body { margin: 0; } text { font-family: G, sans-serif; fill: #3A150F; }
 .marco { font-size: 13px; font-weight: 700; paint-order: stroke; stroke: #EFE3C4; stroke-width: 4px; }
 .num { font-size: 15px; font-weight: 900; }
 .leg-regiao { font-size: 17px; font-weight: 900; fill: #6424AB; } .leg { font-size: 14px; font-weight: 700; }
-.leg-n { font-weight: 900; fill: #ED1C20; } .leg-b { font-weight: 500; } .credito { font-size: 12px; font-weight: 600; }
+.leg-n { font-weight: 900; fill: #ED1C20; } .leg-b { font-weight: 500; } .credito { font-size: 12px; font-weight: 600; } .sic { font-size: 16px; font-weight: 900; fill: #FCFCFC; }
 </style>${svg}`
 
 const { chromium } = require('playwright')
