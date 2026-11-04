@@ -49,6 +49,11 @@
   .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'logo titulo' 'foto foto' 'acoes acoes'; align-items: center; gap: 18px 14px; }
   .ct-ficha__logo { --ct-desenho: 72px; }
   .ct-ficha__vitrine { justify-self: stretch; max-width: none; }
+  /* Com o nome e o preço em cima, a explosão atrás da foto subia sobre o preço: ela fica rente ao quadro em cima,
+     a foto ganha respiro e o bloco do nome fica na frente. */
+  .ct-ficha__vitrine { margin-top: 14px; }
+  .ct-ficha__explosao { inset: -4% -10% -10%; }
+  .ct-ficha__titulo { position: relative; z-index: 2; }
   .ct-ficha__topo .ct-cenario__objeto--a { display: none; }
 }
 @media (min-width: 901px) {
