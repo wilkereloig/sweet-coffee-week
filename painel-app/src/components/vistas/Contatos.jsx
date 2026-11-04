@@ -120,7 +120,7 @@ export function FichaContato({ id, pode, onFechar }) {
       const v = await rpc('get_vouchers', { p_secret: lerSenha() })
       if (!vale()) return true
       const disp = {}
-      for (const x of (v && v.vouchers) || []) if (x.status === 'disponivel') disp[x.participacao_id] = (disp[x.participacao_id] || 0) + 1
+      for (const x of (v && v.vouchers) || []) if (x.status === 'disponivel' && x.canal !== 'virtual') disp[x.participacao_id] = (disp[x.participacao_id] || 0) + 1
       setMarcas(((v && v.marcas) || []).map((m) => ({ ...m, disponiveis: disp[m.participacao_id] || 0 })))
       return true
     } catch {

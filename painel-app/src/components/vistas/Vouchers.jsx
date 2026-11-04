@@ -2,10 +2,12 @@ import React from 'react'
 import { rpc } from '../../lib/rpc'
 import { dataCurta } from '../../lib/respostas'
 import { dataHoraCurta } from '../../lib/painelFormat'
-import { resumoPorMarca, resumoPorContato } from '../../lib/vouchers'
+import { resumoPorMarca, resumoPorContato, linkDoVoucherVirtual, mensagemVoucherVirtual } from '../../lib/vouchers'
+import { ORIGEM_PUBLICA } from '../../lib/origem'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { FichaContato, erroContato } from './Contatos'
-import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, LogoMarca, Escolha } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Selo, Ajuda, LogoMarca, Escolha, Botao } from '../ui'
+import '../../styles/vouchers-virtuais.css'
 import { urlLogo } from '../../lib/logos'
 import { confirmar } from '../Confirmar'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
@@ -19,6 +21,10 @@ const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
  * edição, padrão 7). A organização destina cada voucher a uma pessoa e marca
  * o envio; a MARCA registra o uso digitando o código no painel dela.
  * Duas leituras: por marca (quanto cada uma ainda tem) e por pessoa.
+ *
+ * Dois canais (04/11/2026): impressos (cota de edicoes.vouchers_por_participante) e virtuais (cota própria, link com
+ * token secreto — docs/cartoon-2026-2/15-voucher-virtual.md). O seletor "Canal" só aparece quando o banco tem a cota
+ * virtual; sem a migration a tela é a de sempre.
  */
 export function Vouchers({ pode, rota, navegar }) {
   const guarda = useGuarda()
@@ -32,6 +38,8 @@ export function Vouchers({ pode, rota, navegar }) {
   const [destino, setDestino] = React.useState({ contato: '', quantidade: 1 })
   const [gerando, setGerando] = React.useState(false)
   const [destinando, setDestinando] = React.useState(false)
+  const [canal, setCanal] = React.useState('fisico') // 'fisico' | 'virtual'
+  const [novos, setNovos] = React.useState([])       // virtuais que acabaram de ser destinados: [{ codigo, link_token, marca }]
   // O formulário é um só: trocar de marca não leva o destino escolhido na outra.
   React.useEffect(() => { setDestino({ contato: '', quantidade: 1 }) }, [aberta])
   const podeMudar = pode('relacionamento.gerir')
@@ -66,11 +74,17 @@ export function Vouchers({ pode, rota, navegar }) {
   useSincronizar(DOMINIOS_VISTAS.vouchers, async () => { if (!(await carregar({ silencioso: true }))) throw new Error('vouchers') })
   const tentarDeNovo = React.useCallback(() => carregar(), [carregar])
 
+  const virtual = canal === 'virtual'
+  async function copiar(texto, ok) {
+    try { await navigator.clipboard.writeText(texto); setAviso({ ok }) } catch { setAviso('Não deu para copiar. Selecione o texto e copie à mão.') }
+  }
+  const linkDe = (token) => linkDoVoucherVirtual(ORIGEM_PUBLICA, token)
+
   async function gerar() {
     setGerando(true); setAviso(null)
     try {
-      const n = await rpc('gerar_vouchers', { p_secret: lerSenha() })
-      setAviso({ ok: n ? n + (n === 1 ? ' voucher gerado.' : ' vouchers gerados.') : 'Todas as marcas já estão com a cota completa.' })
+      const n = await rpc(virtual ? 'gerar_vouchers_virtuais' : 'gerar_vouchers', { p_secret: lerSenha() })
+      setAviso({ ok: n ? n + (virtual ? (n === 1 ? ' voucher virtual gerado.' : ' vouchers virtuais gerados.') : (n === 1 ? ' voucher gerado.' : ' vouchers gerados.')) : 'Todas as marcas já estão com a cota completa.' })
       await carregar({ silencioso: true })
     } catch (e) { setAviso(erroContato(e.message)) } finally { setGerando(false) }
   }
@@ -79,8 +93,17 @@ export function Vouchers({ pode, rota, navegar }) {
     if (!destino.contato) { setAviso('Escolha para quem vai o voucher.'); return }
     setAviso(null); setDestinando(true)
     try {
-      const cods = await rpc('destinar_vouchers', { p_secret: lerSenha(), p_participacao: participacao, p_contato: destino.contato, p_quantidade: Number(destino.quantidade) || 1, p_obs: null })
-      setAviso({ ok: 'Destinado: ' + (cods || []).join(', ') + '.' })
+      const corpo = { p_secret: lerSenha(), p_participacao: participacao, p_contato: destino.contato, p_quantidade: Number(destino.quantidade) || 1, p_obs: null }
+      if (virtual) {
+        // Devolve [{ codigo, link_token }]: a equipe monta e manda o link (a tela guarda só até a próxima troca de canal).
+        const itens = (await rpc('destinar_vouchers_virtuais', corpo)) || []
+        const marca = (dados.marcas || []).find((x) => x.participacao_id === participacao)
+        setNovos(itens.map((i) => ({ ...i, marca: marca ? marca.marca : '', para: (contatos.find((c) => c.id === destino.contato) || {}).nome || '' })))
+        setAviso({ ok: 'Destinado: ' + itens.map((i) => i.codigo).join(', ') + '. Copie o link abaixo e mande para a pessoa.' })
+      } else {
+        const cods = await rpc('destinar_vouchers', corpo)
+        setAviso({ ok: 'Destinado: ' + (cods || []).join(', ') + '.' })
+      }
       setDestino({ contato: '', quantidade: 1 })
       await carregar({ silencioso: true })
     } catch (e) { setAviso(erroContato(e.message)) } finally { setDestinando(false) }
@@ -95,7 +118,9 @@ export function Vouchers({ pode, rota, navegar }) {
   if (erro) return <Erro texto={erro} onTentar={tentarDeNovo} />
   if (!dados) return <Carregando />
   if (!dados.edicao) return <Vazio titulo="Nenhuma edição aberta">Abra a edição em Edição › Configuração.</Vazio>
-  const porMarca = resumoPorMarca(dados.vouchers, dados.marcas, dados.cota)
+  const temVirtual = dados.cota_virtual != null // sem a migration do virtual a coluna não vem
+  const cota = virtual ? dados.cota_virtual : dados.cota
+  const porMarca = resumoPorMarca(dados.vouchers, dados.marcas, cota, virtual ? 'virtual' : 'fisico')
   const porPessoa = resumoPorContato(dados.vouchers)
   const faltaGerar = porMarca.reduce((s, m) => s + m.faltaGerar, 0)
   const soma = (k) => porMarca.reduce((s, m) => s + m[k], 0)
@@ -105,8 +130,12 @@ export function Vouchers({ pode, rota, navegar }) {
       <div className="ui-barra">
         <Escolha rotulo="Ver por" valor={visao} onMudar={setVisao}
           opcoes={[['marcas', 'Por marca'], ['pessoas', 'Por pessoa (' + porPessoa.length + ')']]} />
+        {temVirtual && visao === 'marcas' && (
+          <Escolha rotulo="Canal" valor={canal} onMudar={(c) => { setCanal(c); setAberta(null); setNovos([]) }}
+            opcoes={[['fisico', 'Impressos'], ['virtual', 'Virtuais']]} />
+        )}
         {podeMudar && faltaGerar > 0 && (
-          <button className="og-btn" type="button" disabled={gerando} onClick={gerar}>{gerando ? 'Gerando…' : 'Gerar ' + faltaGerar + ' vouchers da edição'}</button>
+          <button className="og-btn" type="button" disabled={gerando} onClick={gerar}>{gerando ? 'Gerando…' : 'Gerar ' + faltaGerar + (virtual ? ' vouchers virtuais da edição' : ' vouchers da edição')}</button>
         )}
       </div>
       <ul className="ui-numeros ui-numeros--compacto" aria-label="Resumo dos vouchers">
@@ -115,13 +144,25 @@ export function Vouchers({ pode, rota, navegar }) {
         ))}
       </ul>
       <Ajuda titulo="Como os vouchers funcionam">
-        <p>Cada marca da edição {dados.edicao} cede {dados.cota} vouchers do próprio combo. Cada voucher tem um código (SCW-XXXXX) que só vale naquela marca.</p>
-        <p>A equipe destina o voucher a uma pessoa e marca quando ele foi enviado. Quem registra o uso é a marca, digitando o código no painel dela na hora em que o cliente apresenta.</p>
+        <p>Cada marca da edição {dados.edicao} cede {dados.cota} vouchers impressos do próprio combo{temVirtual ? ' e mais ' + dados.cota_virtual + ' virtuais' : ''}. Cada voucher tem um código (SCW-XXXXX) que só vale naquela marca.</p>
+        <p>A equipe destina o voucher a uma pessoa e marca quando ele foi enviado. Quem registra o uso é a marca, digitando o código no painel dela (ou lendo o QR) na hora em que o cliente apresenta.</p>
+        {temVirtual && <p>O voucher virtual vai por link: copie o link (ou a mensagem pronta) e mande. O cliente abre a página, vê o código e o QR e mostra na casa. O link só abre para o cliente depois que a página da edição for publicada no site.</p>}
       </Ajuda>
       {aviso && (aviso.ok ? <p className="ui-nota ui-nota--ok" role="status">{aviso.ok}</p> : <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>)}
+      {virtual && novos.length > 0 && (
+        <ul className="vv-links" aria-label="Links dos vouchers virtuais recém-destinados">{novos.map((n) => (
+          <li key={n.codigo}>
+            <span className="vv-links__codigo">{n.codigo}{n.marca ? ' · ' + n.marca : ''}</span>
+            <span className="vv-links__acoes">
+              <Botao soIcone icone="copiar" variante="secundario" aria-label={'Copiar o link do voucher ' + n.codigo} onClick={() => copiar(linkDe(n.link_token), 'Link do voucher ' + n.codigo + ' copiado.')}>Copiar link</Botao>
+              <Botao variante="secundario" onClick={() => copiar(mensagemVoucherVirtual({ marca: n.marca, link: linkDe(n.link_token), nome: n.para }), 'Mensagem do voucher ' + n.codigo + ' copiada.')}>Copiar mensagem</Botao>
+            </span>
+          </li>
+        ))}</ul>
+      )}
 
       {visao === 'marcas' && (
-        <Secao titulo={'Marcas da edição ' + dados.edicao} nota={porMarca.length + ' marcas · ' + dados.cota + ' vouchers cada'}>
+        <Secao titulo={'Marcas da edição ' + dados.edicao + (virtual ? ' · virtuais' : '')} nota={porMarca.length + ' marcas · ' + cota + (virtual ? ' vouchers virtuais cada' : ' vouchers cada')}>
           {porMarca.length === 0 && <Vazio titulo="Nenhuma marca na edição" />}
           <ul className="og-lista">{porMarca.map((m) => (
             <li key={m.participacao_id}>
@@ -141,6 +182,12 @@ export function Vouchers({ pode, rota, navegar }) {
                         <p className="og-item__meta">{v.contato ? <button type="button" className="og-link" onClick={() => navegar({ filtros: { item: v.contato_id } })}>{v.contato}</button> : 'sem destino'}{[v.enviado_em && ' · enviado ' + dataCurta(v.enviado_em), v.utilizado_em && ' · usado ' + dataHoraCurta(v.utilizado_em), v.responsavel_rotulo && ' · por ' + v.responsavel_rotulo].filter(Boolean).join('')}</p>
                         <span className="og-item__dir">
                           <Selo dominio="voucher" valor={v.status} />
+                          {virtual && v.link_token && ['destinado', 'enviado'].includes(v.status) && (
+                            <>
+                              <Botao soIcone icone="copiar" variante="secundario" aria-label={'Copiar o link do voucher ' + v.codigo} onClick={() => copiar(linkDe(v.link_token), 'Link do voucher ' + v.codigo + ' copiado.')}>Copiar link</Botao>
+                              <Botao variante="secundario" onClick={() => copiar(mensagemVoucherVirtual({ marca: m.marca, link: linkDe(v.link_token), nome: v.contato }), 'Mensagem do voucher ' + v.codigo + ' copiada.')}>Copiar mensagem</Botao>
+                            </>
+                          )}
                           {podeMudar && v.status === 'destinado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'enviado')}>Enviado</button>}
                           {podeMudar && ['destinado', 'enviado'].includes(v.status) && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'disponivel')}>Liberar</button>}
                           {podeMudar && v.status !== 'utilizado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'cancelado')}>Cancelar</button>}

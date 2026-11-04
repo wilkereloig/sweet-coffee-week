@@ -154,6 +154,8 @@ export const RPC_ESCRITA = Object.freeze({
   definir_presskit: ['contatos'],
   gerar_vouchers: ['vouchers'],
   destinar_vouchers: ['vouchers'],
+  gerar_vouchers_virtuais: ['vouchers'],
+  destinar_vouchers_virtuais: ['vouchers'],
   atualizar_voucher: ['vouchers'],
   registrar_venda_org: ['vendas'],
   // equipe e acessos

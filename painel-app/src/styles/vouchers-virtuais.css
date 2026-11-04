@@ -1,0 +1,10 @@
+/* Vouchers virtuais — leitor de QR da marca e linhas de link da organização (docs/cartoon-2026-2/15-voucher-virtual.md). */
+.vv-leitor { display: grid; gap: var(--e-3); margin: var(--e-3) 0 0; }
+.vv-leitor__video { width: 100%; max-width: 360px; aspect-ratio: 1; object-fit: cover; border-radius: var(--r-2); background: var(--scw-choco); }
+.vv-leitor__acoes { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+.vv-lido { margin: var(--e-3) 0 0; padding: var(--e-3); border-radius: var(--r-2); background: var(--sup-2); }
+.vv-lido b { font: 700 16px/1.3 var(--f-ui); letter-spacing: .04em; }
+.vv-links { display: grid; gap: var(--e-2); margin: var(--e-3) 0 0; padding: 0; list-style: none; }
+.vv-links > li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); padding: var(--e-2) var(--e-3); border-radius: var(--r-2); background: var(--sup-2); }
+.vv-links__codigo { font: 700 14.5px/1.35 var(--f-ui); }
+.vv-links__acoes { display: flex; gap: var(--e-2); margin-left: auto; }

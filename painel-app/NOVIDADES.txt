@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Mapa da Doçura: Edição › Carimbos (adesivos com QR, ranking e alertas) e, no Início da marca, o cartão "Carimbos de hoje" durante o festival.
+Vouchers virtuais: Contatos › Vouchers ganha o canal Virtuais (gerar, destinar e copiar o link) e, na marca, ler o QR do cliente para registrar o uso.

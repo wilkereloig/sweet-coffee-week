@@ -8,7 +8,7 @@
  */
 import { EDICAO } from './config.js'
 
-export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'carimbo', 'regulamento', 'inexistente']
+export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'carimbo', 'voucher', 'regulamento', 'inexistente']
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -23,6 +23,8 @@ export function resolverCena (path = '', base = EDICAO.caminho) {
   if (sobra.length) return { cena: 'inexistente' }
   // QR do balcão (Mapa da Doçura): a página valida o formato e explica um código ruim, em vez de 404.
   if (primeira === 'carimbo') return slug ? { cena: 'carimbo', codigo: slug.toLowerCase() } : { cena: 'inexistente' }
+  // Link do voucher virtual: o token secreto vem na própria rota; token ruim abre a página, que explica.
+  if (primeira === 'voucher') return slug ? { cena: 'voucher', token: slug.toLowerCase() } : { cena: 'inexistente' }
   if (primeira === 'participantes' || primeira === 'combos') {
     if (!slug) return { cena: primeira }
     if (!SLUG.test(slug)) return { cena: 'inexistente' }

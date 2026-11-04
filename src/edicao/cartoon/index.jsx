@@ -30,6 +30,7 @@ import { Mapa } from './paginas/mapa/index.jsx'
 import { MinhaRota } from './paginas/MinhaRota.jsx'
 import { SweetAwards } from './paginas/awards/index.jsx'
 import { Carimbo } from './paginas/Carimbo.jsx'
+import { VoucherVirtual } from './paginas/VoucherVirtual.jsx'
 import { Regulamento } from './paginas/Regulamento.jsx'
 
 // Vitrine do sistema visual (docs/cartoon-2026-2/10 §10.12): só no DEV. Fora
@@ -102,12 +103,12 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
 
 const TITULOS = {
   participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
-  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Carimbo do Mapa da Doçura', regulamento: 'Regulamento do Mapa da Doçura', inexistente: 'Página não encontrada',
+  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Carimbo do Mapa da Doçura', voucher: 'Voucher virtual', regulamento: 'Regulamento do Mapa da Doçura', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
   const pedida = resolverCena(path)
-  const { slug, foco, codigo } = pedida
+  const { slug, foco, codigo, token } = pedida
   const cena = pedida.cena === 'sistema' && !Sistema ? 'inexistente' : pedida.cena
   const ed = useEdicao()
   const rota = useMinhaRota(EDICAO.codigo)
@@ -131,7 +132,7 @@ export function CartoonPage ({ path, navigate }) {
   }, [cena])
 
   // Páginas que dependem da lista da edição esperam por ela; o participante busca o seu.
-  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'carimbo', 'regulamento'].includes(cena)
+  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'carimbo', 'voucher', 'regulamento'].includes(cena)
   let conteudo
   if (precisaLista && ed.estado === 'carregando') conteudo = <Carregando texto="Carregando a edição…" />
   else if (precisaLista && ed.estado === 'falha') {
@@ -147,6 +148,7 @@ export function CartoonPage ({ path, navigate }) {
       case 'avaliar':
       case 'premiacao': conteudo = <SweetAwards navigate={navigate} dados={dados} foco={cena} />; break
       case 'carimbo': conteudo = <Carimbo key={codigo} codigo={codigo} navigate={navigate} dados={dados} />; break
+      case 'voucher': conteudo = <VoucherVirtual key={token} token={token} navigate={navigate} dados={dados} />; break
       case 'regulamento': conteudo = <Regulamento navigate={navigate} />; break
       case 'sistema': conteudo = <React.Suspense fallback={<Carregando texto="Carregando a vitrine…" />}><Sistema /></React.Suspense>; break
       default:

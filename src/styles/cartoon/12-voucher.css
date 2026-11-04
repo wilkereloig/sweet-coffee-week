@@ -1,0 +1,15 @@
+/* Voucher virtual — página do link (/cartoon/voucher/<token>). Só tokens da edição. */
+.ct-voucher { max-width: 560px; }
+.ct-voucher__casa { display: flex; align-items: center; gap: 16px; margin: 4px 0 8px; }
+.ct-voucher__casa .ct-lead { margin: 0; }
+.ct-voucher--ok {
+  padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p);
+}
+.ct-voucher__codigo {
+  margin: 8px 0 12px; padding: 10px 16px; display: inline-block;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme);
+  font: 900 clamp(26px, 8vw, 38px)/1.1 var(--ct-font); letter-spacing: .06em; user-select: all;
+}
+.ct-voucher__qr { display: block; width: 160px; height: 160px; margin: 0 0 12px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
+.ct-voucher__qr--vazio { opacity: .5; }
+.ct-voucher__codigo-apagado { text-decoration: line-through; }

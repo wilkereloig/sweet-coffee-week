@@ -2051,3 +2051,21 @@ com rollback). Os NOMES (80) e a "proposta editorial" (2.000) seguem como eram. 
 continua com o limite de tela antigo até recarregar.
 - **Sem `tool_choice` forçado (03/11):** o `claude-sonnet-5-5` responde 400 ("tool_choice type tool/any not supported") — a função pede a ferramenta pela instrução do sistema e, se vier texto, lê o JSON dele. 1º teste real da API: Casa Alice Doceria, 3 campos revisados ("Cafe carioca" → "Café carioca", "ninho" → "Ninho", pontuação do combo), sem mudar informação.
 - **Revisar tudo (03/11, Wilker: "revise todos os dados"):** `POST {"revisar_participacao":"<id>"}` revisa UMA participação sem aplicar envio nem notificar; só manda à API os textos SEM revisão para o original de hoje (`sistema_textos_sem_revisao`, migration `20261128_textos_sem_revisao.sql`) — as 133 revisões do Word e as automáticas ficam. Rodado nas 27 participações da edição: 12 campos novos em 8 marcas, 0 erro. Revisão que mexe em NOME de produto (ex.: "Burguer" → "Burger") é desfeita à mão: o prompt só autoriza corrigir grafia, e o modelo às vezes decide que estilo é erro.
+
+#### Vouchers virtuais — 04/11/2026 (pedido do Wilker)
+Plano e estado: `docs/cartoon-2026-2/15-voucher-virtual.md`. Migration `20261201_voucher_virtual.sql` (✅ aplicada em 04/11/2026; reversão em
+`supabase/reverter/`; teste do banco `supabase/testes/voucher-virtual.sql` → `TESTE_OK`), lógica em `lib/vouchers.js` e `lib/voucherPendente.js`,
+testes em `tests/painel-app-vouchers.test.mjs`.
+- **Mesma tabela, dois canais.** `vouchers.canal` (`fisico` | `virtual`) e `link_token` (12 letras, só no virtual: constraint). Cota própria em
+  `edicoes.vouchers_virtuais_por_participante` (padrão 2). `gerar_vouchers`/`destinar_vouchers` olham só os impressos; `gerar_vouchers_virtuais`/
+  `destinar_vouchers_virtuais` são os do virtual (o destinar devolve `[{codigo, link_token}]`). ⚠️ Linha sem `canal` (banco antigo) é impresso (`canalDe`).
+- **Organização:** Contatos › Vouchers ganha o seletor "Canal" (Impressos · Virtuais; só aparece com `cota_virtual` vindo do banco). Voucher virtual
+  destinado tem "Copiar link" (ícone) e "Copiar mensagem" (texto pronto, `mensagemVoucherVirtual`). O link é sempre o do domínio oficial
+  (`ORIGEM_PUBLICA`), nunca o da barra. ⚠️ O link só abre para o cliente quando `/cartoon` estiver público (`CARTOON_PUBLICA`).
+- **Marca:** o cartão de vouchers aparece também só com virtuais e mostra a contagem deles. O código chega ao campo por três caminhos — digitado,
+  QR lido pela câmera do celular (`/painel/?voucher=SCW-XXXXX`, guardado em `sessionStorage` ANTES do login por `capturarVoucherDaUrl` no `main.jsx`)
+  ou "Ler o QR do cliente" dentro do painel (`LerQrVoucher`, só onde há `BarcodeDetector`: Chrome; no iPhone vale a câmera do celular). ⛔ Ler NÃO
+  registra: o campo só é preenchido e a baixa é o botão "Registrar uso" (`marca_usar_voucher`, a mesma do impresso).
+- **Contatos › ficha da pessoa** conta "disponíveis" só dos impressos (`x.canal !== 'virtual'`): o destinar de lá chama `destinar_vouchers`.
+- ⚠️ Não verificado em navegador nem em aparelho (câmera, `BarcodeDetector`, abertura do QR no iPhone). Verificado: testes (687 do painel, 73 da
+  edição), teste SQL no banco e build.

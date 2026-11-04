@@ -4,6 +4,9 @@ import { App } from './App'
 import '../../src/components/scw-icons/gerado/icones.css'
 // Antes do render: o convite de instalação do navegador dispara uma vez, cedo.
 import './lib/instalar'
+// QR do voucher virtual (?voucher=): guarda o código antes do login; a tela de vouchers da marca o usa.
+import { capturarVoucherDaUrl } from './lib/voucherPendente'
+capturarVoucherDaUrl()
 
 // O painel vive em /painel/ — /organizacao e /marca redirecionam para cá
 // (vercel.json e o plugin de dev), porque é o escopo do service worker: fora
