@@ -37,6 +37,18 @@ Lovers (2026.1), adaptado ao modelo de dados e às regras desta edição.
 Testes no fim (03/11): `test:cartoon` 57/57 · `test:cartoon-navegador` ✓ · `test:casca-institucional` ✓ · redesign 24 · imagens 11 ·
 destaque 6 · consentimento 12 · QR 15 · edições 16 · formulários/Turnstile/horário 105. Revisão independente do diff: 12 achados, todos corrigidos.
 
+## Candidata a publicação — 04/11/2026 (análise, nada publicado)
+
+Branch local `prep/publicar-cartoon` = `dev/site-completo` + `master` (merge limpo; único conflito, em `painel-app/CLAUDE.md`, era de documentação e manteve os dois blocos).
+Publicar = fast-forward de `master` para ela (e de `dev/site-completo` também, §3.1). **Só com ordem escrita (A2).**
+
+**Testes na candidata:** build ✓ · `test:cartoon` 73/73 (com o retrato local; sem ele o `cartoon-mundo` falha por falta de arquivo ignorado pelo git) · destaque, redesign, imagens, QR, consentimento, edições, Sweet Awards, quero-participar, organização (painel) e RLS ✓ · navegador: casca institucional ✓, Cartoon ✓.
+**`test:icones` falha em 2 pontos que já falhavam na dev:** o teste confunde nomes do `IconeCartoon` (registro próprio da edição) com nomes do catálogo do site, e há um ícone de 18 px no painel (`CartaoParticipante.jsx`). Não afeta o build nem o visual; o teste precisa de escopo.
+
+**Banco (projeto `dgfmoibynftadsyjcclg`):** as 6 migrations novas das duas pontas já estão aplicadas (`item_fotos_publicas`, `mapa_docura_carimbo`, `voucher_virtual`, `arquivo_por_link`, `aviso_fotos_dia5`, `arquivo_previa_dados`). O banco está **em `preparacao`**, com participantes, combos, resultados e avaliação desligados, sem janela da avaliação, **0 mídias aprovadas** (B2 aberto) e **0 vouchers virtuais**.
+
+**O que muda para o público ao publicar, com `CARTOON_PUBLICA = false`:** textos do site institucional ("Registrar interesse", "próximas edições"), página `/quero-participar`, regra de segurança de conteúdo (libera o Google Maps) e o painel (vouchers virtuais, carimbos do Mapa da Doçura, fotos por link). **`/cartoon` continua fechado.** Env da Vercel conferida: `VITE_GOOGLE_MAPS_KEY` existe em produção e preview.
+
 ## O que falta e depende do Wilker (para o dia 5)
 1. **Fotos no banco (B2):** pôr `SUPABASE_SERVICE_ROLE_KEY` no `.env.local`; aplicar a migration `20261129_item_fotos_publicas`;
    rodar `node --env-file=.env.local scripts/edicao/subir-fotos-combo.mjs` (plano) e depois com `--gravar`; **republicar cada casa** no painel.
