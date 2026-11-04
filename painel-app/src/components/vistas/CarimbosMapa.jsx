@@ -11,8 +11,8 @@ import '../../styles/carimbos.css'
 
 /*
  * Edição › Carimbos — Mapa da Doçura (docs/cartoon-2026-2/14-mapa-da-docura.md §14.5).
- * Totais, alertas para a auditoria do pódio (viagem impossível, unidade sem ponto conferido), ranking,
- * números da sorte em CSV (só relatorio.ler) e os QR das unidades para imprimir os adesivos do balcão.
+ * Totais, alertas para a auditoria (viagem impossível, unidade sem ponto conferido), ranking, a apuração da
+ * Caça aos Carimbos (vouchers dia a dia e sorteio final, §14.14) e os QR das unidades para os adesivos do balcão.
  * Ler: dado.ler. Anular carimbo, trocar QR e gerar link novo: producao.gerir (o banco confere).
  */
 
@@ -75,9 +75,7 @@ function Painel({ edicao, pode }) {
             )}
           </Secao>
 
-          <Secao titulo="Ranking" nota="Pontos = 1 por carimbo + 2 por casa avaliada. Empate: mais casas, depois quem chegou primeiro."
-            acoes={r.numeros && <Botao icone="baixar" variante="secundario" onClick={() => baixar('mapa-da-docura-numeros-da-sorte.csv',
-              csv([['de', 'ate', 'apelido', 'email', 'whatsapp'], ...r.numeros.map((n) => [n.de, n.ate, n.apelido, n.email, n.whatsapp])]))}>Números da sorte (CSV)</Botao>}>
+          <Secao titulo="Ranking" nota="Só carimbos validados (casa avaliada). Pontos = 1 por carimbo + 2 por casa avaliada. Empate: mais casas, depois quem chegou primeiro.">
             {!r.ranking?.length ? <Vazio titulo="Nenhum carimbo ainda">O ranking aparece aqui no primeiro carimbo.</Vazio> : (
               <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Ranking do Mapa da Doçura">
                 <table className="ui-tabela">
@@ -95,8 +93,67 @@ function Painel({ edicao, pode }) {
           </Secao>
         </>
       )}
+      <Apuracao edicao={edicao} pode={pode} />
       <Adesivos leitura={qrs} gerir={gerir} />
     </div>
+  )
+}
+
+const diaBr = (d) => d.split('-').reverse().slice(0, 2).join('/')
+
+/** Números do sorteio final: cada carimbo é uma chance, em faixas contínuas na ordem da lista. */
+export function faixasDoSorteio(lista) {
+  let fim = 0
+  return lista.map((p) => { const de = fim + 1; fim += Number(p.chances) || 0; return { ...p, de, ate: fim } })
+}
+
+/*
+ * Apuração da Caça aos Carimbos (get_caca_apuracao). Leitura à parte, com erro próprio: a função só existe depois da
+ * migration 20261202 — sem ela, só este bloco mostra o erro.
+ */
+function Apuracao({ edicao, pode }) {
+  const ap = useLeitura(async () => rpc('get_caca_apuracao', { p_secret: lerSenha(), p_edicao: edicao }), ['carimbos'], { chave: edicao })
+  const contato = pode('relatorio.ler')
+  const a = ap.dados
+  const linhaContato = (m) => contato && <td>{[m.email, m.whatsapp].filter(Boolean).join(' · ')}</td>
+  const tabela = (rotulo, linhas, colunas, celulas) => (
+    <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label={rotulo}>
+      <table className="ui-tabela">
+        <thead><tr>{colunas.map((c) => <th key={c} scope="col">{c}</th>)}{contato && <th scope="col">Contato</th>}</tr></thead>
+        <tbody>{linhas.map((m, i) => <tr key={`${m.apelido}-${i}`}>{celulas(m)}{linhaContato(m)}</tr>)}</tbody>
+      </table>
+    </div>
+  )
+  if (ap.bloqueada) return <Secao titulo="Caça aos Carimbos: apuração"><Erro texto={ap.erro} onTentar={ap.recarregar} /></Secao>
+  if (!a) return <Secao titulo="Caça aos Carimbos: apuração"><Carregando /></Secao>
+  const finais = faixasDoSorteio(a.sorteio_final || [])
+  return (
+    <>
+      <Secao titulo="Vouchers do dia" nota="Carimbos validados acumulados desde 5/11, até 23h59 de cada dia. Um voucher por pessoa: quem já ganhou sai das apurações seguintes (pule o nome e use o próximo). Posição repetida = empate, resolvido por sorteio.">
+        {(a.apuracoes || []).map((d) => (
+          <div key={d.dia} className="ui-pilha">
+            <h3 className="ui-modulo__titulo">{diaBr(d.dia)}</h3>
+            {!d.ranking?.length ? <p className="ui-nota">Ninguém com carimbo validado até esse dia.</p>
+              : tabela(`Apuração de ${diaBr(d.dia)}`, d.ranking, ['#', 'Apelido', 'Carimbos', 'Casas'],
+                (m) => <><td>{m.posicao}</td><th scope="row">{m.apelido}</th><td>{m.carimbos}</td><td>{m.casas}</td></>)}
+          </div>
+        ))}
+      </Secao>
+      <Secao titulo="Prêmio final" nota={`Concorre quem validou as ${a.total_casas} casas. Cada carimbo validado é uma chance: os números do sorteio vão em faixas, na ordem da lista. Sorteie 3, um de cada vez; quem sair não volta.`}
+        acoes={contato && finais.length > 0 && <Botao icone="baixar" variante="secundario" onClick={() => baixar('caca-aos-carimbos-sorteio-final.csv',
+          csv([['de', 'ate', 'apelido', 'chances', 'email', 'whatsapp'], ...finais.map((n) => [n.de, n.ate, n.apelido, n.chances, n.email, n.whatsapp])]))}>Lista do sorteio (CSV)</Botao>}>
+        {!finais.length ? <p className="ui-nota">Ninguém completou o mapa ainda.</p>
+          : tabela('Concorrentes do prêmio final', finais, ['Números', 'Apelido', 'Chances'],
+            (m) => <><td>{m.de}–{m.ate}</td><th scope="row">{m.apelido}</th><td>{m.chances}</td></>)}
+        {finais.length < 3 && a.reservas?.length > 0 && (
+          <>
+            <p className="ui-nota">Menos de 3 mapas completos: as vagas que sobram vão, nesta ordem, para quem tem mais casas validadas (empate: mais carimbos; persistindo, sorteio).</p>
+            {tabela('Próximos para as vagas que sobram', a.reservas, ['Apelido', 'Casas', 'Carimbos'],
+              (m) => <><th scope="row">{m.apelido}</th><td>{m.casas}</td><td>{m.carimbos}</td></>)}
+          </>
+        )}
+      </Secao>
+    </>
   )
 }
 

@@ -40,8 +40,12 @@ export function GuardarMapa ({ chave }) {
   )
 }
 
-function ComecarMapa ({ aoAbrir }) {
-  const [f, setF] = React.useState({ apelido: '', email: '', whatsapp: '', ranking: false, aceite: false })
+function ComecarMapa ({ aoAbrir, titulo = 'Primeira vez? Comece seu mapa', nota = 'Sem senha e sem cadastro longo. Leva meio minuto.', botao = 'Começar e carimbar', comLink = true }) {
+  // Nome, e-mail e WhatsApp já digitados na avaliação (perfil do aparelho) chegam preenchidos.
+  const [f, setF] = React.useState(() => {
+    const p = C.lerPerfil(EDICAO.codigo)
+    return { apelido: p.nome.slice(0, 24), email: p.email, whatsapp: p.whatsapp, ranking: false, aceite: false }
+  })
   const [erro, setErro] = React.useState('')
   const [enviando, setEnviando] = React.useState(false)
   const [colado, setColado] = React.useState('')
@@ -57,6 +61,7 @@ function ComecarMapa ({ aoAbrir }) {
       })
       if (!C.chaveValida(r?.chave)) throw new Error('resposta')
       C.gravarChave(EDICAO.codigo, r.chave) // sem storage, o mapa segue nesta visita; o link pessoal salva o resto
+      C.gravarPerfil(EDICAO.codigo, { nome: f.apelido, email: f.email, whatsapp: f.whatsapp })
       aoAbrir(r.chave, true)
     } catch (err) { setErro(C.mensagemCriar(err.message)) } finally { setEnviando(false) }
   }
@@ -72,8 +77,8 @@ function ComecarMapa ({ aoAbrir }) {
   return (
     <>
       <form className="ct-form ct-carimbar__form" onSubmit={criar} noValidate aria-labelledby="mapa-novo">
-        <p id="mapa-novo" className="ct-sub">Primeira vez? Comece seu mapa</p>
-        <p className="ct-nota">Sem senha e sem cadastro longo. Leva meio minuto.</p>
+        <p id="mapa-novo" className="ct-sub">{titulo}</p>
+        <p className="ct-nota">{nota}</p>
         <label className="ct-campo"><span>Apelido (aparece no ranking, se você quiser)</span>
           <input type="text" autoComplete="nickname" value={f.apelido} maxLength={24} onChange={(e) => muda('apelido', e.target.value)} required />
         </label>
@@ -90,10 +95,10 @@ function ComecarMapa ({ aoAbrir }) {
           <span>Li e aceito o <a href={`${EDICAO.caminho}/regulamento`} target="_blank" rel="noopener">regulamento</a></span>
         </label>
         {erro && <p className="ct-aviso" role="alert">{erro}</p>}
-        <div className="ct-acoes"><button type="submit" className="ct-botao" disabled={enviando}>{enviando ? 'Criando…' : 'Começar e carimbar'}</button></div>
+        <div className="ct-acoes"><button type="submit" className="ct-botao" disabled={enviando}>{enviando ? 'Criando…' : botao}</button></div>
       </form>
 
-      <details className="ct-carimbar__ja-tenho">
+      {comLink && <details className="ct-carimbar__ja-tenho">
         <summary>Já tenho mapa: abrir pelo meu link</summary>
         <form onSubmit={abrirPeloLink} noValidate>
           <label className="ct-campo"><span>Cole aqui o link do seu mapa</span>
@@ -102,8 +107,44 @@ function ComecarMapa ({ aoAbrir }) {
           {erroLink && <p className="ct-aviso" role="alert">{erroLink}</p>}
           <div className="ct-acoes"><button type="submit" className="ct-botao ct-botao--contorno">Abrir meu mapa</button></div>
         </form>
-      </details>
+      </details>}
     </>
+  )
+}
+
+/*
+ * Depois de avaliar (tela de sucesso do formulário): a avaliação já conta na Caça aos Carimbos. Com mapa no aparelho,
+ * avisa que valida o carimbo da casa; sem mapa, oferece criar um com os mesmos dados (já preenchidos).
+ */
+export function CacaAposAvaliar ({ casa, navigate }) {
+  const [chave, setChave] = React.useState(() => C.lerChave(EDICAO.codigo))
+  const [novo, setNovo] = React.useState(false)
+  const verMapa = <Link href={`${EDICAO.caminho}/minha-rota?painel=album`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver meu mapa</Link>
+  return (
+    <div className="ct-carimbar__avaliar">
+      <p className="ct-rotulo">Caça aos Carimbos</p>
+      {chave
+        ? (
+          <>
+            <p className="ct-sub">{novo ? 'Mapa criado! Agora é só carimbar' : 'Sua avaliação vale na Caça aos Carimbos'}</p>
+            <p className="ct-nota">
+              Ela valida o carimbo {casa ? `da ${casa}` : 'desta casa'}: já carimbou, ele conta agora; ainda não, escaneie o QR do display na casa.
+              Cada carimbo conta para os vouchers (7 a 11/11) e para o prêmio final.
+            </p>
+            {novo && <GuardarMapa chave={chave} />}
+            <div className="ct-acoes">{verMapa}</div>
+          </>
+          )
+        : (
+          <ComecarMapa
+            titulo="Essa avaliação te coloca na Caça aos Carimbos!"
+            nota="Crie seu mapa com os mesmos dados e concorra a vouchers e ao prêmio final. Depois é só escanear o QR do display em cada casa."
+            botao="Criar meu mapa"
+            comLink={false}
+            aoAbrir={(k) => { setChave(k); setNovo(true) }}
+          />
+          )}
+    </div>
   )
 }
 
@@ -132,7 +173,12 @@ export function Carimbo ({ codigo, navigate, dados }) {
       if (resp?.motivo === 'mapa_desconhecido') { C.apagarChave(EDICAO.codigo); setChave(null); setEstado('pronto'); return }
       setR(resp?.motivo === 'sem_localizacao' ? { ...resp, posicao: pos.erro } : resp)
       setEstado(resp?.ok ? 'ok' : 'recusa')
-      if (resp?.ok) C.chamar('mapa_ler', { p_chave: k }).then(setMapa).catch(() => {})
+      if (resp?.ok) {
+        C.chamar('mapa_ler', { p_chave: k }).then((m) => {
+          setMapa(m)
+          if (m) C.gravarPerfil(EDICAO.codigo, { nome: m.apelido, email: m.email, whatsapp: m.whatsapp })
+        }).catch(() => {})
+      }
     } catch { setR({ motivo: 'rede' }); setEstado('recusa') }
   }
   function abrir (k, criado) { setChave(k); setNovo(criado); carimbar(k) }
@@ -229,7 +275,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
           )
         : <ComecarMapa aoAbrir={abrir} />}
       <p className="ct-sr" aria-live="polite">{estado === 'carimbando' ? 'Conferindo o carimbo.' : ''}</p>
-      <p className="ct-nota"><Link href={`${EDICAO.caminho}/regulamento`} navigate={navigate}>Regulamento do Mapa da Doçura</Link></p>
+      <p className="ct-nota"><Link href={`${EDICAO.caminho}/regulamento`} navigate={navigate}>Regulamento da Caça aos Carimbos</Link></p>
     </section>
   )
 }

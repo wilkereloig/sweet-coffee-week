@@ -54,3 +54,54 @@ end $$;
 
 revoke all on function public.mapa_carimbar_casa(text, text, numeric, numeric, numeric) from public, anon, authenticated;
 grant execute on function public.mapa_carimbar_casa(text, text, numeric, numeric, numeric) to anon, authenticated;
+
+-- 3. Apuração da Caça aos Carimbos para o painel (Edição › Carimbos). Carimbo válido numa data = não anulado, feito
+--    até aquela hora, e a casa avaliada (mesmo e-mail do mapa) até aquela hora.
+--    · apuracoes: dias 7 a 11/11, corte às 23h59 de Natal; top 10 em carimbos acumulados desde o início (rank: empate
+--      aparece com a mesma posição). Quem já ganhou voucher sai das apurações seguintes — a organização decide e
+--      exclui olhando a lista (o sistema não guarda o ganhador).
+--    · sorteio_final: mapas com as casas todas validadas, cada carimbo válido = 1 chance.
+--    · reservas: se faltar mapa completo, os 10 seguintes por casas validadas e depois carimbos.
+--    Contato (e-mail, WhatsApp) só com relatorio.ler.
+-- ponytail: datas da edição 2026.2 escritas aqui; na próxima edição, ler do cronograma.
+create or replace function public.get_caca_apuracao(p_secret text, p_edicao text)
+ returns jsonb language plpgsql stable security definer set search_path to 'public'
+as $$
+declare v_rel boolean; v_total int;
+begin
+  if not public.pode(p_secret, 'dado.ler') then raise exception 'nao_autorizado'; end if;
+  v_rel := public.pode(p_secret, 'relatorio.ler');
+  select count(*) into v_total from public.participacoes pa
+   where pa.edicao_codigo = p_edicao and pa.status_cadastro <> 'encerrado'
+     and exists (select 1 from public.publicacoes pb where pb.participacao_id = pa.id and pb.vigente);
+  return jsonb_build_object(
+    'total_casas', v_total,
+    'apuracoes', (select coalesce(jsonb_agg(jsonb_build_object('dia', d.dia, 'ranking', (
+        select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+                 'posicao', r.pos, 'apelido', r.apelido, 'carimbos', r.n, 'casas', r.casas,
+                 'email', case when v_rel then r.email_norm end, 'whatsapp', case when v_rel then r.whatsapp end)) order by r.pos, r.apelido), '[]'::jsonb)
+          from (select rank() over (order by x.n desc) pos, x.*
+                  from (select m.id, m.apelido, m.email_norm, m.whatsapp, count(*)::int n, count(distinct k.participacao_id)::int casas
+                          from public.carimbos k join public.mapas_lover m on m.id = k.mapa_id
+                         where m.edicao_codigo = p_edicao and k.anulado_em is null and k.criado_em < d.fim
+                           and exists (select 1 from public.avaliacoes a where a.edicao_codigo = p_edicao
+                                         and a.participacao_id = k.participacao_id and a.email_norm = m.email_norm and a.criado_em < d.fim)
+                         group by m.id) x) r
+         where r.pos <= 10)) order by d.dia), '[]'::jsonb)
+      from (select g::date dia, ((g::date + 1)::timestamp at time zone 'America/Fortaleza') fim
+              from generate_series(timestamp '2026-11-07', timestamp '2026-11-11', interval '1 day') g) d),
+    'sorteio_final', (select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+                        'apelido', p.apelido, 'chances', p.carimbos, 'casas', p.casas,
+                        'email', case when v_rel then p.email_norm end, 'whatsapp', case when v_rel then p.whatsapp end))
+                        order by p.carimbos desc, p.apelido), '[]'::jsonb)
+                        from public.carimbo_placar(p_edicao) p where p.casas >= v_total and v_total > 0),
+    'reservas', (select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+                   'apelido', p.apelido, 'carimbos', p.carimbos, 'casas', p.casas,
+                   'email', case when v_rel then p.email_norm end, 'whatsapp', case when v_rel then p.whatsapp end))
+                   order by p.casas desc, p.carimbos desc, p.apelido), '[]'::jsonb)
+                   from (select * from public.carimbo_placar(p_edicao) p where p.casas < v_total
+                          order by p.casas desc, p.carimbos desc limit 10) p));
+end $$;
+
+revoke all on function public.get_caca_apuracao(text, text) from public, anon, authenticated;
+grant execute on function public.get_caca_apuracao(text, text) to anon, authenticated;

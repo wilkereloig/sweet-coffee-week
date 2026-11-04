@@ -19,6 +19,8 @@ import { AWARDS as T, PARTICIPANTE as TP, ICONE, TIPO_ORDEM } from '../../textos
 import { LogoDoPin } from '../mapa/LogoDoPin.jsx'
 import { Foto } from '../../../componentes/base.jsx'
 import * as M from '../../../dados/modelo.js'
+import { lerPerfil, gravarPerfil } from '../../../rota/carimbo.js'
+import { CacaAposAvaliar } from '../Carimbo.jsx'
 
 const TURNSTILE_SITE_KEY = '0x4AAAAAAEbvMJDSlYJpLY3b' // pública, a mesma de /quero-participar/
 const RASCUNHO = 'scw:cartoon:avaliacao:rascunho'
@@ -82,6 +84,7 @@ export function Formulario ({ dados, criterios, navigate }) {
     .sort((a, b) => a.casa.nome.localeCompare(b.casa.nome, 'pt-BR')), [dados])
   const inicial = React.useMemo(() => {
     const r = lerRascunho()
+    const perfil = lerPerfil(EDICAO.codigo) // nome e e-mail do mapa da Caça aos Carimbos, se a pessoa já tem
     const q = new URLSearchParams(location.search)
     const pedida = q.get('participante') || r.slug || ''
     const casaPedida = elegiveis.find((p) => p.slug === pedida)
@@ -92,7 +95,7 @@ export function Formulario ({ dados, criterios, navigate }) {
     // Vindo da ficha da casa, já pula para as notas — menos quando a casa tem várias unidades e falta escolher uma.
     const varias = (casaPedida?.unidades || []).length > 1
     const pronta = !!casaPedida && (!varias || unidade)
-    return { slug, unidade, nome: r.nome || '', email: r.email || '',
+    return { slug, unidade, nome: r.nome || perfil.nome, email: r.email || perfil.email,
       notas: r.notas || {}, comentario: r.comentario || '', novidades: false, passo: pronta ? 2 : 1 }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps -- estado inicial, lido uma vez
   const [form, setForm] = React.useState(inicial)
@@ -138,6 +141,7 @@ export function Formulario ({ dados, criterios, navigate }) {
       return
     }
     try { sessionStorage.removeItem(RASCUNHO) } catch { /* sem storage */ }
+    gravarPerfil(EDICAO.codigo, { nome: form.nome, email: form.email })
     setEstado('enviado')
   }
 
@@ -151,6 +155,7 @@ export function Formulario ({ dados, criterios, navigate }) {
           <button type="button" className="ct-botao" onClick={() => { setForm((f) => ({ ...f, slug: '', unidade: '', notas: {}, comentario: '', passo: 1 })); setEstado('editando') }}>{T.avaliarOutra}</button>
           <Link className="ct-botao ct-botao--contorno" href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.verCasas}</Link>
         </div>
+        <CacaAposAvaliar casa={casa?.casa.nome} navigate={navigate} />
       </div>
     )
   }

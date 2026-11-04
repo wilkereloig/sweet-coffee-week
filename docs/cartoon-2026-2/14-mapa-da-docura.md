@@ -378,6 +378,11 @@ impressão, ainda a definir.
   dela; avaliada, vale os carimbos + 2. Voltas contam sem nova avaliação. `carimbo_placar` conta só casas validadas
   (`avaliadas` = `casas`); o álbum mostra "X de 27 casas validadas" e os pendentes com "Avaliar e validar".
 - Migration `20261202_carimbo_por_casa_pendente.sql` (só funções, nenhuma tabela) — **aplicar só com o ok do Wilker**.
-- [A DEFINIR] Os "números da sorte" de `get_mapa_carimbos` ainda seguem a regra antiga (todo mapa, avaliação = 2 números):
-  ajustar para "só quem completou, 1 número por carimbo validado" e a apuração diária dos vouchers no painel.
-  O texto da página `/cartoon/regulamento` também precisa ser reescrito com as regras novas.
+- **Apuração no painel** (Edição › Carimbos): `get_caca_apuracao` (mesma migration) dá, para os dias 7 a 11/11 (corte 23h59 de
+  Natal), o top 10 em carimbos validados acumulados — validado ATÉ aquela hora (carimbo e avaliação) —, o sorteio final (só quem
+  validou todas as casas, 1 chance por carimbo, CSV com as faixas de números) e as reservas por casas. O sistema não guarda o
+  ganhador do voucher: a organização pula quem já ganhou. Os "números da sorte" antigos de `get_mapa_carimbos` saíram da tela.
+- **Perfil único** (`lerPerfil`/`gravarPerfil` em `rota/carimbo.js`, localStorage `scw:edicao:<código>:perfil`): nome, e-mail
+  e WhatsApp do mapa preenchem a avaliação e vice-versa. Depois de avaliar, `CacaAposAvaliar` (tela de sucesso do formulário)
+  diz que a avaliação vale na Caça aos Carimbos e oferece criar o mapa com os mesmos dados.
+- **Regulamento** (`cartoon/regulamento.js`) reescrito com as regras da ativação; o prêmio surpresa não é revelado.

@@ -137,6 +137,26 @@ const RASCUNHO_AVALIACAO = 'scw:cartoon:avaliacao:rascunho' // o mesmo de cartoo
  * Prepara a avaliação da casa carimbada: grava no rascunho do formulário a casa, a unidade e o apelido/e-mail do
  * mapa (sem apagar o que a pessoa já tinha digitado) e devolve o endereço do formulário com a casa marcada.
  */
+/*
+ * Perfil do visitante (Caça aos Carimbos, 04/11): nome, e-mail e WhatsApp digitados no mapa OU na avaliação ficam
+ * neste aparelho e preenchem o outro formulário — ninguém redigita. Só no aparelho (localStorage), nunca no banco.
+ */
+export const chavePerfil = (codigo) => `scw:edicao:${codigo}:perfil`
+export function lerPerfil (codigo, armazenamento) {
+  try {
+    const p = JSON.parse((armazenamento ?? globalThis.localStorage).getItem(chavePerfil(codigo)) || 'null')
+    return { nome: p?.nome || '', email: p?.email || '', whatsapp: p?.whatsapp || '' }
+  } catch { return { nome: '', email: '', whatsapp: '' } }
+}
+export function gravarPerfil (codigo, dados, armazenamento) {
+  try {
+    const s = armazenamento ?? globalThis.localStorage
+    const atual = lerPerfil(codigo, s)
+    const limpo = Object.fromEntries(Object.entries(dados || {}).filter(([k, v]) => k in atual && typeof v === 'string' && v.trim()).map(([k, v]) => [k, v.trim()]))
+    s.setItem(chavePerfil(codigo), JSON.stringify({ ...atual, ...limpo }))
+  } catch { /* sem storage: cada formulário pede de novo */ }
+}
+
 export function prepararAvaliacao ({ caminho, slug, unidade, mapa }, armazenamento) {
   try {
     const s = armazenamento ?? globalThis.sessionStorage

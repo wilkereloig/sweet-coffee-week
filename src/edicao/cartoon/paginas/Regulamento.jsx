@@ -1,4 +1,4 @@
-/* Regulamento do Mapa da Doçura (/cartoon/regulamento). Texto em ../regulamento.js; o que falta decidir aparece marcado. */
+/* Regulamento da Caça aos Carimbos (/cartoon/regulamento). Texto em ../regulamento.js; o que falta decidir aparece marcado. */
 import React from 'react'
 import { Link } from '../../componentes/base.jsx'
 import { REGULAMENTO } from '../regulamento.js'
