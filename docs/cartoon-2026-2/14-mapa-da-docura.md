@@ -184,13 +184,13 @@ impresso serve de **sinalização** e para quem quer o mapa na mão; o carimbo c
 - **[Decisão]** **Os pontos da Sicredi entram no mapa** (Wilker, 03/11), no impresso e no digital, com marcador
   próprio, diferente das casas (no rascunho: quadrado verde com "S"; na arte, a marca da Sicredi). Fonte da
   lista: `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/01_RASCUNHO_POSICOES/_bastidores/pontos-sicredi.json`.
-  - **[Fato]** 03/11: o OpenStreetMap tem **um** ponto Sicredi em Natal (perto de Tirol/Petrópolis), sem
-    endereço; o diretório de cooperativas da Sicredi lista a Sicredi RN na Rua Tuiuti, 765, Natal; a Sicredi RN
-    diz estar em 11 municípios-polo, entre eles Natal, Parnamirim e São Gonçalo do Amarante. O localizador de
-    agências do site da Sicredi não abriu para leitura automática.
-  - **[A DEFINIR]** a lista oficial dos pontos que a Sicredi quer no mapa (agências, sede, ativação no
-    festival), com endereço — vem do cliente/Sicredi. Ponto em São Gonçalo do Amarante obriga a abrir o
-    enquadramento para oeste do Potengi.
+  - **[Fato]** Localizador de agências da própria Sicredi, 03/11/2026 — três agências na região (Macaíba e
+    Extremoz: nenhuma):
+    - **Natal (sede):** Rua Tuiuti, 765;
+    - **Parnamirim, Shopping Cidade Verde:** Av. Ayrton Senna, 1995, salas L28 e L29;
+    - **São Gonçalo do Amarante:** Av. Bacharel Tomaz Landim, s/n, Conjunto Jardim Lola — a oeste do Potengi;
+      o enquadramento do mapa já abre até lá.
+  - **[A DEFINIR]** se a Sicredi quer mais algum ponto (ativação no festival, quiosque) além das agências.
 - **Fusão com o digital:**
   - a **mesma numeração** das casas no impresso, nos pins do mapa do site e no álbum do Mapa da Doçura;
   - **QR no impresso** abrindo o Mapa da Doçura por um código novo no contador `/q/` (ex.: `mapa-impresso`),
