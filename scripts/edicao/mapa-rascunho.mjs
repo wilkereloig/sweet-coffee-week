@@ -264,13 +264,69 @@ body { margin: 0; } text { font-family: G, sans-serif; fill: #3A150F; }
 </style>${svg}`
 
 const { chromium } = require('playwright')
-const temp = `${PASTA}/_bastidores/_render.html`
-writeFileSync(temp, html)
 const nav = await chromium.launch()
-const pag = await nav.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 })
-await pag.goto(pathToFileURL(temp).href, { waitUntil: 'networkidle' })
-await pag.evaluate(() => document.fonts.ready)
-await pag.screenshot({ path: `${PASTA}/rascunho-posicoes-v1.png` })
+async function fotografar (pagina, largura, altura, saida) {
+  const temp = `${PASTA}/_bastidores/_render.html`
+  writeFileSync(temp, pagina)
+  const pag = await nav.newPage({ viewport: { width: largura, height: altura }, deviceScaleFactor: 1 })
+  await pag.goto(pathToFileURL(temp).href, { waitUntil: 'networkidle' })
+  await pag.evaluate(() => document.fonts.ready)
+  await pag.screenshot({ path: saida })
+  await pag.close()
+}
+await fotografar(html, W, H, `${PASTA}/rascunho-posicoes-v1.png`)
+
+// ── Guia da arte (pacote do ChatGPT, 1024 × 1536, retrato 2:3) e gabarito de posições no MESMO enquadramento.
+// A terra ocupa ~65% da largura e o mar a leste fica livre (título, legenda, patrocínio). O guia não tem texto
+// nem número (a IA copiaria); o gabarito tem, para o Wilker posicionar os pins no Illustrator.
+const PACOTE = `${PASTA}/../02_PACOTE_CHATGPT`
+const GW = 1024, GH = 1536
+const metros = (t) => ({ x: (t.x - AREA.x - sobraX) / esc + minX, y: (t.y - AREA.y - sobraY) / esc + minY }) // tela do rascunho -> espaço da lente
+const pontosG = [...unidades.map(metros), ...[...MARCOS, ...SICREDI].map(mapa)]
+let gx0 = Math.min(...pontosG.map((q) => q.x)) - 1300, gx1 = Math.max(...pontosG.map((q) => q.x)) + 900
+const gy0 = Math.min(...pontosG.map((q) => q.y)) - 3200, gy1 = Math.max(...pontosG.map((q) => q.y)) + 1400 // folga no alto: título
+gx1 = gx0 + (gx1 - gx0) / 0.65
+const gesc = Math.min(GW / (gx1 - gx0), GH / (gy1 - gy0))
+const gox = (GW - (gx1 - gx0) * gesc) / 2, goy = (GH - (gy1 - gy0) * gesc) / 2
+const gtela = (m) => ({ x: gox + (m.x - gx0) * gesc, y: goy + (m.y - gy0) * gesc })
+const gll = (ll) => gtela(mapa(ll))
+const glinha = (geo) => geo.map((g, i) => { const q = gll({ lat: g.lat, lon: g.lon }); return `${i ? 'L' : 'M'}${q.x.toFixed(1)},${q.y.toFixed(1)}` }).join('')
+// mar: o litoral baixado acaba no recorte; além das pontas, segue reto para norte e sul até sair da tela
+const gMar = litoral.filter((c) => c.length > 30).map((c) => {
+  const [ini, fim] = c[0].lat > c.at(-1).lat ? [c[0], c.at(-1)] : [c.at(-1), c[0]] // ini = ponta norte
+  const cadeia = c[0] === ini ? c : [...c].reverse()
+  return `<path d="${glinha([{ lat: ini.lat + 0.3, lon: ini.lon }, ...cadeia, { lat: fim.lat - 0.3, lon: fim.lon }, { lat: fim.lat - 0.3, lon: -34.7 }, { lat: ini.lat + 0.3, lon: -34.7 }])}Z" fill="#BFE6F2"/>`
+}).join('')
+const gCostaExtra = litoral.filter((c) => c.length > 30).map((c) => {
+  const [ini, fim] = c[0].lat > c.at(-1).lat ? [c[0], c.at(-1)] : [c.at(-1), c[0]]
+  return `<path d="${glinha([{ lat: ini.lat + 0.3, lon: ini.lon }, ini])}" fill="none" stroke="#3A150F" stroke-width="3"/><path d="${glinha([fim, { lat: fim.lat - 0.3, lon: fim.lon }])}" fill="none" stroke="#3A150F" stroke-width="3"/>`
+}).join('')
+const gEst = RIO.filter((e) => e.members).flatMap((e) => juntar(e.members.filter((m) => m.role === 'outer' && m.geometry).map((m) => m.geometry)))
+  .map((c) => `<path d="${glinha(c)}Z" fill="#BFE6F2" stroke="#3A150F" stroke-width="2"/>`).join('')
+const gRios = OSM.filter((e) => e.tags?.waterway === 'river' && e.geometry).map((e) => `<path d="${glinha(e.geometry)}" fill="none" stroke="#7CC8E2" stroke-width="${/potengi/i.test(e.tags.name) ? 10 : 4}" stroke-linecap="round"/>`).join('')
+const gCosta = litoral.map((c) => `<path d="${glinha(c)}" fill="none" stroke="#3A150F" stroke-width="3" stroke-linejoin="round"/>`).join('')
+const COR_MARCO = ['#ED1C20', '#6424AB', '#0184E4', '#2E8B3A', '#FDB901'] // Ponte, Forte, Arena, Parque das Dunas, Morro do Careca
+const gU = unidades.map((u) => ({ ...u, g: gtela(metros(u)) }))
+const gM = MARCOS.map((m, i) => ({ ...m, g: gll(m), cor: COR_MARCO[i] }))
+const gS = SICREDI.map((s2) => ({ ...s2, g: gll(s2) }))
+const baseG = `<rect width="${GW}" height="${GH}" fill="#BFE6F2"/><path d="M0,0H${GW}V${GH}H0Z" fill="#F3E3C3"/>${gMar}${gEst}${gRios}${gCosta}${gCostaExtra}`
+const guia = `<svg xmlns="http://www.w3.org/2000/svg" width="${GW}" height="${GH}">${baseG}
+${gM.map((m) => `<circle cx="${m.g.x.toFixed(1)}" cy="${m.g.y.toFixed(1)}" r="22" fill="${m.cor}" stroke="#3A150F" stroke-width="3"/>`).join('')}
+${gS.map((q) => `<rect x="${(q.g.x - 11).toFixed(1)}" y="${(q.g.y - 11).toFixed(1)}" width="22" height="22" rx="5" fill="#FCFCFC" stroke="#3A150F" stroke-width="2.5"/>`).join('')}
+${gU.map((u) => `<circle cx="${u.g.x.toFixed(1)}" cy="${u.g.y.toFixed(1)}" r="10" fill="#FCFCFC" stroke="#3A150F" stroke-width="2.5"/>`).join('')}
+</svg>`
+const gabarito = `<svg xmlns="http://www.w3.org/2000/svg" width="${GW}" height="${GH}">${baseG}
+<path d="${caminho.map((u, i) => { const q = gtela(metros(u)); return `${i ? 'L' : 'M'}${q.x.toFixed(1)},${q.y.toFixed(1)}` }).join('')}" fill="none" stroke="#ED1C20" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round"/>
+${gM.map((m) => `<circle cx="${m.g.x.toFixed(1)}" cy="${m.g.y.toFixed(1)}" r="14" fill="${m.cor}" stroke="#3A150F" stroke-width="2"/><text x="${(m.g.x + 18).toFixed(1)}" y="${(m.g.y + 4).toFixed(1)}" class="gm">${esc_(m.nome)}</text>`).join('')}
+${gS.map((q) => `<rect x="${(q.g.x - 11).toFixed(1)}" y="${(q.g.y - 11).toFixed(1)}" width="22" height="22" rx="5" fill="#3FA535" stroke="#3A150F" stroke-width="2"/><text x="${q.g.x.toFixed(1)}" y="${(q.g.y + 5).toFixed(1)}" class="gs" text-anchor="middle">S</text><text x="${(q.g.x + 16).toFixed(1)}" y="${(q.g.y + 4).toFixed(1)}" class="gm">${esc_(q.nome)}</text>`).join('')}
+${gU.map((u) => `<circle cx="${u.g.x.toFixed(1)}" cy="${u.g.y.toFixed(1)}" r="12" fill="#FCFCFC" stroke="#3A150F" stroke-width="2"/><text x="${u.g.x.toFixed(1)}" y="${(u.g.y + 4.5).toFixed(1)}" class="gn" text-anchor="middle">${u.numero}</text>`).join('')}
+<text x="24" y="${GH - 16}" class="gm">Gabarito · posições aproximadas (mapa esquemático) · base © colaboradores do OpenStreetMap</text>
+</svg>`
+const estiloG = `<style>@font-face { font-family: G; src: url('${pathToFileURL(`${RAIZ}public/fonts/grandstander/grandstander-latin.woff2`).href}'); font-weight: 100 900; }
+body { margin: 0; } text { font-family: G, sans-serif; fill: #3A150F; } .gn { font-size: 12px; font-weight: 900; } .gs { font-size: 13px; font-weight: 900; fill: #FCFCFC; }
+.gm { font-size: 12px; font-weight: 700; paint-order: stroke; stroke: #F3E3C3; stroke-width: 4px; }</style>`
+await fotografar(`<!doctype html><meta charset="utf-8">${estiloG}${guia}`, GW, GH, `${PACOTE}/referencias/ref-01-guia-do-mapa.png`)
+await fotografar(`<!doctype html><meta charset="utf-8">${estiloG}${gabarito}`, GW, GH, `${PACOTE}/gabarito-posicoes.png`)
 await nav.close()
 
 writeFileSync(`${PASTA}/_bastidores/posicoes.json`, JSON.stringify(unidades.map((u) => ({

@@ -177,8 +177,9 @@ impresso serve de **sinalização** e para quem quer o mapa na mão; o carimbo c
 - **Cada casa:** **número + nome + logo desenhada** quando couber (a colorida tem 480 px: ~4 cm a 300 dpi, o
   bastante para logo pequena). Sem espaço: **pin com número + nome**, e o tema da casa na legenda lateral
   (número · nome · tema · bairro).
-- **Marcas na peça:** selo da edição; **Senac como apoio** (espaço reduzido); **Sicredi como patrocínio**
-  (decisão do Wilker, 03/11). Arquivos recebidos copiados para
+- **Marcas na peça:** selo da edição; REALIZAÇÃO F2 Experience; **APOIOS: Senac RN e Espaço Reduzido** (a
+  empresa de Parnamirim, como na face premiação do prisma — corrigido em 03/11: eu tinha lido "espaço
+  reduzido" como tamanho); **PATROCÍNIO: Sicredi** (decisão do Wilker, 03/11). Arquivos recebidos copiados para
   `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/00_REFERENCIAS/` no Dropbox da edição (Sicredi em PDF com área de proteção;
   Senac de 22/10).
 - **[Decisão]** **Os pontos da Sicredi entram no mapa** (Wilker, 03/11), no impresso e no digital, com marcador
@@ -262,6 +263,13 @@ da primeira unidade no caminho e se repete nas outras.
 5. **Impresso:** a mesma arte com legenda, QR, selo, Senac (apoio) e Sicredi (patrocínio). A imagem da IA sai
    com ~2.000 px e o A3 pede ~5.000 px: ampliar (Magnific) ou gerar em partes; texto e logos entram em vetor ou
    alta resolução, nítidos.
+
+**Pacote para o ChatGPT (03/11):** o Wilker gera as imagens no ChatGPT. Pacote em
+`06_MATERIAIS_PDV/03_MAPA_IMPRESSO/02_PACOTE_CHATGPT/` (Dropbox da edição): guia da composição sem texto
+(`ref-01`, gerado por `scripts/edicao/mapa-rascunho.mjs`), referências aprovadas, 4 prompts (mapa base, letreiro,
+marcadores numerados, marcos soltos), gabarito de posições com números e legenda por região. Pelo manual (§0.2),
+a peça impressa é montada pelo Wilker no Illustrator com elementos soltos; logos (edição, casas desenhadas,
+Sicredi, apoios) entram como arquivo oficial, nunca pela IA.
 
 **Ordem:** o carimbo (§14.1–14.10) abre no dia 5 com o álbum de logos; o mapa desenhado entra quando a arte for
 aprovada e substitui o álbum como vista principal (o álbum fica como lista). O impresso depende da data de
