@@ -33,7 +33,7 @@ Nada aqui declara aprovação visual, integração operacional ou conformidade l
 | 11 | [11-plano-execucao-site.md](11-plano-execucao-site.md) | **Plano de 27/10/2026:** etapa 1 detalhada (fonte, tokens, componentes, letreiros, vitrine `/cartoon/sistema`, testes) e roteiro das etapas 2–9 |
 | 12 | [12-plano-qr-leituras.md](12-plano-qr-leituras.md) | **Plano de 30/10/2026 (Fases 0, 1, 1b e 2 feitas e publicadas):** contar as leituras dos QR por peça física (/q/código, contador por hora, aba Operação > QR Codes no painel), códigos, banco, redirecionador, prazo até 05/11 e decisões D1 a D5 |
 | 13 | [13-lista-para-publicar.md](13-lista-para-publicar.md) | **Lista viva de 03/11/2026 (fechada):** os pedidos do Wilker para publicar a Cartoon, o que foi feito, testes e o que falta para o dia 5 |
-| 14 | [14-mapa-da-docura.md](14-mapa-da-docura.md) | **Desenho revisto em 03/11/2026 (aprovado, não construído):** QR fixo em cada unidade + localização + 1 leitura por casa a cada 12 h, avaliação vale +2, sem conta, sorteio, pódio auditado, regulamento e banco; mapa impresso e mapa de jogo planejados |
+| 14 | [14-mapa-da-docura.md](14-mapa-da-docura.md) | **Construído (migration aplicada em 03/11); mapa, rota e álbum numa página só com o Mundo desenhado em prévia (04/11, §14.13):** QR fixo em cada unidade + localização + 1 leitura por casa a cada 12 h, avaliação vale +2, sem conta, sorteio, pódio auditado, regulamento e banco; mapa impresso e mapa de jogo planejados |
 
 ## O essencial em uma tela
 

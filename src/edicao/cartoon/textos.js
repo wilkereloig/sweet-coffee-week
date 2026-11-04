@@ -194,7 +194,7 @@ export const LOVER = {
 
 export const MAPA = {
   titulo: 'Mapa',
-  lead: 'Todas as casas da Cartoon num mapa só. Marque onde quer ir e onde já foi: fica salvo neste aparelho.',
+  lead: 'Todas as casas da Cartoon num mapa só. Escolha onde quer ir, monte sua rota e siga pelo Google Maps. Fica salvo neste aparelho.',
   busca: 'Buscar casa ou bairro',
   bairro: 'Bairro',
   todos: 'Todos os bairros',
@@ -226,6 +226,27 @@ export const MAPA = {
   comoChegar: 'Como chegar',
   encerrada: 'A edição terminou. As casas seguem no catálogo como registro.',
   verCasas: 'Ver as casas',
+  // Página única: mapa + Minha rota + Mapa da Doçura (docs/cartoon-2026-2/14 §14.13).
+  vistas: 'Ver as casas como',
+  vista: { mundo: 'Mundo', real: 'Mapa real', lista: 'Lista' },
+  painel: 'Sua rota e seus carimbos',
+  abas: { rota: 'Minha rota', album: 'Carimbos' },
+  mundoRegiao: 'Mundo da Doçura: Natal desenhada com as casas da Cartoon. A lista tem as mesmas casas.',
+  mundoNota: 'O desenho mostra o bairro e a ordem das casas, não a rua exata. Para chegar, use "Como chegar" ou a rota no Google Maps.',
+  previa: 'Prévia com a arte provisória: só aparece no ambiente de desenvolvimento.',
+  aproximar: 'Aproximar', afastar: 'Afastar', zoom: 'Zoom do desenho',
+  credito: 'Base geográfica © colaboradores do OpenStreetMap',
+  casaNoMundo: ({ numero, titulo, parada, carimbos, avaliou }) => [
+    `${numero}. ${titulo}`,
+    parada && `parada ${parada} da sua rota`,
+    carimbos > 0 && (carimbos === 1 ? 'carimbada' : `carimbada ${carimbos} vezes`),
+    avaliou && 'avaliada',
+  ].filter(Boolean).join(', '),
+  sicredi: (nome, endereco) => `${nome}, agência da patrocinadora${endereco ? `: ${endereco}` : ''}`,
+  parada: (n) => `Parada ${n} da sua rota`,
+  carimbada: (n) => (n === 1 ? 'Carimbada' : `Carimbada ${n} vezes`),
+  avaliarMais2: 'Avaliar e ganhar +2',
+  avaliada: 'Avaliada',
 }
 
 export const ROTA = {
@@ -245,6 +266,10 @@ export const ROTA = {
   copiado: 'Link copiado.',
   copie: (url) => `Copie o link: ${url}`,
   ordem: 'A ordem é a que você escolheu. O Google Maps calcula o trajeto entre as paradas.',
+  ordenarCaminho: 'Ordenar pelo caminho do mapa',
+  ordenadoCaminho: 'Paradas na ordem do caminho do mapa',
+  ordenarNota: 'O caminho do mapa vai do Potengi a Ponta Negra. Não é o trajeto mais curto: é a ordem dos bairros no desenho.',
+  carimbadaRotulo: 'Carimbada',
   jaFuiTitulo: 'Já fui',
   jaFuiVazio: 'Provou um combo? Toque em "Já fui" na casa: ela entra aqui e conta no seu progresso.',
   desfazer: 'Desfazer',

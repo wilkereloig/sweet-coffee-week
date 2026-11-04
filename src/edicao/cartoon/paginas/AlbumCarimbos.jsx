@@ -1,7 +1,8 @@
 /*
  * Mapa da Doçura na Minha rota (docs/cartoon-2026-2/14 §14.3): o álbum das casas com os carimbos de verdade.
  * Logo desenhada em rascunho que ganha cor no primeiro carimbo, "×N" nas repetidas, "avalie e ganhe +2",
- * pontos, posição, guardar e apagar o mapa. O link pessoal (`#mapa=<chave>`) grava a chave e sai do endereço.
+ * pontos, posição, guardar e apagar o mapa. A chave e a leitura no banco moram em useMeuMapa (o link pessoal
+ * `#mapa=<chave>` grava a chave e sai do endereço).
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
@@ -10,39 +11,12 @@ import { Link } from '../../componentes/base.jsx'
 import * as C from '../../rota/carimbo.js'
 import { GuardarMapa } from './Carimbo.jsx'
 
-function chaveInicial () {
-  const doLink = C.chaveDoHash(globalThis.location?.hash)
-  if (doLink) {
-    C.gravarChave(EDICAO.codigo, doLink)
-    // A chave não fica no endereço: quem copiar a barra do navegador não leva o mapa junto.
-    try { history.replaceState(history.state, '', location.pathname + location.search) } catch { /* sem history */ }
-    return doLink
-  }
-  return C.lerChave(EDICAO.codigo)
-}
-
-export function AlbumCarimbos ({ dados, navigate }) {
-  const [chave, setChave] = React.useState(chaveInicial)
-  const [mapa, setMapa] = React.useState(null)
-  const [estado, setEstado] = React.useState(chave ? 'carregando' : 'sem-mapa')
-
-  React.useEffect(() => {
-    if (!chave) { setEstado('sem-mapa'); return undefined }
-    let vivo = true
-    C.chamar('mapa_ler', { p_chave: chave })
-      .then((m) => {
-        if (!vivo) return
-        if (!m) { C.apagarChave(EDICAO.codigo); setChave(null); return }
-        setMapa(m); setEstado('pronto')
-      })
-      .catch(() => { if (vivo) setEstado('falha') })
-    return () => { vivo = false }
-  }, [chave])
-
+/** `meu`: o estado de useMeuMapa (rota/useMeuMapa.js), lido uma vez pela página e repartido com o Mundo. */
+export function AlbumCarimbos ({ dados, navigate, meu }) {
+  const { chave, mapa, estado } = meu
   async function apagar () {
     if (!window.confirm('Apagar seu Mapa da Doçura? Os carimbos e os pontos somem e não voltam.')) return
-    try { await C.chamar('mapa_apagar', { p_chave: chave }) } catch { /* apaga do aparelho mesmo assim */ }
-    C.apagarChave(EDICAO.codigo); setMapa(null); setChave(null)
+    await meu.apagar()
   }
 
   const C_ = EDICAO.caminho

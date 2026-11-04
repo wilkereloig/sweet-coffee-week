@@ -44,15 +44,24 @@
 .ct-visitada { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 6px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
 .ct-visitada__nome { display: inline-flex; flex: 1; align-items: center; min-width: 0; min-height: 44px; font: 800 16px/1.2 var(--ct-font); }
 
-/* Mapa: a lista vem primeiro no DOM (Tab), o mapa ao lado no desktop e em cima no celular. */
+/* Página única (14 §14.13): a vista (Mundo · Mapa real · Lista) e, ao lado, o cartão da casa + o painel da rota e dos
+   carimbos. A coluna da vista leva as vistas, os filtros e a tela. No celular empilha (vista, depois o lado); entrando
+   pela Minha rota, o painel vem antes. No desktop a tela (Mundo/mapa/lista) fica presa e o lado rola. */
 .ct-mapa { padding-top: clamp(24px, 3.5vw, 40px); }
 .ct-edicao .ct-mapa__perto { padding-left: 10px; }
+.ct-mapa__vistas { margin: 0; }
 .ct-mapa__corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
-.ct-mapa__lado { display: grid; gap: 10px; order: -1; min-width: 0; }
+.ct-mapa__vista, .ct-mapa__lado, .ct-mapa__tela { display: grid; gap: 10px; min-width: 0; }
+.ct-mapa--rota .ct-mapa__lado { order: -1; }
+.ct-mapa__painel { display: grid; gap: 14px; }
+.ct-mapa__abas { margin: 0; }
+.ct-mapa__painel .ct-bloco { padding: 0; } /* o álbum é bloco de página na origem: dentro do painel, sem o trilho */
 .ct-mapa__lista { display: grid; gap: 12px; margin: 0; padding: 4px 6px 8px 2px; list-style: none; }
 @media (min-width: 900px) {
-  .ct-mapa__corpo { grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); }
-  .ct-mapa__lado { position: sticky; top: 96px; order: 0; }
+  .ct-mapa__corpo { grid-template-columns: minmax(0, 1.2fr) minmax(340px, 1fr); }
+  .ct-mapa--rota .ct-mapa__lado { order: 0; }
+  .ct-mapa__vista { align-self: stretch; align-content: start; } /* estica até a altura do lado: a tela presa tem por onde correr */
+  .ct-mapa__tela { position: sticky; top: 96px; }
   .ct-mapa__lista { max-height: calc(100svh - 140px); overflow: auto; }
 }
 .ct-mapa__item { border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
@@ -76,7 +85,7 @@
 .ct-mapa__area > .ct-nota { margin: 16px; }
 .ct-mapa__mapa { width: 100%; height: min(62svh, 520px); }
 @media (min-width: 900px) { .ct-mapa__area { min-height: 320px; } .ct-mapa__mapa { height: min(calc(100svh - 190px), 680px); } }
-/* Cartão da casa escolhida (lista 13, M2): junto do mapa; no desktop o mapa encolhe para o cartão caber na coluna presa. */
+/* Cartão da casa escolhida (lista 13, M2): no topo do lado, acima do painel. */
 .ct-mapa__cartao { display: grid; gap: 12px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra); }
 .ct-mapa__cartao p { margin: 0; }
 .ct-mapa__cartao-cabeca { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
@@ -90,7 +99,6 @@
 .ct-mapa__cartao .ct-acoes { margin-top: 0; }
 .ct-mapa__cartao .ct-mapa__marcas { padding: 0; }
 .ct-mapa__dica { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 12px 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); font: 600 14px/1.4 var(--ct-font); }
-@media (min-width: 900px) { .ct-mapa__lado:has(.ct-mapa__cartao) .ct-mapa__mapa { height: max(300px, calc(100svh - 540px)); } }
 /* Controles do MapLibre com alvo de 44 px: (0,2,1) vence o .maplibregl-ctrl-group button (0,1,1) do pacote. */
 .ct-mapa__mapa .maplibregl-ctrl-group button { width: 44px; height: 44px; }
 .ct-mapa__mapa .maplibregl-ctrl-attrib a { display: inline-flex; align-items: center; min-height: 44px; }

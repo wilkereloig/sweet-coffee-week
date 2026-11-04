@@ -1,0 +1,81 @@
+/* Camada Cartoon · Mundo da Doçura (docs/cartoon-2026-2/14 §14.13; paginas/mapa/Mundo.jsx). Só tokens da edição.
+   A arte é uma imagem; marcos, Sicredi, casas e a rota entram por cima em posições de 0 a 1 (left/top em %).
+   Visual PROVISÓRIO: o acabamento (tamanho das casas, bandeira, rótulos) se ajusta quando a arte final chegar. */
+.ct-mundo { position: relative; display: grid; gap: 8px; }
+.ct-mundo__janela {
+  position: relative; overflow: auto; overscroll-behavior: contain;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-azul); box-shadow: var(--ct-sombra-p); cursor: grab;
+}
+.ct-mundo__janela.is-zoom { max-height: 78svh; }
+/* Zoom 1 = o mundo inteiro: no celular, a largura da tela (rola com a página); no desktop, cabe na altura da janela. */
+.ct-mundo__palco { position: relative; width: calc(var(--zoom, 1) * 100%); max-width: none; margin-inline: auto; }
+@media (min-width: 900px) {
+  .ct-mundo__janela { --ct-mundo-alto: calc(100svh - 150px); max-height: var(--ct-mundo-alto); }
+  .ct-mundo__palco { width: calc(var(--zoom, 1) * min(100%, var(--ct-mundo-alto) * var(--proporcao))); }
+}
+.ct-mundo__arte { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+
+/* Rota: esquemática, pontilhado vermelho sobre um filete creme (lê em cima de mar, areia e mato). */
+.ct-mundo__trilha { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.ct-mundo__trilha path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.ct-mundo__trilha-base { stroke: var(--ct-creme); stroke-width: 9; }
+.ct-mundo__trilha-pontos { stroke: var(--ct-vermelho); stroke-width: 6; stroke-dasharray: .1 12; }
+
+/* Marcos: nome escrito por código, abaixo do desenho (margem em % = % da LARGURA do palco). */
+.ct-mundo__marco {
+  position: absolute; z-index: 1; margin-top: 4.5%; translate: -50% 0; padding: 2px 8px;
+  border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); color: var(--ct-chocolate);
+  font: 700 12px/1.3 var(--ct-font); white-space: nowrap; pointer-events: none;
+}
+.ct-mundo__sicredi {
+  position: absolute; z-index: 1; translate: -50% -50%; display: grid; place-items: center; padding: 3px 6px;
+  border: 2px solid var(--ct-chocolate); border-radius: 8px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+}
+.ct-mundo__sicredi img { display: block; width: auto; height: 18px; }
+
+/* Casa = botão. A base da doceria pousa no ponto; o pin (sem doceria ainda) fica centrado um pouco acima. */
+.ct-mundo__casa {
+  position: absolute; z-index: 2; display: grid; place-items: end center; width: clamp(44px, 8%, 140px); aspect-ratio: 1;
+  padding: 0; border: 0; border-radius: 12px; background: none; color: var(--ct-chocolate); translate: -50% -60%; cursor: pointer;
+  transition: transform var(--ct-mo), opacity var(--ct-mo), filter var(--ct-mo);
+}
+.ct-mundo__casa--doceria { width: clamp(52px, 11%, 180px); translate: -50% -88%; }
+.ct-mundo__casa:hover { transform: translateY(-4px); }
+.ct-mundo__casa:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+.ct-mundo__casa.is-sel { z-index: 3; transform: translateY(-4px) scale(1.08); filter: drop-shadow(0 0 6px var(--ct-amarelo)); }
+.ct-mundo__casa.is-apagada { opacity: .35; }
+.ct-mundo__doceria { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 3px 0 color-mix(in srgb, var(--ct-chocolate) 35%, transparent)); }
+.ct-mundo__pin {
+  display: grid; place-items: center; width: 100%; height: 100%; padding: 14%; overflow: hidden;
+  border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+  font: 900 18px/1 var(--ct-font);
+}
+.ct-mundo__pin img { width: 100%; height: 100%; object-fit: contain; }
+.ct-mundo__casa.is-carimbada .ct-mundo__pin { background: var(--ct-amarelo); }
+
+/* Selos da casa: número (ordem do caminho), parada da rota (turquesa = canal Rota, tinta chocolate), bandeira do
+   carimbo com ×N e estrela da avaliação. */
+.ct-mundo__num, .ct-mundo__parada, .ct-mundo__estrela {
+  position: absolute; display: grid; place-items: center; min-width: 24px; height: 24px; padding: 0 6px;
+  border: 2px solid var(--ct-chocolate); border-radius: 999px; color: var(--ct-chocolate); font: 900 13px/1 var(--ct-font);
+}
+.ct-mundo__num { bottom: -2px; left: -4px; background: var(--ct-amarelo); }
+.ct-mundo__parada { top: -6px; right: -6px; min-width: 26px; height: 26px; background: var(--ct-turquesa); }
+.ct-mundo__estrela { right: -6px; bottom: -2px; padding: 0; background: var(--ct-amarelo); }
+.ct-mundo__bandeira {
+  position: absolute; top: -18px; left: 50%; display: flex; align-items: flex-start; gap: 2px; min-width: 22px; height: 30px; padding-left: 4px;
+  background: linear-gradient(var(--ct-chocolate), var(--ct-chocolate)) left / 3px 100% no-repeat; color: var(--ct-chocolate); font: 900 12px/1 var(--ct-font);
+}
+.ct-mundo__bandeira::before { content: ''; width: 18px; height: 13px; background: var(--ct-vermelho); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+.ct-mundo__zoom { position: absolute; top: 10px; right: 10px; z-index: 4; display: grid; gap: 6px; }
+.ct-mundo__zoom-botao {
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+  border: var(--ct-traco); border-radius: 12px; background: var(--ct-branco); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); cursor: pointer;
+}
+.ct-mundo__zoom-botao:disabled { opacity: .45; cursor: default; pointer-events: none; }
+.ct-mundo__nota { margin: 0; }
+.ct-mundo__credito { margin: 0; font: 500 12px/1.4 var(--ct-font); }
+.ct-mapa__previa { margin: 0; padding: 8px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); }
+
+@media (prefers-reduced-motion: reduce) { .ct-mundo__casa { transition: none; } }

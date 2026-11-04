@@ -70,6 +70,12 @@ export function resolverParadas (ids, participantes = []) {
 }
 
 /**
+ * Paradas que faltam (a lista "quero ir" e a rota desenhada no Mundo): a casa visitada sai sem sair da rota; a
+ * unidade que saiu da edição fica, sinalizada. `visitou(p)`: "já fui" marcado OU carimbo do Mapa da Doçura.
+ */
+export const pendentes = (paradas, visitou) => paradas.filter((pa) => !pa.ativa || !visitou(pa.participante))
+
+/**
  * Links externos de rota (Google Maps), em trechos de até LIMITE_LINK paradas, na ordem do visitante.
  * Coordenada só quando conferida (a mesma regra do "Como chegar", modelo.js): a aproximada do retrato
  * mandaria o trajeto para outro ponto da rua; ali vale o endereço escrito.

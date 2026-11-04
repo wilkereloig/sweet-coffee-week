@@ -24,7 +24,7 @@ export function useMinhaRota (codigo) {
     adicionar: (id, nome) => aplicar(rota((a) => adicionar(a, id)), `${nome || 'Parada'} entrou na sua lista "quero ir"`),
     remover: (id, nome) => aplicar(rota((a) => remover(a, id)), `${nome || 'Parada'} saiu da sua lista "quero ir"`),
     mover: (id, passo, visiveis) => aplicar(rota((a) => mover(a, id, passo, visiveis)), passo < 0 ? 'Parada movida para cima' : 'Parada movida para baixo'),
-    substituir: (novos) => aplicar(() => ({ unidades: [...new Set(novos)] }), 'Rota salva'),
+    substituir: (novos, texto = 'Rota salva') => aplicar(() => ({ unidades: [...new Set(novos)] }), texto),
     foi: (p) => visitada(p, visitadas),
     alternarVisita: (p) => aplicar((a) => ({ visitadas: alternarVisita(a.visitadas, p) }),
       visitada(p, visitadas) ? `${p.casa.nome} saiu das casas visitadas` : `${p.casa.nome} marcada como visitada`),

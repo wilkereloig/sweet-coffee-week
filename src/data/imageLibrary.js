@@ -32,6 +32,7 @@ import { focalPosition } from './focalPoints.js'
 import { BRAND_LIST, resolveParticipant } from './participantAssets.js'
 import { SWEET_COFFEE_HISTORY } from './sweetCoffeeHistory.js'
 import { VARIANTES } from './imageVariants.js'
+import { MUNDO_EDICAO } from './mundoEdicao.js'
 
 /** Texto exibido quando o acervo não tem a foto. Discreto e honesto. */
 export const RESERVA = 'Fotografia ainda não disponível.'
@@ -702,6 +703,23 @@ const PINS_EDICAO = {
  * `casa.logo_desenhada` com isto. `null` se a casa não tem desenho.
  */
 export { logoDesenhadaEdicao } from './logosDesenhadasEdicao.js'
+
+/**
+ * Mundo da Doçura — o mapa desenhado da Cartoon (docs/cartoon-2026-2/14 §14.13). Dados gerados por
+ * scripts/edicao/mapa-mundo.py (posições de 0 a 1 na arte, número da casa, marcos, Sicredi) + os caminhos:
+ * `base` ({src, srcSet}), `sicrediLogo` e `doceria(slug)` (`null` enquanto a casa não tem doceria desenhada).
+ */
+const MUNDO_PASTA = '/images/marcas-edicoes/2026.2/mundo'
+export function mundoEdicao() {
+  const m = MUNDO_EDICAO
+  const base = (w) => `${MUNDO_PASTA}/base-v${m.versao}-${w}.webp`
+  return {
+    ...m,
+    base: { src: base(m.larguras[0]), srcSet: m.larguras.map((w) => `${base(w)} ${w}w`).join(', ') },
+    sicrediLogo: `${MUNDO_PASTA}/sicredi.webp`,
+    doceria: (slug) => (m.docerias.includes(slug) ? `${MUNDO_PASTA}/docerias/${slug}.webp` : null),
+  }
+}
 
 /** Pin desenhado do TEMA da casa (objeto do kit). Desde 03/11 o mapa usa a logo desenhada (lista 13, M1). */
 

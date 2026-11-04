@@ -39,6 +39,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
   const [edicao, setEdicao] = React.useState(null)
   const [cronograma, setCronograma] = React.useState([])
   const [historia, setHistoria] = React.useState(null)
+  const [carimbos, setCarimbos] = React.useState(null)    // Mapa da Doçura: { hoje, total } ou null (sem leitura)
   const [erroLocal, setErroLocal] = React.useState(null)    // leitura que falhou SEM haver dado anterior para mostrar
   const [, tic] = React.useReducer((n) => n + 1, 0)
   const guarda = useGuarda()
@@ -68,6 +69,8 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
     const leituras = {
       // Só a AUSÊNCIA da função no banco vira vazio (migration ainda não aplicada); falha de verdade conta como falha.
       historia: () => api('rpc/marca_minha_historia', { metodo: 'POST', corpo: {} }).catch(seFaltar(null)),
+      // Cartão informativo (docs/cartoon-2026-2/14 §14.4): qualquer falha (função ausente, "Ver como") só esconde o cartão.
+      carimbos: () => api('rpc/marca_carimbos_hoje', { metodo: 'POST', corpo: {} }).catch(() => null),
       ...(ed ? {
         edicao: () => api('edicoes?select=*&codigo=eq.' + ed),
         cronograma: () => api('edicao_cronograma?select=*&edicao_codigo=eq.' + ed + '&order=ordem'),
@@ -82,6 +85,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
     res.forEach((x, i) => { if (x.status === 'fulfilled') dado[nomes[i]] = x.value; else falha = falha || x.reason })
     if (falha && falha.message === 'sessao_expirada') return    // o App leva ao login
     if ('historia' in dado) setHistoria(dado.historia)
+    if ('carimbos' in dado) setCarimbos(dado.carimbos)
     if ('edicao' in dado) setEdicao((dado.edicao && dado.edicao[0]) || null)
     if ('cronograma' in dado) setCronograma(dado.cronograma || [])
     if ('vendas' in dado) setVendas(dado.vendas || [])
@@ -147,13 +151,23 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
       ),
       agora: <Agora destaque={destaque} semAcao={semAcao} aparte={plano.mensagemAparte} ir={ir} />,
       venda: vendaVisivel(momento) && (vendas !== null || !erroLocal) ? (
-        <Secao id="venda-do-dia" titulo="Combos vendidos" nota={notaVenda}>
-          {vendas === null
-            ? <Carregando linhas={2} texto="Carregando as vendas…" />
-            : <VendaDoDia vendas={vendas} hoje={hoje} total={total} participacaoId={participacaoId}
-                aoGravar={(linha) => setVendas((atual) => comVendaGravada(atual, linha))}
-                recarregar={carregarLocal} invalidar={() => { guarda() }} />}
-        </Secao>
+        <>
+          <Secao id="venda-do-dia" titulo="Combos vendidos" nota={notaVenda}>
+            {vendas === null
+              ? <Carregando linhas={2} texto="Carregando as vendas…" />
+              : <VendaDoDia vendas={vendas} hoje={hoje} total={total} participacaoId={participacaoId}
+                  aoGravar={(linha) => setVendas((atual) => comVendaGravada(atual, linha))}
+                  recarregar={carregarLocal} invalidar={() => { guarda() }} />}
+          </Secao>
+          {carimbos && (momento === 'durante' || Number(carimbos.total) > 0) && (
+            <Secao titulo="Carimbos de hoje" nota="Visitas registradas pelo QR do balcão (Mapa da Doçura). Quem carimba é o visitante: aqui é só para acompanhar.">
+              <ul className="ui-numeros ui-numeros--compacto">
+                <li className="ui-numero"><span className="ui-numero__n">{Number(carimbos.hoje) || 0}</span><span className="ui-numero__rotulo">hoje</span></li>
+                <li className="ui-numero"><span className="ui-numero__n">{Number(carimbos.total) || 0}</span><span className="ui-numero__rotulo">na edição</span></li>
+              </ul>
+            </Secao>
+          )}
+        </>
       ) : null,
       vouchers: <VouchersMarca />,
       pendencias: grupos.length ? <Pendencias grupos={grupos} itens={itens} ir={ir} irPara={irPara} alemDoDestaque={!!plano.fora} /> : null,

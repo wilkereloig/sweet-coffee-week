@@ -64,6 +64,7 @@ export default {
   "mais": {"t":"Adicionar","e":[["path",{"d":"M12 5v14M5 12h14"}]]},
   "mais-acoes": {"t":"Mais opções","e":[["circle",{"cx":"5","cy":"12","r":"1.6"},"solido"],["circle",{"cx":"12","cy":"12","r":"1.6"},"solido"],["circle",{"cx":"19","cy":"12","r":"1.6"},"solido"]]},
   "medalha": {"t":"Medalha","e":[["path",{"d":"M8.5 3.5h7l-2.3 6h-2.4Z"}],["circle",{"cx":"12","cy":"15","r":"5.5"}],["path",{"d":"M12 12 12.79 13.91 14.85 14.07 13.28 15.42 13.76 17.43 12 16.35 10.24 17.43 10.72 15.42 9.15 14.07 11.21 13.91Z"},"solido"]]},
+  "menos": {"t":"Remover — afastar o zoom","e":[["path",{"d":"M5 12h14"}]]},
   "mensagem": {"t":"Mensagem — conversa","e":[["path",{"d":"M20 12a8 8 0 0 1-11.6 7.1L4 20.2l1.1-4.4A8 8 0 1 1 20 12Z"}]]},
   "mensagens": {"t":"Mensagens","e":[["path",{"d":"M20 12a8 8 0 0 1-11.6 7.1L4 20.2l1.1-4.4A8 8 0 1 1 20 12Z"}],["path",{"d":"M8.5 10h7M8.5 14.25h4"}]]},
   "menu": {"t":"Menu","e":[["path",{"d":"M4 6.5h16M4 12h16M4 17.5h10"}]]},

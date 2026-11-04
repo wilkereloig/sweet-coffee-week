@@ -1,7 +1,8 @@
 # 14 · Mapa da Doçura — QR no balcão, sorteio e pódio
 
-**Estado (03/11/2026):** desenho **revisto e aprovado pelo Wilker** (QR fixo na unidade + avaliação). **Código escrito em
-03/11** (site, painel e migration `20261130_mapa_docura_carimbo.sql`, **não aplicada**). Abre **junto com o site, em 05/11**. O primeiro desenho (o lojista lendo o QR do visitante) caiu no
+**Estado (04/11/2026):** desenho **revisto e aprovado pelo Wilker** (QR fixo na unidade + avaliação). Código no ar em
+`dev/site-completo` e migration `20261130_mapa_docura_carimbo.sql` **aplicada em 03/11** (41 QR, teste `TESTE_OK`). Mapa, Minha
+rota e álbum **unificados numa página** com o Mundo desenhado em prévia (§14.13), esperando a arte final. Abre **junto com o site, em 05/11**. O primeiro desenho (o lojista lendo o QR do visitante) caiu no
 mesmo dia — ver §14.1.
 Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]**.
 Nome de trabalho: "Mapa da Doçura" (o nome da página do mapa segue em aberto, §10 do doc 10).
@@ -310,3 +311,36 @@ Sicredi, apoios) entram como arquivo oficial, nunca pela IA.
 **Ordem:** o carimbo (§14.1–14.10) abre no dia 5 com o álbum de logos; o mapa desenhado entra quando a arte for
 aprovada e substitui o álbum como vista principal (o álbum fica como lista). O impresso depende da data de
 impressão, ainda a definir.
+
+## 14.13 Página única do mapa — Mundo, Mapa real, Lista (04/11/2026)
+
+**[Decisão]** Wilker, 03/11: "aqui a gente trabalha em tudo que for mapa, rota e Minha rota, que a gente vai unificar"; em 04/11:
+"monte tudo que não precisar agora do visual". A rota que não cabe no desenho vai para o Google Maps.
+
+- **[Fato]** `/cartoon/mapa` e `/cartoon/minha-rota` são **a mesma página** (`paginas/mapa/index.jsx`; `MinhaRota.jsx` só
+  muda a entrada: topo "Minha rota" e, no celular, o painel antes do mapa). Endereços, rota compartilhada (`?u=`) e link
+  pessoal (`#mapa=`) seguem valendo. O endereço guarda `?vista`, `?painel`, `?unidade` e os filtros.
+- **Três vistas das mesmas casas:** **Mundo** (o mapa desenhado), **Mapa real** (Google; MapLibre de reserva) e **Lista**.
+  Filtros valem nas três; no Mundo a casa fora do filtro fica apagada, não some.
+- **Ao lado:** o cartão da casa escolhida (parada da rota, carimbos, "Avaliar e ganhar +2") e o painel com duas abas:
+  **Minha rota** (paradas, Google Maps em trechos, compartilhar, **"Ordenar pelo caminho do mapa"**, visitadas) e
+  **Carimbos** (o álbum). Visitada = "já fui" marcado **ou** carimbo; o estado do Mapa da Doçura é lido uma vez por página
+  (`rota/useMeuMapa.js`) e repartido entre álbum, cartão e Mundo.
+- **Rota no desenho:** traçado esquemático (pontilhado vermelho) que passa pelas paradas na ordem do visitante — **não segue
+  rua**. Para ir: "Como chegar" e "Abrir a rota no Google Maps". "Ordenar pelo caminho" usa a numeração do mapa (Potengi →
+  Ponta Negra) e diz que não é o trajeto mais curto.
+- **Arte trocável sem mexer no código:** `python -I scripts/edicao/mapa-mundo.py <posicoes-arte-vN.json> <arte-base.png>
+  [--aprovada]` gera `src/data/mundoEdicao.js` (x/y de 0 a 1 por unidade, número, marcos, Sicredi, docerias) e as imagens
+  em `public/images/marcas-edicoes/2026.2/mundo/` (base em webp nas larguras do zoom; doceria de cada casa; logo da Sicredi
+  do PDF oficial). Casa sem doceria desenhada aparece com o pin da logo. **Sem `--aprovada` o Mundo só aparece no DEV**
+  (prévia); no ar a página abre no Mapa real (desktop) ou na Lista (celular).
+- **Contrato com a arte** (mandado à sessão das imagens em 03/11): JSON no formato de `posicoes-arte-v1.json` +
+  `marcos[]` com nome e x/y; base só com terreno, mar, caminhos, marcos e pracinhas vazias (sem casa temática pintada:
+  a v1 tem casa-cogumelo, casa-abacaxi, castelo e arco-íris); de preferência ≥ 2048 px no lado menor.
+- **Acessibilidade:** cada casa é um `<button>` com nome falado ("3. Caroli Douces, parada 2 da sua rota, carimbada"), na
+  ordem do caminho; zoom por botões de 44 px; arraste com o mouse e rolagem nativa no toque; a Lista diz o mesmo que o desenho.
+- **Painel da marca:** cartão só de leitura **"Carimbos de hoje"** no Início (hoje · na edição), durante o festival.
+- **Testes:** `tests/cartoon-mundo.test.mjs` (ordem do caminho, traçado, dados gerados x disco x retrato) e a seção Mapa de
+  `tests/cartoon-navegador.mjs` (vistas fora do DEV, lista, marcadores, filtros, perto de mim).
+- **[A DEFINIR]** depois da arte final: tamanho das casas e da bandeira, rótulos dos marcos perto da borda, aprovar
+  (`--aprovada`); posições das 25 unidades que hoje vêm só do bairro, depois de conferidas em Participantes › Localizações.

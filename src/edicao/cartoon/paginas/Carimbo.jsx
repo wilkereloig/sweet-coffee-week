@@ -130,7 +130,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
 
   const links = (
     <div className="ct-acoes">
-      <Link href={`${EDICAO.caminho}/minha-rota`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver meu mapa</Link>
+      <Link href={`${EDICAO.caminho}/minha-rota?painel=album`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver meu mapa</Link>
       <Link href={`${EDICAO.caminho}/participantes`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver as casas</Link>
     </div>
   )

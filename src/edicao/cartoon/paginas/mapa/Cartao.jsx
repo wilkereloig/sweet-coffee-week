@@ -1,7 +1,8 @@
 /*
  * Cartão da casa escolhida (lista 13, M2): fica junto do mapa (embaixo dele), com o que a pessoa precisa para
  * decidir e ir — logo, endereço, como está agora, como pedir — e as ações: como chegar, WhatsApp, ver a casa,
- * quero ir / já fui. Sem escolha, a dica de como escolher.
+ * quero ir / já fui. Na página única (docs/cartoon-2026-2/14 §14.13) também diz se a casa é parada da rota e se já
+ * tem carimbo, com "Avaliar e ganhar +2" quando cabe. Sem escolha, a dica de como escolher.
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
@@ -13,7 +14,7 @@ import { QueroIr, JaFui } from '../../MarcasLover.jsx'
 import { MAPA as T, PARTICIPANTE as TP, ATENDIMENTO, ICONE } from '../../textos.js'
 import { LogoDoPin } from './LogoDoPin.jsx'
 
-export function Cartao ({ linha, periodo, navigate, fechar }) {
+export function Cartao ({ linha, periodo, navigate, fechar, parada = null, carimbo = null, aoAvaliar }) {
   if (!linha) return <p className="ct-mapa__dica"><ScwIcon nome="informacao" tamanho={20} /><span>{T.dica}</span></p>
   const { u, p, dist } = linha
   const titulo = M.tituloDaUnidade(p, u)
@@ -38,6 +39,10 @@ export function Cartao ({ linha, periodo, navigate, fechar }) {
           {est.estado === 'aberto' ? <IconeCartoon nome="aberto-agora" tamanho={32} /> : <ScwIcon nome={ICONE.horario} tamanho={20} />}{agora}
         </p>
       )}
+      {parada && <p className="ct-mapa__cartao-linha"><ScwIcon nome="trajeto" tamanho={20} /><span>{T.parada(parada)}</span></p>}
+      {carimbo?.carimbos > 0 && (
+        <p className="ct-mapa__cartao-linha"><ScwIcon nome="concluido" tamanho={20} /><span>{T.carimbada(carimbo.carimbos)}{carimbo.avaliou ? ` · ${T.avaliada}` : ''}</span></p>
+      )}
       {modos.length > 0 && (
         <div>
           <Rotulo>{T.comoPedir}</Rotulo>
@@ -49,6 +54,7 @@ export function Cartao ({ linha, periodo, navigate, fechar }) {
       <div className="ct-acoes">
         {comoChegar && <Botao href={comoChegar} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.comoChegar} tamanho={20} />{T.comoChegar}</Botao>}
         <Botao tipo="secundario" href={`${EDICAO.caminho}/participantes/${p.slug}`} navigate={navigate}>{T.verCasa}</Botao>
+        {carimbo?.podeAvaliar && aoAvaliar && <Botao onClick={() => aoAvaliar(p, u)}>{T.avaliarMais2}</Botao>}
         {u.whatsapp && <Botao tipo="secundario" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.whatsapp} tamanho={20} />WhatsApp</Botao>}
       </div>
       <div className="ct-mapa__marcas"><QueroIr u={u} nome={titulo} /><JaFui p={p} /></div>
