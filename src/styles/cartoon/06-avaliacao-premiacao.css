@@ -35,8 +35,9 @@
 .ct-avaliar__fechada p { margin: 0 0 6px; }
 .ct-avaliar__olhos { width: clamp(80px, 14vw, 120px); }
 
-/* Premiação: topo no palco (.ct-palco, 07-sistema.css; repaginação de 04/11) — a marca do Sweet Awards no vão entre as
-   cortinas, a chamada e as ações; o troféu oficial no círculo de luz, com os olhinhos encantados ao lado. */
+/* Premiação: topo no palco (.ct-palco, 07-sistema.css; repaginação de 04/11). Celular: marca, chamada, data e ações
+   centradas, o troféu em desenho embaixo. Desktop (retoque de 04/11): duas colunas no vão entre as cortinas, o texto
+   à esquerda e o troféu grande à direita, pousado no chão do palco. */
 .ct-gala .ct-acoes:empty { display: none; }
 /* Marca própria e permanente do Sweet Awards (22/10), sem o letreiro da edição. */
 .ct-gala__marca { padding-bottom: 6px; line-height: 0; }
@@ -46,7 +47,16 @@
 .ct-gala__quando { margin-top: 4px; }
 .ct-edicao .ct-gala__marca img { width: clamp(200px, 24vw, 300px); height: auto; }
 .ct-gala__palco { position: relative; margin: 0; }
-.ct-edicao .ct-gala .ct-palco__trofeu { width: clamp(130px, 15vw, 210px); }
+.ct-edicao .ct-gala .ct-palco__trofeu { width: min(68vw, 300px); margin-inline: auto; }
+@media (min-width: 900px) {
+  .ct-gala.ct-palco {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: end; column-gap: clamp(24px, 4vw, 64px);
+    padding-inline: max(var(--ct-trilho), 13vw); padding-bottom: clamp(28px, 3.4vw, 52px); text-align: left;
+  }
+  .ct-gala .ct-palco__corpo { align-self: center; justify-items: start; max-width: 560px; padding-bottom: clamp(40px, 6vw, 96px); }
+  .ct-gala .ct-palco__corpo .ct-acoes { justify-content: flex-start; }
+  .ct-edicao .ct-gala .ct-palco__trofeu { width: clamp(260px, 27vw, 420px); margin: 0 auto; }
+}
 .ct-podios { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; }
 .ct-podio { display: grid; align-content: start; justify-items: start; gap: 8px; padding: 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-podio__cat { margin: 0; font: 900 22px/1.1 var(--ct-font); }

@@ -445,6 +445,11 @@ const TROFEUS_EDICAO = {
   cobre: { src: '/images/marcas-edicoes/2026.2/trofeu/trofeu-cobre.webp', largura: 648, altura: 900 },
 }
 
+/* O mesmo troféu em desenho (traço e cor chapada, brilhos em volta), do manual v02 e do convite do press kit
+   (ig-trofeu-dourado / el-trofeu). É o troféu das cenas da edição (palco do Sweet Awards e da Entrada); o de metal
+   fica no pódio dos resultados. Pedido do Wilker, 04/11. */
+export const TROFEU_DESENHO_EDICAO = { src: '/images/marcas-edicoes/2026.2/trofeu/trofeu-dourado.webp', largura: 781, altura: 977 }
+
 /** Troféu do Sweet Awards: 'ouro' (1º), 'prata' (2º) ou 'cobre' (3º). */
 export function trofeuEdicao(metal = 'ouro') {
   return TROFEUS_EDICAO[metal] || TROFEUS_EDICAO.ouro

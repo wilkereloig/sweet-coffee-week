@@ -612,7 +612,7 @@ try {
     let c = await contexto(nav)
     await ir(c.page, '/cartoon/premiacao')
     if (!(await c.page.locator('.ct-canal--gala h1').count())) falha('Premiação: h1 fora do topo no canal Gala')
-    if (!(await c.page.locator('.ct-gala__palco img[src*="trofeu-ouro"]').count())) falha('Premiação sem o troféu v15 de ouro')
+    if (!(await c.page.locator('.ct-gala__palco img[src*="trofeu-dourado"]').count())) falha('Premiação sem o troféu em desenho')
     // textContent: a data mora numa etiqueta em caixa-alta (CSS), e innerText devolveria o texto já transformado.
     if (!(await c.page.locator('.ct-gala').textContent()).includes('Resultados depois de 15/11.')) falha('Premiação sem "resultados depois de 15/11"')
     await c.ctx.close()

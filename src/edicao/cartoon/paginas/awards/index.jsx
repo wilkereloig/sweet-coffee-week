@@ -11,7 +11,7 @@ import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { EDICAO } from '../../../config.js'
 import { carregarCriterios } from '../../../dados/publico.js'
 import * as M from '../../../dados/modelo.js'
-import { trofeuEdicao, MARCA_SWEET_AWARDS, srcSet } from '../../../../data/imageLibrary'
+import { TROFEU_DESENHO_EDICAO, MARCA_SWEET_AWARDS, srcSet } from '../../../../data/imageLibrary'
 import { Avisos, Carregando, Falha } from '../../../componentes/base.jsx'
 import { TopoCanal } from '../../../componentes/sistema/TopoCanal.jsx'
 import { Olhinhos } from '../../../componentes/sistema/Olhinhos.jsx'
@@ -35,7 +35,7 @@ export function SweetAwards ({ navigate, dados, foco }) {
   const encerrada = dados?.fase === 'encerrada'
   const [criterios, recarregar] = useCriterios(!resultados)
   const fim = /^\d{4}-(\d{2})-(\d{2})/.exec(dados?.edicao?.fim || '')
-  const trofeu = trofeuEdicao()
+  const trofeu = TROFEU_DESENHO_EDICAO
   const C = EDICAO.caminho
 
   // /premiacao abre nos premiados; /avaliar com ?participante= abre no formulário (vindo da ficha da casa).
@@ -102,8 +102,7 @@ export function SweetAwards ({ navigate, dados, foco }) {
           </div>
         </div>
         <figure className="ct-gala__palco">
-          {/* Encantados com o troféu: ao lado dele no palco, olhando para ele. */}
-          <img className="ct-palco__trofeu" src={trofeu.src} srcSet={srcSet(trofeu.src)} sizes="(max-width: 899px) 60vw, 340px" width={trofeu.largura} height={trofeu.altura} alt={T.trofeuAlt} decoding="async" />
+          <img className="ct-palco__trofeu" src={trofeu.src} srcSet={srcSet(trofeu.src)} sizes="(max-width: 899px) 70vw, 440px" width={trofeu.largura} height={trofeu.altura} alt={T.trofeuAlt} decoding="async" />
         </figure>
       </TopoCanal>
 

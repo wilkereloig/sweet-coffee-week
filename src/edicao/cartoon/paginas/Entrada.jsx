@@ -13,7 +13,7 @@ import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { imagemPublica } from '../../dados/publico.js'
-import { cenaEdicao, seloEdicao, trofeuEdicao, srcSet } from '../../../data/imageLibrary'
+import { cenaEdicao, seloEdicao, TROFEU_DESENHO_EDICAO, srcSet } from '../../../data/imageLibrary'
 import { Link, Avisos, Falha, Carregando, Foto } from '../../componentes/base.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
@@ -92,7 +92,7 @@ function Vitrine ({ elenco, navigate }) {
 export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
   const selo = seloEdicao()
   const natal = cenaEdicao('natal')
-  const trofeu = trofeuEdicao('ouro')
+  const trofeu = TROFEU_DESENHO_EDICAO
   const elenco = dados?.participantes_publicos ? dados.participantes || [] : []
   const bairros = M.contarBairros(elenco)
   const periodo = M.periodoDaEdicao(dados?.edicao, PERIODO)
