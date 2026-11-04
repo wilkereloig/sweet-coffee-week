@@ -25,7 +25,7 @@ export const MAPA_PUBLICO = false
 
 // 'institucional': / mostra a Home do festival. 'cartoon': / mostra a entrada da
 // edição e a Home institucional passa a viver em /festival. Exige CARTOON_PUBLICA.
-export const ENTRADA_PRINCIPAL = 'institucional'
+export const ENTRADA_PRINCIPAL = 'cartoon'
 
 // Para onde apontam "o festival" e a marca da casca institucional.
 export const INICIO_INSTITUCIONAL = ENTRADA_PRINCIPAL === 'cartoon' ? '/festival' : '/'

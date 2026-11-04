@@ -14,10 +14,10 @@ const FECHADA = {}
 const PUBLICA = { edicaoPublica: true }
 const ENTRADA = { edicaoPublica: true, entradaEdicao: true }
 
-test('interruptores do domínio coerentes: Cartoon pública, entrada institucional', () => {
+test('interruptores do domínio coerentes: Cartoon pública e na entrada do domínio', () => {
   assert.equal(CARTOON_PUBLICA, true)
-  assert.equal(ENTRADA_PRINCIPAL, 'institucional')
-  assert.equal(INICIO_INSTITUCIONAL, '/')
+  assert.equal(ENTRADA_PRINCIPAL, 'cartoon')
+  assert.equal(INICIO_INSTITUCIONAL, '/festival')
   assert.ok(['institucional', 'cartoon'].includes(ENTRADA_PRINCIPAL))
   if (ENTRADA_PRINCIPAL === 'cartoon') assert.equal(CARTOON_PUBLICA, true, 'Cartoon na entrada exige a rota pública')
   assert.equal(EDICAO.codigo, '2026.2')

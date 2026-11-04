@@ -28,7 +28,7 @@ import { dirname, join } from 'node:path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = 5213
 const BASE = `http://localhost:${PORT}`
-const ROTAS = ['/', '/edicoes', '/sweet-awards', '/participar', '/apoiar', '/contato']
+const ROTAS = ['/festival', '/edicoes', '/sweet-awards', '/participar', '/apoiar', '/contato']
 const OUTRAS_PAGINAS = /\/assets\/(Home|Edicoes|HistoricoAwards|Apoiar|Contato|EmBreve|Aguarde)-[\w-]+\.js/
 const falhas = []
 const falha = (msg) => { falhas.push(msg); console.log(`  ✗ ${msg}`) }
@@ -91,7 +91,7 @@ const cruza = (a, b) => a && b && a.bottom > b.top && a.top < b.bottom && a.righ
    = false): sem ?preview=1 cada endereço abre a PRÓPRIA página, com menu, e
    baixa só o chunk dela — nada de Supabase na carga. */
 const PUBLICADAS = [
-  ['/', 'home', 'Home'],
+  ['/festival', 'home', 'Home'],
   ['/#/participar', 'participar', 'Participar'],
   ['/#/contato', 'contato', 'Contato'],
   ['/#/sweet-awards', 'historico-awards', 'HistoricoAwards'],
@@ -169,7 +169,7 @@ async function rotasDiferidas(navegador) {
     const erros = []
     page.on('pageerror', (e) => erros.push(e.message))
     await page.goto(`${BASE}/?preview=1#/`, { waitUntil: 'networkidle' })
-    for (const rota of ['/sweet-awards', '/participar', '/apoiar', '/contato', '/edicoes', '/']) {
+    for (const rota of ['/sweet-awards', '/participar', '/apoiar', '/contato', '/edicoes', '/festival']) {
       await page.evaluate((r) => { window.location.hash = `#${r}` }, rota)
       await page.waitForFunction(() => !document.querySelector('.scw-carregando'), null, { timeout: 15000 })
       await page.waitForTimeout(500)

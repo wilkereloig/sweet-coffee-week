@@ -140,7 +140,7 @@ async function primeiraVisitaERecusa (nav) {
   const volta = await contexto(nav)
   await volta.ctx.addInitScript(() => localStorage.setItem('scw_privacidade', JSON.stringify({ v: 1, analise: false, em: Date.now(), ate: Date.now() + 864e5 * 180 })))
   const p2 = await volta.ctx.newPage()
-  await p2.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  await p2.goto(`${BASE}/festival`, { waitUntil: 'networkidle' })
   await parada(p2)
   if (doGA(volta.reqs).length) falha('retorno com recusa salva chamou o Analytics')
   else if (await p2.locator('.cookie-consent').count()) falha('retorno com recusa salva mostrou o aviso')
@@ -151,7 +151,7 @@ async function primeiraVisitaERecusa (nav) {
   const gpc = await contexto(nav)
   await gpc.ctx.addInitScript(() => Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', { get: () => true }))
   const p3 = await gpc.ctx.newPage()
-  await p3.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  await p3.goto(`${BASE}/festival`, { waitUntil: 'networkidle' })
   await parada(p3)
   if (doGA(gpc.reqs).length) falha('navegador com Global Privacy Control chamou o Analytics')
   else ok('Global Privacy Control: zero requisições ao Analytics')
@@ -214,7 +214,7 @@ async function okRevogacaoRetorno (nav) {
   const vencido = await contexto(nav)
   await vencido.ctx.addInitScript(() => localStorage.setItem('scw_privacidade', JSON.stringify({ v: 1, analise: false, em: Date.now() - 864e5 * 200, ate: Date.now() - 864e5 })))
   const p3 = await vencido.ctx.newPage()
-  await p3.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  await p3.goto(`${BASE}/festival`, { waitUntil: 'networkidle' })
   await parada(p3, 900)
   if (!(await p3.locator('.cookie-consent').isVisible())) falha('escolha vencida não fez o aviso voltar')
   else ok('escolha vencida: o aviso volta')
@@ -301,7 +301,7 @@ async function telas (nav) {
   for (const [nome, vp] of [['1440', { width: 1440, height: 900 }], ['390', { width: 390, height: 844 }], ['360', { width: 360, height: 800 }]]) {
     const { ctx } = await contexto(nav, { viewport: vp, reducedMotion: 'reduce' })
     const page = await ctx.newPage()
-    await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+    await page.goto(`${BASE}/festival`, { waitUntil: 'networkidle' })
     await parada(page, 900)
     const m = await page.evaluate(() => {
       const a = document.querySelector('.cookie-consent').getBoundingClientRect()
@@ -338,7 +338,7 @@ async function telas (nav) {
   // Zoom 200% de uma tela 1280×720 = 640×360 CSS px.
   const z = await contexto(nav, { viewport: { width: 640, height: 360 } })
   const pz = await z.ctx.newPage()
-  await pz.goto(`${BASE}/`, { waitUntil: 'networkidle' })
+  await pz.goto(`${BASE}/festival`, { waitUntil: 'networkidle' })
   await parada(pz, 900)
   const zz = await pz.evaluate(() => { const r = document.querySelector('.cookie-consent').getBoundingClientRect(); return { top: r.top } })
   if (zz.top < 0) falha(`zoom 200%: aviso sai pelo topo (y=${Math.round(zz.top)})`)
@@ -367,7 +367,7 @@ const preview = spawn('npm', ['run', 'preview', '--', '--port', String(PORT), '-
 })
 let nav
 try {
-  await esperar(`${BASE}/`)
+  await esperar(`${BASE}/festival`)
   nav = await chromium.launch()
   await primeiraVisitaERecusa(nav)
   await okRevogacaoRetorno(nav)

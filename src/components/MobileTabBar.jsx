@@ -1,4 +1,5 @@
 import React from 'react'
+import { INICIO_INSTITUCIONAL } from '../edicao/config'
 import { precarregar } from '../pages/carregadores'
 import IconeUi from './scw-icons/IconeUi'
 
@@ -22,7 +23,7 @@ import IconeUi from './scw-icons/IconeUi'
  */
 
 const ABAS = [
-  { id: 'home',             label: 'festival',   href: '/',             icone: 'inicio' },
+  { id: 'home',             label: 'festival',   href: INICIO_INSTITUCIONAL, icone: 'inicio' },
   { id: 'edicoes',          label: 'edições',    href: '/edicoes',      icone: 'edicao' },
   { id: 'historico-awards', label: 'awards',     href: '/sweet-awards', icone: 'trofeu' },
   { id: 'participar',       label: 'participar', href: '/participar',   icone: 'loja' },

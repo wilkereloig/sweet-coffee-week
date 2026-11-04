@@ -27,7 +27,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = 5209
 const BASE = `http://localhost:${PORT}`
 
-const ROTAS = ['/', '/participar', '/apoiar', '/contato', '/sweet-awards', '/edicoes']
+const ROTAS = ['/festival', '/participar', '/apoiar', '/contato', '/sweet-awards', '/edicoes']
 const TELAS = [
   { nome: 'desktop', w: 1440, h: 900 },
   { nome: 'celular', w: 390, h: 844, phone: true },

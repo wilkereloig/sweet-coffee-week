@@ -155,7 +155,7 @@ try {
     for (const p of ['/lovers/combos/paneer-patisserie', '/mapa', '/participantes', '/rota']) {
       await ir(page, p)
       await page.waitForFunction(() => location.pathname === '/', null, { timeout: 5000 }).catch(() => {})
-      if (new URL(page.url()).pathname !== '/' || (await page.locator('.ct-edicao').count())) falha(`${p} não caiu na Home institucional`)
+      if (new URL(page.url()).pathname !== '/' || !(await page.locator('.ct-edicao').count())) falha(`${p} não caiu na entrada da edição`)
     }
     if (!falhas.some((f) => /Home|#\//.test(f))) ok('hash vira caminho limpo; endereços Lovers seguem na Home')
     await ctx.close()
