@@ -135,6 +135,15 @@ try {
         await esperar(1500)
         const lateral = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
         checar(lateral <= 1, `${vista}: sem rolagem lateral (${lateral}px)`)
+        // O mapa vem primeiro: convite/progresso/e-mail abaixo dele, e o mapa começa na primeira dobra (a vista "lista" não tem palco).
+        const ordem = await page.evaluate(() => {
+          const topo = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().top + scrollY : null }
+          return { moldura: topo('.ct-mapa__moldura'), abaixo: topo('.ct-mapa__abaixo'), convite: topo('.ct-mapa__convite'), progresso: topo('.ct-mapa__progresso'), h: innerHeight }
+        })
+        const cartao = estado === 'sem-mapa' ? ordem.convite : ordem.progresso
+        checar(ordem.moldura != null && ordem.moldura < ordem.h * 0.8, `${tela.nome} ${estado} ${vista}: o mapa começa na primeira dobra (topo ${Math.round(ordem.moldura)} de ${ordem.h})`)
+        checar(cartao != null && cartao > ordem.moldura, `${tela.nome} ${estado} ${vista}: convite/progresso fica abaixo do mapa (${Math.round(cartao)} > ${Math.round(ordem.moldura)})`)
+        if (estado === 'sem-mapa') checar(await page.locator('.ct-mapa__abaixo details, .ct-mapa__abaixo summary').count() > 0 || (await page.getByText(/como carimbar/i).count()) > 0, `${tela.nome} ${vista}: "Como carimbar" segue acessível`)
         await page.screenshot({ path: join(CAPTURAS, `${tela.nome}-${estado}-${vista}.png`), fullPage: true })
         if (estado !== 'com-mapa' || vista === 'lista') continue
 

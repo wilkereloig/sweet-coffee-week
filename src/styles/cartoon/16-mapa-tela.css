@@ -136,6 +136,9 @@
 .ct-mapa__mapa .maplibregl-marker .ct-pin, .ct-mapa__mapa .maplibregl-marker .ct-sicredi-pin { pointer-events: auto; }
 .ct-mapa__fora { display: grid; gap: 8px; min-width: 0; }
 .ct-mapa__fora:empty { display: none; }
+.ct-mapa__abaixo { display: grid; gap: 12px; min-width: 0; } /* convite/progresso/e-mail: abaixo do mapa */
+.ct-mapa__abaixo:empty { display: none; }
+.is-cheia .ct-mapa__abaixo { display: none; }
 @media (max-width: 899.98px) { .ct-mapa__item { scroll-margin-bottom: 340px; } }
 
 /* ------------------------------------------------------------- folhas (Folha.jsx) */

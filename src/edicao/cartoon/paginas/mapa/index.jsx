@@ -333,15 +333,12 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
       {topo(T.lead, botaoRota)}
       <AssinaturaPatrocinio />
       <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
-        <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
-          proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
             {...(cheia ? { role: 'dialog', 'aria-modal': true, 'aria-label': TC.telaCheiaRegiao } : {})}>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} />
-        <CartaoEmail caca={meu} navigate={navigate} />
 
             <div className="ct-mapa__resumo">
               <p className="ct-catalogo__conta" aria-live="polite">{resumo}</p>
@@ -421,6 +418,13 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                   <ListaSicredi agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} />
                 </>
               )}
+            </div>
+
+            {/* O mapa vem primeiro: convite para criar o mapa, "Como carimbar", progresso e e-mail ficam ABAIXO dele (Wilker, 05/11/2026). Na tela cheia somem; os atalhos cobrem. */}
+            <div className="ct-mapa__abaixo">
+              <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
+                proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+              <CartaoEmail caca={meu} navigate={navigate} />
             </div>
 
             <div className="ct-mapa__fora">
