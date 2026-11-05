@@ -64,13 +64,13 @@ begin
     (id_p3,  ca.participacao, ca.unidade, ca.qr, true, now() - interval '60 hours'),
     (id_p5,  ca.participacao, ca.unidade, ca.qr, true, now() - interval '5 hours');
   insert into public.avaliacoes (edicao_codigo, participacao_id, nome, email_norm, notas, criado_em) values
-    (ed, ca.participacao, 'T', 'p1@exemplo.com.br', '{}'::jsonb, now() - interval '60 hours'),
-    (ed, cb.participacao, 'T', 'p1@exemplo.com.br', '{}'::jsonb, now() - interval '10 hours'),
-    (ed, ca.participacao, 'T', 'p2@exemplo.com.br', '{}'::jsonb, now() - interval '45 hours'),
-    (ed, cb.participacao, 'T', 'p2@exemplo.com.br', '{}'::jsonb, now() - interval '35 hours'),
-    (ed, ca.participacao, 'T', 'p4@exemplo.com.br', '{}'::jsonb, now() - interval '45 hours'),
-    (ed, cb.participacao, 'T', 'p4@exemplo.com.br', '{}'::jsonb, now() - interval '35 hours'),
-    (ed, ca.participacao, 'T', 'p3@exemplo.com.br', '{}'::jsonb, now() - interval '90 hours');
+    (ed, ca.participacao, 'Teste', 'p1@exemplo.com.br', '{}'::jsonb, now() - interval '60 hours'),
+    (ed, cb.participacao, 'Teste', 'p1@exemplo.com.br', '{}'::jsonb, now() - interval '10 hours'),
+    (ed, ca.participacao, 'Teste', 'p2@exemplo.com.br', '{}'::jsonb, now() - interval '45 hours'),
+    (ed, cb.participacao, 'Teste', 'p2@exemplo.com.br', '{}'::jsonb, now() - interval '35 hours'),
+    (ed, ca.participacao, 'Teste', 'p4@exemplo.com.br', '{}'::jsonb, now() - interval '45 hours'),
+    (ed, cb.participacao, 'Teste', 'p4@exemplo.com.br', '{}'::jsonb, now() - interval '35 hours'),
+    (ed, ca.participacao, 'Teste', 'p3@exemplo.com.br', '{}'::jsonb, now() - interval '90 hours');
 
   -- 1. Placar agora: casas e extras por PESSOA (os dois mapas de P1 viram uma pessoa; perfil = mapa mais recente).
   if not exists (select 1 from public.caca_placar_v2(ed) p where p.pessoa = 'p1@exemplo.com.br' and p.casas = 2 and p.extras = 1 and p.apelido = 'P1b')
@@ -118,7 +118,7 @@ begin
   if (r ->> 'casas_validadas')::int <> 0 or (r -> 'posicao') <> 'null'::jsonb or r -> 'casas' -> 0 ->> 'estado' <> 'pendente'
     then raise exception 'mapa_ler_v2 de P5 (pendente): %', r; end if;
   -- Avaliar depois valida o carimbo pendente (a ordem não importa).
-  insert into public.avaliacoes (edicao_codigo, participacao_id, nome, email_norm, notas) values (ed, ca.participacao, 'T', 'p5@exemplo.com.br', '{}'::jsonb);
+  insert into public.avaliacoes (edicao_codigo, participacao_id, nome, email_norm, notas) values (ed, ca.participacao, 'Teste', 'p5@exemplo.com.br', '{}'::jsonb);
   if (public.mapa_ler_v2(ch_p5) ->> 'casas_validadas')::int <> 1 then raise exception 'avaliar depois não validou'; end if;
   if public.mapa_ler_v2('chave-errada') is not null then raise exception 'chave errada deveria dar null'; end if;
   if public.mapa_ler(ch_p1a) is null then raise exception 'mapa_ler antigo quebrou'; end if;
@@ -139,7 +139,7 @@ begin
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
    where pa.edicao_codigo = ed and pa.id not in (ca.participacao, cb.participacao);
   insert into public.avaliacoes (edicao_codigo, participacao_id, nome, email_norm, notas)
-  select ed, pa.id, 'T', 'p1@exemplo.com.br', '{}'::jsonb
+  select ed, pa.id, 'Teste', 'p1@exemplo.com.br', '{}'::jsonb
     from public.publicacoes pb join public.participacoes pa on pa.id = pb.participacao_id and pb.vigente
    where pa.edicao_codigo = ed and pa.id not in (ca.participacao, cb.participacao);
   a := public.get_caca_apuracao_v2('x', ed);
