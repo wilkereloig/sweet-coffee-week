@@ -18,6 +18,23 @@ export function pinDaCasa (pin) {
 }
 
 /*
+ * O círculo que reúne casas próximas demais para caber lado a lado (agrupar.js): o número de casas e nada mais. É um botão
+ * de 52 px (alvo de toque); `rotulo` é o nome acessível e `aoClicar` aproxima o mapa até separar as casas.
+ */
+export function elementoDoGrupo (quantas, rotulo, aoClicar) {
+  const el = document.createElement('button')
+  el.type = 'button'
+  el.className = 'ct-grupo'
+  const n = document.createElement('span')
+  n.className = 'ct-grupo__n'
+  n.textContent = String(quantas)
+  el.append(n)
+  el.setAttribute('aria-label', rotulo)
+  el.addEventListener('click', aoClicar)
+  return el
+}
+
+/*
  * O marcador do Sicredi (patrocinador, Caça aos Carimbos): placa branca de cantos retos com a marca oficial e a tarja
  * "Patrocinador", de outra forma que o pin das casas (cabeça arredondada com a logo colorida). Não é casa e não conta
  * carimbo. `pin`: { src, rotulo } — a marca (arquivo oficial) e o texto da tarja entram de fora, nada fica escrito aqui.

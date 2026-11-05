@@ -36,7 +36,7 @@
    (canto superior direito), fora do centro, para nunca tapar a logo; parada da rota no canto superior esquerdo.
    Nome da casa: só na escolhida, no ponteiro e no foco (dezenas de etiquetas se atropelariam). */
 .ct-mundo__casa, .ct-mundo__sicredi {
-  --d: clamp(34px, 5.4cqi, 70px);
+  --d: clamp(38px, 5.9cqi, 76px);
   --cauda: calc(var(--d) * .24);
   --rim: calc(var(--d) * .354); /* 45° no aro do disco: d/2 · cos 45° */
   position: absolute; display: block; box-sizing: border-box; padding: 0; border: 0; background: none; color: var(--ct-chocolate); cursor: pointer;
@@ -66,14 +66,14 @@
 .ct-mundo__casa.is-sel .ct-mundo__disco { box-shadow: 0 0 0 4px var(--ct-amarelo), 0 0 0 7px var(--ct-chocolate); }
 /* Número do impresso: referência secundária, pequeno, no canto inferior esquerdo do aro. */
 .ct-mundo__num {
-  position: absolute; left: calc(50% - var(--rim) - 8px); bottom: calc(var(--cauda) + var(--d) * .5 - var(--rim) - 8px); display: grid; place-items: center;
-  min-width: 16px; height: 16px; padding: 0 3px; border-radius: 999px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 10px/1 var(--ct-font);
+  position: absolute; left: calc(50% - var(--rim) - 10px); bottom: calc(var(--cauda) + var(--d) * .5 - var(--rim) - 10px); display: grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 4px; border-radius: 999px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 12px/1 var(--ct-font);
   pointer-events: none; user-select: none;
 }
 /* Selo de estado: no aro, canto superior direito. */
 .ct-mundo__estado, .ct-mundo__revisita { position: absolute; pointer-events: none; user-select: none; }
 .ct-mundo__estado {
-  --b: calc(var(--d) * .5);
+  --b: calc(var(--d) * .56);
   left: calc(50% + var(--rim) - var(--b) / 2); bottom: calc(var(--cauda) + var(--d) * .5 + var(--rim) - var(--b) / 2); width: var(--b);
   transform-origin: 50% 50%; filter: drop-shadow(1px 2px 0 color-mix(in srgb, var(--ct-chocolate) 35%, transparent));
 }
