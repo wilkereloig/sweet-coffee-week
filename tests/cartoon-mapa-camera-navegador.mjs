@@ -59,7 +59,7 @@ async function abrir (nav, { w, h, toque = false, reduzir = false }) {
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::ERR|tiles|favicon|403|400|404/.test(m.text())) erros.push(m.text().slice(0, 200)) })
   await page.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
   await page.locator('.ct-mundo__palco').waitFor({ timeout: 30000 })
-  await page.locator('.ct-mundo__casa').first().waitFor({ timeout: 30000 })
+  await page.locator('.ct-mundo__casa:not(.is-agrupado)').first().waitFor({ timeout: 30000 })
   await page.evaluate(() => document.querySelector('.ct-mapa__moldura').scrollIntoView({ block: 'start' }))
   await page.waitForTimeout(400)
   const cdp = toque ? await ctx.newCDPSession(page) : null
@@ -92,8 +92,10 @@ const pinsAlinhados = (page) => page.evaluate(() => {
     const r = b.getBoundingClientRect()
     if (r.width === 0) continue
     // translate(-50%, -100%) + sem escala: centro-x e base = ponto. Escala do hover/seleção alarga o retângulo, então mede o ponto médio horizontal.
-    const dx = Math.abs(r.left + r.width / 2 - (pr.left + l * pr.width))
-    const dy = Math.abs(r.bottom - (pr.top + t * pr.height))
+    // Pin que cobria outro foi afastado (afastar.js): o ponto esperado é o do desenho MAIS o deslocamento (--dx/--dy), que fica em px.
+    const ax = parseFloat(b.style.getPropertyValue('--dx')) || 0; const ay = parseFloat(b.style.getPropertyValue('--dy')) || 0
+    const dx = Math.abs(r.left + r.width / 2 - (pr.left + l * pr.width + ax))
+    const dy = Math.abs(r.bottom - (pr.top + t * pr.height + ay))
     const tolera = b.classList.contains('is-sel') ? 8 : 0
     if (dy > tolera + 4) maior = Math.max(maior, dy)
     maior = Math.max(maior, dx - tolera > 0 ? dx - tolera : 0)
@@ -328,6 +330,7 @@ async function desktop (nav, w, h) {
     await c.page.locator('.ct-mundo__casa.is-sel').waitFor({ timeout: 5000 }).catch(() => null)
     checar(await c.page.locator('.ct-mundo__casa.is-sel').count() === 1, `${nome}: clicar no pin (depois de mover e ampliar) escolhe a casa`)
   }
+  await c.page.waitForTimeout(600) // o afastamento recalcula quando a câmera assenta (160 ms) e o pin desliza (180 ms)
   const al = await pinsAlinhados(c.page)
   checar(al.maior <= 1.5, `${nome}: pins alinhados com zoom e arraste (${al.maior}px)`)
   await foto(c, `${nome}-2-zoom-e-casa`)
