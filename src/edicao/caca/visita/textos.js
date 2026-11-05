@@ -16,6 +16,13 @@ export const VISITA = {
   fechar: 'Fechar',
   // Formulário
   formTitulo: 'Qual casa você visitou?',
+  maisDeUma: 'Visitou mais de uma casa? Adicione cada uma, com o endereço, a data e o horário aproximados.',
+  casaN: (n, total) => (total > 1 ? `Casa ${n} de ${total}` : 'Casa visitada'),
+  adicionar: '+ Adicionar outra casa',
+  remover: 'Remover esta casa',
+  hora: 'Horário aproximado (opcional)',
+  horarioNota: 'Horário aproximado',
+  parcial: (ok, falta) => `${ok === 1 ? '1 pedido foi enviado' : `${ok} pedidos foram enviados`}. ${falta === 1 ? 'Ficou 1 casa' : `Ficaram ${falta} casas`} para ajustar abaixo.`,
   casa: 'Casa',
   casaEscolha: 'Escolha a casa',
   unidade: 'Endereço visitado',
@@ -28,11 +35,16 @@ export const VISITA = {
   comprovante: 'Não é preciso comprovante. Se você tiver o recibo, guarde: a organização pode pedir para conferir.',
   privacidade: 'A organização vê o apelido do mapa, a casa, o endereço, a data e a observação. A casa não participa da análise.',
   enviar: 'Enviar pedido à organização',
+  enviarN: (n) => (n > 1 ? `Enviar ${n} pedidos à organização` : 'Enviar pedido à organização'),
   enviando: 'Enviando…',
   semCasas: 'Você já tem carimbo ou pedido em todas as casas disponíveis.',
   // Resultado do envio
   enviadoTitulo: 'Pedido recebido, em análise',
-  enviadoTexto: (casa) => `A organização vai olhar o seu pedido para ${casa}. Nada foi carimbado ainda. Se for aprovado, ainda falta avaliar o combo para a casa valer.`,
+  enviadoTexto: (casas) => {
+    const lista = Array.isArray(casas) ? casas : [casas]
+    const nomes = new Intl.ListFormat('pt-BR', { style: 'long', type: 'conjunction' }).format(lista)
+    return `A organização vai olhar ${lista.length > 1 ? 'os seus pedidos' : 'o seu pedido'} para ${nomes}. Nada foi carimbado ainda. Se for aprovado, ainda falta avaliar o combo de cada casa para ela valer.`
+  },
   // Estados
   estado: { analise: 'Em análise', aprovadoAvaliar: 'Aprovado · falta avaliar', aprovadoValido: 'Aprovado · validado', negado: 'Não aprovado' },
   estadoTexto: {

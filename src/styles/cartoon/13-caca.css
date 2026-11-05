@@ -170,3 +170,8 @@
 .ct-visita__estado.is-aprovadoValido { background: var(--ct-chocolate); color: var(--ct-creme); }
 .ct-visita__estado.is-negado { background: var(--ct-creme); text-decoration: line-through; text-decoration-thickness: 1px; }
 .ct-visita .ct-botao { justify-self: start; }
+.ct-visita__casa { display: grid; gap: 10px; margin: 0; padding: 14px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); min-width: 0; }
+.ct-visita__casa legend { padding: 0 8px; font: 900 15px/1.2 var(--ct-font); }
+.ct-visita__quando { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+.ct-visita__ajuda { font: 500 13px/1.4 var(--ct-font); }
+.ct-visita__remover, .ct-visita__adicionar { justify-self: start; }
