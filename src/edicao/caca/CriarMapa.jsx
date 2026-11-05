@@ -60,18 +60,33 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
     aoAbrir(r.chave, true)
   }
 
+  const apelidoRef = React.useRef(null)
+  const irAoFormulario = () => { const el = apelidoRef.current; if (!el) return; el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus({ preventScroll: true }) }
   const temNoAparelho = !!C.lerChave(EDICAO.codigo) // normalmente a Central já abriu esse mapa; aqui é a rede de segurança
 
   return (
     <>
       {comLink && navigate && (temNoAparelho
         ? <p className="ct-nota" role="status">{T.jaTemNoAparelho} <Link href={`${EDICAO.caminho}/caca`} navigate={navigate} className="ct-link-solto">{T.abrirMeuMapa}</Link></p>
-        : <p className="ct-nota">{T.jaTenhoTopo} <Link href={`${EDICAO.caminho}/caca/recuperar`} navigate={navigate} className="ct-link-solto">{T.recuperar}</Link></p>)}
+        : (
+          <div className="ct-caca__portas" role="group" aria-label={T.portasRotulo}>
+            <div className="ct-caca__porta">
+              <p className="ct-sub">{T.portaNova}</p>
+              <p className="ct-nota">{T.notaCurta}</p>
+              <div className="ct-acoes"><button type="button" className="ct-botao" onClick={irAoFormulario}>{T.portaNovaAcao}</button></div>
+            </div>
+            <div className="ct-caca__porta">
+              <p className="ct-sub">{T.jaTenho}</p>
+              <p className="ct-nota">{T.jaTenhoTopo}</p>
+              <div className="ct-acoes"><Link href={`${EDICAO.caminho}/caca/recuperar`} navigate={navigate} className="ct-botao ct-botao--contorno">{T.recuperar}</Link></div>
+            </div>
+          </div>
+        ))}
       <form className="ct-form ct-carimbar__form" onSubmit={criar} noValidate aria-labelledby="mapa-novo">
         <p id="mapa-novo" className="ct-sub">{titulo}</p>
         <p className="ct-nota">{nota}</p>
         <label className="ct-campo"><span>{T.apelido}</span>
-          <input type="text" autoComplete="nickname" value={f.apelido} maxLength={24} onChange={(e) => muda('apelido', e.target.value)} required />
+          <input ref={apelidoRef} type="text" autoComplete="nickname" value={f.apelido} maxLength={24} onChange={(e) => muda('apelido', e.target.value)} required />
         </label>
         <label className="ct-campo"><span>{T.email}</span>
           <input type="email" autoComplete="email" value={f.email} maxLength={160} onChange={(e) => muda('email', e.target.value)} required />
@@ -98,10 +113,7 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
 
       {comLink && (
         <details className="ct-carimbar__ja-tenho">
-          <summary>{T.jaTenho}</summary>
-          <p className="ct-nota">{T.outroAparelho}</p>
-          {navigate && <div className="ct-acoes"><Link href={`${EDICAO.caminho}/caca/recuperar`} navigate={navigate} className="ct-botao ct-botao--contorno">{T.recuperar}</Link></div>}
-          <p className="ct-sub ct-caca__subtitulo">{CACA.link.titulo}</p>
+          <summary>{T.tenhoLink}</summary>
           <AbrirPeloLink aoAbrir={(k) => aoAbrir(k, false)} />
         </details>
       )}

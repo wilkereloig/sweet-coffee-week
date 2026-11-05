@@ -34,12 +34,16 @@
 .ct-filtros__grupo legend { float: left; width: 100%; margin: 0 0 6px; padding: 0; }
 .ct-filtros__grupo .ct-nota { max-width: 40ch; margin: 2px 0 0; font-size: 13px; }
 .ct-filtros--catalogo .ct-campo--busca input { min-height: 50px; box-shadow: var(--ct-sombra-p); }
-.ct-campo { display: grid; gap: 4px; font: 700 13px/1.2 var(--ct-font); }
+.ct-campo { display: grid; gap: 6px; font: 700 14px/1.25 var(--ct-font); }
 .ct-campo input, .ct-campo select, .ct-campo textarea {
   min-height: 46px; padding: 8px 14px; border: var(--ct-traco); border-radius: 12px;
   background: var(--ct-branco); color: var(--ct-chocolate); font: 500 16px/1.4 var(--ct-font);
 }
-.ct-campo small { font: 500 13px/1.4 var(--ct-font); }
+.ct-campo small { max-width: 52ch; margin-top: 2px; font: 500 13px/1.45 var(--ct-font); }
+/* Estados do campo (05/11): foco = borda e sombra amarela além do anel global; erro = borda vermelha + texto (o aviso diz o que fazer, nunca só cor); desabilitado = esmaecido e sem cursor. */
+.ct-campo input:focus-visible, .ct-campo select:focus-visible, .ct-campo textarea:focus-visible { box-shadow: 0 0 0 4px var(--ct-amarelo); }
+.ct-campo input[aria-invalid='true'], .ct-campo select[aria-invalid='true'], .ct-campo textarea[aria-invalid='true'] { border-color: var(--ct-vermelho); }
+.ct-campo input:disabled, .ct-campo select:disabled, .ct-campo textarea:disabled { opacity: .55; cursor: not-allowed; background: var(--ct-creme); }
 /* E-mail digitado diferente do e-mail do mapa da Caça: a avaliação não validaria o carimbo. Peso, não cor: o texto diz tudo. */
 .ct-campo .ct-campo__aviso { font-weight: 700; }
 .ct-campo--busca { flex: 1 1 280px; }
@@ -53,8 +57,10 @@
 /* Ligado: chapa amarela + contorno grosso (a tinta continua chocolate, e o ícone colorido segue legível). */
 .ct-chip[aria-pressed='true'] { background: var(--ct-amarelo); box-shadow: inset 0 0 0 1.5px var(--ct-chocolate), var(--ct-sombra-p); }
 .ct-chip:not(.ct-chip--icone)[aria-pressed='true'] { background: var(--ct-chocolate); color: var(--ct-creme); box-shadow: none; }
-.ct-check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font: 700 14px/1.2 var(--ct-font); cursor: pointer; }
-.ct-check input { width: 22px; height: 22px; accent-color: var(--ct-chocolate); }
+.ct-check { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding-block: 10px; font: 700 14px/1.35 var(--ct-font); cursor: pointer; }
+.ct-check input { flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--ct-chocolate); }
+/* Caixas empilhadas num formulário (gap de 16px do grid): o respiro de cada uma já vem do padding de 10px. */
+.ct-check + .ct-check { margin-top: -10px; }
 .ct-estado--vazio { display: grid; justify-items: start; gap: 4px; padding-inline: 0; }
 
 /* Selos: ícone da edição + texto (nunca o ícone sozinho). Não são controles: altura de leitura, não de toque. */

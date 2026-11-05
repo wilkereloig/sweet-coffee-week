@@ -46,8 +46,19 @@
 /* "Resultados depois de 15/11": etiqueta amarela de gibi, a data que o público espera (retoque de 04/11). */
 .ct-gala__quando { margin-top: 4px; }
 .ct-edicao .ct-gala__marca img { width: clamp(200px, 24vw, 300px); height: auto; }
+/* Troféu sobre o foco do chão (05/11). A arte do palco (palco.webp, 1536×864) traz o foco como uma elipse no chão: centro a ~50% da largura,
+   ~87% da altura; o pé do troféu cai ~92 px (da arte) acima da borda de baixo. No celular e no tablet a arte fica ANCORADA EMBAIXO
+   (object-position 50% 100%) e o troféu também, os dois medidos pela mesma largura --tw: a distância do pé até o fundo é --tw × 92/260
+   (o pé do troféu ocupa ~260 px da arte), então o troféu pousa no foco em qualquer largura e orientação, sem deslocamento fixo.
+   Se o texto crescer, a seção cresce e a arte escala junto (a diferença fica em poucos px). Desktop (≥ 900): colunas, troféu à direita no chão. */
+.ct-gala { --tw: min(68vw, 280px); }
 .ct-gala__palco { position: relative; margin: 0; }
-.ct-edicao .ct-gala .ct-palco__trofeu { width: min(68vw, 300px); margin-inline: auto; }
+.ct-edicao .ct-gala .ct-palco__trofeu { width: var(--tw); margin-inline: auto; }
+@media (max-width: 899.98px) {
+  .ct-edicao .ct-gala .ct-palco__fundo { object-position: 50% 100%; }
+  .ct-gala.ct-palco { padding-bottom: 0; }
+  .ct-gala__palco { margin-bottom: calc(var(--tw) * .354); }
+}
 @media (min-width: 900px) {
   .ct-gala.ct-palco {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: end; column-gap: clamp(24px, 4vw, 64px);
@@ -109,6 +120,8 @@
 .ct-form__casa:has(input:focus-visible) { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
 .ct-form__navegar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .ct-form__navegar .ct-nota { margin: 0; flex-basis: 100%; }
+/* Voltar é o caminho de volta e Continuar o principal: no celular o principal ocupa o resto da linha, no desktop os dois ficam do tamanho do texto. */
+@media (max-width: 599.98px) { .ct-form__navegar .ct-botao:last-of-type { flex: 1 1 0; } }
 .ct-nota-campo legend { display: flex; align-items: center; gap: 8px; }
 .ct-nota-campo__item, .ct-nota-campo__ajuda { margin: 4px 0 10px; font: 500 15px/1.4 var(--ct-font); }
 .ct-nota-campo__item + .ct-nota-campo__ajuda { margin-top: -6px; }
