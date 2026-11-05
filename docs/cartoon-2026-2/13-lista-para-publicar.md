@@ -49,19 +49,24 @@ Publicar = fast-forward de `master` para ela (e de `dev/site-completo` também, 
 
 **O que muda para o público ao publicar, com `CARTOON_PUBLICA = false`:** textos do site institucional ("Registrar interesse", "próximas edições"), página `/quero-participar`, regra de segurança de conteúdo (libera o Google Maps) e o painel (vouchers virtuais, carimbos do Mapa da Doçura, fotos por link). **`/cartoon` continua fechado.** Env da Vercel conferida: `VITE_GOOGLE_MAPS_KEY` existe em produção e preview.
 
-## O que falta e depende do Wilker (para o dia 5)
-1. **Fotos no banco (B2):** pôr `SUPABASE_SERVICE_ROLE_KEY` no `.env.local`; aplicar a migration `20261129_item_fotos_publicas`;
-   rodar `node --env-file=.env.local scripts/edicao/subir-fotos-combo.mjs` (plano) e depois com `--gravar`; **republicar cada casa** no painel.
-2. **Ligar a edição (B1):** no painel, fase `em_andamento`, participantes e combos públicos; janela da avaliação (abre/fecha) e liga-la.
-3. **Publicar:** `CARTOON_PUBLICA` (e `ENTRADA_PRINCIPAL`, se a Cartoon for a entrada do domínio) + merge em `master` — só com ordem escrita (A2/A3).
-4. **Chave do Google na Vercel:** `VITE_GOOGLE_MAPS_KEY` (e o domínio do site na lista de endereços da chave). Sem ela, o mapa é o MapLibre.
-5. **Painel (D2):** Caroli Douces sem descrição do combo e salgado sem nome; 3 itens sem restrições; "DOCE:/SALGADO:" no começo das descrições de Adocee e Bolomania (o site esconde o prefixo, mas o painel ainda tem).
-6. **Mapa (B6):** 25 unidades sem coordenada conferida — conferir no painel; no ar, só as conferidas aparecem no mapa.
-7. **Mapa da Doçura (doc 14):** aplicar a migration `20261130_mapa_docura_carimbo` (teste `supabase/testes/mapa-docura-carimbo.sql` → `TESTE_OK`);
-   no painel, Edição › Carimbos › **Imprimir adesivos** e colar um em cada unidade; preencher os [A DEFINIR] em `src/edicao/cartoon/regulamento.js`.
-   O carimbo só funciona com a janela da avaliação aberta (item 2) e confere a localização pelas coordenadas do item 6.
-8. **Em aberto, sem urgência:** imagem de compartilhamento própria da Cartoon (og); `proximaEdicao.status` interno ainda se chama `pre-cadastro`;
-   a rota antiga `/em-breve` ainda abre por endereço direto.
+## O que falta (atualizado em 05/11/2026, tarde)
+
+**Feito e no ar:** fase `em_andamento`, avaliação aberta, participantes e combos públicos, `MAPA_PUBLICO = true`, `master` = `2439e587`; fotos no Storage e migration das fotos por item aplicadas; 41/41 unidades com coordenada conferida; e-mail da Caça entregando (Brevo, plano reativado). **27 casas republicadas às 05/11 com o que o painel tem** (27 com combo, tema e logo desenhada preservados); a Caroli saiu de "Combo em breve".
+
+**Pendências de dado (só o painel resolve; depois é preciso republicar a casa):**
+1. **Caroli Douces:** nome do **salgado** (o cartão mostra "nome não informado"); nome, descrição e condições do **combo**; restrições alimentares do **salgado** e da **bebida**; **5 unidades** com endereço, horário e canais/modos de pedido incompletos (`pendencias_publicacao`). Na unidade Ponta Negra há textos que parecem de teste: observação "Nada", taxa de delivery "Dependi" e canais vazios; corrigir antes de divulgar.
+2. **Combos publicados ainda em `rascunho` no painel:** Caffè Basilico's, Carcará, Casa 1190, Diva do Café, Mangai, Paneer, Parma Doces, Sweet Duo e a Caroli. Aprovar no painel.
+3. **Endereço pendente:** Jolie, Mariana's, Padoca e Paneer (levantamento de 04/11; reconferir).
+4. **"WhatsApp" que não é WhatsApp** (auditoria de 05/11): Padoca do Bosque, Caroli (4 unidades) e Bolomania (celular sem o 9).
+5. **3 itens sem restrições** e prefixos "DOCE:/SALGADO:" nas descrições de Adocee e Bolomania (o site esconde o prefixo).
+
+**Pendências de decisão ou conta:**
+6. **Chave do Google Maps:** domínio `sweetcoffeeweek.com.br` na lista de endereços permitidos. Sem isso o site cai sozinho no mapa alternativo.
+7. **Regulamento** (`regulamento.js`): ainda a definir a data e a forma de entrega do prêmio final e o prazo de guarda dos dados.
+8. **Brevo:** não apagar o segredo `CACA_EMAIL_FROM`; acompanhar o volume de e-mails do plano.
+9. **Opcional:** caixinha "Tenho 18 anos ou mais" no cadastro do mapa; imagem de compartilhamento (og) própria da Cartoon; `proximaEdicao.status` interno ainda se chama `pre-cadastro`; a rota antiga `/em-breve` ainda abre por endereço direto.
+
+**Regra de operação:** o site lê o conteúdo congelado em `publicacoes`. Mudou algo no painel, é preciso republicar a casa, e a republicação pelo botão do painel apaga `casa.tema` e `casa.logo_desenhada` (por SQL, como em 05/11, os dois são preservados).
 
 Decisões técnicas tomadas sem perguntar (o Wilker pediu "tome as melhores decisões"):
 - Faixa fixa (P1): largura da tela, baixa (~18% da altura à mostra) enquanto se lê, sobe inteira no último trecho.
