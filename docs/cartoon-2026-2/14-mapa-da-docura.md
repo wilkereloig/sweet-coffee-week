@@ -446,6 +446,24 @@ desenho. Código: `src/edicao/cartoon/paginas/mapa/camera.js` (matemática pura)
 - **Escolha de projeto:** no celular o arraste de um dedo pertence ao mapa mesmo na página (cenário de jogo); a página rola pelos
   trechos fora do quadro e a tela cheia é a saída para explorar sem rolar nada.
 
+## 14.13-c · O mesmo pin nos dois mapas (06/11/2026)
+
+O mapa ilustrado (`Mundo.jsx`) e o mapa real (MapLibre e Google) mostram **o mesmo pin**: disco com a logo desenhada, ponta
+embaixo, número do impresso no canto e selo de estado no aro. As classes `ct-mundo__*` por dentro são as mesmas
+(`11-mundo.css`); no mapa real o DOM é montado por `src/edicao/componentes/mapa/pin.js` (`pinDaCasa` e `atualizarPin`).
+
+- **Logo por carimbo.** Casa **sem carimbo**: logo desenhada **P&B** (`<slug>-pb.webp`). Casa **com carimbo** (pendente ou
+  conquistada): a **colorida** (`<slug>-cor.webp`). Regra única em `LogoDoPin.jsx` (`ehCarimbada`, `logoDoPin`), sobre o
+  estado do servidor (`mapa_ler_v2`). Sem mapa (visitante sem chave), todas P&B. Casa sem desenho cai na logo oficial
+  reduzida do Mundo e, sem ela, na inicial. "Já fui"/"Quero ir" não colorem: só carimbo.
+- **Sincronia.** `index.jsx` calcula o pin de cada casa UMA vez (`pinDe`: logo, inicial, número, estado) e entrega aos dois
+  mapas; a lista e o cartão repetem a mesma logo (`LogoDoPin estado=`). Carimbo novo troca P&B por colorida sem refazer os
+  marcadores (`atualizarPin`, a cada render).
+- **No mapa real:** tamanho fixo de 54 px (de longe, `.ct-mapa__mapa--longe` encolhe); o selo de quero ir / já fui passou
+  para o ombro esquerdo (o direito é do selo de estado).
+- **Teste:** `npm run test:mapa-pin` (`tests/cartoon-mapa-pin-navegador.mjs`): carimbos simulados na rede; confere P&B × colorida
+  nos dois mapas e que logo, estado e número do real existem no ilustrado.
+
 ## 14.14 · Caça aos Carimbos: QR do display e carimbo pendente (04/11/2026)
 
 - **[Decisão]** Wilker, 04/11: a ativação se chama **Caça aos Carimbos** (Mapa da Doçura é o nome do mapa). Regras completas

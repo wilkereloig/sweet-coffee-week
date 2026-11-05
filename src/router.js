@@ -62,9 +62,14 @@ export function useRoute() {
   React.useEffect(() => {
     applyPageMeta(caminhoAtual())
     trackPageView() // page_view da carga inicial (só envia se já houver consentimento)
+    let atual = caminhoAtual()
     const onChange = () => {
       normalizarHash()
       const next = caminhoAtual()
+      // Âncora na mesma página (`#avaliacao`, `#conteudo`): o navegador já rolou até ela e dispara `popstate`;
+      // voltar ao topo aqui desfazia o salto (o botão "Avaliar agora" parecia morto).
+      if (next === atual && window.location.hash && !rotaDoHash()) return
+      atual = next
       setPath(next)
       applyPageMeta(next) // título correto ANTES do page_view
       trackPageView()

@@ -35,7 +35,7 @@
    pintados; o botão nunca fica abaixo de 44 px (o disco pode ser menor que o alvo). Selos de estado ficam NO ARO do disco
    (canto superior direito), fora do centro, para nunca tapar a logo; parada da rota no canto superior esquerdo.
    Nome da casa: só na escolhida, no ponteiro e no foco (dezenas de etiquetas se atropelariam). */
-.ct-mundo__casa, .ct-mundo__sicredi {
+.ct-mundo__casa, .ct-mundo__sicredi, .ct-pin {
   --d: clamp(38px, 5.9cqi, 76px);
   --cauda: calc(var(--d) * .24);
   --rim: calc(var(--d) * .354); /* 45° no aro do disco: d/2 · cos 45° */
@@ -43,6 +43,9 @@
   translate: -50% -100%; transform-origin: 50% 100%;
   transition: transform var(--ct-mo), opacity var(--ct-mo), filter var(--ct-mo);
 }
+/* O MESMO pin no mapa real (pin.js): o <span class="ct-pin"> é a caixa do disco; o MapLibre/Google posiciona o botão. Tamanho fixo
+   (o palco ilustrado escala por cqi; aqui o zoom do mapa já escala, e de longe .ct-mapa__mapa--longe encolhe). */
+.ct-pin { --d: 54px; position: relative; display: block; width: var(--d); height: calc(var(--d) + var(--cauda)); translate: none; }
 .ct-mundo__casa { z-index: 2; width: max(44px, var(--d)); height: max(44px, calc(var(--d) + var(--cauda))); }
 .ct-mundo__casa:hover, .ct-mundo__sicredi:hover { transform: translateY(-3px); }
 .ct-mundo__casa:focus-visible, .ct-mundo__sicredi:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; border-radius: 12px; }
@@ -60,10 +63,10 @@
 }
 .ct-mundo__disco img { width: 100%; height: 100%; object-fit: cover; user-select: none; } /* logo preenche o slot (§6.12) */
 /* Estado também na FORMA do aro: cheio (não visitada) · tracejado (pendente) · duplo (conquistada). */
-.ct-mundo__casa[data-estado="pendente"] .ct-mundo__disco { border-style: dashed; }
-.ct-mundo__casa[data-estado="conquistada"] .ct-mundo__disco { box-shadow: 0 0 0 2.5px var(--ct-amarelo), 0 0 0 5px var(--ct-chocolate), var(--ct-sombra-p); }
-.ct-mundo__casa[data-estado="nao-visitada"] .ct-mundo__estado { --b: calc(var(--d) * .4); }
-.ct-mundo__casa.is-sel .ct-mundo__disco { box-shadow: 0 0 0 4px var(--ct-amarelo), 0 0 0 7px var(--ct-chocolate); }
+.ct-mundo__casa[data-estado="pendente"] .ct-mundo__disco, .ct-pin[data-estado="pendente"] .ct-mundo__disco { border-style: dashed; }
+.ct-mundo__casa[data-estado="conquistada"] .ct-mundo__disco, .ct-pin[data-estado="conquistada"] .ct-mundo__disco { box-shadow: 0 0 0 2.5px var(--ct-amarelo), 0 0 0 5px var(--ct-chocolate), var(--ct-sombra-p); }
+.ct-mundo__casa[data-estado="nao-visitada"] .ct-mundo__estado, .ct-pin[data-estado="nao-visitada"] .ct-mundo__estado { --b: calc(var(--d) * .4); }
+.ct-mundo__casa.is-sel .ct-mundo__disco, .ct-marcador--pin.is-sel .ct-mundo__disco { box-shadow: 0 0 0 4px var(--ct-amarelo), 0 0 0 7px var(--ct-chocolate); }
 /* Número do impresso: referência secundária, pequeno, no canto inferior esquerdo do aro. */
 .ct-mundo__num {
   position: absolute; left: calc(50% - var(--rim) - 10px); bottom: calc(var(--cauda) + var(--d) * .5 - var(--rim) - 10px); display: grid; place-items: center;

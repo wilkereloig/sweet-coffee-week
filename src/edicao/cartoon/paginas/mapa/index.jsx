@@ -58,7 +58,7 @@ import { Cartao } from './Cartao.jsx'
 import { Atalhos } from './Atalhos.jsx'
 import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
 import { Folha } from './Folha.jsx'
-import { LogoDoPin, pinDaCasa } from './LogoDoPin.jsx'
+import { LogoDoPin, logoDoPin } from './LogoDoPin.jsx'
 import { Mundo } from './Mundo.jsx'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { PainelRota } from './PainelRota.jsx'
@@ -156,10 +156,15 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const proximaSlug = ['avaliar', 'rota', 'visitar'].includes(passo.tipo) ? passo.slug : ''
   const { recentes, aviso: avisoConquista } = useConquistas(casasMapa, nomeDeSlug)
 
+  // O pin é UM só nos dois mapas (ilustrado e real): a mesma logo, o mesmo número e o mesmo estado, calculados aqui uma vez.
+  // Logo desenhada P&B sem carimbo, colorida com carimbo; casa sem desenho cai na oficial reduzida do Mundo e, sem ela, na inicial.
+  const pinDe = (p, u) => ({
+    logo: logoDoPin(p, estadoDe(p.slug)) || mundo.logo(p.slug), inicial: inicial(p), numero: mundo.unidades[u.id]?.numero ?? '', estado: estadoDe(p.slug),
+  })
   const visiveis = new Set(linhas.map((x) => x.u.id))
   const casasMundo = comMundo ? casasNoMundo(mundo.unidades, todas).map(({ u, p, x, y, numero }) => {
     return {
-      id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), nomeCasa: p.casa?.nome || '', tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', pin: mundo.logo(p.slug), inicial: inicial(p),
+      id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), nomeCasa: p.casa?.nome || '', tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', pin: pinDe(p, u).logo, inicial: inicial(p),
       apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug,
     }
   }) : []
@@ -360,7 +365,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                         <ErroDoMapa>
                           <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
                             pontos={[
-                              ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDaCasa(p) })),
+                              ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDe(p, u) })),
                               ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src, rotulo: TC.sicrediRotulo }),
                             ]} />
                         </ErroDoMapa>
@@ -381,7 +386,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                         return (
                           <li key={u.id} id={`mapa-${u.id}`} className={`ct-mapa__item${sel === u.id ? ' is-sel' : ''}${foi ? ' is-visitada' : ''}`}>
                             <button type="button" className="ct-mapa__sel" aria-pressed={sel === u.id} onClick={() => escolher(sel === u.id ? '' : u.id)}>
-                              <LogoDoPin p={p} />
+                              <LogoDoPin p={p} estado={estadoDe(p.slug)} />
                               <span className="ct-mapa__sel-texto">
                                 <strong>{titulo}</strong>
                                 <span>{M.enderecoEmLinha(u.endereco)}</span>

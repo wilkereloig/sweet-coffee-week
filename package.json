@@ -20,6 +20,7 @@
     "test:cartoon-navegador": "node tests/cartoon-navegador.mjs",
     "test:caca-navegador": "node tests/cartoon-caca-navegador.mjs",
     "test:mapa-camera": "node tests/cartoon-mapa-camera-navegador.mjs",
+    "test:mapa-pin": "node tests/cartoon-mapa-pin-navegador.mjs",
     "test:cartoon-sistema": "node tests/cartoon-sistema-navegador.mjs",
     "test:cartoon-voucher": "node tests/cartoon-voucher-virtual-navegador.mjs",
     "test:rotas-edicao": "node --test tests/rotas-edicao.test.mjs",
