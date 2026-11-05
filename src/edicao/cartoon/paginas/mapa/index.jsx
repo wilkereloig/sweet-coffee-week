@@ -32,7 +32,7 @@ import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
-import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
+import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
 import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
 import { contarFiltros, casasEEnderecos, enderecosDaCasa, podeLocalizar } from '../../../caca/mapa/tela.js'
 import { useConquistas } from '../../../caca/mapa/useConquistas.js'
@@ -145,11 +145,13 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
   // Próximo passo (avaliar > parada da rota > próxima casa do caminho) e conquista nova, tudo pelo estado do servidor.
   const nomeDeSlug = (slug) => lista.find((p) => p.slug === slug)?.casa?.nome || 'a casa'
+  // Sem rota marcada, o próximo passo é a casa ainda não visitada mais perto do celular (precisa da localização).
+  const distancias = React.useMemo(() => distanciasPorCasa(lista, posicao), [lista, posicao])
   const passo = React.useMemo(() => {
     const ordem = ordemDasCasas(lista, mundo.unidades)
     const minhas = resolverParadas(rota.ids, lista).filter((pa) => pa.ativa).map((pa) => pa.participante.slug)
-    return proximoPasso({ mapa: meu.mapa, casas: casasMapa, ordem, paradas: [...new Set(minhas)], visitaveis: lista.filter((p) => (p.unidades || []).length).map((p) => p.slug) })
-  }, [lista, mundo, rota.ids, meu.mapa, casasMapa])
+    return proximoPasso({ mapa: meu.mapa, casas: casasMapa, ordem, paradas: [...new Set(minhas)], visitaveis: lista.filter((p) => (p.unidades || []).length).map((p) => p.slug), distancias })
+  }, [lista, mundo, rota.ids, meu.mapa, casasMapa, distancias])
   const proximaSlug = ['avaliar', 'rota', 'visitar'].includes(passo.tipo) ? passo.slug : ''
   const { recentes, aviso: avisoConquista } = useConquistas(casasMapa, nomeDeSlug)
 
@@ -198,14 +200,37 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     requestAnimationFrame(() => (document.querySelector(`[data-casa="${id}"]`) || document.querySelector(`[data-unidades~="${id}"]`) || document.querySelector(`#mapa-${id} .ct-mapa__sel`))?.focus({ preventScroll: true }))
   }, [sel])
 
-  const localizar = () => {
-    setGeo('pedindo')
+  const lerPosicao = React.useCallback((idadeMaxMs) => {
     navigator.geolocation.getCurrentPosition(
       (p) => { setPosicao({ lat: p.coords.latitude, lng: p.coords.longitude }); setGeo('ok') },
-      () => setGeo('negada'),
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+      () => setGeo((g) => (g === 'ok' ? g : 'negada')), // falha de uma releitura não apaga a posição que já temos
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: idadeMaxMs },
     )
+  }, [])
+  const localizar = () => {
+    setGeo('pedindo')
+    lerPosicao(300000)
   }
+  // O navegador só pergunta quando a pessoa toca no mapa (ou no "Ver mapa"); negado uma vez, não insistimos.
+  const pedirNoMapa = () => { if (geo === 'disponivel') localizar() }
+  // Permissão já concedida em outra visita: lê sem perguntar. E relê ao voltar para a aba e quando uma casa é validada,
+  // para o "próximo passo" seguir a pessoa (a segunda mais perto, depois a terceira…). Sem leitura contínua: gasta bateria.
+  const validadas = meu.mapa?.casas_validadas
+  React.useEffect(() => {
+    if (!podeLocalizar()) return undefined
+    let vivo = true
+    if (geo === 'disponivel') {
+      navigator.permissions?.query({ name: 'geolocation' }).then((r) => { if (vivo && r.state === 'granted') { setGeo('pedindo'); lerPosicao(300000) } }).catch(() => {})
+    }
+    return () => { vivo = false }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- só na abertura
+  React.useEffect(() => {
+    if (geo !== 'ok') return undefined
+    lerPosicao(30000)
+    const voltou = () => { if (document.visibilityState === 'visible') lerPosicao(30000) }
+    document.addEventListener('visibilitychange', voltou)
+    return () => document.removeEventListener('visibilitychange', voltou)
+  }, [geo === 'ok', validadas, lerPosicao]) // eslint-disable-line react-hooks/exhaustive-deps
   const muda = (k, v) => setF((x) => ({ ...x, [k]: v }))
   const avaliar = (p, u) => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, slug: p.slug, unidade: u.id, mapa: meu.mapa }))
   // Ações do "próximo passo": vão à primeira unidade da casa (a unidade só importa para preencher a avaliação).
@@ -255,7 +280,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
         return (
           <>
             <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
-              proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={(slug) => { fechar(); verCasa(slug) }} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+              proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} geo={geo} aoVerCasa={(slug) => { fechar(); verCasa(slug) }} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
             {meu.mapa && <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
           </>
         )
@@ -294,7 +319,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
       {topo(T.lead, botaoRota)}
       <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
         <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
-          proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+          proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
@@ -309,7 +334,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                 : nEnderecos > nCasas && <p className="ct-mapa__resumo-regra">{TC.casasEnderecosCurta}</p>}
             </div>
 
-            <div ref={moldura} className="ct-mapa__moldura">
+            <div ref={moldura} className="ct-mapa__moldura" onPointerDownCapture={pedirNoMapa}>
               {podeAmpliar && (
                 <button type="button" className="ct-mapa__ampliar" data-abrir-cheia onClick={abrirCheia} aria-label={TC.telaCheiaAbrir}>
                   <ScwIcon nome="ampliar" tamanho={20} />

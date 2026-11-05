@@ -4,6 +4,7 @@
  * `{ slug, carimbos, avaliou, estado: 'validada'|'pendente', extras }`) — nunca de "quero ir", de rota ou de "já fui".
  * Nenhum total é escrito aqui: o N de "X de N" é o `total_casas` do servidor ou a lista da edição.
  */
+import { km } from '../../dados/modelo.js'
 
 /** Estados que o mapa desenha. `null` (sem mapa) não desenha estado nenhum. */
 export const ESTADOS = ['nao-visitada', 'pendente', 'conquistada']
@@ -62,14 +63,29 @@ export function ordemDasCasas (participantes = [], unidadesDoMundo = {}) {
 }
 
 /**
+ * Distância (km, linha reta) da `posicao` { lat, lng } até a unidade mais perto de cada casa: Map slug → km.
+ * Casa sem unidade com coordenada fica fora. Sem posição devolve Map vazio.
+ */
+export function distanciasPorCasa (participantes = [], posicao = null) {
+  const mapa = new Map()
+  if (!posicao || !Number.isFinite(posicao.lat) || !Number.isFinite(posicao.lng)) return mapa
+  for (const p of participantes) {
+    const ds = (p.unidades || []).filter((u) => u.coordenada).map((u) => km(posicao, u.coordenada)).filter(Number.isFinite)
+    if (ds.length) mapa.set(p.slug, Math.min(...ds))
+  }
+  return mapa
+}
+
+/**
  * O próximo passo (spec 10: "destacar o próximo passo"). Ordem de prioridade:
  *   avaliar  — há carimbo pendente: avaliar fecha o que já foi feito;
  *   rota     — a primeira parada da rota cuja casa ainda não foi conquistada;
- *   visitar  — a primeira casa do caminho do mapa ainda não visitada;
+ *   visitar  — sem objetivo marcado: a casa ainda não visitada MAIS PERTO da pessoa (`distancias`, de `distanciasPorCasa`),
+ *              com `km`; sem posição (localização negada ou desligada) cai na primeira casa do caminho do mapa;
  *   completo — todas conquistadas;  criar-mapa — sem mapa;  nenhum — nada a destacar (sem casa visitável).
  * `visitaveis`: slugs que têm unidade (sem endereço não há o que visitar). `paradas`: slugs na ordem da rota.
  */
-export function proximoPasso ({ mapa, casas, ordem = [], paradas = [], visitaveis = ordem }) {
+export function proximoPasso ({ mapa, casas, ordem = [], paradas = [], visitaveis = ordem, distancias = null }) {
   if (!mapa || !casas) return { tipo: 'criar-mapa' }
   const pode = new Set(visitaveis)
   const estado = (slug) => estadoDaCasa(casas.get(slug))
@@ -77,8 +93,10 @@ export function proximoPasso ({ mapa, casas, ordem = [], paradas = [], visitavei
   if (pendente) return { tipo: 'avaliar', slug: pendente }
   const naRota = paradas.find((s) => pode.has(s) && estado(s) !== 'conquistada')
   if (naRota) return { tipo: 'rota', slug: naRota }
-  const falta = ordem.find((s) => pode.has(s) && estado(s) === 'nao-visitada')
-  if (falta) return { tipo: 'visitar', slug: falta }
+  const faltam = ordem.filter((s) => pode.has(s) && estado(s) === 'nao-visitada')
+  const perto = distancias?.size ? faltam.filter((s) => distancias.has(s)).sort((a, b) => distancias.get(a) - distancias.get(b))[0] : null
+  if (perto) return { tipo: 'visitar', slug: perto, km: distancias.get(perto) }
+  if (faltam.length) return { tipo: 'visitar', slug: faltam[0] }
   return visitaveis.length && visitaveis.every((s) => estado(s) === 'conquistada') ? { tipo: 'completo' } : { tipo: 'nenhum' }
 }
 
