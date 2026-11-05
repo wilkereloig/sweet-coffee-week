@@ -16,7 +16,7 @@
 import React from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { pinDaCasa, pinSicredi } from './pin.js'
+import { pinDaCasa, pinSicredi, atualizarPin } from './pin.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const ESTILO = 'https://tiles.openfreemap.org/styles/liberty'
@@ -104,6 +104,7 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
         continue
       }
       el.classList.add('ct-marcador')
+      if (p.pin) atualizarPin(el.firstElementChild, p.pin) // carimbo novo: a logo passa de P&B a colorida sem refazer o marcador
       el.classList.toggle('ct-marcador--aprox', !!p.aproximada)
       el.classList.toggle('ct-marcador--quero', !!p.quero)
       el.classList.toggle('ct-marcador--foi', !!p.foi)

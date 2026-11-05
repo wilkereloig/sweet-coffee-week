@@ -9,7 +9,7 @@
  * (AdvancedMarkerElement) com um <button> nomeado dentro: a seleção sincroniza com a lista, como no outro mapa.
  */
 import React from 'react'
-import { pinDaCasa, pinSicredi } from './pin.js'
+import { pinDaCasa, pinSicredi, atualizarPin } from './pin.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
@@ -142,6 +142,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
         el.setAttribute('aria-pressed', String(p.id === selecionada))
         continue
       }
+      if (p.pin) atualizarPin(el.firstElementChild, p.pin) // carimbo novo: a logo passa de P&B a colorida sem refazer o marcador
       el.classList.toggle('ct-marcador--aprox', !!p.aproximada)
       el.classList.toggle('ct-marcador--quero', !!p.quero)
       el.classList.toggle('ct-marcador--foi', !!p.foi)

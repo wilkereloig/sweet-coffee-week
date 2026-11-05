@@ -69,6 +69,7 @@
 .ct-mapa__sel-texto { display: grid; gap: 2px; min-width: 0; }
 /* A logo do pin repete na linha da lista e no cartão: liga a linha ao ponto no mapa. */
 .ct-edicao .ct-mapa__logo { flex: none; width: auto; max-width: calc(var(--ct-logo-lado, 44px) * 2); height: var(--ct-logo-lado, 44px); padding: 2px 4px; border: 2.5px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-branco); object-fit: contain; }
+.ct-edicao .ct-mapa__logo--disco { width: var(--ct-logo-lado, 44px); max-width: none; padding: 0; border-radius: 50%; object-fit: cover; }
 .ct-mapa__logo--inicial { display: inline-grid; place-items: center; width: var(--ct-logo-lado, 44px); background: var(--ct-amarelo); font: 900 18px/1 var(--ct-font); }
 .ct-mapa__estado { justify-self: start; margin-top: 2px; padding: 2px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 700 13px/1.3 var(--ct-font); }
 .ct-mapa__estado--aberto { background: var(--ct-turquesa); }
@@ -108,20 +109,13 @@
 .ct-marcador--foi::before { background: var(--ct-turquesa); }
 .ct-marcador.is-sel::before { width: 32px; height: 32px; border-width: 4px; }
 .ct-marcador--voce { width: 22px; height: 22px; cursor: default; }
-/* Pin da casa (lista 13, M1): placa com a logo desenhada colorida (na proporção dela) + ponta que toca o lugar.
-   Selecionado cresce e ganha o anel amarelo; aproximado leva o anel tracejado no chão; quero ir / já fui, o selo
-   no ombro. A cabeça fica por cima da ponta (a ponta é um quadrado girado, só com as bordas de baixo). */
+/* Pin da casa (lista 13, M1): o mesmo do mapa ilustrado — disco com a logo desenhada (P&B sem carimbo, colorida com carimbo)
+   + ponta que toca o lugar. Selecionado cresce e ganha o anel amarelo; aproximado leva o anel tracejado no chão; quero ir /
+   já fui, o selo no ombro ESQUERDO (o direito é do selo de estado da Caça). */
 .ct-marcador--pin { width: auto; height: auto; padding: 0; transition: scale 180ms var(--ct-mo-quique); transform-origin: 50% 100%; }
 .ct-marcador--pin::before { content: none; }
-.ct-pin { position: relative; display: grid; justify-items: center; }
-.ct-pin__cabeca {
-  position: relative; z-index: 1; display: block; padding: 2px 4px; overflow: hidden;
-  border: 3px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-branco); box-shadow: 2px 3px 0 rgba(58, 21, 15, .35);
-}
-.ct-edicao .ct-pin__cabeca img { display: block; width: auto; max-width: 104px; height: 48px; object-fit: contain; }
-.ct-pin__ponta { width: 16px; height: 16px; margin-top: -11px; rotate: 45deg; border: solid var(--ct-chocolate); border-width: 0 3px 3px 0; background: var(--ct-branco); }
+/* O pin em si (disco, ponta, número, selo de estado) é o do mapa ilustrado: 11-mundo.css (.ct-pin + .ct-mundo__*), montado por pin.js. */
 .ct-marcador--pin.is-sel { scale: 1.3; z-index: 2; }
-.ct-marcador--pin.is-sel .ct-pin__cabeca { box-shadow: 0 0 0 4px var(--ct-amarelo), 2px 3px 0 4px rgba(58, 21, 15, .35); }
 /* Aproximado: anel tracejado em volta da ponta ("é por aqui"), nunca se passa por ponto exato. */
 .ct-marcador--aprox .ct-pin::after {
   content: ''; position: absolute; z-index: -1; left: 50%; bottom: -7px; width: 38px; height: 14px; translate: -50% 0;
@@ -129,7 +123,7 @@
 }
 /* Quero ir / Já fui: selo redondo no ombro do pin, nas cores das marcações da rota. */
 .ct-marcador--quero .ct-pin::before, .ct-marcador--foi .ct-pin::before {
-  content: ''; position: absolute; z-index: 2; top: -7px; right: -9px; width: 24px; height: 24px;
+  content: ''; position: absolute; z-index: 2; top: -7px; left: -9px; width: 24px; height: 24px;
   border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-vermelho);
 }
 .ct-marcador--foi .ct-pin::before { background: var(--ct-turquesa); }

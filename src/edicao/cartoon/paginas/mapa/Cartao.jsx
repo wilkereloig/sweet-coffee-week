@@ -49,7 +49,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   return (
     <article className="ct-mapa__cartao" aria-labelledby="mapa-cartao-nome" tabIndex={-1}>
       <div className="ct-mapa__cartao-cabeca">
-        <LogoDoPin p={p} tamanho={36} />
+        <LogoDoPin p={p} tamanho={36} estado={estado} />
         <div>
           <p className="ct-rotulo">{proxima ? TC.proximaRotulo : T.cartaoTitulo}</p>
           <h2 id="mapa-cartao-nome" className="ct-mapa__cartao-nome">{titulo}</h2>
