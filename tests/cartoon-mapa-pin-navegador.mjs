@@ -71,7 +71,8 @@ try {
 
   // ---- real
   await page.goto(`${BASE}/cartoon/mapa?preview=1&vista=real`, { waitUntil: 'networkidle' })
-  await page.locator('.ct-marcador--pin .ct-pin').first().waitFor({ timeout: 20000 })
+  // `attached`: de longe os pins colados viram selo (is-agrupado) e ficam invisíveis, mas continuam montados com o mesmo desenho
+  await page.locator('.ct-marcador--pin .ct-pin').first().waitFor({ state: 'attached', timeout: 20000 })
   const real = await page.evaluate(() => [...document.querySelectorAll('.ct-marcador--pin .ct-pin')].map((p) => ({
     slug: p.querySelector('.ct-mundo__disco img')?.getAttribute('src') || '', estado: p.dataset.estado || '', numero: p.querySelector('.ct-mundo__num')?.textContent || '',
     disco: !!p.querySelector('.ct-mundo__disco'), ponta: !!p.querySelector('.ct-mundo__ponta'),
@@ -87,7 +88,16 @@ try {
   checar(tamanho[0] >= 40 && tamanho[0] === tamanho[1], `real: disco redondo e legível (${tamanho.join('×')} px, sem a escala de "longe")`)
   await page.screenshot({ path: join(CAPTURAS, 'real.png') })
   // Escolher uma casa aproxima o mapa: o pin aparece em tamanho cheio, com o aro de escolhida.
-  await page.locator('.ct-marcador--pin:has(.ct-pin[data-estado="conquistada"])').first().click()
+  // De longe a casa pode estar dentro de um selo "N locais muito próximos": toca nos selos até ela aparecer (é o caminho de quem usa o mapa).
+  const conquistada = page.locator('.ct-marcador--pin:has(.ct-pin[data-estado="conquistada"])').first()
+  for (let i = 0; i < 4 && !(await conquistada.isVisible()); i++) {
+    const selo = page.locator('.ct-selo-grupo').first()
+    if (!(await selo.count())) break
+    await selo.click(); await page.waitForTimeout(1500)
+  }
+  // `click()` do DOM, não o do mouse: com o Google Maps o Chromium sem janela captura o ponteiro no mapa e o mouseup não chega ao marcador
+  // (acontece também no código publicado antes do afastamento); a lógica de escolher a casa é a mesma. Mouse real: conferência manual.
+  await conquistada.evaluate((el) => el.click())
   await page.waitForTimeout(1800)
   await page.screenshot({ path: join(CAPTURAS, 'real-perto.png') })
   checar(await page.locator('.ct-marcador--pin.is-sel').count() === 1, 'real: casa escolhida marcada')
