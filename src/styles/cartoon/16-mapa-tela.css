@@ -315,6 +315,8 @@
 }
 
 /* ------------------------------------------------------------- painel da rota: as três marcas (rota ≠ já fui ≠ carimbo) */
+/* Estado vazio dentro do painel (lista sem paradas, sem visitadas): sem o respiro de página inteira. */
+.ct-rota__secao .ct-estado { padding-block: 4px 8px; }
 /* Ajuda recolhida: a diferença fica a um toque, sem ocupar a coluna o tempo todo. */
 .ct-rota__ajuda { padding: 0 2px; border-bottom: 2px dashed color-mix(in srgb, var(--ct-chocolate) 35%, transparent); }
 .ct-rota__ajuda[open] { padding-bottom: 8px; }

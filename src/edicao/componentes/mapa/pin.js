@@ -59,9 +59,9 @@ export function atualizarPin (caixa, pin) {
 }
 
 /*
- * O marcador do Sicredi (patrocinador, Caça aos Carimbos): placa branca de cantos retos com a marca oficial e a tarja
- * "Patrocinador", de outra forma que o pin das casas (cabeça arredondada com a logo colorida). Não é casa e não conta
- * carimbo. `pin`: { src, rotulo } — a marca (arquivo oficial) e o texto da tarja entram de fora, nada fica escrito aqui.
+ * O marcador do Sicredi (patrocinador, Caça aos Carimbos): placa branca só com a marca oficial (sem tarja nem texto dentro do
+ * pin), de outra forma que o pin das casas (cabeça redonda com a logo colorida). Não é casa e não conta carimbo: isso vai no nome
+ * acessível do marcador e no cartão da agência. `pin`: { src } — o arquivo oficial da marca entra de fora.
  */
 export function pinSicredi (pin) {
   const caixa = document.createElement('span')
@@ -69,11 +69,8 @@ export function pinSicredi (pin) {
   const placa = document.createElement('span')
   placa.className = 'ct-sicredi-pin__placa'
   const img = document.createElement('img')
-  Object.assign(img, { src: pin.src, alt: '', height: 22, decoding: 'async' })
-  const tarja = document.createElement('span')
-  tarja.className = 'ct-sicredi-pin__tarja'
-  tarja.textContent = pin.rotulo
-  placa.append(img, tarja)
+  Object.assign(img, { src: pin.src, alt: '', height: 28, decoding: 'async' })
+  placa.append(img)
   const ponta = document.createElement('span')
   ponta.className = 'ct-sicredi-pin__ponta'
   caixa.append(placa, ponta)

@@ -13,8 +13,8 @@
  * direito do disco (furo vazio · estrela com ampulheta · carimbo com brilhos) e a borda do disco muda (contínua · tracejada ·
  * dupla); revisita vira um contador "+N" a partir do zoom. Parada da rota = selo turquesa no canto superior esquerdo. O
  * destaque do próximo passo é um anel tracejado + o rótulo "Próxima". Conquista nova faz uma microanimação (sem movimento sob
- * prefers-reduced-motion). O Sicredi é um letreiro retangular branco com a marca oficial, de outra forma que o disco das
- * casas, e leva o rótulo "Patrocinador": não é casa.
+ * prefers-reduced-motion). O Sicredi é um letreiro retangular branco só com a marca oficial, de outra forma que o disco das
+ * casas; "patrocinador" e "não conta como casa" vão no nome acessível e no cartão, não dentro do pin.
  *
  * PINS QUE SE COBREM (afastar.js, o mesmo do mapa real): o que colide vai para o lado e fica preso ao ponto verdadeiro por um fio
  * fino com uma bolinha (`--dx/--dy` no botão; o fio é um irmão do botão, para não crescer no hover nem na seleção). O desenho é por
@@ -175,15 +175,23 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
     return () => { ro.disconnect(); parar() }
   }, [A, pintar])
 
-  // Casa escolhida (na lista, no cartão) fora da janela: a câmera vai até ela, sem mexer na página.
+  // Casa escolhida (na lista, no cartão) fora da parte VISÍVEL da janela: a câmera vai até ela, sem mexer na página. No celular o cartão
+  // da casa é uma folha que cobre a parte de baixo do desenho: a parte visível é a de cima, e a casa vai para o meio dela.
   React.useEffect(() => {
     const j = janela.current
     const b = alvo && j?.querySelector(`[data-casa="${alvo}"]`)
-    if (!b || !camera.current) return
-    const jr = j.getBoundingClientRect(); const br = b.getBoundingClientRect()
-    const folga = 28
-    if (br.left >= jr.left + folga && br.right <= jr.right - folga && br.top >= jr.top + folga && br.bottom <= jr.bottom - folga) return
-    irPara(panar(camera.current, jr.left + jr.width / 2 - (br.left + br.width / 2), jr.top + jr.height / 2 - (br.top + br.height / 2), medida.current, A))
+    if (!b || !camera.current) return undefined
+    const ver = () => {
+      if (!camera.current) return
+      const jr = j.getBoundingClientRect(); const br = b.getBoundingClientRect()
+      const folha = document.querySelector('.ct-folha-m--casa .ct-folha-m__corpo')?.getBoundingClientRect()
+      const baixo = folha && folha.top > jr.top + 80 ? Math.min(jr.bottom, folha.top) : jr.bottom
+      const folga = 28
+      if (br.left >= jr.left + folga && br.right <= jr.right - folga && br.top >= jr.top + folga && br.bottom <= baixo - folga) return
+      irPara(panar(camera.current, jr.left + jr.width / 2 - (br.left + br.width / 2), (jr.top + baixo) / 2 - (br.top + br.height / 2), medida.current, A))
+    }
+    const t = setTimeout(ver, 340) // a folha da casa sobe em ~300 ms: só depois dá para medir onde ela para
+    return () => clearTimeout(t)
   }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps -- só reage à troca de casa; irPara e A são estáveis para o mesmo mundo
 
   // Roda e trackpad. Listener nativo porque o do React é passivo e não deixa cancelar a rolagem/zoom do navegador.
@@ -323,7 +331,6 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={TC.sicrediNoMundo(a.nome, a.endereco)}
               className={`ct-mundo__sicredi${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
               <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={mundo.sicrediLogo} alt="" draggable={false} /></span>
-              <span className="ct-mundo__patrocinador" aria-hidden="true">{TC.sicrediRotulo}</span>
             </button>
           ))}
           {grupos.map((c) => {

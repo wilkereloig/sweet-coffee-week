@@ -365,7 +365,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                           <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
                             pontos={[
                               ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDe(p, u) })),
-                              ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src, rotulo: TC.sicrediRotulo }),
+                              ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src }),
                             ]} />
                         </ErroDoMapa>
                       </React.Suspense>
