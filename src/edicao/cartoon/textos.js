@@ -261,7 +261,7 @@ export const MAPA = {
     carimbos > 0 && (carimbos === 1 ? 'carimbada' : `carimbada ${carimbos} vezes`),
     avaliou && 'avaliada',
   ].filter(Boolean).join(', '),
-  sicredi: (nome, endereco) => `${nome}, agência da patrocinadora${endereco ? `: ${endereco}` : ''}`,
+  sicredi: (nome, endereco) => `${nome}, agência do patrocinador${endereco ? `: ${endereco}` : ''}`,
   parada: (n) => `Parada ${n} da sua rota`,
   carimbada: (n) => (n === 1 ? 'Carimbada' : `Carimbada ${n} vezes`),
   avaliarMais2: 'Avaliar e validar o carimbo',
