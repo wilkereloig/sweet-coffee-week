@@ -56,7 +56,9 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
       el.addEventListener('click', () => {
         const caixa = new maplibregl.LngLatBounds()
         for (const p of membros) caixa.extend([p.lng, p.lat])
-        m.fitBounds(caixa, { padding: 96, maxZoom: 16, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400 })
+        // Grupo que já cabe na tela (uma corrente de pins encostados) não ganha zoom do fitBounds: o selo sempre aproxima ao menos 2 níveis.
+        const cam = m.cameraForBounds(caixa, { padding: 96, maxZoom: 16 })
+        m.easeTo({ center: cam?.center ?? caixa.getCenter(), zoom: Math.min(16, Math.max(cam?.zoom ?? 0, m.getZoom() + 2)), duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400 })
       })
       const lng = membros.reduce((t, p) => t + p.lng, 0) / membros.length
       const lat = membros.reduce((t, p) => t + p.lat, 0) / membros.length

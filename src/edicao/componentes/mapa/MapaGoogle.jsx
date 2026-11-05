@@ -92,8 +92,13 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       el.addEventListener('click', () => {
         const caixa = new libs.current.LatLngBounds()
         for (const p of membros) caixa.extend({ lat: p.lat, lng: p.lng })
+        const antes = m.getZoom() ?? 12
         m.fitBounds(caixa, 96)
-        window.google.maps.event.addListenerOnce(m, 'idle', () => { if (m.getZoom() > 16) m.setZoom(16) })
+        // Grupo que já cabe na tela (uma corrente de pins encostados) não ganha zoom do fitBounds: o selo sempre aproxima ao menos 2 níveis.
+        window.google.maps.event.addListenerOnce(m, 'idle', () => {
+          if ((m.getZoom() ?? antes) <= antes + 0.01) m.setZoom(Math.min(16, antes + 2))
+          else if (m.getZoom() > 16) m.setZoom(16)
+        })
       })
       const lat = membros.reduce((t, p) => t + p.lat, 0) / membros.length
       const lng = membros.reduce((t, p) => t + p.lng, 0) / membros.length
