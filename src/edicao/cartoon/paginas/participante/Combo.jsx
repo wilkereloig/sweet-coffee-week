@@ -17,7 +17,7 @@ import { Galeria } from '../../../componentes/sistema/Galeria.jsx'
 import { Etiqueta, Quadro, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { Foto } from '../../../componentes/base.jsx'
 import { PARTICIPANTE as T, RESTRICAO, ICONE } from '../../textos.js'
-import { Alimentar, Trocas } from './Alimentar.jsx'
+import { Alimentar, Trocas, temAlimentar } from './Alimentar.jsx'
 import { Ancora } from './Ancora.jsx'
 
 // Algumas casas começam a descrição pelo tipo ("DOCE: …"), que a etiqueta já diz: tira só esse prefixo.
@@ -61,7 +61,7 @@ function Item ({ i, unidades }) {
     <li className="ct-item" id={`item-${i.posicao}`}>
       <Etiqueta icone={ICONE.tipo[i.tipo]}>{T.tipos[i.tipo]}</Etiqueta>
       {fotos.length > 0 && <Galeria fotos={fotos} nome={i.nome || T.tipos[i.tipo]} proporcao="4 / 5" />}
-      {i.nome ? <h3 className="ct-item__nome">{M.caixaLegivel(i.nome)}</h3> : <p className="ct-item__nome ct-ni">{T.nomeNi}</p>}
+      {i.nome && <h3 className="ct-item__nome">{M.caixaLegivel(i.nome)}</h3>}
       {descricao && <p className="ct-item__descricao">{descricao}</p>}
       {i.ingredientes && (
         <div className="ct-item__bloco">
@@ -69,10 +69,12 @@ function Item ({ i, unidades }) {
           <p>{i.ingredientes}</p>
         </div>
       )}
-      <div className="ct-item__bloco ct-item__restricoes">
-        <Rotulo icone={ICONE.restricoes}>{T.restricoesTitulo}</Rotulo>
-        <Alimentar item={i} />
-      </div>
+      {temAlimentar(i) && (
+        <div className="ct-item__bloco ct-item__restricoes">
+          <Rotulo icone={ICONE.restricoes}>{T.restricoesTitulo}</Rotulo>
+          <Alimentar item={i} />
+        </div>
+      )}
       <Trocas lista={i.substituicoes} unidades={unidades} nomeItem={i.nome} />
     </li>
   )
@@ -83,6 +85,8 @@ export function Combo ({ p, combo, itens, encerrada }) {
   const nomeCombo = combo.nome ? M.caixaLegivel(combo.nome) : T.comboSemNome(p.casa.nome)
   const alerta = M.fraseAlerta(itens)
   const podeConter = M.frasePodeConter(itens)
+  // Só o que a casa declarou ("sim" ou "não"); o que ela não declarou não aparece.
+  const vereditos = M.RESTRICOES.map(({ chave }) => ({ chave, v: M.veredito(itens, chave) })).filter(({ v }) => v !== 'nao_informado')
   const unidades = p.unidades || []
   // A foto principal já está no topo da ficha: aqui o quadro só volta com fotos a mais (ou com a reserva, sem foto).
   const extras = fotos.galeria || []
@@ -109,10 +113,12 @@ export function Combo ({ p, combo, itens, encerrada }) {
             </div>
           )}
           {combo.descricao && !descricaoPorItem && <p>{combo.descricao}</p>}
-          <div>
-            <Rotulo icone={ICONE.condicoes}>{T.condicoes}</Rotulo>
-            <p className={combo.condicoes ? '' : 'ct-ni'}>{combo.condicoes || T.condicoesNi}</p>
-          </div>
+          {combo.condicoes && (
+            <div>
+              <Rotulo icone={ICONE.condicoes}>{T.condicoes}</Rotulo>
+              <p>{combo.condicoes}</p>
+            </div>
+          )}
           {(alerta || podeConter) && (
             <div className="ct-alertas">
               {alerta && <Ancora para="restricoes" className="ct-alerta ct-alerta--contem">{alerta}</Ancora>}
@@ -136,17 +142,16 @@ export function Combo ({ p, combo, itens, encerrada }) {
             {podeConter && <li className="ct-declarado__linha ct-declarado__linha--pode"><ScwIcon nome={ICONE.podeConter} tamanho={20} /><span>{podeConter}</span></li>}
           </ul>
         )}
-        <ul className="ct-vereditos">
-          {M.RESTRICOES.map(({ chave }) => {
-            const v = M.veredito(itens, chave)
-            return (
+        {vereditos.length > 0 && (
+          <ul className="ct-vereditos">
+            {vereditos.map(({ chave, v }) => (
               <li key={chave} className={`ct-veredito ct-veredito--${v}`}>
                 {v === 'sim' ? <IconeCartoon nome={RESTRICAO[chave].icone} tamanho={32} /> : <span className="ct-veredito__marca" aria-hidden="true" />}
                 <span>{RESTRICAO[chave][v]}</span>
               </li>
-            )
-          })}
-        </ul>
+            ))}
+          </ul>
+        )}
         <p className="ct-confirme">{T.confirme}</p>
       </div>
     </TopoCanal>

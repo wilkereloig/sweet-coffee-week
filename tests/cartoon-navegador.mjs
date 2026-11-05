@@ -13,8 +13,8 @@
  *  2. CENAS — link direto e recarregar em todas; um <h1>; console limpo.
  *  3. HASH ANTIGO e LOVERS — #/... vira caminho limpo; endereços Lovers nunca na edição.
  *  4. PARTICIPANTE — preço, composição, alergênicos e modos sem abas; "não informado"
- *     visível; delivery só onde a unidade declarou para o combo; combo abre no bloco do combo;
- *     casa com dado fino (itens sem nome, modos em branco) sem título vazio e com "não informado".
+ *     oculto (nunca "não contém"); delivery só onde a unidade declarou para o combo; combo abre no bloco do combo;
+ *     casa com dado fino (itens sem nome, modos em branco) sem título vazio e SEM "não informado" (oculto desde 05/11/2026).
  *  5. ESTADOS — casa inexistente, sem elenco divulgado, falha de rede (nunca demo), encerrada.
  *  6. CATÁLOGO — filtro na URL, voltar preserva filtro e posição.
  *  7. MINHA ROTA (painel do Sweet Lover) — "quero ir" na ficha, contador, persistir no recarregar, progresso
@@ -201,7 +201,8 @@ try {
     await ir(page, '/cartoon/participantes/demo-casa-bico-de-pena')
     await page.waitForSelector('#combo')
     const b = await page.locator('.ct-part').innerText()
-    if (!b.includes('Não informado pela casa')) falha('restrição não informada não aparece como "não informado"')
+    // Decisão do Wilker (05/11/2026): o que a casa não declarou NÃO aparece — nem como "não informado", nem como "não contém".
+    if (/n[ãa]o informad/i.test(b)) falha('restrição não informada aparece como "não informado" (deve ficar oculta)')
     if (b.includes('Não contém, segundo a casa')) falha('"não informado" virou "não contém"')
     // Delivery aparece como "a casa não oferece" (dado declarado), nunca como disponível nem com canal.
     if ((await page.locator('.ct-modo--delivery').getAttribute('data-estado')) !== 'nao') falha('Bico de Pena: delivery não está como "não oferece"')
@@ -231,12 +232,14 @@ try {
     const vazios = await c.page.evaluate(() => [...document.querySelectorAll('.ct-part :is(h1, h2, h3)')].filter((h) => !h.textContent.trim()).length)
     if (vazios) falha(`casa fina: ${vazios} título(s) vazio(s)`)
     const f = await c.page.locator('.ct-part').innerText()
-    for (const s of ['Nome não informado pela casa', 'Não informado pela casa', 'Não informadas pela casa.', 'Foto do combo em produção', 'Rua do Teste, 10']) {
+    for (const s of ['Foto do combo em produção', 'Rua do Teste, 10']) {
       if (!f.includes(s)) falha(`casa fina sem "${s}"`)
     }
+    if (/n[ãa]o informad|ainda n[ãa]o informou/i.test(f)) falha('casa fina: "não informado" aparece (deve ficar oculto)')
+    if (f.includes('Horário no festival') || f.includes('Condições')) falha('casa fina: bloco sem dado aparece (horário/condições)')
     if (f.includes('10, 10')) falha('casa fina: número do endereço repetido')
-    if ((await c.page.locator('.ct-modo[data-estado="nao_informado"]').count()) !== 3) falha('casa fina: modos em branco não aparecem como não informados')
-    if (falhas.length === antesFina) ok('casa com dado fino: sem título vazio, "não informado" à vista, endereço sem número repetido')
+    if ((await c.page.locator('.ct-modo').count()) !== 0) falha('casa fina: modos em branco ganharam cartão')
+    if (falhas.length === antesFina) ok('casa com dado fino: sem título vazio, sem "não informado", endereço sem número repetido')
     await c.ctx.close()
   }
 

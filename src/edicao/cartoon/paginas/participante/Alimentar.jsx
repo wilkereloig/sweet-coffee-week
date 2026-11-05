@@ -1,7 +1,7 @@
 /*
  * O que a casa declarou de cada item (restrições, características) e as opções de troca.
  * Cada linha abre com um ícone de contorno do assunto (lista 13, P2): quem tem restrição acha "Contém" de relance.
- * O que o painel não tem aparece como "não informado" — nunca deduzido.
+ * O que o painel não tem NÃO aparece (decisão do Wilker, 05/11/2026: "se não tem info, apenas oculta") — e nunca é deduzido.
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
@@ -17,8 +17,9 @@ function Linha ({ tipo, icone, titulo, children }) {
   )
 }
 
-export function Alimentar ({ item }) {
-  if (!item.alimentar?.length) return <p className="ct-alimentar__nada"><ScwIcon nome={ICONE.naoInformado} tamanho={20} /><span>{T.restricoesNada}</span></p>
+/** Só o que a casa declarou para o item. O que ela não declarou (alergênico, lactose, açúcar…) não aparece. */
+function declarado (item) {
+  if (!item.alimentar?.length) return null
   const r = M.resumoItem(item)
   const c = r.caracteristicas
   const extras = [
@@ -27,12 +28,20 @@ export function Alimentar ({ item }) {
     c.vegetariano === 'sim' && c.vegano !== 'sim' && T.vegetariano.sim,
     c.acucar_adicionado !== 'nao_informado' && T.acucar[c.acucar_adicionado],
   ].filter(Boolean)
+  return { r, extras, tem: r.contem.length + r.podeConter.length + r.naoContem.length + extras.length > 0 }
+}
+
+export const temAlimentar = (item) => !!declarado(item)?.tem
+
+export function Alimentar ({ item }) {
+  const d = declarado(item)
+  if (!d?.tem) return null
+  const { r, extras } = d
   return (
     <dl className="ct-alimentar">
       {r.contem.length > 0 && <Linha tipo="contem" icone={ICONE.contem} titulo={T.contem}>{M.juntar(r.contem)}</Linha>}
       {r.podeConter.length > 0 && <Linha tipo="pode" icone={ICONE.podeConter} titulo={T.podeConter}>{M.juntar(r.podeConter)}</Linha>}
       {r.naoContem.length > 0 && <Linha icone={ICONE.naoContem} titulo={T.naoContem}>{M.juntar(r.naoContem)}</Linha>}
-      {r.naoInformado.length > 0 && <Linha tipo="ni" icone={ICONE.naoInformado} titulo={T.naoInformado}>{M.juntar(r.naoInformado)}</Linha>}
       {extras.length > 0 && <Linha tipo="extra" icone={ICONE.caracteristicas} titulo="Características">{extras.join(' · ')}</Linha>}
     </dl>
   )

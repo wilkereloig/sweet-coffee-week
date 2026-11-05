@@ -23,7 +23,7 @@ import { MAPA_NO_AR } from '../../contexto.js'
  * com o de hoje marcado. Sem as datas da edição, só as frases de sempre.
  */
 function Dias ({ linhas, periodo }) {
-  if (!linhas?.length) return <p className="ct-unidade__ni">{T.horarioNi}</p>
+  if (!linhas?.length) return null
   const datas = periodo ? H.datasDoFestival(String(periodo.inicio || '').slice(0, 10), String(periodo.fim || '').slice(0, 10)) : []
   const dias = H.diasDeLinhas(linhas, datas)
   const frases = M.horarioNoFestival(linhas, periodo)
@@ -61,6 +61,7 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) 
   const comoChegar = M.linkComoChegar(u)
   const obs = comCombo ? M.observacaoUtil(u.combo?.observacao) : ''
   const modos = mostrarModos ? modosDaUnidade(u) : []
+  const endereco = M.enderecoEmLinha(u.endereco)
   return (
     <article className="ct-unidade" aria-labelledby={`un-${u.id}`}>
       <header className="ct-unidade__cab">
@@ -76,8 +77,10 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) 
       </header>
       <div className="ct-unidade__corpo">
         <div className="ct-unidade__onde">
-          <p className="ct-unidade__linha"><ScwIcon nome={ICONE.endereco} tamanho={20} />
-            <span>{M.enderecoEmLinha(u.endereco) || T.unidadesNi}{u.endereco?.referencia ? ` (${u.endereco.referencia})` : ''}</span></p>
+          {endereco && (
+            <p className="ct-unidade__linha"><ScwIcon nome={ICONE.endereco} tamanho={20} />
+              <span>{endereco}{u.endereco?.referencia ? ` (${u.endereco.referencia})` : ''}</span></p>
+          )}
           {modos.length > 0 && (
             <ul className="ct-unidade__modos" aria-label={T.unidadesComModos}>
               {modos.map((k) => <li key={k}><Pilula>{ATENDIMENTO[k].rotulo}</Pilula></li>)}
@@ -92,7 +95,7 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) 
             {MAPA_NO_AR && u.coordenada && navigate && <Botao tipo="secundario" href={`${EDICAO.caminho}/mapa?unidade=${u.id}`} navigate={navigate}><ScwIcon nome={ICONE.mapa} tamanho={20} />{T.verNoMapa}</Botao>}
           </div>
         </div>
-        {comCombo && (
+        {comCombo && u.combo?.disponibilidade?.length > 0 && (
           <div className="ct-unidade__horario">
             <p className="ct-unidade__linha ct-rotulo"><ScwIcon nome={ICONE.horario} tamanho={20} /><span>{T.horarioFestival}</span></p>
             <Dias linhas={u.combo?.disponibilidade} periodo={periodo} />
@@ -105,16 +108,15 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) 
 
 export function Unidades ({ p, navigate, comCombo, rota, periodo }) {
   const unidades = p.unidades || []
+  if (!unidades.length) return null // casa sem unidade informada: a seção não aparece (nada de "não informado")
   // Só vale dizer o que cada unidade atende quando elas não atendem todas do mesmo jeito (senão é o que "Como pedir" já disse).
   const mostrarModos = comCombo && unidades.length > 1 && new Set(unidades.map((u) => modosDaUnidade(u).join())).size > 1
   return (
     <section id="unidades" className="ct-bloco ct-ficha__secao" aria-labelledby="un-titulo">
       <Letreiro id="un-titulo" texto={T.unidadesTitulo(unidades.length)} />
-      {unidades.length ? (
-        <div className={`ct-unidades${unidades.length > 1 ? ' ct-unidades--varias' : ''}`}>
-          {unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={comCombo} rota={rota} periodo={periodo} mostrarModos={mostrarModos} />)}
-        </div>
-      ) : <p className="ct-ni">{T.unidadesNi}</p>}
+      <div className={`ct-unidades${unidades.length > 1 ? ' ct-unidades--varias' : ''}`}>
+        {unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={comCombo} rota={rota} periodo={periodo} mostrarModos={mostrarModos} />)}
+      </div>
     </section>
   )
 }
