@@ -408,6 +408,44 @@ Mesmo conteúdo, mesmos dados e estados, outra organização (`paginas/mapa/*`, 
 - **Testes:** `tests/cartoon-caca-mapa.test.mjs` (contagens, textos, contrato da tela cheia) e as seções 5 e 12 de
   `tests/cartoon-caca-navegador.mjs` (folhas, tela cheia repetida em 360/390/768/1440/844×390, mapa real em tela cheia).
 
+## 14.13-b · O desenho cobre a janela e se explora por arraste (06/11/2026)
+
+O Mundo da Doçura funciona como cenário de jogo: a arte **preenche toda a área do mapa** e o resto se alcança movendo o
+desenho. Código: `src/edicao/cartoon/paginas/mapa/camera.js` (matemática pura) + `Mundo.jsx` (gestos e aplicação).
+
+- **Cobrir, não caber.** A escala mínima é a que preenche as duas dimensões da janela (`max(w/arte.w, h/arte.h)`): sem faixa
+  vazia, sem margem de cor, sem esticar. O que sobra num eixo fica fora da tela. No celular em pé a arte (horizontal, 5882×4146)
+  aparece ampliada e se explora de lado; no desktop a janela tem proporção parecida e quase nada sobra.
+- **Câmera.** `{z, x, y}`: `z` é o zoom relativo ao "cobrir" (mínimo 1, máximo 3), `x`,`y` o canto do palco na janela. Os
+  limites mantêm a arte sempre cobrindo a janela: chega-se a todas as bordas, nunca além delas. A câmera mora numa `ref` e é
+  escrita direto no palco (largura em px + `translate3d`), sem re-render a cada quadro; só o que muda fora do palco (rótulos
+  do zoom, botões desligados, largura pedida ao `srcSet`) é estado do React. O palco expõe `data-z/x/y` para teste.
+- **Redimensionar mantém o centro.** `ResizeObserver` na janela: rotação, tela cheia, teclado virtual ou janela do navegador
+  mudam o tamanho e o ponto da arte que estava no centro continua no centro, no mesmo zoom (sem salto).
+- **Gestos.** Pointer Events: um dedo/mouse arrasta (limiar de 6 px); dois dedos fazem pinça (ponto médio acompanha); ao soltar um
+  dedo da pinça o outro segue arrastando sem salto. `touch-action: none` na janela: a página não rola nem aproxima por
+  cima do mapa (a página rola por fora do quadro). **Arrastar não aciona o pin**: o clique que o navegador gera depois de um
+  arraste é descartado (350 ms). Duplo toque/clique em ponto sem pin aproxima ×2 naquele ponto; no máximo, volta ao início.
+- **Roda e trackpad.** Ctrl/⌘ + roda e a pinça do trackpad aproximam em qualquer lugar (no ponto do cursor). Na página a roda
+  comum **não é do mapa** (segue rolando a página). Na tela cheia (`rodaAproxima`) a roda do mouse dá zoom e a rolagem de dois
+  dedos do trackpad arrasta o mapa.
+- **Sem depender de gesto.** Botões Aproximar/Afastar (44 px, 1,5× por clique, desligam no mínimo e no máximo), teclado (setas,
+  + − 0), a lista rápida de casas (escolher a casa leva o desenho até ela) e o aviso de teclado lido pelo leitor de tela.
+  Com `prefers-reduced-motion` nada anima: o zoom por botão e a ida até a casa são instantâneos.
+- **Tela cheia** segue sendo o mesmo contêiner expandido (`useTelaCheia`): o mapa ocupa a área útil abaixo da barra, vai até a
+  borda de baixo e os controles/etiquetas respeitam as safe areas; no iPhone vale o modo por CSS (sem Fullscreen API). O hook
+  não guarda mais o centro: a câmera cuida disso ao medir a janela. O `Mundo` continua sem conhecer a tela cheia (a prop é
+  `rodaAproxima`).
+- **Testes.** `tests/cartoon-mapa-camera.test.mjs` (matemática: cobertura em 5 proporções de janela, bordas, zoom no ponto,
+  pinça, redimensionar); `npm run test:mapa-camera` (`tests/cartoon-mapa-camera-navegador.mjs`, Playwright: toque por CDP,
+  mouse, roda, rotação, tela cheia, 360×640 a 1920×700; capturas em `MAPA_E2E_CAPTURAS`). As seções 5 e 12 do E2E da Caça foram
+  ajustadas ao novo modelo (leem `data-z/x/y`, esperam a animação do botão).
+- **Não testado:** iPhone/Safari e Android reais (Fullscreen API, barra do navegador, botão Voltar com a tela cheia aberta,
+  inércia do toque). No Chrome sintético um arrasto rápido vira "fling" e o toque seguinte só o cancela (também fora do
+  mapa): o teste solta o dedo parado.
+- **Escolha de projeto:** no celular o arraste de um dedo pertence ao mapa mesmo na página (cenário de jogo); a página rola pelos
+  trechos fora do quadro e a tela cheia é a saída para explorar sem rolar nada.
+
 ## 14.14 · Caça aos Carimbos: QR do display e carimbo pendente (04/11/2026)
 
 - **[Decisão]** Wilker, 04/11: a ativação se chama **Caça aos Carimbos** (Mapa da Doçura é o nome do mapa). Regras completas

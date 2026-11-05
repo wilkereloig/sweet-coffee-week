@@ -741,8 +741,8 @@ async function atalhosDoJogo (p, ro) {
   checar(g.w >= 43.5 && g.h >= 43.5 && g.l >= 0 && g.r <= g.iw && g.bt <= g.ih && g.abaixoDaBarra && !g.cobreZoom, `${ro}: atalhos: botão ≥ 44px, dentro da tela, abaixo da barra e longe do zoom`)
   checar(/^Atalhos do jogo, 2 de 26 casas validadas$/.test(await botao.getAttribute('aria-label')), `${ro}: atalhos: o botão tem nome com o placar`)
   const estado = () => dom(p, () => {
-    const j = document.querySelector('.ct-mundo__janela')
-    return { l: Math.round(j.scrollLeft), t: Math.round(j.scrollTop), zoom: document.querySelector('.ct-mundo__palco').style.getPropertyValue('--zoom'), card: document.querySelector('.ct-mapa__cartao h2')?.textContent || '', filtros: document.querySelector('.ct-mapa__filtros-botao').getAttribute('aria-label') }
+    const pl = document.querySelector('.ct-mundo__palco').dataset // câmera do mapa (camera.js): zoom e posição do desenho
+    return { l: Number(pl.x), t: Number(pl.y), zoom: pl.z, card: document.querySelector('.ct-mapa__cartao h2')?.textContent || '', filtros: document.querySelector('.ct-mapa__filtros-botao').getAttribute('aria-label') }
   })
   const antes = await estado()
   const lista = p.getByRole('list', { name: 'Atalhos do jogo' })
@@ -845,6 +845,7 @@ async function mapaTelaCheiaEFolhas () {
     checar(/1 filtro ativo/.test(await p.getByRole('button', { name: /^Filtros/ }).getAttribute('aria-label')), `${onde} filtros: ativo continua contado depois de fechar`)
 
     await p.locator('.ct-mundo__zoom-botao').first().evaluate((b) => b.click()) // aproximar
+    await p.waitForTimeout(450) // o zoom por botão anima em ~240 ms
     checar(await p.locator('.ct-mundo__janela.is-zoom').count() === 1, `${onde} zoom do desenho ligado`)
     await p.locator('button[aria-label*="Cookitos"]').first().evaluate((b) => b.click())
     const cartao = p.locator('.ct-mapa__cartao')
@@ -868,7 +869,7 @@ async function mapaTelaCheiaEFolhas () {
 
     // ---- tela cheia: entrar e sair várias vezes, com o mesmo estado, pelo teclado ----
     const nomeAntes = folha.nome
-    const zoomAntes = await p.locator('.ct-mundo__palco').evaluate((e) => e.style.getPropertyValue('--zoom'))
+    const zoomAntes = await p.locator('.ct-mundo__palco').evaluate((e) => e.dataset.z)
     for (let volta = 1; volta <= 3; volta++) {
       await abrir.focus() // o foco já rola o botão para a tela; a posição "de antes" é a de agora
       await esperarRolagem(p)
@@ -887,7 +888,7 @@ async function mapaTelaCheiaEFolhas () {
       if (volta === 1) {
         checar((await p.locator('.ct-mapa__cartao h2').textContent()) === nomeAntes, `${ro}: a casa escolhida continua escolhida (cartão dentro da tela cheia)`)
         checar(/1 filtro ativo/.test(await p.getByRole('button', { name: /^Filtros/ }).getAttribute('aria-label')), `${ro}: o filtro continua ativo`)
-        checar((await p.locator('.ct-mundo__palco').evaluate((el) => el.style.getPropertyValue('--zoom'))) === zoomAntes && await p.locator('.ct-mundo__janela.is-zoom').count() === 1, `${ro}: o zoom continua o mesmo`)
+        checar((await p.locator('.ct-mundo__palco').evaluate((el) => el.dataset.z)) === zoomAntes && await p.locator('.ct-mundo__janela.is-zoom').count() === 1, `${ro}: o zoom continua o mesmo`)
         // Tab preso na tela cheia, para frente e para trás
         const dentro = []
         for (let i = 0; i < 30; i++) { await p.keyboard.press('Tab'); dentro.push(await dom(p, () => !!document.activeElement?.closest('.ct-mapa__explorar.is-cheia'))) }
@@ -1000,10 +1001,10 @@ async function mapaUnicoRota () {
     if (w < 900) {
       await c.page.locator('.ct-folha-m--painel .ct-mapa__fechar').click()
       checar(await c.page.locator('.ct-folha-m--painel.is-aberta').count() === 0, `@${w} o botão Fechar da rota devolve o mapa`)
-      checar(await c.page.evaluate(() => document.activeElement?.classList.contains('ct-mapa__rota-botao')), `@${w} o foco volta ao botão "Minha rota"`)
+      checar(await c.page.waitForFunction(() => document.activeElement?.classList.contains('ct-mapa__rota-botao'), null, { timeout: 1500 }).then(() => true, () => false), `@${w} o foco volta ao botão "Minha rota" (devolvido no quadro seguinte)`)
     }
     const w0 = await palco()
-    for (let i = 0; i < 2; i++) await c.page.locator('.ct-mundo__zoom-botao').first().evaluate((b) => b.click())
+    for (let i = 0; i < 2; i++) { await c.page.locator('.ct-mundo__zoom-botao').first().evaluate((b) => b.click()); await c.page.waitForTimeout(450) }
     const w1 = await palco()
     await c.page.locator('.ct-mundo__casa').first().evaluate((b) => b.click())
     await c.page.locator('.ct-mapa__cartao').waitFor({ timeout: 5000 })

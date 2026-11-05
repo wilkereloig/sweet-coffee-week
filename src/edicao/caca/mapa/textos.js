@@ -62,7 +62,7 @@ export const MAPA_CACA = {
   zoom: 'Zoom do desenho',
   aproximar: 'Aproximar',
   afastar: 'Afastar',
-  teclado: 'Com o desenho em foco: setas movem, + e − dão zoom, 0 volta ao mundo inteiro.',
+  teclado: 'Com o desenho em foco: setas movem, + e − dão zoom, 0 volta à vista de abertura. Também dá para arrastar, usar a pinça e os botões de zoom, ou escolher a casa na lista.',
   credito: 'Base geográfica © colaboradores do OpenStreetMap',
   casaNoMundo: ({ numero, titulo, nomeCasa, enderecos, tema, estado, revisitas, parada, proxima }) => [
     `${numero}. ${nomeCasa || titulo}`,

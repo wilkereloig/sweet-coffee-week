@@ -9,33 +9,18 @@
  *   · Fullscreen API só como melhoria — o iPhone não a tem para elementos de página, e o modo por CSS vale por si.
  *     Se o navegador sair da tela cheia por conta própria (Esc do navegador), a nossa fecha junto: um passo só.
  * `raizRef`: o contêiner que vira a tela cheia (ele também é o alvo do requestFullscreen, para as folhas continuarem dentro).
- * `rolavel`: seletor da janela rolável do desenho (Mundo). Ao entrar e sair ela muda de tamanho; o ponto que estava no
- *   CENTRO dela continua no centro (os mapas reais — Google e MapLibre — já mantêm o centro sozinhos).
+ * Ao entrar e sair a janela do desenho muda de tamanho; quem mantém o ponto do centro (e o zoom) é a câmera do Mundo, que
+ * observa o próprio tamanho (camera.js · redimensionar); os mapas reais — Google e MapLibre — já mantêm o centro sozinhos.
  */
 import React from 'react'
 import { travar, soltar, useEscape, prenderTab, devolverFoco } from './interacao.js'
 
-export function useTelaCheia (raizRef, { rolavel = '.ct-mundo__janela' } = {}) {
+export function useTelaCheia (raizRef) {
   const [cheia, setCheia] = React.useState(false)
   const quem = React.useRef(null)
-  const centro = React.useRef(null)
   const rolagem = React.useRef(0)
-  const guardarCentro = () => {
-    const j = raizRef.current?.querySelector(rolavel)
-    centro.current = j && j.scrollWidth && j.scrollHeight ? { x: (j.scrollLeft + j.clientWidth / 2) / j.scrollWidth, y: (j.scrollTop + j.clientHeight / 2) / j.scrollHeight } : null
-  }
-  const abrir = React.useCallback(() => { quem.current = document.activeElement; rolagem.current = window.scrollY; guardarCentro(); setCheia(true) }, [])
-  const fechar = React.useCallback(() => { guardarCentro(); setCheia(false) }, [])
-
-  // Depois da troca de tamanho (antes da pintura), devolve o centro de antes.
-  React.useLayoutEffect(() => {
-    const j = raizRef.current?.querySelector(rolavel)
-    const c = centro.current
-    centro.current = null
-    if (!j || !c) return
-    j.scrollLeft = c.x * j.scrollWidth - j.clientWidth / 2
-    j.scrollTop = c.y * j.scrollHeight - j.clientHeight / 2
-  }, [cheia])
+  const abrir = React.useCallback(() => { quem.current = document.activeElement; rolagem.current = window.scrollY; setCheia(true) }, [])
+  const fechar = React.useCallback(() => setCheia(false), [])
 
   useEscape(cheia, fechar)
 

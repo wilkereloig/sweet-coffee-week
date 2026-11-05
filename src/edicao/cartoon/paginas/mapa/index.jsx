@@ -320,7 +320,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
               {vista === 'mundo' && (
                 <>
                   {!mundo.aprovada && <p className="ct-nota ct-mapa__previa" role="note">{TC.previa}</p>}
-                  <Mundo mundo={mundo} casas={casasMundo} agencias={agencias.filter((a) => a.x !== null && a.y !== null)} trilha={trilha}
+                  <Mundo rodaAproxima={cheia} mundo={mundo} casas={casasMundo} agencias={agencias.filter((a) => a.x !== null && a.y !== null)} trilha={trilha}
                     selecionada={sel} aoSelecionar={escolher} recentes={recentes} />
                 </>
               )}

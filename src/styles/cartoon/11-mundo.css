@@ -3,23 +3,18 @@
    Arte final (05/11): sem bandeiras na imagem; os pins com a logo da casa são desenhados por código. */
 .ct-mundo { position: relative; display: grid; gap: 8px; }
 .ct-mundo__janela {
-  position: relative; overflow: auto; overscroll-behavior: contain; display: flex; flex-direction: column;
+  position: relative; overflow: hidden; overscroll-behavior: contain;
   height: var(--ct-mapa-alto, 62svh); /* a medida vem do contêiner da página (16-mapa-tela.css): igual na página, na tela cheia e no desktop */
   border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-azul); box-shadow: var(--ct-sombra-p); cursor: grab;
-  touch-action: manipulation; /* rolagem e pinça do navegador seguem; o duplo toque é do desenho (zoom) */
-  /* Respiro no topo: o botão "Tela cheia" mora aí e os pins do alto (pin e selos sobem ~1,5·d acima do pé do mastro) não podem
-     ficar sob ele nem cortados pela borda. O palco desconta esta faixa para o mundo inteiro continuar cabendo. */
-  --ct-topo: 56px; padding-top: var(--ct-topo);
+  /* O mapa é um cenário de jogo: um dedo arrasta, dois dão pinça (camera.js + Mundo.jsx). O navegador não rola nem aproxima a
+     página por cima dele; a página continua rolando por fora do quadro. */
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
-@media (min-width: 900px) { .ct-mundo__janela { --ct-topo: 80px; } }
+.ct-mundo__janela.is-arrastando { cursor: grabbing; }
 .ct-mundo__janela:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
-/* Zoom 1 = o mundo inteiro: retrato no celular ocupa a largura da tela; paisagem (v2) ganha a altura da janela e rola
-   de lado dentro dela. No desktop, cabe inteiro na janela (e o desenho fica centrado quando sobra espaço). `margin: auto`
-   no palco centra sem esconder o topo/esquerda quando o desenho passa da janela (rolagem segue alcançando tudo). */
-.ct-mundo__palco { position: relative; flex: none; container-type: inline-size; width: calc(var(--zoom, 1) * max(100%, (var(--ct-mapa-alto, 62svh) - var(--ct-topo, 0px)) * var(--proporcao, 1))); max-width: none; margin: auto; }
-@media (min-width: 900px) {
-  .ct-mundo__palco { width: calc(var(--zoom, 1) * min(100%, (var(--ct-mapa-alto, 62svh) - var(--ct-topo, 0px)) * var(--proporcao))); }
-}
+/* O palco COBRE a janela (sem faixa vazia, sem esticar): Mundo.jsx escreve a largura em px e o translate; a regra abaixo é só a
+   primeira pintura, antes do JS medir (mesma conta do "cobrir": a maior entre a largura da janela e a altura × proporção). */
+.ct-mundo__palco { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; container-type: inline-size; width: max(100%, calc(var(--ct-mapa-alto, 62svh) * var(--proporcao, 1))); max-width: none; }
 .ct-mundo__arte { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
 .ct-mundo__palco { background-size: cover; background-position: center; } /* placeholder borrado até a primeira pintura */
 

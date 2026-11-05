@@ -18,9 +18,13 @@
  *
  * A rota do visitante é um traçado SVG esquemático entre as paradas (não segue rua; o aviso fixo diz isso). A arte NÃO mostra
  * posição real: para chegar, o cartão da casa abre o Google Maps.
- * Zoom: botões (3 níveis), teclado (+ − 0, setas), Ctrl+roda/pinça do trackpad e duplo toque/clique. Arrastar: rolagem
- * nativa da janela (toque e trackpad) + arraste com o mouse. A pinça de dois dedos do celular fica com o navegador; no
- * desenho, o zoom por toque é o duplo toque e os botões de 44 px.
+ * CÂMERA (camera.js; docs/cartoon-2026-2/14 §14.13-b): o desenho COBRE a janela — escala mínima = a que preenche as duas
+ * dimensões, sem esticar e sem faixa vazia; o que sobra num eixo fica fora da tela e se alcança arrastando (no celular em pé
+ * a arte, horizontal, aparece ampliada). Arrastar (mouse, toque, caneta), pinça de dois dedos, Ctrl/⌘+roda e pinça do
+ * trackpad, duplo toque/clique, botões de 44 px, teclado (setas, + − 0) e a lista rápida (escolher a casa leva o desenho até
+ * ela). Com `rodaAproxima` (quem usa o mapa como tela inteira) a roda do mouse também dá zoom; sem ela, segue rolando a página. Os limites nunca deixam a arte
+ * sair da janela. A câmera vive numa ref e é escrita direto no palco (largura + translate); janela que muda de tamanho
+ * (rotação, janela maior ou menor) mantém o centro e o zoom. Arrastar não aciona o pin por onde o dedo passou.
  * `casas` (uma linha por UNIDADE, como a lista): [{ id, slug, x, y, numero, titulo, nomeCasa, tema, pin, inicial, apagada, parada, estado,
  * revisitas, proxima }] — o componente junta as unidades da mesma casa. `agencias`: [{ id, nome, endereco, x, y }].
  */
@@ -29,19 +33,32 @@ import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../../../caca/mapa/imagens.js'
 import { agruparPorCasa } from '../../../rota/mundo.js'
+import { ZOOM_MAX, ZOOM_MIN, ZOOM_PASSO, entreCameras, inicial, limitar, panar, pinca, redimensionar, tamanhoDoPalco, zoomarEm } from './camera.js'
 
-const NIVEIS = [1, 1.5, 2.25]
 const PASSO_TECLA = 80
+const LIMIAR_ARRASTO = 6 // px: abaixo disso é toque (seleciona a casa); acima é arraste (não aciona o pin)
+const JANELA_DO_CLIQUE = 350 // ms depois de um arraste em que o clique do pin é descartado
+const DUPLO_TOQUE = { ms: 320, px: 30 }
 const pos = (p) => ({ left: `${p.x * 100}%`, top: `${p.y * 100}%` })
 const reduzirMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+const limite = (v, m) => Math.min(m, Math.max(-m, v))
 
-export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSelecionar, recentes = new Set() }) {
+export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSelecionar, recentes = new Set(), rodaAproxima = false }) {
   const janela = React.useRef(null)
-  const centro = React.useRef(null)
-  const arraste = React.useRef(null)
-  const ultimoZoom = React.useRef(0)
-  const [nivel, setNivel] = React.useState(0)
+  const palco = React.useRef(null)
+  const camera = React.useRef(null) // {z, x, y} (camera.js): fica em ref, o desenho é aplicado direto no palco (60 fps sem re-render)
+  const medida = React.useRef(null) // {w, h} da janela
+  const toques = React.useRef(new Map())
+  const gesto = React.useRef(null)
+  const animacao = React.useRef(0)
+  const fimDoArrasto = React.useRef(0)
+  const toqueAnterior = React.useRef(null)
+  const rodaRef = React.useRef(rodaAproxima)
+  rodaRef.current = rodaAproxima
   const [largura, altura] = mundo.quadro
+  const A = React.useMemo(() => ({ w: largura, h: altura }), [largura, altura])
+  // Só o que muda a aparência fora do palco entra no estado: rótulos do zoom, botões desligados e a largura pedida ao srcSet.
+  const [vista, setVista] = React.useState({ zoom: false, min: true, max: false, larg: 1024 })
   // Primeira pintura leve: placeholder borrado de fundo e a imagem menor (1024); a escada de resoluções (srcSet) só liga depois.
   const [nitida, setNitida] = React.useState(false)
   const grupos = React.useMemo(() => agruparPorCasa(casas), [casas])
@@ -49,87 +66,188 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
   const alvo = React.useMemo(() => grupos.find((g) => g.ids.includes(selecionada))?.id || selecionada, [grupos, selecionada])
   const ajudaId = React.useId()
 
-  // `ponto` (fração do desenho, de 0 a 1) vira o centro da janela depois do zoom; sem ele, fica o que estava no centro.
-  const mudarZoom = React.useCallback((passo, ponto = null) => {
-    const j = janela.current
-    if (j) centro.current = ponto || { x: (j.scrollLeft + j.clientWidth / 2) / j.scrollWidth, y: (j.scrollTop + j.clientHeight / 2) / j.scrollHeight }
-    setNivel((n) => (passo === 0 ? 0 : Math.min(NIVEIS.length - 1, Math.max(0, n + passo))))
-  }, [])
-  const pontoDoEvento = (e) => {
-    const j = janela.current; const r = j.getBoundingClientRect()
-    return { x: (j.scrollLeft + e.clientX - r.left) / j.scrollWidth, y: (j.scrollTop + e.clientY - r.top) / j.scrollHeight }
+  const parar = () => { cancelAnimationFrame(animacao.current); animacao.current = 0 }
+
+  // Aplica a câmera ao palco (limitada): largura em px + translate. É a única escrita no desenho.
+  const pintar = React.useCallback((c) => {
+    const j = medida.current; const el = palco.current
+    if (!j || !el) return
+    const k = limitar(c, j, A)
+    camera.current = k
+    const p = tamanhoDoPalco(k, j, A)
+    el.style.width = `${p.w}px`
+    el.style.transform = `translate3d(${k.x}px, ${k.y}px, 0)`
+    el.dataset.z = k.z.toFixed(3); el.dataset.x = String(Math.round(k.x)); el.dataset.y = String(Math.round(k.y)) // leitura para testes e depuração
+    const prox = { zoom: k.z > 1.2, min: k.z <= ZOOM_MIN + 1e-3, max: k.z >= ZOOM_MAX - 1e-3, larg: Math.ceil(p.w / 256) * 256 }
+    setVista((v) => (v.zoom === prox.zoom && v.min === prox.min && v.max === prox.max && v.larg === prox.larg ? v : prox))
+  }, [A])
+
+  // Vai até a câmera `c1` (botões, duplo toque, casa escolhida); sem animação com prefers-reduced-motion.
+  const irPara = React.useCallback((c1, ms = 240) => {
+    parar()
+    const c0 = camera.current; const j = medida.current
+    if (!c0 || !j) return
+    const fim = limitar(c1, j, A)
+    if (reduzirMovimento() || ms <= 0) { pintar(fim); return }
+    const t0 = performance.now()
+    const passo = (t) => {
+      const k = Math.min(1, (t - t0) / ms)
+      pintar(entreCameras(c0, fim, 1 - (1 - k) ** 3))
+      animacao.current = k < 1 ? requestAnimationFrame(passo) : 0
+    }
+    animacao.current = requestAnimationFrame(passo)
+  }, [A, pintar])
+
+  const zoomar = (fator, fx, fy) => {
+    const c = camera.current; const j = medida.current
+    if (!c || !j) return
+    irPara(zoomarEm(c, c.z * fator, fx ?? j.w / 2, fy ?? j.h / 2, j, A))
   }
+  const restaurar = () => { if (medida.current) irPara(inicial(medida.current, A)) }
 
-  // O zoom mantém no centro o que estava no centro.
+  // Mede a janela e a cobre com a arte. Ao mudar de tamanho (rotação, janela maior ou menor, janela do navegador) o ponto que estava no
+  // CENTRO continua no centro, no mesmo zoom: sem salto. O ResizeObserver avisa antes da pintura.
   React.useLayoutEffect(() => {
-    const j = janela.current; const c = centro.current
-    if (!j || !c) return
-    j.scrollLeft = c.x * j.scrollWidth - j.clientWidth / 2
-    j.scrollTop = c.y * j.scrollHeight - j.clientHeight / 2
-    centro.current = null
-  }, [nivel])
+    const el = janela.current
+    const medir = () => {
+      const nova = { w: el.clientWidth, h: el.clientHeight }
+      if (!nova.w || !nova.h) return
+      const velha = medida.current
+      if (velha && velha.w === nova.w && velha.h === nova.h) return
+      medida.current = nova
+      parar()
+      pintar(camera.current && velha ? redimensionar(camera.current, velha, nova, A) : inicial(nova, A))
+    }
+    medir()
+    const ro = new ResizeObserver(medir)
+    ro.observe(el)
+    return () => { ro.disconnect(); parar() }
+  }, [A, pintar])
 
-  // Casa escolhida (na lista, no cartão) fora da janela: a janela rola até ela, sem mexer na página.
+  // Casa escolhida (na lista, no cartão) fora da janela: a câmera vai até ela, sem mexer na página.
   React.useEffect(() => {
     const j = janela.current
     const b = alvo && j?.querySelector(`[data-casa="${alvo}"]`)
-    if (!b) return
+    if (!b || !camera.current) return
     const jr = j.getBoundingClientRect(); const br = b.getBoundingClientRect()
-    if (br.left >= jr.left && br.right <= jr.right && br.top >= jr.top && br.bottom <= jr.bottom) return
-    j.scrollTo({ left: j.scrollLeft + br.left - jr.left - (jr.width - br.width) / 2, top: j.scrollTop + br.top - jr.top - (jr.height - br.height) / 2, behavior: reduzirMovimento() ? 'auto' : 'smooth' })
-  }, [alvo])
+    const folga = 28
+    if (br.left >= jr.left + folga && br.right <= jr.right - folga && br.top >= jr.top + folga && br.bottom <= jr.bottom - folga) return
+    irPara(panar(camera.current, jr.left + jr.width / 2 - (br.left + br.width / 2), jr.top + jr.height / 2 - (br.top + br.height / 2), medida.current, A))
+  }, [alvo]) // eslint-disable-line react-hooks/exhaustive-deps -- só reage à troca de casa; irPara e A são estáveis para o mesmo mundo
 
-  // Pinça do trackpad (Ctrl + roda): um passo de zoom por gesto, sem aproximar a página inteira. Listener nativo porque o
-  // do React é passivo e não deixa cancelar o zoom do navegador.
+  // Roda e trackpad. Listener nativo porque o do React é passivo e não deixa cancelar a rolagem/zoom do navegador.
+  //  · Ctrl/⌘ + roda (e a pinça do trackpad) aproximam em qualquer lugar;
+  //  · com `rodaAproxima` a roda do mouse também dá zoom e a rolagem de dois dedos do trackpad arrasta o mapa;
+  //  · na página, a roda comum NÃO é do mapa: segue rolando a página.
   React.useEffect(() => {
-    const j = janela.current
-    if (!j) return undefined
+    const el = janela.current
+    if (!el) return undefined
     const roda = (e) => {
-      if (!e.ctrlKey) return
+      const pinca = e.ctrlKey || e.metaKey
+      if (!pinca && !rodaRef.current) return
+      const c = camera.current; const j = medida.current
+      if (!c || !j) return
       e.preventDefault()
-      if (Date.now() - ultimoZoom.current < 260) return
-      ultimoZoom.current = Date.now()
-      mudarZoom(e.deltaY < 0 ? 1 : -1, pontoDoEvento(e))
+      parar()
+      const k = e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1
+      const dx = e.deltaX * k; const dy = e.deltaY * k
+      if (!pinca && (dx !== 0 || Math.abs(dy) < 40)) { pintar(panar(c, -dx, -dy, j, A)); return } // trackpad: dois dedos arrastam
+      const r = el.getBoundingClientRect()
+      const passo = pinca ? limite(dy, 40) * 0.01 : limite(dy, 120) * 0.0015
+      pintar(zoomarEm(c, c.z * Math.exp(-passo), e.clientX - r.left - el.clientLeft, e.clientY - r.top - el.clientTop, j, A))
     }
-    j.addEventListener('wheel', roda, { passive: false })
-    return () => j.removeEventListener('wheel', roda)
-  }, [mudarZoom])
+    el.addEventListener('wheel', roda, { passive: false })
+    return () => el.removeEventListener('wheel', roda)
+  }, [A, pintar])
 
+  // ---- ponteiros: um dedo/mouse arrasta, dois dedos fazem pinça; arrastar não aciona o pin por onde o dedo passou ----
+  const origem = () => { const el = janela.current; const r = el.getBoundingClientRect(); return [r.left + el.clientLeft, r.top + el.clientTop] }
+  const dosDedos = (o) => {
+    const [a, b] = [...toques.current.values()]
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2 - o[0], y: (a.y + b.y) / 2 - o[1] }
+  }
   const aoApertar = (e) => {
-    if (e.pointerType !== 'mouse' || e.button !== 0 || e.target.closest('button')) return
-    const j = janela.current
-    arraste.current = { x: e.clientX, y: e.clientY, l: j.scrollLeft, t: j.scrollTop }
-    j.setPointerCapture(e.pointerId)
+    if ((e.pointerType === 'mouse' && e.button !== 0) || !camera.current) return
+    const el = janela.current
+    parar()
+    fimDoArrasto.current = 0
+    toques.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (toques.current.size === 1) {
+      gesto.current = { tipo: 'arrasto', x0: e.clientX, y0: e.clientY, c0: camera.current, moveu: false, o: origem() }
+    } else if (toques.current.size === 2) {
+      const o = origem()
+      gesto.current = { tipo: 'pinca', p0: dosDedos(o), c0: camera.current, moveu: true, o }
+      for (const id of toques.current.keys()) { try { el.setPointerCapture(id) } catch { /* ponteiro já encerrado */ } }
+      el.classList.add('is-arrastando')
+    }
   }
   const aoMover = (e) => {
-    const a = arraste.current
-    if (!a) return
-    janela.current.scrollLeft = a.l - (e.clientX - a.x)
-    janela.current.scrollTop = a.t - (e.clientY - a.y)
+    const t = toques.current.get(e.pointerId)
+    const g = gesto.current
+    if (!t || !g) return
+    t.x = e.clientX; t.y = e.clientY
+    const j = medida.current
+    if (g.tipo === 'pinca') {
+      if (toques.current.size >= 2) pintar(pinca(g.c0, g.p0, dosDedos(g.o), j, A))
+      return
+    }
+    const dx = e.clientX - g.x0; const dy = e.clientY - g.y0
+    if (!g.moveu) {
+      if (Math.hypot(dx, dy) < LIMIAR_ARRASTO) return
+      g.moveu = true
+      try { janela.current.setPointerCapture(e.pointerId) } catch { /* ponteiro já encerrado */ }
+      janela.current.classList.add('is-arrastando')
+    }
+    pintar(panar(g.c0, dx, dy, j, A))
   }
-  const aoSoltar = () => { arraste.current = null }
-  const aoDuploToque = (e) => {
-    if (e.target.closest('button')) return
-    mudarZoom(nivel === NIVEIS.length - 1 ? 0 : 1, pontoDoEvento(e))
+  const aoSoltar = (e) => {
+    if (!toques.current.delete(e.pointerId)) return
+    const el = janela.current
+    const g = gesto.current
+    if (el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture(e.pointerId)
+    if (g?.tipo === 'pinca' && toques.current.size === 1) { // sobrou um dedo: segue arrastando, sem salto
+      const [resto] = toques.current.values()
+      gesto.current = { tipo: 'arrasto', x0: resto.x, y0: resto.y, c0: camera.current, moveu: true, o: g.o }
+      return
+    }
+    if (toques.current.size > 0) return
+    gesto.current = null
+    el.classList.remove('is-arrastando')
+    if (g?.moveu) { fimDoArrasto.current = performance.now(); toqueAnterior.current = null; return }
+    // Toque curto: duplo toque/clique (fora dos pins) aproxima naquele ponto, e de novo volta ao mundo inteiro.
+    if (e.type !== 'pointerup' || e.target.closest('button')) return
+    const agora = performance.now()
+    const ant = toqueAnterior.current
+    if (ant && agora - ant.t < DUPLO_TOQUE.ms && Math.hypot(e.clientX - ant.x, e.clientY - ant.y) < DUPLO_TOQUE.px) {
+      toqueAnterior.current = null
+      const c = camera.current; const j = medida.current; const o = origem()
+      if (!c || !j) return
+      if (c.z >= ZOOM_MAX - 0.01) restaurar()
+      else irPara(zoomarEm(c, Math.min(ZOOM_MAX, c.z * 2), e.clientX - o[0], e.clientY - o[1], j, A))
+    } else toqueAnterior.current = { t: agora, x: e.clientX, y: e.clientY }
+  }
+  // O clique que o navegador gera ao fim de um arraste não pode escolher a casa em que o dedo largou.
+  const aoClicarCapturando = (e) => {
+    if (fimDoArrasto.current && performance.now() - fimDoArrasto.current < JANELA_DO_CLIQUE) { e.stopPropagation(); e.preventDefault() }
+    fimDoArrasto.current = 0
   }
   // Teclado: só com a própria janela em foco (os botões das casas seguem com o Tab e o Enter).
   const aoTeclar = (e) => {
-    if (e.target !== janela.current || e.ctrlKey || e.metaKey || e.altKey) return
-    const j = janela.current
-    const mover = { ArrowLeft: [-PASSO_TECLA, 0], ArrowRight: [PASSO_TECLA, 0], ArrowUp: [0, -PASSO_TECLA], ArrowDown: [0, PASSO_TECLA] }[e.key]
-    if (mover) { e.preventDefault(); j.scrollBy({ left: mover[0], top: mover[1] }); return }
-    if (e.key === '+' || e.key === '=') { e.preventDefault(); mudarZoom(1) }
-    else if (e.key === '-' || e.key === '_') { e.preventDefault(); mudarZoom(-1) }
-    else if (e.key === '0') { e.preventDefault(); mudarZoom(0) }
+    if (e.target !== janela.current || e.ctrlKey || e.metaKey || e.altKey || !camera.current) return
+    const mover = { ArrowLeft: [PASSO_TECLA, 0], ArrowRight: [-PASSO_TECLA, 0], ArrowUp: [0, PASSO_TECLA], ArrowDown: [0, -PASSO_TECLA] }[e.key]
+    if (mover) { e.preventDefault(); irPara(panar(camera.current, mover[0], mover[1], medida.current, A), 120); return }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomar(ZOOM_PASSO) }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomar(1 / ZOOM_PASSO) }
+    else if (e.key === '0') { e.preventDefault(); restaurar() }
   }
 
   return (
     <div className="ct-mundo">
       <p className="ct-nota ct-mundo__aviso" role="note">{TC.avisoIlustrado}{trilha ? ` ${TC.avisoTrilha}` : ''}</p>
-      <div ref={janela} className={`ct-mundo__janela${nivel ? ' is-zoom' : ''}`} role="region" aria-label={TC.regiao} aria-describedby={ajudaId} tabIndex={0}
-        onPointerDown={aoApertar} onPointerMove={aoMover} onPointerUp={aoSoltar} onPointerCancel={aoSoltar} onDoubleClick={aoDuploToque} onKeyDown={aoTeclar}>
-        <div className="ct-mundo__palco" style={{ '--zoom': NIVEIS[nivel], '--proporcao': largura / altura, aspectRatio: `${largura} / ${altura}`, ...(mundo.base.placeholder ? { backgroundImage: `url(${mundo.base.placeholder})` } : null) }}>
-          <img className="ct-mundo__arte" src={mundo.base.src} srcSet={nitida ? mundo.base.srcSet : undefined} sizes={`${Math.round(NIVEIS[nivel] * 100)}vw`}
+      <div ref={janela} className={`ct-mundo__janela${vista.zoom ? ' is-zoom' : ''}`} role="region" aria-label={TC.regiao} aria-describedby={ajudaId} tabIndex={0}
+        onPointerDown={aoApertar} onPointerMove={aoMover} onPointerUp={aoSoltar} onPointerCancel={aoSoltar} onClickCapture={aoClicarCapturando} onKeyDown={aoTeclar}>
+        <div ref={palco} className="ct-mundo__palco" style={{ '--proporcao': largura / altura, aspectRatio: `${largura} / ${altura}`, ...(mundo.base.placeholder ? { backgroundImage: `url(${mundo.base.placeholder})` } : null) }}>
+          <img className="ct-mundo__arte" src={mundo.base.src} srcSet={nitida ? mundo.base.srcSet : undefined} sizes={`${vista.larg}px`}
             width={largura} height={altura} alt="" draggable={false} decoding="async" onLoad={() => setNitida(true)} />
           {trilha && (
             <svg className="ct-mundo__trilha" viewBox={`0 0 1000 ${(1000 * altura) / largura}`} preserveAspectRatio="none" aria-hidden="true">
@@ -180,8 +298,8 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
         </div>
       </div>
       <div className="ct-mundo__zoom" role="group" aria-label={TC.zoom}>
-        <button type="button" className="ct-mundo__zoom-botao" onClick={() => mudarZoom(1)} disabled={nivel === NIVEIS.length - 1} aria-label={TC.aproximar}><ScwIcon nome="mais" tamanho={20} /></button>
-        <button type="button" className="ct-mundo__zoom-botao" onClick={() => mudarZoom(-1)} disabled={nivel === 0} aria-label={TC.afastar}><ScwIcon nome="menos" tamanho={20} /></button>
+        <button type="button" className="ct-mundo__zoom-botao" onClick={() => zoomar(ZOOM_PASSO)} disabled={vista.max} aria-label={TC.aproximar}><ScwIcon nome="mais" tamanho={20} /></button>
+        <button type="button" className="ct-mundo__zoom-botao" onClick={() => zoomar(1 / ZOOM_PASSO)} disabled={vista.min} aria-label={TC.afastar}><ScwIcon nome="menos" tamanho={20} /></button>
       </div>
       <p id={ajudaId} className="ct-sr">{TC.teclado}</p>
       <p className="ct-mundo__credito">{TC.credito}</p>
