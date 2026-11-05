@@ -166,7 +166,7 @@ export const CACA = {
   email: {
     aviso: 'Seu e-mail ainda não foi confirmado.',
     ajuda: 'Confirme para receber o prêmio, se for selecionado, e para pedir revisão de presença.',
-    maisDeUmMapa: 'Se você tem mais de um mapa com este e-mail, só o confirmado aparece no ranking e nos grupos.',
+    maisDeUmMapa: 'Se você tem mais de um mapa com este e-mail (criados antes da regra de um mapa por e-mail), só o confirmado aparece no ranking e nos grupos.',
     acao: 'Confirmar e-mail',
     fechar: 'Agora não',
     confirmado: 'E-mail confirmado. Obrigado!',
@@ -176,7 +176,7 @@ export const CACA = {
     linkPedido: (email) => `Pedimos o envio do link para ${email}. Pode levar alguns minutos; confira também o spam.`,
     tentarEnviar: 'Tentar enviar novamente',
     receberLink: 'Receber meu link por e-mail',
-    receberLinkAjuda: 'Enviamos o link pessoal do seu mapa para o seu e-mail confirmado. Serve para abrir o mapa em outro celular.',
+    receberLinkAjuda: 'Podemos enviar o link pessoal do seu mapa para o seu e-mail confirmado. Serve para abrir o mapa em outro celular.',
     enviandoLink: 'Enviando…',
     linkLimitado: 'Você já pediu o link há pouco. Espere um minuto e confira a caixa de entrada e o spam.',
     linkRede: 'Sem conexão agora. Tente de novo em instantes.',

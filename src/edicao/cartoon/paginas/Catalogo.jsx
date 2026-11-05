@@ -24,6 +24,7 @@ import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { SeloDaCasa } from '../../componentes/sistema/SeloDaCasa.jsx'
 import { QueroIrCasa, JaFui } from '../MarcasLover.jsx'
 import { MAPA_NO_AR } from '../contexto.js'
+import { useAgora } from '../useAgora.js'
 import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM, ICONE } from '../textos.js'
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
@@ -115,7 +116,8 @@ export function Catalogo ({ modo, navigate, dados }) {
   const [f, setF] = React.useState(() => ({ ...VAZIO, ...M.filtrosDaBusca(location.search), aberto: false }))
   const [painel, setPainel] = React.useState(false)
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, dados.edicao), [lista, dados.edicao])
-  const filtrados = React.useMemo(() => M.filtrar(lista, f), [lista, f])
+  const agora = useAgora() // "Com combo hoje" acompanha o relógio: a lista aberta a noite toda não congela o horário
+  const filtrados = React.useMemo(() => M.filtrar(lista, f, agora), [lista, f, agora])
   const ativos = [f.bairro, f.modo, f.hoje, f.vegano, f.semAcucar, f.semGluten, f.semLactose].filter(Boolean).length
   const restricoes = FILTROS_RESTRICAO.filter(([k]) => opcoes[k])
   const combos = modo === 'combos'

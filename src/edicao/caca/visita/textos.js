@@ -33,7 +33,7 @@ export const VISITA = {
   notaAjuda: 'Ajuda a organização a analisar: com quem foi, o que pediu, que horas. Não escreva dados pessoais além do necessário.',
   notaMax: 200,
   comprovante: 'Não é preciso comprovante. Se você tiver o recibo, guarde: a organização pode pedir para conferir.',
-  privacidade: 'A organização vê o apelido do mapa, a casa, o endereço, a data e a observação. A casa não participa da análise.',
+  privacidade: 'A organização vê o apelido do mapa, o contato do mapa (e-mail e WhatsApp), a casa, o endereço, a data e a observação. A casa não participa da análise.',
   enviar: 'Enviar pedido à organização',
   enviarN: (n) => (n > 1 ? `Enviar ${n} pedidos à organização` : 'Enviar pedido à organização'),
   enviando: 'Enviando…',

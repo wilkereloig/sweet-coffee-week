@@ -14,7 +14,7 @@ import { tokenValido, grupoIdValido } from './regras.js'
 const MOTIVO = /^[a-z][a-z0-9_]{1,59}$/
 const FINALIDADES = ['confirmar', 'recuperar']
 // Mesmo formato que a edge function e o banco aceitam para ENVIAR código (SEC-07): sem vírgula, aspas, <> ou espaço.
-const EMAIL_ENTREGAVEL = /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,190}.[a-z]{2,24}$/i
+const EMAIL_ENTREGAVEL = /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,190}\.[a-z]{2,24}$/i
 const sem = (motivo) => ({ ok: false, motivo })
 
 /** Mensagem de exceção do PostgREST (ex.: 'email_invalido') → motivo. Qualquer outra coisa (inclusive texto livre) vira 'rede'. */

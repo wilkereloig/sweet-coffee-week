@@ -17,18 +17,19 @@ import { Botao, Pilula } from '../../../componentes/sistema/pecas.jsx'
 import { PARTICIPANTE as T, ATENDIMENTO, ICONE } from '../../textos.js'
 import { QueroIr } from '../../MarcasLover.jsx'
 import { MAPA_NO_AR } from '../../contexto.js'
+import { useAgora } from '../../useAgora.js'
 
 /**
  * O horário no festival. Com as datas da edição: as frases em destaque (a leitura de relance) e, abaixo, os dias um a um
  * com o de hoje marcado. Sem as datas da edição, só as frases de sempre.
  */
-function Dias ({ linhas, periodo }) {
+function Dias ({ linhas, periodo, instante }) {
   if (!linhas?.length) return null
   const datas = periodo ? H.datasDoFestival(String(periodo.inicio || '').slice(0, 10), String(periodo.fim || '').slice(0, 10)) : []
   const dias = H.diasDeLinhas(linhas, datas)
   const frases = M.horarioNoFestival(linhas, periodo)
   if (!dias.some((d) => d.periodos?.length)) return <ul className="ct-unidade__frases">{frases.map((h) => <li key={h}>{h}</li>)}</ul>
-  const hoje = M.hojeEmNatal()
+  const hoje = M.hojeEmNatal(instante)
   const modo = H.modoDeDias(dias)
   return (
     <>
@@ -55,7 +56,8 @@ function Dias ({ linhas, periodo }) {
 const modosDaUnidade = (u) => M.MODOS.map(([k]) => k).filter((k) => u.combo?.modos?.[k] === 'sim')
 
 function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) {
-  const est = M.estadoAgora(u, undefined, periodo)
+  const instante = useAgora() // a ficha aberta por horas não pode seguir dizendo "aberto agora" depois que a casa fechou
+  const est = M.estadoAgora(u, instante, periodo)
   const agora = M.textoEstado(est)
   const titulo = M.caixaLegivel(u.nome || u.endereco?.bairro || casa.nome)
   const comoChegar = M.linkComoChegar(u)
@@ -98,7 +100,7 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) 
         {comCombo && u.combo?.disponibilidade?.length > 0 && (
           <div className="ct-unidade__horario">
             <p className="ct-unidade__linha ct-rotulo"><ScwIcon nome={ICONE.horario} tamanho={20} /><span>{T.horarioFestival}</span></p>
-            <Dias linhas={u.combo?.disponibilidade} periodo={periodo} />
+            <Dias linhas={u.combo?.disponibilidade} periodo={periodo} instante={instante} />
           </div>
         )}
       </div>
