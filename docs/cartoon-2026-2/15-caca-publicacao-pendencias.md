@@ -10,13 +10,13 @@ Nada daqui foi inventado: idade mínima, forma e data de entrega do prêmio fina
 - **Idade mínima: 18 anos** (Wilker, 06/11, escolhendo o menor risco: LGPD art. 14 e prêmio a menor exigiriam responsável). O regulamento diz isso (Quem participa). Sem trava técnica no cadastro do mapa: é só o texto.
 - **Sorteio: não precisa de autorização oficial** (palavra do Wilker; sem checagem jurídica minha).
 - **Janela da avaliação:** aberta no banco (05/11 09:26 → 15/11 23:59, Natal).
+- **E-mail:** funcionando em 06/11 (Brevo, chave reativada). Teste real: código de confirmação chegou de `contato@sweetcoffeeweek.com.br`; mapa de teste apagado.
 - **Gate:** `MAPA_PUBLICO = true` na dev; mapa, Minha rota e Caça ligam juntos.
 
 ## Indispensável para publicar
 
 | O que falta | Onde está no texto | Por que bloqueia | Quem decide |
 |---|---|---|---|
-| **Provedor de e-mail ativo** (Resend com domínio verificado, ou reativar a chave do Brevo e validar o remetente) | Regulamento › "Seu mapa, seu e-mail e a recuperação" e "Vouchers"; telas de confirmar e recuperar | Hoje nenhum e-mail sai (a chave do Brevo está desativada e não há Resend). Sem código ninguém confirma o e-mail nem recupera o mapa, e voucher só nasce confirmado com e-mail confirmado (a organização pode confirmar um por um, mas não é viável no pico). O texto já avisa que a entrega não é garantida, mas a ação perde a recuperação e a confirmação. | Wilker (conta e DNS); ver `15-caca-contrato-identidade.md` |
 
 ## Pode publicar sem (mas precisa estar resolvido no prazo indicado)
 
