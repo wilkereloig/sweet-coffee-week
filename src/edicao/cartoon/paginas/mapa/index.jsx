@@ -102,8 +102,6 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
   const [posicao, setPosicao] = React.useState(null)
   const [geo, setGeo] = React.useState(podeLocalizar() ? 'disponivel' : 'indisponivel')
-  // Mapa real no celular: só pelo botão, para não baixar o Google sem pedido. No desktop já vem.
-  const [verMapa, setVerMapa] = React.useState(largo)
   const [provedor, setProvedor] = React.useState(import.meta.env.VITE_GOOGLE_MAPS_KEY ? 'google' : 'maplibre')
   const usarReserva = React.useCallback(() => setProvedor('maplibre'), [])
   const MapaUnidades = provedor === 'google' ? MapaGoogle : MapaLibre
@@ -218,8 +216,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     setGeo('pedindo')
     lerPosicao(300000)
   }
-  // O navegador só pergunta quando a pessoa toca no mapa (ou no "Ver mapa"); negado uma vez, não insistimos.
-  const pedirNoMapa = () => { if (geo === 'disponivel') localizar() }
+  // O navegador só pergunta quando a pessoa usa "Perto de mim"; abrir ou tocar no mapa nunca pede a localização.
   // Permissão já concedida em outra visita: lê sem perguntar. E relê ao voltar para a aba e quando uma casa é validada,
   // para o "próximo passo" seguir a pessoa (a segunda mais perto, depois a terceira…). Sem leitura contínua: gasta bateria.
   const validadas = meu.mapa?.casas_validadas
@@ -262,7 +259,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
   // A tela cheia só existe onde há mapa para ampliar: o ilustrado, ou o real já carregado. O botão segue montado dentro da tela
   // cheia (o CSS o esconde): o foco volta ao MESMO elemento que abriu.
-  const podeAmpliar = vista === 'mundo' || (vista === 'real' && verMapa && noMapa.length > 0)
+  const podeAmpliar = vista === 'mundo' || (vista === 'real' && noMapa.length > 0)
   const botaoRota = (
     <button type="button" className="ct-chip ct-mapa__rota-botao" aria-haspopup="dialog" aria-expanded={painelAberto} aria-label={TC.minhaRotaConta(rota.ids.length)}
       onClick={() => setPainelAberto(true)}>
@@ -343,7 +340,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                 : nEnderecos > nCasas && <p className="ct-mapa__resumo-regra">{TC.casasEnderecosCurta}</p>}
             </div>
 
-            <div ref={moldura} className="ct-mapa__moldura" onPointerDownCapture={pedirNoMapa}>
+            <div ref={moldura} className="ct-mapa__moldura">
               {podeAmpliar && (
                 <button type="button" className="ct-mapa__ampliar" data-abrir-cheia onClick={abrirCheia} aria-label={TC.telaCheiaAbrir}>
                   <ScwIcon nome="ampliar" tamanho={20} />
@@ -362,7 +359,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
               {vista === 'real' && (
                 <div className="ct-mapa__area">
                   {noMapa.length === 0 ? <p className="ct-nota">{T.semMapa}</p>
-                    : verMapa ? (
+                    : (
                       <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
                         <ErroDoMapa>
                           <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
@@ -372,7 +369,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                             ]} />
                         </ErroDoMapa>
                       </React.Suspense>
-                    ) : <button type="button" className="ct-botao" onClick={() => setVerMapa(true)}><IconeCartoon nome="mapa" tamanho={32} />{T.verMapa(noMapa.length)}</button>}
+                    )}
                 </div>
               )}
 
@@ -426,7 +423,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
               {vista === 'real' && (
                 <>
                   <Cobertura linhas={linhas} selecionada={sel} aoSelecionar={escolher} />
-                  {verMapa && noMapa.length > 0 && (
+                  {noMapa.length > 0 && (
                     <LegendaEstados comEstados={false} sicrediImagem={MARCAS_PARCEIROS.sicredi.src}>
                       <ul className="ct-legenda" aria-label="Legenda do mapa">
                         <li className="ct-legenda__nota">{T.legendaPins}</li>

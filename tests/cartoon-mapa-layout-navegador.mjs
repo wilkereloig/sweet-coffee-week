@@ -129,8 +129,7 @@ try {
         await page.locator('.ct-mapa').first().waitFor()
         if (vista === 'mundo') await page.locator('.ct-mundo__casa').first().waitFor()
         if (vista === 'real') {
-          const ver = page.getByRole('button', { name: /^Ver no mapa/ })
-          if (await ver.count()) await ver.first().click() // no celular o mapa real só carrega ao toque
+          if (await page.getByRole('button', { name: /^Ver no mapa/ }).count()) erros.push('sobrou o botão intermediário "Ver no mapa"')
           await page.locator('.ct-marcador--pin .ct-pin').first().waitFor({ timeout: 20000 }).catch(() => null)
         }
         await esperar(1500)

@@ -236,7 +236,6 @@ export const MAPA = {
   contagem: (n) => (n === 1 ? '1 unidade' : `${n} unidades`),
   limpar: 'Limpar filtros',
   nenhuma: 'Nenhuma unidade com esses filtros.',
-  verMapa: (n) => `Ver no mapa (${n})`,
   carregando: 'Carregando o mapa…',
   semMapa: 'As localizações no mapa estão em conferência. Use a lista.',
   falhou: 'O mapa não carregou. A lista tem todas as unidades.',

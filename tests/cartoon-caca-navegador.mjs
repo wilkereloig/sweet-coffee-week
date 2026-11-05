@@ -952,8 +952,7 @@ async function mapaTelaCheiaEFolhas () {
     if (await p.locator('.ct-mapa__cartao').count()) await p.locator('.ct-mapa__cartao .ct-mapa__fechar').click() // o cartão (no celular deitado, um painel à esquerda) cobre a barra
     await p.getByRole('button', { name: 'Limpar filtros' }).first().click()
     await p.getByRole('button', { name: 'Mapa real' }).click()
-    const ver = p.getByRole('button', { name: /Ver no mapa/ })
-    if (await ver.count()) await ver.click()
+    checar(!(await p.getByRole('button', { name: /^Ver no mapa/ }).count()), `${onde} mapa real: sem botão intermediário "Ver no mapa"`)
     await p.waitForSelector('.ct-mapa__mapa canvas', { timeout: 15000 }).catch(() => falha(`${onde} mapa real: o mapa não subiu`))
     if (await p.locator('.ct-mapa__mapa canvas').count()) {
       await p.evaluate(() => document.querySelector('.ct-mapa__moldura').scrollIntoView({ block: 'start' }))
