@@ -124,6 +124,8 @@ export const CATALOGO = {
 
 export const PARTICIPANTE = {
   voltar: 'Voltar para as casas',
+  // Aviso flutuante da ficha (convite à Caça). Não carimba: só leva à tela do carimbo, que pede o toque e a localização.
+  avisoCarimbo: { rotulo: 'Caça aos Carimbos', texto: 'Provou o combo? Carimbe seu mapa!', acao: 'Carimbar', fechar: 'Fechar o aviso' },
   selo: 'Casa participante da Sweet & Coffee Week Cartoon',
   tema: (t) => `Inspirado em ${t}`,
   comboTitulo: 'O combo',

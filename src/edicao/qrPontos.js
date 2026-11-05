@@ -7,7 +7,7 @@
  * pelo gerador de QR (scripts/qr-edicao.mjs), por api/q.js (Vercel Edge) e pelos testes. A regra
  * código → destino mora só aqui (CLAUDE.md §5.1).
  *
- * Códigos:  d1-<slug>  QR do participante (o combo; face 1 do display) → página da casa
+ * Códigos:  d1-<slug>  QR do participante (o combo; face 1 do display) → ficha da casa, aberta no combo (/combos/<slug>)
  *           inicio     página inicial da edição                           → entrada da edição
  *           avaliar    avaliação GERAL (a pessoa escolhe a casa lá)      → /avaliar
  *           premiacao  premiação                                          → /premiacao
@@ -40,8 +40,9 @@ export function destinoDoCodigo (bruto) {
   if (!codigo) return base
   if (GERAIS.has(codigo)) return base + GERAIS.get(codigo)
   const [prefixo, ...resto] = codigo.split('-')
-  // Face do combo do display (Caça aos Carimbos, 04/11): abre a tela da casa com 'Ver o combo' e 'Carimbar'.
-  if (prefixo === 'd1' && resto.length) return `${base}/${MAPA_PUBLICO ? 'carimbo' : 'participantes'}/${resto.join('-')}`
+  // Face do combo do display (05/11): vai direto à ficha da casa, no bloco do combo — sem tela intermediária. O convite
+  // a carimbar mora na própria ficha (AvisoCarimbo). O código impresso e o contador de leituras não mudam.
+  if (prefixo === 'd1' && resto.length) return `${base}/combos/${resto.join('-')}`
   if (prefixo === 'd2') return `${base}/avaliar`
   if (prefixo === 'mapa') return MAPA_PUBLICO ? `${base}/mapa` : base
   return base

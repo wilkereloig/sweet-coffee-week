@@ -29,7 +29,7 @@ export const REGULAMENTO = {
       'O envio do código depende de um serviço de e-mail e não é garantido: a entrega pode atrasar ou falhar.',
     ]],
     ['Como ganhar um carimbo', [
-      'Comeu o combo? Escaneie o QR Code do display da casa (ou o QR do balcão) e toque em "Carimbar". O celular informa a sua localização só nesse momento, para conferir que você está na casa. O QR sozinho não vale carimbo, porque uma foto dele poderia circular.',
+      'Comeu o combo? Escaneie o QR Code do display da casa: ele abre a página da casa, com o combo, e o aviso da Caça traz o botão "Carimbar" (o QR do balcão leva direto à tela do carimbo). O celular informa a sua localização só nesse momento, para conferir que você está na casa. O QR sozinho não vale carimbo, porque uma foto dele poderia circular.',
       'Em casas que ainda estão com o ponto em conferência, o QR sozinho não vale carimbo: o app avisa e você pode pedir à organização que confira a sua visita (pedido de revisão, abaixo), sem precisar tentar o GPS antes. Nenhum funcionário da casa valida carimbo.',
       'Primeira vez na casa: o carimbo fica pendente até você avaliar o combo daquela casa, com o mesmo e-mail do mapa. Avaliou, o carimbo vale. A ordem não importa: se já avaliou antes, o carimbo vale na hora. Avaliar sozinho não cria carimbo.',
       'Voltou e comeu de novo? Escaneie de novo: é mais um carimbo, sem nova avaliação (cada combo conta uma avaliação por e-mail; se você reenviar, a nova substitui a anterior).',

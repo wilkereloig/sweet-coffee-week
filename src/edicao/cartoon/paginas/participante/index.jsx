@@ -15,7 +15,8 @@ import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { CenarioFixo } from '../../../componentes/sistema/CenarioTema.jsx'
 import { AssinaturaPatrocinio } from '../../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { PARTICIPANTE as T, FASE_TEXTO, TIPO_ORDEM, ICONE } from '../../textos.js'
-import { useRota } from '../../contexto.js'
+import { useRota, MAPA_NO_AR } from '../../contexto.js'
+import { AvisoCarimbo } from './AvisoCarimbo.jsx'
 import { Topo } from './Topo.jsx'
 import { Combo } from './Combo.jsx'
 import { ComoPedir } from './ComoPedir.jsx'
@@ -101,6 +102,8 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
       )}
       {/* Só no site: na prévia do painel (sem navigate) a faixa presa ao pé cobriria a interface do painel. */}
       {navigate && <CenarioFixo slug={p.slug} />}
+      {/* Convite à Caça: só com o mapa no ar, combo para avaliar, avaliação aberta (é quando o carimbo existe) e edição em curso. */}
+      {navigate && MAPA_NO_AR && combo && aberta && !encerrada && <AvisoCarimbo slug={p.slug} navigate={navigate} />}
     </article>
   )
 }

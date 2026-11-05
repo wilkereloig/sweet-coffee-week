@@ -470,8 +470,11 @@ embaixo, número do impresso no canto e selo de estado no aro. As classes `ct-mu
   no documento interno `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/04_SINALIZACAO/caca-aos-carimbos/caca-aos-carimbos-regras.pdf`:
   5 vouchers digitais (dias 7 a 11/11, um por dia, mais casas diferentes acumuladas, 1 por pessoa, empate por
   sorteio) e prêmio final (press kit + surpresa) por sorteio entre quem completou o mapa. **Em 04/11 a contagem virou casas diferentes + extras, e cada extra soma 1 ao peso do sorteio (regra vigente no fim deste item).**
-- **[Decisão]** O **QR do display de mesa** (face do combo, `/q/d1-<casa>`) também carimba: `destinoDoCodigo` leva a
-  `/cartoon/carimbo/<slug>`, que mostra o nome e a logo da casa, **"Ver o combo"** e o botão de carimbar. A página aceita os
+- **[Decisão · REVISTA em 05/11]** O **QR do display de mesa** (face do combo, `/q/d1-<casa>`) abre **direto a ficha da casa, no combo**
+  (`/cartoon/combos/<slug>`; a tela intermediária saiu — o objetivo do QR é a pessoa conhecer e consumir o combo). O convite a carimbar é o
+  **aviso flutuante da ficha** (`AvisoCarimbo`): toda abertura da ficha com mapa no ar, combo, avaliação aberta e edição em curso; fechar vale só
+  para a visita (nada é gravado); "Carimbar" só leva a `/cartoon/carimbo/<slug>` — nunca carimba sozinho. Antes (04/11), `destinoDoCodigo` levava
+  a `/cartoon/carimbo/<slug>`, que mostra o nome e a logo da casa, **"Ver o combo"** e o botão de carimbar, e segue valendo como a tela do carimbo. A página aceita os
   dois formatos (código de 8 caracteres da unidade ou slug da casa; nenhum slug da edição tem o formato do código).
   `mapa_carimbar_casa(chave, slug, lat, lng, precisão)` escolhe a unidade da casa mais perto do celular e chama
   `mapa_carimbar` (mesmas regras: janela da avaliação, distância, 12 h por casa e por e-mail).

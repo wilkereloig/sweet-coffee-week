@@ -18,7 +18,7 @@ Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]
 **[Proposta]** QR "dinâmico" nosso. O QR impresso aponta para um endereço curto do próprio site, `https://www.sweetcoffeeweek.com.br/q/<código>`, e **cada peça física tem um código**. Quando alguém lê:
 
 1. O celular abre `/q/d1-boldfood`.
-2. Uma função da Vercel soma 1 no contador daquela peça e, na mesma hora, manda a pessoa para a página certa (`/cartoon/participantes/boldfood?utm_…&utm_content=d1-boldfood`). A pessoa nem percebe.
+2. Uma função da Vercel soma 1 no contador daquela peça e, na mesma hora, manda a pessoa para a página certa (`/cartoon/combos/boldfood?utm_…&utm_content=d1-boldfood`). A pessoa nem percebe.
 3. O painel lê o contador.
 
 Ganhos sobre "só Analytics": conta todo mundo (inclusive quem recusou cookies); sabe qual peça foi lida; grava no nosso banco; permite trocar o destino depois de impresso; e o endereço curto deixa o QR com menos quadradinhos, que lê melhor em peça pequena como o display de 12×38 cm. O Analytics continua somando por cima (`utm_content` já é guardado por `analytics.js`).
@@ -27,7 +27,7 @@ Ganhos sobre "só Analytics": conta todo mundo (inclusive quem recusou cookies);
 
 | Peça | Código | Vai para | Quantidade |
 |---|---|---|---|
-| Display de mesa · face 1 (combo) | `d1-<slug>` | página da casa | 27 (ou 41 por unidade) |
+| Display de mesa · face 1 (combo) | `d1-<slug>` | ficha da casa, no combo (`/cartoon/combos/<slug>`; 05/11) | 27 (ou 41 por unidade) |
 | ~~Display de mesa · face 2 por casa~~ | ~~`d2-<slug>`~~ | saiu em 30/10: a avaliação é um QR geral | 0 |
 | Avaliação geral (a pessoa escolhe a casa) | `avaliar` | `/cartoon/avaliar` | 1 |
 | Premiação | `premiacao` | `/cartoon/premiacao` | 1 |
