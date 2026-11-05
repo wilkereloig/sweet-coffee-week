@@ -95,9 +95,7 @@ try {
     if (!(await selo.count())) break
     await selo.click(); await page.waitForTimeout(1500)
   }
-  // `click()` do DOM, não o do mouse: com o Google Maps o Chromium sem janela captura o ponteiro no mapa e o mouseup não chega ao marcador
-  // (acontece também no código publicado antes do afastamento); a lógica de escolher a casa é a mesma. Mouse real: conferência manual.
-  await conquistada.evaluate((el) => el.click())
+  await conquistada.click() // mouse de verdade: no Google o clique vem pelo próprio marcador (gmpClickable), não por um <button> dentro dele
   await page.waitForTimeout(1800)
   await page.screenshot({ path: join(CAPTURAS, 'real-perto.png') })
   checar(await page.locator('.ct-marcador--pin.is-sel').count() === 1, 'real: casa escolhida marcada')
