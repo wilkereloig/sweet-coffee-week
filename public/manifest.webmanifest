@@ -1,62 +1,19 @@
 {
-  "id": "/painel/",
-  "name": "Painel SCW",
-  "short_name": "Painel SCW",
-  "description": "Painel do Sweet & Coffee Week — organização e participante.",
+  "id": "/cartoon/caca",
+  "name": "Caça aos Carimbos · Sweet & Coffee Week Cartoon",
+  "short_name": "Caça aos Carimbos",
+  "description": "Descubra casas diferentes, carimbe a visita e acompanhe seu mapa na Sweet & Coffee Week Cartoon.",
   "lang": "pt-BR",
   "dir": "ltr",
-  "start_url": "/painel/",
-  "scope": "/painel/",
+  "start_url": "/cartoon/caca?origem=app",
+  "scope": "/cartoon/caca",
   "display": "standalone",
-  "background_color": "#FEF0DD",
-  "theme_color": "#3D1308",
-  "categories": [
-    "food",
-    "events",
-    "lifestyle"
-  ],
+  "background_color": "#FDF0DE",
+  "theme_color": "#3A150F",
+  "categories": ["food", "events", "lifestyle"],
   "icons": [
-    {
-      "src": "/favicon-512-maskable.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/favicon-sweet.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon-180.png",
-      "type": "image/png",
-      "sizes": "180x180",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon-96.png",
-      "type": "image/png",
-      "sizes": "96x96",
-      "purpose": "any"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Avisos e mensagens",
-      "url": "/painel/?ir=mensagens",
-      "icons": [
-        {
-          "src": "/favicon-96.png",
-          "sizes": "96x96"
-        }
-      ]
-    }
+    { "src": "/images/caca/app-icone-192-v1.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/images/caca/app-icone-512-v1.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "/images/caca/app-icone-512-maskable-v1.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
   ]
 }

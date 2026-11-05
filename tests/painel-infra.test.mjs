@@ -236,9 +236,11 @@ test('escopo e start_url dos três manifests terminam em barra e não se sobrep�
   const escopos = new Set(Object.values(manifests).map((m) => m.scope))
   assert.equal(escopos.size, 3, 'organização, marca e painel deveriam ter escopos distintos entre si')
 
+  // Desde 05/11/2026 o manifest do SITE instala a Caça (o iPhone lê o manifest uma vez por carregamento e ignora a troca
+  // feita depois pelo código). O Painel instala só pelo manifest próprio, que o painel-app/index.html linka.
   const site = lerJson('public/manifest.webmanifest')
-  assert.equal(site.scope, manifests.painel.scope, 'o manifest do site deveria instalar o painel')
-  assert.equal(site.start_url, manifests.painel.start_url)
+  assert.notEqual(site.scope, manifests.painel.scope, 'o manifest do site não pode mais instalar o painel')
+  assert.ok(!site.start_url.startsWith(manifests.painel.scope))
 })
 
 /* ─────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 /*
  * App instalável da Caça (spec 15 §14): manifest e service worker PRÓPRIOS, com id e escopo disjuntos do Painel SCW (/painel/).
- * O manifest global do site (index.html) fica como está; nas páginas /cartoon/caca* o <link rel=manifest> é trocado em tempo de
+ * O manifest global do site (public/manifest.webmanifest) é CÓPIA do da Caça (teste trava): o iPhone lê o manifest uma vez por
+ * carregamento e ignora a troca feita depois, então só o padrão certo instala a Caça. Nas páginas /cartoon/caca* o <link rel=manifest> é trocado em tempo de
  * execução e restaurado ao sair. Nada aqui lê chave pessoal, token ou código de recuperação.
  */
 import { EDICAO } from '../../config.js'

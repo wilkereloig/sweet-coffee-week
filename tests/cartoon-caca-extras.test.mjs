@@ -233,6 +233,11 @@ test('manifest da Caça: válido, disjunto do painel e com ícones que existem',
   assert.ok(fs.existsSync(path.join(raiz, 'public', IMG_CACA.iconeApple180)))
 })
 
+test('o manifest global do site é o da Caça (iPhone não relê o manifest trocado depois do carregamento)', () => {
+  assert.deepEqual(JSON.parse(ler('public/manifest.webmanifest')), JSON.parse(ler('public/caca/manifest.webmanifest')),
+    'public/manifest.webmanifest deve ser cópia exata de public/caca/manifest.webmanifest')
+})
+
 test('o manifest do painel e o link global do index.html continuam como estavam', () => {
   const painel = JSON.parse(ler('public/painel/app.webmanifest'))
   assert.equal(painel.scope, '/painel/')
