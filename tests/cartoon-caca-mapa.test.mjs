@@ -242,9 +242,9 @@ test('Sicredi: "Como chegar" usa a coordenada conferida; a aproximada cai para o
   assert.equal(linkComoChegarSicredi(a), `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${a.lat},${a.lng}`)}`)
   const aprox = { ...a, precisao: 'aproximada' }
   assert.match(decodeURIComponent(linkComoChegarSicredi(aprox)), /Rua Tuiuti/)
-  const pts = pontosSicredi(agenciasSicredi(mundoEdicao().sicredi), { src: '/s.svg', rotulo: 'Patrocinador' })
+  const pts = pontosSicredi(agenciasSicredi(mundoEdicao().sicredi), { src: '/s.svg' })
   assert.equal(pts.length, 3)
-  assert.ok(pts.every((p) => p.sicredi === true && p.aproximada === false && p.pin.rotulo === 'Patrocinador'))
+  assert.ok(pts.every((p) => p.sicredi === true && p.aproximada === false && p.pin.src === '/s.svg' && !('rotulo' in p.pin)))
 })
 
 test('Sicredi: busca por nome ou endereço, sem acento nem caixa', () => {

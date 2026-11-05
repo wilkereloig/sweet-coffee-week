@@ -124,7 +124,7 @@ export function afastarPins (itens, { folga = FOLGA, limite = LIMITE_GRUPO } = {
 // Tamanho de cada pin em px a escala cheia, com folga para o número e o selo de estado que saem do aro. É o desenho de
 // 11-mundo.css (.ct-pin: --d 54px + cauda) e do Sicredi (.ct-sicredi-pin); tests/cartoon-afastar.test.mjs confere a ligação.
 export const CAIXA_CASA = { w: 62, h: 74 }
-export const CAIXA_SICREDI = { w: 84, h: 54 }
+export const CAIXA_SICREDI = { w: 112, h: 56 }
 export const ESCALA_LONGE = 0.55 // 16-mapa-tela.css: de longe o pin encolhe a esta fração, em volta da ponta
 
 /**

@@ -99,15 +99,12 @@
   border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-turquesa); color: var(--ct-chocolate); font: 900 12px/1 var(--ct-font); pointer-events: none;
 }
 /* Nome da casa: sobre o pin, só com intenção (ponteiro, foco, escolhida). */
-.ct-mundo__nome, .ct-mundo__patrocinador {
+.ct-mundo__nome {
   position: absolute; bottom: calc(100% + 6px); left: 50%; translate: -50% 0; display: none; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
   padding: 2px 9px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); color: var(--ct-chocolate);
   font: 800 12px/1.3 var(--ct-font); white-space: nowrap; pointer-events: none;
 }
-.ct-mundo__casa:hover .ct-mundo__nome, .ct-mundo__casa:focus-visible .ct-mundo__nome, .ct-mundo__casa.is-sel .ct-mundo__nome,
-.ct-mundo__sicredi:hover .ct-mundo__patrocinador, .ct-mundo__sicredi:focus-visible .ct-mundo__patrocinador, .ct-mundo__sicredi.is-sel .ct-mundo__patrocinador,
-.ct-mundo__janela.is-zoom .ct-mundo__patrocinador { display: block; }
-.ct-mundo__patrocinador { border-radius: 6px; background: var(--ct-branco); }
+.ct-mundo__casa:hover .ct-mundo__nome, .ct-mundo__casa:focus-visible .ct-mundo__nome, .ct-mundo__casa.is-sel .ct-mundo__nome { display: block; }
 
 /* Próximo passo: anel tracejado em volta do disco + rótulo "Próxima" sob a ponta (texto, não só cor). Sem movimento: fica o anel. */
 .ct-mundo__casa.is-proxima::after {
@@ -130,16 +127,16 @@
 @keyframes ct-mundo-conquista { 0% { scale: .3; rotate: -20deg; } 55% { scale: 1.5; rotate: 8deg; } 100% { scale: 1; rotate: 0deg; } }
 @keyframes ct-mundo-onda { from { scale: .4; opacity: 1; } to { scale: 1.6; opacity: 0; } }
 
-/* Sicredi (patrocinador): letreiro retangular branco com a marca oficial, de OUTRA forma que o disco das casas, com o rótulo
-   "Patrocinador" (zoom, ponteiro, foco e escolhido). Não é casa: não conta carimbo, não tem selo de estado nem número. */
-.ct-mundo__sicredi { z-index: 1; translate: calc(var(--ancora, 50%) * -1 + var(--dx, 0px)) calc(-100% + var(--dy, 0px)); transform-origin: var(--ancora, 50%) 100%; width: max(44px, calc(var(--d) * 1.5)); height: max(44px, calc(var(--d) * .62 + var(--cauda))); }
+/* Sicredi (patrocinador): letreiro retangular branco só com a marca oficial (sem tarja nem texto dentro do pin), de OUTRA forma que o
+   disco das casas. Que é patrocinador e que não conta como casa vai no nome acessível e no cartão. Sem selo de estado nem número. */
+.ct-mundo__sicredi { z-index: 1; translate: calc(var(--ancora, 50%) * -1 + var(--dx, 0px)) calc(-100% + var(--dy, 0px)); transform-origin: var(--ancora, 50%) 100%; width: max(44px, calc(var(--d) * 1.9)); height: max(44px, calc(var(--d) * .74 + var(--cauda))); }
 .ct-mundo__sicredi.is-sel { z-index: 5; transform: translateY(-4px) scale(1.12); filter: drop-shadow(0 0 6px var(--ct-amarelo)); }
 .ct-mundo__sicredi::after {
   content: ''; position: absolute; left: var(--ancora, 50%); bottom: 0; width: calc(var(--d) * .36); height: calc(var(--cauda) + var(--d) * .1); translate: -50% 0;
   background: var(--ct-chocolate); clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 .ct-mundo__sicredi-letreiro {
-  position: absolute; z-index: 1; left: 0; right: 0; bottom: var(--cauda); display: grid; place-items: center; height: calc(var(--d) * .62); padding: 3px 7px;
+  position: absolute; z-index: 1; left: 0; right: 0; bottom: var(--cauda); display: grid; place-items: center; height: calc(var(--d) * .74); padding: 4px 9px;
   border: 3px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
 }
 .ct-mundo__sicredi-letreiro img { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; }
@@ -241,7 +238,7 @@
 .ct-caca-mapa__rapida-parada { background: var(--ct-turquesa); }
 .ct-caca-mapa__rapida-proxima { background: var(--ct-amarelo); }
 
-/* Sicredi: seção da lista, cartão e marcador do mapa real. Letreiro retangular, tarja "Patrocinador" (forma + texto). */
+/* Sicredi: seção da lista, cartão e marcador do mapa real. Letreiro retangular só com a marca (a forma diferencia; o texto "patrocinador" está no nome acessível). */
 .ct-caca-mapa__sicredi { display: grid; gap: 8px; margin-top: 12px; padding: 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
 .ct-caca-mapa__sicredi .ct-sub { margin: 0; }
 .ct-caca-mapa__sicredi .ct-nota { margin: 0; }
@@ -264,9 +261,8 @@
 .ct-sicredi-marcador:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
 .ct-sicredi-marcador.is-sel { scale: 1.25; z-index: 2; }
 .ct-sicredi-pin { display: grid; justify-items: center; min-width: 44px; min-height: 44px; }
-.ct-sicredi-pin__placa { display: grid; justify-items: center; overflow: hidden; border: 3px solid var(--ct-chocolate); border-radius: 4px; background: var(--ct-branco); box-shadow: 2px 3px 0 rgba(58, 21, 15, .35); }
-.ct-edicao .ct-sicredi-pin__placa img { display: block; width: auto; max-width: 96px; height: 22px; margin: 4px 8px 2px; object-fit: contain; }
-.ct-sicredi-pin__tarja { align-self: stretch; padding: 0 6px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 11px/1.5 var(--ct-font); text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+.ct-sicredi-pin__placa { display: grid; justify-items: center; overflow: hidden; border: 3px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-branco); box-shadow: 2px 3px 0 rgba(58, 21, 15, .35); }
+.ct-edicao .ct-sicredi-pin__placa img { display: block; width: auto; max-width: 104px; height: 28px; margin: 6px 10px; object-fit: contain; }
 .ct-sicredi-pin__ponta { width: 12px; height: 12px; margin-top: -8px; rotate: 45deg; border: solid var(--ct-chocolate); border-width: 0 3px 3px 0; background: var(--ct-chocolate); }
 .ct-sicredi-marcador--aprox .ct-sicredi-pin__placa { border-style: dashed; }
 
