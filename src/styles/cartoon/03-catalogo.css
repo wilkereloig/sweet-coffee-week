@@ -65,6 +65,7 @@
 /* Grade do elenco: 1 · 2 · 3 · 4 colunas nas quebras da camada (600 / 900 / 1200). */
 .ct-elenco { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin: 0; padding: 0 0 8px; list-style: none; }
 @media (min-width: 600px) { .ct-elenco { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 20px; } }
+@media (min-width: 700px) { .ct-elenco { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 18px; } }
 @media (min-width: 900px) { .ct-elenco { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 24px; } }
 @media (min-width: 1200px) { .ct-elenco { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 /* O cartão: o link em cima e, no pé, as marcas da rota (05-mapa-rota.css). Mora aqui, antes do bloco do celular, que
