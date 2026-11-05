@@ -150,7 +150,8 @@ test('build de produção não carrega o retrato local do painel', { skip: !fs.e
     for (const p of r.participantes) for (const u of p.unidades || []) marcas.push(`"${u.id}"`, `'${u.id}'`, `\`${u.id}\``)
   }
   const vaza = arquivosDeTexto(DIST).flatMap((f) => {
-    const texto = fs.readFileSync(f, 'utf8')
+    // `unidade_sem_coordenada` é um valor do banco (origem do carimbo da Caça, painel) e não vem do retrato.
+    const texto = fs.readFileSync(f, 'utf8').replaceAll('unidade_sem_coordenada', '')
     return marcas.filter((m) => texto.includes(m)).map((m) => `${path.relative(DIST, f)}: ${m}`)
   })
   assert.deepEqual(vaza, [])
