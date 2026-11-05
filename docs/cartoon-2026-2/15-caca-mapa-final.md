@@ -119,6 +119,19 @@ foram tiradas das bandeiras e valem como tamanho de referência do pin.
 - **Ainda de pé na integração:** carregar `base.placeholder` → `base.src` → `srcSet`; esconder a bandeira desenhada e o número do `Mundo.jsx` antigo quando `arteComBandeiras`;
   com `aprovada: true` e o `Mundo.jsx` atual, ligar `MAPA_PUBLICO` **antes** da integração mostraria marcadores duplicados sobre as bandeiras.
 
+### 4.1 · Pins que se cobrem (06/11/2026)
+
+Nenhum pin cobre outro, nos três mapas (ilustrado, Google e MapLibre). Fonte única da conta: `src/edicao/componentes/mapa/afastar.js` (função pura,
+testada em `tests/cartoon-afastar.test.mjs`); o desenho do fio e do selo mora em `pin.js` (mapa real) e `Mundo.jsx` (ilustrado), o CSS em `11-mundo.css`.
+
+- **Colisão em pixels de tela.** Cada pin entra com a ponta (o ponto verdadeiro) e a caixa. Caixas que se tocam formam um grupo (por contágio).
+- **Grupo de até 6 pins (12 de perto):** cada pin vai para um lugar de um anel em volta do grupo, o mais perto do seu ponto, sem cruzar fios e sem que um corpo cubra o ponto verdadeiro de outro. Um **fio fino com bolinha** liga a ponta do pin deslocado ao ponto verdadeiro.
+- **Só o desenho se desloca.** No mapa real a coordenada do marcador não muda (o deslocamento é `--dx/--dy`, em px, e o fio é outro marcador preso à coordenada real, então não sai do lugar ao arrastar nem ao ampliar). No ilustrado o fio nasce no `ponto` da arte.
+- **Estável.** A ordem vem do `id`; só o zoom muda o desenho (recalculado quando o zoom assenta, nunca durante o arrasto).
+- **Grupo grande demais** (mais de 6 de longe, mais de 12 de perto) vira um **selo com a contagem** (alvo de 44 px) que, ao tocar, aproxima o mapa ao menos 2 níveis; a partir do zoom 16 nunca há selo. O selo também é obstáculo: pin ou selo que ele cobriria entra no grupo. O pin escolhido nunca some num selo, e todos continuam na lista e na busca.
+- **Google:** o marcador é o próprio botão (`gmpClickable`, `gmp-click`); o invólucro `gmp-advanced-marker` não pega o toque.
+- **Teste de navegador:** `node tests/cartoon-mapa-layout-navegador.mjs` (porta 5213; `MAPA_LAYOUT_CAPTURAS=<pasta>` grava as capturas) mede, em celular e desktop, em vários zooms, na tela cheia e com o aparelho deitado: sem rolagem lateral, nenhum pin cobre outro, centro de todo pin livre para o toque, fio terminando no ponto verdadeiro e selos de 44 px.
+
 ## 5 · Casas, legenda oficial e banco
 
 Tabela completa: bandeira (nº da legenda) → nome na legenda → slug no banco → posição do pé do mastro na imagem exportada → nº de unidades.
