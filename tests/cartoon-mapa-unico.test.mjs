@@ -28,7 +28,8 @@ test('a navegação tem UM item: Mapa da Doçura (sem "Minha rota")', () => {
   assert.equal(itens[0].rotulo, 'Mapa da Doçura')
   assert.equal(itens[0].href, '/cartoon/mapa')
   assert.equal(MAPA.titulo, 'Mapa da Doçura')
-  assert.deepEqual(NAV.filter((n) => !n.semAba).map((n) => n.cena), ['entrada', 'participantes', 'mapa', 'avaliar'], 'a barra do celular: Início, Casas, Mapa e Avaliar (a rota mora dentro do Mapa)')
+  assert.deepEqual(NAV.map((n) => n.cena), ['entrada', 'participantes', 'mapa', 'caca', 'avaliar'], 'cinco abas: Início, Casas, Mapa, Caça e Avaliar (a rota mora dentro do Mapa)')
+  assert.ok(NAV.every((n) => !n.semAba), 'toda página do menu tem aba no celular')
 })
 
 test('os dois endereços levam à mesma página; o antigo da rota só abre o painel', () => {

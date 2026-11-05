@@ -125,7 +125,7 @@ export function CartoonPage ({ path, navigate }) {
   const dados = ed.dados
   const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena === 'carimbo' ? 'mapa' : cena
   // Barra do celular: os cinco atalhos; depois dos resultados, a aba do Sweet Awards vira "Prêmios" (§10.6).
-  const abas = PAGINAS.filter((n) => !n.semAba).map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
+  const abas = PAGINAS.map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
   const paradas = rota.ids.length
   const linkNav = (item, className, filhos) => (
     <Link href={item.href} navigate={navigate} className={className} aria-current={ativa === item.cena ? 'page' : undefined}>

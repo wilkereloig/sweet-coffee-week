@@ -17,8 +17,8 @@ export const NAV = [
   { cena: 'participantes', rotulo: 'Casas', aba: 'Casas', icone: 'casas', href: `${C}/participantes` },
   // Mapa e Minha rota são UMA página (Mapa da Doçura): a rota é um painel dentro dela. O contador de paradas mora neste item.
   { cena: 'mapa', rotulo: 'Mapa da Doçura', aba: 'Mapa', icone: 'mapa', href: `${C}/mapa` },
-  // Caça aos Carimbos: no cabeçalho, no menu e no rodapé; fora da barra de abas do celular, que fica nos cinco atalhos (`semAba`).
-  { cena: 'caca', rotulo: 'Caça aos Carimbos', aba: 'Caça', icone: 'ja-fui', href: `${C}/caca`, semAba: true },
+  // Caça aos Carimbos: também na barra de abas do celular (a quinta, no lugar da antiga "Minha rota", que virou painel do mapa).
+  { cena: 'caca', rotulo: 'Caça aos Carimbos', aba: 'Caça', icone: 'ja-fui', href: `${C}/caca` },
   { cena: 'avaliar', rotulo: 'Sweet Awards', aba: 'Avaliar', abaResultados: 'Prêmios', icone: 'avaliar', iconeResultados: 'premio', href: `${C}/avaliar` },
 ]
 
