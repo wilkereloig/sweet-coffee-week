@@ -28,8 +28,8 @@ if (!(await responde())) {
 const matar = () => { if (servidor?.pid) { try { process.platform === 'win32' ? execSync(`taskkill /pid ${servidor.pid} /T /F`, { stdio: 'ignore' }) : process.kill(-servidor.pid, 'SIGKILL') } catch { /* já morto */ } } }
 
 const CHAVE = 'V'.repeat(32)
-const PRAZO_ABERTO = { aberto: true, ate: '2026-11-06T03:00:00Z', fuso: 'America/Fortaleza', agora: '2026-11-05T22:00:00Z' }
-const PRAZO_FECHADO = { aberto: false, ate: '2026-11-06T03:00:00Z', fuso: 'America/Fortaleza', agora: '2026-11-06T03:00:01Z' }
+const PRAZO_ABERTO = { aberto: true, ate: '2026-11-07T03:00:00Z', fuso: 'America/Fortaleza', agora: '2026-11-05T22:00:00Z' }
+const PRAZO_FECHADO = { aberto: false, ate: '2026-11-07T03:00:00Z', fuso: 'America/Fortaleza', agora: '2026-11-06T03:00:01Z' }
 const MAPA = {
   edicao: '2026.2', apelido: 'E2E', email: 'e2e@exemplo.com.br', whatsapp: null, no_ranking: true, principal: true, total_casas: 26, casas_validadas: 1, extras: 0, faltam: 25, posicao: 2, empatados: 1,
   casas: [{ slug: 'carcara', carimbos: 1, avaliou: true, estado: 'validada', extras: 0 }],
@@ -75,7 +75,7 @@ try {
     let t = await abrir(nav, { ...tela })
     await t.page.locator('.ct-visita').first().waitFor({ timeout: 20000 })
     let tx = await t.page.locator('.ct-visita').innerText()
-    checar(/5 de novembro de 2026, 23h59:59/.test(tx), 'sem mapa: o convite diz o prazo (data e hora) vindo do servidor')
+    checar(/6 de novembro de 2026, 23h59:59/.test(tx), 'sem mapa: o convite diz o prazo (data e hora) vindo do servidor')
     checar(/horário de Natal/.test(tx), 'sem mapa: diz o fuso')
     checar((await t.page.locator('.ct-visita button').count()) === 0, 'sem mapa: não há formulário para enviar')
     checar((await lateral(t.page)) <= 1, 'sem mapa: sem rolagem lateral')
@@ -87,7 +87,7 @@ try {
     await t.page.locator('.ct-visita h2').waitFor({ timeout: 20000 })
     tx = await t.page.locator('.ct-visita').innerText()
     checar(/Visitei uma casa antes de conhecer a Caça/i.test(tx), 'com mapa: o cartão aparece')
-    checar(/Pedidos aceitos só até 5 de novembro de 2026, 23h59:59/i.test(tx), 'com mapa: o prazo está à vista')
+    checar(/Pedidos aceitos só até 6 de novembro de 2026, 23h59:59/i.test(tx), 'com mapa: o prazo está à vista')
     checar(/não é aprova/i.test(tx) && /nada é contado/i.test(tx), 'com mapa: diz que enviar não é aprovação')
     await t.page.getByRole('button', { name: /Pedir carimbo de visita anterior/i }).click()
     const opcoes = await t.page.locator('.ct-visita select').first().locator('option').allInnerTexts()
@@ -114,6 +114,29 @@ try {
     await t.page.screenshot({ path: join(CAPTURAS, `${tela.nome}-enviado.png`), fullPage: true })
     checar((await lateral(t.page)) <= 1, 'com mapa: sem rolagem lateral')
     checar(t.erros.length === 0, `sem erro de script ${t.erros.join(' | ')}`)
+    await t.ctx.close()
+
+    console.log(`\n${tela.nome} · mais de uma casa, com horário`)
+    t = await abrir(nav, { ...tela, meuMapa: MAPA })
+    await t.page.getByRole('button', { name: /Pedir carimbo de visita anterior/i }).click()
+    const slugs2 = await t.page.evaluate(() => [...document.querySelectorAll('.ct-visita select option')].map((o) => o.value).filter(Boolean))
+    const unicas = []
+    for (const sl of slugs2) { await t.page.locator('.ct-visita fieldset').first().locator('select').first().selectOption(sl); if ((await t.page.locator('.ct-visita fieldset').first().locator('select').count()) === 1) { unicas.push(sl); break } }
+    checar(unicas.length === 1, 'várias: acha uma casa de um endereço só para o primeiro pedido')
+    await t.page.locator('.ct-visita fieldset').first().locator('input[type=time]').fill('14:30')
+    await t.page.getByRole('button', { name: /Adicionar outra casa/i }).click()
+    checar((await t.page.locator('.ct-visita fieldset').count()) === 2, 'várias: "Adicionar outra casa" cria um segundo bloco')
+    const opcoes2 = await t.page.locator('.ct-visita fieldset').nth(1).locator('select').first().locator('option').evaluateAll((os) => os.map((o) => o.value))
+    checar(!opcoes2.includes(unicas[0]), 'várias: a casa já escolhida não se repete no segundo bloco')
+    let outra = null
+    for (const sl of opcoes2.filter(Boolean)) { await t.page.locator('.ct-visita fieldset').nth(1).locator('select').first().selectOption(sl); if ((await t.page.locator('.ct-visita fieldset').nth(1).locator('select').count()) === 1) { outra = sl; break } }
+    checar(!!outra, 'várias: escolhe a segunda casa')
+    await t.page.getByRole('button', { name: /Enviar 2 pedidos/i }).click()
+    await t.page.locator('.ct-visita__ok').waitFor({ timeout: 10000 })
+    checar(t.enviados.length === 2, 'várias: manda um pedido por casa')
+    checar(/^Horário aproximado: 14:30\./.test(t.enviados[0].p_nota || ''), 'várias: o horário aproximado vai na observação')
+    checar(/os seus pedidos/i.test(await t.page.locator('.ct-visita__ok').innerText()), 'várias: o aviso fala dos pedidos, no plural')
+    await t.page.screenshot({ path: join(CAPTURAS, `${tela.nome}-varias.png`), fullPage: true })
     await t.ctx.close()
 
     console.log(`\n${tela.nome} · recusa do servidor`)

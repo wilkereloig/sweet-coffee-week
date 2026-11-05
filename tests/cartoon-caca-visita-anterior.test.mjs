@@ -14,7 +14,7 @@ const semComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:
 const CHAVE = 'A'.repeat(32)
 
 test('prazo: o último segundo aceito é 23h59:59 de Natal, a partir do instante que o servidor manda', () => {
-  assert.equal(descreverPrazo('2026-11-06T03:00:00Z'), '5 de novembro de 2026, 23h59:59 (horário de Natal)')
+  assert.equal(descreverPrazo('2026-11-07T03:00:00Z'), '6 de novembro de 2026, 23h59:59 (horário de Natal)')
   assert.equal(descreverPrazo(''), '')
   assert.equal(descreverPrazo('lixo'), '')
 })
@@ -102,7 +102,8 @@ test('API: o pedido manda só a chave, a casa, a unidade, a data e a nota; valid
 
 test('migration: prazo no servidor (23h59:59 de Natal), uma por casa, origem própria e sem expor nota interna', () => {
   const sql = ler('supabase/migrations/20261226_caca_visita_anterior.sql')
-  assert.match(sql, /timestamp '2026-11-06 00:00:00' at time zone 'America\/Fortaleza'/, 'o prazo acaba à meia-noite de Natal do dia 6')
+  const prazo = ler('supabase/migrations/20261227_caca_visita_anterior_prazo_ate_06_11.sql')
+  assert.match(prazo, /timestamp '2026-11-07 00:00:00' at time zone 'America\/Fortaleza'/, 'o prazo acaba à meia-noite de Natal do dia 7 (= 23h59:59 do dia 6)')
   assert.match(sql, /prazo_encerrado/)
   assert.match(sql, /ja_carimbou/); assert.match(sql, /ja_pedido/); assert.match(sql, /limite_pedidos/)
   assert.match(sql, /'visita_anterior'/); assert.match(sql, /origem in \('gps', 'unidade_sem_coordenada', 'excecao_painel', 'visita_anterior'\)/)

@@ -39,59 +39,103 @@ function Pedido ({ pedido, mapa, dados, navigate }) {
   )
 }
 
+const MAX_VISITAS = 6
+let proximoId = 0
+const novaVisita = (hoje) => ({ id: ++proximoId, slug: '', unidade: '', data: hoje, hora: '', nota: '' })
+
+/** Horário aproximado vai na observação (o painel a mostra inteira): "Horário aproximado: 14:30. …", sempre dentro dos 200 caracteres. */
+export const notaComHorario = (hora, nota) => {
+  const base = String(nota || '').trim()
+  if (!hora) return base.slice(0, T.notaMax)
+  const prefixo = `${T.horarioNota}: ${hora}.`
+  return `${prefixo}${base ? ` ${base}` : ''}`.slice(0, T.notaMax)
+}
+
 function Formulario ({ chave, dados, casas, aoEnviar, aoFechar, api }) {
   const hoje = dataEmNatal()
-  const [slug, setSlug] = React.useState('')
-  const [unidade, setUnidade] = React.useState('')
-  const [data, setData] = React.useState(hoje)
-  const [nota, setNota] = React.useState('')
+  const [visitas, setVisitas] = React.useState(() => [novaVisita(hoje)])
   const [enviando, setEnviando] = React.useState(false)
   const [erro, setErro] = React.useState('')
-  const casa = casas.find((c) => c.slug === slug)
-  const varias = (casa?.unidades.length || 0) > 1
+  const [erros, setErros] = React.useState({}) // id da visita → texto
+  const muda = (id, campo, valor) => setVisitas((vs) => vs.map((v) => (v.id === id ? { ...v, [campo]: valor, ...(campo === 'slug' ? { unidade: '' } : {}) } : v)))
+  const escolhidas = new Set(visitas.map((v) => v.slug).filter(Boolean))
+  const casaDe = (slug) => casas.find((c) => c.slug === slug)
+  const livres = (v) => casas.filter((c) => c.slug === v.slug || !escolhidas.has(c.slug))
 
   async function enviar (e) {
     e.preventDefault()
     if (enviando) return
-    if (!casa) { setErro(T.recusa.qr_invalido); return }
-    if (varias && !unidade) { setErro(T.recusa.unidade_obrigatoria); return }
-    setEnviando(true); setErro('')
-    const r = await api.visitaAnteriorPedir(chave, { slug, unidade: varias ? unidade : casa.unidades[0]?.id, data, nota })
+    const novos = {}
+    for (const v of visitas) {
+      const c = casaDe(v.slug)
+      if (!c) novos[v.id] = T.recusa.qr_invalido
+      else if (c.unidades.length > 1 && !v.unidade) novos[v.id] = T.recusa.unidade_obrigatoria
+    }
+    setErros(novos); setErro('')
+    if (Object.keys(novos).length) return
+    setEnviando(true)
+    const feitas = []; const restantes = []; const falhas = {}
+    for (const v of visitas) {
+      const c = casaDe(v.slug)
+      const r = await api.visitaAnteriorPedir(chave, { slug: v.slug, unidade: c.unidades.length > 1 ? v.unidade : c.unidades[0]?.id, data: v.data, nota: notaComHorario(v.hora, v.nota) })
+      if (r.ok === true && r.estado === 'pendente') feitas.push(nomeDaCasa(dados, v.slug))
+      else { restantes.push(v); falhas[v.id] = T.recusa[r.motivo] || T.recusa.padrao }
+    }
     setEnviando(false)
-    if (r.ok === true && r.estado === 'pendente') { aoEnviar(nomeDaCasa(dados, slug)); return }
-    setErro(T.recusa[r.motivo] || T.recusa.padrao)
+    if (feitas.length) aoEnviar(feitas, restantes.length === 0)
+    if (restantes.length) { setVisitas(restantes); setErros(falhas); setErro(feitas.length ? T.parcial(feitas.length, restantes.length) : '') }
   }
 
   return (
     <form className="ct-form ct-visita__form" onSubmit={enviar} noValidate aria-labelledby="visita-form-titulo">
       <p id="visita-form-titulo" className="ct-sub">{T.formTitulo}</p>
-      <label className="ct-campo"><span>{T.casa}</span>
-        <select value={slug} onChange={(e) => { setSlug(e.target.value); setUnidade('') }} required>
-          <option value="">{T.casaEscolha}</option>
-          {casas.map((c) => <option key={c.slug} value={c.slug}>{c.nome}</option>)}
-        </select>
-      </label>
-      {varias && (
-        <label className="ct-campo"><span>{T.unidade}</span>
-          <select value={unidade} onChange={(e) => setUnidade(e.target.value)} required>
-            <option value="">{T.unidadeEscolha}</option>
-            {casa.unidades.map((u) => <option key={u.id} value={u.id}>{u.rotulo}</option>)}
-          </select>
-        </label>
+      <p className="ct-nota">{T.maisDeUma}</p>
+      {visitas.map((v, i) => {
+        const c = casaDe(v.slug)
+        const varias = (c?.unidades.length || 0) > 1
+        return (
+          <fieldset key={v.id} className="ct-visita__casa">
+            <legend>{T.casaN(i + 1, visitas.length)}</legend>
+            <label className="ct-campo"><span>{T.casa}</span>
+              <select value={v.slug} onChange={(e) => muda(v.id, 'slug', e.target.value)} required>
+                <option value="">{T.casaEscolha}</option>
+                {livres(v).map((x) => <option key={x.slug} value={x.slug}>{x.nome}</option>)}
+              </select>
+            </label>
+            {varias && (
+              <label className="ct-campo"><span>{T.unidade}</span>
+                <select value={v.unidade} onChange={(e) => muda(v.id, 'unidade', e.target.value)} required>
+                  <option value="">{T.unidadeEscolha}</option>
+                  {c.unidades.map((u) => <option key={u.id} value={u.id}>{u.rotulo}</option>)}
+                </select>
+              </label>
+            )}
+            <div className="ct-visita__quando">
+              <label className="ct-campo"><span>{T.data}</span>
+                <input type="date" value={v.data} max={hoje} onChange={(e) => muda(v.id, 'data', e.target.value)} required />
+              </label>
+              <label className="ct-campo"><span>{T.hora}</span>
+                <input type="time" value={v.hora} onChange={(e) => muda(v.id, 'hora', e.target.value)} />
+              </label>
+            </div>
+            <small className="ct-visita__ajuda">{T.dataAjuda}</small>
+            <label className="ct-campo"><span>{T.nota}</span>
+              <textarea rows={2} maxLength={T.notaMax - 40} value={v.nota} onChange={(e) => muda(v.id, 'nota', e.target.value)} />
+            </label>
+            {erros[v.id] && <p className="ct-aviso" role="alert">{erros[v.id]}</p>}
+            {visitas.length > 1 && <button type="button" className="ct-botao ct-botao--contorno ct-visita__remover" onClick={() => setVisitas((vs) => vs.filter((x) => x.id !== v.id))} disabled={enviando}>{T.remover}</button>}
+          </fieldset>
+        )
+      })}
+      {visitas.length < Math.min(MAX_VISITAS, casas.length) && (
+        <button type="button" className="ct-botao ct-botao--contorno ct-visita__adicionar" onClick={() => setVisitas((vs) => [...vs, novaVisita(hoje)])} disabled={enviando}>{T.adicionar}</button>
       )}
-      <label className="ct-campo"><span>{T.data}</span>
-        <input type="date" value={data} max={hoje} onChange={(e) => setData(e.target.value)} required aria-describedby="visita-data-ajuda" />
-        <small id="visita-data-ajuda">{T.dataAjuda}</small>
-      </label>
-      <label className="ct-campo"><span>{T.nota}</span>
-        <textarea rows={3} maxLength={T.notaMax} value={nota} onChange={(e) => setNota(e.target.value)} aria-describedby="visita-nota-ajuda" />
-        <small id="visita-nota-ajuda">{T.notaAjuda}</small>
-      </label>
+      <p className="ct-nota">{T.notaAjuda}</p>
       <p className="ct-nota">{T.comprovante}</p>
       <p className="ct-nota">{T.privacidade}</p>
       {erro && <p className="ct-aviso" role="alert">{erro}</p>}
       <div className="ct-acoes">
-        <button type="submit" className="ct-botao" disabled={enviando}>{enviando ? T.enviando : T.enviar}</button>
+        <button type="submit" className="ct-botao" disabled={enviando}>{enviando ? T.enviando : T.enviarN(visitas.length)}</button>
         <button type="button" className="ct-botao ct-botao--contorno" onClick={aoFechar} disabled={enviando}>{T.fechar}</button>
       </div>
     </form>
@@ -102,7 +146,7 @@ export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
   const prazo = usarPrazo(api)
   const [pedidos, setPedidos] = React.useState(null)
   const [aberto, setAberto] = React.useState(false)
-  const [aviso, setAviso] = React.useState('')
+  const [aviso, setAviso] = React.useState(null)
   const [rodada, setRodada] = React.useState(0)
   const comMapa = caca.estado === 'pronto' && !!caca.mapa && !!caca.chave
   React.useEffect(() => {
@@ -131,13 +175,13 @@ export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
         <>
           <ul className="ct-visita__regras">{T.comoFunciona.map((t) => <li key={t}>{t}</li>)}</ul>
           {casas.length
-            ? <button type="button" className="ct-botao ct-botao--contorno" aria-expanded={false} onClick={() => { setAberto(true); setAviso('') }}>{T.abrir}</button>
+            ? <button type="button" className="ct-botao ct-botao--contorno" aria-expanded={false} onClick={() => { setAberto(true); setAviso(null) }}>{T.abrir}</button>
             : <p className="ct-nota">{T.semCasas}</p>}
         </>
       )}
       {aberta && aberto && (
         <Formulario chave={caca.chave} dados={dados} casas={casas} api={api}
-          aoFechar={() => setAberto(false)} aoEnviar={(nome) => { setAberto(false); setAviso(nome); setRodada((n) => n + 1); caca.atualizar?.() }} />
+          aoFechar={() => setAberto(false)} aoEnviar={(nomes, tudo) => { if (tudo) setAberto(false); setAviso(nomes); setRodada((n) => n + 1); caca.atualizar?.() }} />
       )}
       {lista.length > 0 && (
         <div className="ct-visita__lista">
