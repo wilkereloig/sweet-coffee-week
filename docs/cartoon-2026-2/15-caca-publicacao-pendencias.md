@@ -5,14 +5,18 @@ O texto público (`src/edicao/cartoon/regulamento.js`, `src/data/conteudo/legal.
 fica como `{ aDefinir }` (aparece marcado na página do regulamento) ou está aqui. Um item por linha: o que falta · onde está no texto · por que bloqueia (ou não) · quem decide.
 Nada daqui foi inventado: idade mínima, forma e data de entrega do prêmio final e prazo de retenção continuam em aberto.
 
+## Decidido em 06/11/2026 (Wilker)
+
+- **Idade mínima: 18 anos** (Wilker, 06/11, escolhendo o menor risco: LGPD art. 14 e prêmio a menor exigiriam responsável). O regulamento diz isso (Quem participa). Sem trava técnica no cadastro do mapa: é só o texto.
+- **Sorteio: não precisa de autorização oficial** (palavra do Wilker; sem checagem jurídica minha).
+- **Janela da avaliação:** aberta no banco (05/11 09:26 → 15/11 23:59, Natal).
+- **Gate:** `MAPA_PUBLICO = true` na dev; mapa, Minha rota e Caça ligam juntos.
+
 ## Indispensável para publicar
 
 | O que falta | Onde está no texto | Por que bloqueia | Quem decide |
 |---|---|---|---|
-| **Idade mínima** para participar e receber prêmio | Regulamento › "Quem participa" (`aDefinir`) | A ação coleta e-mail e WhatsApp e entrega prêmio; sem a faixa etária o texto não diz quem pode participar nem como tratar dado de menor. É condição jurídica, não técnica. | Wilker, com a F2 / jurídico |
 | **Provedor de e-mail ativo** (Resend com domínio verificado, ou reativar a chave do Brevo e validar o remetente) | Regulamento › "Seu mapa, seu e-mail e a recuperação" e "Vouchers"; telas de confirmar e recuperar | Hoje nenhum e-mail sai (a chave do Brevo está desativada e não há Resend). Sem código ninguém confirma o e-mail nem recupera o mapa, e voucher só nasce confirmado com e-mail confirmado (a organização pode confirmar um por um, mas não é viável no pico). O texto já avisa que a entrega não é garantida, mas a ação perde a recuperação e a confirmação. | Wilker (conta e DNS); ver `15-caca-contrato-identidade.md` |
-| **Janela da avaliação com datas** (`avaliacao_abre_em` e `avaliacao_fecha_em`) | Regulamento › "Como ganhar um carimbo" ("só existem enquanto a avaliação está aberta") e "Prêmio final" ("até o encerramento ... 15/11") | As duas datas estão vazias e a janela está fechada (fase pré-lançamento). Sem `avaliacao_fecha_em` o sorteio real do prêmio final se recusa (`avaliacao_ainda_aberta`), o compromisso da semente nunca é "tardio" e carimbos não fecham sozinhos. Abrir a janela é decisão de publicação, não foi tocado. | Wilker (Publicação no painel) |
-| **Conferir se o sorteio promocional exige autorização oficial** | Regulamento › "Prêmio final" | [Chute] Sorteio gratuito de prêmio por empresa pode precisar de autorização prévia (Lei 5.768/71, órgão da Fazenda); não afirmo que se aplique a este caso. Se aplicar, é preciso antes de divulgar o sorteio. | Wilker, com jurídico |
 
 ## Pode publicar sem (mas precisa estar resolvido no prazo indicado)
 

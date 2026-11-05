@@ -98,7 +98,7 @@ test('QR do display carimba pela casa e o carimbo fica pendente até a avaliaç�
   const { readFileSync } = await import('node:fs')
   const { resolverCena } = await import('../src/edicao/rotas.js')
   const { destinoDoCodigo } = await import('../src/edicao/qrPontos.js')
-  assert.equal(destinoDoCodigo('d1-cookitos'), '/cartoon/participantes/cookitos', 'com MAPA_PUBLICO desligado o QR abre a ficha; ligado, /cartoon/carimbo/<casa>')
+  assert.equal(destinoDoCodigo('d1-cookitos'), '/cartoon/carimbo/cookitos', 'com MAPA_PUBLICO ligado o QR abre o carimbo; desligado, a ficha da casa')
   assert.deepEqual(resolverCena('/cartoon/carimbo/cookitos'), { cena: 'carimbo', codigo: 'cookitos' })
   const pagina = readFileSync(new URL('../src/edicao/cartoon/paginas/Carimbo.jsx', import.meta.url), 'utf8')
   assert.match(pagina, /mapa_carimbar_casa/)

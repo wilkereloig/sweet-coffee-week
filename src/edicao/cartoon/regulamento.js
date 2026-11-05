@@ -4,7 +4,7 @@
  * cada frase abaixo descreve o que o servidor FAZ hoje. Se uma regra do banco mudar, este texto muda no mesmo commit.
  *
  * Só o que está decidido. O que falta decidir vai como { aDefinir } e aparece marcado na página — nada inventado (A4):
- * idade mínima, forma e data de entrega do prêmio final e prazo de guarda dos dados não são decisão técnica.
+ * forma e data de entrega do prêmio final e prazo de guarda dos dados não são decisão técnica.
  * Lista do que ainda precisa de decisão e o que bloqueia a publicação: docs/cartoon-2026-2/15-caca-publicacao-pendencias.md.
  * A surpresa NÃO é revelada aqui (só na entrega). "Avaliam", nunca "votam". Nenhum número de marco, nenhuma pontuação.
  */
@@ -20,7 +20,7 @@ export const REGULAMENTO = {
     ['Quem participa', [
       'Qualquer pessoa que crie o seu mapa no site, sem custo e sem senha: apelido, e-mail e, se quiser, WhatsApp. São os mesmos dados da avaliação dos combos: preencheu um, o outro já vem pronto.',
       'Você é identificado pelo e-mail do mapa. Se tiver mais de um mapa com o mesmo e-mail, o progresso deles conta junto, como uma pessoa só, e o mapa principal (o que tem o e-mail confirmado; havendo um único mapa, ele mesmo) é o que tem apelido no ranking, grupos, contato do prêmio e recuperação. Com dois ou mais mapas e nenhum e-mail confirmado, ninguém é principal: cada mapa mostra só os próprios carimbos e fica fora do ranking e dos grupos até alguém confirmar o e-mail. Digitar o código de outra pessoa não confirma o seu mapa: o código vale só para o mapa de quem o pediu.',
-      { aDefinir: 'idade mínima para participar e receber prêmio.' },
+      'Para participar e receber o prêmio é preciso ter 18 anos ou mais.',
     ]],
     ['Seu mapa, seu e-mail e a recuperação', [
       'Não há senha. O mapa abre pela chave guardada no seu navegador e pelo link pessoal, que funciona como uma senha: quem tiver o link abre o seu mapa. Não poste nem mande para outras pessoas.',

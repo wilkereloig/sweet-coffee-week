@@ -161,7 +161,7 @@ test('regulamento: sem pontos, sem "mais carimbos", com a regra do servidor e se
   assert.match(texto, /casas diferentes/); assert.match(texto, /carimbos? extras?/); assert.match(texto, /e-mail do mapa precisa estar confirmado/); assert.match(texto, /15\/11/)
   assert.doesNotMatch(texto, /\b2 horas|segunda chamada/i, 'prazo da 2ª chamada é proposta, não regra')
   assert.doesNotMatch(texto, /só vale na casa/, 'unidade sem ponto conferido não exige localização')
-  assert.equal(itens.filter((x) => x?.aDefinir).length, 3, 'idade, entrega do prêmio e guarda dos dados seguem a definir')
+  assert.equal(itens.filter((x) => x?.aDefinir).length, 2, 'entrega do prêmio e guarda dos dados seguem a definir (idade: sem mínimo, decidido em 06/11)')
   const legal = fonte('src/data/conteudo/legal.js')
   assert.doesNotMatch(legal, /contar os pontos|prazo de guarda está no regulamento/)
 })

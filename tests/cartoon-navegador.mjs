@@ -113,8 +113,8 @@ try {
     else falha('com CARTOON_PUBLICA ligada, /cartoon não abriu sem preview')
     await page.goto(`${BASE}/cartoon/mapa`, { waitUntil: 'networkidle' })
     const linkMapa = await page.locator('.ct-edicao nav a[href$="/mapa"]').count()
-    if (await page.getByText('O mapa chega em breve').count() && !linkMapa) ok('sem preview, o mapa fica fora da navegação e mostra "em breve"')
-    else falha('sem preview, o mapa apareceu')
+    if (!(await page.getByText('O mapa chega em breve').count()) && linkMapa) ok('com MAPA_PUBLICO ligado, o mapa está na navegação e abre sem preview')
+    else falha('com MAPA_PUBLICO ligado, o mapa não abriu sem preview')
     await ctx.close()
   }
 

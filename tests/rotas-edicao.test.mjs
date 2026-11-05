@@ -87,7 +87,7 @@ test('a Caça aos Carimbos segue o mesmo gate do mapa e não mexe nas flags', ()
   assert.match(idx, /CENAS_DO_MAPA = \[[^\]]*'caca'/, 'sem MAPA_NO_AR a cena vira "em breve"')
   assert.match(idx, /MAPA_NO_AR \|\| !\['mapa', 'caca'\]/, 'o Mapa da Doçura e a Caça somem do menu juntos')
   assert.doesNotMatch(idx, /'minha-rota'/, 'sem item nem página própria para a rota')
-  assert.match(ler('src/edicao/config.js'), /export const MAPA_PUBLICO = false/)
+  assert.match(ler('src/edicao/config.js'), /export const MAPA_PUBLICO = true/)
   assert.ok(CENAS.includes('caca'))
 })
 

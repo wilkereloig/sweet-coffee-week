@@ -70,9 +70,9 @@ test('regulamento: o que o servidor não faz não é prometido', () => {
 })
 
 test('lacunas são só as que dependem de decisão do Wilker e estão listadas em 15-caca-publicacao-pendencias.md', () => {
-  assert.equal(aDefinir.length, 3)
+  assert.equal(aDefinir.length, 2)
   const pend = fonte('docs/cartoon-2026-2/15-caca-publicacao-pendencias.md')
-  for (const chave of ['idade mínima', 'entrega do prêmio final', 'guardados depois do festival']) {
+  for (const chave of ['entrega do prêmio final', 'guardados depois do festival']) {
     assert.ok(aDefinir.some((t) => t.includes(chave)), `aDefinir: ${chave}`)
     assert.match(pend, new RegExp(chave), `pendências: ${chave}`)
   }
