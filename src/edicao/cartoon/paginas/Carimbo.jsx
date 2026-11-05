@@ -21,6 +21,7 @@ import { falhaDeLocalizacao, podePedirPresenca, pedidoDaCasa, precisaDeRevisao }
 import { PedidoPresenca } from '../../caca/PedidoPresenca.jsx'
 import { CriarMapa } from '../../caca/CriarMapa.jsx'
 import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
+import { CartaoEmailDoAparelho } from '../../caca/CartaoEmail.jsx'
 
 const SLUG_CASA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const T = CACA.carimbo
@@ -64,6 +65,7 @@ export function CacaAposAvaliar ({ casa, navigate }) {
             <p className="ct-sub">{novo ? A.mapaCriado : A.titulo}</p>
             <p className="ct-nota">{A.textoComMapa(casa)}</p>
             {novo && <GuardarMapa chave={chave} />}
+            <CartaoEmailDoAparelho navigate={navigate} />
             <div className="ct-acoes"><Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-botao ct-botao--contorno">{T.central}</Link></div>
           </>
           )
@@ -153,10 +155,13 @@ export function Carimbo ({ codigo, navigate, dados }) {
   const avaliar = () => navigate(C.prepararAvaliacao({ caminho: EDICAO.caminho, slug: r.slug, unidade: r.unidade, mapa: mapa || { apelido: perfil.nome, email: perfil.email } }))
 
   const links = (
-    <div className="ct-acoes">
-      <Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-botao ct-botao--contorno">{T.central}</Link>
-      <Link href={CACA_CAMINHOS.casas} navigate={navigate} className="ct-botao ct-botao--contorno">{T.casas}</Link>
-    </div>
+    <>
+      <div className="ct-acoes">
+        <Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-botao ct-botao--contorno">{T.central}</Link>
+        <Link href={CACA_CAMINHOS.casas} navigate={navigate} className="ct-botao ct-botao--contorno">{T.casas}</Link>
+      </div>
+      <CartaoEmailDoAparelho navigate={navigate} />
+    </>
   )
 
   if (!valido) {

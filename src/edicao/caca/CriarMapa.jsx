@@ -58,8 +58,13 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
     aoAbrir(r.chave, true)
   }
 
+  const temNoAparelho = !!C.lerChave(EDICAO.codigo) // normalmente a Central já abriu esse mapa; aqui é a rede de segurança
+
   return (
     <>
+      {comLink && navigate && (temNoAparelho
+        ? <p className="ct-nota" role="status">{T.jaTemNoAparelho} <Link href={`${EDICAO.caminho}/caca`} navigate={navigate} className="ct-link-solto">{T.abrirMeuMapa}</Link></p>
+        : <p className="ct-nota">{T.jaTenhoTopo} <Link href={`${EDICAO.caminho}/caca/recuperar`} navigate={navigate} className="ct-link-solto">{T.recuperar}</Link></p>)}
       <form className="ct-form ct-carimbar__form" onSubmit={criar} noValidate aria-labelledby="mapa-novo">
         <p id="mapa-novo" className="ct-sub">{titulo}</p>
         <p className="ct-nota">{nota}</p>

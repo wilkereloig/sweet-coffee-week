@@ -32,6 +32,7 @@ import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
+import { CartaoEmail } from '../../../caca/CartaoEmail.jsx'
 import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
 import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
 import { contarFiltros, casasEEnderecos, enderecosDaCasa, podeLocalizar } from '../../../caca/mapa/tela.js'
@@ -83,7 +84,7 @@ const notaDoLugar = (c) => (!c ? T.semCoordenada : c.conferir ? (c.precisao === 
 
 export function Mapa ({ navigate, dados, abrirRota = false }) {
   const rota = useRota()
-  const meu = useCaca({ comEmail: false })
+  const meu = useCaca()
   const mundo = React.useMemo(() => mundoEdicao(), [])
   // Arte provisória (não aprovada) só como prévia no DEV: no ar, o Mundo só entra com a arte aprovada pelo Wilker.
   const comMundo = arteLiberada({ aprovada: mundo.aprovada, dev: !!import.meta.env.DEV })
@@ -332,6 +333,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             {...(cheia ? { role: 'dialog', 'aria-modal': true, 'aria-label': TC.telaCheiaRegiao } : {})}>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} />
+        <CartaoEmail caca={meu} navigate={navigate} />
 
             <div className="ct-mapa__resumo">
               <p className="ct-catalogo__conta" aria-live="polite">{resumo}</p>

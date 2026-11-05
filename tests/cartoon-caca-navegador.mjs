@@ -397,12 +397,38 @@ secao(2, 'recuperar e confirmar por e-mail (estados do envio)', async () => {
   await validar(c.page)
   await c.page.getByText(/confirmado/i).first().waitFor({ timeout: 8000 }).catch(() => falha('confirmar e-mail: sem a confirmação'))
   checar(c.pedidos.find((p) => p.fn === 'caca-email')?.corpo.finalidade === 'confirmar', 'confirmar e-mail pede o código com finalidade "confirmar"')
-  await c.page.getByText(/Enviamos o link do seu mapa/).first().waitFor({ timeout: 8000 }).catch(() => falha('confirmar e-mail: a tela não disse que o link foi enviado'))
+  await c.page.getByText(/Pedimos o envio do link do seu mapa/).first().waitFor({ timeout: 8000 }).catch(() => falha('confirmar e-mail: a tela não disse que o link foi enviado'))
   const pedidoLink = c.pedidos.find((p) => p.fn === 'caca-email' && p.corpo.finalidade === 'link')
   checar(!!pedidoLink && pedidoLink.corpo.chave === alvo.chave && /^[a-z0-9._%+-]+@/i.test(pedidoLink.corpo.email || ''), 'depois de confirmar, o app pede o envio do link pessoal (finalidade "link", com a chave do mapa)')
-  checar(/Enviamos o link do seu mapa para e\*+@/.test(await texto(c.page)), 'depois de confirmar, a tela diz que o link foi enviado, com o e-mail mascarado')
+  checar(/Pedimos o envio do link do seu mapa para e\*+@/.test(await texto(c.page)), 'depois de confirmar, a tela diz que o link foi enviado, com o e-mail mascarado')
   checar(!(await texto(c.page)).includes(alvo.chave), 'o link/chave nunca aparece na tela de confirmação')
   await semErros(c, 'recuperar')
+  await c.ctx.close()
+
+  // f2) o envio do link falha depois do código: o mapa e a confirmação ficam, a tela diz a verdade e "Tentar enviar novamente" refaz
+  let tentativasLink = 0
+  c = await contexto(nav, { chave: alvo.chave, email: (corpo) => { if (corpo.finalidade === 'link' && ++tentativasLink === 1) return { ok: false, motivo: 'falha_temporaria' }; return { ok: true } }, mocks: { mapa_codigo_validar: { ok: true, finalidade: 'confirmar' } } })
+  await ir(c.page, '/cartoon/caca')
+  await c.page.getByRole('button', { name: 'Confirmar e-mail' }).click()
+  await c.page.getByRole('button', { name: 'Enviar código' }).click()
+  await validar(c.page)
+  await c.page.getByText(/Não deu para pedir o envio do link/).waitFor({ timeout: 8000 }).catch(() => falha('envio falho: a tela não avisou da falha'))
+  checar(/E-mail confirmado, e o seu mapa continua aberto/.test(await texto(c.page)), 'envio falho: confirmação e mapa preservados')
+  checar(!/Pedimos o envio do link/.test(await texto(c.page)), 'envio falho: nunca afirma que o link foi pedido')
+  await c.page.getByRole('button', { name: 'Tentar enviar novamente' }).click()
+  await c.page.getByText(/Pedimos o envio do link do seu mapa/).waitFor({ timeout: 8000 }).catch(() => falha('reenvio: a tela não confirmou o pedido aceito'))
+  checar(c.pedidos.filter((p) => p.fn === 'caca-email' && p.corpo.finalidade === 'link').length === 2, 'reenvio: dois pedidos de link, o segundo pela nova tentativa')
+  await semErros(c, 'envio falho e reenvio')
+  await c.ctx.close()
+
+  // f3) a página do mapa (antes só a Central tinha o lembrete) e o convite acima do formulário
+  c = await contexto(nav, { chave: alvo.chave, email: { ok: true } })
+  await ir(c.page, '/cartoon/mapa')
+  await c.page.getByRole('button', { name: 'Confirmar e-mail' }).waitFor({ timeout: 10000 }).catch(() => falha('página do mapa: sem "Confirmar e-mail" para mapa com e-mail pendente'))
+  await c.ctx.close()
+  c = await contexto(nav, {})
+  await ir(c.page, '/cartoon/caca')
+  checar(await c.page.getByRole('link', { name: 'Recuperar meu mapa' }).first().isVisible(), 'criar mapa: "Recuperar meu mapa" visível antes de preencher')
   await c.ctx.close()
 
   // g) sonda real com endereço de SANDBOX do provedor (não entrega a ninguém): relata o estado do envio.

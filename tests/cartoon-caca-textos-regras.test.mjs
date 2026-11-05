@@ -134,7 +134,7 @@ test('central: o carimbo pendente é o próximo passo (uma ação), não se repe
 })
 
 test('central: avisos são linhas pequenas e dispensáveis; e-mail pendente volta a cada visita (a confirmação só existe aqui)', () => {
-  const email = fonte('src/edicao/caca/EmailPendente.jsx')
+  const email = fonte('src/edicao/caca/CartaoEmail.jsx')
   assert.match(email, /sessionStorage/, 'dispensa só vale na visita')
   assert.doesNotMatch(email, /localStorage/)
   assert.match(CACA.email.ajuda, /prêmio/)

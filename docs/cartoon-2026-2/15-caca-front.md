@@ -23,7 +23,7 @@ Segmento a mais ou uuid ruim = `inexistente`. Token só existe no caminho: o Ana
 - `src/edicao/caca/regras.js` — funções puras: `proximaAcao`, `resumoProgresso`, `ajudaLocalizacao`, `tokenValido`, `grupoIdValido`, `situacaoEmail`, `emailMascarado`, `nomeDaCasa`.
 - `src/edicao/caca/useCaca.js` — o hook (abaixo).
 - `src/edicao/caca/textos.js` — `CACA` (textos), `CACA_CAMINHOS`, `mensagemDoMotivo(motivo)`. Outras frentes acrescentam o bloco delas aqui (ou em arquivo próprio ao lado).
-- Componentes: `Central`, `Recuperar`, `CriarMapa` (+ `AbrirPeloLink`), `CodigoPorEmail` (recuperar/confirmar), `EmailPendente`, `GuardarMapa` (só copia o link pessoal; sem WhatsApp, porque o endereço de compartilhamento levaria a chave).
+- Componentes: `Central`, `Recuperar`, `CriarMapa` (+ `AbrirPeloLink`), `CodigoPorEmail` (recuperar/confirmar), `CartaoEmail` (confirmar o e-mail, link pessoal enviado sozinho depois do código, "Tentar enviar novamente"; montado na Central, no mapa e no carimbo), `GuardarMapa` (só copia o link pessoal; sem WhatsApp, porque o endereço de compartilhamento levaria a chave).
 - `src/edicao/cartoon/paginas/caca/index.jsx` — a página: um `<h1>` por seção, `useCaca()` uma vez, `caca` passado às seções.
 - `src/edicao/cartoon/paginas/Carimbo.jsx` — porta do QR (carimbo pendente, ajuda de localização) e `CacaAposAvaliar` (porta da avaliação).
 - `src/styles/cartoon/13-caca.css` — estilos `ct-caca__*`.
