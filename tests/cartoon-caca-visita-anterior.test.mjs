@@ -131,3 +131,10 @@ test('aviso à organização: gatilho notifica o painel e o link abre Carimbos �
   assert.deepEqual(rotaDoLink('edicao/carimbos/presenca'), { vista: 'edicao', aba: 'carimbos', filtros: { sub: 'presenca' } })
   assert.equal(rotaDoLink('edicao/temas')?.aba, 'temas', 'os links antigos da edição seguem iguais')
 })
+
+test('alertas da auditoria: carimbo de visita anterior fica fora de "viagem impossível" e de "sem ponto conferido"', () => {
+  const sql = ler('supabase/migrations/20261229_mapa_carimbos_alertas_visita_anterior.sql')
+  // viagem: fora da janela inteira; sem_conferencia: fora do alerta e do total
+  assert.equal((sql.match(/k\.origem is distinct from 'visita_anterior'/g) || []).length, 3)
+  assert.match(sql, /'sem_conferencia', count\(\*\) filter \(where [^)]*visita_anterior/)
+})
