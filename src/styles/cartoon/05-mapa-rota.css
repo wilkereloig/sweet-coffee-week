@@ -135,6 +135,8 @@
    toque, taparia o pin do vizinho. Só os botões dentro dele recebem toque. */
 .ct-mapa__mapa gmp-advanced-marker { pointer-events: none; }
 .ct-mapa__mapa gmp-advanced-marker button { pointer-events: auto; }
+/* Pin escondido num selo de grupo: o invólucro (focável, com aria) some junto, senão o Tab para num marcador invisível. */
+.ct-mapa__mapa gmp-advanced-marker:has(.is-agrupado) { visibility: hidden; }
 .ct-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0 4px; list-style: none; font: 600 13px/1.3 var(--ct-font); }
 .ct-legenda li { display: inline-flex; align-items: center; gap: 6px; }
 /* Legenda nos mesmos sinais do mapa: gota de pin (desenhada em CSS), anel tracejado e selos da rota. */

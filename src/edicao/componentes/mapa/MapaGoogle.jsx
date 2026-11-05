@@ -106,10 +106,12 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
         const antes = m.getZoom() ?? 12
         m.fitBounds(caixa, 96)
         // Grupo que já cabe na tela (uma corrente de pins encostados) não ganha zoom do fitBounds: o selo sempre aproxima ao menos 2 níveis.
-        window.google.maps.event.addListenerOnce(m, 'idle', () => {
+        const espera = window.google.maps.event.addListenerOnce(m, 'idle', () => {
           if ((m.getZoom() ?? antes) <= antes + 0.01) m.setZoom(Math.min(16, antes + 2))
           else if (m.getZoom() > 16) m.setZoom(16)
         })
+        // Sem movimento de câmera não há 'idle': o ouvinte não pode ficar pendente e disparar num arrasto de muito depois.
+        setTimeout(() => espera.remove(), 2000)
       })
       const lat = membros.reduce((t, p) => t + p.lat, 0) / membros.length
       const lng = membros.reduce((t, p) => t + p.lng, 0) / membros.length

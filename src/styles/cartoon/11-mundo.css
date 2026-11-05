@@ -74,6 +74,7 @@
   min-width: 20px; height: 20px; padding: 0 4px; border-radius: 999px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 12px/1 var(--ct-font);
   pointer-events: none; user-select: none;
 }
+.ct-mundo__num[hidden] { display: none; } /* sem número no impresso: o display:grid acima venceria o [hidden] e sobraria uma bolinha vazia */
 /* Selo de estado: no aro, canto superior direito. */
 .ct-mundo__estado, .ct-mundo__revisita { position: absolute; pointer-events: none; user-select: none; }
 .ct-mundo__estado {

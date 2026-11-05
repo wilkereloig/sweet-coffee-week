@@ -41,7 +41,9 @@ export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null }) 
 
   const abrir = (chave) => { setLista(false); setAberta(chave) }
   // Pedido de fora (o botão "Minha rota" da barra): abre a folha daquele atalho sobre o mapa, sem mexer em zoom nem seleção.
-  React.useEffect(() => { if (pedido) abrir(pedido.chave) }, [pedido]) // eslint-disable-line react-hooks/exhaustive-deps -- só quando chega um pedido novo
+  // O pedido que já existia na montagem é velho (sobrou de uma ida anterior à tela cheia): não reabre a folha sozinho.
+  const jaVisto = React.useRef(pedido)
+  React.useEffect(() => { if (pedido && pedido !== jaVisto.current) { jaVisto.current = pedido; abrir(pedido.chave) } }, [pedido]) // eslint-disable-line react-hooks/exhaustive-deps -- só quando chega um pedido novo
   const titulo = aberta ? TC.atalhoTitulo[aberta] : ''
   return (
     <div ref={raiz} className="ct-jogo">
