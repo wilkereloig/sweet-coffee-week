@@ -87,7 +87,11 @@ export function layoutDaArte (d, medirEm) {
   let y = y0 + 100
   texto(T.arteTitulo, y, tamanhoQueCabe(T.arteTitulo, util, (t, s) => medirEm(t, s, 700), 52, 32), 700)
   y += 130
-  texto(d.apelido, y, tamanhoQueCabe(d.apelido, util, (t, s) => medirEm(t, s, 900), 120, 48), 900)
+  // Apelido: encolhe até 32px; se ainda não couber (nome só de letras largas), corta com reticências para nunca vazar do cartão.
+  const tamApelido = tamanhoQueCabe(d.apelido, util, (t, s) => medirEm(t, s, 900), 120, 32)
+  let apelido = d.apelido
+  while (apelido.length > 1 && medirEm(apelido, tamApelido, 900) > util) apelido = `${apelido.slice(0, -2).trimEnd()}…`
+  texto(apelido, y, tamApelido, 900)
   y += 210
   const grande = `${d.validadas} de ${d.total}`
   texto(grande, y, tamanhoQueCabe(grande, util, (t, s) => medirEm(t, s, 900), 190, 80), 900)

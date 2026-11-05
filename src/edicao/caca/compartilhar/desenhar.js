@@ -27,9 +27,11 @@ function carregarImagem (src) {
 /** Gera o PNG da arte. Rejeita se o fundo ou o canvas falharem; a tela cai no compartilhamento só por link. */
 export async function gerarArte (dados) {
   const doc = globalThis.document
+  const amostra = `${dados.apelido}${dados.casas.join('')}0123456789 áàâãéêíóôõúç`
   await Promise.all([
-    doc.fonts?.load(`900 80px ${ARTE.fonte}`).catch(() => null),
-    doc.fonts?.load(`700 44px ${ARTE.fonte}`).catch(() => null),
+    // O texto de amostra faz o navegador baixar também os subconjuntos com acento (á, ç, ã) que o apelido e as casas usam.
+    doc.fonts?.load(`900 80px ${ARTE.fonte}`, amostra).catch(() => null),
+    doc.fonts?.load(`700 44px ${ARTE.fonte}`, amostra).catch(() => null),
   ])
   const fundo = await carregarImagem(IMG_CACA.storiesFundo)
   const canvas = doc.createElement('canvas')

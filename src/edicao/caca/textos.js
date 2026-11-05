@@ -151,7 +151,11 @@ export const CACA = {
     copiar: 'Copiar meu link pessoal',
     copiado: 'Link copiado',
     anuncio: 'Link pessoal copiado.',
-    falhou: 'Não deu para copiar. Selecione e copie o endereço do navegador depois de abrir seu mapa.',
+    falhou: 'Não deu para copiar sozinho. Toque no campo abaixo, selecione tudo e copie.',
+    campo: 'Seu link pessoal',
+    tituloAqui: 'Meu link pessoal',
+    semMapa: 'Sem um mapa aberto neste aparelho não há link pessoal. Crie um mapa ou recupere o seu.',
+    recuperar: 'Recuperar meu mapa',
   },
 
   email: {
