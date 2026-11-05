@@ -119,3 +119,28 @@ export function afastarPins (itens, { folga = FOLGA, limite = LIMITE_GRUPO } = {
   }
   return { desloc, grupos: grande }
 }
+
+// ---- Mapa real: do ponto geográfico ao deslocamento em pixels ----
+// Tamanho de cada pin em px a escala cheia, com folga para o número e o selo de estado que saem do aro. É o desenho de
+// 11-mundo.css (.ct-pin: --d 54px + cauda) e do Sicredi (.ct-sicredi-pin); tests/cartoon-afastar.test.mjs confere a ligação.
+export const CAIXA_CASA = { w: 62, h: 74 }
+export const CAIXA_SICREDI = { w: 84, h: 54 }
+export const ESCALA_LONGE = 0.55 // 16-mapa-tela.css: de longe o pin encolhe a esta fração, em volta da ponta
+
+/**
+ * Plano de afastamento para os pontos do mapa real no zoom dado.
+ * pontos: [{ id, lat, lng, sicredi? }] · zoom/tile: do provedor (Google 256, MapLibre 512) · zoomPerto: abaixo dele o mapa é "longe".
+ * De longe, grupo com mais de LIMITE_GRUPO pins vira selo; de perto, todo mundo é afastado. O pin escolhido nunca some num selo.
+ */
+export function planejarNoMapa (pontos, { zoom, tile = 256, zoomPerto, selecionada = '' }) {
+  const longe = zoom < zoomPerto
+  const escala = longe ? ESCALA_LONGE : 1
+  const itens = pontos.map((p) => {
+    const { x, y } = projetar(p.lat, p.lng, zoom, tile)
+    const c = p.sicredi ? CAIXA_SICREDI : CAIXA_CASA
+    return { id: p.id, x, y, w: c.w * escala, h: c.h * escala }
+  })
+  const plano = afastarPins(itens, { limite: longe ? LIMITE_GRUPO : Infinity })
+  if (selecionada && plano.grupos.some((g) => g.ids.includes(selecionada))) return afastarPins(itens, { limite: Infinity })
+  return plano
+}

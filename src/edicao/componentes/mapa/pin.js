@@ -79,3 +79,66 @@ export function pinSicredi (pin) {
   caixa.append(placa, ponta)
   return caixa
 }
+
+/*
+ * AFASTAMENTO (afastar.js): o pin que colide é só DESLOCADO NA TELA, por --dx/--dy (a propriedade `translate` do
+ * 11-mundo.css/05-mapa-rota.css); a coordenada do marcador não muda. O fio liga a ponta do pin ao ponto verdadeiro, que ganha
+ * uma bolinha: é um marcador à parte, preso à coordenada real, sem escala nem hover, então não sai do lugar ao ampliar ou arrastar.
+ * Os dois mapas reais usam estas quatro peças.
+ */
+const SVG = 'http://www.w3.org/2000/svg'
+const tracos = (nome, atributos) => { const e = document.createElementNS(SVG, nome); for (const [k, v] of Object.entries(atributos)) e.setAttribute(k, v); return e }
+
+/** O fio + a bolinha do ponto verdadeiro: caixa de 0×0 sobre o ponto, o desenho vaza para fora (overflow visível). */
+export function fioDoPin () {
+  const caixa = document.createElement('span')
+  caixa.className = 'ct-fio'
+  caixa.setAttribute('aria-hidden', 'true')
+  caixa.hidden = true
+  const svg = tracos('svg', { width: 1, height: 1, viewBox: '0 0 1 1', overflow: 'visible' })
+  svg.append(
+    tracos('line', { class: 'ct-fio__base', x1: 0, y1: 0, x2: 0, y2: 0 }),
+    tracos('line', { class: 'ct-fio__linha', x1: 0, y1: 0, x2: 0, y2: 0 }),
+    tracos('circle', { class: 'ct-fio__ponto', cx: 0, cy: 0, r: 4.5 }),
+  )
+  caixa.append(svg)
+  return caixa
+}
+
+/** Aponta o fio para o pin deslocado (d = {dx, dy} da ponta); sem deslocamento, o fio some. */
+export function ajustarFio (fio, d) {
+  const move = !!d && (Math.abs(d.dx) > 0.5 || Math.abs(d.dy) > 0.5)
+  fio.hidden = !move
+  if (!move) return
+  for (const l of fio.querySelectorAll('line')) { l.setAttribute('x2', d.dx.toFixed(1)); l.setAttribute('y2', d.dy.toFixed(1)) }
+}
+
+/** Põe o deslocamento no marcador e esconde quem virou parte de um selo de grupo. */
+export function aplicarAfastamento (plano, pontos, { elemento, fio }) {
+  const agrupados = new Set(plano.grupos.flatMap((g) => g.ids))
+  for (const p of pontos) {
+    const el = elemento(p.id)
+    const d = plano.desloc.get(p.id)
+    if (el) {
+      el.style.setProperty('--dx', `${(d?.dx ?? 0).toFixed(1)}px`)
+      el.style.setProperty('--dy', `${(d?.dy ?? 0).toFixed(1)}px`)
+      el.classList.toggle('is-agrupado', agrupados.has(p.id))
+    }
+    const f = fio(p.id)
+    if (f) ajustarFio(f, agrupados.has(p.id) ? null : d)
+  }
+}
+
+/** O selo de contagem de um grupo grande (zoom longe): botão de 44 px; quem chama liga o clique (aproximar). */
+export function seloDoGrupo (n, nome) {
+  const botao = document.createElement('button')
+  botao.type = 'button'
+  botao.className = 'ct-selo-grupo'
+  botao.setAttribute('aria-label', nome)
+  const num = document.createElement('span')
+  num.className = 'ct-selo-grupo__num'
+  num.textContent = String(n)
+  num.setAttribute('aria-hidden', 'true')
+  botao.append(num)
+  return botao
+}
