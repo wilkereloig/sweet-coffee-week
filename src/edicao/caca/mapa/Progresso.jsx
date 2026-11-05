@@ -11,6 +11,7 @@ import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { Botao } from '../../componentes/sistema/pecas.jsx'
 import { Carregando } from '../../componentes/base.jsx'
 import { progressoPessoal } from './estados.js'
+import { ComoCarimbar } from './ComoCarimbar.jsx'
 import { MAPA_CACA as T } from './textos.js'
 
 export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, geo, aoVerCasa, aoAvaliar, atualizar, navigate }) {
@@ -39,6 +40,7 @@ export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, geo, a
         <p>{T.semMapa}</p>
         <Botao href={T.caminhos.central} navigate={navigate}>{T.criarMapa}</Botao>
       </>,
+      <ComoCarimbar aberto />,
     )
   }
   const p = progressoPessoal(mapa, totalDaEdicao)
@@ -51,6 +53,8 @@ export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, geo, a
     <>
       {detalhe && <p className="ct-nota ct-mapa__progresso-detalhe">{detalhe}</p>}
       <ProximoPasso proximo={proximo} geo={geo} aoVerCasa={aoVerCasa} aoAvaliar={aoAvaliar} />
+      {/* Aberto para quem ainda não validou nenhuma casa nem tem carimbo esperando; depois, uma linha que abre ao toque. */}
+      <ComoCarimbar aberto={p.feitas === 0 && !p.pendentes} />
     </>,
   )
 }

@@ -64,16 +64,28 @@
 .ct-central__numeros .ct-central__esperando { background: var(--ct-amarelo); }
 
 /* "Como conta?" e as linhas com opções: <details> nativo, fechado, com a seta desenhada em CSS (indicador funcional). */
-.ct-central__como summary, .ct-central__detalhes > summary {
+.ct-central__como summary, .ct-central__detalhes > summary, .ct-como-carimbar > summary {
   display: flex; align-items: center; gap: 10px; min-height: 44px; list-style: none; cursor: pointer; font: 700 15px/1.3 var(--ct-font);
 }
-.ct-central__como summary::-webkit-details-marker, .ct-central__detalhes > summary::-webkit-details-marker { display: none; }
-.ct-central__como summary::after, .ct-central__detalhes > summary::after {
+.ct-central__como summary::-webkit-details-marker, .ct-central__detalhes > summary::-webkit-details-marker, .ct-como-carimbar > summary::-webkit-details-marker { display: none; }
+.ct-central__como summary::after, .ct-central__detalhes > summary::after, .ct-como-carimbar > summary::after {
   content: ''; flex: none; width: 8px; height: 8px; margin: 0 4px 3px auto; border: solid var(--ct-chocolate); border-width: 0 3px 3px 0; transform: rotate(45deg);
 }
-.ct-central__como[open] > summary::after, .ct-central__detalhes[open] > summary::after { margin-bottom: -3px; transform: rotate(-135deg); }
+.ct-central__como[open] > summary::after, .ct-central__detalhes[open] > summary::after, .ct-como-carimbar[open] > summary::after { margin-bottom: -3px; transform: rotate(-135deg); }
 .ct-central__como ul { margin: 0 0 10px; padding-left: 20px; font: 500 14px/1.5 var(--ct-font); }
 .ct-central__como li + li { margin-top: 4px; }
+
+/* Como carimbar: três passos numerados, à vista; fecha numa linha depois da primeira casa validada. */
+.ct-como-carimbar { padding: 0 2px; }
+.ct-como-carimbar__passos { display: grid; gap: 8px; margin: 0 0 8px; padding: 0; list-style: none; counter-reset: passo; }
+.ct-como-carimbar__passos li { display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 10px; counter-increment: passo; font: 500 14px/1.4 var(--ct-font); }
+.ct-como-carimbar__passos li::before {
+  content: counter(passo); grid-row: 1 / span 2; display: grid; place-items: center; width: 28px; height: 28px;
+  border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); font: 900 15px/1 var(--ct-font);
+}
+.ct-como-carimbar__passos strong { font: 800 15px/1.25 var(--ct-font); }
+.ct-como-carimbar__passos span { grid-column: 2; }
+.ct-como-carimbar > .ct-nota { margin: 0 0 6px; }
 
 .ct-central__proxima {
   padding: 14px 16px 16px;
@@ -120,7 +132,7 @@
   font: 700 13px/1.3 var(--ct-font);
 }
 .ct-central__selo.is-ligado { background: var(--ct-turquesa); }
-.ct-central__detalhes > summary::after { margin-left: 4px; }
+.ct-central__detalhes > summary::after, .ct-como-carimbar > summary::after { margin-left: 4px; }
 .ct-central__detalhes[open] > summary { margin-bottom: 4px; }
 /* GuardarMapa logo depois de criar o mapa: o mesmo componente da recuperação, aqui sem peso de card. */
 .ct-central .ct-carimbar__guardar {

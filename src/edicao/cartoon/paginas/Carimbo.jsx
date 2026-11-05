@@ -13,7 +13,8 @@ import { EDICAO } from '../../config.js'
 import { Link, Logo } from '../../componentes/base.jsx'
 import * as C from '../../rota/carimbo.js'
 import { api } from '../../caca/api.js'
-import { ajudaLocalizacao, resumoProgresso } from '../../caca/regras.js'
+import { ajudaLocalizacao, resumoProgresso, aparelhoDoNavegador, passosParaAparelho } from '../../caca/regras.js'
+import { usePermissaoLocalizacao } from '../../caca/usePermissaoLocalizacao.js'
 import { CACA, CACA_CAMINHOS } from '../../caca/textos.js'
 import { GPS } from '../../caca/textos-gps.js'
 import { falhaDeLocalizacao, podePedirPresenca, pedidoDaCasa, precisaDeRevisao } from '../../caca/gps.js'
@@ -24,11 +25,15 @@ import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
 const SLUG_CASA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const T = CACA.carimbo
 
+/** Só o caminho do aparelho da pessoa fica à vista (Android não lê o do iPhone); os outros ficam recolhidos. */
 function AjudaDeLocalizacao ({ ajuda }) {
+  const { principais, outros } = passosParaAparelho(ajuda.passos, aparelhoDoNavegador(globalThis.navigator?.userAgent))
+  const lista = (itens) => <ul className="ct-carimbar__como">{itens.map(([onde, passos]) => <li key={onde}><strong>{onde}:</strong> {passos}</li>)}</ul>
   return (
-    <ul className="ct-carimbar__como">
-      {ajuda.passos.map(([onde, passos]) => <li key={onde}><strong>{onde}:</strong> {passos}</li>)}
-    </ul>
+    <>
+      {lista(principais)}
+      {outros.length > 0 && <details className="ct-carimbar__outros"><summary>{GPS.outroAparelho}</summary>{lista(outros)}</details>}
+    </>
   )
 }
 
@@ -87,12 +92,22 @@ export function Carimbo ({ codigo, navigate, dados }) {
   const [lendoMapa, setLendoMapa] = React.useState(false) // mapa_ler_v2 em curso depois do carimbo (E2E-4)
   const [progresso, setProgresso] = React.useState(null) // { i, n }: tentativa de GPS em curso
   const [falhas, setFalhas] = React.useState(0) // falhas de localização seguidas nesta abertura da página
+  const [liberou, setLiberou] = React.useState(false) // estava bloqueada e a pessoa liberou nas configurações
   const [pedido, setPedido] = React.useState(null) // pedido de revisão desta casa: 'pendente' · 'aprovado' · 'negado'
+  const permissao = usePermissaoLocalizacao() // estado do navegador, lido antes do toque (não pede a posição)
   const posicao = React.useRef(null) // última leitura do GPS: só em memória, só segue para a RPC do pedido
   const titulo = React.useRef(null)
   const casa = (dados?.participantes || []).find((p) => p.slug === (r?.slug || (porCasa ? codigo : null)))?.casa
 
   React.useEffect(() => { if (estado === 'ok' || estado === 'recusa') titulo.current?.focus() }, [estado])
+
+  // Localização já bloqueada neste navegador: a ajuda (e o pedido de revisão) aparecem de cara, sem gastar o toque da pessoa.
+  // Se ela libera nas configurações e volta, o estado muda sozinho e o botão volta; nunca se carimba sem o toque dela.
+  const bloqueio = estado === 'recusa' && r?.motivo === 'sem_localizacao' && r?.posicao === 'negada'
+  React.useEffect(() => {
+    if (permissao === 'denied' && estado === 'pronto' && chave && valido) { setR({ motivo: 'sem_localizacao', posicao: 'negada' }); setEstado('recusa') }
+    else if (permissao === 'granted' && bloqueio) { setR(null); setEstado('pronto'); setLiberou(true) }
+  }, [permissao, estado, chave, valido, bloqueio])
 
   // Pedido de revisão já feito para esta casa? Só consulta quando a localização falhou e há mapa neste aparelho.
   const slugDaRecusa = r?.slug || (porCasa ? codigo : null)
@@ -198,6 +213,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
         <p className="ct-rotulo">{T.rotulo}</p>
         <h1 ref={titulo} tabIndex={-1} className="ct-h1">{m.titulo}</h1>
         <p className="ct-lead">{m.texto}</p>
+        {bloqueio && <p className="ct-nota"><strong>{GPS.jaBloqueada}</strong></p>}
         {ajuda && <AjudaDeLocalizacao ajuda={ajuda} />}
         {falhaDeLocalizacao(r) && <DicasDeSinal />}
         {deNovo && <div className="ct-acoes"><button type="button" className="ct-botao" onClick={() => carimbar()}>{T.tentar}</button></div>}
@@ -244,6 +260,8 @@ export function Carimbo ({ codigo, navigate, dados }) {
       {chave
         ? (
           <>
+            {liberou && estado === 'pronto' && <p className="ct-nota" role="status">{GPS.liberada}</p>}
+            {permissao === 'prompt' && estado === 'pronto' && <p className="ct-carimbar__antes" role="note"><strong>{GPS.antes.titulo}</strong> {GPS.antes.texto}</p>}
             <div className="ct-acoes">
               <button type="button" className="ct-botao ct-carimbar__principal" onClick={() => carimbar()} disabled={estado === 'carimbando'}>
                 {estado === 'carimbando' ? T.conferindo : T.carimbar}

@@ -14,6 +14,15 @@ export const GPS = {
       'Espere uns segundos parado antes de tocar em "Carimbar".',
     ],
   },
+  // Antes do toque em "Carimbar aqui": o celular vai perguntar. Quem não sabe por quê costuma tocar em "Bloquear".
+  antes: {
+    titulo: 'O celular vai perguntar sobre a localização.',
+    texto: 'Toque em "Permitir": é só para conferir que você está na casa, e a sua posição não é guardada.',
+  },
+  // Localização já bloqueada neste navegador (descoberto antes do toque): a ajuda aparece de cara, sem gastar o toque.
+  jaBloqueada: 'Este navegador está com a localização bloqueada para o site.',
+  liberada: 'Localização liberada. Toque em "Carimbar aqui".',
+  outroAparelho: 'Estou em outro aparelho',
   longeAjuda: (casa, dist, prec) => `Seu celular está a ${dist} da ${casa}${prec ? `, com margem de cerca de ${prec}` : ''}. Chegue perto do balcão e tente de novo.`,
   pedido: {
     abrir: 'Estou na casa e o GPS não funciona',

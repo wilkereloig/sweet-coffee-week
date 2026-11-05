@@ -55,7 +55,7 @@ const FORM = RETRATO_ABERTO
   : { slug: 'demo-casa-aurora', unidade: 'udemo1', nome: 'Aurora', procurar: /Aurora/ }
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const PORT = 5212
+const PORT = Number(process.env.CACA_E2E_PORTA) || 5212
 const BASE = `http://localhost:${PORT}`
 const EXEC = Date.now().toString(36)
 const EDICAO = '2026.2'
@@ -534,7 +534,7 @@ secao(4, 'GPS autônomo: negada, indisponível, demorou, imprecisa, longe e pedi
   }
   let r = await cenario('negada', { init: gpsComErro(1), resposta: recusa({ motivo: 'sem_localizacao' }), tituloEsperado: /bloqueou a localização/ })
   checar(r.corpoRpc?.p_lat === null && r.corpoRpc?.p_lng === null, 'GPS negada: o pedido vai sem posição')
-  checar(await r.cx.page.getByRole('button', { name: /Estou na casa e o GPS não funciona/ }).count() === 0, 'GPS negada: com UMA falha ainda não oferece o pedido de revisão')
+  checar(await r.cx.page.getByRole('button', { name: /Estou na casa e o GPS não funciona/ }).count() === 1, 'GPS negada (navegador bloqueou): já na 1ª falha oferece o pedido de revisão (05/11/2026)')
   await foto(r.cx.page, '04-gps-negada')
   // segunda falha seguida → aparece o pedido; o pedido real, com a janela fechada, volta "ainda não abriram"
   await r.cx.page.getByRole('button', { name: 'Tentar de novo' }).click()
@@ -857,14 +857,18 @@ async function mapaTelaCheiaEFolhas () {
     await cartao.waitFor({ timeout: 5000 })
     await esperarRolagem(p)
     const folha = await dom(p, () => {
-      const car = document.querySelector('.ct-mapa__cartao'); const r = car.getBoundingClientRect()
+      const car = document.querySelector('.ct-mapa__cartao')
+      // Desktop: o cartão mora na coluna ao lado e a página rola; casa com vários endereços (Cookitos) deixa o cartão mais alto que a
+      // tela. O que se exige é que ele CAIBA na tela depois de rolado até ele (nunca que a página abra já com tudo à mostra).
+      if (!document.querySelector('.ct-abas') || getComputedStyle(document.querySelector('.ct-abas')).display === 'none') car.scrollIntoView({ block: 'nearest' })
+      const r = car.getBoundingClientRect()
       const aba = document.querySelector('.ct-abas'); const ar = aba && getComputedStyle(aba).display !== 'none' ? aba.getBoundingClientRect() : null
       const zoom = document.querySelector('.ct-mundo__zoom-botao').getBoundingClientRect()
       const e = document.elementFromPoint(zoom.left + zoom.width / 2, zoom.top + zoom.height / 2)
       return { l: r.left, r: r.right, iw: innerWidth, abaTop: ar ? ar.top : null, b: r.bottom, ih: innerHeight, foco: document.activeElement === car, zoomLivre: !!e && !!e.closest('.ct-mundo__zoom'), nome: car.querySelector('h2')?.textContent || '' }
     })
     checar(folha.l >= -1 && folha.r <= folha.iw + 1, `${onde} cartão: cabe na largura`)
-    checar(folha.abaTop === null ? folha.b <= folha.ih + 1 : folha.b <= folha.abaTop + 1, `${onde} cartão: não passa por baixo da barra de abas`)
+    checar(folha.abaTop === null ? folha.b <= folha.ih + 1 : folha.b <= folha.abaTop + 1, `${onde} cartão: não passa por baixo da barra de abas (fundo ${Math.round(folha.b)}, abas ${folha.abaTop === null ? 'sem' : Math.round(folha.abaTop)}, tela ${folha.ih})`)
     checar(folha.foco, `${onde} cartão: o foco vai para o cartão quando a casa é escolhida`)
     checar(folha.zoomLivre, `${onde} cartão: o zoom do desenho segue livre (o mapa continua explorável)`)
     checar(/Cookitos/.test(folha.nome), `${onde} cartão: mostra a casa escolhida`)

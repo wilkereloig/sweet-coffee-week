@@ -52,6 +52,7 @@ export const MAPA_CACA = {
   },
   // Cartão da casa
   verCombo: 'Ver o combo',
+  carimbarAqui: 'Carimbar aqui',
   avaliarCombo: 'Avaliar o combo',
   avaliarValidar: 'Avaliar e validar o carimbo',
   // Estados
