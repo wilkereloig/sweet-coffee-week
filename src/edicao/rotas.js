@@ -9,7 +9,7 @@
 import { EDICAO } from './config.js'
 import { SECOES_SIMPLES, tokenValido, grupoIdValido } from './caca/regras.js'
 
-export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'carimbo', 'caca', 'voucher', 'regulamento', 'inexistente']
+export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'avaliar', 'premiacao', 'sistema', 'carimbo', 'caca', 'voucher', 'regulamento', 'inexistente']
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -49,7 +49,10 @@ export function resolverCena (path = '', base = EDICAO.caminho) {
       ? { cena: 'participante', slug, foco: 'combo' }
       : { cena: 'participante', slug }
   }
-  if (!slug && ['mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'regulamento'].includes(primeira)) return { cena: primeira }
+  // Mapa e Minha rota são UMA experiência (Mapa da Doçura): o endereço antigo da rota (QR e links já divulgados) abre o mesmo mapa
+  // com o painel da rota aberto — `abrirRota` — e a página troca a URL por /mapa, sem uma segunda página.
+  if (!slug && primeira === 'minha-rota') return { cena: 'mapa', abrirRota: true }
+  if (!slug && ['mapa', 'avaliar', 'premiacao', 'sistema', 'regulamento'].includes(primeira)) return { cena: primeira }
   // A página própria do patrocinador saiu (04/11): o endereço já divulgado abre a entrada, que ganhou a assinatura do Sicredi.
   if (!slug && primeira === 'patrocinador') return { cena: 'entrada', legado: true }
   return { cena: 'inexistente' }

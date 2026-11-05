@@ -319,9 +319,14 @@ impressão, ainda a definir.
 **[Decisão]** Wilker, 03/11: "aqui a gente trabalha em tudo que for mapa, rota e Minha rota, que a gente vai unificar"; em 04/11:
 "monte tudo que não precisar agora do visual". A rota que não cabe no desenho vai para o Google Maps.
 
-- **[Fato]** `/cartoon/mapa` e `/cartoon/minha-rota` são **a mesma página** (`paginas/mapa/index.jsx`; `MinhaRota.jsx` só
-  muda a entrada: topo "Minha rota" e, no celular, o painel antes do mapa). Endereços, rota compartilhada (`?u=`) e link
-  pessoal (`#mapa=`) seguem valendo. O endereço guarda `?vista`, `?painel`, `?unidade` e os filtros.
+- **[Fato]** **Mapa e Minha rota são UMA página, "Mapa da Doçura"** (`paginas/mapa/index.jsx`; unificação de 06/11/2026). Há um
+  só item de navegação (cabeçalho, menu, aba "Mapa", rodapé), com o contador de paradas. `/cartoon/minha-rota` não é mais
+  uma página: `resolverCena` devolve `{ cena: 'mapa', abrirRota: true }`, a página abre o MESMO mapa com o painel da rota
+  aberto e troca a URL por `/cartoon/mapa` (`replaceState`, preservando `?u=`, `?preview` e `#mapa=`). `MinhaRota.jsx`
+  saiu; não há segunda implementação nem segundo estado. Links e QR já divulgados (`/minha-rota`, `/minha-rota?u=`,
+  `/minha-rota#mapa=`) seguem valendo; os links NOVOS (compartilhar rota, "Guardar meu mapa", atalho "Abrir Minha rota")
+  apontam para `/cartoon/mapa`. O endereço guarda `?vista`, `?painel`, `?unidade`, os filtros e `?u`; no celular o painel
+  aberto vai como `?painel=rota` (recarregar ou compartilhar reabre a rota).
 - **Três vistas das mesmas casas:** **Mundo** (o mapa desenhado), **Mapa real** (Google; MapLibre de reserva) e **Lista**.
   Filtros valem nas três; no Mundo a casa fora do filtro fica apagada, não some.
 - **Ao lado:** o cartão da casa escolhida (parada da rota, carimbos, "Avaliar e validar o carimbo") e o painel com duas abas:
@@ -377,8 +382,11 @@ Mesmo conteúdo, mesmos dados e estados, outra organização (`paginas/mapa/*`, 
   chegar"); o resto fica em "Mais" — inclusive os **outros endereços da mesma casa**.
 - **Casas × endereços:** "27 casas · 41 endereços" + "Cada casa vale 1 carimbo"; o cartão avisa quando a casa tem mais de um
   endereço. A Caça conta casas.
-- **Minha rota e Carimbos num painel à parte:** folha modal no celular (botão "Minha rota"), coluna no desktop; na página
-  `/cartoon/minha-rota` ele continua como bloco antes do mapa.
+- **Minha rota e Carimbos num painel à parte:** folha modal no celular (botão "Minha rota" ou já aberta, vinda de
+  `/minha-rota`/`?u=`), coluna no desktop, atalho "Rota" na tela cheia. Fechar volta ao mapa com a casa escolhida, o zoom e a
+  posição como estavam (abrir a rota não descarta a casa); o foco volta ao botão "Minha rota". O painel diz a diferença
+  entre **na rota** (planejada), **já fui** (anotação) e **carimbo** (só a Caça valida) e traz a **Rota do grupo**
+  identificada à parte, com caminho para os grupos (a rota colaborativa vive no grupo, `/cartoon/caca/grupo/<id>`).
 - **Tela cheia** (vistas ilustrada e real; `useTelaCheia.js`): o mesmo contêiner vira `position: fixed; inset: 0; 100dvh`
   com safe areas — **não é um mapa paralelo**: seleção, filtros, zoom e centro seguem. Trava a rolagem da página, prende o
   Tab, Escape fecha (em pilha: a folha por cima fecha primeiro), "Fechar" sempre à vista e o foco volta ao botão que abriu.

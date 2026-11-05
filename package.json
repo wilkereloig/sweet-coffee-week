@@ -23,7 +23,7 @@
     "test:cartoon-voucher": "node tests/cartoon-voucher-virtual-navegador.mjs",
     "test:rotas-edicao": "node --test tests/rotas-edicao.test.mjs",
     "qr:edicao": "node scripts/qr-edicao.mjs",
-    "test:cartoon": "node --test tests/rotas-edicao.test.mjs tests/cartoon-caca-api.test.mjs tests/cartoon-caca-regras.test.mjs tests/cartoon-caca-extras.test.mjs tests/cartoon-caca-mapa.test.mjs tests/cartoon-caca-grupos.test.mjs tests/cartoon-caca-ranking.test.mjs tests/cartoon-modelo.test.mjs tests/cartoon-rota.test.mjs tests/cartoon-retrato.test.mjs tests/cartoon-sistema.test.mjs tests/cartoon-carimbo.test.mjs tests/cartoon-voucher-virtual.test.mjs tests/cartoon-mundo.test.mjs",
+    "test:cartoon": "node --test tests/rotas-edicao.test.mjs tests/cartoon-caca-api.test.mjs tests/cartoon-caca-regras.test.mjs tests/cartoon-caca-extras.test.mjs tests/cartoon-caca-mapa.test.mjs tests/cartoon-caca-grupos.test.mjs tests/cartoon-caca-ranking.test.mjs tests/cartoon-modelo.test.mjs tests/cartoon-rota.test.mjs tests/cartoon-retrato.test.mjs tests/cartoon-sistema.test.mjs tests/cartoon-carimbo.test.mjs tests/cartoon-voucher-virtual.test.mjs tests/cartoon-mundo.test.mjs tests/cartoon-mapa-unico.test.mjs",
     "test:caca": "node --test tests/cartoon-caca-*.test.mjs",
     "test:destaque": "node --test tests/destaque-edicao.test.mjs",
     "test:consentimento": "node --test tests/consentimento.test.mjs",

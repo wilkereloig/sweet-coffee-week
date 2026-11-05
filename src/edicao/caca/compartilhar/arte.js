@@ -26,7 +26,7 @@ export const linkDoCombo = (origem, slug) => `${linkPublicoDaEdicao(origem)}/com
 /** Rota: só ids de unidade (públicos), já filtrados pelo formato que a página de rota aceita. */
 export function linkDaRota (origem, ids) {
   const bons = [...new Set((ids || []).filter((x) => /^u[0-9a-f]{6}$|^udemo\d+$/.test(x)))]
-  return bons.length ? `${linkPublicoDaEdicao(origem)}/minha-rota?u=${bons.join(',')}` : null
+  return bons.length ? `${linkPublicoDaEdicao(origem)}/mapa?u=${bons.join(',')}` : null
 }
 /** Texto curto do link para escrever na arte (sem protocolo). */
 export const linkSemProtocolo = (link) => String(link || '').replace(/^https?:\/\//i, '')

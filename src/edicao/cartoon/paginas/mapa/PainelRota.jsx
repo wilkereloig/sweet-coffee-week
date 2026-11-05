@@ -34,7 +34,7 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
   const [copiado, setCopiado] = React.useState('')
 
   const compartilhar = async () => {
-    const url = `${location.origin}${C}/minha-rota?u=${pendentes.filter((pa) => pa.ativa).map((pa) => pa.id).join(',')}`
+    const url = `${location.origin}${C}/mapa?u=${pendentes.filter((pa) => pa.ativa).map((pa) => pa.id).join(',')}`
     try {
       if (navigator.share) await navigator.share({ title: 'Minha rota na Sweet & Coffee Week Cartoon', url })
       else { await navigator.clipboard.writeText(url); setCopiado(T.copiado) }
@@ -53,11 +53,17 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
         </div>
       )}
 
+      {!compartilhada && (
+        <ul className="ct-rota__marcas" aria-label={T.tresMarcasRotulo}>
+          {T.tresMarcas.map(([nome, texto]) => <li key={nome}><strong>{nome}:</strong> {texto}</li>)}
+        </ul>
+      )}
+
       <section className="ct-rota__secao" aria-labelledby="rota-quero">
         {compartilhada && (
           <div className="ct-aviso">
             <p>{T.compartilhada}</p>
-            <button type="button" className="ct-botao" onClick={() => { rota.substituir(compartilhada); navigate(`${C}/minha-rota`) }}>{T.salvar}</button>
+            <button type="button" className="ct-botao" onClick={() => rota.substituir(compartilhada)}>{T.salvar}</button>
           </div>
         )}
         <Letreiro id="rota-quero" texto={T.queroIrTitulo} />
@@ -124,6 +130,14 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
             </ul>
           ) : <p className="ct-ni">{T.jaFuiVazio}</p>}
           <p className="ct-nota">{T.aparelho}</p>
+        </section>
+      )}
+
+      {!compartilhada && (
+        <section className="ct-rota__secao" aria-labelledby="rota-grupo">
+          <Letreiro id="rota-grupo" texto={T.grupoTitulo} />
+          <p className="ct-nota">{T.grupoTexto}</p>
+          <div className="ct-acoes"><Botao tipo="secundario" href={`${C}/caca/grupos`} navigate={navigate}>{T.grupoAcao}</Botao></div>
         </section>
       )}
     </div>

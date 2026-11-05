@@ -33,7 +33,7 @@ export function chaveDoHash (hash) {
   if (!m) return null
   try { const c = decodeURIComponent(m[1]); return chaveValida(c) ? c : null } catch { return null }
 }
-export const linkDoMapa = (origem, chave) => `${origem}/cartoon/minha-rota#mapa=${chave}`
+export const linkDoMapa = (origem, chave) => `${origem}/cartoon/mapa#mapa=${chave}`
 
 /** `/cartoon/carimbo/<código>` → código em minúsculas; formato errado → null. */
 export function codigoDoCaminho (caminho) {

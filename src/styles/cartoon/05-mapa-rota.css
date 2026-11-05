@@ -51,14 +51,12 @@
 .ct-mapa__vistas { margin: 0; }
 .ct-mapa__corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
 .ct-mapa__vista, .ct-mapa__lado, .ct-mapa__tela { display: grid; gap: 10px; min-width: 0; }
-.ct-mapa--rota .ct-mapa__lado { order: -1; }
 .ct-mapa__painel { display: grid; gap: 14px; }
 .ct-mapa__abas { margin: 0; }
 .ct-mapa__painel .ct-bloco { padding: 0; } /* o álbum é bloco de página na origem: dentro do painel, sem o trilho */
 .ct-mapa__lista { display: grid; gap: 12px; margin: 0; padding: 4px 6px 8px 2px; list-style: none; }
 @media (min-width: 900px) {
   .ct-mapa__corpo { grid-template-columns: minmax(0, 1.2fr) minmax(340px, 1fr); }
-  .ct-mapa--rota .ct-mapa__lado { order: 0; }
   .ct-mapa__vista { align-self: stretch; align-content: start; } /* estica até a altura do lado: a tela presa tem por onde correr */
   .ct-mapa__tela { position: sticky; top: 96px; }
   .ct-mapa__lista { max-height: calc(100svh - 140px); overflow: auto; }

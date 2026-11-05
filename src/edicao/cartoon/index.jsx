@@ -29,7 +29,6 @@ import { Entrada } from './paginas/Entrada.jsx'
 import { Catalogo } from './paginas/Catalogo.jsx'
 import { Participante } from './paginas/participante/index.jsx'
 import { Mapa } from './paginas/mapa/index.jsx'
-import { MinhaRota } from './paginas/MinhaRota.jsx'
 import { SweetAwards } from './paginas/awards/index.jsx'
 import { Carimbo } from './paginas/Carimbo.jsx'
 import { Caca } from './paginas/caca/index.jsx'
@@ -92,7 +91,7 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
               <li key={item.cena}>
                 <Link href={item.href} navigate={navigate} aoIr={fechar} className="ct-folha__link" aria-current={ativa === item.cena ? 'page' : undefined}>
                   <IconeCartoon nome={item.icone} tamanho={32} /><span>{item.rotulo}</span>
-                  {item.cena === 'minha-rota' && <Contador n={paradas} />}
+                  {item.cena === 'mapa' && <Contador n={paradas} />}
                 </Link>
               </li>
             ))}
@@ -104,12 +103,12 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
   )
 }
 
-// Sem o mapa no ar, a navegação fica sem Mapa e Minha rota, e estas páginas mostram o "em breve".
-const PAGINAS = NAV.filter((n) => MAPA_NO_AR || !['mapa', 'minha-rota', 'caca'].includes(n.cena))
-const CENAS_DO_MAPA = ['mapa', 'minha-rota', 'carimbo', 'caca', 'regulamento']
+// Sem o mapa no ar, a navegação fica sem o Mapa da Doçura e a Caça, e estas páginas mostram o "em breve".
+const PAGINAS = NAV.filter((n) => MAPA_NO_AR || !['mapa', 'caca'].includes(n.cena))
+const CENAS_DO_MAPA = ['mapa', 'carimbo', 'caca', 'regulamento']
 
 const TITULOS = {
-  'mapa-em-breve': 'Mapa', participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
+  'mapa-em-breve': 'Mapa da Doçura', participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa da Doçura',
   avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', caca: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', inexistente: 'Página não encontrada',
 }
 
@@ -124,13 +123,13 @@ export function CartoonPage ({ path, navigate }) {
   useReservaDaBase(abasRef)
   const selo = seloEdicao()
   const dados = ed.dados
-  const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena === 'carimbo' ? 'minha-rota' : cena
+  const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena === 'carimbo' ? 'mapa' : cena
   // Barra do celular: os cinco atalhos; depois dos resultados, a aba do Sweet Awards vira "Prêmios" (§10.6).
   const abas = PAGINAS.filter((n) => !n.semAba).map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
   const paradas = rota.ids.length
   const linkNav = (item, className, filhos) => (
     <Link href={item.href} navigate={navigate} className={className} aria-current={ativa === item.cena ? 'page' : undefined}>
-      {filhos}{item.cena === 'minha-rota' && <Contador n={paradas} />}
+      {filhos}{item.cena === 'mapa' && <Contador n={paradas} />}
     </Link>
   )
 
@@ -138,6 +137,11 @@ export function CartoonPage ({ path, navigate }) {
   React.useEffect(() => {
     if (pedida.legado) window.history.replaceState(window.history.state, '', EDICAO.caminho)
   }, [pedida.legado])
+  // Endereço antigo da rota (/minha-rota, links e QR já divulgados): é o mesmo mapa com o painel aberto; a URL passa a ser a do mapa
+  // (com ?u=, #mapa= e o resto do endereço intactos), sem entrada nova no histórico.
+  React.useEffect(() => {
+    if (pedida.abrirRota) window.history.replaceState(window.history.state, '', `${EDICAO.caminho}/mapa${location.search}${location.hash}`)
+  }, [pedida.abrirRota])
 
   React.useEffect(() => {
     if (cena !== 'participante') document.title = cena === 'entrada' ? `${EDICAO.nome} · 5 a 15 de novembro` : `${TITULOS[cena]} · ${EDICAO.nome}`
@@ -156,8 +160,7 @@ export function CartoonPage ({ path, navigate }) {
       case 'participantes': conteudo = <Catalogo modo="participantes" navigate={navigate} dados={dados} />; break
       case 'combos': conteudo = <Catalogo modo="combos" navigate={navigate} dados={dados} />; break
       case 'participante': conteudo = <Participante key={slug} slug={slug} foco={foco} navigate={navigate} edicao={dados} />; break
-      case 'mapa': conteudo = <Mapa navigate={navigate} dados={dados} />; break
-      case 'minha-rota': conteudo = <MinhaRota navigate={navigate} dados={dados} />; break
+      case 'mapa': conteudo = <Mapa navigate={navigate} dados={dados} abrirRota={!!pedida.abrirRota} />; break
       case 'avaliar':
       case 'premiacao': conteudo = <SweetAwards navigate={navigate} dados={dados} foco={cena} />; break
       case 'caca': conteudo = <Caca secao={secao} grupoId={grupoId} token={token} navigate={navigate} dados={dados} />; break

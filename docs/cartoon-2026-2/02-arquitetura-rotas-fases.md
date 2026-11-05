@@ -44,7 +44,7 @@ Todas exigem rewrite `/cartoon/:path*` → `/` (hoje `/cartoon` daria 404 na Ver
 | `/cartoon/combos` | Exploração dos combos | mesma coleção do catálogo, com a foto do combo e a composição à frente |
 | `/cartoon/combos/:slug` | Acesso direto ao combo | ver 2.3 |
 | `/cartoon/mapa` | Mapa e lista de unidades | `?unidade=<id-publico>` abre a unidade |
-| `/cartoon/minha-rota` | Paradas escolhidas | também abre como painel lateral no mapa |
+| `/cartoon/minha-rota` | **Alias** do mapa (06/11/2026) | abre `/cartoon/mapa` com o painel da rota aberto; sem página própria (14 §14.13) |
 | `/cartoon/avaliar` | Entrada da avaliação | `?participante=<slug>&unidade=<id-publico>` pré-seleciona |
 | `/cartoon/premiacao` | Como funciona e resultados, conforme a fase | |
 | `/festival` | Home institucional | sempre, inclusive com a Cartoon na entrada |

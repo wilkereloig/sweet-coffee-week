@@ -20,7 +20,7 @@ test('chave: só no formato do banco, guardada por edição, e só depois do #',
   assert.equal(C.chaveDoHash('#mapa=nao'), null)
   assert.equal(C.chaveDoHash(`?mapa=${CHAVE}`), null, 'query string nunca vale')
   const link = C.linkDoMapa('https://exemplo.com', CHAVE)
-  assert.match(link, /\/cartoon\/minha-rota#mapa=/)
+  assert.match(link, /\/cartoon\/mapa#mapa=/)
   assert.equal(new URL(link).search, '', 'a chave não pode ir na query')
 })
 

@@ -9,19 +9,19 @@
  *                      dos filtros — modal em qualquer largura, uma por vez, só existe aberta.
  * Modal = véu, foco preso, Escape e botão "Fechar" visível; ao fechar, o foco volta a quem abriu. Fora do modo modal
  * (casa, e o painel no desktop) o elemento é uma região comum: nada de aria-modal para o que não bloqueia a página.
- * `inline`: o painel como bloco da página (a página "Minha rota" abre com ele antes do mapa, também no celular).
+ * O painel da rota abre por botão (ou já aberto, vindo de /minha-rota ou de um link com rota): fechar volta ao mapa como estava.
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { useCelular, useEscape, useTravaDeRolagem, prenderTab, devolverFoco } from './interacao.js'
 
-export function Folha ({ variante, aberta = true, titulo, rotuloFechar = 'Fechar', aoFechar, inline = false, className = '', children, ...resto }) {
+export function Folha ({ variante, aberta = true, titulo, rotuloFechar = 'Fechar', aoFechar, className = '', children, ...resto }) {
   const celular = useCelular()
   const corpo = React.useRef(null)
   const idTitulo = React.useId()
-  // Modal só onde a folha cobre a tela: filtros em qualquer largura, o painel só no celular (e nunca "inline").
+  // Modal só onde a folha cobre a tela: filtros em qualquer largura, o painel só no celular.
   const soAberta = variante === 'filtros' || variante === 'jogo' // só existem enquanto abertas, e são sempre modais
-  const modal = aberta && !inline && (soAberta || (variante === 'painel' && celular))
+  const modal = aberta && (soAberta || (variante === 'painel' && celular))
   const fecha = React.useCallback(() => aoFechar?.(), [aoFechar])
 
   useTravaDeRolagem(modal)
@@ -40,7 +40,7 @@ export function Folha ({ variante, aberta = true, titulo, rotuloFechar = 'Fechar
   }
   const rotulo = titulo && variante !== 'casa'
   return (
-    <div className={`ct-folha-m ct-folha-m--${variante}${aberta ? ' is-aberta' : ''}${inline ? ' is-inline' : ''}${modal ? ' is-modal' : ''} ${className}`.trim()}>
+    <div className={`ct-folha-m ct-folha-m--${variante}${aberta ? ' is-aberta' : ''}${modal ? ' is-modal' : ''} ${className}`.trim()}>
       {variante !== 'casa' && <div className="ct-folha-m__veu" onClick={modal ? fecha : undefined} aria-hidden="true" />}
       <div ref={corpo} className="ct-folha-m__corpo" tabIndex={modal ? -1 : undefined}
         role={modal ? 'dialog' : variante === 'painel' ? 'region' : undefined} aria-modal={modal || undefined} aria-labelledby={rotulo ? idTitulo : undefined} onKeyDown={aoTeclar} {...resto}>

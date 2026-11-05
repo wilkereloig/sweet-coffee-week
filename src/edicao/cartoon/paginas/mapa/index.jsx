@@ -11,7 +11,9 @@
  *  · Minha rota e Carimbos num painel à parte (botão "Minha rota" no celular, coluna no desktop), sem disputar o mapa;
  *  · TELA CHEIA nas vistas ilustrada e real: o mesmo contêiner, expandido por CSS (position: fixed, 100dvh, safe areas)
  *    — mesma seleção, filtros, zoom e posição; Fullscreen API só como melhoria (ver useTelaCheia.js).
- * `/cartoon/minha-rota` é esta mesma página entrando pela rota (topo da rota; o painel vem antes do mapa, sem folha).
+ * Mapa e Minha rota são UMA experiência (Mapa da Doçura): a rota é o painel/folha desta página, aberta pelo botão "Minha rota" e
+ * pelo atalho da tela cheia. `/cartoon/minha-rota` e os links compartilhados (?u=) abrem a mesma página com o painel aberto
+ * (`abrirRota`); fechar o painel volta ao mapa, com a seleção, o zoom e a posição de antes.
  * Filtros: busca, bairro, como pedir, aberto agora (só no festival), quero ir e já fui (salvo no aparelho); no
  * Mundo a casa fora do filtro fica apagada, não some. "Perto de mim" só por botão; a posição não sai do navegador.
  * Endereço: ?vista, ?painel, ?unidade, os filtros e ?u (rota compartilhada) — o link reabre a mesma tela.
@@ -25,7 +27,7 @@ import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { EDICAO } from '../../../config.js'
 import * as M from '../../../dados/modelo.js'
-import { mundoEdicao, letreiroEdicao, MARCAS_PARCEIROS } from '../../../../data/imageLibrary'
+import { mundoEdicao, MARCAS_PARCEIROS } from '../../../../data/imageLibrary'
 import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.js'
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao } from '../../../rota/carimbo.js'
@@ -49,7 +51,7 @@ import { Botao, Chip } from '../../../componentes/sistema/pecas.jsx'
 import { useRota } from '../../contexto.js'
 import { useEnderecoDaBusca } from '../../useEnderecoDaBusca.js'
 import { QueroIr, JaFui } from '../../MarcasLover.jsx'
-import { MAPA as T, ROTA as TR, FASE_TEXTO } from '../../textos.js'
+import { MAPA as T, FASE_TEXTO } from '../../textos.js'
 import { AlbumCarimbos } from '../AlbumCarimbos.jsx'
 import { Cartao } from './Cartao.jsx'
 import { Atalhos } from './Atalhos.jsx'
@@ -77,7 +79,7 @@ const inicial = (p) => (p.casa?.nome || '?').replace(/^\[DEMO\]\s*/, '').trim().
 
 const notaDoLugar = (c) => (!c ? T.semCoordenada : c.conferir ? (c.precisao === 'rua' ? T.aproximadaRua : T.aproximada) : '')
 
-export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
+export function Mapa ({ navigate, dados, abrirRota = false }) {
   const rota = useRota()
   const meu = useCaca({ comEmail: false })
   const mundo = React.useMemo(() => mundoEdicao(), [])
@@ -94,7 +96,7 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const [vista, setVista] = React.useState(() => (vistas.includes(pedido.get('vista')) ? pedido.get('vista') : comMundo ? 'mundo' : largo() ? 'real' : 'lista'))
   const [painel, setPainel] = React.useState(() => (PAINEIS.includes(pedido.get('painel')) ? pedido.get('painel') : 'rota'))
   // Celular: o painel da rota é uma folha aberta por botão; um link com ?painel= ou ?u= já a abre.
-  const [painelAberto, setPainelAberto] = React.useState(() => PAINEIS.includes(pedido.get('painel')) || compartilhada.length > 0)
+  const [painelAberto, setPainelAberto] = React.useState(() => abrirRota || PAINEIS.includes(pedido.get('painel')) || compartilhada.length > 0)
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
   const [posicao, setPosicao] = React.useState(null)
   const [geo, setGeo] = React.useState(podeLocalizar() ? 'disponivel' : 'indisponivel')
@@ -163,7 +165,9 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const busca = new URLSearchParams(M.buscaDosFiltros({ q: f.q, bairro: f.bairro, modo: f.modo, aberto: filtro.aberto }))
   if (sel) busca.set('unidade', sel)
   if (vista !== 'mundo') busca.set('vista', vista)
-  if (aba !== 'rota' && (painelAberto || largo())) busca.set('painel', aba) // no celular, painel fechado não vai para o endereço (recarregar não o reabre)
+  // Celular: o painel aberto vai para o endereço (recarregar ou compartilhar reabre a rota); fechado, não. No desktop o painel é a coluna: só a aba de carimbos.
+  if (painelAberto && !largo()) busca.set('painel', aba)
+  else if (aba !== 'rota' && largo()) busca.set('painel', aba)
   if (vendoCompartilhada) busca.set('u', compartilhada.join(','))
   useEnderecoDaBusca(busca)
   React.useEffect(() => { if (sel && vista === 'lista') document.getElementById(`mapa-${sel}`)?.scrollIntoView({ block: 'nearest' }) }, [sel, vista])
@@ -181,6 +185,11 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const escolher = React.useCallback((id) => {
     setSel(id)
     if (id) setPainelAberto(false)
+  }, [])
+  // Fechar a folha da rota devolve o foco ao botão "Minha rota" — também quando ela abriu sozinha (link com rota), sem botão de origem.
+  const fecharRota = React.useCallback(() => {
+    setPainelAberto(false)
+    requestAnimationFrame(() => document.querySelector('.ct-mapa__rota-botao')?.focus({ preventScroll: true }))
   }, [])
   const fecharCasa = React.useCallback(() => {
     const id = sel
@@ -206,28 +215,25 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
 
   const topo = (texto, acao = null) => (
     <TopoCanal canal="rota" className="ct-rota-topo ct-rota-topo--compacto" aria-labelledby="mapa-titulo">
-      {entrada === 'rota'
-        ? <Letreiro nivel={1} id="mapa-titulo" texto={TR.titulo} imagem={letreiroEdicao('rota')} />
-        : <Letreiro nivel={1} id="mapa-titulo" texto={T.titulo} cor="amarelo" />}
+      <Letreiro nivel={1} id="mapa-titulo" texto={T.titulo} cor="amarelo" />
       <p className="ct-lead">{texto}</p>
       {acao}
       <CenaTopo chave="placas" />
     </TopoCanal>
   )
   const avisos = <Avisos desatualizado={dados?.desatualizado} demo={dados?.demo} retrato={dados?.retrato} />
-  const textoDe = (mapa, daRota) => (entrada === 'rota' ? daRota : mapa)
 
   if (dados?.fase === 'encerrada') {
-    return <>{avisos}{topo(textoDe(T.encerrada, TR.encerrada))}<section className="ct-bloco"><Botao href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.verCasas}</Botao></section></>
+    return <>{avisos}{topo(T.encerrada)}<section className="ct-bloco"><Botao href={`${EDICAO.caminho}/participantes`} navigate={navigate}>{T.verCasas}</Botao></section></>
   }
-  if (!dados?.participantes_publicos || !lista.length) return <>{avisos}{topo(textoDe(FASE_TEXTO.semElenco, TR.semElenco))}</>
+  if (!dados?.participantes_publicos || !lista.length) return <>{avisos}{topo(FASE_TEXTO.semElenco)}</>
 
   // A tela cheia só existe onde há mapa para ampliar: o ilustrado, ou o real já carregado. O botão segue montado dentro da tela
   // cheia (o CSS o esconde): o foco volta ao MESMO elemento que abriu.
   const podeAmpliar = vista === 'mundo' || (vista === 'real' && verMapa && noMapa.length > 0)
   const botaoRota = (
     <button type="button" className="ct-chip ct-mapa__rota-botao" aria-haspopup="dialog" aria-expanded={painelAberto} aria-label={TC.minhaRotaConta(rota.ids.length)}
-      onClick={() => { setSel(''); setPainelAberto(true) }}>
+      onClick={() => setPainelAberto(true)}>
       <ScwIcon nome="trajeto" tamanho={20} /><span>{TC.minhaRota}</span>{rota.ids.length > 0 && <b className="ct-mapa__filtros-conta" aria-hidden="true">{rota.ids.length}</b>}
     </button>
   )
@@ -285,12 +291,10 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   return (
     <>
       {avisos}
-      {topo(textoDe(T.lead, TR.lead), entrada === 'mapa' ? botaoRota : null)}
-      <section className={`ct-bloco ct-mapa ct-mapa--${entrada}`} aria-label="Casas da Cartoon">
-        {entrada === 'mapa' && (
-          <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
-            proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
-        )}
+      {topo(T.lead, botaoRota)}
+      <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
+        <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
+          proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
@@ -415,7 +419,7 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
           <div className="ct-mapa__lateral">
             {!cheia && cartao}
             {/* Na tela cheia o painel não existe (a rota e os carimbos vêm pelos atalhos): sem ids repetidos atrás do véu. */}
-            {!cheia && <Folha variante="painel" aberta={painelAberto || entrada === 'rota'} inline={entrada === 'rota'} titulo={T.painel} rotuloFechar={TC.fecharPainel} aoFechar={() => setPainelAberto(false)}>
+            {!cheia && <Folha variante="painel" aberta={painelAberto} titulo={T.painel} rotuloFechar={TC.fecharPainel} aoFechar={fecharRota}>
               {!vendoCompartilhada && (
                 <div className="ct-chips ct-mapa__abas" role="group" aria-label={T.painel}>
                   {PAINEIS.map((k) => <Chip key={k} ativo={aba === k} onClick={() => setPainel(k)}>{T.abas[k]}</Chip>)}

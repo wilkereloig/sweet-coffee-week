@@ -287,7 +287,7 @@ secao(1, 'criar o mapa, reabrir, guardar o link e validar o formulário', async 
     // Guardar: o botão copia o link pessoal (#mapa=…), nunca compartilha.
     await page.getByRole('button', { name: /Copiar meu link pessoal/i }).click()
     const copiado = await page.evaluate(() => navigator.clipboard.readText()).catch(() => '')
-    checar(copiado.endsWith(`/cartoon/minha-rota#mapa=${chave}`), `@${w} "Copiar meu link" põe o link pessoal na área de transferência`)
+    checar(copiado.endsWith(`/cartoon/mapa#mapa=${chave}`), `@${w} "Copiar meu link" põe o link pessoal na área de transferência`)
     checar(!(await page.getByRole('button', { name: /whatsapp|compartilhar/i }).count()), `@${w} guardar o mapa não oferece compartilhar o link`)
     // Reabrir: recarregar mantém o mapa; o aviso de "guardar" some (só logo após criar).
     await page.reload({ waitUntil: 'networkidle' })
@@ -692,10 +692,10 @@ secao(5, 'estados do mapa nas três vistas (vazio, pendente, conquistada, revisi
   checar(await c.page.getByRole('dialog', { name: /Sua rota e seus carimbos/ }).count() === 0, 'Escape fecha a folha da rota')
   await c.ctx.close()
   await mapaTelaCheiaEFolhas()
-  await minhaRotaInline()
+  await mapaUnicoRota()
 })
 
-// ---- Redesign de 06/11/2026: tela cheia, folha da casa, folha de filtros e a página "Minha rota" ----
+// ---- Redesign de 06/11/2026: tela cheia, folha da casa, folha de filtros e a rota dentro do Mapa da Doçura ----
 const MOCKS_PROGRESSO = {
   mapa_ler_v2: MAPA_PROGRESSO, mapa_confirmar_email_status: { confirmado: true, valido: true },
   // as folhas Ranking e Grupos dos atalhos leem estas duas RPCs: respostas de teste (nada do banco, nada de dado real)
@@ -973,21 +973,62 @@ async function mapaTelaCheiaEFolhas () {
   }
 }
 
-/** /cartoon/minha-rota: o painel vem ANTES do mapa, como bloco da página (sem folha), com a faixa do topo compacta. */
-async function minhaRotaInline () {
+/** Mapa e Minha rota são UMA experiência (Mapa da Doçura): /cartoon/minha-rota abre o MESMO mapa com o painel da rota aberto (a URL vira
+ *  /cartoon/mapa); a rota é folha no celular e coluna no desktop; fechar volta ao mapa com seleção e zoom como estavam; ?u= segue valendo. */
+async function mapaUnicoRota () {
   for (const [w, h] of [[360, 800], [1440, 900]]) {
     const c = await contexto(nav, { w, h, chave: CHAVE_FAKE, mocks: MOCKS_PROGRESSO })
     await ir(c.page, '/cartoon/minha-rota')
     await c.page.locator('.ct-folha-m--painel').waitFor({ timeout: 10000 })
-    const r = await dom(c.page, (larg) => {
-      const pn = document.querySelector('.ct-folha-m--painel'); const mapa = document.querySelector('.ct-mapa__explorar')
-      return { visivel: pn.getClientRects().length > 0, modal: pn.querySelector('[role=dialog]') !== null, antes: larg < 900 ? pn.getBoundingClientRect().top < mapa.getBoundingClientRect().top : true, botao: !!document.querySelector('.ct-mapa__rota-botao'), h1: document.querySelectorAll('h1').length, topoAlto: document.querySelector('.ct-rota-topo').getBoundingClientRect().height, lateral: document.documentElement.scrollWidth - innerWidth }
-    }, w)
-    checar(r.visivel && !r.modal, `@${w} Minha rota: o painel é bloco da página, não folha modal`)
-    checar(r.antes, `@${w} Minha rota (celular): o painel vem antes do mapa`)
-    checar(!r.botao && r.h1 === 1 && r.lateral <= 1, `@${w} Minha rota: sem o botão da folha, um <h1> e sem rolagem lateral`)
-    checar(r.topoAlto <= (w < 900 ? 120 : 200), `@${w} Minha rota: topo compacto (${Math.round(r.topoAlto)}px)`)
+    await c.page.waitForFunction(() => location.pathname === '/cartoon/mapa', null, { timeout: 5000 }).catch(() => {})
+    const r = await dom(c.page, () => {
+      const pn = document.querySelector('.ct-folha-m--painel'); const h1 = document.querySelector('h1')
+      return {
+        caminho: location.pathname, h1n: document.querySelectorAll('h1').length, h1: (h1?.getAttribute('aria-label') || h1?.textContent || '').trim(),
+        mapa: !!document.querySelector('.ct-mapa__explorar'), segundaPagina: !!document.querySelector('.ct-mapa--rota, .ct-mapa--mapa'),
+        visivel: pn.getClientRects().length > 0, modal: pn.classList.contains('is-modal'), fechar: !!pn.querySelector('.ct-mapa__fechar'),
+        marcas: /Na rota[\s\S]*Já fui[\s\S]*Carimbo/.test(pn.innerText), grupo: /Rota do grupo/i.test(pn.innerText),
+        lateral: document.documentElement.scrollWidth - innerWidth,
+      }
+    })
+    checar(r.caminho === '/cartoon/mapa' && r.h1 === 'Mapa da Doçura' && r.h1n === 1, `@${w} Minha rota abre o Mapa da Doçura (${r.caminho}, h1 "${r.h1}")`)
+    checar(r.mapa && !r.segundaPagina && r.visivel && r.lateral <= 1, `@${w} a rota é o painel da MESMA página, com o mapa ao lado e sem rolagem lateral`)
+    checar(r.modal === (w < 900), `@${w} painel da rota: ${w < 900 ? 'folha modal no celular' : 'coluna fixa no desktop'}`)
+    checar(r.marcas && r.grupo, `@${w} painel: rota planejada, "já fui" e carimbo explicados, e a rota do grupo identificada à parte`)
+    // Seleção e zoom do mapa sobrevivem a abrir e fechar a rota.
+    const palco = () => c.page.locator('.ct-mundo__palco').evaluate((e) => Math.round(e.getBoundingClientRect().width))
+    if (w < 900) {
+      await c.page.locator('.ct-folha-m--painel .ct-mapa__fechar').click()
+      checar(await c.page.locator('.ct-folha-m--painel.is-aberta').count() === 0, `@${w} o botão Fechar da rota devolve o mapa`)
+      checar(await c.page.evaluate(() => document.activeElement?.classList.contains('ct-mapa__rota-botao')), `@${w} o foco volta ao botão "Minha rota"`)
+    }
+    const w0 = await palco()
+    for (let i = 0; i < 2; i++) await c.page.locator('.ct-mundo__zoom-botao').first().evaluate((b) => b.click())
+    const w1 = await palco()
+    await c.page.locator('.ct-mundo__casa').first().evaluate((b) => b.click())
+    await c.page.locator('.ct-mapa__cartao').waitFor({ timeout: 5000 })
+    const nome = await c.page.locator('.ct-mapa__cartao h2').first().innerText()
+    if (w < 900) {
+      await c.page.locator('.ct-mapa__rota-botao').evaluate((b) => b.click())
+      await c.page.locator('.ct-folha-m--painel.is-aberta').waitFor({ timeout: 5000 })
+      checar(await c.page.locator('.ct-mapa__cartao').count() === 1, `@${w} abrir a rota não descarta a casa escolhida`)
+      await c.page.keyboard.press('Escape')
+      await c.page.locator('.ct-folha-m--painel.is-aberta').waitFor({ state: 'detached', timeout: 5000 }).catch(() => {})
+    } else {
+      checar(await c.page.locator('.ct-folha-m--painel').isVisible() && await c.page.locator('.ct-mapa__cartao').isVisible(), `@${w} desktop: cartão da casa e rota convivem na coluna`)
+    }
+    checar((await c.page.locator('.ct-mapa__cartao h2').first().innerText()) === nome && (await palco()) === w1 && w1 > w0, `@${w} a casa escolhida e o zoom ficam como estavam (${w0}→${w1}px)`)
     await semErros(c, `@${w} Minha rota`)
+    await c.ctx.close()
+  }
+  // Rota compartilhada (?u=): continua valendo no endereço antigo e no novo; o painel diz que é de outra pessoa.
+  for (const base of ['/cartoon/minha-rota', '/cartoon/mapa']) {
+    const c = await contexto(nav, { w: 1440, h: 900, chave: CHAVE_FAKE, mocks: MOCKS_PROGRESSO })
+    await ir(c.page, `${base}?u=udemo1,udemo2`)
+    await c.page.locator('.ct-folha-m--painel').waitFor({ timeout: 10000 })
+    await c.page.getByText('Esta é uma rota compartilhada com você.').waitFor({ timeout: 5000 })
+    const u = await c.page.evaluate(() => ({ p: location.pathname, u: new URLSearchParams(location.search).get('u') }))
+    checar(u.p === '/cartoon/mapa' && u.u === 'udemo1,udemo2', `${base}?u=: rota compartilhada preservada no endereço do mapa (${u.p}?u=${u.u})`)
     await c.ctx.close()
   }
 }

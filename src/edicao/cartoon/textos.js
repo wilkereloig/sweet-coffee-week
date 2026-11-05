@@ -15,8 +15,8 @@ const C = EDICAO.caminho
 export const NAV = [
   { cena: 'entrada', rotulo: 'Início', aba: 'Início', icone: 'inicio', href: C },
   { cena: 'participantes', rotulo: 'Casas', aba: 'Casas', icone: 'casas', href: `${C}/participantes` },
-  { cena: 'mapa', rotulo: 'Mapa', aba: 'Mapa', icone: 'mapa', href: `${C}/mapa` },
-  { cena: 'minha-rota', rotulo: 'Minha rota', aba: 'Rota', icone: 'rota', href: `${C}/minha-rota` },
+  // Mapa e Minha rota são UMA página (Mapa da Doçura): a rota é um painel dentro dela. O contador de paradas mora neste item.
+  { cena: 'mapa', rotulo: 'Mapa da Doçura', aba: 'Mapa', icone: 'mapa', href: `${C}/mapa` },
   // Caça aos Carimbos: no cabeçalho, no menu e no rodapé; fora da barra de abas do celular, que fica nos cinco atalhos (`semAba`).
   { cena: 'caca', rotulo: 'Caça aos Carimbos', aba: 'Caça', icone: 'ja-fui', href: `${C}/caca`, semAba: true },
   { cena: 'avaliar', rotulo: 'Sweet Awards', aba: 'Avaliar', abaResultados: 'Prêmios', icone: 'avaliar', iconeResultados: 'premio', href: `${C}/avaliar` },
@@ -219,7 +219,7 @@ export const LOVER = {
 }
 
 export const MAPA = {
-  titulo: 'Mapa',
+  titulo: 'Mapa da Doçura',
   lead: 'Todas as casas da Cartoon num mapa só. Escolha onde quer ir, monte sua rota e siga pelo Google Maps. Fica salvo neste aparelho.',
   busca: 'Buscar casa ou bairro',
   bairro: 'Bairro',
@@ -280,8 +280,6 @@ export const MAPA = {
 }
 
 export const ROTA = {
-  titulo: 'Minha rota',
-  lead: 'Sua lista de casas para provar e as que você já visitou. Fica salva neste aparelho, sem conta.',
   progresso: (x, n) => `${x} de ${n} ${n === 1 ? 'casa' : 'casas'}`,
   progressoRotulo: 'marcadas por você',
   // Com mapa da Caça, o progresso é o do servidor (só casa validada conta); o "já fui" não valida nada.
@@ -301,6 +299,16 @@ export const ROTA = {
   ordenarCaminho: 'Ordenar de norte a sul no mapa',
   ordenadoCaminho: 'Paradas de norte a sul no mapa',
   ordenarNota: 'A ordem vai de cima para baixo no desenho, do norte ao sul. Não é o trajeto mais curto: o mapa ilustrado não mostra posições reais.',
+  // Três coisas diferentes na mesma tela: só a última vale para a Caça aos Carimbos.
+  tresMarcasRotulo: 'O que cada marca significa',
+  tresMarcas: [
+    ['Na rota', 'casas que você planeja visitar. Não geram carimbo.'],
+    ['Já fui', 'uma anotação sua. Não gera carimbo.'],
+    ['Carimbo', 'só quando a casa é validada na Caça aos Carimbos.'],
+  ],
+  grupoTitulo: 'Rota do grupo',
+  grupoTexto: 'Cada grupo da Caça tem a sua própria rota, montada junto com os amigos. Ela é separada da sua rota pessoal, que fica só neste aparelho.',
+  grupoAcao: 'Ver meus grupos',
   carimbadaRotulo: 'Carimbada',
   carimbadaPendenteRotulo: 'Carimbada, falta avaliar',
   jaFuiTitulo: 'Já fui',
@@ -311,8 +319,6 @@ export const ROTA = {
   salvar: 'Salvar como minha rota',
   verCasas: 'Ver as casas',
   abrirMapa: 'Abrir o mapa',
-  semElenco: 'O elenco desta edição será revelado em breve.',
-  encerrada: 'A edição terminou. As casas seguem no catálogo como registro.',
 }
 
 /*

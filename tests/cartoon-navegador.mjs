@@ -24,7 +24,7 @@
  *     aberto; sucesso só com resposta ok; erro preserva as notas.
  *  9. CASCA — sem casca institucional, sem rolagem lateral em 360 e 1440, alvos ≥ 44px; cabeçalho creme
  *     com o selo; no celular, menu em folha que fecha por Esc, véu e link (foco preso e devolvido ao
- *     botão) e cinco abas (Avaliar → Prêmios depois dos resultados); rodapé com F2 e cookies, sem barras de sinal.
+ *     botão) e quatro abas (Avaliar → Prêmios depois dos resultados); rodapé com F2 e cookies, sem barras de sinal.
  * 10. ENTRADA — topo Estreia (TV com o período do dado, placa de casas, botão de ação, sem olhinhos —
  *     MANUAL §1.3), vitrine dos combos (foto, sem foto: a logo), como funciona, bairros levando ao Mapa filtrado, Avalie, Dúvidas;
  *     sem elenco, falha de rede e edição encerrada.
@@ -126,8 +126,8 @@ try {
       ['/cartoon/participantes/demo-casa-aurora', '[DEMO] Casa Aurora'],
       ['/cartoon/combos', 'Escolha seu combo'],
       ['/cartoon/combos/demo-casa-aurora', '[DEMO] Casa Aurora'],
-      ['/cartoon/mapa', 'Mapa'],
-      ['/cartoon/minha-rota', 'Minha rota'],
+      ['/cartoon/mapa', 'Mapa da Doçura'],
+      ['/cartoon/minha-rota', 'Mapa da Doçura'],
       ['/cartoon/avaliar', 'Sweet Awards'],
       ['/cartoon/premiacao', 'Sweet Awards'],
       ['/cartoon/nao-existe', 'Não encontramos essa página da Cartoon'],
@@ -151,7 +151,7 @@ try {
 
     console.log('\n3 · hash antigo e Lovers')
     await page.goto(`${BASE}/?preview=1#/cartoon/mapa`, { waitUntil: 'networkidle' })
-    if (new URL(page.url()).pathname !== '/cartoon/mapa' || (await h1(page)) !== 'Mapa') falha(`#/cartoon/mapa → ${page.url()}`)
+    if (new URL(page.url()).pathname !== '/cartoon/mapa' || (await h1(page)) !== 'Mapa da Doçura') falha(`#/cartoon/mapa → ${page.url()}`)
     for (const p of ['/lovers/combos/paneer-patisserie', '/mapa', '/participantes', '/rota']) {
       await ir(page, p)
       await page.waitForFunction(() => location.pathname === '/', null, { timeout: 5000 }).catch(() => {})
@@ -499,7 +499,7 @@ try {
   if (!falhas.some((f) => /^@/.test(f))) ok('360 e 1440: sem rolagem lateral, casca própria, alvos ≥ 44px, botões com contraste ≥ 4,5:1 (3:1 em texto grande)')
 
   // Casca nova (§10.6): cabeçalho creme com selo; celular com "Menu" (folha que fecha por Esc, véu e link, foco
-  // preso e devolvido ao botão) e cinco abas; desktop com a navegação e o cabeçalho preso; rodapé com F2, sem barras de sinal.
+  // preso e devolvido ao botão) e quatro abas; desktop com a navegação e o cabeçalho preso; rodapé com F2, sem barras de sinal.
   {
     const antes = falhas.length
     const { ctx, page } = await contexto(nav, { w: 360, h: 800 })
@@ -513,8 +513,8 @@ try {
     if (!topo.selo) falha('@360 cabeçalho sem o selo da edição')
     if (topo.nav || !topo.menu) falha('@360 celular deveria mostrar só o botão Menu')
     const abas = await page.locator('.ct-abas .ct-aba').allInnerTexts()
-    if (abas.map((t) => t.trim()).join(' · ') !== 'Início · Casas · Mapa · Rota · Avaliar') falha(`@360 abas: ${abas.join(' · ')}`)
-    if ((await page.locator('.ct-abas .ct-aba img.ct-icone').count()) !== 5) falha('@360 abas sem o ícone da edição')
+    if (abas.map((t) => t.trim()).join(' · ') !== 'Início · Casas · Mapa · Avaliar') falha(`@360 abas: ${abas.join(' · ')}`)
+    if ((await page.locator('.ct-abas .ct-aba img.ct-icone').count()) !== 4) falha('@360 abas sem o ícone da edição')
     if ((await page.locator('.ct-abas .ct-aba[aria-current="page"]').innerText()).trim() !== 'Casas') falha('@360 aba ativa não é Casas')
 
     const aberto = () => page.evaluate(() => document.getElementById('ct-menu').open)
@@ -550,7 +550,7 @@ try {
     const c = await contexto(nav, { w: 360, h: 800, edicao: { ...clone(DEMO_EDICAO), resultados_publicos: true } })
     await ir(c.page, '/cartoon/participantes')
     const abasDepois = (await c.page.locator('.ct-abas .ct-aba').allInnerTexts()).map((t) => t.trim()).join(' · ')
-    if (abasDepois !== 'Início · Casas · Mapa · Rota · Prêmios') falha(`com resultados, abas: ${abasDepois}`)
+    if (abasDepois !== 'Início · Casas · Mapa · Prêmios') falha(`com resultados, abas: ${abasDepois}`)
     await c.ctx.close()
 
     const d = await contexto(nav, { w: 1440, h: 900 })
@@ -569,7 +569,7 @@ try {
     if (m.marcaX > 120) falha(`@1440 selo não está à esquerda (x=${m.marcaX})`)
     if (m.rodape.barras || !m.rodape.f2 || !m.rodape.cookies || m.rodape.legais !== 2) falha(`rodapé incompleto: ${JSON.stringify(m.rodape)}`)
     await d.ctx.close()
-    if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 5 abas (Avaliar → Prêmios), rodapé com F2 e cookies, sem barras de sinal (MANUAL-CARTOON 1.0)')
+    if (falhas.length === antes) ok('casca: cabeçalho creme com selo, menu do celular (Esc, véu, link; foco preso e devolvido), 4 abas (Avaliar → Prêmios), rodapé com F2 e cookies, sem barras de sinal (MANUAL-CARTOON 1.0)')
   }
 
   console.log('\n10 · Entrada')
@@ -651,11 +651,11 @@ try {
     const estilo = { version: 8, sources: {}, layers: [{ id: 'fundo', type: 'background', paint: { 'background-color': '#FDF0DE' } }] }
     let c = await contexto(nav, { edicao: ed })
     await c.ctx.route('**/tiles.openfreemap.org/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(estilo) }))
-    // Página única (14 §14.13): a lista e o mapa real são vistas; fora do DEV (arte do Mundo não aprovada) não há Mundo.
+    // Página única (14 §14.13): as três vistas (ilustrado, real e lista); com a arte final aprovada o ilustrado entra também fora do DEV.
     await ir(c.page, '/cartoon/mapa?vista=lista')
     await c.page.waitForSelector('.ct-mapa__item')
     const vistas = (await c.page.locator('.ct-mapa__vistas .ct-chip').allInnerTexts()).map((t) => t.trim()).join(' · ')
-    if (vistas !== 'Mapa real · Lista') falha(`vistas fora do DEV: ${vistas}`)
+    if (vistas !== 'Mapa Ilustrado · Mapa real · Lista') falha(`vistas fora do DEV: ${vistas}`)
     const item = (id) => c.page.locator(`#mapa-${id}`)
     if (!(await c.page.locator('.ct-canal--rota h1').count())) falha('Mapa: h1 fora do topo no canal Rota')
     if ((await c.page.locator('.ct-mapa__item').count()) !== 4) falha(`Mapa: ${await c.page.locator('.ct-mapa__item').count()} linhas (uma por unidade = 4)`)

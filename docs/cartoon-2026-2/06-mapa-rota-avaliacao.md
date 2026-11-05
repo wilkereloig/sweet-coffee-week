@@ -47,7 +47,7 @@ O componente fica atrás de uma interface `<MapaUnidades unidades selecionada on
 
 **Não fazer:** mapa 3D. Nunca registrar chave no console (defeito herdado, `MapaGoogle.jsx:228-231`).
 
-## 6.2 Minha rota (`/cartoon/minha-rota`)
+## 6.2 Minha rota (painel do Mapa da Doçura; `/cartoon/minha-rota` abre o mapa com ele aberto — 14 §14.13)
 
 | Função | Como |
 |---|---|
@@ -59,7 +59,7 @@ O componente fica atrás de uma interface `<MapaUnidades unidades selecionada on
 | Unidade despublicada | ao abrir, cruza os ids com a projeção; o que não existe mais aparece como "saiu da edição" com remover; nunca some calado |
 | Acesso ao combo e ao endereço | cada parada mostra casa, unidade, endereço, horário de hoje no festival e link para a página |
 | Trajeto externo | "Abrir rota no Google Maps" com destino = última parada e paradas intermediárias na ordem escolhida. Limite de paradas do link [Provável: 9, que era o limite usado na Lovers]; acima disso, divide em trechos |
-| Compartilhar | link `/cartoon/minha-rota?u=id1,id2` (ids públicos); quem abre vê a rota e pode salvar como sua |
+| Compartilhar | link `/cartoon/mapa?u=id1,id2` (ids públicos; o antigo `/cartoon/minha-rota?u=` segue valendo); quem abre vê a rota e pode salvar como sua |
 | O que **não** prometer | "melhor caminho", "rota otimizada", tempo de percurso. Não há cálculo de rota no projeto. A ordem é a do visitante; a distância mostrada é em linha reta |
 
 ## 6.3 Avaliação (`/cartoon/avaliar`)

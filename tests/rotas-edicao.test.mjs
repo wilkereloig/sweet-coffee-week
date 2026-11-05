@@ -65,7 +65,12 @@ test('cenas da edição', () => {
   assert.deepEqual(c('/cartoon/participantes/paneer-patisserie'), { cena: 'participante', slug: 'paneer-patisserie' })
   assert.deepEqual(c('/cartoon/combos'), { cena: 'combos' })
   assert.deepEqual(c('/cartoon/combos/paneer-patisserie'), { cena: 'participante', slug: 'paneer-patisserie', foco: 'combo' })
-  for (const s of ['mapa', 'minha-rota', 'avaliar', 'premiacao']) assert.deepEqual(c(`/cartoon/${s}`), { cena: s })
+  for (const s of ['mapa', 'avaliar', 'premiacao']) assert.deepEqual(c(`/cartoon/${s}`), { cena: s })
+  // Mapa e Minha rota são uma página só: o endereço antigo da rota abre o MESMO mapa, com o painel da rota aberto.
+  assert.deepEqual(c('/cartoon/minha-rota'), { cena: 'mapa', abrirRota: true })
+  assert.deepEqual(c('/cartoon/minha-rota/'), { cena: 'mapa', abrirRota: true })
+  assert.deepEqual(c('/cartoon/minha-rota/x'), { cena: 'inexistente' })
+  assert.ok(!CENAS.includes('minha-rota'), 'Minha rota não é mais uma cena própria')
   assert.deepEqual(c('/cartoon/caca'), { cena: 'caca', secao: 'central' })
   assert.deepEqual(c('/cartoon/caca/ranking'), { cena: 'caca', secao: 'ranking' })
   assert.deepEqual(c('/cartoon/caca/xyz'), { cena: 'inexistente' })
@@ -80,7 +85,8 @@ test('cenas da edição', () => {
 test('a Caça aos Carimbos segue o mesmo gate do mapa e não mexe nas flags', () => {
   const idx = ler('src/edicao/cartoon/index.jsx')
   assert.match(idx, /CENAS_DO_MAPA = \[[^\]]*'caca'/, 'sem MAPA_NO_AR a cena vira "em breve"')
-  assert.match(idx, /MAPA_NO_AR \|\| !\['mapa', 'minha-rota', 'caca'\]/, 'o item some do menu como o Mapa')
+  assert.match(idx, /MAPA_NO_AR \|\| !\['mapa', 'caca'\]/, 'o Mapa da Doçura e a Caça somem do menu juntos')
+  assert.doesNotMatch(idx, /'minha-rota'/, 'sem item nem página própria para a rota')
   assert.match(ler('src/edicao/config.js'), /export const MAPA_PUBLICO = false/)
   assert.ok(CENAS.includes('caca'))
 })

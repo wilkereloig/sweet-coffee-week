@@ -19,7 +19,7 @@ export const CACA_CAMINHOS = {
   convite: (token) => `${C}/convite/${token}`,
   metas: `${C}/metas`,
   compartilhar: `${C}/compartilhar`,
-  rota: `${EDICAO.caminho}/minha-rota`,
+  rota: `${EDICAO.caminho}/mapa?painel=rota`, // a rota é o painel do Mapa da Doçura
   casas: `${EDICAO.caminho}/participantes`,
   regulamento: `${EDICAO.caminho}/regulamento`,
 }

@@ -192,7 +192,7 @@ test('links públicos: só a página da edição, a casa, o combo e a rota (ids 
   assert.equal(linkPublicoDaEdicao(`${o}/`), `${o}/cartoon`)
   assert.equal(linkDaCasa(o, 'casa-x'), `${o}/cartoon/participantes/casa-x`)
   assert.equal(linkDoCombo(o, 'casa-x'), `${o}/cartoon/combos/casa-x`)
-  assert.equal(linkDaRota(o, ['uabcdef', 'uabcdef', 'udemo2', 'lixo', PRIVADOS.chave]), `${o}/cartoon/minha-rota?u=uabcdef,udemo2`)
+  assert.equal(linkDaRota(o, ['uabcdef', 'uabcdef', 'udemo2', 'lixo', PRIVADOS.chave]), `${o}/cartoon/mapa?u=uabcdef,udemo2`)
   assert.equal(linkDaRota(o, []), null); assert.equal(linkDaRota(o, ['lixo']), null)
 })
 

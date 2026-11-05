@@ -53,7 +53,6 @@
 
 /* ------------------------------------------------------------- layout: explorar (mapa) + lateral (cartão, rota) */
 .ct-mapa__corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
-.ct-mapa--rota .ct-mapa__lateral { order: -1; }
 .ct-mapa__explorar {
   --ct-mapa-alto: clamp(320px, 62svh, 640px); /* altura do mapa (desenho, real e tela cheia leem esta medida) */
   --ct-barra-h: calc(63px + env(safe-area-inset-top)); /* a barra da tela cheia: 8 + 44 + 8 + o filete de 3 px, mais o entalhe */
@@ -62,7 +61,6 @@
 @media (max-height: 520px) and (orientation: landscape) { .ct-mapa__explorar { --ct-mapa-alto: max(280px, 72svh); } }
 @media (min-width: 900px) {
   .ct-mapa__corpo { grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 20px; }
-  .ct-mapa--rota .ct-mapa__lateral { order: 0; }
   .ct-mapa__explorar { --ct-mapa-alto: clamp(440px, calc(100svh - 250px), 760px); }
   .ct-mapa__lateral { position: sticky; top: 92px; display: grid; gap: 12px; max-height: calc(100svh - 108px); overflow: auto; overscroll-behavior: contain; }
 }
@@ -181,9 +179,7 @@
     animation: ct-folha-sobe 220ms var(--ct-mo-quique) both;
   }
   .ct-folha-m--painel:not(.is-aberta) { display: none; }
-  .ct-folha-m--painel.is-aberta:not(.is-inline) { position: fixed; inset: 0; z-index: 70; display: grid; align-items: end; }
-  .ct-folha-m--painel.is-inline { display: block; }
-  .ct-folha-m--painel.is-inline .ct-folha-m__cabeca { display: none; }
+  .ct-folha-m--painel.is-aberta { position: fixed; inset: 0; z-index: 70; display: grid; align-items: end; }
   .ct-folha-m.is-modal .ct-folha-m__veu, .ct-folha-m--filtros .ct-folha-m__veu, .ct-folha-m--jogo .ct-folha-m__veu {
     position: absolute; inset: 0; display: block; background: color-mix(in srgb, var(--ct-chocolate) 55%, transparent); animation: ct-folha-surge 180ms ease-out both;
   }
@@ -300,3 +296,7 @@
   .ct-mapa__ampliar:active, .ct-mapa__sair:active { translate: none; }
   .ct-pin, .ct-sicredi-pin { transition: none; }
 }
+
+/* ------------------------------------------------------------- painel da rota: as três marcas (rota ≠ já fui ≠ carimbo) */
+.ct-rota__marcas { display: grid; gap: 4px; margin: 0; padding: 10px 12px; list-style: none; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: color-mix(in srgb, var(--ct-creme) 70%, transparent); font: 600 14px/1.35 var(--ct-font); }
+.ct-rota__marcas strong { font-weight: 900; }
