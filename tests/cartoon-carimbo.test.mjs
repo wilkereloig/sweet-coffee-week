@@ -86,6 +86,7 @@ test('rotas do carimbo e do regulamento; regulamento sem "Sweet" sozinho e com l
   assert.deepEqual(resolverCena('/cartoon/carimbo'), { cena: 'inexistente' })
   assert.deepEqual(resolverCena('/cartoon/carimbo/a/b'), { cena: 'inexistente' })
   assert.deepEqual(resolverCena('/cartoon/regulamento'), { cena: 'regulamento' })
+  assert.deepEqual(resolverCena('/cartoon/patrocinador'), { cena: 'patrocinador' })
   const { REGULAMENTO } = await import('../src/edicao/cartoon/regulamento.js')
   const textos = REGULAMENTO.secoes.flatMap(([t, itens]) => [t, ...itens.map((x) => (typeof x === 'string' ? x : x.aDefinir))])
   for (const t of [REGULAMENTO.titulo, REGULAMENTO.apoio, ...textos]) assert.doesNotMatch(t, /\bSweet\b(?! (Lovers?|Awards|&))/, t)

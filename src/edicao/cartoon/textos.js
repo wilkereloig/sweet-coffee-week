@@ -196,6 +196,21 @@ export const MARCAS = {
   realizacao: 'Realização', patrocinio: 'Patrocinador', apoio: 'Apoio',
 }
 
+/* Página do patrocinador (/cartoon/patrocinador) — o QR do verso do mapa A5 leva aqui (Wilker 04/11).
+   As agências vêm do mundo da edição (src/data/mundoEdicao.js), a mesma fonte das bandeiras do mapa. */
+export const PATROCINADOR = {
+  rotulo: 'Patrocinador',
+  titulo: 'O Sicredi no Sweet & Coffee Week',
+  sobre: 'O Sicredi é uma instituição financeira cooperativa comprometida com a vida financeira dos seus associados e com as regiões onde atua.',
+  edicao: 'É o patrocinador da edição Cartoon do Sweet & Coffee Week, de 5 a 15 de novembro, em Natal.',
+  agencias: 'Agências em Natal e região',
+  verNoMapa: 'Ver no mapa',
+  verNoMapaRotulo: (nome) => `Ver ${nome} no Google Maps (abre em nova aba)`,
+  site: 'Conhecer o Sicredi RN',
+  siteUrl: 'https://www.sicredi.com.br/coop/riograndedonorte/',
+  voltar: 'Voltar ao mapa',
+}
+
 export const CENA_TEXTO = {
   mapaEmBreve: { titulo: 'O mapa chega em breve', apoio: 'Enquanto isso, veja todas as casas e os combos da Cartoon.' },
   inexistente: { titulo: 'Não encontramos essa página da Cartoon', apoio: 'Confira o endereço ou volte para a entrada da edição.' },
