@@ -12,7 +12,7 @@ Quem pode: qualquer visitante com a chave.
 
 ```
 {
-  total_casas: int,                 // casas da edição (mesma conta de mapa_ler_v2)
+  total_casas: int,                 // casas da edição que contam (caca_casas_conta: não encerradas, com combo; mesma conta de mapa_ler_v2)
   casas_validadas: int,             // casas diferentes validadas da PESSOA (e-mail), via caca_ranking_v2
   metas: [ { casas:int, titulo:text, exemplo:bool, alcancada:bool, faltam:int } ],   // ordenadas por casas, sem repetir
   alcancadas: [ ...as metas com alcancada=true ],

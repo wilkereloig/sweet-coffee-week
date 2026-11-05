@@ -172,7 +172,7 @@ export const CACA = {
     lead: 'Chegou na casa? Carimbe a visita. Na primeira vez em cada casa, avalie o combo para o carimbo valer.',
     carimbar: 'Carimbar aqui',
     conferindo: 'Conferindo…',
-    privacidade: 'O celular pede a sua localização só agora, para conferir que você está na casa. Ela não é guardada.',
+    privacidade: 'O celular pede a sua localização só agora, para conferir que você está na casa quando ela já tem o ponto conferido. Ela não é guardada.',
     okTitulo: 'Carimbado!',
     pendenteTitulo: 'Carimbo pendente — falta avaliar',
     primeira: (nome) => `Primeira visita na ${nome}.`,

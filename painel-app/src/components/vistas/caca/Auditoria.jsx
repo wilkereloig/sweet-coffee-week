@@ -4,7 +4,7 @@ import { ROTULO_EVENTO, rotuloEvento, resumoMudanca, horaNatal, diaBr } from '..
 import { Tabela } from './comum'
 
 /*
- * Auditoria da Caça: cada apuração, chamada, confirmação, entrega, mudança de regra e simulação de sorteio, com quem
+ * Auditoria da Caça: cada apuração, chamada, confirmação, entrega, mudança de regra e sorteio oficial (a simulação não grava evento), com quem
  * fez e quando (últimos 200, do mais novo ao mais antigo). Antes/depois nunca levam e-mail nem WhatsApp.
  */
 export function Auditoria({ dados }) {
@@ -28,7 +28,7 @@ export function Auditoria({ dados }) {
           </Tabela>
         )}
       </Secao>
-      <Secao titulo="Histórico" nota="Quem fez o quê. Entrar pela senha compartilhada aparece como Acesso compartilhado.">
+      <Secao titulo="Histórico" nota="Quem fez o quê, com a conta pessoal de cada um.">
         {!eventos.length ? <Vazio titulo="Nada registrado ainda" /> : (
           <>
             <Escolha rotulo="Mostrar" valor={acao} onMudar={setAcao} className="cp-filtro"

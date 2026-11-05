@@ -23,7 +23,7 @@ Nenhuma dessas funções é pública: o site do visitante e o app da Caça **nã
 - **Foto do dia** (`caca_apuracao_dia`): ranking de `caca_ranking_v2` com corte, gravado uma vez por dia e **imutável**. Anular carimbo depois não muda a foto. `hash` = sha256 de `edição|dia|corte|ranking`.
 - **Corte**: hora local de Natal em `fuso` + `corte_hora_local` (padrão 23:59). O minuto inteiro conta (23:59:59 entra, 00:00:00 não). `corte` no retorno é o limite exclusivo (dia seguinte 00:00 local).
 - **Estados do prêmio**: `selecionado` → `confirmado` → `entregue`; `expirado`, `substituido`, `cancelado`. Só `confirmado` e `entregue` tiram a pessoa das apurações seguintes; `selecionado` pendente a tira **temporariamente**; `expirado` volta a concorrer em outros dias.
-- **E-mail confirmado** (`mapas_lover.email_confirmado_em` em qualquer mapa da pessoa): o prêmio nasce `confirmado`, sem prazo. Senão nasce `selecionado` com `prazo_ate`.
+- **E-mail confirmado** (`mapas_lover.email_confirmado_em` no **mapa principal** da pessoa; perfil e contato do prêmio vêm desse mesmo mapa — migration 20261210): o prêmio nasce `confirmado`, sem prazo. Senão nasce `selecionado` com `prazo_ate`.
 - **Prazo**: 1ª chamada = `prazo_confirmacao_proximo_dia_hora` (12h) do dia seguinte, em Natal. Chamadas seguintes (substituição) = agora + `prazo_segunda_chamada_min` (120 min, **proposta**). Nada expira sozinho: `vencido: true` no JSON só **sinaliza**; a organização aciona `expirar`/`substituir`.
 
 ### Objeto `premio` (retornado por apurar, acao e listar)
@@ -112,7 +112,8 @@ Regra (regulamento em `src/edicao/cartoon/regulamento.js`): concorre quem valido
 - **Até `ganhadores_final` completos** (`regra: 'todos_completos_ganham'`): todos ganham (`motivo: 'completo'`); as vagas que sobram vão para quem tem mais casas, depois mais extras (`'vaga_restante'`); se o grupo empatado da última vaga for maior que as vagas, sorteio entre eles (`'vaga_restante_sorteio'`).
 - **Mais completos que vagas** (`regra: 'sorteio_ponderado'`): sorteio ponderado **sem reposição**, peso = `peso_base + extras` (0 extras = 100, 5 = 105, 10 = 110). Ganhar voucher **não** exclui. `motivo: 'sorteio_ponderado'`.
 - Verificável: PRNG = 48 bits de sha256(`semente` + `:` + índice) / 2^48; lista de concorrentes ordenada por e-mail normalizado; mesma semente + mesmos dados = mesmo resultado. `hash_verificacao` = sha256(`semente|N|peso_base|email:peso,...`).
-- **`p_simular = true` (padrão) nunca grava nada**, nem evento. Só `p_simular = false` grava os prêmios `tipo = 'final'` (estado `selecionado`, `semente` preenchida) e eventos, **uma vez por edição**. **Não rodar `false` fora do sorteio oficial**; sugestão de uso: publicar a lista de `concorrentes` (apelido + peso) antes, simular, e só então rodar real com a mesma semente.
+- **`p_simular = true` (padrão) não cria prêmio**, mas **deixa rastro**: grava o evento `sorteio_simulado` (`semente_hash` = sha256 da semente, `comprometida`, `concorrentes`; a semente em claro não vai para o evento). Só `p_simular = false` grava os prêmios `tipo = 'final'` (estado `selecionado`, `semente` preenchida) e eventos, **uma vez por edição**. **Não rodar `false` fora do sorteio oficial.**
+- **Semente comprometida (SEC-07, migration 20261212).** Para o sorteio real a semente tem que ser comprometida **antes** do fim da avaliação: `caca_sorteio_comprometer(p_secret, p_edicao, p_hash)` (gate `edicao.gerir`) grava em `caca_evento` (imutável) o `sha256` da semente (hex minúsculo, texto sem espaços nas pontas). Um compromisso por edição (`compromisso_ja_registrado`), só antes de `avaliacao_fecha_em` (`compromisso_tardio`), hash de 64 hex (`hash_invalido`). O real (`p_simular = false`) só roda **depois** de `avaliacao_fecha_em` (`avaliacao_ainda_aberta`) e com a semente cujo sha256 bate com o compromisso (`semente_nao_comprometida`). Fluxo: escolher a semente, comprometer o hash, publicar o hash, esperar a avaliação fechar, simular/conferir, rodar o real revelando a semente. Fora deste contrato: ação `substituir` para o prêmio **final** (hoje só `cancelar`).
 
 Retorno:
 ```
@@ -121,7 +122,7 @@ Retorno:
   concorrentes: [ { apelido, casas, extras, peso, email?, whatsapp? } ],   // só os completos
   ganhadores:   [ { posicao, apelido, casas, extras, peso, motivo, email?, whatsapp? } ] }
 ```
-Erros: `nao_autorizado`, `semente_obrigatoria` (vazia ou só espaços), `sorteio_final_ja_realizado` (só no modo real).
+Erros: `nao_autorizado`, `semente_obrigatoria` (vazia ou só espaços); só no modo real: `sorteio_final_ja_realizado`, `avaliacao_ainda_aberta`, `semente_nao_comprometida`.
 
 ## Pendências e avisos para quem programa o front
 

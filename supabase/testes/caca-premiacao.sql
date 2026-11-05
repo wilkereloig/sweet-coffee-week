@@ -65,6 +65,8 @@ begin
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
    where pa.edicao_codigo = ed and pa.status_cadastro <> 'encerrado'
      and not exists (select 1 from public.publicacoes pb where pb.participacao_id = pa.id and pb.vigente);
+  -- 20261211: só casa com combo entra no total; a casa 'marca' de verdade (ex.: caroli-douces) sai deste cenário.
+  update public.publicacoes set nivel = 'marca_e_combo' where vigente;
   select distinct on (pa.id) pa.id participacao, pu.id unidade, q.codigo qr into ca
     from public.participacoes pa join public.participacao_unidades pu on pu.participacao_id = pa.id and pu.participa
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
@@ -300,6 +302,11 @@ begin
   if exists (select 1 from public.caca_premio where tipo = 'final') or exists (select 1 from public.caca_evento where acao like 'sorteio_final%') then raise exception 'simulação gravou'; end if;
 
   -- 15c. Sorteio "real" (só dentro desta transação): grava 3 prêmios + eventos, uma vez só; ganhar voucher não exclui (P1 concorre).
+  -- 20261212 (SEC-07): o sorteio real exige a semente comprometida antes do fim da avaliação e a avaliação encerrada.
+  update public.edicao_publicacao set fase = 'em_andamento', avaliacao_aberta = true, avaliacao_abre_em = now() - interval '3 days',
+         avaliacao_fecha_em = now() + interval '1 day' where edicao_codigo = ed;
+  perform public.caca_sorteio_comprometer('x', ed, encode(extensions.digest('final-b', 'sha256'), 'hex'));
+  update public.edicao_publicacao set avaliacao_fecha_em = now() - interval '1 minute' where edicao_codigo = ed;
   r2 := public.caca_sorteio_final('x', ed, 'final-b', false);
   if r2 -> 'ganhadores' <> r -> 'ganhadores' then raise exception 'o real deveria repetir a simulação com a mesma semente'; end if;
   if (select count(*) from public.caca_premio where tipo = 'final' and estado = 'selecionado' and semente = 'final-b') <> 3

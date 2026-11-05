@@ -15,9 +15,10 @@ import { CACA, CACA_CAMINHOS } from '../../caca/textos.js'
 /** `meu`: o estado de useMeuMapa (rota/useMeuMapa.js), lido uma vez pela página e repartido com o Mundo. */
 export function AlbumCarimbos ({ dados, navigate, meu }) {
   const { chave, mapa, estado } = meu
+  const [naoApagou, setNaoApagou] = React.useState(false)
   async function apagar () {
-    if (!window.confirm('Apagar seu Mapa da Doçura? Os carimbos e o progresso somem e não voltam.')) return
-    await meu.apagar()
+    if (!window.confirm('Apagar este Mapa da Doçura? Os carimbos dele somem e não voltam. Se você tem outro mapa com o mesmo e-mail, o progresso desse continua valendo.')) return
+    setNaoApagou(!(await meu.apagar()))
   }
 
   const C_ = EDICAO.caminho
@@ -84,6 +85,7 @@ export function AlbumCarimbos ({ dados, navigate, meu }) {
         <Link href={`${C_}/regulamento`} navigate={navigate} className="ct-botao ct-botao--contorno">Regulamento</Link>
         <button type="button" className="ct-botao ct-botao--contorno" onClick={apagar}>Apagar meu mapa</button>
       </div>
+      {naoApagou && <p className="ct-aviso" role="alert">Não deu para apagar agora e o seu mapa continua guardado. Tente de novo em instantes.</p>}
     </section>
   )
 }

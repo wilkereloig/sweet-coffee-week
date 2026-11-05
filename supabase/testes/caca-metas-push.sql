@@ -22,6 +22,8 @@ begin
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
    where pa.edicao_codigo = ed and pa.status_cadastro <> 'encerrado'
      and not exists (select 1 from public.publicacoes pb where pb.participacao_id = pa.id and pb.vigente);
+  -- 20261211: só casa com combo entra no total; a casa 'marca' de verdade (ex.: caroli-douces) sai deste cenário.
+  update public.publicacoes set nivel = 'marca_e_combo' where vigente;
   select distinct on (pa.id) pa.id participacao, pu.id unidade, q.codigo qr into ca
     from public.participacoes pa join public.participacao_unidades pu on pu.participacao_id = pa.id and pu.participa
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
@@ -31,6 +33,9 @@ begin
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
    where pa.edicao_codigo = ed and pa.status_cadastro <> 'encerrado' and pa.id <> ca.participacao order by pa.id limit 1;
   if ca.participacao is null or cb.participacao is null then raise exception 'faltam 2 casas com QR'; end if;
+  -- 20261211: carimbo sem GPS só conta em casa sem nenhuma unidade com coordenada conferida; deixa B assim neste cenário.
+  update public.unidades set coordenada_verificada_em = null
+   where id in (select pu.unidade_id from public.participacao_unidades pu where pu.participacao_id = cb.participacao);
   ch1 := public.mapa_criar(ed, 'Tmp', 'tmp@exemplo.com.br', null, false, true) ->> 'chave';
   v_total := (public.caca_metas_ler(ch1) ->> 'total_casas')::int;   -- statement à parte: função STABLE não vê o insert do mesmo statement
   if v_total is null then raise exception 'total de casas nulo'; end if;

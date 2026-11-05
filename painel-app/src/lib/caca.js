@@ -285,7 +285,7 @@ export function compararSimulacoes(a, b) {
 export const ROTULO_EVENTO = Object.freeze({
   apurar_dia: 'Dia apurado', selecionar: 'Selecionado', chamar_proximo: 'Próximo chamado', confirmar: 'Confirmado',
   entregar: 'Entregue', expirar: 'Expirado', cancelar: 'Cancelado', substituir: 'Substituído',
-  sorteio_final: 'Sorteio final (simulação)', sorteio_final_realizado: 'Sorteio final realizado', config_gravar: 'Regra alterada',
+  sorteio_final: 'Ganhador sorteado', sorteio_final_realizado: 'Sorteio final realizado', config_gravar: 'Regra alterada',
 })
 export const rotuloEvento = (a) => ROTULO_EVENTO[a] || String(a || '')
 const curto = (v) => { const s = typeof v === 'string' ? v : JSON.stringify(v); return s && s.length > 48 ? s.slice(0, 47) + '…' : String(s) }
@@ -360,7 +360,14 @@ export const TIPOS_PUSH = Object.freeze([
 export const tipoPushValido = (t) => TIPOS_PUSH.some(([k]) => k === t)
 
 // ── CSV ──────────────────────────────────────────────────────────────────────
-export const csvDe = (linhas) => linhas.map((l) => l.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\n')
+// Texto livre do visitante (apelido) entra na planilha: célula de texto que começa com = + - @ TAB CR vira fórmula no Excel.
+// Apóstrofo na frente neutraliza. Número de verdade (typeof number) segue como número.
+const celulaCsv = (v) => {
+  let s = String(v ?? '')
+  if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s)) s = "'" + s
+  return `"${s.replace(/"/g, '""')}"`
+}
+export const csvDe = (linhas) => linhas.map((l) => l.map(celulaCsv).join(';')).join('\n')
 
 // ── Erros em linguagem de gente ──────────────────────────────────────────────
 const MENSAGENS = [

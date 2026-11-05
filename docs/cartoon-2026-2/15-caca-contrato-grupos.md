@@ -4,7 +4,7 @@ Migration `supabase/migrations/20261206_caca_grupos.sql` (aplicada em 04/11/2026
 Regra de produto: `15-caca-especificacao.md` §7 e §8. Chamar sempre por RPC (`supabase.rpc(nome, args)`) com a chave publicável; as tabelas são fechadas.
 
 ## Convenções
-- **Identidade** = pessoa = e-mail normalizado do mapa. Todas as RPCs recebem `p_chave` (a chave pessoal do mapa, a mesma de `mapa_ler_v2`). Dois mapas com o mesmo e-mail são **um** integrante: qualquer um dos dois lê e edita o mesmo grupo.
+- **Identidade** = pessoa = e-mail normalizado do mapa. Todas as RPCs recebem `p_chave` (a chave pessoal do mapa, a mesma de `mapa_ler_v2`). Dois mapas com o mesmo e-mail são **um** integrante, e só o **mapa principal** da pessoa (o confirmado mais antigo; senão o mais antigo — `15-caca-contrato-identidade.md`, D8) lê e edita o grupo. O outro mapa do mesmo e-mail recebe `{ ok:false, motivo:'negado' }` em **todas** as RPCs que recebem chave (SEC-01, migration 20261210); o caminho dele é "recuperar mapa". O apelido mostrado no grupo é o do mapa principal.
 - **Retorno**: sempre `jsonb`. Sucesso tem `ok: true`. Falha de negócio **não levanta exceção**: `{ "ok": false, "motivo": "<código>" }`. (`caca_grupo_convite_ver` é a exceção: usa `valido`.)
 - **Acesso negado é uniforme**: quem não é integrante ativo, grupo inexistente e grupo de outra edição dão o mesmo `negado` (não revela se o grupo existe).
 - **Chave desconhecida** em qualquer RPC: `motivo: "mapa_desconhecido"`.
@@ -40,7 +40,7 @@ Pré-visualização do convite para a tela "Você foi convidado".
 
 ## `caca_grupo_entrar(p_chave text, p_token text, p_aceite_visibilidade boolean default false)`
 Entra no grupo com o mapa **próprio**. Não cria carimbo para ninguém.
-- Sucesso: `{ ok: true, grupo_id, nome, ja_membro: boolean }`. **Idempotente**: se a pessoa (qualquer mapa do mesmo e-mail) já é integrante, devolve `ok: true, ja_membro: true` sem gastar uso do convite — inclusive com convite já revogado.
+- Sucesso: `{ ok: true, grupo_id, nome, ja_membro: boolean }`. **Idempotente**: se a pessoa (pelo mapa principal) já é integrante, devolve `ok: true, ja_membro: true` sem gastar uso do convite — inclusive com convite já revogado.
 - Erros (na ordem em que são avaliados): `mapa_desconhecido`, `convite_invalido` (token inexistente ou grupo vazio), `edicao_diferente`, `convite_revogado`, `convite_expirado`, `convite_esgotado`, `removido_do_grupo`, `aceite_obrigatorio`, `grupo_cheio`, `limite_grupos`.
 - Quem saiu por conta própria pode voltar com um convite válido (entra como `membro`, com novo aceite).
 

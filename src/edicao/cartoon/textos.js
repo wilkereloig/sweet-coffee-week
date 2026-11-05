@@ -210,7 +210,7 @@ export const CENA_TEXTO = {
 }
 
 /* Painel do Sweet Lover (§10.14): "quero ir" é da UNIDADE (vira parada da Minha rota); "já fui" é da CASA
-   (vira progresso). Rótulo fixo: o estado vai no aria-pressed e na cor, não troca o nome do botão. */
+   (vira lembrete pessoal, não valida carimbo). Rótulo fixo: o estado vai no aria-pressed e na cor, não troca o nome do botão. */
 export const LOVER = {
   queroIr: 'Quero ir',
   jaFui: 'Já fui',
@@ -280,7 +280,7 @@ export const ROTA = {
   titulo: 'Minha rota',
   lead: 'Sua lista de casas para provar e as que você já visitou. Fica salva neste aparelho, sem conta.',
   progresso: (x, n) => `${x} de ${n} ${n === 1 ? 'casa' : 'casas'}`,
-  progressoRotulo: 'visitadas',
+  progressoRotulo: 'marcadas por você',
   queroIrTitulo: 'Quero ir',
   queroIrVazio: 'Sua lista está vazia. No mapa, no catálogo ou na página de cada casa, toque em "Quero ir".',
   tudoVisitado: 'Você já visitou todas as casas da sua lista.',
@@ -298,7 +298,7 @@ export const ROTA = {
   ordenarNota: 'O caminho do mapa vai do Potengi a Ponta Negra. Não é o trajeto mais curto: é a ordem dos bairros no desenho.',
   carimbadaRotulo: 'Carimbada',
   jaFuiTitulo: 'Já fui',
-  jaFuiVazio: 'Provou um combo? Toque em "Já fui" na casa: ela entra aqui e conta no seu progresso.',
+  jaFuiVazio: 'Provou um combo? Toque em "Já fui" na casa para lembrar dela aqui. É só uma anotação sua: quem valida a casa é o carimbo da Caça aos Carimbos.',
   desfazer: 'Desfazer',
   aparelho: 'Salvo só neste aparelho e neste navegador, sem conta. Limpar os dados do navegador apaga a lista.',
   compartilhada: 'Esta é uma rota compartilhada com você.',

@@ -19,6 +19,8 @@ begin
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
    where pa.edicao_codigo = ed and pa.status_cadastro <> 'encerrado'
      and not exists (select 1 from public.publicacoes pb where pb.participacao_id = pa.id and pb.vigente);
+  -- 20261211: só casa com combo entra no total; a casa 'marca' de verdade (ex.: caroli-douces) sai deste cenário.
+  update public.publicacoes set nivel = 'marca_e_combo' where vigente;
 
   -- Duas casas (A, B) com QR ativo.
   select distinct on (pa.id) pa.id participacao, pu.id unidade, q.codigo qr into ca
@@ -31,9 +33,9 @@ begin
    where pa.edicao_codigo = ed and pa.status_cadastro <> 'encerrado' and pa.id <> ca.participacao order by pa.id limit 1;
   if ca.participacao is null or cb.participacao is null then raise exception 'faltam 2 casas com QR'; end if;
 
-  -- Pessoas. P1 tem DOIS mapas com o mesmo e-mail (P1b é o mais recente e não quer aparecer no ranking).
-  ch_p1a := public.mapa_criar(ed, 'P1a', 'p1@exemplo.com.br', null, true, true) ->> 'chave';
-  ch_p1b := public.mapa_criar(ed, 'P1b', 'p1@exemplo.com.br', null, false, true) ->> 'chave';
+  -- Pessoas. P1 tem DOIS mapas com o mesmo e-mail (20261210: o PRINCIPAL é o mais antigo, P1a, que não quer aparecer no ranking; P1b é secundário).
+  ch_p1a := public.mapa_criar(ed, 'P1a', 'p1@exemplo.com.br', null, false, true) ->> 'chave';
+  ch_p1b := public.mapa_criar(ed, 'P1b', 'p1@exemplo.com.br', null, true, true) ->> 'chave';
   ch_p2  := public.mapa_criar(ed, 'P2',  'p2@exemplo.com.br', null, true, true) ->> 'chave';
   ch_p3  := public.mapa_criar(ed, 'P3',  'p3@exemplo.com.br', null, true, true) ->> 'chave';
   ch_p4  := public.mapa_criar(ed, 'P4',  'p4@exemplo.com.br', null, true, true) ->> 'chave';
@@ -73,8 +75,8 @@ begin
     (ed, ca.participacao, 'Teste', 'p3@exemplo.com.br', '{}'::jsonb, now() - interval '90 hours');
 
   -- 1. Placar agora: casas e extras por PESSOA (os dois mapas de P1 viram uma pessoa; perfil = mapa mais recente).
-  if not exists (select 1 from public.caca_placar_v2(ed) p where p.pessoa = 'p1@exemplo.com.br' and p.casas = 2 and p.extras = 1 and p.apelido = 'P1b')
-    then raise exception 'P1 deveria ser 2 casas + 1 extra, perfil P1b'; end if;
+  if not exists (select 1 from public.caca_placar_v2(ed) p where p.pessoa = 'p1@exemplo.com.br' and p.casas = 2 and p.extras = 1 and p.apelido = 'P1a')
+    then raise exception 'P1 deveria ser 2 casas + 1 extra, perfil P1a (mapa principal)'; end if;
   if (select count(*) from public.caca_placar_v2(ed) p where p.pessoa = 'p1@exemplo.com.br') <> 1 then raise exception 'P1 apareceu mais de uma vez'; end if;
   if not exists (select 1 from public.caca_placar_v2(ed) p where p.pessoa = 'p2@exemplo.com.br' and p.casas = 2 and p.extras = 0) then raise exception 'P2'; end if;
   if not exists (select 1 from public.caca_placar_v2(ed) p where p.pessoa = 'p3@exemplo.com.br' and p.casas = 1 and p.extras = 2) then raise exception 'P3'; end if;
@@ -105,15 +107,17 @@ begin
   if not exists (select 1 from jsonb_array_elements(r) e where e ->> 'apelido' = 'P2' and (e ->> 'posicao')::int = pos_p2) then raise exception 'P2 sem a posição real: %', r; end if;
   if jsonb_array_length(public.caca_ranking_publico(ed, 1)) <> 1 then raise exception 'limite do ranking público'; end if;
 
+  -- (empatados >= 1: com jogadores reais no banco o empate pode ser maior)
   -- 5. mapa_ler_v2: pendente, validada, posição, empatados, extras por casa; o mapa antigo (mapa_ler) segue igual.
   r := public.mapa_ler_v2(ch_p1a);
   if (r ->> 'casas_validadas')::int <> 2 or (r ->> 'extras')::int <> 1 or (r ->> 'posicao')::int <> pos_p1
-     or (r ->> 'total_casas')::int - (r ->> 'faltam')::int <> 2 or (r ->> 'empatados')::int <> 1
+     or (r ->> 'total_casas')::int - (r ->> 'faltam')::int <> 2 or (r ->> 'empatados')::int < 1
     then raise exception 'mapa_ler_v2 de P1: %', r; end if;
   if jsonb_array_length(r -> 'casas') <> 2 then raise exception 'P1 casas: %', r; end if;
   if not exists (select 1 from jsonb_array_elements(r -> 'casas') e where e ->> 'estado' = 'validada' and (e ->> 'carimbos')::int = 2 and (e ->> 'extras')::int = 1)
     then raise exception 'casa A de P1 deveria ter 2 carimbos (um em cada mapa) e 1 extra: %', r; end if;
-  if (public.mapa_ler_v2(ch_p1b) ->> 'casas_validadas')::int <> 2 then raise exception 'o segundo mapa da pessoa deveria ver o mesmo progresso'; end if;
+  -- 20261210: o mapa secundário (P1b) lê só os próprios carimbos, não o progresso da pessoa.
+  if (public.mapa_ler_v2(ch_p1b) ->> 'casas_validadas')::int <> 1 or (public.mapa_ler_v2(ch_p1b) ->> 'principal')::boolean then raise exception 'o segundo mapa da pessoa deveria ver só o próprio progresso'; end if;
   r := public.mapa_ler_v2(ch_p5);
   if (r ->> 'casas_validadas')::int <> 0 or (r -> 'posicao') <> 'null'::jsonb or r -> 'casas' -> 0 ->> 'estado' <> 'pendente'
     then raise exception 'mapa_ler_v2 de P5 (pendente): %', r; end if;
@@ -128,7 +132,7 @@ begin
   v_total := (a ->> 'total_casas')::int;
   if jsonb_array_length(a -> 'apuracoes') <> 5 or (a -> 'apuracoes' -> 0 ->> 'dia') <> '2026-11-07' then raise exception 'apurações: %', a -> 'apuracoes'; end if;
   if jsonb_array_length(a -> 'sorteio_final') <> 0 then raise exception 'sorteio com mapa incompleto: %', a -> 'sorteio_final'; end if;
-  if not exists (select 1 from jsonb_array_elements(a -> 'reservas') e where e ->> 'apelido' = 'P1b') and v_total > 2 and pos_p1 <= 10 then
+  if not exists (select 1 from jsonb_array_elements(a -> 'reservas') e where e ->> 'apelido' = 'P1a') and v_total > 2 and pos_p1 <= 10 then
     raise exception 'reservas sem P1: %', a -> 'reservas'; end if;
 
   -- P1 completa as demais casas (1 carimbo + avaliação em cada): entra no sorteio com peso 100 + 1 extra.
@@ -144,9 +148,9 @@ begin
    where pa.edicao_codigo = ed and pa.id not in (ca.participacao, cb.participacao);
   a := public.get_caca_apuracao_v2('x', ed);
   if jsonb_array_length(a -> 'sorteio_final') <> 1 or (a -> 'sorteio_final' -> 0 ->> 'peso')::int <> 101
-     or (a -> 'sorteio_final' -> 0 ->> 'casas')::int <> v_total or a -> 'sorteio_final' -> 0 ->> 'apelido' <> 'P1b'
+     or (a -> 'sorteio_final' -> 0 ->> 'casas')::int <> v_total or a -> 'sorteio_final' -> 0 ->> 'apelido' <> 'P1a'
     then raise exception 'sorteio final: % (total %)', a -> 'sorteio_final', v_total; end if;
-  if (a -> 'apuracoes' -> 4 -> 'ranking' -> 0 ->> 'apelido') <> 'P1b' or (a -> 'apuracoes' -> 4 -> 'ranking' -> 0 ->> 'posicao')::int <> 1
+  if (a -> 'apuracoes' -> 4 -> 'ranking' -> 0 ->> 'apelido') <> 'P1a' or (a -> 'apuracoes' -> 4 -> 'ranking' -> 0 ->> 'posicao')::int <> 1
     then raise exception 'dia 11: P1 deveria liderar: %', a -> 'apuracoes' -> 4; end if;
 
   raise exception 'TESTE_OK casas=%', v_total;

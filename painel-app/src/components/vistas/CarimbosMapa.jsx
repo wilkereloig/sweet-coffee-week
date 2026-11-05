@@ -48,7 +48,7 @@ function MapaDocura({ edicao, pode }) {
   const gerir = pode('producao.gerir')
 
   async function anular(a) {
-    const motivo = await pedirTexto(`Anular o carimbo de ${a.apelido}? Ele sai do pódio e do sorteio.`, { rotulo: 'Motivo (fica no histórico)' }, { titulo: 'Anular carimbo', acao: 'Anular', perigo: true })
+    const motivo = await pedirTexto(`Anular o carimbo de ${a.apelido}? Ele deixa de contar nas apurações e no sorteio.`, { rotulo: 'Motivo (fica no histórico)' }, { titulo: 'Anular carimbo', acao: 'Anular', perigo: true })
     if (motivo === null) return
     await rpc('carimbo_anular', { p_secret: lerSenha(), p_carimbo: a.carimbo_id, p_motivo: motivo })
     resumo.recarregar()
@@ -68,11 +68,11 @@ function MapaDocura({ edicao, pode }) {
       {resumo.bloqueada ? <Erro texto={resumo.erro} onTentar={resumo.recarregar} /> : !r ? <Carregando /> : (
         <>
           <ul className="ui-numeros ui-numeros--compacto">
-            {[['mapas', 'mapas'], ['carimbos', 'carimbos'], ['pontos', 'pontos'], ['avaliadas', 'avaliações com bônus'], ['anulados', 'anulados'], ['sem_conferencia', 'sem ponto conferido']]
+            {[['mapas', 'mapas'], ['carimbos', 'carimbos'], ['pontos', 'pontos'], ['avaliadas', 'avaliações (legado)'], ['anulados', 'anulados'], ['sem_conferencia', 'sem ponto conferido']]
               .map(([k, rotulo]) => <li key={k} className="ui-numero"><span className="ui-numero__n">{r.totais?.[k] ?? 0}</span><span className="ui-numero__rotulo">{rotulo}</span></li>)}
           </ul>
 
-          <Secao titulo="Alertas para a auditoria" nota="Viagem impossível: dois carimbos seguidos em casas a mais de 1 km, rápido demais para 60 km/h. Confira antes de divulgar o pódio.">
+          <Secao titulo="Alertas para a auditoria" nota="Viagem impossível: dois carimbos seguidos em casas a mais de 1 km, rápido demais para 60 km/h. Confira antes de divulgar os ganhadores.">
             {!r.alertas?.length ? <p className="ui-nota">Nenhum alerta.</p> : (
               <ul className="cm-alertas">
                 {r.alertas.map((a) => (
@@ -89,7 +89,7 @@ function MapaDocura({ edicao, pode }) {
             )}
           </Secao>
 
-          <Secao titulo="Ranking" nota="Só carimbos validados (casa avaliada). Pontos = 1 por carimbo + 2 por casa avaliada. Empate: mais casas, depois quem chegou primeiro.">
+          <Secao titulo="Pontuação do Mapa da Doçura (legado, não decide prêmio)" nota="Regra antiga, por mapa: 1 ponto por carimbo + 2 por casa avaliada. Não vale para a Caça: voucher do dia e prêmio final contam casas e extras por pessoa (e-mail). Veja Vouchers do dia e Prêmio final. Não divulgue esta lista como pódio.">
             {!r.ranking?.length ? <Vazio titulo="Nenhum carimbo ainda">O ranking aparece aqui no primeiro carimbo.</Vazio> : (
               <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Ranking do Mapa da Doçura">
                 <table className="ui-tabela">

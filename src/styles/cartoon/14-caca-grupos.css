@@ -57,7 +57,8 @@
 .ct-grupos__ok { margin-top: 10px; }
 
 /* ---------------------------------------------------------------- rota do grupo */
-.ct-rota { display: grid; gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+/* ol: o painel "Minha rota" também se chama .ct-rota (div) e não pode herdar grid/margem desta lista */
+ol.ct-rota { display: grid; gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
 .ct-rota__item {
   display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 8px 12px;
   padding: 10px 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme);

@@ -17,6 +17,8 @@ begin
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
    where pa.edicao_codigo = ed and pa.status_cadastro <> 'encerrado'
      and not exists (select 1 from public.publicacoes pb where pb.participacao_id = pa.id and pb.vigente);
+  -- 20261211: só casa com combo entra no total; a casa 'marca' de verdade (ex.: caroli-douces) sai deste cenário.
+  update public.publicacoes set nivel = 'marca_e_combo' where vigente;
 
   select distinct on (pa.id) pa.id participacao, pu.id unidade, q.codigo qr into ca
     from public.participacoes pa join public.participacao_unidades pu on pu.participacao_id = pa.id and pu.participa
@@ -53,7 +55,7 @@ begin
   select id into id_d  from public.mapas_lover where chave_hash = public.mapa_hash(k_d);
   select id into id_f  from public.mapas_lover where chave_hash = public.mapa_hash(k_f);
   select id into id_h  from public.mapas_lover where chave_hash = public.mapa_hash(k_h);
-  update public.mapas_lover set criado_em = now() - interval '10 days' where id = id_a1;   -- Ana2 fica o perfil (mais recente)
+  update public.mapas_lover set criado_em = now() - interval '10 days' where id = id_a1;   -- 20261210: Ana (o mais antigo) é o mapa PRINCIPAL e o perfil; Ana2 é secundário
 
   -- Progresso (carimbo + avaliação do mesmo e-mail):
   --   A: casas A e B, com 1 extra em A (um carimbo em cada mapa)  -> 2 casas, 1 extra
@@ -124,8 +126,10 @@ begin
   if not (r ->> 'ok')::boolean or (r ->> 'ja_membro')::boolean then raise exception 'entrar B: %', r; end if;
   r := public.caca_grupo_entrar(k_b, tok1, true);
   if not (r ->> 'ok')::boolean or not (r ->> 'ja_membro')::boolean then raise exception 'entrar B de novo deveria ser idempotente: %', r; end if;
-  r := public.caca_grupo_entrar(k_a2, tok1, true);   -- outro mapa da dona (mesmo e-mail)
-  if not (r ->> 'ok')::boolean or not (r ->> 'ja_membro')::boolean then raise exception 'segundo mapa da dona virou outro integrante: %', r; end if;
+  r := public.caca_grupo_entrar(k_a1, tok1, true);   -- a dona (mapa principal) já é integrante: idempotente
+  if not (r ->> 'ok')::boolean or not (r ->> 'ja_membro')::boolean then raise exception 'dona entrando de novo: %', r; end if;
+  r := public.caca_grupo_entrar(k_a2, tok1, true);   -- outro mapa da dona (mesmo e-mail, secundário): negado, não vira integrante
+  if r ->> 'motivo' is distinct from 'negado' then raise exception 'segundo mapa da dona deveria ser negado: %', r; end if;
   if (select count(*) from public.caca_grupo_membro m where m.grupo_id = g1 and m.pessoa = 'a@exemplo.com.br') <> 1 then raise exception 'pessoa duplicada'; end if;
   if (select usos from public.caca_grupo_convite c where c.grupo_id = g1 limit 1) <> 1 then raise exception 'entrada repetida gastou uso do convite'; end if;
   if not exists (select 1 from public.caca_grupo_membro m where m.grupo_id = g1 and m.pessoa = 'b@exemplo.com.br' and m.aceite_visibilidade_em is not null)
@@ -139,8 +143,8 @@ begin
   r := public.caca_grupo_ler(k_b, g1);
   if not (r ->> 'ok')::boolean or jsonb_array_length(r -> 'membros') <> 5 then raise exception 'ler B: %', r; end if;
   if r::text like '%exemplo.com.br%' or r::text ~* '"(email|whatsapp|pessoa|chave)' then raise exception 'ler vazou contato/chave: %', r; end if;
-  if not exists (select 1 from jsonb_array_elements(r -> 'membros') m where m ->> 'apelido' = 'Ana2' and (m ->> 'casas')::int = 2 and (m ->> 'extras')::int = 1 and (m ->> 'posicao')::int = 1 and m ->> 'papel' = 'dono')
-    then raise exception 'A: 2 casas + 1 extra, posição 1, dono: %', r -> 'membros'; end if;   -- perfil = mapa mais recente (Ana2)
+  if not exists (select 1 from jsonb_array_elements(r -> 'membros') m where m ->> 'apelido' = 'Ana' and (m ->> 'casas')::int = 2 and (m ->> 'extras')::int = 1 and (m ->> 'posicao')::int = 1 and m ->> 'papel' = 'dono')
+    then raise exception 'A: 2 casas + 1 extra, posição 1, dono: %', r -> 'membros'; end if;   -- perfil = mapa principal (Ana)
   if (select count(distinct m ->> 'posicao') from jsonb_array_elements(r -> 'membros') m where m ->> 'apelido' in ('Beto', 'Fabi')) <> 1
      or not exists (select 1 from jsonb_array_elements(r -> 'membros') m where m ->> 'apelido' = 'Beto' and (m ->> 'posicao')::int = 2)
     then raise exception 'B e F deveriam empatar em 2º: %', r -> 'membros'; end if;
@@ -161,8 +165,8 @@ begin
   if (select count(distinct m ->> 'posicao') from jsonb_array_elements(r -> 'membros') m where m ->> 'apelido' in ('Cris', 'Hugo')) <> 1
      or not exists (select 1 from jsonb_array_elements(r -> 'membros') m where m ->> 'apelido' = 'Hugo' and (m ->> 'posicao')::int = 4)
     then raise exception 'Cris e Hugo deveriam empatar em 4º: %', r -> 'membros'; end if;
-  -- O segundo mapa da dona lê o mesmo grupo (pessoa = e-mail).
-  if not (public.caca_grupo_ler(k_a1, g1) ->> 'ok')::boolean or not (public.caca_grupo_ler(k_a2, g1) ->> 'ok')::boolean then raise exception 'A com qualquer mapa deveria ler'; end if;
+  -- Só o mapa principal da dona lê o grupo; o segundo mapa (mesmo e-mail, não principal) recebe 'negado'.
+  if not (public.caca_grupo_ler(k_a1, g1) ->> 'ok')::boolean or public.caca_grupo_ler(k_a2, g1) ->> 'motivo' is distinct from 'negado' then raise exception 'só o mapa principal da dona deveria ler'; end if;
 
   -- 5. Isolamento: de fora (D), de outro grupo (E), grupo inexistente, chave errada e sem grupo.
   r := public.caca_grupo_criar(k_e, 'Grupo da Eva', true);
@@ -185,7 +189,7 @@ begin
        or public.caca_grupo_remover_membro(k_d, g1, gen_random_uuid()) ->> 'motivo' <> 'negado'
       then raise exception 'D conseguiu escrever no grupo'; end if;
   -- Progresso do grupo não depende de quem está fora: D tem 3 casas e a posição global 1, mas o grupo continua com A em 1º.
-  if (select (m ->> 'posicao')::int from jsonb_array_elements(public.caca_grupo_ler(k_b, g1) -> 'membros') m where m ->> 'apelido' = 'Ana2') <> 1 then raise exception 'ranking do grupo contaminado'; end if;
+  if (select (m ->> 'posicao')::int from jsonb_array_elements(public.caca_grupo_ler(k_b, g1) -> 'membros') m where m ->> 'apelido' = 'Ana') <> 1 then raise exception 'ranking do grupo contaminado'; end if;
 
   -- 6. Rota colaborativa: qualquer integrante mexe; ordem densa; versão; conflito; nunca cria carimbo.
   r := public.caca_grupo_rota_adicionar(k_b, g1, sa);
@@ -272,7 +276,7 @@ begin
   update public.caca_grupo_membro set entrou_em = now() - interval '5 hours' where grupo_id = g1 and pessoa = 'b@exemplo.com.br';
   update public.caca_grupo_membro set entrou_em = now() - interval '4 hours' where grupo_id = g1 and pessoa = 'h@exemplo.com.br';
   -- Dono que sai passa o grupo ao integrante ativo mais antigo (B); o dono antigo perde o acesso.
-  if not (public.caca_grupo_sair(k_a2, g1) ->> 'ok')::boolean then raise exception 'dona não saiu'; end if;
+  if not (public.caca_grupo_sair(k_a1, g1) ->> 'ok')::boolean then raise exception 'dona não saiu'; end if;
   if public.caca_grupo_ler(k_a1, g1) ->> 'motivo' <> 'negado' then raise exception 'dona ainda lê (outro mapa)'; end if;
   if (select m.papel from public.caca_grupo_membro m where m.grupo_id = g1 and m.pessoa = 'b@exemplo.com.br') <> 'dono' then raise exception 'B deveria ser o novo dono'; end if;
   if (select count(*) from public.caca_grupo_membro m where m.grupo_id = g1 and m.papel = 'dono' and m.saiu_em is null) <> 1 then raise exception 'deve haver 1 dono'; end if;

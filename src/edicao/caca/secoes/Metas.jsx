@@ -80,7 +80,7 @@ export default function Metas ({ caca, navigate }) {
       <p className="ct-caca__grande"><strong>{T.resumo(metas.validadas, metas.total)}</strong> <span>{T.resumoRotulo}</span></p>
       {novas.length > 0 && <Celebracao novas={novas} />}
       {metas.marcos.length === 0
-        ? <p className="ct-nota">{T.semMetas}</p>
+        ? <p className="ct-nota">{metas.emDefinicao ? T.emDefinicao : T.semMetas}</p>
         : (<><Proxima metas={metas} /><ListaDeMarcos marcos={metas.marcos} /></>)}
       <p className="ct-nota">{T.nota}</p>
       <div className="ct-acoes"><Link href={RUA.mapa} navigate={navigate} className="ct-botao ct-botao--contorno">{T.verMapa}</Link></div>

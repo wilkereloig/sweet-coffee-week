@@ -30,8 +30,11 @@ export function chaveInicial () {
  *   email    'confirmado' | 'pendente' | 'desconhecido'
  *   perdeu   true quando havia chave no aparelho e o banco não a reconhece mais (mapa recuperado em outro aparelho)
  *   perfil   { nome, email, whatsapp } digitados neste aparelho
- *   atualizar() relê o mapa · entrar(chave) guarda uma chave nova (criação/recuperação) · sair() esquece o mapa NESTE
- *   aparelho (o mapa continua no banco) · apagar() apaga o mapa no banco e no aparelho
+ *   recemCriado true logo depois de `entrar(chave, { criado: true })`: a tela mostra o "guarde seu mapa". Vive aqui, não na
+ *            tela, porque entrar troca o corpo por "carregando" e desmonta quem guardasse o aviso.
+ *   atualizar() relê o mapa · entrar(chave, { criado }) guarda uma chave nova (criação/recuperação/link): se o banco não a
+ *   reconhecer, volta para a chave que o aparelho já tinha · sair() esquece o mapa NESTE aparelho (o mapa continua no
+ *   banco) · apagar() apaga no banco e depois no aparelho; devolve false (e mantém a chave) se o banco não confirmar
  */
 export function useCaca ({ api = apiPadrao, comEmail = true } = {}) {
   const [chave, setChave] = React.useState(chaveInicial)
@@ -40,6 +43,9 @@ export function useCaca ({ api = apiPadrao, comEmail = true } = {}) {
   const [email, setEmail] = React.useState('desconhecido')
   const [perdeu, setPerdeu] = React.useState(false)
   const [leitura, setLeitura] = React.useState(0)
+  const [recemCriado, setRecemCriado] = React.useState(false)
+  const atual = React.useRef(chave); atual.current = chave
+  const anterior = React.useRef(null) // a chave que valia antes de `entrar`: volta a valer se a nova for desconhecida
 
   React.useEffect(() => {
     if (!chave) { setEstado('sem-mapa'); return undefined }
@@ -47,9 +53,12 @@ export function useCaca ({ api = apiPadrao, comEmail = true } = {}) {
     api.mapaLer(chave).then((r) => {
       if (!vivo) return
       if (r.ok) {
+        anterior.current = null
         setMapa(r.mapa); setEstado('pronto'); setPerdeu(false)
         C.gravarPerfil(EDICAO.codigo, { nome: r.mapa?.apelido, email: r.mapa?.email, whatsapp: r.mapa?.whatsapp })
       } else if (r.motivo === 'mapa_desconhecido') {
+        const volta = anterior.current; anterior.current = null
+        if (volta && volta !== chave) { C.gravarChave(EDICAO.codigo, volta); setMapa(null); setEstado('carregando'); setChave(volta); return }
         C.apagarChave(EDICAO.codigo); setChave(null); setMapa(null); setPerdeu(true); setEstado('sem-mapa')
       } else setEstado((e) => (e === 'pronto' ? e : 'falha')) // releitura que falha não derruba o mapa já mostrado
     })
@@ -64,23 +73,34 @@ export function useCaca ({ api = apiPadrao, comEmail = true } = {}) {
   }, [estado, chave, leitura, api, comEmail])
 
   const atualizar = React.useCallback(() => setLeitura((n) => n + 1), [])
-  const entrar = React.useCallback((nova) => {
+  const entrar = React.useCallback((nova, { criado = false } = {}) => {
     if (!C.chaveValida(nova)) return false
     C.gravarChave(EDICAO.codigo, nova)
-    setMapa(null); setEmail('desconhecido'); setPerdeu(false); setEstado('carregando'); setChave(nova)
+    setPerdeu(false); setRecemCriado(criado)
+    // Mesma chave: o efeito de leitura não roda sozinho (a dependência não mudou), então manda reler em vez de ficar em "carregando".
+    if (nova === atual.current) { setEstado((e) => (e === 'pronto' ? e : 'carregando')); setLeitura((n) => n + 1); return true }
+    anterior.current = atual.current
+    setMapa(null); setEmail('desconhecido'); setEstado('carregando'); setChave(nova)
     return true
   }, [])
   const sair = React.useCallback(() => {
-    C.apagarChave(EDICAO.codigo); setChave(null); setMapa(null); setEmail('desconhecido'); setEstado('sem-mapa')
+    C.apagarChave(EDICAO.codigo); C.apagarPerfil(EDICAO.codigo)
+    anterior.current = null
+    setChave(null); setMapa(null); setEmail('desconhecido'); setRecemCriado(false); setEstado('sem-mapa')
   }, [])
   const apagar = React.useCallback(async () => {
-    if (chave) await api.mapaApagar(chave) // se o banco não responder, apaga do aparelho mesmo assim
+    if (chave) {
+      const r = await api.mapaApagar(chave)
+      // Sem confirmação do banco a chave fica: é a única forma de tentar de novo. Mapa que o banco já não conhece conta como apagado.
+      if (!r.ok && r.motivo !== 'mapa_desconhecido') return false
+    }
     sair()
+    return true
   }, [chave, api, sair])
 
   const resumo = React.useMemo(() => resumoProgresso(mapa), [mapa])
   const proxima = React.useMemo(() => proximaAcao(mapa), [mapa])
   const perfil = React.useMemo(() => C.lerPerfil(EDICAO.codigo), [mapa, chave])
 
-  return { chave, mapa, estado, email, perdeu, perfil, resumo, proxima, atualizar, entrar, sair, apagar, api }
+  return { chave, mapa, estado, email, perdeu, recemCriado, perfil, resumo, proxima, atualizar, entrar, sair, apagar, api }
 }

@@ -21,6 +21,7 @@ export const EXTRAS = {
     marco: (casas) => `${casas} ${casas === 1 ? 'casa' : 'casas'}`,
     alcancada: 'Alcançada',
     faltam: (n) => (n === 1 ? 'Falta 1 casa' : `Faltam ${n} casas`),
+    emDefinicao: 'Os marcos desta edição ainda estão em definição. Enquanto isso, siga carimbando casas diferentes: o que vale como benefício está no regulamento.',
     semMetas: 'Ainda não há marcos definidos para esta edição. Enquanto isso, siga carimbando casas diferentes.',
     nota: 'Os marcos são para comemorar o seu caminho. O que vale como benefício (vouchers e uma surpresa no prêmio final) está no regulamento.',
     carregando: 'Buscando suas metas…',
@@ -41,15 +42,15 @@ export const EXTRAS = {
 
   push: {
     titulo: 'Avisos no celular',
-    lead: 'Se você quiser, o navegador avisa quando algo precisar da sua atenção. É opcional: tudo o que importa também aparece em "Avisos", aqui na central.',
+    lead: 'Se você quiser, a organização pode mandar avisos para o seu navegador. É opcional. A avaliação pendente e as metas também aparecem em "Avisos", aqui na central.',
     escolha: 'O que você quer receber',
     categorias: {
       avaliacao_pendente: { rotulo: 'Avaliação pendente', texto: 'Um carimbo que só espera você avaliar o combo.' },
-      meta: { rotulo: 'Metas', texto: 'Quando você alcançar um marco.' },
-      grupo: { rotulo: 'Grupos', texto: 'Novidades dos grupos de amigos de que você participa.' },
+      meta: { rotulo: 'Metas', texto: 'Novidades sobre os marcos da Caça.' },
+      grupo: { rotulo: 'Grupos', texto: 'Avisos sobre os grupos de amigos de que você participa.' },
       edicao: { rotulo: 'Novidades da edição', texto: 'Divulgação da Cartoon. Vem desligado: só chega se você escolher.' },
     },
-    honestidade: 'Os avisos podem atrasar ou não chegar, dependendo do aparelho e do navegador. Você pode desligar quando quiser.',
+    honestidade: 'Os avisos são enviados pela organização quando há o que dizer: não chegam na hora de cada carimbo ou de cada meta, e podem atrasar ou não chegar, dependendo do aparelho e do navegador. Você pode desligar quando quiser.',
     ligar: 'Ativar avisos neste aparelho',
     ligando: 'Ativando…',
     ligadoEm: (n) => (n > 1 ? `Avisos ativados em ${n} aparelhos deste mapa.` : 'Avisos ativados neste aparelho.'),
@@ -60,7 +61,7 @@ export const EXTRAS = {
     salvo: 'Preferência salva.',
     estados: {
       'nao-suportado': 'Este navegador não recebe avisos de sites. Tudo bem: o que importa aparece em "Avisos", aqui na central.',
-      'ios-instalar': 'No iPhone, os avisos só funcionam com o app instalado na Tela de Início. Instale o app da Caça (logo abaixo) e abra por ele.',
+      'ios-instalar': 'No iPhone, os avisos só funcionam com o app instalado na Tela de Início. Toque em Compartilhar, depois em "Adicionar à Tela de Início", e abra a Caça por esse ícone.',
       bloqueada: 'As notificações deste site estão bloqueadas no navegador. Para ativar, libere nas configurações do site e volte aqui. Enquanto isso, os avisos aparecem na central.',
     },
     semResposta: 'O navegador não confirmou a permissão. Tente de novo quando quiser.',

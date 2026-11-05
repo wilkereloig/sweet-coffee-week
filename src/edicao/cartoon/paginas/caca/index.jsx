@@ -7,6 +7,7 @@
 import React from 'react'
 import { Link, Carregando, Falha } from '../../../componentes/base.jsx'
 import { useCaca } from '../../../caca/useCaca.js'
+import { GuardarMapa } from '../../../caca/GuardarMapa.jsx'
 import { Central } from '../../../caca/Central.jsx'
 import { Recuperar } from '../../../caca/Recuperar.jsx'
 import { CriarMapa } from '../../../caca/CriarMapa.jsx'
@@ -60,10 +61,18 @@ function PaginaDaCaca ({ secao, navigate, dados, grupoId, token }) {
     corpo = (
       <>
         <p className="ct-lead">{CACA.precisaDeMapa[secao]}</p>
-        <CriarMapa navigate={navigate} aoAbrir={(k) => caca.entrar(k)} />
+        <CriarMapa navigate={navigate} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
       </>
     )
-  } else corpo = <Conteudo secao={secao} caca={caca} navigate={navigate} dados={dados} grupoId={grupoId} token={token} />
+  } else {
+    // A central mostra o aviso no próprio lugar; nas outras seções ele abre o corpo (quem acabou de criar o mapa aqui não passou pela central).
+    corpo = (
+      <>
+        {!central && caca.recemCriado && caca.estado === 'pronto' && <GuardarMapa chave={caca.chave} />}
+        <Conteudo secao={secao} caca={caca} navigate={navigate} dados={dados} grupoId={grupoId} token={token} />
+      </>
+    )
+  }
 
   return (
     <section className="ct-bloco ct-caca" aria-busy={caca.estado === 'carregando'}>

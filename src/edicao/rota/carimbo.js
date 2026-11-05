@@ -161,6 +161,10 @@ export function gravarPerfil (codigo, dados, armazenamento) {
   } catch { /* sem storage: cada formulário pede de novo */ }
 }
 
+export function apagarPerfil (codigo, armazenamento) {
+  try { (armazenamento ?? globalThis.localStorage).removeItem(chavePerfil(codigo)) } catch { /* sem storage */ }
+}
+
 export function prepararAvaliacao ({ caminho, slug, unidade, mapa }, armazenamento) {
   try {
     const s = armazenamento ?? globalThis.sessionStorage

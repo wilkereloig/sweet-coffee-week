@@ -18,11 +18,15 @@ export function medalhaDoMarco (indice, quantidade, total = QTD_MEDALHAS) {
 /**
  * Resposta de `caca_metas_ler` → o que a tela usa. Defensivo: configuração torta vira lista vazia, nunca exceção.
  * `faltam` e `alcancada` são recalculados do número de casas validadas, para a tela nunca se contradizer.
+ * Marcos que o servidor ainda marca como `exemplo: true` (números que a organização não decidiu) NÃO viram marco da tela:
+ * não se comemora nem se lista o que pode mudar. `emDefinicao` diz que foi isso; sai sozinho quando a organização grava os marcos.
  */
 export function organizarMetas (dado) {
   const total = num(dado?.total_casas)
   const validadas = num(dado?.casas_validadas)
-  const lista = Array.isArray(dado?.metas) ? dado.metas : []
+  const todos0 = Array.isArray(dado?.metas) ? dado.metas : []
+  const emDefinicao = todos0.length > 0 && todos0.every((m) => m?.exemplo === true)
+  const lista = emDefinicao ? [] : todos0
   const marcos = lista
     .map((m) => ({ casas: num(m?.casas), titulo: String(m?.titulo ?? '').trim() }))
     .filter((m) => m.casas > 0 && m.titulo)
@@ -34,7 +38,7 @@ export function organizarMetas (dado) {
       medalha: medalhaDoMarco(i, todos.length),
     }))
   const proxima = marcos.find((m) => !m.alcancada) || null
-  return { total, validadas, marcos, proxima, todasAlcancadas: marcos.length > 0 && !proxima }
+  return { total, validadas, marcos, proxima, emDefinicao, todasAlcancadas: marcos.length > 0 && !proxima }
 }
 
 /** Marcos alcançados que a pessoa ainda não viu comemorar (`vistas` = a maior meta, em casas, já comemorada). */

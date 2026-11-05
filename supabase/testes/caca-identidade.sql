@@ -21,7 +21,7 @@ begin
   ch_b  := public.mapa_criar_v2(ed, 'Bia', 'pessoab@exemplo.com.br', null, true, true) ->> 'chave';
   if ch_a1 is null or length(ch_a1) < 30 then raise exception 'criar_v2 sem chave'; end if;
   if (select count(*) from public.mapas_lover where email_norm = 'pessoaa@exemplo.com.br') <> 2 then raise exception 'e-mail não normalizado'; end if;
-  update public.mapas_lover set criado_em = now() - interval '2 days' where chave_hash = public.mapa_hash(ch_a1);   -- A2 é o mais recente
+  update public.mapas_lover set criado_em = now() - interval '2 days' where chave_hash = public.mapa_hash(ch_a1);   -- A1 é o mais antigo = principal
 
   -- 2. Pedir não revela existência: resposta igual; sem código para e-mail sem mapa; entrada inválida também.
   r  := public.mapa_codigo_pedir(ed, 'pessoab@exemplo.com.br', 'confirmar');
@@ -104,21 +104,21 @@ begin
   if (r ->> 'ok')::boolean then raise exception 'passou de 5 tentativas e ainda valeu'; end if;
   if (select tentativas from public.mapa_codigo where finalidade = 'confirmar' and usado_em is null order by criado_em desc limit 1) > 5 then raise exception 'tentativas passou de 5'; end if;
 
-  -- 6. Recuperar: chave NOVA para o mapa mais recente (A2); a antiga de A2 morre; o outro mapa de A (A1) e outras pessoas intactos.
+  -- 6. Recuperar: chave NOVA para o mapa PRINCIPAL (A1, o mais antigo; 20261210); a antiga de A1 morre; o outro mapa de A (A2) e outras pessoas intactos.
   update public.mapa_codigo_pedido set criado_em = now() - interval '2 hours';
   r := public.mapa_codigo_emitir_interno(ed, 'pessoaa@exemplo.com.br', 'recuperar');
-  if not (r ->> 'enviar')::boolean or r ->> 'apelido' <> 'A2' then raise exception 'recuperar deveria mirar o mapa mais recente: %', r; end if;
+  if not (r ->> 'enviar')::boolean or r ->> 'apelido' <> 'A1' then raise exception 'recuperar deveria mirar o mapa principal: %', r; end if;
   cod := r ->> 'codigo';
   r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'recuperar');
-  if not (r ->> 'ok')::boolean or r ->> 'finalidade' <> 'recuperar' or r ->> 'apelido' <> 'A2' or length(r ->> 'chave') < 30
+  if not (r ->> 'ok')::boolean or r ->> 'finalidade' <> 'recuperar' or r ->> 'apelido' <> 'A1' or length(r ->> 'chave') < 30
     then raise exception 'recuperar falhou: %', r; end if;
   ch_new := r ->> 'chave';
-  if ch_new = ch_a2 then raise exception 'chave nova igual à antiga'; end if;
+  if ch_new = ch_a1 then raise exception 'chave nova igual à antiga'; end if;
   if public.mapa_ler_v2(ch_new) is null then raise exception 'chave nova não lê em mapa_ler_v2'; end if;
-  if public.mapa_ler_v2(ch_a2) is not null or public.mapa_ler(ch_a2) is not null then raise exception 'chave antiga ainda vale'; end if;
-  if public.mapa_ler_v2(ch_a1) is null then raise exception 'outro mapa da pessoa foi invalidado'; end if;
+  if public.mapa_ler_v2(ch_a1) is not null or public.mapa_ler(ch_a1) is not null then raise exception 'chave antiga ainda vale'; end if;
+  if public.mapa_ler_v2(ch_a2) is null then raise exception 'outro mapa da pessoa foi invalidado'; end if;
   if public.mapa_ler_v2(ch_b) is null or public.mapa_ler_v2(ch_old) is null then raise exception 'recuperar mexeu em mapa alheio'; end if;
-  if not (public.mapa_confirmar_email_status(ch_new) ->> 'confirmado')::boolean or not (public.mapa_confirmar_email_status(ch_a1) ->> 'confirmado')::boolean
+  if not (public.mapa_confirmar_email_status(ch_new) ->> 'confirmado')::boolean or not (public.mapa_confirmar_email_status(ch_a2) ->> 'confirmado')::boolean or (public.mapa_confirmar_email_status(ch_a2) ->> 'principal')::boolean
     then raise exception 'recuperar deveria confirmar o e-mail da pessoa'; end if;
   r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'recuperar');   -- uso único
   if (r ->> 'ok')::boolean then raise exception 'código de recuperar reutilizado'; end if;

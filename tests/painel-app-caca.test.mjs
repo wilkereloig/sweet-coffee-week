@@ -291,3 +291,20 @@ test('2ª chamada aparece como proposta e as abas estão ligadas', () => {
   const mapa = ler('painel-app/src/components/vistas/CarimbosMapa.jsx')
   assert.match(mapa, /PainelCaca/); assert.ok(!/get_caca_apuracao/.test(mapa), 'a apuração v1 saiu')
 })
+
+// ── achados do painel (revisão 05/11) ───────────────────────────────────────
+test('CSV neutraliza fórmula em texto livre (apelido) e preserva número e aspas', () => {
+  const csv = C.csvDe([['=1+1', '@SUM(1)', '+x', '-x', '\tx', 'normal', 'a"b', 12, -3, null]])
+  assert.equal(csv, `"'=1+1";"'@SUM(1)";"'+x";"'-x";"'\tx";"normal";"a""b";"12";"-3";""`)
+})
+
+test('rótulo de sorteio_final não fala em simulação: o evento só existe no sorteio oficial', () => {
+  assert.ok(!/simula/i.test(C.rotuloEvento('sorteio_final')))
+  assert.equal(C.rotuloEvento('sorteio_final'), 'Ganhador sorteado')
+})
+
+test('Mapa e adesivos não vende o ranking legado como decisão de prêmio', () => {
+  const src = ler('painel-app/src/components/vistas/CarimbosMapa.jsx')
+  assert.ok(/legado, não decide prêmio/.test(src))
+  assert.ok(!/avaliações com bônus/.test(src))
+})

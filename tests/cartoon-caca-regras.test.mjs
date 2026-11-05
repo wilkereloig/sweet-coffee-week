@@ -113,3 +113,66 @@ test('chave, token e código não vão para console, analytics nem endereço de 
     assert.doesNotMatch(src, /console\.|gtag|wa\.me|navigator\.share/, f)
   }
 })
+
+/* ---------------------------------------------------------------- correções da revisão do front (chave, apagar, regulamento) */
+
+const fonte = (rel) => fs.readFileSync(path.join(raiz, rel), 'utf8')
+
+test('useCaca: o aviso "guarde seu mapa" mora no estado (sobrevive ao "carregando"), entrar na mesma chave relê e apagar só some com confirmação', () => {
+  const hook = fonte('src/edicao/caca/useCaca.js')
+  assert.match(hook, /recemCriado/, 'o estado do aviso é do hook')
+  assert.match(hook, /return \{[^}]*recemCriado/)
+  assert.match(hook, /nova === atual\.current\) \{[^}]*setLeitura/, 'mesma chave: manda reler, não fica em "carregando"')
+  assert.match(hook, /anterior\.current/, 'chave desconhecida volta para a que o aparelho já tinha')
+  assert.match(hook, /const r = await api\.mapaApagar\(chave\)[\s\S]*?return false[\s\S]*?sair\(\)/, 'sem confirmação do banco a chave não sai do aparelho')
+  assert.doesNotMatch(hook, /apaga do aparelho mesmo assim/)
+  assert.match(hook, /C\.apagarPerfil/, 'sair/apagar limpam o perfil local')
+  // a Central e as seções que exigem mapa mostram o aviso a partir do hook, não de estado local que o "carregando" desmonta
+  assert.doesNotMatch(fonte('src/edicao/caca/Central.jsx'), /useState/)
+  assert.match(fonte('src/edicao/caca/Central.jsx'), /caca\.recemCriado && <GuardarMapa/)
+  const pagina = fonte('src/edicao/cartoon/paginas/caca/index.jsx')
+  assert.match(pagina, /caca\.entrar\(k, \{ criado \}\)/)
+  assert.match(pagina, /caca\.recemCriado[\s\S]*?<GuardarMapa/)
+})
+
+test('AbrirPeloLink não grava a chave colada antes de o banco confirmar; apagarPerfil limpa só o perfil', () => {
+  const link = fonte('src/edicao/caca/CriarMapa.jsx').split('export function CriarMapa')[0]
+  assert.doesNotMatch(link, /gravarChave/)
+  const loja = new Map([['scw:edicao:2026.2:perfil', '{"nome":"Ana"}'], ['scw:edicao:2026.2:mapa', 'x']])
+  const arm = { getItem: (k) => loja.get(k) ?? null, setItem: (k, v) => loja.set(k, v), removeItem: (k) => loja.delete(k) }
+  C.apagarPerfil('2026.2', arm)
+  assert.equal(loja.has('scw:edicao:2026.2:perfil'), false)
+  assert.equal(loja.has('scw:edicao:2026.2:mapa'), true)
+  assert.doesNotThrow(() => C.apagarPerfil('2026.2', { removeItem () { throw new Error('sem storage') } }))
+})
+
+test('css: a lista da rota do grupo não vaza grid/margem para o painel "Minha rota" (div.ct-rota)', () => {
+  const css = fonte('src/styles/cartoon/14-caca-grupos.css')
+  assert.doesNotMatch(css, /^\.ct-rota \{/m)
+  assert.match(css, /^ol\.ct-rota \{/m)
+})
+
+test('regulamento: sem pontos, sem "mais carimbos", com a regra do servidor e sem preencher os campos a definir', async () => {
+  const { REGULAMENTO } = await import('../src/edicao/cartoon/regulamento.js')
+  const itens = REGULAMENTO.secoes.flatMap(([, xs]) => xs)
+  const texto = itens.filter((x) => typeof x === 'string').join('\n')
+  assert.doesNotMatch(texto, /\bpontos\b|\b(1|um) ponto\b/i, 'a regra vigente não tem pontos')
+  assert.doesNotMatch(texto, /mais carimbos válidos|número de chances|cada carimbo válido é uma chance|mapas completos/i)
+  assert.match(texto, /casas diferentes/); assert.match(texto, /carimbos? extras?/); assert.match(texto, /e-mail do mapa precisa estar confirmado/); assert.match(texto, /15\/11/)
+  assert.doesNotMatch(texto, /\b2 horas|segunda chamada/i, 'prazo da 2ª chamada é proposta, não regra')
+  assert.doesNotMatch(texto, /só vale na casa/, 'unidade sem ponto conferido não exige localização')
+  assert.equal(itens.filter((x) => x?.aDefinir).length, 3, 'idade, entrega do prêmio e guarda dos dados seguem a definir')
+  const legal = fonte('src/data/conteudo/legal.js')
+  assert.doesNotMatch(legal, /contar os pontos|prazo de guarda está no regulamento/)
+})
+
+test('textos: "Já fui" é lembrete pessoal (não valida), metas em definição e avisos sem promessa de disparo automático', async () => {
+  const { ROTA } = await import('../src/edicao/cartoon/textos.js')
+  assert.doesNotMatch(ROTA.jaFuiVazio, /conta no seu progresso/)
+  assert.match(ROTA.jaFuiVazio, /carimbo/)
+  assert.doesNotMatch(ROTA.progressoRotulo, /^visitadas$/)
+  const { EXTRAS } = await import('../src/edicao/caca/textos-extras.js')
+  assert.doesNotMatch(EXTRAS.push.lead, /tudo o que importa também aparece/)
+  assert.match(EXTRAS.push.lead, /organização/)
+  assert.match(CACA.carimbo.privacidade, /quando ela já tem o ponto conferido/)
+})

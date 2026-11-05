@@ -23,7 +23,7 @@ const arquivosDe = (dir, ext = /\.(js|jsx)$/) => fs.readdirSync(path.join(raiz, 
 /* ---------------------------------------------------------------- metas */
 
 const RESP = { total_casas: 27, casas_validadas: 7, metas: [
-  { casas: 20, titulo: 'C', exemplo: true }, { casas: 5, titulo: 'A', exemplo: true }, { casas: 10, titulo: 'B', exemplo: true }, { casas: 99, titulo: '' }, { casas: 0, titulo: 'zero' },
+  { casas: 20, titulo: 'C' }, { casas: 5, titulo: 'A' }, { casas: 10, titulo: 'B' }, { casas: 99, titulo: '' }, { casas: 0, titulo: 'zero' },
 ] }
 
 test('metas: ordena, descarta marco torto, recalcula alcançada/faltam do número de casas e acha a próxima', () => {
@@ -34,6 +34,19 @@ test('metas: ordena, descarta marco torto, recalcula alcançada/faltam do númer
   assert.equal(m.proxima.titulo, 'B')
   assert.equal(m.todasAlcancadas, false)
   assert.equal(organizarMetas({ ...RESP, casas_validadas: 30 }).todasAlcancadas, true)
+})
+
+test('metas: marcos que o servidor ainda marca como exemplo não viram marco (nem festa, nem aviso)', () => {
+  const exemplo = { total_casas: 27, casas_validadas: 12, metas: [{ casas: 5, titulo: 'A', exemplo: true }, { casas: 10, titulo: 'B', exemplo: true }] }
+  const m = organizarMetas(exemplo)
+  assert.deepEqual(m.marcos, []); assert.equal(m.emDefinicao, true); assert.equal(m.proxima, null); assert.equal(m.todasAlcancadas, false)
+  assert.equal(organizarMetas(RESP).emDefinicao, false)
+  // um marco decidido entre exemplos já basta para a tela usar a lista (a organização gravou números de verdade)
+  assert.equal(organizarMetas({ ...exemplo, metas: [...exemplo.metas, { casas: 20, titulo: 'C' }] }).emDefinicao, false)
+})
+
+test('metas: marco gravado pela organização fica de fora do "em definição" e a lista vazia continua sendo só lista vazia', () => {
+  assert.equal(organizarMetas({ total_casas: 27, casas_validadas: 0, metas: [] }).emDefinicao, false)
 })
 
 test('metas: dado estranho vira lista vazia, nunca exceção', () => {

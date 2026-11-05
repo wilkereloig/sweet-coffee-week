@@ -77,13 +77,11 @@ function Atalhos ({ navigate }) {
 }
 
 export function Central ({ caca, dados, navigate }) {
-  const [recemCriado, setRecemCriado] = React.useState(false)
-
   if (caca.estado === 'sem-mapa') {
     return (
       <>
         {caca.perdeu && <p className="ct-aviso" role="status">{CACA.chaveTrocada}</p>}
-        <CriarMapa navigate={navigate} aoAbrir={(k, criado) => { if (caca.entrar(k)) setRecemCriado(criado) }} />
+        <CriarMapa navigate={navigate} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
       </>
     )
   }
@@ -93,7 +91,7 @@ export function Central ({ caca, dados, navigate }) {
       <EmailPendente caca={caca} navigate={navigate} />
       <Progresso caca={caca} />
       <ProximaAcao caca={caca} dados={dados} navigate={navigate} />
-      {recemCriado && <GuardarMapa chave={caca.chave} />}
+      {caca.recemCriado && <GuardarMapa chave={caca.chave} />}
       <Atalhos navigate={navigate} />
       <Notificacoes caca={caca} navigate={navigate} dados={dados} />
       <Instalar caca={caca} navigate={navigate} dados={dados} />

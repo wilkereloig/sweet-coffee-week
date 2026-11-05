@@ -21,8 +21,7 @@ export function AbrirPeloLink ({ aoAbrir }) {
     const t = colado.trim(); const i = t.indexOf('#')
     const chave = C.chaveDoHash(i >= 0 ? t.slice(i) : `#mapa=${t}`)
     if (!chave) { setErro(CACA.link.erro); return }
-    C.gravarChave(EDICAO.codigo, chave)
-    aoAbrir(chave)
+    aoAbrir(chave) // quem recebe grava a chave só depois de o banco reconhecê-la e, se não reconhecer, mantém a que já valia
   }
   return (
     <form onSubmit={abrir} noValidate className="ct-form ct-caca__link">

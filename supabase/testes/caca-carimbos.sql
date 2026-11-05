@@ -12,6 +12,8 @@ begin
     join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
    where pa.edicao_codigo = '2026.2' and pa.status_cadastro <> 'encerrado'
      and not exists (select 1 from public.publicacoes pb where pb.participacao_id = pa.id and pb.vigente);
+  -- 20261211: só casa com combo entra no total; a casa 'marca' de verdade (ex.: caroli-douces) sai deste cenário.
+  update public.publicacoes set nivel = 'marca_e_combo' where vigente;
   update public.edicao_publicacao set fase = 'em_andamento', avaliacao_abre_em = now() - interval '1 day',
          avaliacao_fecha_em = now() + interval '1 day', avaliacao_aberta = true where edicao_codigo = '2026.2';
 

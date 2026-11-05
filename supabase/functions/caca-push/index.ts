@@ -8,9 +8,11 @@
 //
 // Entrada (POST JSON):
 //   { secret?, tipo: 'avaliacao_pendente'|'meta'|'grupo'|'edicao', dry_run?: boolean (padrão true),
-//     titulo, corpo, url?, mapa_ids?: uuid[] }      titulo/corpo/url só são exigidos no envio real.
+//     titulo, corpo, url?, mapa_ids?: uuid[], apos?: {criado_em, id} }   titulo/corpo/url só são exigidos no envio real.
 // Saída: dry_run -> { ok, dry_run:true, destinatarios, vapid_configurado }
-//        real    -> { ok, dry_run:false, destinatarios, enviados, falharam, removidos, limitado }
+//        real    -> { ok, dry_run:false, destinatarios, enviados, falharam, removidos, limitado, proximo }
+//   Cada chamada envia no máximo 500. Com `limitado:true`, repetir a chamada com `apos` = `proximo` até `limitado:false`
+//   (sem `apos` reenvia aos mesmos 500 do começo da fila).
 //   Nunca devolve endpoint, chave nem dado do visitante.
 // Carga mínima: { titulo, corpo, url, tag: 'scw-caca-<tipo>', tipo: 'caca' } — sem apelido, e-mail, chave ou link de recuperação.
 //
@@ -178,6 +180,7 @@ function lerVapid() {
 const TIPOS = ['avaliacao_pendente', 'meta', 'grupo', 'edicao']
 const LIMITE_POR_CHAMADA = 500
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d{1,6})?(Z|[+-]\d\d:\d\d)$/
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -185,6 +188,7 @@ Deno.serve(async (req) => {
 
   let payload: {
     secret?: string; tipo?: string; dry_run?: boolean; titulo?: string; corpo?: string; url?: string; mapa_ids?: string[]
+    apos?: { criado_em: string; id: string } | null
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
 
@@ -224,6 +228,10 @@ Deno.serve(async (req) => {
     return json({ erro: 'mapa_ids_invalido' }, 422)
   }
 
+  const apos = payload.apos
+  if (apos !== undefined && apos !== null && !(typeof apos === 'object' && typeof apos.criado_em === 'string' && ISO.test(apos.criado_em) &&
+    typeof apos.id === 'string' && UUID.test(apos.id))) return json({ erro: 'apos_invalido' }, 422)
+
   const vapid = lerVapid()
 
   // Só quem está ativo E quer este tipo de aviso (tipo vem da lista fechada acima).
@@ -249,9 +257,12 @@ Deno.serve(async (req) => {
   if (!/^\/(?!\/)[A-Za-z0-9/_-]*$/.test(destino)) return json({ erro: 'url_invalida' }, 422)
   if (!vapid) return json({ erro: 'vapid_ausente', detalhe: 'faltam VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY ou VAPID_SUBJECT' }, 503)
 
-  const { data: alvos, count, error } = await filtro(
-    admin.from('caca_push').select('id, endpoint, p256dh, auth_chave', { count: 'exact' }),
-  ).order('criado_em').limit(LIMITE_POR_CHAMADA)
+  // Cursor: lote a lote por (criado_em, id). Reenviar com `apos` = `proximo` da resposta anterior continua de onde parou
+  // (offset não serve: assinatura morta sai do filtro e desloca a fila).
+  // deno-lint-ignore no-explicit-any
+  let consulta: any = filtro(admin.from('caca_push').select('id, criado_em, endpoint, p256dh, auth_chave', { count: 'exact' }))
+  if (apos) consulta = consulta.or(`criado_em.gt.${apos.criado_em},and(criado_em.eq.${apos.criado_em},id.gt.${apos.id})`)
+  const { data: alvos, count, error } = await consulta.order('criado_em').order('id').limit(LIMITE_POR_CHAMADA)
   if (error) return json({ erro: 'db_error' }, 500)
 
   const carga = JSON.stringify({ titulo, corpo, url: destino, tag: 'scw-caca-' + tipo, tipo: 'caca' })
@@ -272,8 +283,10 @@ Deno.serve(async (req) => {
   // Desativa, não apaga (assinatura que o navegador revogou: 404/410).
   if (mortas.length) await admin.from('caca_push').update({ ativo: false }).in('id', mortas)
 
+  const limitado = (count ?? 0) > lista.length
+  const ultimo = lista[lista.length - 1]
   return json({
     ok: true, dry_run: false, destinatarios: count ?? lista.length, enviados, falharam, removidos: mortas.length,
-    limitado: (count ?? 0) > lista.length,
+    limitado, proximo: limitado && ultimo ? { criado_em: ultimo.criado_em, id: ultimo.id } : null,
   })
 })
