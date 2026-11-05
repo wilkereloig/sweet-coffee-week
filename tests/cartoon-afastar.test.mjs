@@ -117,3 +117,31 @@ test('projeção Web Mercator: um grau de longitude cresce com o zoom e o MapLib
   assert.ok(Math.abs((m.x - n.x) / (b.x - a.x) - 2) < 1e-9)
   assert.ok(b.x > a.x && projetar(-5.80, -35.2, 12).y < projetar(-5.82, -35.2, 12).y, 'norte fica em cima (y menor)')
 })
+
+import { readFileSync } from 'node:fs'
+import { planejarNoMapa, CAIXA_CASA, ESCALA_LONGE } from '../src/edicao/componentes/mapa/afastar.js'
+
+const ler = (c) => readFileSync(new URL(`../${c}`, import.meta.url), 'utf8')
+const perto = (n, base = -35.2) => Array.from({ length: n }, (_, i) => ({ id: `c${i}`, lat: -5.81, lng: base + i * 0.00002 }))
+
+test('mapa real: pontos a ~2 m se afastam de perto; de longe, 7 ou mais viram um selo, e o escolhido nunca some nele', () => {
+  const duas = planejarNoMapa(perto(2), { zoom: 17, zoomPerto: 13 })
+  assert.equal(duas.desloc.size, 2)
+  const sete = perto(7)
+  const longe = planejarNoMapa(sete, { zoom: 11, zoomPerto: 13 })
+  assert.equal(longe.grupos.length, 1)
+  assert.equal(longe.desloc.size, 0)
+  const escolhido = planejarNoMapa(sete, { zoom: 11, zoomPerto: 13, selecionada: 'c3' })
+  assert.deepEqual(escolhido.grupos, [])
+  assert.equal(escolhido.desloc.size, 7)
+  const seis = planejarNoMapa(perto(6), { zoom: 11, zoomPerto: 13 })
+  assert.deepEqual(seis.grupos, [])
+  assert.equal(seis.desloc.size, 6)
+})
+
+test('os tamanhos usados na conta batem com o CSS do pin (se mudar o desenho, muda aqui)', () => {
+  const mundo = ler('src/styles/cartoon/11-mundo.css')
+  assert.match(mundo, /\.ct-pin \{ --d: 54px;/)
+  assert.ok(CAIXA_CASA.w >= 54 && CAIXA_CASA.h >= 54 * 1.24, 'a caixa cobre o disco + a cauda')
+  assert.match(ler('src/styles/cartoon/16-mapa-tela.css'), new RegExp(`\{ scale: ${String(ESCALA_LONGE).replace('0.', '\.')}; \}`))
+})

@@ -16,7 +16,8 @@
 import React from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { pinDaCasa, pinSicredi, atualizarPin } from './pin.js'
+import { pinDaCasa, pinSicredi, atualizarPin, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
+import { planejarNoMapa } from './afastar.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const ESTILO = 'https://tiles.openfreemap.org/styles/liberty'
@@ -33,7 +34,35 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
   const mapa = React.useRef(null)
   const marcadores = React.useRef(new Map())
   const marcaVoce = React.useRef(null)
+  const fios = React.useRef(new Map()) // id → marcador do fio + bolinha do ponto verdadeiro (afastar.js)
+  const selos = React.useRef([]) // selos de contagem dos grupos grandes (zoom longe)
+  const pontosRef = React.useRef(pontos)
+  const selecionadaRef = React.useRef(selecionada)
+  pontosRef.current = pontos
+  selecionadaRef.current = selecionada
   const [erro, setErro] = React.useState(false)
+
+  // Pins que se cobrem no zoom de agora: afasta com fio, ou vira selo se forem demais. Só depende do zoom (arrastar não muda nada).
+  const reorganizar = React.useCallback(() => {
+    const m = mapa.current
+    if (!m) return
+    const pts = pontosRef.current.filter((p) => marcadores.current.has(p.id))
+    const plano = planejarNoMapa(pts, { zoom: m.getZoom(), tile: 512, zoomPerto: ZOOM_PERTO, selecionada: selecionadaRef.current })
+    aplicarAfastamento(plano, pts, { elemento: (id) => marcadores.current.get(id)?.getElement(), fio: (id) => fios.current.get(id)?.getElement() })
+    for (const s of selos.current) s.remove()
+    selos.current = plano.grupos.map((g) => {
+      const membros = pts.filter((p) => g.ids.includes(p.id))
+      const el = seloDoGrupo(membros.length, TC.grupoSelo(membros.length))
+      el.addEventListener('click', () => {
+        const caixa = new maplibregl.LngLatBounds()
+        for (const p of membros) caixa.extend([p.lng, p.lat])
+        m.fitBounds(caixa, { padding: 96, maxZoom: 16, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400 })
+      })
+      const lng = membros.reduce((t, p) => t + p.lng, 0) / membros.length
+      const lat = membros.reduce((t, p) => t + p.lat, 0) / membros.length
+      return new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(m)
+    })
+  }, [])
 
   React.useEffect(() => {
     let m
@@ -46,9 +75,10 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     const escala = () => caixa.current?.classList.toggle('ct-mapa__mapa--longe', m.getZoom() < ZOOM_PERTO)
     m.on('zoom', escala)
     escala()
+    m.on('zoomend', reorganizar)
     m.on('error', (e) => { if (e?.error?.status >= 400 || /style/i.test(String(e?.error?.message || ''))) setErro(true) })
-    return () => { m.remove(); mapa.current = null; marcadores.current.clear(); marcaVoce.current = null }
-  }, [])
+    return () => { m.remove(); mapa.current = null; marcadores.current.clear(); fios.current.clear(); selos.current = []; marcaVoce.current = null }
+  }, [reorganizar])
 
   React.useEffect(() => {
     const c = mapa.current?.cooperativeGestures
@@ -62,10 +92,14 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     const m = mapa.current
     if (!m) return
     for (const mk of marcadores.current.values()) mk.remove()
-    marcadores.current.clear()
+    for (const mk of fios.current.values()) mk.remove()
+    for (const mk of selos.current) mk.remove()
+    marcadores.current.clear(); fios.current.clear(); selos.current = []
     const limites = new maplibregl.LngLatBounds()
     // O enquadramento segue as casas; só sem nenhuma casa na tela (filtro vazio) ele vai para as agências do Sicredi.
     const alvo = pontos.some((p) => !p.sicredi) ? pontos.filter((p) => !p.sicredi) : pontos
+    // Os fios entram ANTES dos pins: no DOM, quem vem depois fica por cima, e o fio tem que passar por baixo de todos os pins.
+    for (const p of pontos) fios.current.set(p.id, new maplibregl.Marker({ element: fioDoPin(), anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m))
     for (const p of pontos) {
       const el = document.createElement('button')
       el.type = 'button'
@@ -88,7 +122,8 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     for (const p of alvo) limites.extend([p.lng, p.lat])
     if (alvo.length > 1) m.fitBounds(limites, { padding: 48, maxZoom: 15, duration: 0 })
     else if (alvo.length === 1) m.jumpTo({ center: [alvo[0].lng, alvo[0].lat], zoom: 15 })
-  }, [pontos.map((p) => p.id).join(), aoSelecionar])
+    reorganizar()
+  }, [pontos.map((p) => p.id).join(), aoSelecionar, reorganizar])
 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome. classList, não
   // className: o MapLibre põe as classes de posicionamento dele no mesmo elemento.
@@ -120,7 +155,8 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
       const reduzir = matchMedia('(prefers-reduced-motion: reduce)').matches
       mapa.current.easeTo({ center: mk.getLngLat(), zoom: Math.max(mapa.current.getZoom(), 14), duration: reduzir ? 0 : 400 })
     }
-  }, [selecionada])
+    reorganizar() // o pin escolhido não pode ficar escondido num selo
+  }, [selecionada, reorganizar])
 
   // "Perto de mim": a posição do visitante só vira um ponto no mapa dele; não sai do navegador.
   React.useEffect(() => {

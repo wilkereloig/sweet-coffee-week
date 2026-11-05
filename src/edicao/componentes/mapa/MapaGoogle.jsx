@@ -9,7 +9,8 @@
  * (AdvancedMarkerElement) com um <button> nomeado dentro: a seleção sincroniza com a lista, como no outro mapa.
  */
 import React from 'react'
-import { pinDaCasa, pinSicredi, atualizarPin } from './pin.js'
+import { pinDaCasa, pinSicredi, atualizarPin, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
+import { planejarNoMapa } from './afastar.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
@@ -63,8 +64,42 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
   const libs = React.useRef(null)
   const marcadores = React.useRef(new Map())
   const marcaVoce = React.useRef(null)
+  const fios = React.useRef(new Map()) // id → marcador do fio + bolinha do ponto verdadeiro (afastar.js)
+  const selos = React.useRef([]) // selos de contagem dos grupos grandes (zoom longe)
+  const feito = React.useRef('') // zoom + escolha + pontos do último afastamento: o 'idle' do Google vem a cada arrasto, e só o zoom muda o desenho
+  const pontosRef = React.useRef(pontos)
+  const selecionadaRef = React.useRef(selecionada)
+  pontosRef.current = pontos
+  selecionadaRef.current = selecionada
   const [pronto, setPronto] = React.useState(false)
   const [erro, setErro] = React.useState(false)
+
+  // Pins que se cobrem no zoom de agora: afasta com fio, ou vira selo se forem demais.
+  const reorganizar = React.useCallback((forcar = false) => {
+    const m = mapa.current
+    if (!m || !libs.current) return
+    const pts = pontosRef.current.filter((p) => marcadores.current.has(p.id))
+    const zoom = m.getZoom() ?? 12
+    const chave = `${zoom.toFixed(2)}|${selecionadaRef.current}|${pts.map((p) => p.id).join()}`
+    if (!forcar && chave === feito.current) return
+    feito.current = chave
+    const plano = planejarNoMapa(pts, { zoom, tile: 256, zoomPerto: ZOOM_PERTO, selecionada: selecionadaRef.current })
+    aplicarAfastamento(plano, pts, { elemento: (id) => marcadores.current.get(id)?.content, fio: (id) => fios.current.get(id)?.content })
+    for (const s of selos.current) s.map = null
+    selos.current = plano.grupos.map((g) => {
+      const membros = pts.filter((p) => g.ids.includes(p.id))
+      const el = seloDoGrupo(membros.length, TC.grupoSelo(membros.length))
+      el.addEventListener('click', () => {
+        const caixa = new libs.current.LatLngBounds()
+        for (const p of membros) caixa.extend({ lat: p.lat, lng: p.lng })
+        m.fitBounds(caixa, 96)
+        window.google.maps.event.addListenerOnce(m, 'idle', () => { if (m.getZoom() > 16) m.setZoom(16) })
+      })
+      const lat = membros.reduce((t, p) => t + p.lat, 0) / membros.length
+      const lng = membros.reduce((t, p) => t + p.lng, 0) / membros.length
+      return new libs.current.AdvancedMarkerElement({ map: m, position: { lat, lng }, content: el, zIndex: 20 })
+    })
+  }, [])
 
   React.useEffect(() => {
     let vivo = true
@@ -82,6 +117,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
         // Escala por zoom: de longe os pins encolhem (a cidade inteira cabe sem um cobrir o outro); de perto voltam ao tamanho cheio.
         const escala = () => caixa.current?.classList.toggle('ct-mapa__mapa--longe', (mapa.current?.getZoom() ?? 12) < ZOOM_PERTO)
         mapa.current.addListener('zoom_changed', escala)
+        mapa.current.addListener('idle', () => reorganizar()) // o Google só assenta o zoom aqui; arrastar repete a conta sem mudar nada (a chave de `feito` corta)
         escala()
         setPronto(true)
       })
@@ -89,9 +125,11 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     return () => {
       vivo = false
       for (const mk of marcadores.current.values()) mk.map = null
-      marcadores.current.clear()
+      for (const mk of fios.current.values()) mk.map = null
+      for (const mk of selos.current) mk.map = null
+      marcadores.current.clear(); fios.current.clear(); selos.current = []
     }
-  }, [])
+  }, [reorganizar])
 
   React.useEffect(() => {
     mapa.current?.setOptions({ gestureHandling: gestos === 'livre' ? 'greedy' : 'cooperative' })
@@ -116,19 +154,24 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     if (!pronto || !m) return
     const { AdvancedMarkerElement, LatLngBounds } = libs.current
     for (const mk of marcadores.current.values()) mk.map = null
-    marcadores.current.clear()
+    for (const mk of fios.current.values()) mk.map = null
+    for (const mk of selos.current) mk.map = null
+    marcadores.current.clear(); fios.current.clear(); selos.current = []
     const limites = new LatLngBounds()
     // O enquadramento segue as casas; só sem nenhuma casa na tela (filtro vazio) ele vai para as agências do Sicredi.
     const casas = pontos.filter((p) => !p.sicredi)
     const alvo = casas.length ? casas : pontos
+    // Fio abaixo (zIndex 1) de todos os pins (10): ele sai da ponta do pin e não pode passar por cima de nenhum.
+    for (const p of pontos) fios.current.set(p.id, new AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: fioDoPin(), zIndex: 1 }))
     for (const p of pontos) {
       const pos = { lat: p.lat, lng: p.lng }
-      marcadores.current.set(p.id, new AdvancedMarkerElement({ map: m, position: pos, content: elementoDoPonto(p, aoSelecionar), title: p.titulo }))
+      marcadores.current.set(p.id, new AdvancedMarkerElement({ map: m, position: pos, content: elementoDoPonto(p, aoSelecionar), title: p.titulo, zIndex: 10 }))
     }
     for (const p of alvo) limites.extend({ lat: p.lat, lng: p.lng })
     if (alvo.length > 1) m.fitBounds(limites, 48)
     else if (alvo.length === 1) { m.setCenter({ lat: alvo[0].lat, lng: alvo[0].lng }); m.setZoom(15) }
-  }, [pronto, pontos.map((p) => p.id).join(), aoSelecionar])
+    reorganizar(true)
+  }, [pronto, pontos.map((p) => p.id).join(), aoSelecionar, reorganizar])
 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome.
   React.useEffect(() => {
@@ -158,7 +201,8 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       mapa.current.panTo(mk.position)
       if (mapa.current.getZoom() < 14) mapa.current.setZoom(14)
     }
-  }, [selecionada, pronto])
+    reorganizar() // o pin escolhido não pode ficar escondido num selo
+  }, [selecionada, pronto, reorganizar])
 
   // "Perto de mim": a posição do visitante só vira um ponto no mapa dele; não sai do navegador.
   React.useEffect(() => {

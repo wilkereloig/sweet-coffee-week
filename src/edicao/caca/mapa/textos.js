@@ -152,6 +152,9 @@ export const MAPA_CACA = {
   sicrediNumero: 'O número do endereço está em conferência com a agência.',
   sicrediComoChegar: 'Como chegar',
   sicrediNomeMarcador: (nome, aproximada) => `${nome}, patrocinador${aproximada ? ', ponto aproximado' : ''}, não conta como casa`,
+  // Pins colados demais para afastar todos (zoom da cidade): um selo com a contagem que, ao tocar, aproxima o mapa.
+  grupoSelo: (n) => `${n} locais muito próximos aqui. Tocar aproxima o mapa para escolher`,
+  grupoSeloCurto: (n) => String(n),
   sicrediLegenda: 'Agência do Sicredi (patrocinador, não conta como casa)',
   sicrediSemEndereco: 'Endereço não informado.',
   sicrediNaoConta: 'Não conta como casa nem como carimbo',
