@@ -46,7 +46,8 @@ Cada opção abaixo tenta dar um caminho **sem** abrir a porta para carimbo remo
 ### Como funciona
 1. **GPS melhor primeiro (G):** a permissão só é pedida no toque em "Carimbar"; até 3 tentativas de leitura em alta precisão, guardando a melhor;
    mensagens por motivo (negada, indisponível, demorou, imprecisa, longe com a distância) e passo a passo para iPhone e Android; "Tentar de novo".
-2. **Pedido de revisão (F):** depois de **2 falhas de localização seguidas** — e só se ainda é plausível estar na casa (sem localização, margem
+   **05/11/2026 (pedido do Wilker, localização bloqueada):** a tela lê a permissão do navegador ANTES do toque (Permissions API, só leitura) — com "pedir" avisa "toque em Permitir"; já "bloqueada" abre a ajuda de cara, só com o caminho do aparelho da pessoa (iPhone, Android ou navegador de app) e volta o botão sozinha quando ela libera.
+2. **Pedido de revisão (F):** **na hora, se o navegador bloqueou a localização** (permissão negada: repetir não adianta e quase ninguém mexe nas configurações); nos demais casos, depois de **2 falhas de localização seguidas** — e só se ainda é plausível estar na casa (sem localização, margem
    > 100 m ou a ≤ 500 m) — aparece "Estou na casa e o GPS não funciona". O pedido grava um registro **pendente** em `caca_carimbo_excecao`
    (motivo, distância e margem calculadas pelo servidor, nota opcional de até 200 caracteres). **Não carimba e não conta nada.**
 3. **A organização decide no painel** (Edição › Carimbos › "Pedidos de presença"): vê apelido, casa/unidade, motivo, distância, margem, nota,
