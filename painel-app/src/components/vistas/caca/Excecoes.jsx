@@ -40,7 +40,7 @@ export function Excecoes({ edicao, pode }) {
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
-      <Secao titulo="Pedidos de presença" nota="Quem está na casa e não consegue carimbar pelo GPS pede aqui. Confira o contexto (já avaliou? já carimbou nessa casa? quantos pedidos fez?) e decida. A casa nunca decide e o pedido não vale nada até você aprovar.">
+      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Dois tipos de pedido: GPS que falhou na casa e, só em 05/11, visita anterior à Caça (marcada como Visita anterior, sem prova de local: a data e a observação são da pessoa). Quem está na casa e não consegue carimbar pelo GPS pede aqui. Confira o contexto (já avaliou? já carimbou nessa casa? quantos pedidos fez?) e decida. A casa nunca decide e o pedido não vale nada até você aprovar.">
         <Escolha rotulo="Mostrar" valor={estado} onMudar={setEstado} className="cp-filtro"
           opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
         {!itens.length ? <Vazio titulo="Nenhum pedido aqui">{estado === 'pendente' ? 'Ninguém está esperando uma decisão agora.' : 'Nada nesta situação.'}</Vazio> : (
@@ -49,8 +49,8 @@ export function Excecoes({ edicao, pode }) {
               <tr key={p.id}>
                 <th scope="row">{p.apelido}</th>
                 <td>{horaNatal(p.criado_em)}</td>
-                <td className="cp-nota-celula">{p.casa}{p.nome_unidade ? ` · ${p.nome_unidade}` : ''}</td>
-                <td className="cp-nota-celula">{rotuloMotivoPedido(p.motivo)}</td>
+                <td className="cp-nota-celula">{p.casa}{p.nome_unidade ? ` · ${p.nome_unidade}` : ''}{p.unidades_na_casa > 1 && p.motivo === 'visita_anterior' ? ' (a casa tem mais de um endereço)' : ''}</td>
+                <td className="cp-nota-celula">{p.motivo === 'visita_anterior' ? <Selo tom="atencao">Visita anterior</Selo> : null} {rotuloMotivoPedido(p.motivo)}</td>
                 <td className="cp-nota-celula">{descricaoDoSinal(p)}</td>
                 <td className="cp-nota-celula">{p.nota || '—'}</td>
                 <td className="cp-nota-celula">

@@ -153,3 +153,20 @@
 .ct-caca__link { max-width: 520px; }
 .ct-caca__subtitulo { margin-top: 16px; }
 .ct-caca__stub { padding: 8px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
+
+/* Pedido de carimbo de visita anterior (05/11/2026): cartão da central, prazo à vista, estados que nunca dizem "conquistado" antes da validação. */
+.ct-visita { display: grid; gap: 10px; padding: 16px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-creme); }
+.ct-visita--convite { padding: 12px 14px; border-style: dashed; }
+.ct-visita__prazo { margin: 0; }
+.ct-visita__regras { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.ct-visita__form { display: grid; gap: 12px; }
+.ct-visita__ok { padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); }
+.ct-visita__lista ul { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.ct-visita__pedido { display: grid; gap: 6px; padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-visita__linha { margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.ct-visita__estado { padding: 2px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; font-weight: 700; font-size: .85rem; background: var(--ct-creme); }
+.ct-visita__estado.is-analise { border-style: dashed; }
+.ct-visita__estado.is-aprovadoAvaliar { background: var(--ct-amarelo); }
+.ct-visita__estado.is-aprovadoValido { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-visita__estado.is-negado { background: var(--ct-creme); text-decoration: line-through; text-decoration-thickness: 1px; }
+.ct-visita .ct-botao { justify-self: start; }

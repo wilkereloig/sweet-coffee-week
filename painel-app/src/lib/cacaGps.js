@@ -16,6 +16,7 @@ export const MOTIVO_PEDIDO = Object.freeze({
   sem_localizacao: 'Sem localização (negada, indisponível ou demorou)',
   imprecisa: 'GPS impreciso (margem acima de 300 m)',
   longe: 'Longe do ponto da casa',
+  visita_anterior: 'Visita anterior à Caça (pedido de 05/11)',
 })
 export const rotuloMotivoPedido = (m) => MOTIVO_PEDIDO[m] || String(m || '')
 
@@ -24,6 +25,7 @@ export const filtrarPedidos = (itens, estado) => (itens || []).filter((p) => !es
 
 /** O que o celular informou na hora: o servidor só guarda distância e margem, nunca a posição. */
 export function descricaoDoSinal(p) {
+  if (p?.motivo === 'visita_anterior') return p.visita_data ? `visita em ${String(p.visita_data).split('-').reverse().join('/')}, informada pela pessoa (sem prova de local)` : 'visita anterior, sem data'
   const d = Number.isFinite(p?.distancia_m) ? `a ${p.distancia_m} m do ponto conferido` : 'sem posição enviada'
   const m = Number.isFinite(p?.precisao_m) ? `, margem de ±${p.precisao_m} m` : ''
   return d + m
@@ -35,6 +37,11 @@ export const podeDecidir = (p) => !!p && p.estado === 'pendente'
 /** Texto da confirmação antes de decidir (a decisão não se desfaz por aqui). */
 export function textoDaDecisao(p, decisao) {
   const quem = `${p.apelido} em ${p.casa}`
+  if (p.motivo === 'visita_anterior') {
+    return decisao === 'aprovar'
+      ? `Aprovar cria agora um carimbo de ${quem}, marcado como visita anterior. Ele conta a partir de agora (não muda voucher já apurado) e só vira casa validada depois que a pessoa avaliar o combo com o e-mail do mapa. Confira o caso antes.`
+      : `Negar registra o motivo; a pessoa vê só que o pedido não foi aprovado (${quem}). Nada é carimbado.`
+  }
   if (decisao === 'aprovar') {
     return `Aprovar cria agora um carimbo de ${quem}, marcado como exceção do painel. Ele entra no placar depois da avaliação do combo, respeita as 12 horas da casa e fica na Revisão sem GPS. Confira antes se o caso faz sentido.`
   }

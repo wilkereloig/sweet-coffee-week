@@ -298,6 +298,7 @@ export const ROTULO_EVENTO = Object.freeze({
   entregar: 'Entregue', expirar: 'Expirado', cancelar: 'Cancelado', substituir: 'Substituído',
   sorteio_final: 'Ganhador sorteado', sorteio_final_realizado: 'Sorteio final realizado', config_gravar: 'Regra alterada',
   excecao_pedida: 'Pedido de presença', excecao_aprovada: 'Presença aprovada', excecao_negada: 'Presença negada',
+  visita_anterior_pedida: 'Visita anterior pedida', visita_anterior_aprovada: 'Visita anterior aprovada', visita_anterior_negada: 'Visita anterior negada',
 })
 export const rotuloEvento = (a) => ROTULO_EVENTO[a] || String(a || '')
 const curto = (v) => { const s = typeof v === 'string' ? v : JSON.stringify(v); return s && s.length > 48 ? s.slice(0, 47) + '…' : String(s) }
@@ -319,6 +320,7 @@ export const ROTULO_ORIGEM = Object.freeze({
   gps: 'Localização conferida',
   unidade_sem_coordenada: 'Unidade sem ponto conferido',
   excecao_painel: 'Exceção feita pelo painel',
+  visita_anterior: 'Visita anterior aprovada',
 })
 export const rotuloOrigem = (o) => ROTULO_ORIGEM[o] || String(o || '')
 
@@ -437,6 +439,7 @@ const MENSAGENS = [
   ['vapid_ausente', 'O envio de avisos ainda não está configurado no servidor (isso não afeta a simulação).'],
   ['pedido_nao_encontrado', 'Esse pedido não existe mais. Atualize a lista.'],
   ['nota_obrigatoria', 'Para negar, escreva o motivo: ele fica no histórico.'],
+  ['ja_carimbou', 'A pessoa já tem carimbo nessa casa, então não dá para aprovar como visita anterior. Negue o pedido com o motivo.'],
   ['cedo', 'Essa pessoa já tem um carimbo nessa casa há menos de 12 horas, então um novo ainda não pode entrar. Negue o pedido ou espere.'],
   ['nao_aberta', 'A janela dos carimbos não está aberta agora, então não dá para aprovar.'],
   ['encerrada', 'A janela dos carimbos já encerrou, então não dá para aprovar. Dá para negar com o motivo.'],

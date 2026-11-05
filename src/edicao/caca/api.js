@@ -145,6 +145,28 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
       return r.ok ? { ok: true, pedidos: Array.isArray(r.pedidos) ? r.pedidos : [] } : r
     }),
 
+    /* ---- carimbo de visita anterior (migration 20261226): pedidos só em 05/11/2026, até 23h59:59 de Natal ---- */
+
+    /** `caca_visita_anterior_prazo` (pública): `{ ok:true, prazo:{ aberto, ate, fuso, agora } }`. O relógio é o do servidor. */
+    async visitaAnteriorPrazo () {
+      const r = await rpcDado('caca_visita_anterior_prazo', {})
+      return r.ok && r.dado && typeof r.dado.aberto === 'boolean' ? { ok: true, prazo: r.dado } : r.ok ? sem('resposta_invalida') : r
+    },
+
+    /**
+     * `caca_visita_anterior_pedir`: pede à organização que analise uma visita feita antes de conhecer a Caça. NÃO carimba nem conta nada.
+     * `{ ok:true, id, estado:'pendente' }` · motivos: prazo_encerrado · email_nao_confirmado · data_invalida · data_futura · unidade_obrigatoria ·
+     * unidade_invalida · ja_carimbou · ja_pedido · limite_pedidos · muitos_pendentes · fila_cheia · qr_invalido · casa_sem_combo · encerrada · mapa_desconhecido.
+     */
+    visitaAnteriorPedir: (chave, { slug, unidade = null, data, nota = '' }) => comChave(chave, () => {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(slug || ''))) return Promise.resolve(sem('qr_invalido'))
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data || ''))) return Promise.resolve(sem('data_invalida'))
+      return rpcOk('caca_visita_anterior_pedir', {
+        p_chave: chave, p_slug: slug, p_unidade: unidade ? String(unidade).slice(0, 64) : null, p_data: data,
+        p_nota: String(nota || '').trim().slice(0, 200) || null,
+      })
+    }),
+
     /* ---- ranking geral e metas ---- */
 
     /** `caca_ranking_publico`: `{ ok:true, ranking:[{posicao, apelido, casas, extras}] }`, só quem optou por aparecer, até `limite` (1 a 50). Pública, sem chave. */

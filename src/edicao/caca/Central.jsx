@@ -16,6 +16,7 @@ import { ComoCarimbar } from './mapa/ComoCarimbar.jsx'
 import { CriarMapa } from './CriarMapa.jsx'
 import { GuardarMapa } from './GuardarMapa.jsx'
 import { CartaoEmail } from './CartaoEmail.jsx'
+import { VisitaAnterior } from './visita/VisitaAnterior.jsx'
 import Notificacoes from './secoes/Notificacoes.jsx'
 import Instalar from './secoes/Instalar.jsx'
 
@@ -97,6 +98,7 @@ export function Central ({ caca, dados, navigate }) {
       <>
         {caca.perdeu && <p className="ct-aviso" role="status">{CACA.chaveTrocada}</p>}
         <CriarMapa navigate={navigate} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
+        <VisitaAnterior caca={caca} dados={dados} navigate={navigate} />
       </>
     )
   }
@@ -108,6 +110,7 @@ export function Central ({ caca, dados, navigate }) {
         <ProximaAcao caca={caca} dados={dados} navigate={navigate} />
         {caca.recemCriado && <GuardarMapa chave={caca.chave} />}
         <CartaoEmail caca={caca} navigate={navigate} />
+        <VisitaAnterior caca={caca} dados={dados} navigate={navigate} />
       </div>
       <div className="ct-central__col">
         <Entradas navigate={navigate} />
