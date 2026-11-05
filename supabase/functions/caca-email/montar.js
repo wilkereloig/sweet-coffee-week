@@ -15,6 +15,41 @@ export const esc = (s) =>
 
 export const codigoValido = (c) => typeof c === 'string' && /^\d{6}$/.test(c)
 
+
+/*
+ * Visual da edição Cartoon (paleta do manual v03, src/styles/scw-cartoon.css): faixa amarela com o selo, caixa de traço grosso e sombra
+ * dura de gibi, rodapé chocolate. Tudo em tabela + estilo inline (e-mail não aceita CSS externo nem a fonte Grandstander: o título cai para
+ * Arial Black). A imagem é PNG (Outlook não lê WebP) e mora no site; `alt` descreve a marca para quem bloqueia imagem. Nenhum <a> aqui.
+ */
+export const ARTE_SELO = `${'https://www.sweetcoffeeweek.com.br'}/images/email/selo-cartoon-email.png`
+const FONTE = 'Helvetica,Arial,sans-serif'
+const FONTE_TITULO = "'Arial Black',Arial,Helvetica,sans-serif"
+
+/** Moldura comum dos e-mails da Caça. `corpo` já vem escapado (só texto da casa, nunca dado do mapa). */
+function moldura (assunto, corpo) {
+  return `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(assunto)}</title></head>
+<body style="margin:0;padding:0;background:#FDF0DE;font-family:${FONTE};color:#3A150F;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FDF0DE;"><tr><td align="center" style="padding:28px 16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FCFCFC;border:3px solid #3A150F;border-radius:18px;box-shadow:6px 6px 0 #3A150F;overflow:hidden;">
+      <tr><td style="background:#FDB901;border-bottom:3px solid #3A150F;padding:14px 22px;">
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+          <td width="84" style="padding-right:14px;"><img src="${ARTE_SELO}" width="84" height="83" alt="Sweet &amp; Coffee Week Cartoon" style="display:block;border:0;width:84px;height:auto;"></td>
+          <td style="font-family:${FONTE_TITULO};font-size:22px;line-height:1.15;color:#3A150F;font-weight:900;">Caça aos<br>Carimbos</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:26px 26px 8px;font-size:16px;line-height:1.6;color:#3A150F;">
+        <p style="margin:0 0 14px;font-family:${FONTE_TITULO};font-weight:900;font-size:22px;color:#E8195A;">Oi, Sweet Lover!</p>
+${corpo}
+      </td></tr>
+      <tr><td style="background:#3A150F;padding:14px 26px;font-size:13px;line-height:1.5;color:#FDF0DE;">Sweet &amp; Coffee Week · edição Cartoon</td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`
+}
+
+const nota = (t) => `<p style="margin:0 0 14px;color:#5a4038;font-size:14px;">${esc(t)}</p>`
+
 const FINALIDADES = {
   recuperar: {
     acao: 'abrir de novo o seu mapa da Caça aos Carimbos neste aparelho',
@@ -33,23 +68,11 @@ export function montarEmail (finalidade, codigo) {
   const assunto = `${codigo} é o seu código da Caça aos Carimbos`
   const tempo = `Ele vale por ${VALIDADE_MIN} minutos e só pode ser usado uma vez.`
   const ignore = 'Se não foi você quem pediu, ignore este e-mail. Ninguém acessa o seu mapa só com o seu e-mail.'
-  const html = `<!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(assunto)}</title></head>
-<body style="margin:0;padding:0;background:#FFF4EC;font-family:Helvetica,Arial,sans-serif;color:#3F1A0A;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 16px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:20px;border:3px solid #4F2092;">
-      <tr><td style="padding:28px 28px 8px;font-size:16px;line-height:1.6;">
-        <p style="margin:0 0 14px;font-weight:700;font-size:18px;color:#870E2D;">Oi, Sweet Lover!</p>
-        <p style="margin:0 0 14px;">Use este código para ${esc(f.acao)}:</p>
-        <p style="margin:0 0 14px;text-align:center;font-size:36px;letter-spacing:8px;font-weight:700;color:#4F2092;">${esc(codigo)}</p>
+  const html = moldura(assunto, `        <p style="margin:0 0 16px;">Use este código para ${esc(f.acao)}:</p>
+        <p style="margin:0 0 18px;text-align:center;"><span style="display:inline-block;background:#FDB901;border:3px solid #3A150F;border-radius:14px;box-shadow:4px 4px 0 #3A150F;padding:10px 22px;font-family:${FONTE_TITULO};font-size:38px;letter-spacing:8px;font-weight:900;color:#3A150F;">${esc(codigo)}</span></p>
         <p style="margin:0 0 14px;">${esc(tempo)}</p>
-        ${f.aviso ? `<p style="margin:0 0 14px;">${esc(f.aviso)}</p>` : ''}
-        <p style="margin:0 0 14px;color:#6b5a50;font-size:14px;">${esc(ignore)}</p>
-      </td></tr>
-      <tr><td style="padding:0 28px 24px;font-size:13px;color:#6b5a50;">Sweet &amp; Coffee Week, edição Cartoon</td></tr>
-    </table>
-  </td></tr></table>
-</body></html>`
+        ${f.aviso ? `<p style="margin:0 0 14px;padding:10px 14px;background:#FDF0DE;border:3px solid #E8195A;border-radius:14px;font-size:15px;font-weight:700;">${esc(f.aviso)}</p>` : ''}
+        ${nota(ignore)}`)
   const texto = ['Oi, Sweet Lover!', '', `Use este código para ${f.acao}: ${codigo}`, '', tempo, ...(f.aviso ? [f.aviso] : []), '', ignore, '', 'Sweet & Coffee Week, edição Cartoon'].join('\n')
   return { assunto, html, texto }
 }
@@ -72,22 +95,10 @@ export function montarEmailLink (chave) {
   const aviso = 'Este link é como uma senha: quem tiver o link abre o seu mapa. Guarde só para você e não poste nem mande para outras pessoas.'
   const uso = 'Para abrir o seu mapa em outro celular, copie o endereço abaixo e cole no navegador.'
   const ignore = 'Se não foi você quem pediu, ignore este e-mail. Se você perder o acesso, dá para recuperar o mapa com o código que enviamos para este e-mail.'
-  const html = `<!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(assunto)}</title></head>
-<body style="margin:0;padding:0;background:#FFF4EC;font-family:Helvetica,Arial,sans-serif;color:#3F1A0A;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 16px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:20px;border:3px solid #4F2092;">
-      <tr><td style="padding:28px 28px 8px;font-size:16px;line-height:1.6;">
-        <p style="margin:0 0 14px;font-weight:700;font-size:18px;color:#870E2D;">Oi, Sweet Lover!</p>
-        <p style="margin:0 0 14px;">Seu e-mail foi confirmado. ${esc(uso)}</p>
-        <p style="margin:0 0 14px;font-size:15px;word-break:break-all;color:#4F2092;font-weight:700;">${esc(link)}</p>
-        <p style="margin:0 0 14px;"><strong>${esc(aviso)}</strong></p>
-        <p style="margin:0 0 14px;color:#6b5a50;font-size:14px;">${esc(ignore)}</p>
-      </td></tr>
-      <tr><td style="padding:0 28px 24px;font-size:13px;color:#6b5a50;">Sweet &amp; Coffee Week, edição Cartoon</td></tr>
-    </table>
-  </td></tr></table>
-</body></html>`
+  const html = moldura(assunto, `        <p style="margin:0 0 14px;">Seu e-mail foi confirmado. ${esc(uso)}</p>
+        <p style="margin:0 0 16px;padding:12px 14px;background:#FDF0DE;border:3px solid #3A150F;border-radius:14px;font-size:15px;word-break:break-all;color:#6424AB;font-weight:700;">${esc(link)}</p>
+        <p style="margin:0 0 14px;padding:10px 14px;background:#FDF0DE;border:3px solid #E8195A;border-radius:14px;font-size:15px;font-weight:700;">${esc(aviso)}</p>
+        ${nota(ignore)}`)
   const texto = ['Oi, Sweet Lover!', '', `Seu e-mail foi confirmado. ${uso}`, '', link, '', aviso, '', ignore, '', 'Sweet & Coffee Week, edição Cartoon'].join('\n')
   return { assunto, html, texto }
 }
