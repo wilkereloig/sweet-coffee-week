@@ -40,19 +40,29 @@ function carregarGoogle () {
 
 const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quero && 'quero ir', p.foi && 'já fui'].filter(Boolean).join(', ')
 
-function elementoDoPonto (p, aoSelecionar) {
-  const el = document.createElement('button')
-  el.type = 'button'
+/**
+ * O Google NÃO aceita filho focável (<button>) dentro de AdvancedMarkerElement: o invólucro engole o clique do botão. O marcador é que é o
+ * botão (`gmpClickable`: o Google o torna focável, com Enter/Espaço) e o clique vem por `gmp-click`/`click` do PRÓPRIO marcador; o conteúdo de
+ * pin e de agência é só desenho (<span>), e nome e "pressionado" vão no marcador. `tocar` já deve ser `umaVez`: os dois eventos podem chegar juntos.
+ */
+const umaVez = (fazer) => { let ultimo = 0; return () => { const agora = performance.now(); if (agora - ultimo < 400) return; ultimo = agora; fazer() } }
+function marcadorClicavel (Marcador, opcoes, tocar) {
+  const mk = new Marcador({ ...opcoes, gmpClickable: true })
+  mk.addListener('click', tocar)
+  mk.addEventListener('gmp-click', tocar)
+  return mk
+}
+
+function elementoDoPonto (p) {
+  const el = document.createElement('span')
   if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
     el.className = 'ct-sicredi-marcador'
     el.append(pinSicredi(p.pin))
-    el.addEventListener('click', () => aoSelecionar(p.id))
     return el
   }
   el.className = `ct-marcador${p.pin ? ' ct-marcador--pin' : ''}`
-  // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui); o botão é do provedor do mapa.
+  // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui); o botão é o marcador do provedor do mapa.
   if (p.pin) el.append(pinDaCasa(p.pin))
-  el.addEventListener('click', () => aoSelecionar(p.id))
   return el
 }
 
@@ -89,7 +99,8 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     selos.current = plano.grupos.map((g) => {
       const membros = pts.filter((p) => g.ids.includes(p.id))
       const el = seloDoGrupo(membros.length, TC.grupoSelo(membros.length))
-      el.addEventListener('click', () => {
+      el.tabIndex = -1 // o marcador (gmpClickable) é o botão; o <button> do selo é só desenho aqui
+      const aproximar = umaVez(() => {
         const caixa = new libs.current.LatLngBounds()
         for (const p of membros) caixa.extend({ lat: p.lat, lng: p.lng })
         const antes = m.getZoom() ?? 12
@@ -102,7 +113,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       })
       const lat = membros.reduce((t, p) => t + p.lat, 0) / membros.length
       const lng = membros.reduce((t, p) => t + p.lng, 0) / membros.length
-      return new libs.current.AdvancedMarkerElement({ map: m, position: { lat, lng }, content: el, zIndex: 20 })
+      return marcadorClicavel(libs.current.AdvancedMarkerElement, { map: m, position: { lat, lng }, content: el, zIndex: 20 }, aproximar)
     })
   }, [])
 
@@ -170,7 +181,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     for (const p of pontos) fios.current.set(p.id, new AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: fioDoPin(), zIndex: 1 }))
     for (const p of pontos) {
       const pos = { lat: p.lat, lng: p.lng }
-      marcadores.current.set(p.id, new AdvancedMarkerElement({ map: m, position: pos, content: elementoDoPonto(p, aoSelecionar), title: p.titulo, zIndex: 10 }))
+      marcadores.current.set(p.id, marcadorClicavel(AdvancedMarkerElement, { map: m, position: pos, content: elementoDoPonto(p), title: p.titulo, zIndex: 10 }, umaVez(() => aoSelecionar(p.id))))
     }
     for (const p of alvo) limites.extend({ lat: p.lat, lng: p.lng })
     if (alvo.length > 1) m.fitBounds(limites, 48)
@@ -181,13 +192,14 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome.
   React.useEffect(() => {
     for (const p of pontos) {
-      const el = marcadores.current.get(p.id)?.content
+      const mk = marcadores.current.get(p.id)
+      const el = mk?.content
       if (!el) continue
+      mk.setAttribute('aria-pressed', String(p.id === selecionada)) // o marcador é o botão (gmpClickable): nome e estado ficam nele
       if (p.sicredi) {
         el.classList.toggle('ct-sicredi-marcador--aprox', !!p.aproximada)
         el.classList.toggle('is-sel', p.id === selecionada)
-        el.setAttribute('aria-label', TC.sicrediNomeMarcador(p.titulo, !!p.aproximada))
-        el.setAttribute('aria-pressed', String(p.id === selecionada))
+        mk.setAttribute('aria-label', TC.sicrediNomeMarcador(p.titulo, !!p.aproximada))
         continue
       }
       if (p.pin) atualizarPin(el.firstElementChild, p.pin) // carimbo novo: a logo passa de P&B a colorida sem refazer o marcador
@@ -195,8 +207,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       el.classList.toggle('ct-marcador--quero', !!p.quero)
       el.classList.toggle('ct-marcador--foi', !!p.foi)
       el.classList.toggle('is-sel', p.id === selecionada)
-      el.setAttribute('aria-label', nomeDoPonto(p))
-      el.setAttribute('aria-pressed', String(p.id === selecionada))
+      mk.setAttribute('aria-label', nomeDoPonto(p))
     }
   })
 
