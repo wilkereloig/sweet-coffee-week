@@ -5,12 +5,12 @@ O texto público (`src/edicao/cartoon/regulamento.js`, `src/data/conteudo/legal.
 fica como `{ aDefinir }` (aparece marcado na página do regulamento) ou está aqui. Um item por linha: o que falta · onde está no texto · por que bloqueia (ou não) · quem decide.
 Nada daqui foi inventado: idade mínima, forma e data de entrega do prêmio final e prazo de retenção continuam em aberto.
 
-## Decidido em 06/11/2026 (Wilker)
+## Decidido em 05/11/2026 (Wilker)
 
-- **Idade mínima: 18 anos** (Wilker, 06/11, escolhendo o menor risco: LGPD art. 14 e prêmio a menor exigiriam responsável). O regulamento diz isso (Quem participa). Sem trava técnica no cadastro do mapa: é só o texto.
+- **Idade mínima: 18 anos** (Wilker, 05/11, escolhendo o menor risco: LGPD art. 14 e prêmio a menor exigiriam responsável). O regulamento diz isso (Quem participa). Sem trava técnica no cadastro do mapa: é só o texto.
 - **Sorteio: não precisa de autorização oficial** (palavra do Wilker; sem checagem jurídica minha).
 - **Janela da avaliação:** aberta no banco (05/11 09:26 → 15/11 23:59, Natal).
-- **E-mail:** funcionando em 06/11 (Brevo, chave reativada). Teste real: código de confirmação chegou de `contato@sweetcoffeeweek.com.br`; mapa de teste apagado.
+- **E-mail:** funcionando em 05/11 (Brevo). Causas resolvidas: chave desativada, bloqueio de IP de chaves API (desligado) e plano expirado ("insufficient credits"; plano reativado). O remetente vem do segredo `CACA_EMAIL_FROM` = `Sweet & Coffee Week <contato@sweetcoffeeweek.com.br>` (o padrão do código, `ola@`, não está validado no Brevo: NÃO apagar o segredo). Teste real: 3 códigos chegaram na caixa principal; mapa de teste apagado.
 - **Gate:** `MAPA_PUBLICO = true` na dev; mapa, Minha rota e Caça ligam juntos.
 
 ## Indispensável para publicar
