@@ -579,6 +579,9 @@ try {
   {
     const antes = falhas.length
     const { ctx, page, erros } = await contexto(nav, { w: 1440, h: 900 })
+    // Durante o festival a vitrine mostra só as casas abertas AGORA; este teste confere a vitrine inteira, então fixa um dia antes dele.
+    // O "aberto agora" tem teste próprio: tests/cartoon-elenco-navegador.mjs.
+    await page.clock.install({ time: new Date('2026-11-03T15:00:00-03:00') })
     await ir(page, '/cartoon')
     await page.waitForSelector('.ct-laminas')
     const e = await page.evaluate(() => {

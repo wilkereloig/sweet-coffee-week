@@ -76,6 +76,8 @@
 .ct-cartao__visual .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
 .ct-cartao__link:is(:hover, :focus-visible) .ct-cartao__visual .ct-foto img { scale: 1.06; }
 .ct-cartao__visual .ct-foto { border-bottom: 0; }
+/* A logo da casa sobre a foto (SeloDaCasa, o mesmo da Entrada). Fica no canto ESQUERDO: o direito é do objeto que espia do cartão. */
+.ct-cartao__visual .ct-selo-casa { right: auto; left: 10px; z-index: 1; width: clamp(48px, 26%, 68px); pointer-events: none; }
 /* Sem foto: a logo desenhada no Quadro é o protagonista, com a reserva honesta embaixo. */
 .ct-cartao__reserva { --ct-desenho: min(44cqi, 150px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; aspect-ratio: 4 / 3; padding: 12px; }
 .ct-cartao__aviso { padding: 3px 10px; border: 1.5px dashed var(--ct-chocolate); border-radius: 999px; background: var(--ct-branco); font: 700 12px/1.3 var(--ct-font); letter-spacing: .04em; text-align: center; }

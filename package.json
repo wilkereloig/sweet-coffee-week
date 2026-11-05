@@ -18,6 +18,7 @@
     "test:casca": "node tests/casca-responsiva.mjs",
     "test:casca-institucional": "node tests/casca-institucional.mjs",
     "test:cartoon-navegador": "node tests/cartoon-navegador.mjs",
+    "test:cartoon-elenco": "node tests/cartoon-elenco-navegador.mjs",
     "test:caca-navegador": "node tests/cartoon-caca-navegador.mjs",
     "test:mapa-camera": "node tests/cartoon-mapa-camera-navegador.mjs",
     "test:mapa-pin": "node tests/cartoon-mapa-pin-navegador.mjs",

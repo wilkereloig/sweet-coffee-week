@@ -21,6 +21,7 @@ import { Chip, Gibi, Preco } from '../../componentes/sistema/pecas.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
+import { SeloDaCasa } from '../../componentes/sistema/SeloDaCasa.jsx'
 import { QueroIrCasa, JaFui } from '../MarcasLover.jsx'
 import { MAPA_NO_AR } from '../contexto.js'
 import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM, ICONE } from '../textos.js'
@@ -64,7 +65,12 @@ function Cartao ({ p, modo, navigate, encerrada }) {
     <li className={`ct-cartao${espia ? ' ct-cartao--espia' : ''}`}>
       <Link className="ct-cartao__link" href={`${EDICAO.caminho}/${base}/${p.slug}`} navigate={navigate} aoIr={guardarPosicao}>
         <div className="ct-cartao__visual">
-          {foto ? <Foto foto={foto} proporcao={proporcaoDe(foto, '4 / 3')} alt="" /> : (
+          {foto ? (
+            <>
+              <Foto foto={foto} proporcao={proporcaoDe(foto, '4 / 3')} alt="" />
+              <SeloDaCasa casa={p.casa} />
+            </>
+          ) : (
             <div className="ct-cartao__reserva">
               <LogoDesenhada casa={p.casa} alt="" />
               <span className="ct-cartao__aviso">{p.combo ? T.fotoEmProducao : T.comboEmBreve}</span>

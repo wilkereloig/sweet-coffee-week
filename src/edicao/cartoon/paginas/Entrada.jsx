@@ -13,16 +13,18 @@ import React from 'react'
 import { MAPA_NO_AR } from '../contexto.js'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { imagemPublica } from '../../dados/publico.js'
+import { horaTexto } from '../../dados/horarioFestival.js'
 import { cenaEdicao, seloEdicao, TROFEU_DESENHO_EDICAO, srcSet } from '../../../data/imageLibrary'
 import { Link, Avisos, Falha, Carregando, Foto } from '../../componentes/base.jsx'
 import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
+import { SeloDaCasa } from '../../componentes/sistema/SeloDaCasa.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Botao, Passos, Gibi, Preco } from '../../componentes/sistema/pecas.jsx'
 import { ENTRADA as T, CATALOGO, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
+import { useAgora } from '../useAgora.js'
 
 const C = EDICAO.caminho
 const NA_VITRINE = 8
@@ -42,27 +44,25 @@ export function doDia (lista, n, hoje = new Date()) {
   return a.slice(0, n)
 }
 
-function SeloDaCasa ({ casa }) {
-  const desenho = casa?.logo_desenhada?.cor
-  const src = desenho || imagemPublica(casa?.logo)
-  if (!src) return null
-  return <span className="ct-lamina__selo" aria-hidden="true"><img src={src} alt="" loading="lazy" decoding="async" /></span>
+/**
+ * Casas para a vitrine: com foto do combo primeiro (é a foto que vende); sem foto — combos ainda não públicos, foto em
+ * produção — a casa entra com a logo desenhada no quadro e leva à página dela. Assim a vitrine nunca some.
+ */
+function daVitrine (lista, n) {
+  const comFoto = doDia(lista.filter((p) => p.combo?.fotos?.principal), n)
+  return [...comFoto, ...doDia(lista.filter((p) => !p.combo?.fotos?.principal), n - comFoto.length)]
 }
 
 /**
- * Casas com foto do combo vêm primeiro (é a foto que vende); sem foto — combos ainda não públicos, foto em produção —
- * a casa entra com a logo desenhada no quadro e leva à página dela. Assim a vitrine nunca some.
- * O cartão é a lâmina do carrossel: foto inteira, a casa em amarelo e o combo em creme sobre a sombra da base.
+ * O cartão é a lâmina do carrossel: foto inteira, a casa em amarelo e o tema em creme sobre a sombra da base. `etiqueta`
+ * ({ tipo: 'aberta' | 'abre', texto }) só existe durante o festival e diz o que é verdade AGORA: nada de casa fechada
+ * parecendo aberta.
  */
-function Vitrine ({ elenco, navigate }) {
-  const escolhidas = React.useMemo(() => {
-    const comFoto = doDia(elenco.filter((p) => p.combo?.fotos?.principal), NA_VITRINE)
-    return [...comFoto, ...doDia(elenco.filter((p) => !p.combo?.fotos?.principal), NA_VITRINE - comFoto.length)]
-  }, [elenco])
-  if (!escolhidas.length) return null
+function Vitrine ({ itens, navigate }) {
+  if (!itens.length) return null
   return (
     <ul className="ct-laminas">
-      {escolhidas.map((p) => {
+      {itens.map(({ p, etiqueta }) => {
         const foto = p.combo?.fotos?.principal
         return (
           <li key={p.slug}>
@@ -79,6 +79,7 @@ function Vitrine ({ elenco, navigate }) {
                 </span>
               )}
               <span className="ct-lamina__legenda">
+                {etiqueta && <span className={`ct-lamina__momento ct-lamina__momento--${etiqueta.tipo}`}>{etiqueta.texto}</span>}
                 <span className="ct-lamina__casa">{p.casa.nome}</span>
                 {/* Na lâmina vai o tema da casa, não o nome do combo (pedido do Wilker, 04/11). */}
                 {p.casa.tema && <span className="ct-lamina__tema">{p.casa.tema}</span>}
@@ -88,6 +89,51 @@ function Vitrine ({ elenco, navigate }) {
         )
       })}
     </ul>
+  )
+}
+
+/**
+ * O elenco do momento. Dentro do festival: as casas com o combo disponível AGORA (pelo menos uma unidade atendendo, a mesma
+ * regra do Mapa — M.casasPorMomento) e, se sobrar lugar, as que abrem ainda hoje, com a hora. Recalcula sozinho com a página
+ * aberta (useAgora). Ninguém aberto, ou horários que ninguém cadastrou: o aviso diz isso, e o caminho para todas as casas
+ * continua logo abaixo. Antes e depois do festival não há "agora": o elenco do dia, sem prometer disponibilidade.
+ */
+function ElencoDoMomento ({ elenco, dados, navigate }) {
+  const agora = useAgora()
+  const periodo = dados?.fase === 'encerrada' ? null : dados?.edicao // edição encerrada: não há "agora", só o registro
+  const momento = React.useMemo(() => M.casasPorMomento(elenco, agora, periodo), [elenco, agora, periodo])
+  const itens = React.useMemo(() => {
+    if (!momento.noFestival) return daVitrine(elenco, NA_VITRINE).map((p) => ({ p }))
+    const ate = new Map(momento.abertas.map((x) => [x.p.slug, x.ate]))
+    const abertas = daVitrine(momento.abertas.map((x) => x.p), NA_VITRINE)
+      .map((p) => ({ p, etiqueta: { tipo: 'aberta', texto: T.etiquetaAberta(horaTexto(ate.get(p.slug))) } }))
+    const abrem = momento.abremHoje.slice(0, NA_VITRINE - abertas.length)
+      .map(({ p, as }) => ({ p, etiqueta: { tipo: 'abre', texto: T.etiquetaAbre(horaTexto(as)) } }))
+    return [...abertas, ...abrem]
+  }, [elenco, momento])
+
+  let aviso = null
+  if (momento.noFestival) {
+    if (!itens.length) {
+      aviso = momento.comHorario
+        ? { titulo: T.elencoNinguem, apoio: T.elencoNinguemApoio }
+        : { titulo: T.elencoSemHorario, apoio: T.elencoSemHorarioApoio }
+    } else {
+      const partes = momento.abertas.length ? [T.elencoAgora(momento.abertas.length)] : [T.elencoNinguem]
+      if (momento.abremHoje.length) partes.push(T.elencoAbremHoje(momento.abremHoje.length))
+      aviso = { titulo: partes.join(' · ') }
+    }
+  }
+  return (
+    <>
+      {aviso && (
+        <div className={`ct-elenco-momento${itens.length ? '' : ' ct-elenco-momento--vazio'}`} role="status" aria-live="polite">
+          <p className="ct-elenco-momento__titulo">{aviso.titulo}</p>
+          {aviso.apoio && <p className="ct-elenco-momento__apoio">{aviso.apoio}</p>}
+        </div>
+      )}
+      <Vitrine itens={itens} navigate={navigate} />
+    </>
   )
 }
 
@@ -148,7 +194,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           : carregando ? <Carregando texto="Carregando as casas…" />
           : elenco.length ? (
             <>
-              <Vitrine elenco={elenco} navigate={navigate} />
+              <ElencoDoMomento elenco={elenco} dados={dados} navigate={navigate} />
               <div className="ct-acoes">
                 {comCombos && <Botao href={`${C}/combos`} navigate={navigate}>{T.verCombos(elenco.filter((p) => p.combo).length)}</Botao>}
                 <Botao tipo="secundario" href={`${C}/participantes`} navigate={navigate}>{T.verTodas(elenco.length)}</Botao>

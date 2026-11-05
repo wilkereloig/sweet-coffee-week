@@ -270,6 +270,32 @@ export function textoEstado (e) {
   }
 }
 
+/**
+ * O elenco no momento (vitrine da Entrada): casas com o combo disponível AGORA e casas que abrem ainda hoje. Mesma regra do Mapa
+ * e dos filtros — `estadoAgora`, por UNIDADE: a casa conta como aberta se pelo menos uma unidade estiver atendendo com o combo.
+ * Horário ausente ou não informado (`sem_horario`) nunca vira "aberta". Só vale DENTRO do festival (`periodo` = { inicio, fim }
+ * da edição): antes e depois, `noFestival` é false e as listas ficam vazias — nada de prometer disponibilidade que não existe.
+ * `comHorario`: alguma unidade tem horário cadastrado (sem isso o "nenhuma aberta" seria chute, e a tela diz "horários a confirmar").
+ * Retorna { noFestival, comHorario, abertas: [{ p, ate }], abremHoje: [{ p, as }] } — `ate`/`as` em 'HH:MM'; `abremHoje` por horário.
+ */
+export function casasPorMomento (lista = [], agora = new Date(), periodo = null) {
+  const noFestival = dentroDoFestival(periodo, agora)
+  const resultado = { noFestival, comHorario: false, abertas: [], abremHoje: [] }
+  if (!noFestival) return resultado
+  for (const p of lista) {
+    const estados = (p.unidades || []).map((u) => {
+      if (u?.combo?.disponibilidade?.length) resultado.comHorario = true
+      return estadoAgora(u, agora, periodo)
+    })
+    const abertas = estados.filter((e) => e.estado === 'aberto')
+    if (abertas.length) { resultado.abertas.push({ p, ate: abertas.map((e) => e.ate).sort().pop() }); continue }
+    const abre = estados.filter((e) => e.estado === 'abre_hoje').map((e) => e.as).sort()
+    if (abre.length) resultado.abremHoje.push({ p, as: abre[0] })
+  }
+  resultado.abremHoje.sort((a, b) => a.as.localeCompare(b.as))
+  return resultado
+}
+
 // ------------------------------------------------------------- busca e filtros
 export const normalizar = (s = '') => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 

@@ -318,3 +318,44 @@ test('precoGeral só existe quando todos os combos declaram o mesmo valor', () =
   assert.equal(M.precoGeral([{ combo: {} }, { combo: null }]), null)
   assert.equal(M.precoGeral(undefined), null)
 })
+
+// Vitrine "Nosso elenco": casas com o combo disponível agora (mesma regra do Mapa: estadoAgora, por unidade).
+test('casasPorMomento: aberta, fechada, sem horário, várias unidades e fora do festival', () => {
+  const periodo = { inicio: '2026-11-05', fim: '2026-11-15' }
+  const dia = (abre, fecha) => [{ data: '2026-11-09', abre, fecha }]
+  const un = (id, disponibilidade) => ({ id, combo: disponibilidade ? { disponibilidade } : { modos: {} } })
+  const casa = (slug, ...unidades) => ({ slug, casa: { nome: slug }, unidades })
+  const lista = [
+    casa('aberta', un('a1', dia('10:00', '20:00'))),
+    casa('fechada', un('f1', dia('08:00', '12:00'))), // já encerrou às 15h
+    casa('abre-depois', un('d1', dia('17:00', '22:00'))),
+    casa('sem-horario', un('s1', null)),
+    casa('duas', un('u1', dia('08:00', '12:00')), un('u2', dia('14:00', '23:00'))), // só a 2ª unidade atende
+    casa('sem-unidade'),
+  ]
+  const m = M.casasPorMomento(lista, NOVE_NOV(15), periodo)
+  assert.equal(m.noFestival, true)
+  assert.equal(m.comHorario, true)
+  assert.deepEqual(m.abertas.map((x) => x.p.slug).sort(), ['aberta', 'duas'])
+  assert.equal(m.abertas.find((x) => x.p.slug === 'duas').ate, '23:00')
+  assert.deepEqual(m.abremHoje.map((x) => [x.p.slug, x.as]), [['abre-depois', '17:00']])
+  const todos = [...m.abertas, ...m.abremHoje].map((x) => x.p.slug)
+  assert.ok(!todos.includes('fechada') && !todos.includes('sem-horario') && !todos.includes('sem-unidade'), 'fechada e sem horário nunca entram')
+  // Antes e depois do festival: nenhuma promessa de disponibilidade.
+  for (const fora of [new Date(Date.UTC(2026, 10, 4, 15)), new Date(Date.UTC(2026, 10, 16, 15))]) {
+    const f = M.casasPorMomento(lista, fora, periodo)
+    assert.deepEqual([f.noFestival, f.abertas.length, f.abremHoje.length], [false, 0, 0])
+  }
+  assert.equal(M.casasPorMomento(lista, NOVE_NOV(15), null).noFestival, false, 'sem período da edição não há festival para afirmar')
+})
+
+test('casasPorMomento: horário que passa muda o resultado; sem horário nenhum não vira "nenhuma aberta"', () => {
+  const periodo = { inicio: '2026-11-05', fim: '2026-11-15' }
+  const casa = { slug: 'x', casa: { nome: 'x' }, unidades: [{ id: 'x1', combo: { disponibilidade: [{ data: '2026-11-09', abre: '14:00', fecha: '15:00' }] } }] }
+  assert.equal(M.casasPorMomento([casa], NOVE_NOV(13, 59), periodo).abertas.length, 0)
+  assert.equal(M.casasPorMomento([casa], NOVE_NOV(13, 59), periodo).abremHoje.length, 1)
+  assert.equal(M.casasPorMomento([casa], NOVE_NOV(14, 0), periodo).abertas.length, 1)
+  assert.equal(M.casasPorMomento([casa], NOVE_NOV(15, 0), periodo).abertas.length, 0, 'fecha às 15h em ponto')
+  const sem = M.casasPorMomento([{ slug: 'y', casa: { nome: 'y' }, unidades: [{ id: 'y1' }] }], NOVE_NOV(15), periodo)
+  assert.deepEqual([sem.comHorario, sem.abertas.length, sem.abremHoje.length], [false, 0, 0])
+})

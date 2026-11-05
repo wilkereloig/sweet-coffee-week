@@ -72,12 +72,23 @@
 .ct-lamina__legenda::before { content: ''; position: absolute; left: 14px; top: 44px; bottom: 14px; width: 4px; border-radius: 2px; background: var(--ct-amarelo); }
 .ct-lamina__casa { color: var(--ct-amarelo); font: 900 clamp(16px, 1.3vw, 19px)/1.1 var(--ct-font); text-transform: uppercase; text-wrap: balance; }
 .ct-lamina__tema { color: var(--ct-creme); font: 700 14px/1.25 var(--ct-font); text-wrap: balance; }
-.ct-lamina__selo {
+/* Durante o festival o elenco diz quem está com o combo AGORA: a faixa de estado em cima da vitrine (turquesa) e a etiqueta na
+   legenda da lâmina. Sem nenhuma casa aberta (ou sem horário cadastrado) a faixa vira um aviso em quadro, com o caminho logo abaixo. */
+.ct-elenco-momento { display: grid; gap: 2px; margin: 0 0 14px; }
+.ct-elenco-momento p { margin: 0; }
+.ct-elenco-momento__titulo { font: 900 clamp(16px, 1.5vw, 19px)/1.25 var(--ct-font); text-transform: uppercase; letter-spacing: .02em; text-wrap: balance; }
+.ct-elenco-momento__apoio { font: 700 15px/1.4 var(--ct-font); }
+.ct-elenco-momento--vazio { max-width: 52ch; margin-bottom: 18px; padding: 16px 18px; border: 3px solid var(--ct-chocolate); border-radius: 6px; background: var(--ct-branco); box-shadow: 5px 5px 0 var(--ct-chocolate); }
+.ct-lamina__momento { justify-self: start; padding: 2px 9px; border-radius: 999px; font: 800 12px/1.35 var(--ct-font); letter-spacing: .02em; }
+.ct-lamina__momento--aberta { background: var(--ct-amarelo); color: var(--ct-chocolate); }
+.ct-lamina__momento--abre { background: var(--ct-creme); color: var(--ct-chocolate); }
+/* Selo da casa (SeloDaCasa.jsx): o mesmo na lâmina da Entrada e no cartão do catálogo (03-catalogo.css só muda o canto). */
+.ct-selo-casa {
   position: absolute; right: 10px; top: 10px; display: grid; place-items: center; width: clamp(50px, 24%, 66px); aspect-ratio: 1;
   overflow: hidden; border: 3px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-branco);
 }
 /* Logo preenche o círculo inteiro (§6.12): o arquivo já traz fundo e respiro; contain + padding a deixava miúda. */
-.ct-lamina__selo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ct-selo-casa img { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* Sem foto do combo: a logo desenhada no quadro, com a reserva honesta, no mesmo 4:5 da foto; a legenda fica embaixo. */
 .ct-lamina__foto--reserva {
   --ct-desenho: min(54%, 160px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 12px;
