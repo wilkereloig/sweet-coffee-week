@@ -73,7 +73,7 @@ export const CACA = {
       titulo: 'Como conta?',
       itens: [
         'Cada casa conta uma vez, mesmo que tenha mais de um endereço (unidade).',
-        'O carimbo só vale depois que você avalia o combo, com o mesmo e-mail do mapa.',
+        'O carimbo só vale depois que você avalia o combo daquela mesma casa, a que você provou, com o mesmo e-mail do mapa.',
         'Voltar a uma casa que você já validou rende um carimbo extra.',
         '"Já fui", na Minha rota, é só uma anotação sua: não vira carimbo.',
       ],
@@ -194,7 +194,7 @@ export const CACA = {
   carimbo: {
     rotulo: 'Caça aos Carimbos',
     titulo: 'Carimbe sua visita',
-    lead: 'Chegou na casa? Carimbe a visita. Na primeira vez em cada casa, avalie o combo para o carimbo valer.',
+    lead: 'Chegou na casa? Carimbe a visita. Na primeira vez em cada casa, o carimbo só vale depois que você avalia o combo daquela mesma casa.',
     carimbar: 'Carimbar aqui',
     conferindo: 'Conferindo…',
     privacidade: 'O celular pede a sua localização só agora, para conferir que você está na casa quando ela já tem o ponto conferido. A posição não é guardada: fica só a distância até a casa, em metros.',
@@ -204,7 +204,7 @@ export const CACA = {
     outra: (nome) => `Mais uma visita na ${nome}.`,
     pendenteLead: 'Falta um passo para o carimbo valer.',
     pendenteSub: 'Avalie o combo para validar',
-    pendenteTexto: (nome) => `O carimbo da ${nome} só vale depois que você avalia o combo, com o mesmo e-mail do seu mapa. Pode ser agora ou depois: a ordem não importa.`,
+    pendenteTexto: (nome) => `O carimbo da ${nome} só vale depois que você avalia o combo da ${nome}, a casa onde você provou, com o mesmo e-mail do seu mapa. Pode ser agora ou depois: a ordem não importa.`,
     pendenteAcao: 'Avaliar o combo e validar',
     validadas: (x, n) => `Você tem ${x} de ${n} ${n === 1 ? 'casa validada' : 'casas validadas'}.`,
     extra: 'Voltar a uma casa que você já validou rende um carimbo extra.',
