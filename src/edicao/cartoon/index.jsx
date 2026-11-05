@@ -199,7 +199,7 @@ export function CartoonPage ({ path, navigate }) {
         <div className="ct-conteudo">{conteudo}</div>
         <p className="ct-sr" aria-live="polite">{rota.anuncio}</p>
 
-        <FaixaMarcas comFrase={CENAS_DO_MAPA.includes(cena)} />
+        <FaixaMarcas />
         <footer className="ct-rodape">
           <div className="ct-rodape__corpo">
             <div className="ct-rodape__assina">

@@ -68,7 +68,6 @@ function Vale ({ r, p, nome, m, titulo, origem }) {
       <div className="ct-vale__patrocinio">
         <p className="ct-marcas__rotulo">{MARCAS.patrocinio}</p>
         <img src={sicredi.src} alt={sicredi.alt} width={sicredi.largura} height={sicredi.altura} loading="lazy" decoding="async" />
-        <p>{MARCAS.fraseSicredi}</p>
       </div>
     </article>
   )

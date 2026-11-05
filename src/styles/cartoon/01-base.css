@@ -80,8 +80,6 @@
 .ct-edicao img.ct-marcas__f2 { height: 16px; }
 .ct-edicao img.ct-marcas__senac { height: 28px; }
 .ct-edicao img.ct-marcas__espaco { height: 14px; }
-/* A frase fica fora da área de reserva do logo (x ≈ 19 px, somada ao gap do grupo). */
-.ct-edicao .ct-marcas__frase { margin: 8px 0 0; font: italic 600 15px/1.4 'Exo 2', var(--ct-font); text-align: center; }
 
 /* Rodapé chocolate: a assinatura com a realização F2, as páginas, o festival e os documentos. */
 .ct-rodape { padding: 0 0 40px; background: var(--ct-chocolate); color: var(--ct-creme); font: 500 15px/1.5 var(--ct-font); }

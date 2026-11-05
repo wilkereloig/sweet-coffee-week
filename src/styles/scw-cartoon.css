@@ -13,11 +13,6 @@
 
 /* Grandstander (OFL), servida pelo projeto — docs/cartoon-2026-2/10 §10.3.
    Declarada só aqui: o arquivo só entra no chunk da edição. */
-/* Exo 2 (OFL): tipografia principal da Sicredi (manual, p. 27 em diante), só na frase do patrocínio. */
-@font-face {
-  font-family: 'Exo 2'; font-style: italic; font-weight: 600; font-display: swap;
-  src: url('/fonts/exo-2/exo-2-latin-600-italic.woff2') format('woff2');
-}
 @font-face {
   font-family: 'Grandstander';
   src: url('/fonts/grandstander/grandstander-latin.woff2') format('woff2');

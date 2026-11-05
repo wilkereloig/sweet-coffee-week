@@ -37,7 +37,6 @@
 .ct-voucher__codigo-apagado { text-decoration: line-through; }
 .ct-vale__patrocinio { display: grid; justify-items: center; gap: 10px; padding: 18px 16px 20px; border-top: var(--ct-traco); border-radius: 0 0 calc(var(--ct-raio) - 3px) calc(var(--ct-raio) - 3px); background: #fff; text-align: center; }
 .ct-vale__patrocinio p { margin: 0; }
-.ct-vale__patrocinio > p:last-child { margin-top: 6px; font: italic 600 15px/1.4 'Exo 2', var(--ct-font); text-wrap: balance; }
 .ct-edicao .ct-vale__patrocinio img { display: block; width: auto; max-width: none; height: 38px; }
 @media (prefers-reduced-motion: no-preference) {
   .ct-vale__dobra { transition: grid-template-rows 480ms cubic-bezier(.22, .9, .24, 1); }

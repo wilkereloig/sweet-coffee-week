@@ -191,10 +191,9 @@ export const ICONE = {
   site: 'link-externo', fotos: 'imagem', avaliar: 'estrela',
 }
 
-/* Faixa de marcas (rodapé e telas da ativação). A frase é do Wilker, 04/11; marca aprovada pela Sicredi antes de mudar. */
+/* Faixa de marcas (rodapé e telas da ativação); marca aprovada pela Sicredi antes de mudar. */
 export const MARCAS = {
   realizacao: 'Realização', patrocinio: 'Patrocinador', apoio: 'Apoio',
-  fraseSicredi: 'A Sicredi apoia a cultura e o comércio de Natal.',
 }
 
 export const CENA_TEXTO = {
