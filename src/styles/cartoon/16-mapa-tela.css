@@ -126,6 +126,14 @@
    o escolhido e os de perto ficam cheios. */
 .ct-pin, .ct-sicredi-pin { transform-origin: 50% 100%; transition: scale 180ms var(--ct-mo-quique); }
 .ct-mapa__mapa--longe .ct-marcador--pin:not(.is-sel) .ct-pin, .ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin { scale: .55; }
+/* Área de toque: a caixa do marcador tem o tamanho do desenho SEM a escala e, de longe, passaria por cima do pin vizinho. Só o desenho e o alvo
+   de 44 px dele (.ct-alvo, que acompanha a escala) recebem o toque. */
+.ct-mapa__mapa { --esc: 1; }
+.ct-mapa__mapa--longe { --esc: .55; }
+.ct-sicredi-pin { position: relative; }
+.ct-alvo { position: absolute; left: 50%; bottom: 0; translate: -50% 0; width: max(100%, calc(44px / var(--esc, 1))); height: max(100%, calc(44px / var(--esc, 1))); }
+.ct-mapa__mapa .maplibregl-marker.ct-marcador--pin, .ct-mapa__mapa .maplibregl-marker.ct-sicredi-marcador { pointer-events: none; }
+.ct-mapa__mapa .maplibregl-marker .ct-pin, .ct-mapa__mapa .maplibregl-marker .ct-sicredi-pin { pointer-events: auto; }
 .ct-mapa__fora { display: grid; gap: 8px; min-width: 0; }
 .ct-mapa__fora:empty { display: none; }
 @media (max-width: 899.98px) { .ct-mapa__item { scroll-margin-bottom: 340px; } }

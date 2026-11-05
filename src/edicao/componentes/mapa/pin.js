@@ -10,6 +10,9 @@ import { IMAGENS_ESTADO } from '../../caca/mapa/imagens.js'
  *
  * `pin`: { logo (src ou null), inicial, numero, estado ('nao-visitada' | 'pendente' | 'conquistada' | null) }.
  */
+/** A área de toque do pin (≥ 44 px, mesmo com o desenho encolhido de longe): é a única parte da caixa do marcador que recebe o toque. */
+const alvoDeToque = () => { const a = document.createElement('span'); a.className = 'ct-alvo'; a.setAttribute('aria-hidden', 'true'); return a }
+
 export function pinDaCasa (pin) {
   const caixa = document.createElement('span')
   caixa.className = 'ct-pin'
@@ -19,7 +22,7 @@ export function pinDaCasa (pin) {
   disco.className = 'ct-mundo__disco'
   const num = document.createElement('span')
   num.className = 'ct-mundo__num'
-  caixa.append(ponta, disco, num)
+  caixa.append(alvoDeToque(), ponta, disco, num)
   atualizarPin(caixa, pin)
   return caixa
 }
@@ -68,6 +71,7 @@ export function pinSicredi (pin) {
   caixa.className = 'ct-sicredi-pin'
   const placa = document.createElement('span')
   placa.className = 'ct-sicredi-pin__placa'
+  caixa.append(alvoDeToque())
   const img = document.createElement('img')
   Object.assign(img, { src: pin.src, alt: '', height: 28, decoding: 'async' })
   placa.append(img)
