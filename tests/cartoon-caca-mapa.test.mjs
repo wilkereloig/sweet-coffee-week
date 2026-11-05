@@ -141,7 +141,7 @@ test('como carimbar: três passos à vista no mapa e na central, e o atalho "Car
   assert.match(tudo, /avalie o combo da mesma casa/i); assert.match(tudo, /mesmo e-mail/)
   assert.doesNotMatch(tudo + C.nota, /vot(o|a|ar|ação)\b|\bSweet\b(?! &)/i, 'nunca "votar", nunca "Sweet" sozinho')
   assert.match(lerSrc('caca/mapa/Progresso.jsx'), /<ComoCarimbar aberto=\{p\.feitas === 0/, 'faixa do mapa: aberto até a primeira casa')
-  assert.match(lerSrc('caca/mapa/Progresso.jsx'), /<ComoCarimbar aberto \/>/, 'sem mapa, aberto junto do convite')
+  assert.match(lerSrc('caca/mapa/Progresso.jsx'), /ct-mapa__convite[\s\S]*<ComoCarimbar \/>/, 'sem mapa: ajuda secundária (recolhida) dentro do convite, abaixo do botão principal')
   assert.match(lerSrc('caca/Central.jsx'), /<ComoCarimbar /)
   const cartao = lerSrc('cartoon/paginas/mapa/Cartao.jsx')
   assert.match(cartao, /\/carimbo\/\$\{p\.slug\}/, 'o atalho abre a mesma página do QR do display (ela pede a localização)')

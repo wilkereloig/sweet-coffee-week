@@ -35,12 +35,14 @@ export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, geo, a
     )
   }
   if (estado === 'sem-mapa') {
-    return moldura(
-      <>
-        <p>{T.semMapa}</p>
+    // Convite: o benefício (texto), UMA ação principal (o botão) e a ajuda ("Como carimbar") como acesso secundário, que abre no lugar.
+    return (
+      <section className="ct-progresso ct-mapa__convite" aria-label={T.progressoTitulo}>
+        <IconeCartoon nome="progresso" tamanho={48} />
+        <p className="ct-mapa__convite-texto">{T.semMapa}</p>
         <Botao href={T.caminhos.central} navigate={navigate}>{T.criarMapa}</Botao>
-      </>,
-      <ComoCarimbar aberto />,
+        <ComoCarimbar />
+      </section>
     )
   }
   const p = progressoPessoal(mapa, totalDaEdicao)
