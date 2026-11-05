@@ -6,7 +6,7 @@ import path from 'node:path'
 import * as C from '../src/edicao/rota/carimbo.js'
 import { criarApi } from '../src/edicao/caca/api.js'
 import { precisaDeRevisao, podePedirPresenca, motivoDoPedido, falhaDeLocalizacao, pedidoDaCasa, FALHAS_PARA_PEDIR } from '../src/edicao/caca/gps.js'
-import { ajudaLocalizacao } from '../src/edicao/caca/regras.js'
+import { ajudaLocalizacao, aparelhoDoNavegador, passosParaAparelho } from '../src/edicao/caca/regras.js'
 import { GPS, mensagemDoPedido } from '../src/edicao/caca/textos-gps.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
@@ -97,7 +97,10 @@ test('leitura sem precisão numérica vira precisão imprestável, não NaN', as
 
 test('pedido de revisão: só depois de 2 falhas e só quando ainda é plausível estar na casa', () => {
   const semLoc = { motivo: 'sem_localizacao', posicao: 'negada' }
-  assert.equal(podePedirPresenca(semLoc, FALHAS_PARA_PEDIR - 1), false, 'a 1ª falha só orienta')
+  assert.equal(podePedirPresenca(semLoc, 0), true, 'localização BLOQUEADA no navegador: o pedido já aparece na 1ª falha (repetir não adianta)')
+  const demorou = { motivo: 'sem_localizacao', posicao: 'demorou' }
+  assert.equal(podePedirPresenca(demorou, FALHAS_PARA_PEDIR - 1), false, 'sinal fraco/demorou: a 1ª falha só orienta')
+  assert.equal(podePedirPresenca(demorou, FALHAS_PARA_PEDIR), true)
   assert.equal(podePedirPresenca(semLoc, FALHAS_PARA_PEDIR), true)
   assert.equal(podePedirPresenca({ motivo: 'longe', precisao: 250, distancia_m: 900 }, 2), true, 'GPS fraco')
   assert.equal(podePedirPresenca({ motivo: 'longe', precisao: 20, distancia_m: 420 }, 2), true, 'a poucos passos')
@@ -208,4 +211,29 @@ test('motivos novos do servidor têm texto: casa_sem_combo no carimbo e email_na
   assert.match(C.mensagemRecusa({ motivo: 'casa_sem_combo' }).titulo, /ainda não tem combo/)
   assert.doesNotMatch(C.mensagemRecusa({ motivo: 'casa_sem_combo' }).texto, /tente de novo/i)
   assert.match(mensagemDoPedido('email_nao_confirmado'), /confirme o seu e-mail/)
+})
+
+test('localização bloqueada: ajuda só do aparelho da pessoa, aviso antes do toque e detecção do bloqueio antes de gastar o toque', () => {
+  const ANDROID = 'Mozilla/5.0 (Linux; Android 14; SM-S911B) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36'
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1'
+  const INSTA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36 Instagram 330.0.0.0 Android'
+  assert.deepEqual(aparelhoDoNavegador(ANDROID), { plataforma: 'android', app: false })
+  assert.deepEqual(aparelhoDoNavegador(IPHONE), { plataforma: 'iphone', app: false })
+  assert.deepEqual(aparelhoDoNavegador(INSTA), { plataforma: 'android', app: true })
+  assert.deepEqual(aparelhoDoNavegador(undefined), { plataforma: 'outro', app: false })
+  const { passos } = ajudaLocalizacao({ motivo: 'sem_localizacao', posicao: 'negada' })
+  const a = passosParaAparelho(passos, aparelhoDoNavegador(ANDROID))
+  assert.deepEqual(a.principais.map((p) => p[0]), ['No Android'], 'Android lê só o caminho do Android')
+  assert.equal(a.outros.length, 2)
+  assert.deepEqual(passosParaAparelho(passos, aparelhoDoNavegador(IPHONE)).principais.map((p) => p[0]), ['No iPhone'])
+  assert.match(passosParaAparelho(passos, aparelhoDoNavegador(INSTA)).principais[0][0], /Instagram/, 'em aplicativo, "abrir no navegador" vem primeiro')
+  assert.equal(passosParaAparelho(passos, aparelhoDoNavegador('')).principais.length, 3, 'aparelho desconhecido: tudo à vista')
+  assert.match(GPS.antes.texto, /Permitir/)
+  const tela = readFileSync(path.join(raiz, 'src/edicao/cartoon/paginas/Carimbo.jsx'), 'utf8')
+  assert.match(tela, /usePermissaoLocalizacao\(\)/, 'a tela lê a permissão do navegador')
+  assert.match(tela, /permissao === 'denied' && estado === 'pronto'/, 'bloqueio descoberto antes do toque abre a ajuda e o pedido de revisão')
+  assert.match(tela, /permissao === 'prompt'[^\n]*GPS\.antes\.titulo/, 'o aviso "toque em Permitir" vem antes do botão')
+  assert.match(tela, /permissao === 'granted' && bloqueio/, 'liberou nas configurações: o botão volta sozinho')
+  const hook = readFileSync(path.join(raiz, 'src/edicao/caca/usePermissaoLocalizacao.js'), 'utf8')
+  assert.doesNotMatch(hook, /getCurrentPosition|watchPosition/, 'o hook só lê o estado, nunca pede a posição')
 })

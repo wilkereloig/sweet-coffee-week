@@ -63,8 +63,21 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         </div>
       )}
       {M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
+      {/* Casa com mais de um endereço: os outros ficam à vista (não escondidos em "Mais"), um toque troca de endereço. */}
+      {irmas.length > 0 && (
+        <div className="ct-mapa__irmas">
+          <Rotulo>{TC.outrosEnderecos(irmas.length)}</Rotulo>
+          <ul tabIndex={0} aria-label={TC.outrosEnderecos(irmas.length)}>
+            {irmas.map(({ u: o, p: op }) => (
+              <li key={o.id}><button type="button" className="ct-mapa__irma" onClick={() => aoEscolher?.(o.id)}><strong>{M.tituloDaUnidade(op, o)}</strong><span>{M.enderecoEmLinha(o.endereco)}</span></button></li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="ct-acoes ct-mapa__cartao-acoes">
         {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : comoChegarBotao}
+        {/* Atalho do carimbo: a mesma página do QR do display; ela pede a localização e só carimba com você na casa. */}
+        <Botao tipo="secundario" href={`${EDICAO.caminho}/carimbo/${p.slug}`} navigate={navigate}>{TC.carimbarAqui}</Botao>
         <Botao tipo="secundario" href={`${EDICAO.caminho}/combos/${p.slug}`} navigate={navigate}>{TC.verCombo}</Botao>
         <QueroIr u={u} nome={titulo} />
         <button type="button" className="ct-chip ct-mapa__mais-botao" aria-expanded={mais} aria-controls={idMais} aria-label={mais ? TC.menosDetalhes : TC.maisDetalhes} onClick={() => setMais((v) => !v)}>{mais ? TC.menosCurto : TC.maisCurto}</button>
@@ -84,17 +97,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
             </ul>
           </div>
         )}
-        {irmas.length > 0 && (
-          <div className="ct-mapa__irmas">
-            <Rotulo>{TC.outrosEnderecos(irmas.length)}</Rotulo>
-            <ul>
-              {irmas.map(({ u: o, p: op }) => (
-                <li key={o.id}><button type="button" className="ct-mapa__irma" onClick={() => aoEscolher?.(o.id)}><strong>{M.tituloDaUnidade(op, o)}</strong><span>{M.enderecoEmLinha(o.endereco)}</span></button></li>
-              ))}
-            </ul>
-            <p className="ct-nota">{TC.outrosEnderecosNota}</p>
-          </div>
-        )}
+        {irmas.length > 0 && <p className="ct-nota">{TC.outrosEnderecosNota}</p>}
         <div className="ct-acoes">
           {pendente && comoChegarBotao}
           {!pendente && estado !== 'conquistada' && aoAvaliar && <Botao tipo="secundario" onClick={() => aoAvaliar(p, u)}>{TC.avaliarCombo}</Botao>}

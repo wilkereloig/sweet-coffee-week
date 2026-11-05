@@ -80,6 +80,18 @@ export const CACA = {
     },
   },
 
+  // Como carimbar: três passos, à vista no mapa, na central e no atalho "Progresso" (05/11/2026, pedido do Wilker: "não está claro
+  // como faço o carimbo"). Carimbar e avaliar são portas diferentes; o carimbo só vale com as duas, na mesma casa.
+  comoCarimbar: {
+    titulo: 'Como carimbar',
+    passos: [
+      { titulo: 'Vá até a casa', texto: 'Peça o combo no balcão.' },
+      { titulo: 'Carimbe na casa', texto: 'Leia o QR do display de mesa com a câmera do celular e toque em "Carimbar aqui", com a localização ligada. Também dá para tocar em "Carimbar aqui" no cartão da casa, no mapa.' },
+      { titulo: 'Avalie o combo da mesma casa', texto: 'Use o mesmo e-mail do mapa. O carimbo só vale depois da avaliação.' },
+    ],
+    nota: 'O celular confere que você está na casa. A posição não é guardada.',
+  },
+
   proxima: {
     titulo: 'Seu próximo passo',
     comecar: { titulo: 'Escolha uma casa para começar', texto: 'Veja as casas da Cartoon, escolha uma e vá até lá. No balcão, leia o QR do display para carimbar.', acao: 'Ver as casas' },

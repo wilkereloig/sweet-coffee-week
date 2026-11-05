@@ -156,12 +156,17 @@
 .ct-mapa__mais[hidden] { display: none; }
 .ct-mapa__mais p { margin: 0; }
 .ct-mapa__mais .ct-acoes { margin-top: 4px; }
-.ct-mapa__irmas ul { display: grid; gap: 6px; margin: 6px 0; padding: 0; list-style: none; }
+/* Outros endereços da casa, à vista no cartão: uma fileira de cartinhas que rola de lado (casas como a Cookitos têm muitos
+   endereços e uma lista em pé empurraria os botões para fora da tela). Cada uma diz a unidade e o endereço; tocar troca de endereço. */
+.ct-mapa__irmas { display: grid; gap: 2px; min-width: 0; }
+.ct-mapa__irmas ul { display: flex; gap: 8px; margin: 2px 0 0; padding: 0 0 6px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; list-style: none; }
+.ct-mapa__irmas li { flex: 0 0 auto; scroll-snap-align: start; }
 .ct-mapa__irma {
-  display: grid; gap: 2px; width: 100%; min-height: 48px; padding: 6px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px;
+  display: grid; gap: 0; width: min(240px, 72vw); min-height: 44px; padding: 3px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px;
   background: var(--ct-creme); color: var(--ct-chocolate); font: 500 14px/1.3 var(--ct-font); text-align: left; cursor: pointer;
 }
-.ct-mapa__irma strong { font: 800 15px/1.25 var(--ct-font); }
+.ct-mapa__irma strong { overflow: hidden; font: 800 14px/1.25 var(--ct-font); text-overflow: ellipsis; white-space: nowrap; }
+.ct-mapa__irma span { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .ct-mapa__irma:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
 
 /* A folha dos atalhos tem mais conteúdo (ranking, grupos, rota): no desktop, janela um pouco mais larga. */

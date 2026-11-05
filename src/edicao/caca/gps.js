@@ -23,13 +23,17 @@ export function falhaDeLocalizacao (r) {
 export const precisaDeRevisao = (r) => r?.motivo === 'sem_ponto'
 
 /**
- * Oferece o pedido de revisão? Sim depois de `FALHAS_PARA_PEDIR` falhas de localização seguidas, e só quando
+ * Oferece o pedido de revisão? Na hora, se o navegador bloqueou a localização; senão depois de `FALHAS_PARA_PEDIR` falhas seguidas, e só quando
  * (a) a localização nem veio (negada, indisponível, demorou) ou (b) veio, mas fraca (margem > 100 m) ou a poucos
  * passos da casa (≤ 500 m). Quem está claramente em outro lugar não vê o botão.
  */
 export function podePedirPresenca (r, falhas) {
   if (precisaDeRevisao(r)) return true
-  if (!falhaDeLocalizacao(r) || !(falhas >= FALHAS_PARA_PEDIR)) return false
+  if (!falhaDeLocalizacao(r)) return false
+  // Localização BLOQUEADA no navegador: repetir não adianta sem mexer nas configurações, e quase ninguém mexe. O pedido de
+  // revisão (a organização decide, nada conta antes) já aparece na 1ª falha (05/11/2026, pedido do Wilker).
+  if (r.motivo === 'sem_localizacao' && r.posicao === 'negada') return true
+  if (!(falhas >= FALHAS_PARA_PEDIR)) return false
   if (r.motivo === 'sem_localizacao') return true
   const fraca = Number.isFinite(r.precisao) && r.precisao > PRECISAO_FRACA_M
   const perto = Number.isFinite(r.distancia_m) && r.distancia_m <= LONGE_PLAUSIVEL_M

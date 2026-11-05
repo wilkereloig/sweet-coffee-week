@@ -92,3 +92,27 @@ export function ajudaLocalizacao (r) {
   ]
   return { titulo, texto, passos }
 }
+
+/**
+ * Aparelho pelo user agent: `plataforma` ('iphone' · 'android' · 'outro') e `app` (navegador embutido de rede social, que costuma
+ * bloquear a localização). Só para escolher QUAL ajuda mostrar primeiro; nada é guardado nem enviado.
+ */
+export function aparelhoDoNavegador (ua = '') {
+  const u = String(ua || '')
+  return {
+    plataforma: /iPhone|iPad|iPod/i.test(u) ? 'iphone' : /Android/i.test(u) ? 'android' : 'outro',
+    app: /Instagram|FBAN|FBAV|FB_IAB|Line\/|musical_ly|TikTok|Snapchat|MicroMessenger/i.test(u),
+  }
+}
+
+/**
+ * Separa os passos de `ajudaLocalizacao` em os do aparelho da pessoa (à vista) e os dos outros (recolhidos): quem está no Android
+ * não precisa ler o caminho do iPhone. Em aplicativo (Instagram…), "abrir no navegador" vem primeiro. Aparelho desconhecido: tudo à vista.
+ */
+export function passosParaAparelho (passos = [], aparelho = { plataforma: 'outro', app: false }) {
+  const [iphone, android, app] = passos
+  const proprio = aparelho.plataforma === 'iphone' ? iphone : aparelho.plataforma === 'android' ? android : null
+  if (!proprio && !aparelho.app) return { principais: passos.filter(Boolean), outros: [] }
+  const principais = [aparelho.app ? app : null, proprio].filter(Boolean)
+  return { principais, outros: passos.filter((p) => p && !principais.includes(p)) }
+}

@@ -12,6 +12,7 @@ import { Link } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
 import { nomeDaCasa } from './regras.js'
 import { CACA, CACA_CAMINHOS as RUA } from './textos.js'
+import { ComoCarimbar } from './mapa/ComoCarimbar.jsx'
 import { CriarMapa } from './CriarMapa.jsx'
 import { GuardarMapa } from './GuardarMapa.jsx'
 import { ReceberLink } from './ReceberLink.jsx'
@@ -36,6 +37,7 @@ function Progresso ({ caca }) {
       </ul>
       {!posicao && <p className="ct-nota">{P.semPosicao}</p>}
       {completo && <p className="ct-nota"><strong>{P.completo}</strong></p>}
+      <ComoCarimbar aberto={validadas === 0 && pendentes === 0} />
       <details className="ct-central__como">
         <summary>{P.como.titulo}</summary>
         <ul>{P.como.itens.map((t) => <li key={t}>{t}</li>)}</ul>

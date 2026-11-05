@@ -15,6 +15,7 @@ import { contarFiltros, casasEEnderecos, enderecosDaCasa } from '../src/edicao/c
 import { ESTADO_TEXTO, MAPA_CACA as T, distanciaCurta } from '../src/edicao/caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../src/edicao/caca/mapa/imagens.js'
 import { mundoEdicao, iconeEdicao } from '../src/data/imageLibrary.js'
+import { CACA } from '../src/edicao/caca/textos.js'
 
 const PUB = fileURLToPath(new URL('../public/', import.meta.url))
 const noDisco = (src) => existsSync(join(PUB, src.replace(/^\//, '')))
@@ -129,6 +130,26 @@ test('a assinatura do Sicredi abre a ficha da casa (só no site) e o Mapa, e nã
   assert.match(src('cartoon/paginas/mapa/index.jsx'), /<AssinaturaPatrocinio \/>/)
   const css = readFileSync(fileURLToPath(new URL('../src/styles/cartoon/01-base.css', import.meta.url)), 'utf8')
   assert.doesNotMatch(css.match(/\.ct-assina-patrocinio \{[^}]*\}/)[0], /position: (fixed|sticky)/, 'não é fixa na tela (manual da Sicredi)')
+})
+
+test('como carimbar: três passos à vista no mapa e na central, e o atalho "Carimbar aqui" no cartão da casa', () => {
+  const lerSrc = (f) => readFileSync(fileURLToPath(new URL(`../src/edicao/${f}`, import.meta.url)), 'utf8')
+  const C = CACA.comoCarimbar
+  assert.equal(C.passos.length, 3)
+  const tudo = C.passos.map((x) => `${x.titulo} ${x.texto}`).join(' ')
+  assert.match(tudo, /QR/); assert.match(tudo, /localização/); assert.match(tudo, /Carimbar aqui/)
+  assert.match(tudo, /avalie o combo da mesma casa/i); assert.match(tudo, /mesmo e-mail/)
+  assert.doesNotMatch(tudo + C.nota, /vot(o|a|ar|ação)\b|\bSweet\b(?! &)/i, 'nunca "votar", nunca "Sweet" sozinho')
+  assert.match(lerSrc('caca/mapa/Progresso.jsx'), /<ComoCarimbar aberto=\{p\.feitas === 0/, 'faixa do mapa: aberto até a primeira casa')
+  assert.match(lerSrc('caca/mapa/Progresso.jsx'), /<ComoCarimbar aberto \/>/, 'sem mapa, aberto junto do convite')
+  assert.match(lerSrc('caca/Central.jsx'), /<ComoCarimbar /)
+  const cartao = lerSrc('cartoon/paginas/mapa/Cartao.jsx')
+  assert.match(cartao, /\/carimbo\/\$\{p\.slug\}/, 'o atalho abre a mesma página do QR do display (ela pede a localização)')
+  assert.match(cartao, /\{TC\.carimbarAqui\}/)
+  assert.equal(T.carimbarAqui, 'Carimbar aqui')
+  // os outros endereços da casa ficam à vista: o bloco vem antes das ações e fora do "Mais" (que é escondido)
+  assert.ok(cartao.indexOf('ct-mapa__irmas') < cartao.indexOf('ct-mapa__cartao-acoes'), 'outros endereços antes das ações')
+  assert.ok(cartao.indexOf('ct-mapa__irmas') < cartao.indexOf('id={idMais}'), 'outros endereços fora do "Mais"')
 })
 
 test('próximo passo ignora casa sem unidade (não há o que visitar)', () => {
