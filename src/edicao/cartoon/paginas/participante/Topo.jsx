@@ -2,8 +2,13 @@
  * 1 · Topo da casa: canal Elenco + cenário do tema (só os objetos; a faixa com o combo fica fixa no pé — CenarioFixo).
  * Revisão de 03/11 ("a foto vende sozinha"): a foto do combo sobe para o topo, ao lado do nome (celular: logo depois
  * dele), levando ao bloco do combo; o preço da edição fica à vista no letreiro desenhado.
+ * Revisão de 04/11 (ficha): o NOME DO COMBO vem antes do preço — quem chega pelo QR confere o que vem e quanto custa
+ * sem rolar —, e o texto de apresentação da casa saiu daqui para "Sobre a casa" (competia com a foto; no celular
+ * empurrava o combo para fora da primeira tela).
  * Dois grupos com rótulo e desenhos diferentes para não se confundirem: "Como pedir" são ATALHOS (levam ao endereço
  * e horário, ou ao link de pedido) e "Minha rota" são MARCAÇÕES do visitante (ficam salvas no aparelho).
+ * O atalho de Delivery só abre um link direto quando não há dúvida de qual unidade é (M.destinoDelivery); com
+ * várias unidades e canais diferentes ele leva a "Como pedir", onde cada unidade tem o seu.
  */
 import React from 'react'
 import * as M from '../../../dados/modelo.js'
@@ -16,20 +21,22 @@ import { Quadro, Preco } from '../../../componentes/sistema/pecas.jsx'
 import { Foto } from '../../../componentes/base.jsx'
 import { PARTICIPANTE as T, ATENDIMENTO } from '../../textos.js'
 import { QueroIrCasa, JaFui } from '../../MarcasLover.jsx'
-import { linkSeguro } from './ComoPedir.jsx'
+import { Ancora } from './Ancora.jsx'
 
 export function Topo ({ p, encerrada, rota, navigate }) {
   const unidades = p.unidades || []
   const foto = p.combo?.fotos?.principal
   const preco = !encerrada ? p.combo?.preco : null
+  const nomeCombo = p.combo?.nome ? M.caixaLegivel(p.combo.nome) : ''
   const selos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim')
-  // Atalho de cada modo: no local e para viagem levam ao endereço e ao horário; delivery ao link de pedido.
-  const linkDelivery = unidades.flatMap((u) => u.combo?.canais || []).find(linkSeguro)?.link
-  const destinoModo = (k) => k !== 'delivery'
-    ? { href: '#unidades', dica: T.comoPedirDica[k] }
-    : linkDelivery
-      ? { href: String(linkDelivery).trim(), target: '_blank', rel: 'noopener noreferrer', dica: T.comoPedirDica.delivery }
-      : { href: '#atendimento', dica: T.comoPedirDica.deliveryInfo }
+  // Atalho de cada modo: no local e para viagem levam ao endereço e ao horário; delivery ao link de pedido, se for
+  // inequívoco, ou a "Como pedir" (escolher a unidade, ou ver o que a casa informou).
+  const delivery = M.destinoDelivery(p)
+  const destinoModo = (k) => {
+    if (k !== 'delivery') return { para: 'unidades', dica: T.comoPedirDica[k] }
+    if (delivery.tipo === 'link') return { href: delivery.link, dica: T.comoPedirDica.delivery }
+    return { para: 'atendimento', dica: delivery.tipo === 'escolher' ? T.comoPedirDica.deliveryEscolher : T.comoPedirDica.deliveryInfo }
+  }
 
   return (
     <TopoCanal canal="elenco" className="ct-casa ct-ficha__topo ct-reticula" aria-labelledby="casa-nome">
@@ -39,14 +46,14 @@ export function Topo ({ p, encerrada, rota, navigate }) {
         <div className="ct-ficha__titulo">
           <Letreiro nivel={1} id="casa-nome" tamanho="display" texto={p.casa.nome} />
           {p.casa.tema && <p className="ct-ficha__tema">{T.tema(p.casa.tema)}</p>}
-          {p.casa.apresentacao && <p className="ct-lead ct-ficha__apresentacao">{p.casa.apresentacao}</p>}
+          {nomeCombo && <p className="ct-ficha__combo">{nomeCombo}</p>}
           {preco && <Preco rotulo={T.precoRotulo} valor={M.formatarPreco(preco)} className="ct-ficha__preco" />}
         </div>
         {foto && (
-          <a className="ct-ficha__vitrine" href="#combo" aria-label={T.verCombo}>
+          <Ancora para="combo" className="ct-ficha__vitrine" aria-label={T.verCombo}>
             <span className="ct-explosao ct-ficha__explosao" aria-hidden="true" />
             <Quadro className="ct-ficha__foto"><Foto foto={foto} proporcao="4 / 5" alt={foto.alt || ''} prioridade /></Quadro>
-          </a>
+          </Ancora>
         )}
         <div className="ct-ficha__acoes">
           {!encerrada && selos.length > 0 && (
@@ -54,14 +61,22 @@ export function Topo ({ p, encerrada, rota, navigate }) {
               <p id="como-pedir-rotulo" className="ct-rotulo">{T.atendimentoTitulo}</p>
               <ul className="ct-ficha__modos">
                 {selos.map((k) => {
-                  const { dica, ...link } = destinoModo(k)
+                  const { dica, para, href } = destinoModo(k)
+                  const conteudo = (
+                    <>
+                      <IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={32} />
+                      <span className="ct-atalho__texto">
+                        <span className="ct-atalho__nome">{ATENDIMENTO[k].rotulo}</span>
+                        <span className="ct-atalho__dica">{dica}</span>
+                      </span>
+                      <span className="ct-atalho__seta" aria-hidden="true">{href ? '↗' : '↓'}</span>
+                    </>
+                  )
                   return (
                     <li key={k}>
-                      <a className="ct-atalho" {...link}>
-                        <IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={32} />
-                        <span className="ct-atalho__texto"><span className="ct-atalho__nome">{ATENDIMENTO[k].rotulo}</span><span className="ct-atalho__dica">{dica}</span></span>
-                        <span className="ct-atalho__seta" aria-hidden="true">{link.target ? '↗' : '↓'}</span>
-                      </a>
+                      {href
+                        ? <a className="ct-atalho" href={href} target="_blank" rel="noopener noreferrer">{conteudo}<span className="ct-sr"> {T.abreEmNovaAba}</span></a>
+                        : <Ancora className="ct-atalho" para={para}>{conteudo}</Ancora>}
                     </li>
                   )
                 })}

@@ -57,10 +57,30 @@ export function resumoCombo (itens = []) {
   return linhas
 }
 
+/**
+ * O que algum componente declarou em `chave` ('contem' | 'podeConter'), sem repetir: o catálogo na ordem de sempre e,
+ * depois, o "outro alergênico" que a casa escreveu (ele já vem em resumoItem; sem ele o alerta do combo omitia o que o cartão do item mostra).
+ */
+function declaradosNoCombo (itens, chave) {
+  const ordem = ALERGENICOS.map(([, r]) => r)
+  const pos = (r) => (ordem.includes(r) ? ordem.indexOf(r) : ordem.length)
+  return [...new Set(itens.flatMap((i) => resumoItem(i)[chave]))].sort((a, b) => pos(a) - pos(b))
+}
+
 /** Frase curta para perto do preço: "Contém leite, ovo e glúten". Vazia se nada for declarado como contém. */
 export function fraseAlerta (itens = []) {
-  const contem = ALERGENICOS.filter(([a]) => itens.some((i) => declaracoes(i)[a] === 'contem')).map(([, r]) => r)
+  const contem = declaradosNoCombo(itens, 'contem')
   return contem.length ? `Contém ${juntar(contem)}` : ''
+}
+
+/**
+ * "Pode conter amendoim e soja": o que algum componente declarou como "pode conter" e que nenhum declarou como "contém"
+ * (quem contém já está na frase de cima). Vazia se não houver. Nunca deduz: só repete a declaração da casa.
+ */
+export function frasePodeConter (itens = []) {
+  const contem = declaradosNoCombo(itens, 'contem')
+  const pode = declaradosNoCombo(itens, 'podeConter').filter((r) => !contem.includes(r))
+  return pode.length ? `Pode conter ${juntar(pode)}` : ''
 }
 
 /** Todo componente declarou NÃO conter (nunca vale com "não informado"). */
@@ -106,6 +126,42 @@ export function estadoModo (p, k) {
   const ni = us.filter((u) => modoDe(u, k) === 'nao_informado')
   if (ni.length || !us.length) return { estado: 'nao_informado', unidades: ni }
   return { estado: 'nao', unidades: [] }
+}
+
+/**
+ * Canais de pedido da unidade que são link http(s) de verdade. O dado gravado antes da validação do painel não é
+ * confiável: nenhum canal vira href sem passar por aqui (a ficha e o atalho do topo usam esta mesma lista).
+ */
+export const linkHttp = (s) => /^https?:\/\//i.test(String(s ?? '').trim())
+export const canaisSeguros = (u) => (u?.combo?.canais || []).filter((c) => linkHttp(c?.link))
+
+/**
+ * Para onde vai o atalho "Delivery" do topo da ficha. Só abre um link direto quando não há dúvida de qual unidade o
+ * visitante está pedindo — o canal é de cada unidade, e o do primeiro endereço da lista não vale para as outras:
+ *  · `link`     — uma só unidade entrega (vale o 1º canal que ela cadastrou), ou todas as que entregam usam o mesmo link;
+ *  · `escolher` — mais de uma unidade entrega e os canais diferem (ou só algumas têm canal): a pessoa escolhe a unidade
+ *                 em "Como pedir", onde cada uma tem os seus;
+ *  · `info`     — nenhuma unidade que entrega tem canal com link: "Como pedir" diz o que a casa informou.
+ * Unidade que não declarou delivery "sim" para o combo nunca entra, mesmo com canal gravado.
+ */
+export function destinoDelivery (p) {
+  const modo = estadoModo(p, 'delivery')
+  const entregam = modo.estado === 'sim' ? modo.unidades : [] // sem "sim", `unidades` são as em branco, não as que entregam
+  const links = entregam.map((u) => canaisSeguros(u).map((c) => String(c.link).trim()))
+  const todos = [...new Set(links.flat())]
+  if (!todos.length) return { tipo: 'info' }
+  if (entregam.length === 1) return { tipo: 'link', link: links[0][0] }
+  if (todos.length === 1 && links.every((l) => l.includes(todos[0]))) return { tipo: 'link', link: todos[0] }
+  return { tipo: 'escolher' }
+}
+
+/**
+ * A observação da casa sobre a unidade, só quando diz algo: "Nada", "Não", "-" são a resposta a um campo opcional,
+ * não aviso — e na ficha apareciam como se fossem. Só exibição: o dado não muda.
+ */
+export const observacaoUtil = (t) => {
+  const s = String(t ?? '').trim()
+  return /^(nada|nenhum[a]?|n[ãa]o( tem| h[áa])?|n\/?a|sem observa[çc][ãa]o|[-–—.]+)$/i.test(s) ? '' : s
 }
 
 /**

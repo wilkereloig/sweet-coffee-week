@@ -192,7 +192,11 @@ test('link do canal de delivery: só endereço web; javascript:/data: nunca vira
   assert.equal(C.erroLinkCanal('wa.me/55'), '')
   // O href da ficha e o da página pública também checam (o dado já gravado antes não é confiável).
   assert.match(ler('painel-app/src/components/vistas/FichaVisao.jsx'), /linkWebSeguro\(c\.link\) \? <a className="og-link" href=\{linkWebSeguro\(c\.link\)\}/)
-  assert.match(ler('src/edicao/cartoon/paginas/participante/ComoPedir.jsx'), /\.filter\(\(c\) => \/\^https\?:/)
+  // A checagem do link mora numa função só do modelo (o atalho do topo e "Como pedir" usam a mesma lista): http(s) de verdade.
+  assert.match(ler('src/edicao/dados/modelo.js'), /export const linkHttp = \(s\) => \/\^https\?:/)
+  assert.match(ler('src/edicao/dados/modelo.js'), /canaisSeguros = \(u\) => \(u\?\.combo\?\.canais \|\| \[\]\)\.filter\(\(c\) => linkHttp\(c\?\.link\)\)/)
+  assert.match(ler('src/edicao/cartoon/paginas/participante/ComoPedir.jsx'), /M\.canaisSeguros\(u\)/)
+  assert.doesNotMatch(ler('src/edicao/cartoon/paginas/participante/Topo.jsx'), /\.canais/, 'o topo não lê canal cru: usa M.destinoDelivery')
   assert.match(ler('painel-app/src/components/vistas-marca/edicao/Atendimento.jsx'), /erroLinkCanal\(u\.canais\[c\.tipo\]\)/)
 })
 

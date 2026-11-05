@@ -170,7 +170,7 @@ O corpo de todas as páginas é creme. O topo de cada uma usa o `TopoCanal` do s
 |---|---|---|
 | **Entrada** `/cartoon` | Estreia (amarelo) | Herói: selo, letreiro "Agora é hora de provar!", TV-cidade, sem olhinhos; placas só com o que é fato (5 a 15 de novembro, nº de casas publicadas) · Como funciona (escolha · prove · avalie) com etiqueta azul · "Nosso elenco": logos em `Quadro`, levando a Participantes · Onde ficam: bairros, levando ao Mapa · Avalie · Dúvidas |
 | **Participantes** | Elenco (creme) | Letreiro "Nosso elenco", contagem, busca, filtros (bairro, aberto hoje, vegano, diet, para viagem, delivery) · cartão com a foto do combo como protagonista (sem foto: "Foto em produção" com a logo no `Quadro`), logo, nome, tema ("inspirado em …"), bairros e selos |
-| **Ficha da casa** | Elenco no topo; Cardápio (rosa) no bloco do combo | Logo, nome (display) e tema · combo: foto grande, nome, itens e condições, preço só se vier do dado · unidades: endereço, horário, Como chegar, WhatsApp autorizado, "Adicionar à rota" · restrições alimentares e trocas · galeria |
+| **Ficha da casa** | Elenco no topo; Cardápio (rosa) no bloco do combo | Topo: logo, nome (display), tema, **nome do combo**, preço (só se vier do dado), foto e atalhos · combo: faixa "No combo" (doce · salgado · bebida), condições, avisos "Contém" e "Pode conter", um cartão por item, restrições e trocas · Como pedir: modos e painel de delivery por unidade · unidades: situação de hoje, endereço, horário, Como chegar, WhatsApp autorizado, "Adicionar à rota" · Sobre a casa (texto e fotos) · Avalie. Detalhe da revisão de 04/11 em §10.18 |
 | **Mapa** | Rota (turquesa) | Mapa e lista; filtros "aberto agora" e bairro; unidade sem coordenada conferida entra na lista com "localização em conferência" |
 | **Minha rota** | Rota (turquesa) | Paradas em placas numeradas, tracejado vermelho, Google Maps em trechos, compartilhar |
 | **Avaliar** | Serviço (creme + azul) | Letreiro "Avalie sua experiência", três passos, formulário. Fora da janela: estado "abre em 5 de novembro", com olhinhos em expectativa longe do formulário |
@@ -445,3 +445,25 @@ A língua é de **gibi pop**:
 - **Recorte:** `python -I scripts/edicao/elementos-gibi.py "<geracoes>"`. O fundo chapado que toca a borda vira transparente, a franja do contorno vira tinta com alfa, e cada célula da grade vira uma peça.
 
 **Conserto de nome.** O bloco da vitrine da Entrada se chamava `.ct-vitrine`, o mesmo nome do invólucro de `/cartoon/sistema`. O CSS da Entrada transformava a página do sistema numa faixa de rolar de lado, e os selos dela ficavam sobre o cenário. Esse defeito vinha desde 03/11. Agora o bloco se chama `.ct-laminas`.
+
+## 10.18 Revisão da ficha da casa (04/11): visual e organização
+
+Pedido: revisar a ficha de cada participante, com prioridade para o visual e a organização, pensando na jornada (entender o combo, consultar os detalhes, saber como, onde e quando encontrá-lo). A ficha é uma só para as 27 casas e é a mesma que a prévia do painel mostra (`painel-app` importa `FichaParticipante`).
+
+Medido em produção, com dado publicado, em 390 e 1440 px (7 casas: uma unidade, várias, sem combo, com apresentação, com muitas trocas).
+
+| Onde | Antes | Agora |
+|---|---|---|
+| **Delivery no topo** | Abria o 1º canal que achasse entre TODAS as unidades, mesmo de unidade que não entrega: na Jolie, o WhatsApp de Cidade Verde servia a quem queria Petrópolis | `M.destinoDelivery`: link direto só quando uma única unidade entrega (ou todas usam o mesmo link); com várias unidades e canais diferentes o atalho diz **"Escolha a unidade"** e leva a "Como pedir"; sem canal com link, "Ver como pedir". Unidade que não declarou delivery "sim" nunca entra |
+| **Atalhos internos** | `<a href="#unidades">` mudava o hash; a prévia do painel lê o hash como rota e voltava à visão geral | `Ancora.jsx`: rola até o bloco sem mexer no endereço, busca só dentro da ficha (o painel tem ids `combo` e `unidades` próprios) e leva o foco ao bloco |
+| **Topo** | Nome da casa, tema e preço; o nome do combo só aparecia depois da foto. A apresentação da casa (Boldfood: 231 caracteres) empurrava a foto para y = 721 no celular | O **nome do combo** vem antes do preço. A apresentação foi para **"Sobre a casa"** (com as fotos da casa): a foto abre a ficha na primeira tela (y = 441) |
+| **"No combo"** | Uma linha de nomes, repetida logo abaixo nos cartões | Faixa dos itens: miniatura, tipo e nome, cada um levando ao seu cartão. O id do cartão é a **posição** (há casas com dois doces) |
+| **Alergênicos** | O aviso do painel só dizia "Contém"; o resumo do fim não repetia o que a casa declarou (parecia contradizer "lactose: não informado"); o "outro alergênico" escrito pela casa ficava fora do aviso | "Contém" e "Pode conter" (sem repetir o que já contém) no painel e no resumo; o "outro alergênico" entra. "Pode conter" ganha contorno vermelho inteiro, no lugar da faixa só de um lado. As quatro categorias (contém · pode conter · não contém · não informado) seguem como eram |
+| **Cartões dos itens** | Nome e texto desalinhados entre colunas (um item com galeria, outro com foto só) | No computador os três cartões dividem as mesmas sete linhas (subgrade CSS); sem suporte a subgrade, ficam como eram |
+| **Como pedir** | Três cartões com a lista de unidades repetida; o do delivery três vezes mais alto, os outros dois vazios | Cartões compactos ("Em todas as unidades" quando todas oferecem) e um painel de delivery com uma linha por unidade e o canal dela em botão de 44 px. Taxa e região uma vez só quando valem para todas. Delivery "sim" sem canal diz "Canal de pedido não informado pela casa" |
+| **Unidades** | Grade de 11 dias em cada unidade (a Jolie tinha 2.953 px só de unidades no celular); a situação de hoje no fim | A situação de hoje sobe para o topo do cartão, em pílula; o horário abre em **frases** ("Todos os dias, das 12h às 21h"); a grade vira "Ver todos os dias do festival" (fechada quando as frases dizem tudo, aberta quando muda dia a dia, ausente quando todos os dias são iguais). Quando as unidades atendem de jeitos diferentes, cada cartão diz o que a sua atende |
+| **Observação da unidade** | "Nada" aparecia como aviso (Cookitos, Wow Cookies) | `M.observacaoUtil` descarta respostas que não dizem nada ("Nada", "Não", "-"); o dado no banco não muda |
+
+Efeito: Jolie no celular de 10.418 para 9.660 px; Boldfood com a foto na primeira tela. Wow Cookies cresce (+700 px no celular) porque ganhou a faixa dos itens e as linhas de "Contém"/"Pode conter" — informação que antes faltava.
+
+**Dado a corrigir no painel (não é do site):** Cookitos Lagoa Nova com link de site digitado errado (`…/unidsdes`); Mariana's com o link do Instagram cadastrado como "WhatsApp" e como "Site" em duas unidades iguais; Caroli Douces publicada sem combo e com 5 unidades; o retrato local do painel difere do publicado (Wow e Caroli).

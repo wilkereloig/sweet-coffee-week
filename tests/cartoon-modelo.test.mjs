@@ -260,3 +260,53 @@ test('Mapa: uma linha por unidade; bairro e "aberto agora" valem para a unidade;
   assert.equal(M.tituloDaUnidade({ casa: { nome: 'Caroli' } }, {}), 'Caroli')
   assert.ok(Math.abs(M.km({ lat: -5.8, lng: -35.2 }, { lat: -5.9, lng: -35.2 }) - 11.1) < 0.1)
 })
+
+test('atalho de delivery do topo: link direto só sem dúvida de unidade; com várias unidades e canais diferentes, a pessoa escolhe', () => {
+  const un = (id, delivery, links = []) => ({ id, combo: { modos: { delivery }, canais: links.map((link) => ({ tipo: 'whatsapp', link })) } })
+  const casa = (...unidades) => ({ unidades })
+  // uma só unidade entrega: o 1º canal que ela cadastrou
+  assert.deepEqual(M.destinoDelivery(casa(un('a', 'sim', ['https://wa.me/1', 'https://ifood.com/x']))), { tipo: 'link', link: 'https://wa.me/1' })
+  // várias entregam, cada uma com o seu canal: o link de uma não vale para as outras
+  assert.deepEqual(M.destinoDelivery(casa(un('a', 'sim', ['https://wa.me/1']), un('b', 'sim', ['https://wa.me/2']))), { tipo: 'escolher' })
+  // várias entregam e todas usam o mesmo link: direto
+  assert.deepEqual(M.destinoDelivery(casa(un('a', 'sim', [' https://wa.me/1 ']), un('b', 'sim', ['https://wa.me/1']))), { tipo: 'link', link: 'https://wa.me/1' })
+  // só uma das que entregam tem canal: a outra ficaria sem destino, a pessoa escolhe
+  assert.deepEqual(M.destinoDelivery(casa(un('a', 'sim', ['https://wa.me/1']), un('b', 'sim'))), { tipo: 'escolher' })
+  // unidade que NÃO entrega não conta, mesmo com canal gravado (a Demo Aurora: Centro entrega, Sul não)
+  assert.deepEqual(M.destinoDelivery(casa(un('a', 'sim', ['https://wa.me/1']), un('b', 'nao', ['https://wa.me/2']))), { tipo: 'link', link: 'https://wa.me/1' })
+  assert.deepEqual(M.destinoDelivery(aurora), { tipo: 'link', link: 'https://wa.me/5584900000000' })
+  // link que não é http(s) nunca vira destino; sem canal utilizável, "Como pedir" explica
+  assert.deepEqual(M.destinoDelivery(casa(un('a', 'sim', ['javascript:alert(1)', 'wa.me/sem-esquema']))), { tipo: 'info' })
+  // ninguém declarou delivery "sim": as unidades "em branco" não são unidades que entregam
+  assert.deepEqual(M.destinoDelivery(casa(un('a', 'nao_informado', ['https://wa.me/1']))), { tipo: 'info' })
+  assert.deepEqual(M.destinoDelivery({}), { tipo: 'info' })
+  assert.deepEqual(M.canaisSeguros(un('a', 'sim', ['https://x.com', 'ftp://x', ''])).map((c) => c.link), ['https://x.com'])
+})
+
+test('alertas do combo: "contém" e "pode conter" sem repetir, e o "outro alergênico" da casa entra', () => {
+  const item = (...alimentar) => ({ alimentar })
+  const c = (aspecto) => ({ aspecto, estado: 'contem' })
+  const pc = (aspecto) => ({ aspecto, estado: 'pode_conter' })
+  const nao = (aspecto) => ({ aspecto, estado: 'nao_contem' })
+  const itens = [item(c('gluten'), pc('amendoim'), pc('leite')), item(c('leite'), pc('soja'), nao('ovo'))]
+  assert.equal(M.fraseAlerta(itens), 'Contém glúten e leite')
+  // leite está em "contém" no 2º item: não repete em "pode conter"
+  assert.equal(M.frasePodeConter(itens), 'Pode conter amendoim e soja')
+  assert.equal(M.frasePodeConter([item(nao('ovo'))]), '')
+  // ausência de declaração não é "não contém" nem "pode conter"
+  assert.equal(M.fraseAlerta([item()]), '')
+  assert.equal(M.frasePodeConter([item()]), '')
+  // o alergênico escrito pela casa aparece depois do catálogo
+  const outro = item(c('ovo'), { aspecto: 'outro_alergenico', estado: 'contem', observacao: 'gergelim' })
+  assert.equal(M.fraseAlerta([outro]), 'Contém ovo e gergelim')
+  assert.equal(M.frasePodeConter([item({ aspecto: 'outro_alergenico', estado: 'pode_conter', observacao: 'gergelim' })]), 'Pode conter gergelim')
+  // a demonstração segue como era
+  assert.equal(M.frasePodeConter(aurora.combo.itens), 'Pode conter amendoim')
+})
+
+test('observação da unidade: "Nada" e afins não viram aviso na ficha; texto de verdade passa', () => {
+  for (const vazio of ['Nada', ' nada ', 'NENHUMA', 'Não', 'não tem', 'n/a', 'NA', '-', '—', '...', 'Sem observação', '', null, undefined]) assert.equal(M.observacaoUtil(vazio), '', String(vazio))
+  assert.equal(M.observacaoUtil('Nesta unidade a bebida é servida gelada.'), 'Nesta unidade a bebida é servida gelada.')
+  assert.equal(M.observacaoUtil('  Não aceita cartão  '), 'Não aceita cartão')
+  assert.equal(M.observacaoUtil('Nada de glúten no recheio'), 'Nada de glúten no recheio')
+})

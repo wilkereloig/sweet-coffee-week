@@ -9,10 +9,10 @@
 .ct-ficha__cabeca { display: grid; justify-items: start; gap: 22px; width: 100%; }
 .ct-ficha__logo { --ct-desenho: clamp(112px, 34vw, 150px); rotate: -2deg; }
 .ct-ficha__titulo { display: grid; justify-items: start; gap: 12px; min-width: 0; }
-.ct-ficha__titulo .ct-rotulo, .ct-ficha__titulo .ct-letreiro, .ct-ficha__apresentacao { margin: 0; }
+.ct-ficha__titulo .ct-rotulo, .ct-ficha__titulo .ct-letreiro, .ct-ficha__titulo .ct-ficha__tema, .ct-ficha__combo { margin: 0; }
+/* O nome do combo vem antes do preço (revisão de 04/11): quem chega pelo QR confere o que vem e quanto custa sem rolar. */
+.ct-ficha__combo { max-width: 24ch; font: 900 clamp(20px, 2.1vw, 26px)/1.15 var(--ct-font); text-wrap: balance; }
 .ct-ficha__titulo .ct-letreiro { max-width: 16ch; }
-.ct-ficha__selos { margin-top: 4px; }
-.ct-ficha__selos .ct-selo { background: var(--ct-branco); }
 /* Topo da ficha em dois grupos com rótulo: "Como pedir" são atalhos (levam ao endereço/horário ou ao pedido) e
    "Minha rota" são marcações do visitante — desenhos diferentes para não se confundirem. */
 .ct-ficha__grupo { display: grid; justify-items: start; gap: 8px; }
@@ -84,18 +84,35 @@
 @media (min-width: 900px) {
   .ct-cardapio__grade.ct-cardapio__grade--so-painel { grid-template-columns: minmax(0, 1fr); }
   .ct-cardapio__grade--so-painel .ct-cardapio__painel { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; column-gap: 48px; }
-  .ct-cardapio__grade--so-painel .ct-cardapio__painel > :is(.ct-alerta, .ct-cardapio__preco) { grid-column: 1 / -1; }
+  .ct-cardapio__grade--so-painel .ct-cardapio__painel > :is(.ct-composicao-bloco, .ct-alertas, .ct-cardapio__preco) { grid-column: 1 / -1; }
 }
 .ct-cardapio__grade--so-painel .ct-cardapio__painel { width: 100%; max-width: none; }
 .ct-cardapio__painel p { margin: 0; }
 .ct-cardapio__preco { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
 .ct-cardapio__preco .ct-nota { max-width: 24ch; margin: 0; }
-.ct-cardapio__composicao { font: 800 var(--ct-fs-sub)/1.2 var(--ct-font); text-wrap: balance; }
+.ct-alertas { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Aviso de alergênicos: "Contém" em amarelo e "Pode conter" em branco com contorno vermelho — a mesma leitura das linhas dos
+   cartões de item (Alimentar). Texto de várias linhas não vira pílula esticada: raio de 22px. */
 .ct-alerta {
-  display: inline-flex; align-items: center; justify-self: start; min-height: 44px; padding: 0 18px;
-  border: var(--ct-traco); border-radius: 999px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+  display: inline-flex; align-items: center; justify-self: start; min-height: 44px; padding: 8px 18px;
+  border: var(--ct-traco); border-radius: 22px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
   font: 800 15px/1.3 var(--ct-font); text-decoration: none;
 }
+.ct-alerta--contem { background: var(--ct-amarelo); }
+.ct-alerta--pode { border-color: var(--ct-vermelho); }
+/* "No combo": a faixa dos itens — miniatura, tipo e nome; cada um leva ao seu cartão. Uma coluna no celular, até três no computador. */
+.ct-composicao { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ct-edicao .ct-composicao__item {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 76px; padding: 6px 14px 6px 6px;
+  border: 2.5px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+  color: var(--ct-chocolate); text-decoration: none;
+}
+.ct-edicao .ct-composicao__item:hover { background: var(--ct-creme); }
+.ct-composicao__foto { display: grid; place-items: center; width: 64px; height: 64px; overflow: hidden; border: 2px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-creme); }
+.ct-composicao__foto .ct-foto { width: 100%; height: 100%; border: 0; border-radius: 0; }
+.ct-composicao__texto { display: grid; gap: 1px; min-width: 0; }
+.ct-composicao__tipo { font: 800 13px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
+.ct-composicao__nome { font: 800 17px/1.2 var(--ct-font); overflow-wrap: anywhere; }
 /* A etiqueta do tipo pousa na borda de cima do cartão, como fita. */
 .ct-cardapio__itens { display: grid; gap: 32px; width: 100%; margin: 40px 0 0; padding: 0; list-style: none; }
 .ct-item {
@@ -120,10 +137,34 @@
 .ct-cardapio__restricoes p { margin: 0; }
 .ct-cardapio__subtitulo { display: flex; align-items: center; gap: 10px; margin: 0; font: 900 var(--ct-fs-sub)/1.1 var(--ct-font); }
 .ct-cardapio__restricoes .ct-vereditos { margin: 0; }
+/* O que a casa declarou para o combo inteiro, antes das quatro restrições: "Contém" amarelo, "Pode conter" com contorno vermelho. */
+.ct-declarado { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ct-declarado__linha { display: flex; align-items: center; justify-self: start; gap: 8px; max-width: 100%; padding: 10px 14px; border-radius: 12px; font: 800 16px/1.35 var(--ct-font); }
+.ct-declarado__linha svg { flex: none; }
+.ct-declarado__linha--contem { background: var(--ct-amarelo); }
+.ct-declarado__linha--pode { background: var(--ct-branco); box-shadow: inset 0 0 0 2px var(--ct-vermelho); }
 .ct-cardapio__restricoes .ct-confirme { margin: 0; }
+/* O cartão do item é alvo de âncora ("No combo" leva a ele): a fita do tipo sobe 40px acima da borda e não pode ficar sob o cabeçalho preso. */
+.ct-edicao .ct-item[id] { scroll-margin-top: 116px; }
 @media (min-width: 900px) {
   .ct-cardapio__grade { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 44px; }
   .ct-cardapio__itens { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .ct-edicao .ct-item[id] { scroll-margin-top: 140px; }
+  /* Os cartões dividem as MESMAS sete linhas (fita · foto · nome · descrição · ingredientes · restrições · trocas): o nome, o texto
+     e as restrições de um item ficam na altura dos do vizinho, mesmo quando um tem galeria (com contador) e o outro uma foto só.
+     Sem subgrade o cartão segue como era (cada um com a sua altura). O espaço entre fileiras vai na margem do cartão. */
+  @supports (grid-template-rows: subgrid) {
+    .ct-cardapio__itens { row-gap: 0; margin-bottom: -24px; }
+    .ct-item { grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; margin-bottom: 24px; }
+    .ct-item > :not(.ct-etiqueta) { margin-top: 8px; }
+    .ct-item > .ct-etiqueta { grid-row: 1; }
+    .ct-item > :is(.ct-galeria-item, .ct-foto) { grid-row: 2; }
+    .ct-item > .ct-item__nome { grid-row: 3; }
+    .ct-item > .ct-item__descricao { grid-row: 4; }
+    .ct-item > .ct-item__bloco:not(.ct-item__restricoes) { grid-row: 5; }
+    .ct-item > .ct-item__restricoes { grid-row: 6; }
+    .ct-item > .ct-trocas { grid-row: 7; }
+  }
 }
 
 /* Seções da ficha no corpo creme: letreiro em CSS + conteúdo em cartões. */
@@ -151,7 +192,8 @@
 .ct-alimentar__linha dt svg { flex: none; }
 .ct-alimentar__linha dd { margin: 0; font: 500 15px/1.4 var(--ct-font); }
 .ct-alimentar__linha--contem { background: var(--ct-amarelo); }
-.ct-alimentar__linha--pode { background: var(--ct-creme); box-shadow: inset 4px 0 0 var(--ct-vermelho); }
+/* "Pode conter": contorno vermelho inteiro (não faixa só de um lado), como o aviso do combo. */
+.ct-alimentar__linha--pode { background: var(--ct-creme); box-shadow: inset 0 0 0 2px var(--ct-vermelho); }
 .ct-alimentar__linha--ni { background: var(--ct-branco); border: 1.5px dashed var(--ct-chocolate); }
 .ct-alimentar__linha--extra dd { font-weight: 700; }
 .ct-alimentar__nada { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border: 1.5px dashed var(--ct-chocolate); border-radius: 10px; font: 600 15px/1.4 var(--ct-font); }
@@ -172,14 +214,32 @@
 .ct-modo__texto p { margin: 0; }
 .ct-modo__nome { margin: 0; font: 900 21px/1.1 var(--ct-font); }
 .ct-modo__estado { font: 700 16px/1.35 var(--ct-font); }
-.ct-modo__delivery { display: grid; gap: 2px; margin-top: 6px; font-size: 15px; }
+/* Painel de delivery: uma linha por unidade que entrega, com os canais DELA (o canal é da unidade, nunca da casa). */
+.ct-delivery { display: grid; gap: 14px; margin-top: 20px; padding: clamp(16px, 2vw, 22px); border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-delivery p { margin: 0; }
+.ct-delivery__titulo { display: flex; align-items: center; gap: 10px; margin: 0; font: 900 21px/1.1 var(--ct-font); }
+.ct-delivery__lista { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.ct-delivery__unidade { display: grid; gap: 8px 24px; padding-top: 14px; border-top: 2px dotted var(--ct-chocolate); }
+.ct-delivery__unidade:first-child { padding-top: 0; border-top: 0; }
+.ct-delivery__nome { font: 800 17px/1.25 var(--ct-font); }
+.ct-delivery__corpo { display: grid; gap: 6px; min-width: 0; }
+.ct-delivery__corpo .ct-acoes { margin-top: 0; }
+.ct-delivery__nota { font: 600 15px/1.4 var(--ct-font); }
+.ct-delivery__comum { display: grid; gap: 4px; padding-top: 12px; border-top: 2px dotted var(--ct-chocolate); }
+@media (min-width: 700px) { .ct-delivery--varias .ct-delivery__unidade { grid-template-columns: minmax(180px, .6fr) minmax(0, 1.4fr); align-items: center; } }
 .ct-ficha__fale { margin-top: 26px; }
+.ct-ficha__secao > .ct-rotulo { margin: 14px 0 10px; }
 .ct-ficha__fale .ct-acoes { margin-top: 6px; }
 
-/* 5 · Unidades: cartão largo — onde fica e as ações à esquerda; o horário dia a dia à direita (desktop). */
+/* 5 · Unidades: cartão largo — nome e situação de hoje no cabeçalho; onde fica, as ações e o que atende à esquerda; o horário à direita (desktop). */
 .ct-unidades { display: grid; gap: 20px; }
-.ct-unidade { display: grid; gap: 22px 44px; padding: clamp(18px, 2.4vw, 28px); border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra); }
-@media (min-width: 900px) { .ct-unidade { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); } }
+.ct-unidade { display: grid; gap: 16px; padding: clamp(18px, 2.4vw, 28px); border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra); }
+.ct-unidade__cab { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
+.ct-unidade__ident { display: grid; gap: 4px; min-width: 0; }
+.ct-unidade__ident .ct-rotulo { margin: 0; }
+.ct-unidade__corpo { display: grid; gap: 20px 44px; }
+@media (min-width: 900px) { .ct-unidade__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); } }
+.ct-unidade__modos { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .ct-unidade p { margin: 0; }
 .ct-unidade__onde, .ct-unidade__horario { display: grid; align-content: start; gap: 10px; min-width: 0; }
 .ct-unidade__nome { margin: 0; font: 900 clamp(22px, 2.4vw, 28px)/1.1 var(--ct-font); }
@@ -188,6 +248,13 @@
 .ct-unidade__horario > .ct-unidade__linha { margin: 0; }
 .ct-unidade__obs, .ct-unidade__ni { font-size: 15px; }
 .ct-unidade__frases { margin: 0; padding-left: 18px; }
+/* O horário em frases, em destaque: é o que a pessoa procura primeiro; os dias um a um ficam logo abaixo ("Ver todos os dias"). */
+.ct-unidade__frases--destaque { display: grid; gap: 2px; padding: 0; list-style: none; font: 800 clamp(17px, 1.6vw, 20px)/1.35 var(--ct-font); }
+.ct-dias-detalhe summary { display: flex; align-items: center; gap: 8px; min-height: 44px; font: 800 15px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ct-dias-detalhe summary::-webkit-details-marker { display: none; }
+.ct-dias-detalhe summary::after { content: '+'; font: 900 20px/1 var(--ct-font); text-decoration: none; }
+.ct-dias-detalhe[open] > summary::after { content: '−'; }
+.ct-dias-detalhe .ct-dias { margin-top: 6px; }
 .ct-unidade .ct-acoes { margin-top: 6px; }
 /* Celular: as ações da unidade (como chegar, WhatsApp, mapa) em coluna com a mesma largura, sem a escada torta. */
 @media (max-width: 599.98px) { .ct-unidade .ct-acoes { display: grid; } .ct-edicao .ct-unidade .ct-acoes .ct-botao { width: 100%; } }
@@ -199,7 +266,9 @@
 .ct-dia.is-fechado { border-style: dashed; background: transparent; }
 .ct-dia.is-hoje { border-width: 2.5px; background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
 .ct-dia__hoje { padding: 1px 8px; border-radius: 999px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 12px/1.4 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
-.ct-unidade .ct-agora { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font: 700 15px/1.3 var(--ct-font); }
+.ct-unidade .ct-agora { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 4px 14px 4px 10px; border: 2.5px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 800 15px/1.3 var(--ct-font); }
+.ct-unidade .ct-agora--aberto { padding-left: 4px; background: var(--ct-turquesa); }
+.ct-unidade .ct-agora--abre_hoje { background: var(--ct-amarelo); }
 .ct-agora::before { content: ''; flex: none; width: 10px; height: 10px; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); }
 .ct-agora--aberto::before { display: none; }
 .ct-agora--abre_hoje::before { background: var(--ct-amarelo); }

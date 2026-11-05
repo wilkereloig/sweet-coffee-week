@@ -61,6 +61,8 @@
   .ct-galeria-item__ampliar:hover .ct-foto img, .ct-galeria-item__ampliar:focus-visible .ct-foto img { scale: 1.08; }
   .ct-edicao .ct-atalho { transition: translate 180ms var(--ct-mo-quique); }
   .ct-edicao .ct-atalho:hover { translate: 0 -3px; }
+  .ct-edicao .ct-composicao__item { transition: translate 180ms var(--ct-mo-quique); }
+  .ct-edicao .ct-composicao__item:hover { translate: 0 -2px; }
   .ct-cenario-fixo img { animation: ct-desliza 760ms cubic-bezier(.22, .9, .24, 1) both; }
   /* A faixa do pé (lista 13, P1) fica ESCONDIDA enquanto se lê e sobe no último trecho da rolagem: inteira no fim,
      com o rodapé reservando a altura dela (nada fica coberto no fim). Sem scroll-timeline: no fluxo (07-sistema.css). */

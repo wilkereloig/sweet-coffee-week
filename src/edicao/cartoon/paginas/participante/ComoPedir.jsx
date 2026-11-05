@@ -1,6 +1,10 @@
 /*
- * 3 · Como pedir: um cartão por modo (no local · para viagem · delivery) com o estado e, no delivery, os canais
- * de pedido; embaixo, os canais da casa (Instagram, site).
+ * 3 · Como pedir: um cartão compacto por modo (no local · para viagem · delivery) com o estado — "Em todas as unidades"
+ * quando todas oferecem, senão em quais — e, havendo delivery, o painel de pedido: os canais de CADA unidade que entrega
+ * (o canal é da unidade, nunca da casa), com a taxa e a região uma vez só quando valem para todas. Embaixo, os canais da
+ * casa (Instagram, site).
+ * Revisão de 04/11 (ficha): o delivery saiu de dentro do cartão do modo (que ficava três vezes mais alto que os outros dois
+ * e deixava o resto da fileira vazio) e os canais viraram botões de 44px com o nome da unidade.
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
@@ -10,52 +14,89 @@ import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { PARTICIPANTE as T, ATENDIMENTO, ICONE } from '../../textos.js'
 
-/** Link http(s) de verdade (o dado já gravado antes da validação do painel não é confiável). */
-export const linkSeguro = (c) => /^https?:\/\//i.test(String(c.link || '').trim())
+const nomeDaUnidade = (u, p) => M.caixaLegivel(u.nome || u.endereco?.bairro || p.casa.nome)
 
-function Modo ({ p, k, nomesUnidades }) {
+function Modo ({ p, k }) {
   const { estado, unidades } = M.estadoModo(p, k)
-  const variasUnidades = (p.unidades || []).length > 1
+  const todas = (p.unidades || []).length
+  const varias = todas > 1
+  const emTodas = varias && unidades.length === todas
+  const onde = () => M.juntar(unidades.map((u) => nomeDaUnidade(u, p)))
   const texto = estado === 'sim'
-    ? (variasUnidades ? T.modo.simEm(nomesUnidades(unidades)) : T.modo.sim)
-    : estado === 'nao_informado' && variasUnidades && unidades.length ? `${T.modo.nao_informado}: ${nomesUnidades(unidades)}` : T.modo[estado]
+    ? (varias ? (emTodas ? T.modo.todas : T.modo.simEm(onde())) : T.modo.sim)
+    : estado === 'nao_informado' && varias && unidades.length && !emTodas ? `${T.modo.nao_informado}: ${onde()}` : T.modo[estado]
   return (
     <li className={`ct-modo ct-modo--${k}`} data-estado={estado}>
       <IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={48} />
       <div className="ct-modo__texto">
         <h3 className="ct-modo__nome">{ATENDIMENTO[k].rotulo}</h3>
         <p className="ct-modo__estado">{texto}</p>
-        {k === 'delivery' && estado === 'sim' && unidades.map((u) => {
-          const canais = (u.combo?.canais || []).filter((c) => /^https?:\/\//i.test(String(c.link || '').trim()))
-          return (
-            <div key={u.id} className="ct-modo__delivery">
-              {variasUnidades && <p className="ct-rotulo">{u.nome || u.endereco?.bairro}</p>}
-              {canais.length > 0 && (
-                <p>{T.pedirPor}:{' '}
-                  {canais.map((c, i) => <a key={i} className="ct-link" href={String(c.link).trim()} target="_blank" rel="noopener noreferrer">{T.canais[c.tipo] || c.tipo}</a>)
-                    .reduce((acc, el, i) => (i ? [...acc, ' · ', el] : [el]), [])}
-                </p>
-              )}
-              {u.combo?.delivery_regioes && <p>{T.regioes}: {u.combo.delivery_regioes}</p>}
-              <p>{T.taxa}: {u.combo?.delivery_taxa || T.taxaNi}</p>
-            </div>
-          )
-        })}
       </div>
     </li>
   )
 }
 
+/**
+ * Uma linha por unidade que entrega, com os canais DELA. Taxa e região: se todas as unidades dizem o mesmo (inclusive
+ * "não informada"), uma frase só no fim; se diferem, cada uma na sua linha.
+ */
+function Delivery ({ p }) {
+  const modo = M.estadoModo(p, 'delivery')
+  if (modo.estado !== 'sim') return null
+  const entregam = modo.unidades
+  const varias = entregam.length > 1
+  const igual = (campo) => entregam.every((u) => (u.combo?.[campo] || '') === (entregam[0].combo?.[campo] || ''))
+  const taxaUnica = igual('delivery_taxa')
+  const regiaoUnica = igual('delivery_regioes')
+  const taxaDe = (u) => u.combo?.delivery_taxa || T.taxaNi
+  return (
+    <div id="delivery" className={`ct-delivery${varias ? ' ct-delivery--varias' : ''}`} role="group" aria-labelledby="delivery-titulo">
+      <h3 id="delivery-titulo" className="ct-delivery__titulo"><IconeCartoon nome={ATENDIMENTO.delivery.icone} tamanho={32} />{T.pedirDelivery}</h3>
+      <ul className="ct-delivery__lista">
+        {entregam.map((u) => {
+          const canais = M.canaisSeguros(u)
+          return (
+            <li key={u.id} className="ct-delivery__unidade">
+              {varias && <p className="ct-delivery__nome">{nomeDaUnidade(u, p)}</p>}
+              <div className="ct-delivery__corpo">
+                {canais.length > 0
+                  ? (
+                    <div className="ct-acoes">
+                      {canais.map((c, i) => (
+                        <Botao key={i} tipo="secundario" href={String(c.link).trim()} target="_blank" rel="noopener noreferrer">
+                          {T.canais[c.tipo] || c.tipo}<span aria-hidden="true"> ↗</span><span className="ct-sr"> {T.abreEmNovaAba}</span>
+                        </Botao>
+                      ))}
+                    </div>
+                  )
+                  : <p className="ct-ni">{T.canalNi}</p>}
+                {!taxaUnica && <p className="ct-delivery__nota">{T.taxa}: {taxaDe(u)}</p>}
+                {!regiaoUnica && u.combo?.delivery_regioes && <p className="ct-delivery__nota">{T.regioes}: {u.combo.delivery_regioes}</p>}
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+      {(taxaUnica || regiaoUnica) && (
+        <div className="ct-delivery__comum">
+          {taxaUnica && <p className="ct-delivery__nota">{T.taxa}: {taxaDe(entregam[0])}</p>}
+          {regiaoUnica && entregam[0].combo?.delivery_regioes && <p className="ct-delivery__nota">{T.regioes}: {entregam[0].combo.delivery_regioes}</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ComoPedir ({ p }) {
-  const nomesUnidades = (lista) => M.juntar(lista.map((u) => u.nome || u.endereco?.bairro || p.casa.nome))
   const instagram = p.casa.instagram && p.casa.instagram.replace(/^@/, '').trim()
-  const site = p.casa.site && linkSeguro({ link: p.casa.site }) ? p.casa.site : null
+  const site = p.casa.site && M.linkHttp(p.casa.site) ? p.casa.site : null
   return (
     <section id="atendimento" className="ct-bloco ct-ficha__secao" aria-labelledby="atendimento-titulo">
       <Letreiro id="atendimento-titulo" texto={T.atendimentoTitulo} />
       <ul className="ct-modos">
-        {M.MODOS.map(([k]) => <Modo key={k} p={p} k={k} nomesUnidades={nomesUnidades} />)}
+        {M.MODOS.map(([k]) => <Modo key={k} p={p} k={k} />)}
       </ul>
+      <Delivery p={p} />
       {(instagram || site) && (
         <div className="ct-ficha__fale">
           <Rotulo icone={ICONE.whatsapp}>{T.faleCom}</Rotulo>

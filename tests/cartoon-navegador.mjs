@@ -171,10 +171,30 @@ try {
     const t = (await page.locator('.ct-part').innerText()).replace(/ /g, ' ')
     // O preço de R$ 38,90 vem no preço em letreiro (Preco, repaginação de 04/11): texto de verdade, não imagem.
     if ((await page.locator('.ct-part .ct-preco').first().textContent())?.trim() !== 'Combo R$ 38,90') falha('participante sem o preço "Combo R$ 38,90"')
-    for (const s of ['[DEMO] Doce · [DEMO] Salgado · [DEMO] Bebida', 'Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Opções de troca']) {
+    for (const s of ['Contém glúten, leite e ovo', 'Pode conter', 'Confirme com a loja', 'Opções de troca']) {
       if (!t.includes(s)) falha(`participante sem "${s}"`)
     }
     if (await page.locator('.ct-part [role="tab"], .ct-part [role="tablist"]').count()) falha('participante usa abas')
+    // "No combo": a faixa dos itens, na ordem do combo, cada um com tipo e nome — e levando ao seu cartão.
+    const nomesFaixa = await page.locator('.ct-composicao__nome').allTextContents()
+    const tiposFaixa = await page.locator('.ct-composicao__tipo').allTextContents()
+    if (nomesFaixa.join('|') !== '[DEMO] Doce|[DEMO] Salgado|[DEMO] Bebida' || tiposFaixa.join('|') !== 'Doce|Salgado|Bebida') falha(`faixa "No combo" fora de ordem: ${tiposFaixa} · ${nomesFaixa}`)
+    // Avisos de alergênicos: "Contém" e "Pode conter" (antes só o primeiro), no painel do combo e no resumo do fim.
+    if ((await page.locator('.ct-alerta--contem').innerText()).trim() !== 'Contém glúten, leite e ovo') falha('aviso "Contém" do combo mudou')
+    if ((await page.locator('.ct-alerta--pode').innerText()).trim() !== 'Pode conter amendoim') falha('aviso "Pode conter" do combo ausente')
+    if ((await page.locator('#restricoes .ct-declarado li').count()) !== 2) falha('resumo das restrições sem o que a casa declarou (contém / pode conter)')
+    // Atalhos do topo: delivery vai direto ao link quando só uma unidade entrega; "No local" rola até as unidades SEM mexer no endereço
+    // (a prévia do painel lê o hash como rota).
+    const atalhoDelivery = page.locator('.ct-atalho', { hasText: 'Delivery' })
+    if ((await atalhoDelivery.getAttribute('href')) !== 'https://wa.me/5584900000000' || (await atalhoDelivery.getAttribute('target')) !== '_blank') falha('atalho de delivery (uma só unidade entrega) não abre o link da unidade')
+    await page.locator('.ct-atalho', { hasText: 'No local' }).click()
+    await page.waitForTimeout(900)
+    if (new URL(page.url()).hash) falha(`atalho interno mexeu no endereço: ${new URL(page.url()).hash}`)
+    const topoUnidades = await page.evaluate(() => document.getElementById('unidades').getBoundingClientRect().top)
+    if (Math.abs(topoUnidades) > 140) falha(`"No local" não rolou até as unidades (top=${Math.round(topoUnidades)})`)
+    // O painel de delivery lista só quem entrega, com o canal DELA.
+    const painelDelivery = await page.locator('.ct-delivery').innerText()
+    if (painelDelivery.includes('Unidade Sul') || !/whatsapp/i.test(painelDelivery)) falha(`painel de delivery fora da unidade certa: ${painelDelivery}`)
     const delivery = await page.locator('.ct-modos > li', { hasText: 'Delivery' }).innerText()
     if (!delivery.includes('Unidade Centro') || delivery.includes('Unidade Sul')) falha(`delivery fora da unidade certa: ${delivery}`)
     if (!t.includes('A casa informa que não contém lactose') || !/Contém\s*\n?\s*leite/.test(t)) falha('"sem lactose" sem o "contém leite" ao lado')
@@ -186,7 +206,7 @@ try {
     // Delivery aparece como "a casa não oferece" (dado declarado), nunca como disponível nem com canal.
     if ((await page.locator('.ct-modo--delivery').getAttribute('data-estado')) !== 'nao') falha('Bico de Pena: delivery não está como "não oferece"')
     if ((await page.locator('.ct-modo--delivery').innerText()).includes('Pedir por')) falha('Bico de Pena mostra canal de delivery sem ter declarado')
-    if (await page.locator('.ct-ficha__selos .ct-selo', { hasText: 'Delivery' }).count()) falha('Bico de Pena tem selo de delivery no topo')
+    if (await page.locator('.ct-atalho', { hasText: 'Delivery' }).count()) falha('Bico de Pena tem atalho de delivery no topo')
     await ir(page, '/cartoon/participantes/demo-casa-quadro-a-quadro')
     await page.waitForSelector('.ct-casa')
     if (!(await page.locator('.ct-part').innerText()).includes('será revelado em breve') || await page.locator('#combo').count()) falha('casa sem combo publicado mostrou combo')
@@ -217,6 +237,78 @@ try {
     if (f.includes('10, 10')) falha('casa fina: número do endereço repetido')
     if ((await c.page.locator('.ct-modo[data-estado="nao_informado"]').count()) !== 3) falha('casa fina: modos em branco não aparecem como não informados')
     if (falhas.length === antesFina) ok('casa com dado fino: sem título vazio, "não informado" à vista, endereço sem número repetido')
+    await c.ctx.close()
+  }
+
+  console.log('\n4b · ficha de casa com várias unidades')
+  {
+    const DIAS_TESTE = clone(DEMO_EDICAO.participantes[0].unidades[0].combo.disponibilidade)
+    const domingoCurto = DIAS_TESTE.map((f) => (f.data === '2026-11-08' || f.data === '2026-11-15' ? { ...f, fecha: '18:00' } : f))
+    const unidade = (id, nome, bairro, link, disponibilidade, obs) => ({
+      id, nome, endereco: { logradouro: 'Rua do Teste', numero: '1', bairro, cidade: 'Natal', uf: 'RN' },
+      combo: { modos: { local: 'sim', retirada: 'sim', delivery: 'sim' }, canais: [{ tipo: 'whatsapp', link }], disponibilidade, observacao: obs },
+    })
+    const foto = (n) => ({ path: `/images/teste-ficha-${n}.jpg`, alt: '' })
+    const item = (tipo, posicao, fotos) => ({ tipo, posicao, nome: `Item ${posicao}`, descricao: `Descrição do item ${posicao}.`, fotos, alimentar: [] })
+    const varias = {
+      slug: 'teste-casa-varias', nivel: 'marca_e_combo', casa: { nome: 'Casa Varias', apresentacao: 'Texto de apresentação da casa de teste.' },
+      unidades: [
+        unidade('uv1', 'Unidade Norte', 'Potengi', 'https://wa.me/5584911111111', DIAS_TESTE, 'Nada'),
+        unidade('uv2', 'Unidade Praia', 'Ponta Negra', 'https://wa.me/5584922222222', domingoCurto, 'Estacionamento no subsolo.'),
+      ],
+      combo: { nome: 'Combo de teste', preco: 38.9, itens: [item('doce', 1, [foto(1), foto(2)]), item('salgado', 2, [foto(3), foto(4)]), item('bebida', 3, [foto(5)])] },
+    }
+    const c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), participantes: [...clone(DEMO_EDICAO).participantes, varias] } })
+    const antesV = falhas.length
+    await ir(c.page, '/cartoon/participantes/teste-casa-varias')
+    await c.page.waitForSelector('#combo')
+    // O link de uma unidade não vale para a outra: o atalho não abre o primeiro canal da lista, leva a "Como pedir" para escolher.
+    const atalho = c.page.locator('.ct-atalho', { hasText: 'Delivery' })
+    if ((await atalho.getAttribute('href')) !== '#atendimento' || (await atalho.getAttribute('target'))) falha(`delivery com duas unidades abriu um link: ${await atalho.getAttribute('href')}`)
+    if (!(await atalho.innerText()).includes('Escolha a unidade')) falha('atalho de delivery sem "Escolha a unidade"')
+    await atalho.click()
+    await c.page.waitForTimeout(900)
+    if (new URL(c.page.url()).hash) falha('atalho de delivery mexeu no endereço')
+    const topoAtendimento = await c.page.evaluate(() => document.getElementById('atendimento').getBoundingClientRect().top)
+    if (Math.abs(topoAtendimento) > 140) falha(`atalho de delivery não rolou até "Como pedir" (top=${Math.round(topoAtendimento)})`)
+    // Uma linha por unidade, cada uma com o canal DELA.
+    const linhas = c.page.locator('.ct-delivery__unidade')
+    if ((await linhas.count()) !== 2) falha('painel de delivery sem uma linha por unidade')
+    else {
+      if (!(await linhas.nth(0).innerText()).includes('Unidade Norte') || (await linhas.nth(0).locator('a').getAttribute('href')) !== 'https://wa.me/5584911111111') falha('delivery: canal da 1ª unidade trocado')
+      if (!(await linhas.nth(1).innerText()).includes('Unidade Praia') || (await linhas.nth(1).locator('a').getAttribute('href')) !== 'https://wa.me/5584922222222') falha('delivery: canal da 2ª unidade trocado')
+    }
+    for (const modo of ['local', 'retirada', 'delivery']) {
+      if ((await c.page.locator(`.ct-modo--${modo} .ct-modo__estado`).innerText()).trim() !== 'Em todas as unidades') falha(`"${modo}" não diz "Em todas as unidades"`)
+    }
+    // Observação que não diz nada ("Nada") não vira aviso; a de verdade fica.
+    const obs = await c.page.locator('.ct-unidade__obs').allInnerTexts()
+    if (obs.some((t) => /^nada$/i.test(t.trim())) || !obs.includes('Estacionamento no subsolo.')) falha(`observações das unidades: ${JSON.stringify(obs)}`)
+    // Horário: frases em destaque; dias iguais não repetem a grade, dias diferentes ficam em "Ver todos os dias", fechado.
+    if ((await c.page.locator('.ct-dias-detalhe').count()) !== 1) falha('só a unidade com horário por semana deveria ter "Ver todos os dias"')
+    else {
+      const det = c.page.locator('.ct-dias-detalhe')
+      if (await det.evaluate((e) => e.open)) falha('"Ver todos os dias" abriu sozinho com o horário agrupado por semana')
+      await det.locator('summary').click()
+      if ((await det.locator('.ct-dia').count()) !== 11) falha('"Ver todos os dias" não lista os 11 dias do festival')
+    }
+    if (!(await c.page.locator('.ct-unidade').nth(0).innerText()).includes('Todos os dias')) falha('1ª unidade sem a frase "Todos os dias"')
+    // Apresentação da casa: fora do topo, na seção "Sobre a casa"; o nome do combo, no topo.
+    if (await c.page.locator('.ct-ficha__topo').getByText('Texto de apresentação').count()) falha('a apresentação voltou para o topo')
+    if (!(await c.page.locator('#sobre').innerText()).includes('Texto de apresentação')) falha('sem a seção "Sobre a casa"')
+    if ((await c.page.locator('.ct-ficha__combo').innerText()).trim() !== 'Combo de teste') falha('topo sem o nome do combo')
+    // Os cartões dos itens dividem as linhas: o nome do item 3 (uma foto, sem contador) fica na altura dos outros dois.
+    // (a camada gira os cartões 2 e 3 em ±0,6° e anima a entrada: sem isso a medição do topo erra por ~2px)
+    await c.page.addStyleTag({ content: '.ct-item { rotate: 0deg !important; animation: none !important; }' })
+    const topos = await c.page.locator('.ct-item__nome').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top + scrollY)))
+    if (topos.length === 3 && Math.max(...topos) - Math.min(...topos) > 1) falha(`nomes dos itens fora de alinhamento: ${topos}`)
+    // A faixa "No combo" leva ao cartão do item (id por posição).
+    await c.page.locator('.ct-composicao__item', { hasText: 'Item 3' }).click()
+    await c.page.waitForTimeout(900)
+    const topoItem = await c.page.evaluate(() => document.getElementById('item-3').getBoundingClientRect().top)
+    if (topoItem < 0 || topoItem > 200) falha(`faixa "No combo" não levou ao cartão do item (top=${Math.round(topoItem)})`)
+    if (c.erros.length) falha(`console: ${c.erros.join(' | ')}`)
+    if (falhas.length === antesV) ok('várias unidades: delivery escolhe a unidade, canal de cada uma, "em todas as unidades", observação vazia some, horário em frases, itens alinhados')
     await c.ctx.close()
   }
 
