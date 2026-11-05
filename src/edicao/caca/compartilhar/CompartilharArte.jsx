@@ -55,16 +55,20 @@ export function CompartilharArte ({ caca, dados }) {
       {estado === 'sem-casas' && <p className="ct-aviso" role="status">{T.semCasas}</p>}
       {estado === 'gerando' && <p className="ct-nota" role="status">{T.gerando}</p>}
       {estado === 'falhou' && <p className="ct-aviso" role="alert">{T.falhaArte}</p>}
-      {estado === 'pronta' && (
-        <img className="ct-caca-story__arte" src={previa} width={270} height={480} alt={T.previaAlt(arte.apelido, arte.validadas, arte.total)} />
-      )}
-      <div className="ct-acoes">
-        {podeCompartilhar && <button type="button" className="ct-botao" disabled={estado === 'gerando'} onClick={enviar}>{estado === 'pronta' && arqOk ? T.compartilhar : T.convidar}</button>}
-        {estado === 'pronta' && <button type="button" className="ct-botao ct-botao--contorno" onClick={() => { baixar(blob, NOME_DO_ARQUIVO); setAviso(T.baixou) }}>{T.baixar}</button>}
-        <button type="button" className="ct-botao ct-botao--contorno" onClick={copiarTexto}>{T.copiarTexto}</button>
+      <div className="ct-caca-story__layout">
+        <div className="ct-caca-story__lado">
+          <div className="ct-acoes">
+            {podeCompartilhar && <button type="button" className="ct-botao" disabled={estado === 'gerando'} onClick={enviar}>{estado === 'pronta' && arqOk ? T.compartilhar : T.convidar}</button>}
+            {estado === 'pronta' && <button type="button" className="ct-botao ct-botao--contorno" onClick={() => { baixar(blob, NOME_DO_ARQUIVO); setAviso(T.baixou) }}>{T.baixar}</button>}
+            <button type="button" className="ct-botao ct-botao--contorno" onClick={copiarTexto}>{T.copiarTexto}</button>
+          </div>
+          <p className="ct-nota" role="status">{aviso}</p>
+          <p className="ct-caca-story__texto ct-nota">{texto}</p>
+        </div>
+        {estado === 'pronta' && (
+          <img className="ct-caca-story__arte" src={previa} width={270} height={480} alt={T.previaAlt(arte.apelido, arte.validadas, arte.total)} />
+        )}
       </div>
-      <p className="ct-nota" role="status">{aviso}</p>
-      <p className="ct-caca-story__texto ct-nota">{texto}</p>
     </section>
   )
 }

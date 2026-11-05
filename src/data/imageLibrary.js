@@ -742,19 +742,23 @@ const PINS_EDICAO = {
 export { logoDesenhadaEdicao } from './logosDesenhadasEdicao.js'
 
 /**
- * Mundo da Doçura — o mapa desenhado da Cartoon (docs/cartoon-2026-2/14 §14.13). Dados gerados por
- * scripts/edicao/mapa-mundo.py (posições de 0 a 1 na arte, número da casa, marcos, Sicredi) + os caminhos:
- * `base` ({src, srcSet}), `sicrediBandeira`, `bandeira(numero)` (o pin: bandeirinha numerada, Wilker 04/11),
+ * Mundo da Doçura — o mapa desenhado da Cartoon (docs/cartoon-2026-2/14 §14.13; arte final: 15-caca-mapa-final.md). Dados
+ * gerados por scripts/edicao/mapa-mundo-final.py (arte final do Illustrator; a provisória vinha de mapa-mundo.py): posições
+ * de 0 a 1 na arte, número da casa, casas por slug, Sicredi, marcos + os caminhos:
+ * `base` ({src, srcSet, placeholder}: primeira pintura, escada de larguras e miniatura borrada), `sicrediBandeira`,
+ * `bandeira(numero)` (bandeirinha desenhada; `null` com `arteComBandeiras`, porque a arte já traz as bandeiras),
  * `logo(slug)` (a logo oficial reduzida, aparece no zoom) e `doceria(slug)` — `null` quando não há o arquivo.
  */
 const MUNDO_PASTA = '/images/marcas-edicoes/2026.2/mundo'
 export function mundoEdicao() {
   const m = MUNDO_EDICAO
-  const base = (w) => `${MUNDO_PASTA}/base-v${m.versao}-${w}.webp`
+  const prefixo = m.arte?.arquivo || `base-v${m.versao}`
+  const base = (w) => `${MUNDO_PASTA}/${prefixo}-${w}.webp`
   return {
     ...m,
-    base: { src: base(m.larguras[0]), srcSet: m.larguras.map((w) => `${base(w)} ${w}w`).join(', ') },
+    base: { src: base(m.larguras[0]), srcSet: m.larguras.map((w) => `${base(w)} ${w}w`).join(', '), placeholder: m.arte?.placeholder || null },
     sicrediBandeira: `${MUNDO_PASTA}/sicredi-bandeira.webp`,
+    sicrediLogo: `${MUNDO_PASTA}/sicredi-logo.webp`,
     bandeira: (n) => (m.bandeiras.includes(n) ? `${MUNDO_PASTA}/bandeiras/${String(n).padStart(2, '0')}.webp` : null),
     doceria: (slug) => (m.docerias.includes(slug) ? `${MUNDO_PASTA}/docerias/${slug}.webp` : null),
     logo: (slug) => (m.logos.includes(slug) ? `${MUNDO_PASTA}/logos/${slug}.webp` : null),

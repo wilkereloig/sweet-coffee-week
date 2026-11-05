@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
-import { casasNoMundo, ordemDoCaminho, pontosDaRota, tracado } from '../src/edicao/rota/mundo.js'
+import { agruparPorCasa, casasNoMundo, ordemDoCaminho, pontosDaRota, tracado } from '../src/edicao/rota/mundo.js'
 import { mundoEdicao } from '../src/data/imageLibrary.js'
 
 const U = {
@@ -13,9 +13,25 @@ const U = {
   uc: { x: 0.9, y: 0.8, numero: 2, slug: 'a' },
 }
 
-test('ordem do caminho: numeração da casa, depois de cima para baixo; sem lugar na arte vai para o fim, como estava', () => {
-  assert.deepEqual(ordemDoCaminho(['zz', 'uc', 'ua', 'yy', 'ub'], U), ['ub', 'ua', 'uc', 'zz', 'yy'])
+test('ordem do caminho: de cima para baixo no desenho (a numeração é alfabética); sem lugar na arte vai para o fim, como estava', () => {
+  assert.deepEqual(ordemDoCaminho(['zz', 'uc', 'ua', 'yy', 'ub'], U), ['ua', 'ub', 'uc', 'zz', 'yy'])
   assert.deepEqual(ordemDoCaminho([], U), [])
+})
+
+test('um pin por casa: unidades do mesmo slug viram um grupo; o pin fica visível se QUALQUER unidade passa no filtro', () => {
+  const casas = [
+    { id: 'u1', slug: 'a', apagada: true, parada: 3 }, { id: 'u2', slug: 'b', apagada: false, parada: null },
+    { id: 'u3', slug: 'a', apagada: false, parada: 2 }, { id: 'u4', slug: 'a', apagada: true, parada: null },
+  ]
+  const g = agruparPorCasa(casas)
+  assert.deepEqual(g.map((c) => c.slug), ['a', 'b'], '27 casas, não 41 unidades')
+  const a = g[0]
+  assert.equal(a.enderecos, 3)
+  assert.deepEqual(a.ids, ['u1', 'u3', 'u4'])
+  assert.equal(a.id, 'u3', 'a unidade que representa a casa é a primeira que o filtro deixa visível')
+  assert.equal(a.apagada, false)
+  assert.equal(a.parada, 2, 'a menor parada da rota entre as unidades')
+  assert.equal(agruparPorCasa([casas[0], casas[3]])[0].apagada, true, 'todas fora do filtro: o pin fica apagado')
 })
 
 test('casas no mundo: só quem tem lugar na arte, na ordem do caminho, com x/y/número', () => {

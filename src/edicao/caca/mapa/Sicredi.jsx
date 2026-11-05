@@ -15,7 +15,7 @@ export function CartaoSicredi ({ agencia, fechar }) {
   if (!agencia) return null
   const link = linkComoChegarSicredi(agencia)
   return (
-    <article className="ct-mapa__cartao ct-caca-mapa__sicredi-cartao" aria-labelledby="mapa-cartao-nome">
+    <article className="ct-mapa__cartao ct-caca-mapa__sicredi-cartao" aria-labelledby="mapa-cartao-nome" tabIndex={-1}>
       <div className="ct-mapa__cartao-cabeca">
         <img className="ct-caca-mapa__sicredi-logo" src={MARCAS_PARCEIROS.sicredi.src} alt={MARCAS_PARCEIROS.sicredi.alt} width={80} height={Math.round((80 * MARCAS_PARCEIROS.sicredi.altura) / MARCAS_PARCEIROS.sicredi.largura)} decoding="async" />
         <div>

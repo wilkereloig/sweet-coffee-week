@@ -38,7 +38,7 @@ export const CACA = {
     convite: 'Convite para um grupo',
   },
   leads: {
-    central: 'Descubra casas diferentes, carimbe a visita e avalie o combo. Cada casa nova validada conta no seu mapa.',
+    central: 'Carimbe a visita, avalie o combo e junte casas diferentes. Cada casa nova validada conta no seu mapa.',
     recuperar: 'Perdeu o acesso ao seu mapa ou abriu em outro celular? Recupere com o e-mail do mapa.',
     ranking: 'Quem mais conheceu casas diferentes na Cartoon.',
     grupos: 'Jogue com amigos: ranking só entre vocês e uma rota para planejar juntos.',
@@ -63,20 +63,30 @@ export const CACA = {
     casasRotulo: 'casas diferentes validadas',
     faltam: (n) => (n === 1 ? 'falta 1 casa' : `faltam ${n} casas`),
     extras: (n) => (n === 1 ? '1 carimbo extra' : `${n} carimbos extras`),
-    extrasAjuda: 'Voltar a uma casa que você já validou rende um carimbo extra.',
     posicao: (p) => `${p}º lugar`,
     empate: (n) => (n === 1 ? 'empatado com mais 1 pessoa' : `empatado com mais ${n} pessoas`),
     semPosicao: 'Valide sua primeira casa para entrar no ranking.',
-    pendentes: (n) => (n === 1 ? '1 carimbo pendente: falta avaliar' : `${n} carimbos pendentes: falta avaliar`),
+    esperando: (n) => (n === 1 ? '1 esperando avaliação' : `${n} esperando avaliação`),
     completo: 'Você validou todas as casas! Você concorre ao prêmio final, que inclui uma surpresa, conforme o regulamento.',
+    // "Como conta?": o que a central não repete a cada visita. Casa × unidade, extra e "Já fui" numa lista curta, fechada por padrão.
+    como: {
+      titulo: 'Como conta?',
+      itens: [
+        'Cada casa conta uma vez, mesmo que tenha mais de um endereço (unidade).',
+        'O carimbo só vale depois que você avalia o combo, com o mesmo e-mail do mapa.',
+        'Voltar a uma casa que você já validou rende um carimbo extra.',
+        '"Já fui", na Minha rota, é só uma anotação sua: não vira carimbo.',
+      ],
+    },
   },
 
   proxima: {
     titulo: 'Seu próximo passo',
     comecar: { titulo: 'Escolha uma casa para começar', texto: 'Veja as casas da Cartoon, escolha uma e vá até lá. No balcão, leia o QR do display para carimbar.', acao: 'Ver as casas' },
     avaliar: {
-      titulo: 'Carimbo pendente — falta avaliar',
-      texto: (casa, mais) => `Você carimbou na ${casa}, mas o carimbo só vale depois que você avalia o combo, com o mesmo e-mail do mapa.${mais > 0 ? ` Há mais ${mais} ${mais === 1 ? 'casa esperando' : 'casas esperando'} a sua avaliação.` : ''}`,
+      etiqueta: 'Carimbo pendente',
+      titulo: (casa) => `Falta avaliar o combo da ${casa}`,
+      texto: (mais) => `O carimbo só vale depois da avaliação, com o mesmo e-mail do mapa.${mais > 0 ? ` Mais ${mais} ${mais === 1 ? 'casa espera' : 'casas esperam'} a sua avaliação.` : ''}`,
       acao: 'Avaliar o combo',
     },
     continuar: { titulo: 'Escolha a próxima casa', texto: 'Casa nova é o que mais conta. Abra o mapa para ver onde ainda falta carimbar.', acao: 'Abrir o mapa' },
@@ -86,14 +96,15 @@ export const CACA = {
   atalhos: {
     titulo: 'Para onde ir',
     itens: [
-      { chave: 'mapa', desenho: 'mapa', rotulo: 'Mapa', texto: 'Casas e carimbos no mapa ilustrado, no real e em lista.' },
-      { chave: 'ranking', desenho: 'premio', rotulo: 'Ranking', texto: 'Quem já conheceu mais casas.' },
-      { chave: 'grupos', desenho: 'conversar', rotulo: 'Grupos', texto: 'Amigos, ranking privado e rota em conjunto.' },
-      { chave: 'rota', desenho: 'rota', rotulo: 'Minha rota', texto: 'As casas que você quer visitar.' },
-      { chave: 'metas', desenho: 'progresso', rotulo: 'Metas', texto: 'Marcos pelas casas validadas.' },
-      { chave: 'compartilhar', desenho: 'compartilhar', rotulo: 'Compartilhar', texto: 'Seu progresso nos Stories.' },
+      { chave: 'mapa', desenho: 'mapa', rotulo: 'Mapa' },
+      { chave: 'ranking', desenho: 'premio', rotulo: 'Ranking' },
+      { chave: 'grupos', desenho: 'conversar', rotulo: 'Grupos' },
+      { chave: 'rota', desenho: 'rota', rotulo: 'Minha rota' },
+      { chave: 'metas', desenho: 'progresso', rotulo: 'Metas' },
+      { chave: 'compartilhar', desenho: 'compartilhar', rotulo: 'Compartilhar' },
     ],
   },
+  rodape: { regulamento: 'Regulamento' },
 
   criar: {
     titulo: 'Comece seu mapa',
@@ -129,7 +140,8 @@ export const CACA = {
 
   email: {
     aviso: 'Seu e-mail ainda não foi confirmado.',
-    ajuda: 'Confirme para receber prêmio se for selecionado e para pedir revisão de presença. Se você tem mais de um mapa com este e-mail, só o confirmado aparece no ranking e nos grupos.',
+    ajuda: 'Confirme para receber o prêmio, se for selecionado, e para pedir revisão de presença.',
+    maisDeUmMapa: 'Se você tem mais de um mapa com este e-mail, só o confirmado aparece no ranking e nos grupos.',
     acao: 'Confirmar e-mail',
     fechar: 'Agora não',
     confirmado: 'E-mail confirmado. Obrigado!',

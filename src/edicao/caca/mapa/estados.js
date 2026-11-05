@@ -51,14 +51,14 @@ export function progressoPessoal (mapa, totalDaEdicao = 0) {
   }
 }
 
-/** Slugs na ordem do caminho do mapa (número da casa); casa sem lugar na arte vai para o fim, na ordem da lista. */
+/** Slugs na ordem do caminho do mapa — de cima para baixo no desenho (norte → sul); casa sem lugar na arte vai para o fim, na ordem da lista. */
 export function ordemDasCasas (participantes = [], unidadesDoMundo = {}) {
-  const numero = (p) => {
-    const ns = (p.unidades || []).map((u) => unidadesDoMundo[u.id]?.numero).filter(Number.isFinite)
-    return ns.length ? Math.min(...ns) : Infinity
+  const altura = (p) => {
+    const ys = (p.unidades || []).map((u) => unidadesDoMundo[u.id]?.y).filter(Number.isFinite)
+    return ys.length ? Math.min(...ys) : Infinity
   }
-  return participantes.map((p, i) => ({ slug: p.slug, n: numero(p), i }))
-    .sort((a, b) => (a.n === b.n ? a.i - b.i : a.n - b.n)).map((x) => x.slug)
+  return participantes.map((p, i) => ({ slug: p.slug, y: altura(p), i }))
+    .sort((a, b) => (a.y === b.y ? a.i - b.i : a.y - b.y)).map((x) => x.slug)
 }
 
 /**

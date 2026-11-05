@@ -11,9 +11,10 @@ import {
 import {
   AGENCIAS_SICREDI, agenciasSicredi, pontosSicredi, linkComoChegarSicredi, ehSicredi, agenciaCombina,
 } from '../src/edicao/caca/mapa/sicredi.js'
+import { contarFiltros, casasEEnderecos, enderecosDaCasa } from '../src/edicao/caca/mapa/tela.js'
 import { ESTADO_TEXTO, MAPA_CACA as T } from '../src/edicao/caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../src/edicao/caca/mapa/imagens.js'
-import { mundoEdicao } from '../src/data/imageLibrary.js'
+import { mundoEdicao, iconeEdicao } from '../src/data/imageLibrary.js'
 
 const PUB = fileURLToPath(new URL('../public/', import.meta.url))
 const noDisco = (src) => existsSync(join(PUB, src.replace(/^\//, '')))
@@ -82,13 +83,13 @@ test('próximo passo ignora casa sem unidade (não há o que visitar)', () => {
   assert.deepEqual(proximoPasso({ mapa: {}, casas, ordem: ['sem'], paradas: ['sem'], visitaveis: [] }), { tipo: 'nenhum' })
 })
 
-test('ordem das casas: pelo número no caminho do mapa; sem lugar na arte vai para o fim, na ordem da lista', () => {
+test('ordem das casas: de cima para baixo no desenho (norte → sul); sem lugar na arte vai para o fim, na ordem da lista', () => {
   const lista = [
     { slug: 'x', unidades: [{ id: 'u1' }] }, { slug: 'y', unidades: [{ id: 'u2' }, { id: 'u3' }] },
     { slug: 'sem', unidades: [] }, { slug: 'z', unidades: [{ id: 'u4' }] },
   ]
-  const unidades = { u1: { numero: 3 }, u2: { numero: 5 }, u3: { numero: 2 }, u4: { numero: 1 } }
-  assert.deepEqual(ordemDasCasas(lista, unidades), ['z', 'y', 'x', 'sem'], 'a casa leva o MENOR número entre as unidades dela')
+  const unidades = { u1: { y: 0.6 }, u2: { y: 0.9 }, u3: { y: 0.2 }, u4: { y: 0.1 } }
+  assert.deepEqual(ordemDasCasas(lista, unidades), ['z', 'y', 'x', 'sem'], 'a casa leva a posição MAIS ao norte entre as unidades dela')
 })
 
 test('conquista nova: só o que virou conquistada desde a última visita; primeira visita não faz festa', () => {
@@ -107,7 +108,11 @@ test('a arte ilustrada só é liberada aprovada, ou no DEV como prévia (nunca e
   assert.equal(arteLiberada({ aprovada: false, dev: true }), true)
   assert.equal(arteLiberada({ aprovada: 'true', dev: false }), false, 'só o booleano true aprova')
   assert.equal(arteLiberada({}), false)
-  assert.equal(mundoEdicao().aprovada, false, 'a arte atual ainda é provisória: este teste avisa se alguém aprovar sem querer')
+  // Desde 05/11 a arte é a final do Illustrator (15-caca-mapa-final.md): aprovar nunca é em silêncio — a arte aprovada diz de onde veio,
+  // quando foi salva e quem aprovou. Reverter: `mapa-mundo-final.py --provisoria` (só o selo) ou `mapa-mundo.py` (volta à provisória).
+  const m = mundoEdicao()
+  assert.equal(typeof m.aprovada, 'boolean')
+  if (m.aprovada) assert.ok(m.arte?.fonte && m.arte?.salvoEm && m.arte?.aprovacao, 'arte aprovada sem origem, data e aprovação registradas')
 })
 
 test('filtro por estado: usa o estado do servidor; sem mapa não filtra nada', () => {
@@ -219,4 +224,117 @@ test('arquivos da frente existem e os dados gerados continuam coerentes com as t
   assert.ok(noDisco(m.sicrediBandeira))
   const sicredi = readFileSync(new URL('../src/edicao/caca/mapa/sicredi.js', import.meta.url), 'utf8')
   assert.doesNotMatch(sicredi, /apoia a cultura/i)
+})
+
+// ---- Página do mapa compacta (redesign de 06/11/2026): contagens, filtros, tela cheia, textos ----
+
+test('filtros ativos: o contador do botão conta só os filtros da folha, nunca a busca por texto', () => {
+  assert.equal(contarFiltros({}), 0)
+  assert.equal(contarFiltros({ q: 'tirol' }), 0)
+  assert.equal(contarFiltros({ q: 'x', bairro: 'Tirol', modo: 'delivery', aberto: true, queroIr: true, jaFui: true, estado: 'pendente' }), 6)
+  assert.equal(contarFiltros({ aberto: true }, { aberto: false }), 0, '"aberto agora" fora do festival não conta (não esconde nada)')
+  assert.equal(T.filtrosAtivos(1), '1 filtro ativo')
+  assert.equal(T.filtrosAtivos(3), '3 filtros ativos')
+  assert.equal(T.filtrosVer(1), 'Ver 1 endereço')
+  assert.equal(T.filtrosVer(12), 'Ver 12 endereços')
+})
+
+test('casas × endereços: a Caça conta casas; uma casa com vários endereços é uma casa só', () => {
+  const lista = [
+    { slug: 'a', unidades: [{ id: 'u1' }, { id: 'u2' }, { id: 'u3' }] },
+    { slug: 'b', unidades: [{ id: 'u4' }] },
+    { slug: 'c', unidades: [] }, // sem endereço publicado: não é casa visitável
+    { slug: 'd' },
+  ]
+  assert.deepEqual(casasEEnderecos(lista), { casas: 2, enderecos: 4 })
+  assert.deepEqual(casasEEnderecos(), { casas: 0, enderecos: 0 })
+  assert.equal(T.casasEnderecos(26, 41), '26 casas · 41 endereços')
+  assert.equal(T.casasEnderecos(1, 1), '1 casa', 'casa com endereço único não repete a conta')
+  assert.equal(T.casasEnderecos(5, 5), '5 casas')
+  assert.equal(T.mostrando(12, 41), 'Mostrando 12 de 41 endereços')
+  assert.equal(T.mostrando(41, 41), '', 'sem filtro efetivo, nada de "mostrando"')
+  assert.match(T.casasEnderecosNota, /Cada casa vale um carimbo, mesmo com mais de um endereço/)
+  const linhas = [{ p: { slug: 'a' }, u: { id: 'u1' } }, { p: { slug: 'a' }, u: { id: 'u2' } }, { p: { slug: 'b' }, u: { id: 'u4' } }]
+  assert.deepEqual(enderecosDaCasa(linhas, 'a', 'u1').map((x) => x.u.id), ['u2'], 'os outros endereços da MESMA casa, sem o atual')
+  assert.deepEqual(enderecosDaCasa(linhas, 'b', 'u4'), [])
+  assert.equal(T.outrosEnderecos(1), 'Esta casa tem mais 1 endereço')
+  assert.equal(T.outrosEnderecos(4), 'Esta casa tem mais 4 endereços')
+})
+
+test('textos da tela cheia e do painel: nomes claros, sem "votar", sem "Sweet" sozinho', () => {
+  assert.equal(T.telaCheiaAbrir, 'Abrir mapa em tela cheia')
+  assert.equal(T.telaCheiaFechar, 'Fechar tela cheia')
+  assert.match(T.telaCheiaAbrir.toLowerCase(), new RegExp(T.telaCheiaAbrirCurto.toLowerCase()), 'o rótulo curto visível cabe no nome acessível (WCAG 2.5.3)')
+  assert.equal(T.minhaRotaConta(0), 'Minha rota, sem paradas')
+  assert.equal(T.minhaRotaConta(1), 'Minha rota, 1 parada')
+  assert.equal(T.minhaRotaConta(4), 'Minha rota, 4 paradas')
+  for (const k of ['avaliar', 'rota', 'visitar']) assert.ok(T.proximoAcao[k]('Cookitos').includes('Cookitos'))
+  assert.equal(T.proximoAcao.avaliar('Cookitos'), 'Avaliar o combo de Cookitos')
+  const tudo = JSON.stringify([T.filtros, T.filtrosTitulo, T.filtrosLimpar, T.telaCheiaRegiao, T.casasEnderecosNota, T.casasEnderecosCurta, T.outrosEnderecosNota, T.proximoAcao.avaliar('X')])
+  assert.doesNotMatch(tudo, /vot[oa]|plaquinha|Sweet Lover/i)
+})
+
+test('a tela cheia é do próprio contêiner (CSS fixo + 100dvh + safe areas), com Fullscreen API só como melhoria', () => {
+  const css = readFileSync(new URL('../src/styles/cartoon/16-mapa-tela.css', import.meta.url), 'utf8')
+  const regra = css.match(/\.ct-mapa__explorar\.is-cheia \{([^}]*)\}/)[1]
+  assert.match(regra, /position:\s*fixed/)
+  assert.match(regra, /100dvh/)
+  assert.match(css, /env\(safe-area-inset-top\)/)
+  assert.match(css, /env\(safe-area-inset-bottom\)/)
+  assert.match(css, /prefers-reduced-motion/)
+  const hook = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/useTelaCheia.js', import.meta.url), 'utf8')
+  assert.match(hook, /typeof raiz\.requestFullscreen === 'function'/, 'a Fullscreen API só é tentada onde existe (iPhone cai no modo por CSS)')
+  assert.match(hook, /\.catch\(/, 'recusa da Fullscreen API nunca quebra a tela cheia')
+  assert.match(hook, /travar\(/)
+  assert.match(hook, /devolverFoco/)
+  const barra = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Controles.jsx', import.meta.url), 'utf8')
+  assert.match(barra, /data-fechar-cheia/, 'o botão Fechar da tela cheia é o primeiro foco')
+  const cartao = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Cartao.jsx', import.meta.url), 'utf8')
+  assert.doesNotMatch(cartao, /window\.(confirm|prompt|alert)/)
+})
+
+test('o Mundo não conhece a tela cheia: a interface dele segue só com os dados (trocar a arte não mexe nela)', () => {
+  const mundo = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Mundo.jsx', import.meta.url), 'utf8')
+  assert.doesNotMatch(mundo, /cheia|fullscreen|Fullscreen/)
+  assert.match(mundo, /export function Mundo \(\{ mundo, casas, agencias = \[\], trilha, selecionada, aoSelecionar, recentes = new Set\(\) \}\)/)
+})
+
+// ---- Atalhos do jogo na tela cheia (06/11/2026) ----
+
+test('atalhos do jogo: cinco itens na ordem pedida, cada um com ícone ilustrado da edição, rótulo curto e título de folha', () => {
+  const fonte = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Atalhos.jsx', import.meta.url), 'utf8')
+  const chaves = [...fonte.matchAll(/\['(\w+)', '([\w-]+)'\]/g)].map((m) => [m[1], m[2]])
+  assert.deepEqual(chaves.map((c) => c[0]), ['progresso', 'casas', 'rota', 'ranking', 'grupos'])
+  for (const [chave, icone] of chaves) {
+    assert.ok(iconeEdicao(icone), `ícone da edição "${icone}" existe`)
+    assert.ok(T.atalho[chave] && T.atalhoTitulo[chave], `rótulo e título de ${chave}`)
+    assert.ok(T.atalho[chave].length <= 10, `rótulo curto: ${T.atalho[chave]}`)
+  }
+  assert.equal(T.atalhoTitulo.progresso, 'Progresso e carimbos')
+  assert.equal(T.atalhosNome(''), 'Atalhos do jogo')
+  assert.equal(T.atalhosNome(T.atalhosResumo(2, 26)), 'Atalhos do jogo, 2 de 26 casas validadas')
+  assert.equal(T.atalhoFechar('Ranking'), 'Fechar: Ranking')
+  assert.doesNotMatch(JSON.stringify([T.atalho, T.atalhoTitulo, T.atalhoGruposSemMapa]), /vot[oa]|Sweet Lover/i)
+})
+
+test('atalhos: uma folha por vez (variante "jogo"), lista recolhe ao abrir, Escape em pilha e foco devolvido ao botão', () => {
+  const at = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Atalhos.jsx', import.meta.url), 'utf8')
+  assert.match(at, /const \[aberta, setAberta\] = React\.useState\(null\)/, 'uma folha por vez')
+  assert.match(at, /const abrir = \(chave\) => \{ setLista\(false\); setAberta\(chave\) \}/, 'abrir a folha recolhe a lista')
+  assert.match(at, /useEscape\(lista, fecharLista\)/, 'a lista entra na pilha de Escape')
+  assert.match(at, /<Folha variante="jogo"/)
+  assert.match(at, /aria-label=\{TC\.atalhosNome\(resumo\)\}/, 'o botão tem nome')
+  assert.match(at, /voltarAoBotao/)
+  assert.doesNotMatch(at, /window\.(confirm|prompt|alert)/)
+  const folha = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Folha.jsx', import.meta.url), 'utf8')
+  assert.match(folha, /variante === 'jogo'/)
+  const pag = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/index.jsx', import.meta.url), 'utf8')
+  assert.match(pag, /\{cheia && \(\s*<Atalhos /, 'os atalhos só existem na tela cheia (a página já tem barra, faixa, "Minha rota" e abas)')
+  assert.match(pag, /React\.lazy\(\(\) => import\('\.\.\/\.\.\/\.\.\/caca\/secoes\/Ranking\.jsx'\)\)/, 'Ranking sob demanda')
+  assert.match(pag, /React\.lazy\(\(\) => import\('\.\.\/\.\.\/\.\.\/caca\/secoes\/Grupos\.jsx'\)\)/, 'Grupos sob demanda')
+  assert.match(pag, /\{!cheia && <Folha variante="painel"/, 'sem o painel lateral atrás do véu: nenhum id repetido')
+  const css = readFileSync(new URL('../src/styles/cartoon/16-mapa-tela.css', import.meta.url), 'utf8')
+  assert.match(css, /\.ct-jogo__botao \{[^}]*min-height: 48px/, 'alvo do botão ≥ 44 px')
+  assert.match(css, /\.ct-jogo__item \{[^}]*min-height: 48px/)
+  assert.match(css, /\.ct-jogo \{[^}]*env\(safe-area-inset-left\)/, 'respeita o entalhe')
 })

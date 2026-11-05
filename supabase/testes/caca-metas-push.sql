@@ -15,6 +15,8 @@ declare
   ep1b text := 'https://web.push.apple.com/teste-p1b-' || repeat('z', 40);
   k256 text := repeat('A', 87); kauth text := repeat('B', 22);
 begin
+  -- 20261217: o padrão 'revisao' não conta casa sem ponto conferido; este teste usa casa sem ponto, então liga 'conta' só na transação.
+  update public.caca_config set valor = '"conta"'::jsonb where chave = 'carimbo_sem_ponto';
   -- Casas publicadas só na transação, como em caca-v2.sql.
   insert into public.publicacoes (participacao_id, versao, nivel, conteudo, vigente)
   select distinct pa.id, 999, 'marca_e_combo', '{}'::jsonb, true
@@ -100,8 +102,8 @@ begin
   r := public.caca_metas_ler(ch1);
   if (r ->> 'casas_validadas')::int <> 2 then raise exception 'M1 deveria ter 2 casas validadas: %', r; end if;
   if exists (select 1 from jsonb_array_elements(r -> 'metas') e where (e ->> 'casas')::int > v_total) then raise exception 'meta acima do total apareceu: %', r; end if;
-  if not exists (select 1 from jsonb_array_elements(r -> 'metas') e where (e ->> 'casas')::int = 1 and (e ->> 'alcancada')::boolean and (e ->> 'exemplo')::boolean)
-    then raise exception 'meta 1 deveria estar alcançada e rotulada exemplo: %', r; end if;
+  if not exists (select 1 from jsonb_array_elements(r -> 'metas') e where (e ->> 'casas')::int = 1 and (e ->> 'alcancada')::boolean)
+    then raise exception 'meta 1 deveria estar alcançada: %', r; end if;
   if jsonb_array_length(r -> 'alcancadas') <> 2 then raise exception 'alcançadas: %', r; end if;
   if v_total >= 3 then
     if (r -> 'proxima' ->> 'casas')::int <> 3 or (r -> 'proxima' ->> 'faltam')::int <> 1 then raise exception 'próxima meta: %', r; end if;

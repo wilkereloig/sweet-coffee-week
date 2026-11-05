@@ -90,38 +90,54 @@ export function AvisosPush ({ caca }) {
   }
 
   const semOpcao = estado === 'nao-suportado' || estado === 'ios-instalar' || estado === 'bloqueada'
-  return (
-    <section className="ct-caca__bloco ct-caca-push" aria-labelledby="caca-push">
-      <h2 id="caca-push" className="ct-sub">{T.titulo}</h2>
-      <p className="ct-nota">{T.lead}</p>
-      {semOpcao
-        ? <p className="ct-aviso" role="status">{T.estados[estado]}</p>
-        : (
-          <>
-            <fieldset className="ct-caca-push__escolha">
-              <legend className="ct-rotulo">{T.escolha}</legend>
-              {CHAVES_PREFS.map((k) => (
-                <label key={k} className="ct-check ct-caca-push__opcao">
-                  <input type="checkbox" checked={prefs[k]} disabled={ocupado !== ''} onChange={(e) => mudar(k, e.target.checked)} />
-                  <span><strong>{T.categorias[k].rotulo}</strong><span className="ct-caca-push__ajuda">{T.categorias[k].texto}</span></span>
-                </label>
-              ))}
-            </fieldset>
-            <p className="ct-nota">{T.honestidade}</p>
-            <div className="ct-acoes">
-              {ligado
-                ? (
-                  <>
-                    <button type="button" className="ct-botao ct-botao--contorno" disabled={ocupado !== ''} onClick={() => desligar(false)}>{ocupado === 'desligando' ? T.desligando : T.desligar}</button>
-                    <button type="button" className="ct-botao ct-botao--contorno" disabled={ocupado !== ''} onClick={() => desligar(true)}>{T.desligarTodos}</button>
-                  </>
-                  )
-                : <button type="button" className="ct-botao" disabled={ocupado !== ''} onClick={ativar}>{ocupado === 'ligando' ? T.ligando : T.ligar}</button>}
-            </div>
-          </>
-          )}
+  const titulo = <h2 id="caca-push" className="ct-central__linha-titulo">{T.titulo}</h2>
+  const mensagens = (
+    <>
       <p className="ct-nota" role="status">{msg.tipo === 'ok' ? msg.texto : ''}</p>
       {msg.tipo === 'erro' && <p className="ct-aviso" role="alert">{msg.texto}</p>}
+    </>
+  )
+  // Sem opção neste aparelho: uma linha com o motivo, sempre à vista (nada a configurar, nada escondido).
+  if (semOpcao) {
+    return (
+      <section className="ct-central__linha ct-caca-push" aria-labelledby="caca-push">
+        {titulo}
+        <p className="ct-central__linha-texto" role="status">{T.estados[estado]}</p>
+        {mensagens}
+      </section>
+    )
+  }
+  // Com opção: fechada por padrão. Abrir mostra a explicação, a escolha das categorias e o botão juntos (consentimento no lugar certo).
+  return (
+    <section className="ct-central__linha ct-caca-push" aria-labelledby="caca-push">
+      <details className="ct-central__detalhes">
+        <summary>
+          {titulo}
+          <span className={`ct-central__selo${ligado ? ' is-ligado' : ''}`}>{ligado ? T.situacao.ligado : T.situacao.desligado}</span>
+        </summary>
+        <p className="ct-nota">{T.lead}</p>
+        <fieldset className="ct-caca-push__escolha">
+          <legend className="ct-rotulo">{T.escolha}</legend>
+          {CHAVES_PREFS.map((k) => (
+            <label key={k} className="ct-check ct-caca-push__opcao">
+              <input type="checkbox" checked={prefs[k]} disabled={ocupado !== ''} onChange={(e) => mudar(k, e.target.checked)} />
+              <span><strong>{T.categorias[k].rotulo}</strong><span className="ct-caca-push__ajuda">{T.categorias[k].texto}</span></span>
+            </label>
+          ))}
+        </fieldset>
+        <p className="ct-nota">{T.honestidade}</p>
+        <div className="ct-central__linha-acoes">
+          {ligado
+            ? (
+              <>
+                <button type="button" className="ct-botao ct-botao--contorno ct-central__mini" disabled={ocupado !== ''} onClick={() => desligar(false)}>{ocupado === 'desligando' ? T.desligando : T.desligar}</button>
+                <button type="button" className="ct-botao ct-botao--contorno ct-central__mini" disabled={ocupado !== ''} onClick={() => desligar(true)}>{T.desligarTodos}</button>
+              </>
+              )
+            : <button type="button" className="ct-botao ct-central__mini" disabled={ocupado !== ''} onClick={ativar}>{ocupado === 'ligando' ? T.ligando : T.ligar}</button>}
+        </div>
+        {mensagens}
+      </details>
     </section>
   )
 }

@@ -1,0 +1,302 @@
+/* Camada Cartoon · Página do mapa compacta, folhas e tela cheia (redesign de 06/11/2026; paginas/mapa/index.jsx).
+   Entra por src/styles/scw-cartoon.css, DEPOIS de 05 (mapa e rota) e 11 (mundo): onde repete um seletor, este arquivo manda.
+   Só tokens da edição (--ct-*). Quebra única de layout: 900px — abaixo, o cartão e o painel são folhas; a partir daí, coluna. */
+
+/* ------------------------------------------------------------- abertura compacta */
+.ct-canal.ct-rota-topo--compacto { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 12px; padding-block: 8px 10px; }
+.ct-rota-topo--compacto .ct-letreiro { grid-column: 1; margin: 0; }
+.ct-rota-topo--compacto .ct-letreiro--titulo .ct-letreiro__linha { font-size: clamp(26px, 9cqi, 40px); }
+.ct-rota-topo--compacto .ct-lead { grid-column: 1; max-width: 70ch; font-size: 16px; }
+.ct-rota-topo--compacto .ct-mapa__rota-botao { grid-column: 2; grid-row: 1; justify-self: end; }
+/* Celular: a frase de apoio fica só para o leitor de tela, e o cenário sai — o mapa é o assunto. */
+@media (max-width: 899.98px) {
+  .ct-rota-topo--compacto .ct-lead { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .ct-edicao .ct-rota-topo--compacto .ct-topo__cena { display: none; }
+}
+@media (min-width: 900px) {
+  .ct-canal.ct-rota-topo--compacto:has(> .ct-topo__cena) { grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; }
+  .ct-edicao .ct-rota-topo--compacto .ct-topo__cena { grid-column: 2; grid-row: 1 / span 2; width: 84px; margin: -4px 0; align-self: center; }
+  .ct-rota-topo--compacto .ct-mapa__rota-botao { display: none; }
+}
+
+/* ------------------------------------------------------------- progresso: uma linha, e o próximo passo só quando há o que fazer */
+.ct-mapa { padding-top: clamp(10px, 1.6vw, 20px); }
+.ct-edicao .ct-mapa__progresso { display: grid; gap: 6px; margin: 0 0 10px; padding: 8px 12px; border-radius: var(--ct-raio-p); box-shadow: var(--ct-sombra-p); }
+.ct-mapa__progresso-topo { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ct-mapa__progresso-topo > .ct-icone { flex: none; }
+.ct-edicao .ct-mapa__progresso .ct-progresso__corpo { flex: 1 1 auto; gap: 4px; min-width: 0; }
+.ct-mapa__progresso .ct-progresso__texto strong { font-size: 18px; }
+.ct-mapa__progresso .ct-progresso__barra { height: 12px; }
+.ct-mapa__progresso-detalhe { margin: 0; font-size: 12px; line-height: 1.35; }
+.ct-mapa__progresso .ct-botao { min-height: 44px; }
+/* Próximo passo: a ação principal da tela, num botão que diz a ação inteira (abaixo da barra de progresso; no desktop, ao lado dela). */
+.ct-mapa__proximo { display: grid; min-width: 0; }
+.ct-mapa__proximo p { margin: 0; font: 700 14px/1.35 var(--ct-font); }
+.ct-edicao .ct-mapa__proximo-botao {
+  display: grid; justify-items: start; gap: 1px; width: 100%; min-height: 54px; padding: 6px 14px; text-align: left; text-transform: none;
+  letter-spacing: 0; font: 800 15px/1.2 var(--ct-font); box-shadow: 3px 3px 0 var(--ct-chocolate);
+}
+.ct-mapa__proximo-rotulo { font: 800 12px/1.2 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
+/* Desktop e celular deitado: a faixa vira UMA linha (progresso à esquerda, próximo passo à direita) — o mapa sobe na tela. */
+@media (min-width: 900px), (max-height: 520px) and (orientation: landscape) {
+  .ct-edicao .ct-mapa__progresso { grid-template-columns: minmax(0, 1fr) minmax(260px, 380px); align-items: center; column-gap: 20px; }
+  .ct-mapa__progresso-topo { grid-column: 1; grid-row: 1; }
+  .ct-mapa__progresso-detalhe { grid-column: 1; grid-row: 2; }
+  .ct-mapa__proximo { grid-column: 2; grid-row: 1 / span 2; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .ct-canal.ct-rota-topo--compacto { padding-block: 4px 6px; }
+  .ct-rota-topo--compacto .ct-letreiro--titulo .ct-letreiro__linha { font-size: clamp(22px, 5cqi, 30px); }
+  .ct-edicao .ct-mapa__progresso { margin-bottom: 6px; padding-block: 6px; }
+  .ct-mapa { padding-top: 8px; }
+}
+
+/* ------------------------------------------------------------- layout: explorar (mapa) + lateral (cartão, rota) */
+.ct-mapa__corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
+.ct-mapa--rota .ct-mapa__lateral { order: -1; }
+.ct-mapa__explorar {
+  --ct-mapa-alto: clamp(320px, 62svh, 640px); /* altura do mapa (desenho, real e tela cheia leem esta medida) */
+  --ct-barra-h: calc(63px + env(safe-area-inset-top)); /* a barra da tela cheia: 8 + 44 + 8 + o filete de 3 px, mais o entalhe */
+  display: flex; flex-direction: column; gap: 8px; min-width: 0;
+}
+@media (max-height: 520px) and (orientation: landscape) { .ct-mapa__explorar { --ct-mapa-alto: max(280px, 72svh); } }
+@media (min-width: 900px) {
+  .ct-mapa__corpo { grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 20px; }
+  .ct-mapa--rota .ct-mapa__lateral { order: 0; }
+  .ct-mapa__explorar { --ct-mapa-alto: clamp(440px, calc(100svh - 250px), 760px); }
+  .ct-mapa__lateral { position: sticky; top: 92px; display: grid; gap: 12px; max-height: calc(100svh - 108px); overflow: auto; overscroll-behavior: contain; }
+}
+
+/* Barra: vistas · busca · Filtros. Celular: vistas numa linha (colunas iguais), busca + Filtros na de baixo. */
+.ct-mapa__barra { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.ct-mapa__vistas { grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; margin: 0; }
+.ct-mapa__vistas .ct-chip { justify-content: center; padding: 0 8px; }
+.ct-mapa__vistas .ct-chip[aria-pressed='true'] { background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: inset 0 0 0 1.5px var(--ct-chocolate), var(--ct-sombra-p); }
+.ct-mapa__busca { min-width: 0; flex: none; }
+.ct-mapa__busca input { width: 100%; box-sizing: border-box; }
+.ct-mapa__filtros-botao.is-ativo { background: var(--ct-amarelo); }
+.ct-mapa__filtros-conta {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border: 2px solid var(--ct-chocolate); border-radius: 999px;
+  background: var(--ct-creme); color: var(--ct-chocolate); font: 900 12px/1 var(--ct-font);
+}
+.ct-mapa__rota-botao { flex: none; }
+@media (min-width: 600px) {
+  .ct-mapa__barra { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ct-mapa__vistas { grid-column: auto; grid-auto-columns: auto; }
+}
+@media (max-width: 599.98px) {
+  .ct-mapa__so-largo { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* Resumo: "26 casas · 41 endereços" (a Caça conta casas), com "Limpar filtros" só quando há filtro. */
+.ct-mapa__resumo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; }
+.ct-mapa__resumo .ct-catalogo__conta { margin: 0; font: 700 14px/1.3 var(--ct-font); }
+.ct-mapa__resumo-regra { margin: 0; font: 600 12px/1.3 var(--ct-font); }
+.ct-mapa__nota-casas { margin: 0; }
+
+/* Moldura do mapa: o botão de tela cheia mora no canto de cima à esquerda (o zoom fica no da direita). */
+.ct-mapa__moldura { position: relative; min-width: 0; display: grid; gap: 10px; scroll-margin-top: 84px; } /* rolar até o mapa deixa o cabeçalho fixo (e os botões do mapa) à vista */
+.ct-mapa__ampliar {
+  position: absolute; top: 8px; left: 8px; z-index: 5; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px;
+  border: var(--ct-traco); border-radius: 12px; background: var(--ct-branco); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p);
+  font: 800 14px/1 var(--ct-font); cursor: pointer;
+}
+.ct-mapa__ampliar:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
+.ct-mapa__previa { order: 5; padding: 4px 10px; font-size: 12px; } /* aviso só do DEV: legenda embaixo do desenho, não bloco em cima */
+.ct-mapa__rotulo-longo { display: none; }
+@media (min-width: 600px) { .ct-mapa__rotulo-curto { display: none; } .ct-mapa__rotulo-longo { display: inline; } }
+/* Mapa real: a caixa do Google/MapLibre tem a altura do mapa; os estados sem mapa (carregar, em conferência) ficam do tamanho do texto. */
+.ct-mapa__explorar .ct-mapa__area { min-height: 160px; }
+.ct-mapa__explorar .ct-mapa__area:has(.ct-mapa__mapa) { height: var(--ct-mapa-alto); min-height: 0; overflow: hidden; }
+.ct-mapa__explorar .ct-mapa__mapa { height: 100%; min-height: 0; }
+.ct-mapa__explorar .ct-mapa__lista { max-height: none; overflow: visible; }
+/* Mapa real, escala por zoom: de longe (cidade inteira) o DESENHO do pin encolhe (a caixa do botão, o alvo de toque, segue de 44 px);
+   o escolhido e os de perto ficam cheios. */
+.ct-pin, .ct-sicredi-pin { transform-origin: 50% 100%; transition: scale 180ms var(--ct-mo-quique); }
+.ct-mapa__mapa--longe .ct-marcador--pin:not(.is-sel) .ct-pin, .ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin { scale: .55; }
+.ct-mapa__fora { display: grid; gap: 8px; min-width: 0; }
+.ct-mapa__fora:empty { display: none; }
+@media (max-width: 899.98px) { .ct-mapa__item { scroll-margin-bottom: 340px; } }
+
+/* ------------------------------------------------------------- folhas (Folha.jsx) */
+.ct-folha-m__veu, .ct-folha-m__puxador { display: none; }
+.ct-folha-m__cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.ct-folha-m__titulo { margin: 0; font: 900 20px/1.1 var(--ct-font); }
+.ct-folha-m__conteudo { display: grid; gap: 14px; min-width: 0; }
+.ct-folha-m--casa .ct-folha-m__conteudo { gap: 0; }
+.ct-folha-m--painel .ct-bloco, .ct-folha-m--jogo .ct-bloco { padding: 0; } /* o álbum é bloco de página na origem: dentro do painel, sem o trilho */
+@keyframes ct-folha-sobe { from { translate: 0 28px; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@keyframes ct-folha-surge { from { opacity: 0; } to { opacity: 1; } }
+
+/* Rodapé fixo da folha de filtros: "Limpar filtros" e a ação principal ("Ver N endereços") sempre à mão. */
+.ct-mapa__filtros { display: grid; gap: 16px; }
+.ct-mapa__filtros .ct-campo--busca { flex: none; }
+.ct-folha-m__rodape {
+  position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+  margin-top: 4px; padding: 10px 0 calc(8px + env(safe-area-inset-bottom)); border-top: 2px solid var(--ct-chocolate); background: var(--ct-creme);
+}
+.ct-folha-m__aplicar { margin-left: auto; }
+
+/* Cartão da casa: compacto (a ação principal e as secundárias que mais se usa) + "Mais" com o resto. */
+.ct-mapa__cartao { gap: 8px; padding: 12px 14px; }
+.ct-mapa__cartao:focus { outline: none; }
+.ct-mapa__cartao:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; border-radius: var(--ct-raio); }
+.ct-mapa__cartao-cabeca { gap: 10px; align-items: start; }
+.ct-edicao .ct-mapa__cartao-cabeca .ct-mapa__logo { max-width: 68px; }
+.ct-mapa__cartao-cabeca .ct-rotulo { font-size: 11px; }
+.ct-mapa__cartao-nome { font-size: clamp(17px, 4.6vw, 22px); line-height: 1.12; }
+.ct-mapa__cartao-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.ct-mapa__cartao-resumo p { margin: 0; }
+.ct-mapa__cartao-linha { align-items: flex-start; font-size: 14px; line-height: 1.35; }
+.ct-mapa__cartao-linha > .scw-icone, .ct-mapa__cartao-linha > svg { flex: none; }
+.ct-mapa__cartao-acoes { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 2px 0 0; }
+.ct-edicao .ct-mapa__cartao-acoes .ct-botao { min-height: 44px; padding: 0 11px; font-size: 13px; letter-spacing: .03em; box-shadow: 3px 3px 0 var(--ct-chocolate); }
+.ct-edicao .ct-mapa__cartao-acoes > .ct-botao:first-child { flex: 1 1 100%; min-height: 48px; font-size: 15px; box-shadow: 4px 4px 0 var(--ct-chocolate); }
+.ct-mapa__cartao-acoes > .ct-chip { flex: none; padding-inline: 12px; }
+.ct-mapa__cartao-acoes > .ct-chip--icone { padding-left: 6px; padding-right: 10px; }
+.ct-mapa__mais { display: grid; gap: 8px; padding-top: 10px; border-top: 2px dashed var(--ct-chocolate); }
+.ct-mapa__mais[hidden] { display: none; }
+.ct-mapa__mais p { margin: 0; }
+.ct-mapa__mais .ct-acoes { margin-top: 4px; }
+.ct-mapa__irmas ul { display: grid; gap: 6px; margin: 6px 0; padding: 0; list-style: none; }
+.ct-mapa__irma {
+  display: grid; gap: 2px; width: 100%; min-height: 48px; padding: 6px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px;
+  background: var(--ct-creme); color: var(--ct-chocolate); font: 500 14px/1.3 var(--ct-font); text-align: left; cursor: pointer;
+}
+.ct-mapa__irma strong { font: 800 15px/1.25 var(--ct-font); }
+.ct-mapa__irma:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+
+/* A folha dos atalhos tem mais conteúdo (ranking, grupos, rota): no desktop, janela um pouco mais larga. */
+@media (min-width: 900px) { .ct-folha-m--jogo .ct-folha-m__corpo { width: min(680px, 92vw); } }
+
+/* ---- CELULAR (< 900): cartão = folha embaixo, sem véu; painel e filtros = folhas modais ---- */
+@media (max-width: 899.98px) {
+  .ct-folha-m--casa {
+    position: fixed; z-index: 40; left: 0; right: 0; bottom: calc(var(--scw-base-ocupada, 72px) + var(--scw-aviso-h, 0px));
+    padding: 0 8px 8px; pointer-events: none;
+  }
+  .ct-folha-m--casa .ct-mapa__cartao {
+    pointer-events: auto; max-height: min(56svh, 480px); overflow: auto; overscroll-behavior: contain;
+    box-shadow: 0 -4px 0 color-mix(in srgb, var(--ct-chocolate) 25%, transparent), var(--ct-sombra-p);
+    animation: ct-folha-sobe 220ms var(--ct-mo-quique) both;
+  }
+  .ct-folha-m--painel:not(.is-aberta) { display: none; }
+  .ct-folha-m--painel.is-aberta:not(.is-inline) { position: fixed; inset: 0; z-index: 70; display: grid; align-items: end; }
+  .ct-folha-m--painel.is-inline { display: block; }
+  .ct-folha-m--painel.is-inline .ct-folha-m__cabeca { display: none; }
+  .ct-folha-m.is-modal .ct-folha-m__veu, .ct-folha-m--filtros .ct-folha-m__veu, .ct-folha-m--jogo .ct-folha-m__veu {
+    position: absolute; inset: 0; display: block; background: color-mix(in srgb, var(--ct-chocolate) 55%, transparent); animation: ct-folha-surge 180ms ease-out both;
+  }
+  .ct-folha-m.is-modal .ct-folha-m__corpo {
+    position: relative; max-height: min(88dvh, calc(100dvh - 20px)); overflow: auto; overscroll-behavior: contain;
+    padding: 8px 16px 16px calc(16px + env(safe-area-inset-left)); padding-right: calc(16px + env(safe-area-inset-right));
+    border: var(--ct-traco); border-bottom: 0; border-radius: 22px 22px 0 0; background: var(--ct-creme);
+    animation: ct-folha-sobe 240ms var(--ct-mo-quique) both;
+  }
+  .ct-folha-m--filtros .ct-folha-m__corpo { padding-bottom: 0; }
+  .ct-folha-m.is-modal .ct-folha-m__puxador { display: block; width: 44px; height: 5px; margin: 0 auto 10px; border-radius: 999px; background: color-mix(in srgb, var(--ct-chocolate) 35%, transparent); }
+  .ct-folha-m.is-modal .ct-folha-m__corpo:focus { outline: none; }
+  .ct-folha-m.is-modal .ct-folha-m__corpo:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: -6px; }
+}
+/* Celular deitado (pouca altura): o cartão não cabe como folha embaixo — vira um painel à ESQUERDA, e o mapa segue explorável à direita
+   (o zoom do desenho e os controles dos mapas reais ficam no canto direito, nunca cobertos). */
+@media (max-width: 899.98px) and (orientation: landscape) and (max-height: 520px) {
+  .ct-folha-m--casa { right: auto; top: 72px; width: min(480px, 58vw); display: flex; align-items: flex-end; padding: 0 8px 8px calc(8px + env(safe-area-inset-left)); }
+  /* (altura em medida absoluta: a % não alcança o cartão, que mora dentro de blocos de altura automática) */
+  .ct-folha-m--casa .ct-mapa__cartao { width: 100%; max-height: calc(100svh - 72px - var(--scw-base-ocupada, 72px) - var(--scw-aviso-h, 0px) - 16px); }
+  .is-cheia .ct-folha-m--casa { top: var(--ct-barra-h); bottom: var(--scw-aviso-h, 0px); padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .is-cheia .ct-folha-m--casa .ct-mapa__cartao { max-height: calc(var(--ct-vv-h, 100dvh) - var(--ct-barra-h) - 16px - env(safe-area-inset-bottom)); }
+}
+/* A folha de filtros é modal também no desktop: janela no centro, com véu. */
+.ct-folha-m--filtros, .ct-folha-m--jogo { position: fixed; left: 0; right: 0; top: var(--ct-vv-top, 0); height: var(--ct-vv-h, 100dvh); z-index: 90; display: grid; align-items: end; } /* na tela cheia com teclado aberto, segue a área visível */
+@media (min-width: 900px) {
+  .ct-folha-m--filtros, .ct-folha-m--jogo { align-items: center; justify-items: center; }
+  .ct-folha-m--filtros .ct-folha-m__veu, .ct-folha-m--jogo .ct-folha-m__veu { position: absolute; inset: 0; display: block; background: color-mix(in srgb, var(--ct-chocolate) 55%, transparent); }
+  .ct-folha-m--filtros .ct-folha-m__corpo, .ct-folha-m--jogo .ct-folha-m__corpo {
+    position: relative; width: min(560px, 92vw); max-height: 86svh; overflow: auto; padding: 16px 20px 0;
+    border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-creme); box-shadow: var(--ct-sombra);
+  }
+  .ct-folha-m--filtros .ct-folha-m__corpo:focus, .ct-folha-m--jogo .ct-folha-m__corpo:focus { outline: none; }
+  .ct-folha-m--painel .ct-folha-m__cabeca { display: none; }
+  /* A faixa de progresso já está no alto da página: a coluna não repete a mesma conta (no celular o painel é uma folha à parte e a mantém). */
+  .ct-mapa--mapa .ct-painel-rota > .ct-progresso { display: none; }
+}
+
+/* ------------------------------------------------------------- TELA CHEIA (useTelaCheia.js): o mesmo contêiner, expandido */
+.ct-mapa__explorar.is-cheia {
+  position: fixed; z-index: 80; left: 0; right: 0; top: var(--ct-vv-top, 0); height: var(--ct-vv-h, 100dvh);
+  --ct-mapa-alto: calc(var(--ct-vv-h, 100dvh) - var(--ct-barra-h)); /* o desenho vai até a borda de baixo: o cartão é que respeita o safe area */
+  gap: 0; overflow: hidden; background: var(--ct-creme); overscroll-behavior: none;
+}
+.ct-mapa__explorar.is-cheia:fullscreen { width: 100vw; height: 100vh; }
+.is-cheia .ct-mapa__barra {
+  grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px;
+  padding: calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));
+  border-bottom: var(--ct-traco); background: var(--ct-creme);
+}
+.is-cheia .ct-mapa__vistas { grid-column: auto; grid-auto-columns: auto; justify-self: start; }
+.ct-mapa__sair {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 12px;
+  border: var(--ct-traco); border-radius: 22px; background: var(--ct-branco); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p);
+  font: 800 14px/1 var(--ct-font); cursor: pointer;
+}
+.ct-mapa__sair:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
+@media (max-width: 419.98px) {
+  .is-cheia .ct-mapa__sair span, .is-cheia .ct-mapa__filtros-botao span:not(.ct-mapa__filtros-conta) { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .is-cheia .ct-mapa__sair, .is-cheia .ct-mapa__filtros-botao { padding: 0 11px; }
+}
+.is-cheia .ct-mapa__resumo, .is-cheia .ct-mapa__fora { display: none; }
+.is-cheia .ct-mapa__moldura { display: block; flex: 1 1 auto; min-height: 0; }
+.is-cheia .ct-mapa__previa { display: none; }
+.is-cheia .ct-mapa__ampliar { display: none; }
+.is-cheia .ct-mundo { height: 100%; grid-template-rows: minmax(0, 1fr); gap: 0; }
+.is-cheia .ct-mundo__janela { height: 100%; border-width: 0; border-radius: 0; box-shadow: none; }
+.is-cheia .ct-mapa__area, .ct-mapa__explorar.is-cheia .ct-mapa__area:has(.ct-mapa__mapa) { height: 100%; border-width: 0; border-radius: 0; box-shadow: none; }
+.is-cheia .ct-mapa__mapa { height: 100%; }
+.is-cheia .ct-mundo__zoom { top: 10px; right: calc(10px + env(safe-area-inset-right)); }
+/* Na tela cheia o aviso "mapa ilustrativo" e o crédito deixam de ser legenda e viram etiquetas sobre o desenho (nunca somem). */
+.is-cheia .ct-mundo__aviso, .is-cheia .ct-mundo__credito {
+  position: absolute; z-index: 4; left: calc(10px + env(safe-area-inset-left)); max-width: min(560px, calc(100% - 20px)); pointer-events: none;
+  background: color-mix(in srgb, var(--ct-creme) 94%, transparent); border-radius: 10px;
+}
+.is-cheia .ct-mundo__aviso { bottom: calc(32px + env(safe-area-inset-bottom)); padding: 3px 10px; border: 2px solid var(--ct-chocolate); font-size: 12px; }
+.is-cheia .ct-mundo__credito { bottom: calc(8px + env(safe-area-inset-bottom)); padding: 0 8px; font-size: 11px; }
+/* O cartão da casa na tela cheia: folha embaixo no celular; no desktop, um painel à esquerda sobre o mapa. */
+.is-cheia .ct-folha-m--casa { bottom: var(--scw-aviso-h, 0px); padding-bottom: calc(8px + env(safe-area-inset-bottom)); padding-inline: calc(8px + env(safe-area-inset-left)) calc(8px + env(safe-area-inset-right)); }
+@media (min-width: 900px) {
+  .is-cheia .ct-folha-m--casa { position: absolute; z-index: 6; left: 16px; right: auto; bottom: 16px; width: min(400px, 40%); padding: 0; pointer-events: none; }
+  .is-cheia .ct-folha-m--casa .ct-mapa__cartao { pointer-events: auto; max-height: calc(var(--ct-mapa-alto) - 32px); overflow: auto; overscroll-behavior: contain; }
+}
+
+/* ------------------------------------------------------------- ATALHOS DO JOGO (Atalhos.jsx; só na tela cheia) */
+.ct-jogo { position: absolute; z-index: 45; /* acima do cartão da casa (40): a lista dos atalhos nunca fica por baixo dele */  top: calc(var(--ct-barra-h) + 10px); left: calc(10px + env(safe-area-inset-left)); display: grid; gap: 8px; justify-items: start; }
+.ct-jogo__botao {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; border: var(--ct-traco); border-radius: 24px;
+  background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); font: 900 14px/1 var(--ct-font); cursor: pointer;
+}
+.ct-jogo__botao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
+.ct-jogo__placar { display: inline-grid; place-items: center; min-width: 38px; height: 26px; padding: 0 8px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 900 13px/1 var(--ct-font); }
+.ct-jogo__lista {
+  display: grid; gap: 2px; width: min(228px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))); max-height: calc(var(--ct-mapa-alto) - 84px); margin: 0; padding: 6px; overflow: auto;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); list-style: none; animation: ct-folha-surge 160ms ease-out both;
+}
+.ct-jogo__item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 2px 10px 2px 4px; border: 2px solid transparent; border-radius: 12px;
+  background: none; color: var(--ct-chocolate); font: 800 15px/1.2 var(--ct-font); text-align: left; cursor: pointer;
+}
+.ct-jogo__item:hover { border-color: var(--ct-chocolate); background: var(--ct-creme); }
+/* Celular deitado: a lista deita também (cinco itens lado a lado, ícone em cima do rótulo) e não passa da altura da tela. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .ct-jogo__lista { display: flex; flex-wrap: nowrap; width: auto; max-width: calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)); max-height: none; overflow-x: auto; }
+  .ct-jogo__item { flex-direction: column; justify-content: center; gap: 2px; min-width: 76px; min-height: 64px; padding: 4px 6px; font-size: 13px; text-align: center; }
+}
+.ct-jogo__convite { display: grid; gap: 12px; justify-items: start; }
+.ct-jogo__convite p { margin: 0; }
+.ct-folha-m--jogo .ct-caca-mapa__rapida-lista { max-height: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-jogo__botao:active { translate: none; }
+  .ct-folha-m--casa .ct-mapa__cartao, .ct-folha-m.is-modal .ct-folha-m__corpo, .ct-folha-m.is-modal .ct-folha-m__veu, .ct-folha-m--filtros .ct-folha-m__veu, .ct-folha-m--jogo .ct-folha-m__veu { animation: none; }
+  .ct-mapa__ampliar:active, .ct-mapa__sair:active { translate: none; }
+  .ct-pin, .ct-sicredi-pin { transition: none; }
+}

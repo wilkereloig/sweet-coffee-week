@@ -1,6 +1,9 @@
 /*
- * Progresso pessoal e próximo passo, no alto do mapa (spec 15 §10). "X de N casas validadas" vem do servidor; sem mapa a
- * pessoa recebe o convite para criar o dela; leitura que falha diz a verdade e deixa tentar de novo.
+ * Progresso pessoal e próximo passo, no mapa (spec 15 §10). "X de N casas validadas" vem do servidor; sem mapa a pessoa
+ * recebe o convite para criar o dela; leitura que falha diz a verdade e deixa tentar de novo.
+ * Redesign de 06/11/2026 — o mapa é o protagonista, então é UMA faixa fina: ícone · "X de N casas validadas" · barra
+ * (+ detalhe numa linha) e, só quando há o que fazer, o PRÓXIMO PASSO como um botão que diz a ação inteira (avaliar >
+ * parada da rota > próxima casa do caminho): a ação principal da tela. A frase longa vai como descrição do botão.
  * `proximo`: { tipo, slug, nome } de `proximoPasso` + o nome da casa. As ações recebem o slug.
  */
 import React from 'react'
@@ -12,44 +15,61 @@ import { MAPA_CACA as T } from './textos.js'
 
 export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, aoVerCasa, aoAvaliar, atualizar, navigate }) {
   const id = React.useId()
-  if (estado === 'carregando') return <div className="ct-progresso ct-caca-mapa__progresso"><Carregando texto={T.lendoMapa} /></div>
+  const moldura = (corpo, extra = null) => (
+    <section className="ct-progresso ct-caca-mapa__progresso ct-mapa__progresso" aria-label={T.progressoTitulo}>
+      <div className="ct-mapa__progresso-topo">
+        <IconeCartoon nome="progresso" tamanho={32} />
+        <div className="ct-progresso__corpo ct-caca-mapa__progresso-corpo">{corpo}</div>
+      </div>
+      {extra}
+    </section>
+  )
+  if (estado === 'carregando') return moldura(<Carregando texto={T.lendoMapa} />)
   if (estado === 'falha') {
-    return (
-      <div className="ct-progresso ct-caca-mapa__progresso" role="alert">
+    return moldura(
+      <div role="alert">
         <p>{T.falhaMapa}</p>
         {atualizar && <button type="button" className="ct-botao ct-botao--contorno" onClick={atualizar}>{T.tentarDeNovo}</button>}
-      </div>
+      </div>,
     )
   }
   if (estado === 'sem-mapa') {
-    return (
-      <div className="ct-progresso ct-caca-mapa__progresso">
-        <IconeCartoon nome="progresso" tamanho={64} />
-        <div className="ct-progresso__corpo ct-caca-mapa__progresso-corpo">
-          <p>{T.semMapa}</p>
-          <Botao href={T.caminhos.central} navigate={navigate}>{T.criarMapa}</Botao>
-        </div>
-      </div>
+    return moldura(
+      <>
+        <p>{T.semMapa}</p>
+        <Botao href={T.caminhos.central} navigate={navigate}>{T.criarMapa}</Botao>
+      </>,
     )
   }
   const p = progressoPessoal(mapa, totalDaEdicao)
   const detalhe = T.progressoDetalhe(p.pendentes, p.extras)
-  const passo = proximo && proximo.tipo !== 'criar-mapa' && proximo.tipo !== 'nenhum' ? proximo : null
+  return moldura(
+    <>
+      <p className="ct-progresso__texto" id={id}><strong>{T.progresso(p.feitas, p.total)}</strong></p>
+      <progress className="ct-progresso__barra" max={p.total || 1} value={p.feitas} aria-labelledby={id} />
+    </>,
+    <>
+      {detalhe && <p className="ct-nota ct-mapa__progresso-detalhe">{detalhe}</p>}
+      <ProximoPasso proximo={proximo} aoVerCasa={aoVerCasa} aoAvaliar={aoAvaliar} />
+    </>,
+  )
+}
+
+/** A ação principal da tela. Só existe com algo a fazer ('criar-mapa' e 'nenhum' não têm botão: o convite já está na faixa). */
+function ProximoPasso ({ proximo, aoVerCasa, aoAvaliar }) {
+  const idDescricao = React.useId()
+  if (!proximo || proximo.tipo === 'criar-mapa' || proximo.tipo === 'nenhum') return null
+  const { tipo, slug, nome } = proximo
+  if (tipo === 'completo') return <div className="ct-mapa__proximo" role="group" aria-label={T.proximoTitulo}><p>{T.proximo.completo}</p></div>
+  const aoClicar = tipo === 'avaliar' ? aoAvaliar : aoVerCasa
+  if (!aoClicar) return null
   return (
-    <div className="ct-progresso ct-caca-mapa__progresso">
-      <IconeCartoon nome="progresso" tamanho={64} />
-      <div className="ct-progresso__corpo ct-caca-mapa__progresso-corpo">
-        <p className="ct-progresso__texto" id={id}><strong>{T.progresso(p.feitas, p.total)}</strong></p>
-        <progress className="ct-progresso__barra" max={p.total || 1} value={p.feitas} aria-labelledby={id} />
-        {detalhe && <p className="ct-nota">{detalhe}</p>}
-        {passo && (
-          <div className="ct-caca-mapa__proximo" role="group" aria-label={T.proximoTitulo}>
-            <p><strong>{T.proximoTitulo}.</strong> {passo.tipo === 'completo' ? T.proximo.completo : T.proximo[passo.tipo](passo.nome)}</p>
-            {passo.tipo === 'avaliar' && aoAvaliar && <button type="button" className="ct-botao" onClick={() => aoAvaliar(passo.slug)}>{T.acaoProximo.avaliar}</button>}
-            {(passo.tipo === 'rota' || passo.tipo === 'visitar') && aoVerCasa && <button type="button" className="ct-botao ct-botao--contorno" onClick={() => aoVerCasa(passo.slug)}>{T.acaoProximo[passo.tipo]}</button>}
-          </div>
-        )}
-      </div>
+    <div className="ct-mapa__proximo" role="group" aria-label={T.proximoTitulo}>
+      <button type="button" className={`ct-botao ct-mapa__proximo-botao${tipo === 'avaliar' ? '' : ' ct-botao--contorno'}`} aria-describedby={idDescricao} onClick={() => aoClicar(slug)}>
+        <span className="ct-mapa__proximo-rotulo">{T.proximoTitulo}</span>
+        <span>{T.proximoAcao[tipo](nome)}</span>
+      </button>
+      <span id={idDescricao} className="ct-sr">{T.proximo[tipo](nome)}</span>
     </div>
   )
 }

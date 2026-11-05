@@ -623,19 +623,29 @@ secao(5, 'estados do mapa nas três vistas (vazio, pendente, conquistada, revisi
     await c.page.getByText('2 de 26 casas validadas').first().waitFor({ timeout: 10000 })
     const t = await texto(c.page)
     checar(/1 carimbo esperando avaliação · 1 carimbo extra/.test(t), `@${w} mundo: contadores de pendente e extra`)
-    checar(/Falta avaliar o combo de Cookitos/.test(t) && await c.page.getByRole('button', { name: 'Avaliar agora' }).count() === 1, `@${w} mundo: próximo passo = avaliar a casa pendente`)
+    // Próximo passo = UM botão que diz a ação inteira ("Avaliar o combo de Cookitos"); a frase longa vem como descrição dele.
+    checar(/Falta avaliar o combo de Cookitos/.test(t) && await c.page.getByRole('button', { name: /Avaliar o combo de Cookitos/ }).count() === 1, `@${w} mundo: próximo passo = avaliar a casa pendente`)
     const pins = await c.page.locator('button[aria-label]').evaluateAll((bs) => bs.map((b) => b.getAttribute('aria-label')).filter((a) => /^\d+\. /.test(a)))
     checar(pins.some((p) => /Adocee.*conquistada, 1 revisita/.test(p)), `@${w} mundo: casa conquistada com "1 revisita" (estado dito por texto, não só por cor)`)
     checar(pins.some((p) => /Carcará.*conquistada$/.test(p)), `@${w} mundo: casa conquistada sem revisita`)
     checar(pins.filter((p) => /Cookitos.*carimbo pendente: falta avaliar/.test(p)).length >= 1, `@${w} mundo: casa pendente diz "falta avaliar"`)
     checar(/Mapa ilustrativo: não mostra posições reais/.test(t), `@${w} mundo: aviso de mapa ilustrativo`)
-    checar(await c.page.getByRole('region', { name: /Mundo da Doçura/ }).locator('button:has-text("Sicredi"), button[aria-label*="Sicredi"]').count() >= 1 && /não conta como casa/.test(t), `@${w} mundo: agências do Sicredi marcadas como "não contam como casa"`)
-    // filtro "Meu progresso"
+    await c.page.locator('summary', { hasText: 'Como ler os pins' }).click() // a legenda é recolhível: aberta, diz do Sicredi
+    checar(await c.page.getByRole('region', { name: /Mundo da Doçura/ }).locator('button:has-text("Sicredi"), button[aria-label*="Sicredi"]').count() >= 1 && /não conta como casa/.test(await texto(c.page)), `@${w} mundo: agências do Sicredi marcadas como "não contam como casa"`)
+    // "casas × endereços": a faixa de resumo conta casas e endereços, e diz que a Caça conta casas
+    checar(/\d+ casas?( \(\d+ valem carimbo\))? · \d+ endereços/.test(t) && /Cada casa vale um carimbo, mesmo com mais de um endereço/.test(t), `@${w} mundo: resumo "N casas · M endereços" e a regra "cada casa vale um carimbo"`)
+    // filtro "Meu progresso" — mora na folha de Filtros (dialog), com o contador de ativos no botão
+    const botaoFiltros = c.page.getByRole('button', { name: /^Filtros/ })
+    await botaoFiltros.click()
+    await c.page.getByRole('dialog', { name: 'Filtros do mapa' }).waitFor({ timeout: 5000 })
     await c.page.getByRole('button', { name: 'Conquistadas' }).click()
+    await c.page.getByRole('button', { name: /^Ver \d+ endereços?$/ }).click()
     await c.page.waitForTimeout(300)
-    const lista = await c.page.locator('details, .ct-mapa__lista, .ct-caca-lista').first().innerText().catch(() => '')
-    checar(/Casas em lista \((\d+)\)/.test(await texto(c.page)) ? Number(/Casas em lista \((\d+)\)/.exec(await texto(c.page))[1]) <= 41 : true, `@${w} filtro "Conquistadas" estreita a lista`)
-    await c.page.getByRole('button', { name: 'Conquistadas' }).click() // desliga
+    checar(/1 filtro ativo/.test(await botaoFiltros.getAttribute('aria-label')), `@${w} filtros: o botão diz quantos filtros estão ativos`)
+    const filtrada = /Casas em lista \((\d+)\)/.exec(await texto(c.page))
+    checar(!filtrada || Number(filtrada[1]) <= 41, `@${w} filtro "Conquistadas" estreita a lista`)
+    await c.page.getByRole('button', { name: 'Limpar filtros' }).first().click() // limpa
+    checar(await botaoFiltros.getAttribute('aria-label') === 'Filtros', `@${w} filtros: limpar zera o contador`)
     await foto(c.page, `05-mundo-${w}`)
     // vista Lista
     await c.page.getByRole('button', { name: 'Lista' }).click()
@@ -643,7 +653,12 @@ secao(5, 'estados do mapa nas três vistas (vazio, pendente, conquistada, revisi
     const li = await texto(c.page)
     checar(/Conquistada/.test(li) && /Falta avaliar/.test(li), `@${w} lista: estados escritos (Conquistada / Falta avaliar)`)
     checar(/1 revisita/.test(li), `@${w} lista: revisita contada`)
-    checar(await c.page.getByRole('link', { name: /Adocee/ }).count() >= 1, `@${w} lista: casas são links`)
+    // cada casa da lista abre o cartão (folha no celular, coluna no desktop), com o caminho para a ficha; "Fechar" fecha
+    await c.page.locator('.ct-mapa__sel', { hasText: /Adocee/ }).first().click()
+    await c.page.locator('.ct-mapa__cartao').waitFor({ timeout: 5000 })
+    checar(/Adocee/.test(await c.page.locator('.ct-mapa__cartao').innerText()), `@${w} lista: a casa abre o cartão`)
+    await c.page.locator('.ct-mapa__cartao .ct-mapa__fechar').click()
+    checar(await c.page.locator('.ct-mapa__cartao').count() === 0, `@${w} lista: o botão Fechar fecha o cartão`)
     await foto(c.page, `05-lista-${w}`)
     // vista Mapa real (tiles bloqueados no teste): a vista abre, diz a cobertura e lista as sem localização
     await c.page.getByRole('button', { name: 'Mapa real' }).click()
@@ -664,13 +679,318 @@ secao(5, 'estados do mapa nas três vistas (vazio, pendente, conquistada, revisi
   c = await contexto(nav, { chave: CHAVE_FAKE, mocks: { mapa_ler_v2: MAPA_PROGRESSO, mapa_confirmar_email_status: { confirmado: true, valido: true } } })
   await ir(c.page, '/cartoon/caca/mapa')
   await c.page.getByText('2 de 26 casas validadas').first().waitFor()
-  const painel = await texto(c.page)
+  // Minha rota e Carimbos moram num painel à parte: no celular é uma folha aberta pelo botão "Minha rota"; no desktop, a coluna.
+  await c.page.locator('.ct-mapa__rota-botao').click()
+  await c.page.getByRole('dialog', { name: /Sua rota e seus carimbos/ }).waitFor({ timeout: 5000 })
+  const painel = await c.page.locator('.ct-folha-m--painel').innerText()
   const marcadas = /(\d+) de (\d+) casas marcadas por você/.exec(painel)
   checar(!marcadas || marcadas[2] === '26', `o painel "Sua rota e seus carimbos" usa o total do servidor (${marcadas ? marcadas[0] : 'sem contagem local'})`)
   checar(/2 de 26 casas validadas na Caça aos Carimbos/.test(painel), 'o painel de rota mostra a MESMA conta do servidor (validadas de total_casas)')
   checar(!/Já fui[\s\S]*Cookitos[\s\S]*Carimbada(?!,)/.test(painel), 'carimbo PENDENTE não aparece como "Carimbada" simples na lista "Já fui" (vira "Carimbada, falta avaliar")')
+  checar(await c.page.locator('.ct-folha-m--painel .ct-mapa__fechar').isVisible(), 'a folha da rota tem o botão Fechar à vista')
+  await c.page.keyboard.press('Escape')
+  checar(await c.page.getByRole('dialog', { name: /Sua rota e seus carimbos/ }).count() === 0, 'Escape fecha a folha da rota')
   await c.ctx.close()
+  await mapaTelaCheiaEFolhas()
+  await minhaRotaInline()
 })
+
+// ---- Redesign de 06/11/2026: tela cheia, folha da casa, folha de filtros e a página "Minha rota" ----
+const MOCKS_PROGRESSO = {
+  mapa_ler_v2: MAPA_PROGRESSO, mapa_confirmar_email_status: { confirmado: true, valido: true },
+  // as folhas Ranking e Grupos dos atalhos leem estas duas RPCs: respostas de teste (nada do banco, nada de dado real)
+  caca_ranking_publico: [{ posicao: 1, apelido: 'Ana', casas: 9, extras: 3 }, { posicao: 2, apelido: 'Teste', casas: 2, extras: 1 }],
+  caca_grupo_listar: { ok: true, total_casas: 26, grupos: [] },
+}
+const ESTILO_VAZIO = { version: 8, sources: {}, layers: [{ id: 'fundo', type: 'background', paint: { 'background-color': '#FDF0DE' } }] }
+const TELAS = [[360, 800], [390, 844], [768, 1024], [1440, 900], [844, 390]]
+const dom = (page, fn, arg) => page.evaluate(fn, arg)
+/** Espera a rolagem da página assentar (o cartão rola o mapa para cima com animação suave). */
+const esperarRolagem = async (page) => {
+  let ultimo = -1; let iguais = 0
+  for (let i = 0; i < 40 && iguais < 3; i++) { const y = await page.evaluate(() => Math.round(scrollY)); iguais = y === ultimo ? iguais + 1 : 0; ultimo = y; await page.waitForTimeout(100) }
+}
+const fotoTela = (page, nome) => page.screenshot({ path: join(CAPTURAS, `${nome}.png`) }).catch(() => null) // só a tela (a tela cheia trava o corpo: fullPage sairia em preto)
+
+/** O que a tela cheia promete: contêiner fixo, tela toda, trava de rolagem, Fechar à vista e foco dentro. */
+const estadoDaTelaCheia = (page) => dom(page, () => {
+  const el = document.querySelector('.ct-mapa__explorar.is-cheia')
+  if (!el) return null
+  const r = el.getBoundingClientRect(); const cs = getComputedStyle(el)
+  const f = document.querySelector('[data-fechar-cheia]')?.getBoundingClientRect()
+  return {
+    pos: cs.position, w: r.width, h: r.height, top: r.top, left: r.left, iw: innerWidth, ih: innerHeight, role: el.getAttribute('role'), modal: el.getAttribute('aria-modal'), nome: el.getAttribute('aria-label'),
+    fecharOk: !!f && f.top >= 0 && f.left >= 0 && f.right <= innerWidth && f.height >= 43.5 && f.width >= 43.5,
+    corpoFixo: getComputedStyle(document.body).position === 'fixed', htmlTrava: getComputedStyle(document.documentElement).overflow === 'hidden',
+    foco: !!document.activeElement?.hasAttribute('data-fechar-cheia'), lateral: document.documentElement.scrollWidth - innerWidth,
+  }
+})
+
+/**
+ * Atalhos do jogo na tela cheia (06/11/2026): um botão compacto → lista de cinco → uma folha por vez. Com a tela cheia já aberta.
+ * Confere o botão (alvo, canto, nome), a lista, cada folha (conteúdo, foco preso, Fechar), que fechar não muda zoom/posição/seleção/
+ * filtros e a ordem do Escape (folha → lista → tela cheia: este último fica com quem chama).
+ */
+async function atalhosDoJogo (p, ro) {
+  const botao = p.locator('[data-atalhos]')
+  const g = await dom(p, () => {
+    const b = document.querySelector('[data-atalhos]').getBoundingClientRect(); const z = document.querySelector('.ct-mundo__zoom')?.getBoundingClientRect()
+    const barra = document.querySelector('.ct-mapa__barra').getBoundingClientRect()
+    return { w: b.width, h: b.height, l: b.left, r: b.right, bt: b.bottom, iw: innerWidth, ih: innerHeight, abaixoDaBarra: b.top >= barra.bottom - 1, cobreZoom: !!z && !(b.right < z.left || b.left > z.right || b.bottom < z.top || b.top > z.bottom) }
+  })
+  checar(g.w >= 43.5 && g.h >= 43.5 && g.l >= 0 && g.r <= g.iw && g.bt <= g.ih && g.abaixoDaBarra && !g.cobreZoom, `${ro}: atalhos: botão ≥ 44px, dentro da tela, abaixo da barra e longe do zoom`)
+  checar(/^Atalhos do jogo, 2 de 26 casas validadas$/.test(await botao.getAttribute('aria-label')), `${ro}: atalhos: o botão tem nome com o placar`)
+  const estado = () => dom(p, () => {
+    const j = document.querySelector('.ct-mundo__janela')
+    return { l: Math.round(j.scrollLeft), t: Math.round(j.scrollTop), zoom: document.querySelector('.ct-mundo__palco').style.getPropertyValue('--zoom'), card: document.querySelector('.ct-mapa__cartao h2')?.textContent || '', filtros: document.querySelector('.ct-mapa__filtros-botao').getAttribute('aria-label') }
+  })
+  const antes = await estado()
+  const lista = p.getByRole('list', { name: 'Atalhos do jogo' })
+  await botao.click()
+  await lista.waitFor({ timeout: 5000 })
+  const nomes = (await lista.getByRole('button').allInnerTexts()).map((t) => t.trim())
+  checar(nomes.join('|') === 'Progresso|Casas|Rota|Ranking|Grupos', `${ro}: atalhos: a lista tem os cinco, na ordem (${nomes.join(' · ')})`)
+  checar(await botao.getAttribute('aria-expanded') === 'true', `${ro}: atalhos: aria-expanded no botão`)
+  await fotoTela(p, `05-jogo-lista-${ro.replace(/\D+/g, '-').replace(/^-|-$/g, '')}`)
+  await p.keyboard.press('Escape')
+  checar(await lista.count() === 0 && await p.locator('.ct-mapa__explorar.is-cheia').count() === 1, `${ro}: atalhos: o Escape recolhe a lista e a tela cheia continua`)
+  checar(await dom(p, () => document.activeElement?.hasAttribute('data-atalhos')), `${ro}: atalhos: o foco volta ao botão dos atalhos`)
+  const CONTEUDO = {
+    progresso: ['Progresso e carimbos', /2 de 26 casas validadas/],
+    casas: ['Casas', /Casas em lista/],
+    rota: ['Minha rota', /Quero ir/i],
+    ranking: ['Ranking', /Ana/],
+    grupos: ['Grupos', /grupo/i],
+  }
+  for (const [chave, [titulo, esperado]] of Object.entries(CONTEUDO)) {
+    const rc = `${ro}: atalho ${titulo}`
+    await botao.click()
+    await lista.waitFor({ timeout: 5000 })
+    await p.locator(`[data-atalho="${chave}"]`).click()
+    const dlg = p.getByRole('dialog', { name: titulo, exact: true })
+    await dlg.waitFor({ timeout: 8000 })
+    await p.waitForTimeout(500) // a folha sobe em 240 ms; Ranking e Grupos baixam sob demanda
+    checar(await lista.count() === 0, `${rc}: a lista recolhe sozinha ao abrir a folha`)
+    checar(await p.locator('.ct-folha-m--jogo').count() === 1, `${rc}: só uma folha aberta`)
+    checar(await dom(p, () => !!document.activeElement?.closest('.ct-folha-m--jogo')), `${rc}: o foco entra na folha`)
+    checar(esperado.test(await dlg.innerText()), `${rc}: conteúdo certo (${esperado})`)
+    const caixa = await dlg.boundingBox()
+    const tela = await dom(p, () => [innerWidth, innerHeight])
+    checar(caixa.x >= -1 && caixa.x + caixa.width <= tela[0] + 1 && caixa.y >= -1 && caixa.y + caixa.height <= tela[1] + 1, `${rc}: a folha cabe na tela`)
+    if (chave === 'ranking') await fotoTela(p, `05-jogo-ranking-${tela[0]}x${tela[1]}`)
+    const fechar = p.getByRole('button', { name: `Fechar: ${titulo}`, exact: true })
+    checar(await fechar.evaluate((b) => { const r = b.getBoundingClientRect(); return r.width >= 43.5 && r.height >= 43.5 && r.top >= 0 && r.right <= innerWidth }), `${rc}: "Fechar" à vista, com alvo ≥ 44px`)
+    const dentro = []
+    for (let i = 0; i < 14; i++) { await p.keyboard.press('Tab'); dentro.push(await dom(p, () => !!document.activeElement?.closest('.ct-folha-m--jogo'))) }
+    checar(dentro.every(Boolean), `${rc}: o Tab fica preso na folha`)
+    if (chave === 'rota') await fechar.click() // o botão explícito
+    else await p.keyboard.press('Escape')
+    await p.waitForTimeout(200)
+    checar(await p.locator('.ct-folha-m--jogo').count() === 0 && await p.locator('.ct-mapa__explorar.is-cheia').count() === 1, `${rc}: fecha e a tela cheia continua`)
+    checar(await lista.count() === 0, `${rc}: a lista segue recolhida depois de fechar a folha`)
+    await p.waitForTimeout(100)
+    checar(await dom(p, () => document.activeElement?.hasAttribute('data-atalhos')), `${rc}: o foco volta ao botão dos atalhos`)
+    const depois = await estado()
+    checar(Math.abs(depois.l - antes.l) <= 1 && Math.abs(depois.t - antes.t) <= 1 && depois.zoom === antes.zoom && depois.card === antes.card && depois.filtros === antes.filtros,
+      `${rc}: seleção, filtros, zoom e posição do mapa não mudaram (${JSON.stringify(antes)} × ${JSON.stringify(depois)})`)
+  }
+  // Escape em pilha: folha → lista → (tela cheia, com quem chama)
+  await botao.click(); await lista.waitFor({ timeout: 5000 })
+  await p.locator('[data-atalho="rota"]').click()
+  await p.getByRole('dialog', { name: 'Minha rota', exact: true }).waitFor({ timeout: 5000 })
+  await p.keyboard.press('Escape')
+  checar(await p.locator('.ct-folha-m--jogo').count() === 0 && await p.locator('.ct-mapa__explorar.is-cheia').count() === 1 && await lista.count() === 0, `${ro}: atalhos: Escape fecha só a folha`)
+  await botao.click(); await lista.waitFor({ timeout: 5000 })
+  await p.keyboard.press('Escape')
+  checar(await lista.count() === 0 && await p.locator('.ct-mapa__explorar.is-cheia').count() === 1, `${ro}: atalhos: o seguinte Escape fecha só a lista`)
+}
+
+async function mapaTelaCheiaEFolhas () {
+  for (const [w, h] of TELAS) {
+    const onde = `@${w}x${h}`
+    const c = await contexto(nav, { w, h, chave: CHAVE_FAKE, mocks: MOCKS_PROGRESSO })
+    await c.ctx.route('**/tiles.openfreemap.org/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ESTILO_VAZIO) }))
+    // Sem Google nos testes (a chave local não é do teste e cada carga custa): o mapa cai na reserva (MapLibre), o mesmo caminho de quem não tem chave.
+    await c.ctx.route('**/maps.googleapis.com/**', (route) => route.abort('failed'))
+    const p = c.page
+    try {
+    await ir(p, '/cartoon/caca/mapa')
+    await p.getByText('2 de 26 casas validadas').first().waitFor({ timeout: 10000 })
+    const abrir = p.getByRole('button', { name: 'Abrir mapa em tela cheia' })
+    checar(await abrir.isVisible(), `${onde} ilustrado: "Abrir mapa em tela cheia" à vista`)
+    await p.evaluate(() => document.querySelector('.ct-mapa__moldura').scrollIntoView({ block: 'start' }))
+    checar(await abrir.evaluate((b) => { const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && b.contains(e) }), `${onde} o botão de tela cheia não está coberto (sobre o mapa, fora das barras fixas)`)
+
+    // ---- estado que a tela cheia tem de levar: filtro ativo, casa escolhida (cartão), zoom ----
+    await p.getByRole('button', { name: /^Filtros/ }).click()
+    await p.getByRole('dialog', { name: 'Filtros do mapa' }).waitFor({ timeout: 5000 })
+    await p.waitForTimeout(450) // a folha sobe em 240 ms
+    checar(await dom(p, () => !!document.activeElement?.closest('[role=dialog]')), `${onde} filtros: o foco entra na folha`)
+    checar(await dom(p, () => getComputedStyle(document.body).position === 'fixed'), `${onde} filtros: a página de trás não rola (trava)`)
+    const fecharFiltros = p.getByRole('button', { name: 'Fechar os filtros' })
+    checar(await fecharFiltros.evaluate((b) => { const r = b.getBoundingClientRect(); return r.height >= 43.5 && r.top >= 0 && r.right <= innerWidth }), `${onde} filtros: "Fechar" à vista, com alvo ≥ 44px`)
+    const seq = []
+    for (let i = 0; i < 24; i++) { await p.keyboard.press('Tab'); seq.push(await dom(p, () => !!document.activeElement?.closest('[role=dialog]'))) }
+    checar(seq.every(Boolean), `${onde} filtros: o Tab fica preso na folha (24 toques)`)
+    const caixa = await p.getByRole('dialog', { name: 'Filtros do mapa' }).boundingBox()
+    checar(caixa.x >= -1 && caixa.x + caixa.width <= w + 1 && caixa.y >= -1 && caixa.y + caixa.height <= h + 1, `${onde} filtros: a folha cabe na tela`)
+    await p.keyboard.press('Escape')
+    checar(await p.getByRole('dialog', { name: 'Filtros do mapa' }).count() === 0, `${onde} filtros: Escape fecha`)
+    checar(await dom(p, () => document.activeElement?.classList.contains('ct-mapa__filtros-botao')), `${onde} filtros: o foco volta ao botão "Filtros"`)
+    checar(await dom(p, () => getComputedStyle(document.body).position !== 'fixed'), `${onde} filtros: a rolagem da página volta`)
+    await p.getByRole('button', { name: /^Filtros/ }).click()
+    await p.getByRole('button', { name: 'Conquistadas' }).click()
+    await p.mouse.click(3, 3) // o véu fecha (canto da tela, fora da folha)
+    checar(await p.getByRole('dialog', { name: 'Filtros do mapa' }).count() === 0, `${onde} filtros: o véu fecha`)
+    checar(/1 filtro ativo/.test(await p.getByRole('button', { name: /^Filtros/ }).getAttribute('aria-label')), `${onde} filtros: ativo continua contado depois de fechar`)
+
+    await p.locator('.ct-mundo__zoom-botao').first().evaluate((b) => b.click()) // aproximar
+    checar(await p.locator('.ct-mundo__janela.is-zoom').count() === 1, `${onde} zoom do desenho ligado`)
+    await p.locator('button[aria-label*="Cookitos"]').first().evaluate((b) => b.click())
+    const cartao = p.locator('.ct-mapa__cartao')
+    await cartao.waitFor({ timeout: 5000 })
+    await esperarRolagem(p)
+    const folha = await dom(p, () => {
+      const car = document.querySelector('.ct-mapa__cartao'); const r = car.getBoundingClientRect()
+      const aba = document.querySelector('.ct-abas'); const ar = aba && getComputedStyle(aba).display !== 'none' ? aba.getBoundingClientRect() : null
+      const zoom = document.querySelector('.ct-mundo__zoom-botao').getBoundingClientRect()
+      const e = document.elementFromPoint(zoom.left + zoom.width / 2, zoom.top + zoom.height / 2)
+      return { l: r.left, r: r.right, iw: innerWidth, abaTop: ar ? ar.top : null, b: r.bottom, ih: innerHeight, foco: document.activeElement === car, zoomLivre: !!e && !!e.closest('.ct-mundo__zoom'), nome: car.querySelector('h2')?.textContent || '' }
+    })
+    checar(folha.l >= -1 && folha.r <= folha.iw + 1, `${onde} cartão: cabe na largura`)
+    checar(folha.abaTop === null ? folha.b <= folha.ih + 1 : folha.b <= folha.abaTop + 1, `${onde} cartão: não passa por baixo da barra de abas`)
+    checar(folha.foco, `${onde} cartão: o foco vai para o cartão quando a casa é escolhida`)
+    checar(folha.zoomLivre, `${onde} cartão: o zoom do desenho segue livre (o mapa continua explorável)`)
+    checar(/Cookitos/.test(folha.nome), `${onde} cartão: mostra a casa escolhida`)
+    const fecharCartao = await p.locator('.ct-mapa__cartao .ct-mapa__fechar').boundingBox()
+    checar(fecharCartao.width >= 43.5 && fecharCartao.height >= 43.5 && fecharCartao.y >= -1, `${onde} cartão: botão Fechar ≥ 44px e à vista`)
+    await fotoTela(p, `05-cartao-${w}x${h}`)
+
+    // ---- tela cheia: entrar e sair várias vezes, com o mesmo estado, pelo teclado ----
+    const nomeAntes = folha.nome
+    const zoomAntes = await p.locator('.ct-mundo__palco').evaluate((e) => e.style.getPropertyValue('--zoom'))
+    for (let volta = 1; volta <= 3; volta++) {
+      await abrir.focus() // o foco já rola o botão para a tela; a posição "de antes" é a de agora
+      await esperarRolagem(p)
+      const yAntes = await dom(p, () => scrollY)
+      await p.keyboard.press('Enter')
+      await p.waitForSelector('.ct-mapa__explorar.is-cheia', { timeout: 5000 })
+      await p.waitForTimeout(300)
+      const e = await estadoDaTelaCheia(p)
+      const ro = `${onde} tela cheia (volta ${volta})`
+      checar(e && e.pos === 'fixed' && Math.abs(e.w - e.iw) <= 1 && Math.abs(e.h - e.ih) <= 1 && e.top <= 1 && e.left <= 1, `${ro}: ocupa a tela toda (${e && `${Math.round(e.w)}x${Math.round(e.h)} de ${e.iw}x${e.ih}`})`)
+      checar(e && e.role === 'dialog' && e.modal === 'true' && e.nome === 'Mapa em tela cheia', `${ro}: é um diálogo nomeado`)
+      checar(e && e.fecharOk, `${ro}: "Fechar" sempre à vista, dentro da tela e ≥ 44px`)
+      checar(e && e.corpoFixo && e.htmlTrava, `${ro}: a página de trás não rola`)
+      checar(e && e.foco, `${ro}: o foco entra no "Fechar"`)
+      checar(e && e.lateral <= 1, `${ro}: sem rolagem lateral (${e && e.lateral}px)`)
+      if (volta === 1) {
+        checar((await p.locator('.ct-mapa__cartao h2').textContent()) === nomeAntes, `${ro}: a casa escolhida continua escolhida (cartão dentro da tela cheia)`)
+        checar(/1 filtro ativo/.test(await p.getByRole('button', { name: /^Filtros/ }).getAttribute('aria-label')), `${ro}: o filtro continua ativo`)
+        checar((await p.locator('.ct-mundo__palco').evaluate((el) => el.style.getPropertyValue('--zoom'))) === zoomAntes && await p.locator('.ct-mundo__janela.is-zoom').count() === 1, `${ro}: o zoom continua o mesmo`)
+        // Tab preso na tela cheia, para frente e para trás
+        const dentro = []
+        for (let i = 0; i < 30; i++) { await p.keyboard.press('Tab'); dentro.push(await dom(p, () => !!document.activeElement?.closest('.ct-mapa__explorar.is-cheia'))) }
+        for (let i = 0; i < 6; i++) { await p.keyboard.press('Shift+Tab'); dentro.push(await dom(p, () => !!document.activeElement?.closest('.ct-mapa__explorar.is-cheia'))) }
+        checar(dentro.every(Boolean), `${ro}: o foco não escapa da tela cheia (Tab e Shift+Tab)`)
+        await fotoTela(p, `05-tela-cheia-${w}x${h}`)
+        // a folha de filtros dentro da tela cheia fecha primeiro (Escape em pilha) e devolve o foco
+        await p.getByRole('button', { name: /^Filtros/ }).click()
+        await p.getByRole('dialog', { name: 'Filtros do mapa' }).waitFor({ timeout: 5000 })
+        checar(await p.getByRole('searchbox', { name: 'Buscar casa ou bairro' }).count() === 1, `${ro}: na tela cheia a busca está na folha de filtros`)
+        await fotoTela(p, `05-tela-cheia-filtros-${w}x${h}`)
+        await p.keyboard.press('Escape')
+        checar(await p.getByRole('dialog', { name: 'Filtros do mapa' }).count() === 0 && await p.locator('.ct-mapa__explorar.is-cheia').count() === 1, `${ro}: o primeiro Escape fecha só a folha de filtros`)
+        checar(await dom(p, () => document.activeElement?.classList.contains('ct-mapa__filtros-botao')), `${ro}: o foco volta ao botão "Filtros"`)
+        await atalhosDoJogo(p, ro)
+      }
+      if (volta === 2) { // sair pelo botão explícito, com o mouse
+        await p.locator('[data-fechar-cheia]').click()
+      } else {
+        await p.keyboard.press('Escape')
+        if (await p.locator('.ct-mapa__explorar.is-cheia').count()) await p.keyboard.press('Escape') // o cartão aberto fecha primeiro quando o foco está nele
+      }
+      await p.waitForFunction(() => !document.querySelector('.ct-mapa__explorar.is-cheia'), null, { timeout: 5000 }).catch(() => falha(`${ro}: não saiu da tela cheia`))
+      // com a Fullscreen API, a página só é destravada quando o navegador termina de sair (o corpo fica preso na posição de antes)
+      await p.waitForFunction(() => getComputedStyle(document.body).position !== 'fixed', null, { timeout: 5000 }).catch(() => null)
+      await p.waitForTimeout(250)
+      const fora = await dom(p, () => ({ corpoFixo: getComputedStyle(document.body).position === 'fixed', y: scrollY, foco: document.activeElement?.hasAttribute('data-abrir-cheia'), lateral: document.documentElement.scrollWidth - innerWidth }))
+      checar(!fora.corpoFixo, `${ro}: a rolagem da página volta`)
+      checar(Math.abs(fora.y - yAntes) <= 2, `${ro}: a página volta à posição de antes (${fora.y} × ${yAntes})`)
+      checar(fora.foco, `${ro}: o foco volta ao botão que abriu`)
+      checar(fora.lateral <= 1, `${ro}: sem rolagem lateral ao sair`)
+      if (volta === 1) checar((await p.locator('.ct-mapa__cartao h2').count()) === 0 || (await p.locator('.ct-mapa__cartao h2').textContent()) === nomeAntes, `${ro}: ao sair, a seleção segue a mesma`)
+    }
+
+    // ---- atalho "Casas": escolher uma casa fecha a folha e o cartão aparece dentro da tela cheia ----
+    await abrir.focus()
+    await p.keyboard.press('Enter')
+    await p.waitForSelector('.ct-mapa__explorar.is-cheia', { timeout: 5000 })
+    await p.locator('[data-atalhos]').click()
+    await p.locator('[data-atalho="casas"]').click()
+    await p.getByRole('dialog', { name: 'Casas', exact: true }).waitFor({ timeout: 5000 })
+    await p.locator('.ct-folha-m--jogo .ct-caca-mapa__rapida-item').first().click()
+    await p.waitForTimeout(500)
+    checar(await p.getByRole('dialog', { name: 'Casas', exact: true }).count() === 0 && await p.locator('.ct-mapa__explorar.is-cheia .ct-mapa__cartao').count() === 1, `${onde} atalho Casas: escolher uma casa fecha a folha e abre o cartão dentro da tela cheia`)
+    await p.keyboard.press('Escape')
+    if (await p.locator('.ct-mapa__explorar.is-cheia').count()) await p.keyboard.press('Escape')
+    await p.waitForFunction(() => !document.querySelector('.ct-mapa__explorar.is-cheia'), null, { timeout: 5000 }).catch(() => falha(`${onde} atalho Casas: não saiu da tela cheia`))
+    await p.waitForFunction(() => getComputedStyle(document.body).position !== 'fixed', null, { timeout: 5000 }).catch(() => null)
+    await p.waitForTimeout(250)
+
+    // ---- mapa real: a mesma tela cheia; o mapa acompanha o novo tamanho (sem filtro: o "Conquistadas" deixaria sem ponto) ----
+    if (await p.locator('.ct-mapa__cartao').count()) await p.locator('.ct-mapa__cartao .ct-mapa__fechar').click() // o cartão (no celular deitado, um painel à esquerda) cobre a barra
+    await p.getByRole('button', { name: 'Limpar filtros' }).first().click()
+    await p.getByRole('button', { name: 'Mapa real' }).click()
+    const ver = p.getByRole('button', { name: /Ver no mapa/ })
+    if (await ver.count()) await ver.click()
+    await p.waitForSelector('.ct-mapa__mapa canvas', { timeout: 15000 }).catch(() => falha(`${onde} mapa real: o mapa não subiu`))
+    if (await p.locator('.ct-mapa__mapa canvas').count()) {
+      await p.evaluate(() => document.querySelector('.ct-mapa__moldura').scrollIntoView({ block: 'start' }))
+      checar(await abrir.isVisible(), `${onde} mapa real: "Abrir mapa em tela cheia" à vista`)
+      await abrir.focus()
+      await p.keyboard.press('Enter')
+      await p.waitForSelector('.ct-mapa__explorar.is-cheia', { timeout: 5000 })
+      await p.waitForTimeout(900)
+      const real = await dom(p, () => {
+        const m = document.querySelector('.ct-mapa__mapa').getBoundingClientRect(); const cv = document.querySelector('.ct-mapa__mapa canvas').getBoundingClientRect()
+        const barra = document.querySelector('.ct-mapa__barra').getBoundingClientRect()
+        return { mh: m.height, mw: m.width, ch: cv.height, cw: cv.width, ih: innerHeight, iw: innerWidth, barraB: barra.bottom }
+      })
+      checar(Math.abs(real.mh - (real.ih - real.barraB)) <= 2 && Math.abs(real.mw - real.iw) <= 1, `${onde} mapa real em tela cheia: o mapa ocupa tudo abaixo da barra (${Math.round(real.mw)}x${Math.round(real.mh)})`)
+      checar(Math.abs(real.ch - real.mh) <= 2 && Math.abs(real.cw - real.mw) <= 2, `${onde} mapa real em tela cheia: o desenho do mapa acompanhou o novo tamanho (${Math.round(real.cw)}x${Math.round(real.ch)})`)
+      await fotoTela(p, `05-tela-cheia-real-${w}x${h}`)
+      await p.keyboard.press('Escape')
+      if (await p.locator('.ct-mapa__explorar.is-cheia').count()) await p.keyboard.press('Escape')
+      await p.waitForFunction(() => !document.querySelector('.ct-mapa__explorar.is-cheia'), null, { timeout: 5000 }).catch(() => falha(`${onde} mapa real: não saiu da tela cheia`))
+      await p.waitForFunction(() => getComputedStyle(document.body).position !== 'fixed', null, { timeout: 5000 }).catch(() => null)
+    }
+    } catch (e) {
+      falha(`${onde} tela cheia e folhas interrompido: ${String(e.message).split(/\r?\n/)[0].slice(0, 160)} · ${(String(e.stack).match(/cartoon-caca-navegador\.mjs:(\d+)/) || [])[0] || ''}`)
+    }
+    await semErros(c, `${onde} tela cheia e folhas`)
+    await c.ctx.close()
+  }
+}
+
+/** /cartoon/minha-rota: o painel vem ANTES do mapa, como bloco da página (sem folha), com a faixa do topo compacta. */
+async function minhaRotaInline () {
+  for (const [w, h] of [[360, 800], [1440, 900]]) {
+    const c = await contexto(nav, { w, h, chave: CHAVE_FAKE, mocks: MOCKS_PROGRESSO })
+    await ir(c.page, '/cartoon/minha-rota')
+    await c.page.locator('.ct-folha-m--painel').waitFor({ timeout: 10000 })
+    const r = await dom(c.page, (larg) => {
+      const pn = document.querySelector('.ct-folha-m--painel'); const mapa = document.querySelector('.ct-mapa__explorar')
+      return { visivel: pn.getClientRects().length > 0, modal: pn.querySelector('[role=dialog]') !== null, antes: larg < 900 ? pn.getBoundingClientRect().top < mapa.getBoundingClientRect().top : true, botao: !!document.querySelector('.ct-mapa__rota-botao'), h1: document.querySelectorAll('h1').length, topoAlto: document.querySelector('.ct-rota-topo').getBoundingClientRect().height, lateral: document.documentElement.scrollWidth - innerWidth }
+    }, w)
+    checar(r.visivel && !r.modal, `@${w} Minha rota: o painel é bloco da página, não folha modal`)
+    checar(r.antes, `@${w} Minha rota (celular): o painel vem antes do mapa`)
+    checar(!r.botao && r.h1 === 1 && r.lateral <= 1, `@${w} Minha rota: sem o botão da folha, um <h1> e sem rolagem lateral`)
+    checar(r.topoAlto <= (w < 900 ? 120 : 200), `@${w} Minha rota: topo compacto (${Math.round(r.topoAlto)}px)`)
+    await semErros(c, `@${w} Minha rota`)
+    await c.ctx.close()
+  }
+}
 
 // ================================================================ 6 · ranking e empate
 secao(6, 'ranking geral, posição própria e empate', async () => {
@@ -692,7 +1012,10 @@ secao(6, 'ranking geral, posição própria e empate', async () => {
     const t = await texto(c.page)
     checar((t.match(/empatad[oa] em 2º/gi) || []).length >= 2, `@${w} ranking: Bia e Caio aparecem "empatados em 2º" (mesma posição)`)
     checar(/3º/.test(t) === false && /4º/.test(t), `@${w} ranking: depois do empate em 2º vem o 4º (sem inventar o 3º)`)
-    checar(/Não desempatamos por horário/.test(t) && /só o apelido e o progresso/i.test(t), `@${w} ranking: regra de empate sem horário e só apelido/progresso`)
+    // As regras ficam atrás de "Como o ranking funciona" (fechado); a nota de privacidade fica à vista.
+    const regra = await c.page.locator('.ct-rank__regra').textContent()
+    checar(await c.page.locator('.ct-rank__regra details').count() === 1 && !(await c.page.locator('.ct-rank__regra details').getAttribute('open')), `@${w} ranking: as regras vêm fechadas`)
+    checar(/Não desempatamos por horário/.test(regra) && /só o apelido e o progresso/i.test(t), `@${w} ranking: regra de empate sem horário e só apelido/progresso`)
     checar(!/@/.test(t.replace(/\S+@(exemplo|sweet)\S*/g, '')) && !/e2e-mock/.test(t), `@${w} ranking: nunca mostra e-mail`)
     checar(/Sua posição/.test(t) && /2º/.test(t), `@${w} ranking: a posição da própria pessoa aparece`)
     const med = await medirPagina(c.page)
@@ -929,8 +1252,9 @@ secao(10, 'avisos (sem suporte, bloqueada, iPhone) e instalação do app', async
   await ir(c.page, '/cartoon/caca')
   await c.page.getByText('Avisos no celular').waitFor({ timeout: 10000 })
   const t = await texto(c.page)
-  checar(/Este navegador não recebe avisos de sites/.test(t) && /aparece em "Avisos"/.test(t), 'avisos sem suporte: diz que o navegador não recebe e que o importante aparece na central')
-  checar(/Falta avaliar o combo da Cookitos/.test(t), 'central: o aviso de avaliação pendente aparece sem depender de push')
+  checar(/Este navegador não recebe avisos de sites/.test(t) && /aparece aqui na central/.test(t), 'avisos sem suporte: diz que o navegador não recebe e que o importante aparece na central')
+  checar(/Falta avaliar o combo da Cookitos/.test(t), 'central: a avaliação pendente é o próximo passo em destaque, sem depender de push')
+  checar(await c.page.getByRole('button', { name: 'Avaliar o combo' }).count() === 1, 'central: uma só ação "Avaliar o combo" (o pendente não se repete em avisos)')
   checar(!(await c.page.getByRole('button', { name: /Ativar avisos/ }).count()), 'avisos sem suporte: não oferece ativar')
   await foto(c.page, '10-avisos-sem-suporte')
   await c.ctx.close()

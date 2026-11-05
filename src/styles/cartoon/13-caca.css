@@ -1,9 +1,16 @@
 /* Caça aos Carimbos — central, recuperação e blocos das seções (docs/cartoon-2026-2/15-caca-front.md). Só tokens da edição. */
 .ct-caca { max-width: 960px; }
-.ct-caca__voltar { margin: 0 0 8px; }
+/* Cabeçalho compacto: sem rótulo repetindo o título, título menor que o do resto da edição e abertura curta. O que a pessoa veio fazer
+   (progresso, próximo passo) tem de aparecer sem rolar. */
+.ct-bloco.ct-caca { padding-top: clamp(16px, 3vw, 40px); }
+.ct-caca .ct-h1 { max-width: none; margin-bottom: 8px; font-size: clamp(30px, 6.4vw, 52px); }
+.ct-caca .ct-lead { margin-bottom: 14px; font-size: clamp(16px, 1.2vw + 12px, 20px); line-height: 1.4; }
+.ct-caca__voltar { margin: 0; }
 /* Alvo de toque ≥ 44 px também para link de texto (E2E-5; CLAUDE.md §6.10). Link avulso ocupa a própria linha; link dentro de frase ganha altura por padding
    (inline-block com padding e margem negativa iguais aumenta a área tocável sem mexer na altura da linha). */
 .ct-caca__voltar a, .ct-link-solto { display: inline-flex; align-items: center; min-height: 44px; }
+.ct-caca__voltar a { gap: 8px; font: 700 15px/1.2 var(--ct-font); }
+.ct-caca__voltar a::before { content: ''; flex: none; width: 9px; height: 9px; border: solid var(--ct-chocolate); border-width: 0 0 3px 3px; transform: rotate(45deg); }
 .ct-link-frase { display: inline-block; padding-block: 14px; margin-block: -14px; }
 /* Coluna única que NUNCA passa da largura do celular (E2E-1, 360 px): sem minmax(0, 1fr) a coluna implícita cresce até o filho mais largo
    (o <select> de casas tem a largura do nome mais comprido) e o texto corta à direita. */
@@ -12,20 +19,18 @@
 .ct-caca__central .ct-campo { grid-template-columns: minmax(0, 1fr); }
 .ct-caca__central .ct-campo select { width: 100%; max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .ct-caca__bloco,
-.ct-caca__progresso,
 .ct-caca__alternativa {
   margin: 0; padding: 16px 20px;
   border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
 }
+/* Convite do grupo ainda usa este cartão de destaque. */
 .ct-caca__proxima {
   margin: 0; padding: 16px 20px;
   border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-turquesa); box-shadow: var(--ct-sombra-p);
 }
-.ct-caca__progresso .ct-sub,
 .ct-caca__proxima .ct-sub { margin-bottom: 6px; }
 .ct-caca__grande { margin: 0 0 10px; font: 500 var(--ct-fs-texto)/1.2 var(--ct-font); }
 .ct-caca__grande strong { display: block; font: 900 var(--ct-fs-titulo)/1 var(--ct-font); }
-.ct-caca__numeros { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 12px 0 0; padding: 0; list-style: none; font: 700 16px/1.3 var(--ct-font); }
 
 /* Barra de progresso: <progress> nativo (leitor de tela anuncia o valor), só redesenhado com os tokens. */
 .ct-caca__barra {
@@ -36,19 +41,100 @@
 .ct-caca__barra::-webkit-progress-value { background: var(--ct-turquesa); border-radius: 999px; }
 .ct-caca__barra::-moz-progress-bar { background: var(--ct-turquesa); border-radius: 999px; }
 
-.ct-caca__atalhos ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; margin: 8px 0 0; padding: 0; list-style: none; }
-.ct-caca__atalho {
-  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px;
-  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme); color: inherit; text-decoration: none;
+/* ---------------------------------------------------------------- central com mapa
+   Duas coisas pesam: o progresso e o próximo passo. O resto é atalho (peso menor) ou linha pequena e dispensável. */
+.ct-central { gap: 14px; }
+.ct-central__col { display: grid; gap: 14px; align-content: start; min-width: 0; }
+@media (min-width: 900px) {
+  .ct-central { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 }
-.ct-caca__atalho:hover { background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
-.ct-caca__atalho-texto { display: grid; gap: 2px; font: 500 14px/1.3 var(--ct-font); }
-.ct-caca__atalho-texto strong { font: 900 17px/1.2 var(--ct-font); }
 
-/* Lembrete discreto de e-mail pendente: faixa tracejada, sem competir com o progresso. */
-.ct-caca__aviso { padding: 10px 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
-.ct-caca__aviso-texto { margin: 0; font: 500 15px/1.45 var(--ct-font); }
-.ct-caca__aviso .ct-acoes { margin-top: 10px; }
+.ct-central__progresso {
+  padding: 14px 16px 6px;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+}
+.ct-central__apelido { margin: 0 0 2px; overflow-wrap: anywhere; font: 700 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; }
+.ct-central__grande { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; margin: 0 0 8px; font: 600 15px/1.2 var(--ct-font); }
+.ct-central__grande strong { font: 900 clamp(34px, 9vw, 44px)/1.05 var(--ct-font); }
+.ct-central__numeros { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ct-central__numeros li {
+  padding: 2px 9px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme);
+  font: 700 13px/1.3 var(--ct-font);
+}
+.ct-central__numeros .ct-central__esperando { background: var(--ct-amarelo); }
+
+/* "Como conta?" e as linhas com opções: <details> nativo, fechado, com a seta desenhada em CSS (indicador funcional). */
+.ct-central__como summary, .ct-central__detalhes > summary {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; list-style: none; cursor: pointer; font: 700 15px/1.3 var(--ct-font);
+}
+.ct-central__como summary::-webkit-details-marker, .ct-central__detalhes > summary::-webkit-details-marker { display: none; }
+.ct-central__como summary::after, .ct-central__detalhes > summary::after {
+  content: ''; flex: none; width: 8px; height: 8px; margin: 0 4px 3px auto; border: solid var(--ct-chocolate); border-width: 0 3px 3px 0; transform: rotate(45deg);
+}
+.ct-central__como[open] > summary::after, .ct-central__detalhes[open] > summary::after { margin-bottom: -3px; transform: rotate(-135deg); }
+.ct-central__como ul { margin: 0 0 10px; padding-left: 20px; font: 500 14px/1.5 var(--ct-font); }
+.ct-central__como li + li { margin-top: 4px; }
+
+.ct-central__proxima {
+  padding: 14px 16px 16px;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-turquesa); box-shadow: var(--ct-sombra-p);
+}
+/* Carimbo pendente: o destaque da tela. Amarelo + botão vermelho (creme 19px/800 sobre vermelho fecha como texto grande). */
+.ct-central__proxima--avaliar { background: var(--ct-amarelo); }
+.ct-central__proxima-corpo { display: flex; align-items: flex-start; gap: 12px; }
+.ct-central__proxima-corpo > div { min-width: 0; }
+.ct-central__proxima-corpo .ct-icone { flex: none; margin-top: 2px; }
+.ct-central__proxima .ct-sub { margin-bottom: 4px; font-size: clamp(20px, 5vw, 26px); }
+.ct-central__proxima .ct-nota { margin-top: 4px; font-size: 15px; }
+.ct-central__proxima .ct-acoes { margin-top: 12px; }
+.ct-central__proxima--avaliar .ct-botao { background: var(--ct-vermelho); color: var(--ct-creme); font-size: 19px; }
+
+/* Atalhos de peso menor: ícone e rótulo, três por linha. O Mapa, onde a Caça acontece, leva a cor da edição. */
+.ct-central__entradas .ct-rotulo { margin: 0; }
+.ct-central__entradas ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ct-central__entrada {
+  display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 76px; padding: 6px 4px;
+  border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); color: inherit; text-decoration: none; text-align: center;
+  font: 800 13px/1.15 var(--ct-font); overflow-wrap: anywhere;
+}
+.ct-central__entrada:hover { background: var(--ct-amarelo); }
+.ct-central__entrada--mapa { background: var(--ct-turquesa); }
+.ct-central__entrada--mapa:hover { background: var(--ct-amarelo); }
+
+/* Linhas pequenas (e-mail pendente, metas, avisos no celular, instalar): sem sombra, borda fina, nada de peso de card. */
+.ct-central__extras { display: grid; gap: 10px; }
+.ct-central__extras:empty { display: none; }
+.ct-central__linha {
+  display: grid; gap: 6px; margin: 0; padding: 10px 14px;
+  border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco);
+}
+.ct-central__linha--aviso { border-style: dashed; background: var(--ct-creme); }
+.ct-central__linha-titulo { margin: 0; font: 800 16px/1.2 var(--ct-font); }
+.ct-central__linha-texto { margin: 0; font: 500 14px/1.45 var(--ct-font); }
+.ct-central__linha-corpo { display: grid; gap: 6px; }
+.ct-central__linha-corpo + .ct-central__linha-corpo { padding-top: 8px; border-top: 2px dashed var(--ct-chocolate); }
+.ct-central__linha-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.ct-edicao .ct-botao.ct-central__mini { min-height: 44px; padding: 0 16px; font-size: 14px; box-shadow: 3px 3px 0 var(--ct-chocolate); }
+.ct-central__selo {
+  margin-left: auto; padding: 2px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme);
+  font: 700 13px/1.3 var(--ct-font);
+}
+.ct-central__selo.is-ligado { background: var(--ct-turquesa); }
+.ct-central__detalhes > summary::after { margin-left: 4px; }
+.ct-central__detalhes[open] > summary { margin-bottom: 4px; }
+/* GuardarMapa logo depois de criar o mapa: o mesmo componente da recuperação, aqui sem peso de card. */
+.ct-central .ct-carimbar__guardar {
+  margin: 0; padding: 10px 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); box-shadow: none;
+}
+.ct-central .ct-carimbar__guardar .ct-sub { margin-bottom: 2px; font-size: 17px; }
+.ct-central .ct-carimbar__guardar .ct-nota { margin-top: 4px; font-size: 14px; }
+.ct-central .ct-carimbar__guardar .ct-acoes { margin-top: 8px; }
+.ct-central .ct-carimbar__guardar .ct-botao { min-height: 44px; padding: 0 16px; font-size: 14px; box-shadow: 3px 3px 0 var(--ct-chocolate); }
+.ct-central__rodape { display: flex; flex-wrap: wrap; gap: 0 20px; margin: 0; }
+
+/* Quem ainda não tem mapa: "Já tenho mapa" é uma porta de entrada (outro celular, app instalado) e fica fácil de achar e de tocar. */
+.ct-caca .ct-carimbar__ja-tenho { margin-top: 12px; }
+.ct-caca .ct-carimbar__ja-tenho summary { min-height: 48px; padding: 0 16px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
 
 .ct-caca__recuperar { display: grid; gap: 16px; margin-top: 8px; }
 .ct-caca__codigo .ct-form { max-width: 480px; }

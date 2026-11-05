@@ -52,4 +52,15 @@
   border: var(--ct-traco); border-radius: var(--ct-raio-p); box-shadow: var(--ct-sombra-p); background: var(--ct-creme);
 }
 .ct-caca-story__texto { overflow-wrap: anywhere; }
+/* A ação vem primeiro no celular (ela é o motivo da tela); a prévia é conferência. Em tela larga, prévia à esquerda e ação ao lado. */
+.ct-caca-story__layout { display: grid; gap: 4px 28px; justify-items: start; }
+.ct-caca-story__lado { min-width: 0; }
+@media (min-width: 720px) {
+  .ct-caca-story__layout { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .ct-caca-story__layout .ct-caca-story__arte { grid-column: 1; grid-row: 1; margin-top: 12px; }
+  .ct-caca-story__layout .ct-caca-story__lado { grid-column: 2; grid-row: 1; }
+}
 .ct-caca-links .ct-campo { max-width: 420px; margin-top: 10px; }
+/* Secundário à prévia: borda fina, sem sombra. */
+.ct-caca-links { border-width: 2px; box-shadow: none; }
+.ct-caca-links .ct-sub { font-size: 19px; }

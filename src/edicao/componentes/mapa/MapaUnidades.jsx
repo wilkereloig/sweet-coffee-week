@@ -21,10 +21,14 @@ import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const ESTILO = 'https://tiles.openfreemap.org/styles/liberty'
 const NATAL = [-35.21, -5.81]
+const ZOOM_PERTO = 13.5 // abaixo disso o mapa mostra a cidade toda: pins pequenos (16-mapa-tela.css, .ct-mapa__mapa--longe)
 
 const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quero && 'quero ir', p.foi && 'já fui'].filter(Boolean).join(', ')
 
-export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce = null }) {
+// `gestos`: 'cooperativo' (padrão: um dedo rola a página, dois movem o mapa) ou 'livre' (tela cheia: não há página para rolar,
+// um dedo move o mapa). O contêiner pode mudar de tamanho (tela cheia): o MapLibre acompanha sozinho (trackResize) e
+// mantém centro e zoom — o mapa não é recriado ao entrar e sair da tela cheia.
+export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce = null, gestos = 'cooperativo' }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const marcadores = React.useRef(new Map())
@@ -38,9 +42,20 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     } catch { setErro(true); return undefined }
     mapa.current = m
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+    // Escala por zoom: de longe, os pins encolhem (a cidade inteira cabe sem um cobrir o outro); de perto voltam ao tamanho cheio.
+    const escala = () => caixa.current?.classList.toggle('ct-mapa__mapa--longe', m.getZoom() < ZOOM_PERTO)
+    m.on('zoom', escala)
+    escala()
     m.on('error', (e) => { if (e?.error?.status >= 400 || /style/i.test(String(e?.error?.message || ''))) setErro(true) })
     return () => { m.remove(); mapa.current = null; marcadores.current.clear(); marcaVoce.current = null }
   }, [])
+
+  React.useEffect(() => {
+    const c = mapa.current?.cooperativeGestures
+    if (!c) return
+    if (gestos === 'livre') c.disable()
+    else c.enable()
+  }, [gestos])
 
   // Marcadores e enquadramento: só quando o CONJUNTO de unidades muda (filtro), não a cada marca.
   React.useEffect(() => {

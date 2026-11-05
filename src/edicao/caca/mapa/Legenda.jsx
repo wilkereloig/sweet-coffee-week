@@ -1,16 +1,18 @@
 /*
- * Legenda do mapa ilustrado: os três estados da casa (forma + texto), a revisita, a parada da rota e o Sicredi. É a
- * "chave" de leitura do desenho — e a prova de que nada ali depende só de cor.
+ * Legenda do mapa: os três estados da casa (forma + texto), a revisita e o Sicredi — a "chave" de leitura do desenho e a
+ * prova de que nada ali depende só de cor. Recolhível desde o redesign de 06/11/2026: quem já sabe ler não paga o espaço,
+ * quem não sabe abre uma vez. `children`: itens extras da vista (o mapa real põe a sua legenda de pontos aqui).
  */
 import React from 'react'
 import { SeloEstado } from './SeloEstado.jsx'
 import { ESTADO_TEXTO, MAPA_CACA as T } from './textos.js'
 import { IMAGEM_REVISITA } from './imagens.js'
 
-export function LegendaEstados ({ comEstados = true, comSicredi = true, sicrediImagem }) {
+export function LegendaEstados ({ comEstados = true, comSicredi = true, sicrediImagem, children = null }) {
   return (
-    <section className="ct-caca-mapa__legenda" aria-label={T.estadosTitulo}>
-      <h3 className="ct-rotulo">{T.estadosTitulo}</h3>
+    <details className="ct-caca-mapa__legenda">
+      <summary>{T.estadosTitulo}</summary>
+      {children}
       <ul className="ct-caca-mapa__legenda-lista">
         {comEstados && ['nao-visitada', 'pendente', 'conquistada'].map((e) => (
           <li key={e}><SeloEstado estado={e} /><span className="ct-caca-mapa__legenda-texto">{ESTADO_TEXTO[e].explica}</span></li>
@@ -28,6 +30,6 @@ export function LegendaEstados ({ comEstados = true, comSicredi = true, sicrediI
           </li>
         )}
       </ul>
-    </section>
+    </details>
   )
 }

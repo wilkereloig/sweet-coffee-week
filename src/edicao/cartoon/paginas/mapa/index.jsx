@@ -1,9 +1,17 @@
 /*
  * Mapa — página única do mapa, da Minha rota e do Mapa da Doçura (§6.1–§6.2; docs/cartoon-2026-2/14 §14.13).
- * Três vistas das mesmas casas: MUNDO (Natal desenhada como mapa de jogo — só com a arte aprovada, ou no DEV como
- * prévia), MAPA REAL (Google Maps; sem chave ou se o Google recusar, o MapLibre) e LISTA. Ao lado, o cartão da casa
- * escolhida e o painel com duas abas: Minha rota (paradas, Google Maps, compartilhar) e Carimbos (o álbum).
- * `/cartoon/minha-rota` é esta mesma página entrando pela rota (topo da rota; no celular o painel vem antes do mapa).
+ * Três vistas das mesmas casas: ILUSTRADO (Natal desenhada como mapa de jogo — só com a arte aprovada, ou no DEV como
+ * prévia), MAPA REAL (Google Maps; sem chave ou se o Google recusar, o MapLibre) e LISTA.
+ *
+ * Redesign de 06/11/2026 (o mapa é o protagonista; três assuntos separados — explorar, consultar a casa, organizar a rota):
+ *  · abertura compacta: título pequeno, UMA linha de progresso com o próximo passo, e o mapa logo em seguida;
+ *  · barra única: as três vistas, a busca e "Filtros (n)" — bairro, como pedir, aberto agora, quero ir, já fui, meu
+ *    progresso e perto de mim moram numa folha acessível (foco preso, Escape, "Fechar" visível, contador de ativos);
+ *  · cartão da casa em FOLHA: embaixo no celular, na coluna lateral no desktop, aberto pela escolha da pessoa;
+ *  · Minha rota e Carimbos num painel à parte (botão "Minha rota" no celular, coluna no desktop), sem disputar o mapa;
+ *  · TELA CHEIA nas vistas ilustrada e real: o mesmo contêiner, expandido por CSS (position: fixed, 100dvh, safe areas)
+ *    — mesma seleção, filtros, zoom e posição; Fullscreen API só como melhoria (ver useTelaCheia.js).
+ * `/cartoon/minha-rota` é esta mesma página entrando pela rota (topo da rota; o painel vem antes do mapa, sem folha).
  * Filtros: busca, bairro, como pedir, aberto agora (só no festival), quero ir e já fui (salvo no aparelho); no
  * Mundo a casa fora do filtro fica apagada, não some. "Perto de mim" só por botão; a posição não sai do navegador.
  * Endereço: ?vista, ?painel, ?unidade, os filtros e ?u (rota compartilhada) — o link reabre a mesma tela.
@@ -22,8 +30,9 @@ import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
-import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, arteLiberada, filtrarPorEstado } from '../../../caca/mapa/estados.js'
+import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
 import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
+import { contarFiltros, casasEEnderecos, enderecosDaCasa, podeLocalizar } from '../../../caca/mapa/tela.js'
 import { useConquistas } from '../../../caca/mapa/useConquistas.js'
 import { ProgressoPessoal } from '../../../caca/mapa/Progresso.jsx'
 import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
@@ -32,7 +41,7 @@ import { CasasEmLista } from '../../../caca/mapa/CasasEmLista.jsx'
 import { CartaoSicredi, ListaSicredi } from '../../../caca/mapa/Sicredi.jsx'
 import { Cobertura } from '../../../caca/mapa/Cobertura.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
-import { Avisos } from '../../../componentes/base.jsx'
+import { Avisos, Carregando } from '../../../componentes/base.jsx'
 import { TopoCanal, CenaTopo } from '../../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
@@ -40,22 +49,30 @@ import { Botao, Chip } from '../../../componentes/sistema/pecas.jsx'
 import { useRota } from '../../contexto.js'
 import { useEnderecoDaBusca } from '../../useEnderecoDaBusca.js'
 import { QueroIr, JaFui } from '../../MarcasLover.jsx'
-import { MAPA as T, ROTA as TR, LOVER, FASE_TEXTO, ATENDIMENTO } from '../../textos.js'
+import { MAPA as T, ROTA as TR, FASE_TEXTO } from '../../textos.js'
 import { AlbumCarimbos } from '../AlbumCarimbos.jsx'
 import { Cartao } from './Cartao.jsx'
+import { Atalhos } from './Atalhos.jsx'
+import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
+import { Folha } from './Folha.jsx'
 import { LogoDoPin, pinDaCasa } from './LogoDoPin.jsx'
 import { Mundo } from './Mundo.jsx'
+import { agruparPorCasa } from '../../../rota/mundo.js'
 import { PainelRota } from './PainelRota.jsx'
+import { useTelaCheia } from './useTelaCheia.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
 // ou não carregar —, o MapLibre (OpenFreeMap), que não pede chave. A página só conhece a interface comum.
 const MapaGoogle = React.lazy(() => import('../../../componentes/mapa/MapaGoogle.jsx'))
 const MapaLibre = React.lazy(() => import('../../../componentes/mapa/MapaUnidades.jsx'))
+// Ranking e Grupos (as seções da Caça) só baixam quando o atalho é aberto na tela cheia.
+const Ranking = React.lazy(() => import('../../../caca/secoes/Ranking.jsx'))
+const Grupos = React.lazy(() => import('../../../caca/secoes/Grupos.jsx'))
 const VAZIO = { q: '', bairro: '', modo: '', aberto: false, queroIr: false, jaFui: false, estado: '' }
-const ESTADOS_FILTRO = ['pendente', 'nao-visitada', 'conquistada']
 const VISTAS = ['mundo', 'real', 'lista']
 const PAINEIS = ['rota', 'album']
 const largo = () => matchMedia('(min-width: 900px)').matches
+const reduzirMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 const inicial = (p) => (p.casa?.nome || '?').replace(/^\[DEMO\]\s*/, '').trim().charAt(0).toUpperCase()
 
 const notaDoLugar = (c) => (!c ? T.semCoordenada : c.conferir ? (c.precisao === 'rua' ? T.aproximadaRua : T.aproximada) : '')
@@ -76,13 +93,19 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const [sel, setSel] = React.useState(() => pedido.get('unidade') || '')
   const [vista, setVista] = React.useState(() => (vistas.includes(pedido.get('vista')) ? pedido.get('vista') : comMundo ? 'mundo' : largo() ? 'real' : 'lista'))
   const [painel, setPainel] = React.useState(() => (PAINEIS.includes(pedido.get('painel')) ? pedido.get('painel') : 'rota'))
+  // Celular: o painel da rota é uma folha aberta por botão; um link com ?painel= ou ?u= já a abre.
+  const [painelAberto, setPainelAberto] = React.useState(() => PAINEIS.includes(pedido.get('painel')) || compartilhada.length > 0)
+  const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
   const [posicao, setPosicao] = React.useState(null)
-  const [geo, setGeo] = React.useState(typeof navigator !== 'undefined' && 'geolocation' in navigator ? 'disponivel' : 'indisponivel')
+  const [geo, setGeo] = React.useState(podeLocalizar() ? 'disponivel' : 'indisponivel')
   // Mapa real no celular: só pelo botão, para não baixar o Google sem pedido. No desktop já vem.
   const [verMapa, setVerMapa] = React.useState(largo)
   const [provedor, setProvedor] = React.useState(import.meta.env.VITE_GOOGLE_MAPS_KEY ? 'google' : 'maplibre')
   const usarReserva = React.useCallback(() => setProvedor('maplibre'), [])
   const MapaUnidades = provedor === 'google' ? MapaGoogle : MapaLibre
+  const explorar = React.useRef(null)
+  const moldura = React.useRef(null)
+  const { cheia, abrir: abrirCheia, fechar: fecharCheia } = useTelaCheia(explorar)
 
   const lista = dados?.participantes || []
   const periodo = dados?.edicao
@@ -101,8 +124,11 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const agenciasVisiveis = agencias.filter((a) => agenciaCombina(a, f.q))
   const agenciaEscolhida = ehSicredi(sel) ? agencias.find((a) => a.id === sel) || null : null
   const escolhida = agenciaEscolhida ? null : linhas.find((x) => x.u.id === sel) || todas.find((x) => x.u.id === sel) || null
+  // `ativos` inclui a busca (o "Limpar filtros" limpa tudo); o contador do botão só conta os filtros da folha.
   const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui, filtroEstado].filter(Boolean).length
+  const nFiltros = contarFiltros({ ...f, estado: filtroEstado }, { aberto: filtro.aberto })
   const bairroOpcao = opcoes.bairros.find((b) => M.normalizar(b) === M.normalizar(f.bairro)) || ''
+  const { casas: nCasas, enderecos: nEnderecos } = casasEEnderecos(lista)
 
   // Carimbos (Mapa da Doçura) e rota: o que o álbum, o painel e o Mundo mostram vem daqui, uma vez.
   const album = meu.mapa ? estadoAlbum(lista, meu.mapa) : null
@@ -128,7 +154,7 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const visiveis = new Set(linhas.map((x) => x.u.id))
   const casasMundo = comMundo ? casasNoMundo(mundo.unidades, todas).map(({ u, p, x, y, numero }) => {
     return {
-      id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', doceria: mundo.doceria(p.slug), bandeira: mundo.bandeira(numero), pin: mundo.logo(p.slug), inicial: inicial(p),
+      id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), nomeCasa: p.casa?.nome || '', tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', pin: mundo.logo(p.slug), inicial: inicial(p),
       apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug,
     }
   }) : []
@@ -137,10 +163,31 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const busca = new URLSearchParams(M.buscaDosFiltros({ q: f.q, bairro: f.bairro, modo: f.modo, aberto: filtro.aberto }))
   if (sel) busca.set('unidade', sel)
   if (vista !== 'mundo') busca.set('vista', vista)
-  if (aba !== 'rota') busca.set('painel', aba)
+  if (aba !== 'rota' && (painelAberto || largo())) busca.set('painel', aba) // no celular, painel fechado não vai para o endereço (recarregar não o reabre)
   if (vendoCompartilhada) busca.set('u', compartilhada.join(','))
   useEnderecoDaBusca(busca)
   React.useEffect(() => { if (sel && vista === 'lista') document.getElementById(`mapa-${sel}`)?.scrollIntoView({ block: 'nearest' }) }, [sel, vista])
+
+  // Escolher uma casa abre o cartão (folha) e fecha a folha da rota: consultar a casa e organizar a rota não competem.
+  // No celular, fora da tela cheia, o mapa sobe até logo abaixo do cabeçalho: o ponto escolhido fica acima da folha.
+  const primeira = React.useRef(true)
+  React.useEffect(() => {
+    if (primeira.current) { primeira.current = false; return undefined }
+    if (!sel) return undefined
+    if (!cheia && !largo() && vista !== 'lista') moldura.current?.scrollIntoView({ block: 'start', behavior: reduzirMovimento() ? 'auto' : 'smooth' })
+    const quadro = requestAnimationFrame(() => document.querySelector('.ct-mapa__cartao')?.focus({ preventScroll: true }))
+    return () => cancelAnimationFrame(quadro)
+  }, [sel])
+  const escolher = React.useCallback((id) => {
+    setSel(id)
+    if (id) setPainelAberto(false)
+  }, [])
+  const fecharCasa = React.useCallback(() => {
+    const id = sel
+    setSel('')
+    // O foco volta ao ponto de onde a pessoa veio (pino do desenho ou linha da lista).
+    requestAnimationFrame(() => (document.querySelector(`[data-casa="${id}"]`) || document.querySelector(`[data-unidades~="${id}"]`) || document.querySelector(`#mapa-${id} .ct-mapa__sel`))?.focus({ preventScroll: true }))
+  }, [sel])
 
   const localizar = () => {
     setGeo('pedindo')
@@ -151,23 +198,19 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
     )
   }
   const muda = (k, v) => setF((x) => ({ ...x, [k]: v }))
-  const escolher = React.useCallback((id) => {
-    setSel(id)
-    // No celular o cartão fica embaixo da vista: rola só o necessário para ele aparecer.
-    if (id && !largo()) requestAnimationFrame(() => document.querySelector('.ct-mapa__cartao')?.scrollIntoView({ block: 'nearest' }))
-  }, [])
   const avaliar = (p, u) => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, slug: p.slug, unidade: u.id, mapa: meu.mapa }))
   // Ações do "próximo passo": vão à primeira unidade da casa (a unidade só importa para preencher a avaliação).
   const primeiraUnidade = (slug) => todas.find((x) => x.p.slug === slug)
   const verCasa = (slug) => { const x = primeiraUnidade(slug); if (x) escolher(x.u.id) }
   const avaliarCasa = (slug) => { const x = primeiraUnidade(slug); if (x) avaliar(x.p, x.u) }
 
-  const topo = (texto) => (
-    <TopoCanal canal="rota" className="ct-rota-topo" aria-labelledby="mapa-titulo">
+  const topo = (texto, acao = null) => (
+    <TopoCanal canal="rota" className="ct-rota-topo ct-rota-topo--compacto" aria-labelledby="mapa-titulo">
       {entrada === 'rota'
         ? <Letreiro nivel={1} id="mapa-titulo" texto={TR.titulo} imagem={letreiroEdicao('rota')} />
         : <Letreiro nivel={1} id="mapa-titulo" texto={T.titulo} cor="amarelo" />}
       <p className="ct-lead">{texto}</p>
+      {acao}
       <CenaTopo chave="placas" />
     </TopoCanal>
   )
@@ -179,167 +222,207 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   }
   if (!dados?.participantes_publicos || !lista.length) return <>{avisos}{topo(textoDe(FASE_TEXTO.semElenco, TR.semElenco))}</>
 
+  // A tela cheia só existe onde há mapa para ampliar: o ilustrado, ou o real já carregado. O botão segue montado dentro da tela
+  // cheia (o CSS o esconde): o foco volta ao MESMO elemento que abriu.
+  const podeAmpliar = vista === 'mundo' || (vista === 'real' && verMapa && noMapa.length > 0)
+  const botaoRota = (
+    <button type="button" className="ct-chip ct-mapa__rota-botao" aria-haspopup="dialog" aria-expanded={painelAberto} aria-label={TC.minhaRotaConta(rota.ids.length)}
+      onClick={() => { setSel(''); setPainelAberto(true) }}>
+      <ScwIcon nome="trajeto" tamanho={20} /><span>{TC.minhaRota}</span>{rota.ids.length > 0 && <b className="ct-mapa__filtros-conta" aria-hidden="true">{rota.ids.length}</b>}
+    </button>
+  )
+  const rotaEl = (
+    <PainelRota dados={dados} navigate={navigate} paradas={paradas} pendentes={faltam} compartilhada={vendoCompartilhada ? compartilhada : null}
+      visitou={visitou} carimbada={carimbada} pendente={(p) => !!carimboDe.get(p.slug)?.podeAvaliar}
+      servidor={meu.mapa ? { feitas: meu.mapa.casas_validadas, total: meu.mapa.total_casas } : null} mundo={comMundo ? mundo : null} />
+  )
+  // Lista de casas dos atalhos: as do desenho (na ordem do caminho) ou, sem o desenho, as unidades visíveis.
+  const itensLista = comMundo
+    ? agruparPorCasa(casasMundo).filter((c) => !c.apagada).map((c) => (c.enderecos > 1 ? { ...c, titulo: c.nomeCasa || c.titulo, bairro: TC.enderecosNaCasa(c.enderecos) } : c))
+    : linhas.map(({ u, p }) => ({ id: u.id, slug: p.slug, numero: mundo.unidades[u.id]?.numero ?? '', titulo: M.tituloDaUnidade(p, u), bairro: u.endereco?.bairro || '', estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), parada: paradaDe.get(u.id) || null, proxima: p.slug === proximaSlug }))
+  const progressoDoJogo = meu.estado === 'pronto' ? progressoPessoal(meu.mapa, lista.filter((p) => (p.unidades || []).length).length) : null
+  // O que cada atalho da tela cheia mostra: os componentes que já existem, nada novo. Sem mapa criado, o convite curto da Central.
+  const conteudoAtalho = (chave, fechar) => {
+    const convite = (texto) => <div className="ct-jogo__convite"><p>{texto}</p><Botao href={TC.caminhos.central} navigate={navigate}>{TC.criarMapa}</Botao></div>
+    switch (chave) {
+      case 'progresso':
+        return (
+          <>
+            <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
+              proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={(slug) => { fechar(); verCasa(slug) }} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+            {meu.mapa && <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
+          </>
+        )
+      case 'casas':
+        return (
+          <>
+            <Busca q={f.q} aoBuscar={(v) => muda('q', v)} />
+            <CasasEmLista itens={itensLista} agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={(id) => { fechar(); escolher(id) }} aberta />
+          </>
+        )
+      case 'rota': return rotaEl
+      case 'ranking': return <React.Suspense fallback={<Carregando texto={TC.atalhoCarregando} />}><Ranking caca={meu} navigate={navigate} dados={dados} /></React.Suspense>
+      default: // grupos: precisam de mapa (a Central faz o mesmo convite)
+        return meu.estado === 'sem-mapa'
+          ? convite(TC.atalhoGruposSemMapa)
+          : <React.Suspense fallback={<Carregando texto={TC.atalhoCarregando} />}><Grupos caca={meu} navigate={navigate} dados={dados} /></React.Suspense>
+    }
+  }
+  const cartao = (agenciaEscolhida || escolhida) && (
+    <Folha variante="casa" aoFechar={fecharCasa}>
+      {agenciaEscolhida
+        ? <CartaoSicredi agencia={agenciaEscolhida} fechar={fecharCasa} />
+        : (
+          <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
+            parada={paradaDe.get(escolhida.u.id) || null} estado={estadoDe(escolhida.p.slug)} revisitas={revisitasDe(escolhida.p.slug)}
+            proxima={escolhida.p.slug === proximaSlug} aoAvaliar={avaliar}
+            irmas={enderecosDaCasa(todas, escolhida.p.slug, escolhida.u.id)} aoEscolher={escolher} />
+          )}
+    </Folha>
+  )
+  const resumo = ativos > 0 && TC.mostrando(linhas.length, todas.length) ? TC.mostrando(linhas.length, todas.length) : TC.casasEnderecos(nCasas, nEnderecos, meu.mapa?.total_casas)
+
   return (
     <>
       {avisos}
-      {topo(textoDe(T.lead, TR.lead))}
-      <section className={`ct-bloco ct-mapa${entrada === 'rota' ? ' ct-mapa--rota' : ''}`} aria-label="Casas da Cartoon">
+      {topo(textoDe(T.lead, TR.lead), entrada === 'mapa' ? botaoRota : null)}
+      <section className={`ct-bloco ct-mapa ct-mapa--${entrada}`} aria-label="Casas da Cartoon">
+        {entrada === 'mapa' && (
+          <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
+            proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+        )}
+        <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
-          <div className="ct-mapa__vista">
-            {entrada === 'mapa' && (
-              <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
-                proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
-            )}
-            <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
-            <div className="ct-chips ct-mapa__vistas" role="group" aria-label={T.vistas}>
-              {vistas.map((v) => <Chip key={v} ativo={vista === v} onClick={() => setVista(v)}>{T.vista[v]}</Chip>)}
+          <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
+            {...(cheia ? { role: 'dialog', 'aria-modal': true, 'aria-label': TC.telaCheiaRegiao } : {})}>
+            <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
+              aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} />
+
+            <div className="ct-mapa__resumo">
+              <p className="ct-catalogo__conta" aria-live="polite">{resumo}</p>
+              {ativos > 0
+                ? <button type="button" className="ct-link" onClick={() => setF(VAZIO)}>{T.limpar}</button>
+                : nEnderecos > nCasas && <p className="ct-mapa__resumo-regra">{TC.casasEnderecosCurta}</p>}
             </div>
 
-            <div className="ct-filtros ct-mapa__filtros">
-              <label className="ct-campo ct-campo--busca"><span className="ct-sr">{T.busca}</span>
-                <input type="search" value={f.q} placeholder={T.busca} onChange={(e) => muda('q', e.target.value)} />
-              </label>
-              {opcoes.bairros.length > 1 && (
-                <label className="ct-campo ct-filtros__grupo">
-                  <span className="ct-rotulo">{T.bairro}</span>
-                  <select value={bairroOpcao} onChange={(e) => muda('bairro', e.target.value)}>
-                    <option value="">{T.todos}</option>
-                    {opcoes.bairros.map((b) => <option key={b} value={b}>{b}</option>)}
-                  </select>
-                </label>
+            <div ref={moldura} className="ct-mapa__moldura">
+              {podeAmpliar && (
+                <button type="button" className="ct-mapa__ampliar" data-abrir-cheia onClick={abrirCheia} aria-label={TC.telaCheiaAbrir}>
+                  <ScwIcon nome="ampliar" tamanho={20} />
+                  <span className="ct-mapa__rotulo-curto" aria-hidden="true">{TC.telaCheiaAbrirCurto}</span><span className="ct-mapa__rotulo-longo" aria-hidden="true">{TC.telaCheiaAbrir}</span>
+                </button>
               )}
-              <fieldset className="ct-filtros__grupo">
-                <legend className="ct-rotulo">{T.comoPedir}</legend>
-                <div className="ct-chips">
-                  {M.MODOS.map(([k]) => (
-                    <Chip key={k} ativo={f.modo === k} icone={ATENDIMENTO[k].icone} onClick={() => muda('modo', f.modo === k ? '' : k)}>{ATENDIMENTO[k].rotulo}</Chip>
-                  ))}
-                </div>
-              </fieldset>
-              <fieldset className="ct-filtros__grupo">
-                <legend className="ct-rotulo">{T.mostrar}</legend>
-                <div className="ct-chips">
-                  {opcoes.hoje && <Chip ativo={f.aberto} icone="aberto-agora" onClick={() => muda('aberto', !f.aberto)}>{T.aberto}</Chip>}
-                  <Chip ativo={f.queroIr} icone="quero-ir" onClick={() => muda('queroIr', !f.queroIr)}>{LOVER.queroIr}</Chip>
-                  <Chip ativo={f.jaFui} icone="ja-fui" onClick={() => muda('jaFui', !f.jaFui)}>{LOVER.jaFui}</Chip>
-                </div>
-              </fieldset>
-              {casasMapa && (
-                <fieldset className="ct-filtros__grupo">
-                  <legend className="ct-rotulo">{TC.filtroEstado}</legend>
-                  <div className="ct-chips">
-                    {ESTADOS_FILTRO.map((k) => <Chip key={k} ativo={f.estado === k} onClick={() => muda('estado', f.estado === k ? '' : k)}>{TC.filtroEstados[k]}</Chip>)}
-                  </div>
-                </fieldset>
-              )}
-              {geo === 'disponivel' && <button type="button" className="ct-botao ct-botao--contorno ct-mapa__perto" onClick={localizar}><ScwIcon nome="local" tamanho={20} />{T.pertoDeMim}</button>}
-              {geo === 'pedindo' && <p className="ct-nota" role="status">{T.pedindo}</p>}
-              {geo === 'ok' && <p className="ct-nota" role="status">{T.ordenado}</p>}
-              {geo === 'negada' && <p className="ct-nota" role="status">{T.negada}</p>}
-            </div>
 
-            <div className="ct-catalogo__resumo">
-              <p className="ct-catalogo__conta" aria-live="polite">{T.contagem(linhas.length)}</p>
-              {ativos > 0 && <button type="button" className="ct-link" onClick={() => setF(VAZIO)}>{T.limpar}</button>}
-            </div>
-
-            <div className="ct-mapa__tela">
               {vista === 'mundo' && (
                 <>
                   {!mundo.aprovada && <p className="ct-nota ct-mapa__previa" role="note">{TC.previa}</p>}
                   <Mundo mundo={mundo} casas={casasMundo} agencias={agencias.filter((a) => a.x !== null && a.y !== null)} trilha={trilha}
                     selecionada={sel} aoSelecionar={escolher} recentes={recentes} />
-                  <LegendaEstados comEstados={!!casasMapa} sicrediImagem={MARCAS_PARCEIROS.sicredi.src} />
-                  <CasasEmLista itens={casasMundo.filter((c) => !c.apagada)} agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} aberta={!!f.q} />
                 </>
               )}
 
               {vista === 'real' && (
+                <div className="ct-mapa__area">
+                  {noMapa.length === 0 ? <p className="ct-nota">{T.semMapa}</p>
+                    : verMapa ? (
+                      <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
+                        <ErroDoMapa>
+                          <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
+                            pontos={[
+                              ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDaCasa(p) })),
+                              ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src, rotulo: TC.sicrediRotulo }),
+                            ]} />
+                        </ErroDoMapa>
+                      </React.Suspense>
+                    ) : <button type="button" className="ct-botao" onClick={() => setVerMapa(true)}><IconeCartoon nome="mapa" tamanho={32} />{T.verMapa(noMapa.length)}</button>}
+                </div>
+              )}
+
+              {vista === 'lista' && (
+                <>
+                  {linhas.length ? (
+                    <ul className="ct-mapa__lista" aria-label={T.contagem(linhas.length)}>
+                      {linhas.map(({ u, p, dist, foi }) => {
+                        const titulo = M.tituloDaUnidade(p, u)
+                        const est = u.combo ? M.estadoAgora(u, undefined, dados?.edicao) : null
+                        const agora = est ? M.textoEstado(est) : ''
+                        const nota = notaDoLugar(u.coordenada)
+                        return (
+                          <li key={u.id} id={`mapa-${u.id}`} className={`ct-mapa__item${sel === u.id ? ' is-sel' : ''}${foi ? ' is-visitada' : ''}`}>
+                            <button type="button" className="ct-mapa__sel" aria-pressed={sel === u.id} onClick={() => escolher(sel === u.id ? '' : u.id)}>
+                              <LogoDoPin p={p} />
+                              <span className="ct-mapa__sel-texto">
+                                <strong>{titulo}</strong>
+                                <span>{M.enderecoEmLinha(u.endereco)}</span>
+                                {estadoDe(p.slug) && <SeloEstado estado={estadoDe(p.slug)} revisitas={revisitasDe(p.slug)} />}
+                                {agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
+                                {!p.combo && <span className="ct-mapa__estado">{T.semComboAinda}</span>}
+                                {dist != null && <span className="ct-nota">{T.distancia(dist, !!u.coordenada?.conferir)}</span>}
+                                {nota && <span className={`ct-mapa__local${u.coordenada ? ' ct-mapa__local--aprox' : ''}`}>{nota}</span>}
+                              </span>
+                            </button>
+                            <div className="ct-mapa__marcas"><QueroIr u={u} nome={titulo} /><JaFui p={p} /></div>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  ) : (
+                    <div className="ct-estado ct-estado--vazio">
+                      <IconeCartoon nome="vazio" tamanho={64} />
+                      <p>{T.nenhuma}</p>
+                      <button type="button" className="ct-botao" onClick={() => setF(VAZIO)}>{T.limpar}</button>
+                    </div>
+                  )}
+                  <ListaSicredi agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} />
+                </>
+              )}
+            </div>
+
+            <div className="ct-mapa__fora">
+              {vista === 'mundo' && (
+                <>
+                  <LegendaEstados comEstados={!!casasMapa} sicrediImagem={MARCAS_PARCEIROS.sicredi.src} />
+                  <CasasEmLista itens={casasMundo.filter((c) => !c.apagada)} agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} aberta={!!f.q} />
+                </>
+              )}
+              {vista === 'real' && (
                 <>
                   <Cobertura linhas={linhas} selecionada={sel} aoSelecionar={escolher} />
-                  <div className="ct-mapa__area">
-                    {noMapa.length === 0 ? <p className="ct-nota">{T.semMapa}</p>
-                      : verMapa ? (
-                        <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
-                          <ErroDoMapa>
-                            <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined}
-                              pontos={[
-                                ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDaCasa(p) })),
-                                ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src, rotulo: TC.sicrediRotulo }),
-                              ]} />
-                          </ErroDoMapa>
-                        </React.Suspense>
-                      ) : <button type="button" className="ct-botao" onClick={() => setVerMapa(true)}><IconeCartoon nome="mapa" tamanho={32} />{T.verMapa(noMapa.length)}</button>}
-                  </div>
                   {verMapa && noMapa.length > 0 && (
-                    <>
-                    <ul className="ct-legenda" aria-label="Legenda do mapa">
-                      <li className="ct-legenda__nota">{T.legendaPins}</li>
-                      {Object.entries(T.legenda).filter(([k]) => k !== 'voce' || posicao).map(([k, texto]) => <li key={k}><span className={`ct-legenda__ponto ct-legenda__ponto--${k}`} aria-hidden="true" />{texto}</li>)}
-                    </ul>
-                    <LegendaEstados comEstados={false} sicrediImagem={MARCAS_PARCEIROS.sicredi.src} />
-                    </>
+                    <LegendaEstados comEstados={false} sicrediImagem={MARCAS_PARCEIROS.sicredi.src}>
+                      <ul className="ct-legenda" aria-label="Legenda do mapa">
+                        <li className="ct-legenda__nota">{T.legendaPins}</li>
+                        {Object.entries(T.legenda).filter(([k]) => k !== 'voce' || posicao).map(([k, texto]) => <li key={k}><span className={`ct-legenda__ponto ct-legenda__ponto--${k}`} aria-hidden="true" />{texto}</li>)}
+                      </ul>
+                    </LegendaEstados>
                   )}
                 </>
               )}
-
-              {vista === 'lista' && (<>{linhas.length ? (
-                <ul className="ct-mapa__lista" aria-label={T.contagem(linhas.length)}>
-                  {linhas.map(({ u, p, dist, foi }) => {
-                    const titulo = M.tituloDaUnidade(p, u)
-                    const est = u.combo ? M.estadoAgora(u, undefined, dados?.edicao) : null
-                    const agora = est ? M.textoEstado(est) : ''
-                    const nota = notaDoLugar(u.coordenada)
-                    return (
-                      <li key={u.id} id={`mapa-${u.id}`} className={`ct-mapa__item${sel === u.id ? ' is-sel' : ''}${foi ? ' is-visitada' : ''}`}>
-                        <button type="button" className="ct-mapa__sel" aria-pressed={sel === u.id} onClick={() => escolher(sel === u.id ? '' : u.id)}>
-                          <LogoDoPin p={p} />
-                          <span className="ct-mapa__sel-texto">
-                            <strong>{titulo}</strong>
-                            <span>{M.enderecoEmLinha(u.endereco)}</span>
-                            {estadoDe(p.slug) && <SeloEstado estado={estadoDe(p.slug)} revisitas={revisitasDe(p.slug)} />}
-                            {agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
-                            {!p.combo && <span className="ct-mapa__estado">{T.semComboAinda}</span>}
-                            {dist != null && <span className="ct-nota">{T.distancia(dist, !!u.coordenada?.conferir)}</span>}
-                            {nota && <span className={`ct-mapa__local${u.coordenada ? ' ct-mapa__local--aprox' : ''}`}>{nota}</span>}
-                          </span>
-                        </button>
-                        <div className="ct-mapa__marcas"><QueroIr u={u} nome={titulo} /><JaFui p={p} /></div>
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : (
-                <div className="ct-estado ct-estado--vazio">
-                  <IconeCartoon nome="vazio" tamanho={64} />
-                  <p>{T.nenhuma}</p>
-                  <button type="button" className="ct-botao" onClick={() => setF(VAZIO)}>{T.limpar}</button>
-                </div>
-              )}
-              <ListaSicredi agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} /></>)}
+              {nEnderecos > nCasas && <p className="ct-nota ct-mapa__nota-casas">{TC.casasEnderecosNota}</p>}
             </div>
+
+            {cheia && (
+              <Atalhos placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
+                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} />
+            )}
+            {cheia && cartao}
+            <Folha variante="filtros" aberta={filtrosAbertos} titulo={TC.filtrosTitulo} rotuloFechar={TC.fecharFiltros} aoFechar={() => setFiltrosAbertos(false)}>
+              <CorpoDosFiltros f={f} muda={muda} opcoes={opcoes} bairroOpcao={bairroOpcao} temEstado={!!casasMapa} hoje={opcoes.hoje} geo={geo} localizar={localizar}
+                comBusca={cheia} aoBuscar={(v) => muda('q', v)} total={linhas.length} ativos={ativos} aoLimpar={() => setF(VAZIO)} aoAplicar={() => setFiltrosAbertos(false)} />
+            </Folha>
           </div>
 
-          <div className="ct-mapa__lado">
-            {agenciaEscolhida && <CartaoSicredi agencia={agenciaEscolhida} fechar={() => setSel('')} />}
-            {!agenciaEscolhida && (escolhida || entrada === 'mapa') && ( // entrando pela rota, a dica de "escolha uma casa" só atrapalha
-              <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={() => setSel('')}
-                parada={escolhida ? paradaDe.get(escolhida.u.id) || null : null}
-                estado={escolhida ? estadoDe(escolhida.p.slug) : null} revisitas={escolhida ? revisitasDe(escolhida.p.slug) : 0}
-                proxima={!!escolhida && escolhida.p.slug === proximaSlug} aoAvaliar={avaliar} />
-            )}
-            <section className="ct-mapa__painel" aria-label={T.painel}>
+          <div className="ct-mapa__lateral">
+            {!cheia && cartao}
+            {/* Na tela cheia o painel não existe (a rota e os carimbos vêm pelos atalhos): sem ids repetidos atrás do véu. */}
+            {!cheia && <Folha variante="painel" aberta={painelAberto || entrada === 'rota'} inline={entrada === 'rota'} titulo={T.painel} rotuloFechar={TC.fecharPainel} aoFechar={() => setPainelAberto(false)}>
               {!vendoCompartilhada && (
                 <div className="ct-chips ct-mapa__abas" role="group" aria-label={T.painel}>
                   {PAINEIS.map((k) => <Chip key={k} ativo={aba === k} onClick={() => setPainel(k)}>{T.abas[k]}</Chip>)}
                 </div>
               )}
-              {aba === 'rota'
-                ? <PainelRota dados={dados} navigate={navigate} paradas={paradas} pendentes={faltam} compartilhada={vendoCompartilhada ? compartilhada : null}
-                    visitou={visitou} carimbada={carimbada} pendente={(p) => !!carimboDe.get(p.slug)?.podeAvaliar}
-                    servidor={meu.mapa ? { feitas: meu.mapa.casas_validadas, total: meu.mapa.total_casas } : null} mundo={comMundo ? mundo : null} />
-                : <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
-            </section>
+              {aba === 'rota' ? rotaEl : <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
+            </Folha>}
           </div>
         </div>
       </section>

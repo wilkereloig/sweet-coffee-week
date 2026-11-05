@@ -69,15 +69,24 @@ export default function Grupos ({ caca, navigate }) {
 
   const depoisDeCriar = (novo) => { setCriado(novo); setTentativa((n) => n + 1) }
 
+  const temGrupos = carga.fase === 'pronto' && carga.grupos.length > 0
+  const lista = (
+    <section aria-labelledby="grupos-lista" aria-busy={carga.fase === 'carregando'}>
+      <h2 id="grupos-lista" className="ct-sub">{L.titulo}</h2>
+      <Lista carga={carga} navigate={navigate} tentar={() => { setCarga({ fase: 'carregando', grupos: [] }); setTentativa((n) => n + 1) }} />
+    </section>
+  )
+  const criar = <CriarGrupo caca={caca} aoCriar={depoisDeCriar} />
+
+  // Quem já tem grupo vê os grupos primeiro; "criar outro" fica fechado. Sem grupo, a criação é a ação da tela e vem aberta.
   return (
     <div className="ct-caca__central ct-grupos">
-      {criado
-        ? <GrupoCriado criado={criado} navigate={navigate} aoOutro={() => setCriado(null)} />
-        : <CriarGrupo caca={caca} aoCriar={depoisDeCriar} />}
-      <section aria-labelledby="grupos-lista" aria-busy={carga.fase === 'carregando'}>
-        <h2 id="grupos-lista" className="ct-sub">{L.titulo}</h2>
-        <Lista carga={carga} navigate={navigate} tentar={() => { setCarga({ fase: 'carregando', grupos: [] }); setTentativa((n) => n + 1) }} />
-      </section>
+      {criado && <GrupoCriado criado={criado} navigate={navigate} aoOutro={() => setCriado(null)} />}
+      {temGrupos && lista}
+      {!criado && (temGrupos
+        ? <details className="ct-grupos__novo"><summary>{C.outro}</summary>{criar}</details>
+        : criar)}
+      {!temGrupos && lista}
     </div>
   )
 }

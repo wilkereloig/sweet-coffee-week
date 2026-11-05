@@ -33,7 +33,13 @@ export const MAPA_CACA = {
     visitar: (nome) => `Que tal conhecer ${nome}? É a próxima casa do caminho que você ainda não visitou.`,
     completo: 'Mapa completo! Você validou todas as casas e concorre ao prêmio final: uma surpresa.',
   },
-  acaoProximo: { avaliar: 'Avaliar agora', rota: 'Ver no mapa', visitar: 'Ver no mapa' },
+  // O botão do próximo passo diz a ação inteira (sem frase em volta): é a ação principal da tela. `proximo` (a frase) segue
+  // como o texto longo — título do botão e testes.
+  proximoAcao: {
+    avaliar: (nome) => `Avaliar o combo de ${nome}`,
+    rota: (nome) => `Ver ${nome} no mapa`,
+    visitar: (nome) => `Conhecer ${nome}`,
+  },
   // Cartão da casa
   verCombo: 'Ver o combo',
   avaliarCombo: 'Avaliar o combo',
@@ -58,19 +64,64 @@ export const MAPA_CACA = {
   afastar: 'Afastar',
   teclado: 'Com o desenho em foco: setas movem, + e − dão zoom, 0 volta ao mundo inteiro.',
   credito: 'Base geográfica © colaboradores do OpenStreetMap',
-  casaNoMundo: ({ numero, titulo, tema, estado, revisitas, parada, proxima }) => [
-    `${numero}. ${titulo}`,
+  casaNoMundo: ({ numero, titulo, nomeCasa, enderecos, tema, estado, revisitas, parada, proxima }) => [
+    `${numero}. ${nomeCasa || titulo}`,
     tema && `tema ${tema}`,
+    enderecos > 1 && `${enderecos} endereços`,
     estado && ESTADO_TEXTO[estado].rotulo.toLowerCase(),
     revisitas > 0 && (revisitas === 1 ? '1 revisita' : `${revisitas} revisitas`),
     parada && `parada ${parada} da sua rota`,
     proxima && 'sua próxima casa',
   ].filter(Boolean).join(', '),
+  // Página do mapa compacta (redesign de 06/11/2026): vistas, filtros, tela cheia, rota e cartão em folha
+  vistaMundoVisivel: 'Ilustrado',
+  vistaMundoOculto: 'Mapa ',
+  buscaCurta: 'Casa ou bairro',
+  filtros: 'Filtros',
+  filtrosTitulo: 'Filtros do mapa',
+  filtrosAtivos: (n) => (n === 1 ? '1 filtro ativo' : `${n} filtros ativos`),
+  filtrosVer: (n) => (n === 1 ? 'Ver 1 endereço' : `Ver ${n} endereços`),
+  filtrosLimpar: 'Limpar filtros',
+  fecharFiltros: 'Fechar os filtros',
+  telaCheiaAbrir: 'Abrir mapa em tela cheia',
+  telaCheiaAbrirCurto: 'Tela cheia',
+  telaCheiaFechar: 'Fechar tela cheia',
+  telaCheiaFecharCurto: 'Fechar',
+  telaCheiaRegiao: 'Mapa em tela cheia',
+  minhaRota: 'Minha rota',
+  minhaRotaConta: (n) => (n === 0 ? 'Minha rota, sem paradas' : n === 1 ? 'Minha rota, 1 parada' : `Minha rota, ${n} paradas`),
+  fecharPainel: 'Fechar o painel da rota',
+  casasEnderecos: (casas, enderecos, valem = null) => {
+    const c = casas === 1 ? '1 casa' : `${casas} casas`
+    const v = Number.isFinite(valem) && valem > 0 && valem < casas ? ` (${valem} valem carimbo)` : '' // o total da Caça vem do servidor; casa sem combo aparece no mapa mas não conta
+    const e = enderecos === 1 ? '1 endereço' : `${enderecos} endereços`
+    return enderecos > casas ? `${c}${v} · ${e}` : `${c}${v}`
+  },
+  casasEnderecosCurta: 'Cada casa vale 1 carimbo',
+  casasEnderecosNota: 'Cada casa vale um carimbo, mesmo com mais de um endereço.',
+  mostrando: (n, total) => (n === total ? '' : `Mostrando ${n} de ${total} endereços`),
+  maisDetalhes: 'Mais detalhes',
+  menosDetalhes: 'Menos detalhes',
+  maisCurto: 'Mais',
+  menosCurto: 'Menos',
+  outrosEnderecos: (n) => (n === 1 ? 'Esta casa tem mais 1 endereço' : `Esta casa tem mais ${n} endereços`),
+  outrosEnderecosNota: 'Os endereços contam como uma casa só na Caça.',
+  // Atalhos do jogo (tela cheia, 06/11/2026): UM botão compacto sobre o mapa que abre uma lista curta; cada item abre uma folha.
+  atalhos: 'Atalhos',
+  atalhosLista: 'Atalhos do jogo',
+  atalhosNome: (resumo) => (resumo ? `Atalhos do jogo, ${resumo}` : 'Atalhos do jogo'),
+  atalhosResumo: (feitas, total) => `${feitas} de ${total} ${total === 1 ? 'casa validada' : 'casas validadas'}`,
+  atalho: { progresso: 'Progresso', casas: 'Casas', rota: 'Rota', ranking: 'Ranking', grupos: 'Grupos' },
+  atalhoTitulo: { progresso: 'Progresso e carimbos', casas: 'Casas', rota: 'Minha rota', ranking: 'Ranking', grupos: 'Grupos' },
+  atalhoFechar: (titulo) => `Fechar: ${titulo}`,
+  atalhoCarregando: 'Carregando…',
+  atalhoGruposSemMapa: 'Crie seu mapa para jogar com amigos: o ranking dos grupos e a rota coletiva usam o seu progresso.',
   // Conquista
   conquistou: (nome) => `Casa conquistada: ${nome}!`,
   // Lista rápida (abaixo do desenho)
   listaRapida: (n) => `Casas em lista (${n})`,
-  listaRapidaAjuda: 'Prefere não procurar a bandeirinha? Escolha a casa aqui e o desenho vai até ela.',
+  listaRapidaAjuda: 'Prefere não procurar no desenho? Escolha a casa aqui e o desenho vai até ela.',
+  enderecosNaCasa: (n) => `${n} endereços`,
   irParaNoMapa: 'Ver no desenho',
   // Mapa real
   cobertura: ({ conferidas, aproximadas, sem }) => [

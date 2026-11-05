@@ -13,6 +13,7 @@
 @import './cartoon/13-caca.css';
 @import './cartoon/15-caca-extras.css';
 @import './cartoon/14-caca-grupos.css';
+@import './cartoon/16-mapa-tela.css'; /* por último de propósito: onde repete seletor do 05/11, ele manda */
 
 /* Grandstander (OFL), servida pelo projeto — docs/cartoon-2026-2/10 §10.3.
    Declarada só aqui: o arquivo só entra no chunk da edição. */

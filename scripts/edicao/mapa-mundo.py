@@ -26,7 +26,9 @@ Saída VERSIONADA (arte da edição, pública como os pins e as logos desenhadas
 `--docerias` põe as docerias soltas por cima do chão. Desde 04/11 o conceito é outro (Wilker): os mundos dos temas
 vêm pintados NO chão, perto de cada pin, e as docerias saíram da prévia. O código continua, desligado por padrão.
 Confere que toda unidade do retrato local tem posição; a que faltar sai na tela (fica só na lista e no Google).
-Idempotente: apaga as imagens antigas do mundo e regera tudo.
+Idempotente: apaga as imagens que ele mesmo gera e regera tudo.
+DESDE 05/11 o mapa vem da ARTE FINAL do Illustrator (scripts/edicao/mapa-mundo-final.py, docs/cartoon-2026-2/15-caca-mapa-final.md);
+este script é a versão PROVISÓRIA (v2) e, rodado, devolve src/data/mundoEdicao.js ao estado provisório (reverter a arte final).
 """
 import json
 import re
@@ -60,8 +62,9 @@ ids = {u['id'] for p in casas for u in p.get('unidades', [])}
 SAIDA.mkdir(parents=True, exist_ok=True)
 for sub in ('docerias', 'logos', 'bandeiras'):
     (SAIDA / sub).mkdir(exist_ok=True)
-for velho in [*SAIDA.glob('*.webp'), *SAIDA.glob('*/*.webp')]:
-    velho.unlink()
+# Só apaga o que este script gera (a arte final, base-final-*, vem de mapa-mundo-final.py e fica).
+for velho in [*SAIDA.glob('base-v*.webp'), SAIDA / 'sicredi-bandeira.webp', *SAIDA.glob('*/*.webp')]:
+    velho.unlink(missing_ok=True)
 
 # Chão: larguras para o srcset (o zoom do site vai até 2,25x). A arte pode vir em alta (ex.: 4x): as posições são 0-1,
 # então só a PROPORÇÃO precisa bater com o quadro.

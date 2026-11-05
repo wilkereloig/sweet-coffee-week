@@ -42,7 +42,8 @@ export const EXTRAS = {
 
   push: {
     titulo: 'Avisos no celular',
-    lead: 'Se você quiser, a organização pode mandar avisos para o seu navegador. É opcional. A avaliação pendente e as metas também aparecem em "Avisos", aqui na central.',
+    lead: 'Opcional: a organização pode mandar avisos para o seu navegador. A avaliação pendente e as metas também aparecem aqui na central.',
+    situacao: { ligado: 'ligados', desligado: 'desligados' },
     escolha: 'O que você quer receber',
     categorias: {
       avaliacao_pendente: { rotulo: 'Avaliação pendente', texto: 'Um carimbo que só espera você avaliar o combo.' },
@@ -60,7 +61,7 @@ export const EXTRAS = {
     desligado: 'Avisos desligados.',
     salvo: 'Preferência salva.',
     estados: {
-      'nao-suportado': 'Este navegador não recebe avisos de sites. Tudo bem: o que importa aparece em "Avisos", aqui na central.',
+      'nao-suportado': 'Este navegador não recebe avisos de sites. Tudo bem: o que importa aparece aqui na central.',
       'ios-instalar': 'No iPhone, os avisos só funcionam com o app instalado na Tela de Início. Toque em Compartilhar, depois em "Adicionar à Tela de Início", e abra a Caça por esse ícone.',
       bloqueada: 'As notificações deste site estão bloqueadas no navegador. Para ativar, libere nas configurações do site e volte aqui. Enquanto isso, os avisos aparecem na central.',
     },

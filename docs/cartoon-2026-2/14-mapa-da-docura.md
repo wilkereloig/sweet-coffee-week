@@ -2,7 +2,7 @@
 
 **Estado (04/11/2026):** desenho **revisto e aprovado pelo Wilker** (QR fixo na unidade + avaliação). Código no ar em
 `dev/site-completo` e migration `20261130_mapa_docura_carimbo.sql` **aplicada em 03/11** (41 QR, teste `TESTE_OK`). Mapa, Minha
-rota e álbum **unificados numa página** com o Mundo desenhado em prévia (§14.13), esperando a arte final. Abre **junto com o site, em 05/11**. O primeiro desenho (o lojista lendo o QR do visitante) caiu no
+rota e álbum **unificados numa página** com o Mundo desenhado em prévia (§14.13), com a **arte final do Illustrator (05/11/2026)**: base sem bandeiras + pin com a logo da casa por código (`15-caca-mapa-final.md`). Abre **junto com o site, em 05/11**. O primeiro desenho (o lojista lendo o QR do visitante) caiu no
 mesmo dia — ver §14.1.
 Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]**.
 > **Regra vigente: `15-caca-especificacao.md` (05/11/2026).** Este documento é o desenho de 03/11 e a história até a Caça. As regras de pontos (leitura e avaliação), de "números da sorte" e de pódio por pontos (§14.2, §14.3, §14.6, §14.7) foram **substituídas** pela regra de casas diferentes + carimbos extras, com vouchers por dia e prêmio final por sorteio ponderado; o que vale hoje está no fim do §14.14. O que ficou idêntico: QR + localização, 12 h por casa, sem conta e sem funcionário no fluxo. Onde o texto antigo fala em pontos, leia como histórico.
@@ -329,8 +329,7 @@ impressão, ainda a definir.
   **Carimbos** (o álbum). Visitada = "já fui" marcado **ou** carimbo; o estado do Mapa da Doçura é lido uma vez por página
   (`rota/useMeuMapa.js`) e repartido entre álbum, cartão e Mundo.
 - **Rota no desenho:** traçado esquemático (pontilhado vermelho) que passa pelas paradas na ordem do visitante — **não segue
-  rua**. Para ir: "Como chegar" e "Abrir a rota no Google Maps". "Ordenar pelo caminho" usa a numeração do mapa (Potengi →
-  Ponta Negra) e diz que não é o trajeto mais curto.
+  rua**. Para ir: "Como chegar" e "Abrir a rota no Google Maps". "Ordenar de norte a sul" usa a posição no desenho (cima → baixo; desde 05/11 a numeração é alfabética) e diz que não é o trajeto mais curto.
 - **Arte trocável sem mexer no código:** `python -I scripts/edicao/mapa-mundo.py <posicoes-arte-vN.json> <arte-base.png>
   [--aprovada]` gera `src/data/mundoEdicao.js` (x/y de 0 a 1 por unidade, número, marcos, Sicredi, docerias) e as imagens
   em `public/images/marcas-edicoes/2026.2/mundo/` (base em webp nas larguras do zoom; doceria de cada casa; logo da Sicredi
@@ -364,6 +363,42 @@ impressão, ainda a definir.
   `tests/cartoon-navegador.mjs` (vistas fora do DEV, lista, marcadores, filtros, perto de mim).
 - **[A DEFINIR]** depois da arte final: tamanho das casas e da bandeira, rótulos dos marcos perto da borda, aprovar
   (`--aprovada`); posições das 25 unidades que hoje vêm só do bairro, depois de conferidas em Participantes › Localizações.
+
+**Redesign compacto e tela cheia (06/11/2026)** — o Wilker achou a página confusa e poluída; o mapa virou o protagonista.
+Mesmo conteúdo, mesmos dados e estados, outra organização (`paginas/mapa/*`, `caca/mapa/*`, `16-mapa-tela.css`):
+
+- **Abertura compacta:** título pequeno + botão "Minha rota (n)" (celular), uma faixa de progresso ("X de N casas validadas") e,
+  só quando há o que fazer, **um** botão de próximo passo que diz a ação inteira ("Avaliar o combo de Cookitos"). Depois
+  vêm a barra (vistas **Ilustrado · Mapa real · Lista**, busca e **Filtros (n)**) e o mapa.
+- **Filtros numa folha acessível** (`role=dialog`, foco preso, Escape, "Fechar" à vista, véu): bairro, como pedir, aberto
+  agora, quero ir, já fui, meu progresso e "perto de mim". O botão mostra quantos estão ativos; a busca fica na barra.
+- **Cartão da casa em folha:** embaixo no celular (sem véu: o mapa segue explorável; deitado vira painel à esquerda), coluna
+  lateral no desktop. A ação principal depende do estado (carimbo pendente → "Avaliar e validar o carimbo"; senão "Como
+  chegar"); o resto fica em "Mais" — inclusive os **outros endereços da mesma casa**.
+- **Casas × endereços:** "27 casas · 41 endereços" + "Cada casa vale 1 carimbo"; o cartão avisa quando a casa tem mais de um
+  endereço. A Caça conta casas.
+- **Minha rota e Carimbos num painel à parte:** folha modal no celular (botão "Minha rota"), coluna no desktop; na página
+  `/cartoon/minha-rota` ele continua como bloco antes do mapa.
+- **Tela cheia** (vistas ilustrada e real; `useTelaCheia.js`): o mesmo contêiner vira `position: fixed; inset: 0; 100dvh`
+  com safe areas — **não é um mapa paralelo**: seleção, filtros, zoom e centro seguem. Trava a rolagem da página, prende o
+  Tab, Escape fecha (em pilha: a folha por cima fecha primeiro), "Fechar" sempre à vista e o foco volta ao botão que abriu.
+  A Fullscreen API é só melhoria (onde existe; iPhone fica com o modo por CSS). O teclado virtual encolhe a tela para a
+  área visível (`visualViewport`).
+- **Atalhos do jogo (06/11/2026, tela cheia com cara de jogo de celular; `Atalhos.jsx`):** UM botão compacto sobre o mapa
+  ("Atalhos" + placar "2/26", canto oposto ao zoom, abaixo da barra, respeitando o entalhe, alvo de 48 px) abre uma lista curta
+  de cinco itens com ícone e rótulo — **Progresso · Casas · Rota · Ranking · Grupos**. Cada item abre UMA folha por vez
+  (`Folha`, variante `jogo`) e a lista recolhe sozinha; a alternância Ilustrado/Mapa real segue na barra do topo. As folhas
+  reaproveitam o que já existe: Progresso = `ProgressoPessoal` + próximo passo + `AlbumCarimbos`; Casas = busca + `CasasEmLista`
+  (escolher fecha a folha e leva o mapa até a casa); Rota = `PainelRota`; Ranking e Grupos = as seções da Central recebendo o
+  mesmo `useCaca` da página (carregadas sob demanda com `React.lazy`). Sem mapa criado, Grupos mostra o convite curto de criar o
+  mapa (como a Central); Progresso e Ranking já tratam o estado sem mapa. Escape em pilha: folha → lista → tela cheia; o foco
+  volta ao botão dos atalhos; seleção, filtros, zoom e posição do mapa não mudam (a tela cheia é o mesmo contêiner).
+  **Decisão:** fora da tela cheia o botão NÃO aparece — a página já tem barra, faixa de progresso, "Minha rota" e abas, e um
+  segundo menu competiria com o botão "Tela cheia" do mesmo canto; na tela cheia o painel lateral sai da árvore, para não
+  repetir ids atrás do véu.
+- **Legenda recolhível** ("Como ler os pins"); mapa real com pins que encolhem de longe (a caixa de toque segue de 44 px).
+- **Testes:** `tests/cartoon-caca-mapa.test.mjs` (contagens, textos, contrato da tela cheia) e as seções 5 e 12 de
+  `tests/cartoon-caca-navegador.mjs` (folhas, tela cheia repetida em 360/390/768/1440/844×390, mapa real em tela cheia).
 
 ## 14.14 · Caça aos Carimbos: QR do display e carimbo pendente (04/11/2026)
 

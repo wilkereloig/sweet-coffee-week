@@ -19,6 +19,7 @@ const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
 let avisarFalha = null
 if (typeof window !== 'undefined') window.gm_authFailure = () => avisarFalha?.()
 const NATAL = { lat: -5.81, lng: -35.21 }
+const ZOOM_PERTO = 13 // abaixo disso o mapa mostra a cidade toda: pins pequenos (16-mapa-tela.css, .ct-mapa__mapa--longe)
 
 let carregando = null
 /** Carregador oficial "inline bootstrap" do Google, sem dependência: um <script> só, carregado uma vez. */
@@ -54,7 +55,9 @@ function elementoDoPonto (p, aoSelecionar) {
   return el
 }
 
-export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null, aoFalhar = null }) {
+// `gestos`: 'cooperativo' (padrão: ctrl/dois dedos para mover, a página rola) ou 'livre' (tela cheia: um dedo move o mapa).
+// O contêiner pode mudar de tamanho (tela cheia): o mapa NÃO é recriado; o tamanho novo é avisado ao Google, com o centro mantido.
+export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null, aoFalhar = null, gestos = 'cooperativo' }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const libs = React.useRef(null)
@@ -73,9 +76,13 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
         libs.current = { AdvancedMarkerElement, LatLngBounds: g.LatLngBounds }
         mapa.current = new Map(caixa.current, {
           center: NATAL, zoom: 12, mapId: MAP_ID, gestureHandling: 'cooperative',
-          streetViewControl: false, mapTypeControl: false, fullscreenControl: true, clickableIcons: false,
+          streetViewControl: false, mapTypeControl: false, fullscreenControl: false, clickableIcons: false, // a tela cheia é a da página (mesma seleção, filtros e cartão), não a do Google
           controlSize: 44, // zoom, tela cheia e câmera do Google com alvo de toque de 44 px (o padrão é 40)
         })
+        // Escala por zoom: de longe os pins encolhem (a cidade inteira cabe sem um cobrir o outro); de perto voltam ao tamanho cheio.
+        const escala = () => caixa.current?.classList.toggle('ct-mapa__mapa--longe', (mapa.current?.getZoom() ?? 12) < ZOOM_PERTO)
+        mapa.current.addListener('zoom_changed', escala)
+        escala()
         setPronto(true)
       })
       .catch(() => { if (vivo) (aoFalhar ? aoFalhar() : setErro(true)) })
@@ -85,6 +92,23 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       marcadores.current.clear()
     }
   }, [])
+
+  React.useEffect(() => {
+    mapa.current?.setOptions({ gestureHandling: gestos === 'livre' ? 'greedy' : 'cooperative' })
+  }, [gestos, pronto])
+
+  // Tela cheia (ou qualquer mudança do contêiner): avisa o Google e devolve o centro de antes.
+  React.useEffect(() => {
+    const m = mapa.current
+    if (!pronto || !m || !caixa.current || typeof ResizeObserver === 'undefined') return undefined
+    const ro = new ResizeObserver(() => {
+      const centro = m.getCenter()
+      window.google?.maps?.event?.trigger(m, 'resize')
+      if (centro) m.setCenter(centro)
+    })
+    ro.observe(caixa.current)
+    return () => ro.disconnect()
+  }, [pronto])
 
   // Marcadores e enquadramento: só quando o CONJUNTO de unidades muda (filtro), não a cada marca.
   React.useEffect(() => {

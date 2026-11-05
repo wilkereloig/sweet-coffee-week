@@ -674,14 +674,16 @@ try {
     if (!aprox || !/ponto aproximado/.test(aprox.nome) || marcadores.filter((m) => m.aprox).length !== 1) falha(`marcador aproximado: ${JSON.stringify(marcadores)}`)
     if (marcadores.some((m) => m.alto < 44)) falha('marcador com alvo < 44px')
     if (!(await c.page.locator('button.ct-marcador--quero').count()) || (await c.page.locator('button.ct-marcador--foi').count()) !== 1) falha('marcadores sem o estado de "quero ir"/"já fui"')
-    // Os filtros mostram só o que o visitante marcou.
+    // Os filtros mostram só o que o visitante marcou. Eles moram na folha "Filtros" (redesign de 06/11/2026): abre, marca, fecha.
+    const filtrar = async (c2, nome) => { await c2.page.click('.ct-mapa__filtros-botao'); await c2.page.click(`.ct-mapa__filtros button:has-text("${nome}")`); await c2.page.keyboard.press('Escape') }
     await c.page.click('.ct-mapa__vistas button:has-text("Lista")')
-    await c.page.click('.ct-mapa__filtros button:has-text("Quero ir")')
+    await filtrar(c, 'Quero ir')
     if (JSON.stringify(await c.page.locator('.ct-mapa__item').evaluateAll((l) => l.map((x) => x.id))) !== '["mapa-udemo3"]') falha('filtro "Quero ir"')
-    await c.page.click('.ct-mapa__filtros button:has-text("Quero ir")')
-    await c.page.click('.ct-mapa__filtros button:has-text("Já fui")')
+    await filtrar(c, 'Quero ir')
+    await filtrar(c, 'Já fui')
     if ((await c.page.locator('.ct-mapa__item').count()) !== 2) falha('filtro "Já fui" (as duas unidades da casa)')
     // "Perto de mim" sem permissão: mensagem honesta, a lista segue.
+    await c.page.click('.ct-mapa__filtros-botao')
     await c.page.click('button:has-text("Perto de mim")')
     await c.page.waitForSelector('text=Sem acesso à sua localização', { timeout: 12000 }).catch(() => falha('recusa da localização sem mensagem'))
     await c.ctx.close()
@@ -690,13 +692,17 @@ try {
     await ir(c.page, '/cartoon/mapa?bairro=Tirol&vista=lista')
     await c.page.waitForSelector('.ct-mapa__item')
     if (JSON.stringify(await c.page.locator('.ct-mapa__item').evaluateAll((l) => l.map((x) => x.id).sort())) !== '["mapa-udemo1","mapa-udemo4"]') falha('?bairro=Tirol não filtrou as unidades')
+    await c.page.click('.ct-mapa__filtros-botao')
     if ((await c.page.locator('.ct-mapa__filtros select').inputValue()) !== 'Tirol') falha('seletor de bairro não mostra Tirol')
+    if (!/1 filtro ativo/.test(await c.page.locator('.ct-mapa__filtros-botao').getAttribute('aria-label'))) falha('?bairro=Tirol: o botão "Filtros" não conta o filtro ativo')
     await c.ctx.close()
     // Com a posição: ordena pela distância em linha reta.
     c = await contexto(nav, { opcoes: { permissions: ['geolocation'], geolocation: { latitude: -5.876, longitude: -35.178 } } })
     await ir(c.page, '/cartoon/mapa?vista=lista')
+    await c.page.click('.ct-mapa__filtros-botao')
     await c.page.click('button:has-text("Perto de mim")')
     await c.page.waitForSelector('text=Ordenado pela distância em linha reta', { timeout: 12000 }).catch(() => falha('posição concedida sem ordenar'))
+    await c.page.keyboard.press('Escape')
     if (!(await c.page.locator('.ct-mapa__item').first().innerText()).includes('em linha reta')) falha('distância sem "em linha reta"')
     await c.ctx.close()
     if (falhas.length === antes) ok('Mapa: canal Rota, linha por unidade, "em conferência", aproximada na lista e no marcador, quero ir/já fui, ?bairro=, perto de mim (recusa e posição)')

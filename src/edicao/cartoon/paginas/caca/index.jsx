@@ -76,10 +76,11 @@ function PaginaDaCaca ({ secao, navigate, dados, grupoId, token }) {
 
   return (
     <section className="ct-bloco ct-caca" aria-busy={caca.estado === 'carregando'}>
-      <p className="ct-rotulo">{CACA.nome}</p>
+      {/* Cabeçalho compacto: o "voltar" (ou, na central, nada) acima do título; sem rótulo repetindo o nome da Caça. */}
+      {!central && <p className="ct-caca__voltar"><Link href={CACA_CAMINHOS.central} navigate={navigate}>{CACA.voltar}</Link></p>}
       <h1 className="ct-h1">{CACA.titulos[secao]}</h1>
-      {!central && <p className="ct-nota ct-caca__voltar"><Link href={CACA_CAMINHOS.central} navigate={navigate}>{CACA.voltar}</Link></p>}
-      {(central || !precisaMapa || caca.estado !== 'sem-mapa') && <p className="ct-lead">{CACA.leads[secao]}</p>}
+      {/* Na central o lead só serve a quem ainda não tem mapa; com mapa, o progresso e o próximo passo ocupam o lugar dele. */}
+      {(central ? caca.estado === 'sem-mapa' : (!precisaMapa || caca.estado !== 'sem-mapa')) && <p className="ct-lead">{CACA.leads[secao]}</p>}
       {corpo}
     </section>
   )

@@ -1,27 +1,34 @@
 /*
- * Mundo da Doçura — Natal desenhada como mapa de jogo (docs/cartoon-2026-2/14 §14.12–§14.13; spec da Caça 15 §10).
- * A arte é uma imagem; por cima, em posições de 0 a 1, os marcos (nome escrito por código), as agências do Sicredi e as
- * casas — cada casa um <button> de verdade, na ordem do caminho do mapa (a ordem do teclado). O pin é a BANDEIRINHA
- * NUMERADA da casa (a mesma do impresso, Wilker 04/11; o pé do mastro toca o ponto); a logo oficial aparece ao lado com
- * zoom, no foco e na casa escolhida. Os mundos dos temas vêm pintados no chão. A rota do visitante é um traçado SVG
- * esquemático entre as paradas (não segue rua; o aviso fixo diz isso): para chegar, o cartão da casa abre o Google Maps.
+ * Mundo da Doçura — Natal desenhada como mapa de jogo (docs/cartoon-2026-2/14 §14.12–§14.13; spec da Caça 15 §10;
+ * docs/cartoon-2026-2/15-caca-mapa-final.md). A arte é a FINAL do Illustrator SEM as bandeiras incorporadas (a bandeira e
+ * o número impressos saíram da imagem, para não aparecerem duas vezes); por cima, em posições de 0 a 1, entram os marcos
+ * (nome por código), as agências do Sicredi e as casas.
+ * UM pin por CASA (não por unidade: a Caça conta casas): a LOGO OFICIAL da casa no disco, a ponta tocando o pé do mastro
+ * (`ponto`), o número do impresso pequeno e discreto num canto. A casa com mais de um endereço continua um pin só; os outros
+ * endereços aparecem no cartão. Cada pin é um <button> de verdade, na ordem da legenda (a ordem do teclado), com alvo de
+ * toque de 44 px no mínimo. O NOME da casa não fica escrito em todos os pins (dezenas de etiquetas se atropelariam): aparece
+ * na casa escolhida, no ponteiro e no foco, e é sempre o nome acessível do botão.
  *
- * ESTADO da casa (Caça aos Carimbos) não depende só de cor: cada estado tem um pin de FORMA própria (furo vazio · estrela
- * com ampulheta · carimbo com brilhos), mais o nome falado no botão e a legenda; revisita vira um selo "+N". O destaque
- * do próximo passo é um anel tracejado + o rótulo "Próxima". Conquista nova faz uma microanimação (sem movimento sob
- * prefers-reduced-motion — a casa só ganha o anel fixo). O Sicredi é um letreiro branco com a marca, de outra forma que a
- * bandeira, e leva o rótulo "Patrocinador": não é casa.
+ * ESTADO da casa (Caça aos Carimbos) não depende só de cor: cada estado tem um selo de FORMA própria no canto superior
+ * direito do disco (furo vazio · estrela com ampulheta · carimbo com brilhos) e a borda do disco muda (contínua · tracejada ·
+ * dupla); revisita vira um contador "+N" a partir do zoom. Parada da rota = selo turquesa no canto superior esquerdo. O
+ * destaque do próximo passo é um anel tracejado + o rótulo "Próxima". Conquista nova faz uma microanimação (sem movimento sob
+ * prefers-reduced-motion). O Sicredi é um letreiro retangular branco com a marca oficial, de outra forma que o disco das
+ * casas, e leva o rótulo "Patrocinador": não é casa.
  *
+ * A rota do visitante é um traçado SVG esquemático entre as paradas (não segue rua; o aviso fixo diz isso). A arte NÃO mostra
+ * posição real: para chegar, o cartão da casa abre o Google Maps.
  * Zoom: botões (3 níveis), teclado (+ − 0, setas), Ctrl+roda/pinça do trackpad e duplo toque/clique. Arrastar: rolagem
- * nativa da janela (toque e trackpad) + arraste com o mouse. A pinça de dois dedos do celular fica com o navegador (a
- * página inteira aproxima); no desenho, o zoom por toque é o duplo toque e os botões de 44 px.
- * `casas`: [{ id, x, y, numero, titulo, tema, doceria, bandeira, pin, inicial, apagada, parada, estado, revisitas, proxima }].
- * `agencias`: [{ id, nome, endereco, x, y }] — só as que têm lugar na arte.
+ * nativa da janela (toque e trackpad) + arraste com o mouse. A pinça de dois dedos do celular fica com o navegador; no
+ * desenho, o zoom por toque é o duplo toque e os botões de 44 px.
+ * `casas` (uma linha por UNIDADE, como a lista): [{ id, slug, x, y, numero, titulo, nomeCasa, tema, pin, inicial, apagada, parada, estado,
+ * revisitas, proxima }] — o componente junta as unidades da mesma casa. `agencias`: [{ id, nome, endereco, x, y }].
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../../../caca/mapa/imagens.js'
+import { agruparPorCasa } from '../../../rota/mundo.js'
 
 const NIVEIS = [1, 1.5, 2.25]
 const PASSO_TECLA = 80
@@ -35,6 +42,11 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
   const ultimoZoom = React.useRef(0)
   const [nivel, setNivel] = React.useState(0)
   const [largura, altura] = mundo.quadro
+  // Primeira pintura leve: placeholder borrado de fundo e a imagem menor (1024); a escada de resoluções (srcSet) só liga depois.
+  const [nitida, setNitida] = React.useState(false)
+  const grupos = React.useMemo(() => agruparPorCasa(casas), [casas])
+  // A seleção vem do cartão/lista por UNIDADE; o pin é da CASA: qualquer unidade dela acende o mesmo pin.
+  const alvo = React.useMemo(() => grupos.find((g) => g.ids.includes(selecionada))?.id || selecionada, [grupos, selecionada])
   const ajudaId = React.useId()
 
   // `ponto` (fração do desenho, de 0 a 1) vira o centro da janela depois do zoom; sem ele, fica o que estava no centro.
@@ -60,12 +72,12 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
   // Casa escolhida (na lista, no cartão) fora da janela: a janela rola até ela, sem mexer na página.
   React.useEffect(() => {
     const j = janela.current
-    const b = selecionada && j?.querySelector(`[data-casa="${selecionada}"]`)
+    const b = alvo && j?.querySelector(`[data-casa="${alvo}"]`)
     if (!b) return
     const jr = j.getBoundingClientRect(); const br = b.getBoundingClientRect()
     if (br.left >= jr.left && br.right <= jr.right && br.top >= jr.top && br.bottom <= jr.bottom) return
     j.scrollTo({ left: j.scrollLeft + br.left - jr.left - (jr.width - br.width) / 2, top: j.scrollTop + br.top - jr.top - (jr.height - br.height) / 2, behavior: reduzirMovimento() ? 'auto' : 'smooth' })
-  }, [selecionada])
+  }, [alvo])
 
   // Pinça do trackpad (Ctrl + roda): um passo de zoom por gesto, sem aproximar a página inteira. Listener nativo porque o
   // do React é passivo e não deixa cancelar o zoom do navegador.
@@ -116,9 +128,9 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
       <p className="ct-nota ct-mundo__aviso" role="note">{TC.avisoIlustrado}{trilha ? ` ${TC.avisoTrilha}` : ''}</p>
       <div ref={janela} className={`ct-mundo__janela${nivel ? ' is-zoom' : ''}`} role="region" aria-label={TC.regiao} aria-describedby={ajudaId} tabIndex={0}
         onPointerDown={aoApertar} onPointerMove={aoMover} onPointerUp={aoSoltar} onPointerCancel={aoSoltar} onDoubleClick={aoDuploToque} onKeyDown={aoTeclar}>
-        <div className="ct-mundo__palco" style={{ '--zoom': NIVEIS[nivel], '--proporcao': largura / altura, aspectRatio: `${largura} / ${altura}` }}>
-          <img className="ct-mundo__arte" src={mundo.base.src} srcSet={mundo.base.srcSet} sizes={`${Math.round(NIVEIS[nivel] * 100)}vw`}
-            width={largura} height={altura} alt="" draggable={false} decoding="async" />
+        <div className="ct-mundo__palco" style={{ '--zoom': NIVEIS[nivel], '--proporcao': largura / altura, aspectRatio: `${largura} / ${altura}`, ...(mundo.base.placeholder ? { backgroundImage: `url(${mundo.base.placeholder})` } : null) }}>
+          <img className="ct-mundo__arte" src={mundo.base.src} srcSet={nitida ? mundo.base.srcSet : undefined} sizes={`${Math.round(NIVEIS[nivel] * 100)}vw`}
+            width={largura} height={altura} alt="" draggable={false} decoding="async" onLoad={() => setNitida(true)} />
           {trilha && (
             <svg className="ct-mundo__trilha" viewBox={`0 0 1000 ${(1000 * altura) / largura}`} preserveAspectRatio="none" aria-hidden="true">
               <path className="ct-mundo__trilha-base" d={trilha} />
@@ -127,38 +139,44 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
           )}
           {mundo.marcos.map((m) => <span key={m.nome} className="ct-mundo__marco" style={pos(m)} aria-hidden="true">{m.nome}</span>)}
           {agencias.map((a) => (
-            <button key={a.id} type="button" data-casa={a.id} style={pos(a)} aria-pressed={a.id === selecionada} aria-label={TC.sicrediNoMundo(a.nome, a.endereco)}
+            <button key={a.id} type="button" data-casa={a.id} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%' }} aria-pressed={a.id === selecionada} aria-label={TC.sicrediNoMundo(a.nome, a.endereco)}
               className={`ct-mundo__sicredi${a.id === selecionada ? ' is-sel' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
-              <img className="ct-mundo__sicredi-letreiro" src={mundo.sicrediBandeira} alt="" draggable={false} />
+              <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={mundo.sicrediLogo} alt="" draggable={false} /></span>
               <span className="ct-mundo__patrocinador" aria-hidden="true">{TC.sicrediRotulo}</span>
             </button>
           ))}
-          {casas.map((c) => c.doceria && (
-            <img key={`d-${c.id}`} className="ct-mundo__doceria" style={pos(c)} src={c.doceria} alt="" loading="lazy" decoding="async" draggable={false} />
-          ))}
-          {casas.map((c) => (
-            <button key={c.id} type="button" data-casa={c.id} data-estado={c.estado || undefined} style={pos(c)} aria-pressed={c.id === selecionada} aria-label={TC.casaNoMundo(c)}
-              className={`ct-mundo__casa${c.doceria ? ' ct-mundo__casa--doceria' : ''}${c.id === selecionada ? ' is-sel' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}`}
-              onClick={() => aoSelecionar(c.id === selecionada ? '' : c.id)}>
-              {c.bandeira
-                ? <img className="ct-mundo__bandeira" src={c.bandeira} alt="" draggable={false} />
-                : <span className="ct-mundo__num" aria-hidden="true">{c.numero}</span>}
-              <span className="ct-mundo__pin">{c.pin ? <img src={c.pin} alt="" loading="lazy" draggable={false} /> : <span aria-hidden="true">{c.inicial}</span>}</span>
-              {c.estado && (
-                <span className="ct-mundo__estado" aria-hidden="true">
-                  <img src={IMAGENS_ESTADO[c.estado].src} width={IMAGENS_ESTADO[c.estado].largura} height={IMAGENS_ESTADO[c.estado].altura} alt="" draggable={false} />
+          {grupos.map((c) => {
+            const marcada = c.ids.includes(selecionada)
+            const arte = mundo.casas?.[c.slug]
+            const ponto = arte?.ponto || c
+            const estado = c.estado ? IMAGENS_ESTADO[c.estado] : null
+            return (
+              <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} style={pos(ponto)} aria-pressed={marcada}
+                aria-label={TC.casaNoMundo({ ...c, enderecos: c.enderecos })}
+                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}`}
+                onClick={() => aoSelecionar(marcada ? '' : c.id)}>
+                <span className="ct-mundo__ponta" aria-hidden="true" />
+                <span className="ct-mundo__disco" aria-hidden="true">
+                  {c.pin ? <img src={c.pin} alt="" loading="lazy" decoding="async" draggable={false} /> : <span className="ct-mundo__inicial">{c.inicial}</span>}
                 </span>
-              )}
-              {c.revisitas > 0 && (
-                <span className="ct-mundo__revisita" aria-hidden="true">
-                  <img src={IMAGEM_REVISITA.src} width={IMAGEM_REVISITA.largura} height={IMAGEM_REVISITA.altura} alt="" draggable={false} />
-                  <b>{TC.revisitaCurta(c.revisitas)}</b>
-                </span>
-              )}
-              {c.proxima && <span className="ct-mundo__proxima" aria-hidden="true">{TC.proximaMarca}</span>}
-              {c.parada && <span className="ct-mundo__selos" aria-hidden="true"><span className="ct-mundo__parada">{c.parada}</span></span>}
-            </button>
-          ))}
+                <span className="ct-mundo__num" aria-hidden="true">{c.numero}</span>
+                {estado && (
+                  <span className="ct-mundo__estado" aria-hidden="true">
+                    <img src={estado.src} width={estado.largura} height={estado.altura} alt="" draggable={false} />
+                  </span>
+                )}
+                {c.revisitas > 0 && (
+                  <span className="ct-mundo__revisita" aria-hidden="true">
+                    <img src={IMAGEM_REVISITA.src} width={IMAGEM_REVISITA.largura} height={IMAGEM_REVISITA.altura} alt="" draggable={false} />
+                    <b>{TC.revisitaCurta(c.revisitas)}</b>
+                  </span>
+                )}
+                {c.parada && <span className="ct-mundo__parada" aria-hidden="true">{c.parada}</span>}
+                <span className="ct-mundo__nome" aria-hidden="true">{c.nomeCasa || c.titulo}</span>
+                {c.proxima && <span className="ct-mundo__proxima" aria-hidden="true">{TC.proximaMarca}</span>}
+              </button>
+            )
+          })}
         </div>
       </div>
       <div className="ct-mundo__zoom" role="group" aria-label={TC.zoom}>

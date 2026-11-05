@@ -1,7 +1,7 @@
 /*
  * Instalar o app da Caça (spec 15 §14): opcional, oferecido depois do primeiro carimbo, nunca bloqueante. Android/Chrome tem botão
  * (beforeinstallprompt guardado em pwa/instalacao.js); iPhone e os demais recebem a instrução. No app instalado do iPhone o
- * armazenamento é separado do Safari: a orientação aponta para /cartoon/caca/recuperar. Sem <h1>; aparece como bloco da central.
+ * armazenamento é separado do Safari: a orientação aponta para /cartoon/caca/recuperar. Sem <h1>; aparece como linha pequena e dispensável da central.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
@@ -31,13 +31,13 @@ export default function Instalar ({ caca, navigate }) {
 
   if (situacao === 'instalado') {
     return (
-      <section className="ct-caca__bloco ct-caca-app" aria-labelledby="caca-app">
-        <h2 id="caca-app" className="ct-sub">{T.titulo}</h2>
-        <p className="ct-nota" role="status">{resultado === 'accepted' ? T.feito : T.jaInstalado}</p>
+      <section className="ct-central__linha ct-caca-app" aria-labelledby="caca-app">
+        <h2 id="caca-app" className="ct-central__linha-titulo">{T.titulo}</h2>
+        <p className="ct-central__linha-texto" role="status">{resultado === 'accepted' ? T.feito : T.jaInstalado}</p>
         {ios && (
           <>
             <p className="ct-nota">{T.recuperar}</p>
-            <div className="ct-acoes"><Link href={RUA.recuperar} navigate={navigate} className="ct-botao ct-botao--contorno">{T.recuperarAcao}</Link></div>
+            <div className="ct-central__linha-acoes"><Link href={RUA.recuperar} navigate={navigate} className="ct-botao ct-botao--contorno ct-central__mini">{T.recuperarAcao}</Link></div>
           </>
         )}
       </section>
@@ -48,16 +48,15 @@ export default function Instalar ({ caca, navigate }) {
   const instalar = async () => setResultado(await pedirInstalacao())
   const agoraNao = () => { gravarDispensa(); setDispensado(true) }
   return (
-    <section className="ct-caca__bloco ct-caca-app" aria-labelledby="caca-app">
-      <h2 id="caca-app" className="ct-sub">{T.titulo}</h2>
-      <p className="ct-nota">{T.lead}</p>
+    <section className="ct-central__linha ct-caca-app" aria-labelledby="caca-app">
+      <h2 id="caca-app" className="ct-central__linha-titulo">{T.titulo}</h2>
+      <p className="ct-central__linha-texto">{T.lead} {T.honestidade}</p>
       {situacao === 'ios' && <p className="ct-nota"><strong>{T.ios}</strong></p>}
       {situacao === 'manual' && <p className="ct-nota"><strong>{T.manual}</strong></p>}
-      <p className="ct-nota">{T.honestidade}</p>
       {resultado === 'dismissed' && <p className="ct-nota" role="status">{T.recusou}</p>}
-      <div className="ct-acoes">
-        {situacao === 'botao' && <button type="button" className="ct-botao" onClick={instalar}>{T.botao}</button>}
-        <button type="button" className="ct-botao ct-botao--contorno" onClick={agoraNao}>{T.agoraNao}</button>
+      <div className="ct-central__linha-acoes">
+        {situacao === 'botao' && <button type="button" className="ct-botao ct-central__mini" onClick={instalar}>{T.botao}</button>}
+        <button type="button" className="ct-botao ct-botao--contorno ct-central__mini" onClick={agoraNao}>{T.agoraNao}</button>
       </div>
     </section>
   )

@@ -11,10 +11,13 @@ import { RANKING as T } from '../ranking/textos.js'
 import { LIMITE_INICIAL, prepararLinhas, indiceDaPessoa, minhaPosicao, proximoLimite, podeVerMais, textoCasas, textoExtras } from '../ranking/regras.js'
 
 function ComoFunciona () {
+  // As regras ficam atrás de um "Como funciona?": a lista vem primeiro. A nota de privacidade fica à vista.
   return (
-    <section className="ct-caca__bloco ct-rank__regra" aria-labelledby="rank-regra">
-      <h2 id="rank-regra" className="ct-sub">{T.regra.titulo}</h2>
-      <ul>{T.regra.itens.map((t) => <li key={t}>{t}</li>)}</ul>
+    <section className="ct-rank__regra" aria-labelledby="rank-regra">
+      <details className="ct-central__como">
+        <summary><h2 id="rank-regra" className="ct-rank__regra-titulo">{T.regra.titulo}</h2></summary>
+        <ul>{T.regra.itens.map((t) => <li key={t}>{t}</li>)}</ul>
+      </details>
       <p className="ct-nota">{T.regra.privacidade}</p>
     </section>
   )

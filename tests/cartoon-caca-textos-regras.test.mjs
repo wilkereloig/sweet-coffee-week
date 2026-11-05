@@ -109,3 +109,37 @@ test('a frase do mapa completo diz "concorre", não "vale", e a Caça não prome
   assert.match(EXTRAS.push.honestidade, /podem atrasar ou não chegar/)
   assert.match(EXTRAS.instalar.honestidade, /precisa de internet/)
 })
+
+/* ---------------------------------------------------------------- redesign da central (06/11/2026) */
+
+test('central: "Como conta?" explica casa × unidade e que "Já fui" não é carimbo, sem tutorial longo', () => {
+  const itensCom = CACA.progresso.como.itens
+  assert.ok(itensCom.length <= 5, 'lista curta, não tutorial')
+  assert.ok(itensCom.some((t) => /mais de um endereço/.test(t) && /unidade/.test(t)), 'casa × unidade')
+  assert.ok(itensCom.some((t) => /Já fui/.test(t) && /não vira carimbo/.test(t)), '"Já fui" é anotação, não carimbo')
+  assert.ok(itensCom.some((t) => /só vale depois que você avalia/.test(t)), 'carimbo só vale depois de avaliar')
+  assert.doesNotMatch(itensCom.join(' '), /vota[çc]|\bvoto/i)
+})
+
+test('central: o carimbo pendente é o próximo passo (uma ação), não se repete em avisos, e sem lista da edição não vira "da a casa"', () => {
+  const t = CACA.proxima.avaliar
+  assert.equal(t.acao, 'Avaliar o combo')
+  assert.match(t.titulo('Cookitos'), /^Falta avaliar o combo da Cookitos$/)
+  assert.match(t.texto(0), /mesmo e-mail do mapa/)
+  assert.match(t.texto(2), /Mais 2 casas esperam/)
+  const central = fonte('src/edicao/caca/Central.jsx')
+  assert.match(central, /nome === 'a casa' \? 'casa'/, 'sem a lista da edição: "da casa"')
+  assert.doesNotMatch(central, /useState/, 'o estado do aviso mora no hook e nas linhas, não na Central')
+  assert.match(fonte('src/edicao/caca/notificacoes/CentroDeAvisos.jsx'), /filter\(\(a\) => a\.tipo === 'meta'\)/, 'a avaliação pendente não se repete nos avisos')
+})
+
+test('central: avisos são linhas pequenas e dispensáveis; e-mail pendente volta a cada visita (a confirmação só existe aqui)', () => {
+  const email = fonte('src/edicao/caca/EmailPendente.jsx')
+  assert.match(email, /sessionStorage/, 'dispensa só vale na visita')
+  assert.doesNotMatch(email, /localStorage/)
+  assert.match(CACA.email.ajuda, /prêmio/)
+  assert.match(CACA.email.maisDeUmMapa, /só o confirmado aparece no ranking e nos grupos/)
+  assert.match(EXTRAS.push.lead, /organização/)
+  assert.doesNotMatch(EXTRAS.push.lead, /em "Avisos"/, 'a central não tem mais um bloco chamado "Avisos"')
+  assert.match(EXTRAS.push.estados['nao-suportado'], /aparece aqui na central/)
+})
