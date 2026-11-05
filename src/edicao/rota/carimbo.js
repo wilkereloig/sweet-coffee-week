@@ -212,11 +212,40 @@ export function apagarPerfil (codigo, armazenamento) {
   try { (armazenamento ?? globalThis.localStorage).removeItem(chavePerfil(codigo)) } catch { /* sem storage */ }
 }
 
-export function prepararAvaliacao ({ caminho, slug, unidade, mapa }, armazenamento) {
+/*
+ * Unidade que a pessoa carimbou, por casa (só neste aparelho). O servidor decide a unidade do carimbo (QR da unidade ou a mais perto
+ * do GPS) e `mapa_ler_v2` não a devolve; guardada aqui, a avaliação abre já na unidade certa em vez de na primeira da lista.
+ */
+export const chaveUnidadeCarimbo = (codigo) => `scw:edicao:${codigo}:unidade-carimbo`
+export function lerUnidadeCarimbo (codigo, slug, armazenamento) {
+  try {
+    const m = JSON.parse(loja(armazenamento).getItem(chaveUnidadeCarimbo(codigo)) || 'null')
+    return m && typeof m[slug] === 'string' ? m[slug] : ''
+  } catch { return '' }
+}
+export function gravarUnidadeCarimbo (codigo, slug, unidade, armazenamento) {
+  if (typeof slug !== 'string' || !slug || typeof unidade !== 'string' || !unidade) return false
+  try {
+    const s = loja(armazenamento)
+    const m = JSON.parse(s.getItem(chaveUnidadeCarimbo(codigo)) || 'null') || {}
+    s.setItem(chaveUnidadeCarimbo(codigo), JSON.stringify({ ...m, [slug]: unidade }))
+    return true
+  } catch { return false }
+}
+
+/** Mesmo e-mail, ignorando maiúsculas e espaços — a regra do servidor para ligar a avaliação ao carimbo. */
+export const mesmoEmail = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase()
+
+/**
+ * `codigo` (opcional): sem `unidade` explícita, usa a unidade que a pessoa carimbou. O e-mail do mapa vai junto (`emailMapa`)
+ * para o formulário avisar quando o e-mail digitado for outro: a avaliação só valida o carimbo com o mesmo e-mail.
+ */
+export function prepararAvaliacao ({ caminho, slug, unidade, mapa, codigo }, armazenamento) {
+  const un = unidade || (codigo ? lerUnidadeCarimbo(codigo, slug, armazenamento) : '') // `armazenamento` só nos testes: em uso, rascunho na sessão e unidade no localStorage
   try {
     const s = armazenamento ?? globalThis.sessionStorage
     const atual = JSON.parse(s.getItem(RASCUNHO_AVALIACAO) || 'null') || {}
-    s.setItem(RASCUNHO_AVALIACAO, JSON.stringify({ ...atual, slug, unidade: unidade || atual.unidade, nome: atual.nome || mapa?.apelido || '', email: atual.email || mapa?.email || '' }))
+    s.setItem(RASCUNHO_AVALIACAO, JSON.stringify({ ...atual, slug, unidade: un || atual.unidade, nome: atual.nome || mapa?.apelido || '', email: atual.email || mapa?.email || '', emailMapa: mapa?.email || atual.emailMapa || '' }))
   } catch { /* sem storage: o formulário abre com a casa marcada pelo endereço */ }
-  return `${caminho}/avaliar?participante=${encodeURIComponent(slug)}${unidade ? `&unidade=${encodeURIComponent(unidade)}` : ''}`
+  return `${caminho}/avaliar?participante=${encodeURIComponent(slug)}${un ? `&unidade=${encodeURIComponent(un)}` : ''}`
 }

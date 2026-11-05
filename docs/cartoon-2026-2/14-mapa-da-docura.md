@@ -464,6 +464,35 @@ embaixo, número do impresso no canto e selo de estado no aro. As classes `ct-mu
 - **Teste:** `npm run test:mapa-pin` (`tests/cartoon-mapa-pin-navegador.mjs`): carimbos simulados na rede; confere P&B × colorida
   nos dois mapas e que logo, estado e número do real existem no ilustrado.
 
+## 14.13-d · Mapa e Caça: uma experiência só (06/11/2026)
+
+O mapa é de todo mundo; a Caça é opcional **dentro dele**. Três camadas independentes, cada uma com um nome só:
+
+| Camada | Botão / estado | O que é | Onde mora |
+|---|---|---|---|
+| Planejar | **Quero ir** | parada da rota (por unidade); nunca cria carimbo nem ponto | aparelho (`scw:edicao:<cod>:rota`) |
+| Lembrar | **Já fui** | anotação pessoal (casa inteira); nunca cria, registra nem valida carimbo | aparelho |
+| Jogar | **Carimbar aqui** → **Falta avaliar** → **Conquistada** | o estado vem SEMPRE do servidor (`mapa_ler_v2`) | banco |
+
+- **Sem Caça:** busca, filtros, rota, direções e compartilhar funcionam sem mapa, conta ou cadastro; nada interrompe a navegação.
+  Depois de "Já fui", o cartão só convida (`TC.jaFuiPasso.semMapa` + link "Conhecer a Caça").
+- **Com Caça:** depois de "Já fui" o cartão diz o próximo passo pelo estado real: não visitada → "Já provou? Carimbe na casa";
+  pendente → "Falta avaliar o combo para validar a casa"; conquistada → nada a pedir (o selo e as revisitas já dizem).
+- **A rota deixou de apagar parada por carimbo pendente.** `visitou = já fui || casa CONQUISTADA` (`index.jsx`). Carimbo pendente
+  mantém a parada em "Quero ir" com o selo "Falta avaliar"; só a validação (carimbo + avaliação) a tira. O painel mostra o
+  estado de cada parada (`SeloEstado`) só para quem tem mapa.
+- **Um nome para avaliar:** "Avaliar o combo" (antes havia quatro). "Carimbar aqui" segue como o único gesto de carimbar.
+- **Unidade certa na avaliação:** o servidor decide a unidade do carimbo e `mapa_ler_v2` não a devolve; o app guarda a unidade
+  carimbada por casa no aparelho (`gravarUnidadeCarimbo`, `lerUnidadeCarimbo`) e a avaliação abre nela. Sem essa memória, o "próximo
+  passo" só pré-marca unidade quando a casa tem uma só (antes marcava a primeira).
+- **E-mail diferente do mapa:** a avaliação só valida o carimbo com o MESMO e-mail do mapa (regra do servidor). O formulário
+  agora avisa quando o e-mail digitado difere do do mapa (`emailMapa` no rascunho).
+- **Sem sincronização entre aparelhos.** Rota e "já fui" são do aparelho (recuperar o mapa em outro aparelho traz carimbos, não rota).
+  A rota do grupo é outro sistema (servidor, por casa) e segue separada. Nenhum texto promete sincronizar.
+- **Sem mudança de banco, de regra de pontuação ou de flag.**
+- **Testes:** `tests/cartoon-caca-integracao.test.mjs` (`npm run test:caca`) e, no navegador com rede simulada,
+  celular e desktop, com e sem mapa: cartão ("Já fui" → próximo passo) e painel da rota (pendente fica, conquistada sai).
+
 ## 14.14 · Caça aos Carimbos: QR do display e carimbo pendente (04/11/2026)
 
 - **[Decisão]** Wilker, 04/11: a ativação se chama **Caça aos Carimbos** (Mapa da Doçura é o nome do mapa). Regras completas

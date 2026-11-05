@@ -14,8 +14,10 @@ import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { EDICAO } from '../../../config.js'
 import * as M from '../../../dados/modelo.js'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
+import { Link } from '../../../componentes/base.jsx'
 import { Botao, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { QueroIr, JaFui } from '../../MarcasLover.jsx'
+import { useRota } from '../../contexto.js'
 import { MAPA as T, ATENDIMENTO, ICONE } from '../../textos.js'
 import { LogoDoPin } from './LogoDoPin.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
@@ -23,9 +25,16 @@ import { ESTADO_TEXTO, MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 
 export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher }) {
   const [mais, setMais] = React.useState(false)
+  const rota = useRota()
   const idMais = React.useId()
   // Trocou de casa ou de endereço: o cartão volta compacto (o resto está em "Mais").
   React.useEffect(() => { setMais(false) }, [linha?.u.id])
+  const passoRef = React.useRef(null)
+  // Marcou "Já fui" com "Mais" aberto: o próximo passo aparece colado ao botão e a folha rola até ele (fica atrás da barra de abas).
+  const jaFuiAgora = !!(linha && rota?.foi?.(linha.p))
+  React.useEffect(() => {
+    if (jaFuiAgora) passoRef.current?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }, [jaFuiAgora])
   if (!linha) return null
   const { u, p, dist } = linha
   const titulo = M.tituloDaUnidade(p, u)
@@ -36,6 +45,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   const c = u.coordenada
   const notaLugar = !c ? T.semCoordenada : c.conferir ? (c.precisao === 'rua' ? T.aproximadaRua : T.aproximada) : ''
   const pendente = estado === 'pendente'
+  const passoJaFui = rota?.foi?.(p) && estado !== 'conquistada' ? TC.jaFuiPasso[estado || 'semMapa'] : ''
   // "Aberto agora" é decisão de ir e fica à vista; os outros horários ("abre hoje às 11h") esperam em "Mais".
   const aberto = est?.estado === 'aberto'
   const agoraNo = agora && (
@@ -105,6 +115,12 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
           {u.whatsapp && <Botao tipo="secundario" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.whatsapp} tamanho={20} />WhatsApp</Botao>}
         </div>
         <div className="ct-mapa__marcas"><JaFui p={p} /></div>
+        {/* "Já fui" é só anotação: o próximo passo muda conforme o estado REAL da Caça (do servidor), colado ao botão, sem bloquear nada. */}
+        {passoJaFui && (
+          <p ref={passoRef} className="ct-nota ct-mapa__ja-fui-passo" role="status">
+            {passoJaFui}{!estado && <> <Link href={TC.caminhos.central} navigate={navigate}>{TC.conhecerCaca}</Link></>}
+          </p>
+        )}
       </div>
     </article>
   )

@@ -30,7 +30,7 @@ import * as M from '../../../dados/modelo.js'
 import { mundoEdicao, MARCAS_PARCEIROS } from '../../../../data/imageLibrary'
 import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.js'
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
-import { estadoAlbum, prepararAvaliacao } from '../../../rota/carimbo.js'
+import { estadoAlbum, prepararAvaliacao, lerUnidadeCarimbo } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
 import { CartaoEmail } from '../../../caca/CartaoEmail.jsx'
 import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
@@ -136,8 +136,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Carimbos (Mapa da Doçura) e rota: o que o álbum, o painel e o Mundo mostram vem daqui, uma vez.
   const album = meu.mapa ? estadoAlbum(lista, meu.mapa) : null
   const carimboDe = new Map((album?.casas || []).map((c) => [c.slug, c]))
-  const carimbada = (p) => !!carimboDe.get(p.slug)?.colorida
-  const visitou = (p) => rota.foi(p) || carimbada(p)
+  // "Visitou" tira a parada da lista "faltam": a anotação "já fui" ou a casa CONQUISTADA (carimbo + avaliação validados).
+  // Carimbo pendente NÃO tira: a parada segue na rota com a etiqueta "falta avaliar" até a avaliação validar a casa.
+  const visitou = (p) => rota.foi(p) || estadoDe(p.slug) === 'conquistada'
   const vendoCompartilhada = compartilhada.length > 0 && compartilhada.join() !== rota.ids.join()
   const paradas = resolverParadas(vendoCompartilhada ? compartilhada : rota.ids, lista)
   const faltam = vendoCompartilhada ? paradas : pendentes(paradas, visitou)
@@ -237,11 +238,18 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     return () => document.removeEventListener('visibilitychange', voltou)
   }, [geo === 'ok', validadas, lerPosicao]) // eslint-disable-line react-hooks/exhaustive-deps
   const muda = (k, v) => setF((x) => ({ ...x, [k]: v }))
-  const avaliar = (p, u) => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, slug: p.slug, unidade: u.id, mapa: meu.mapa }))
-  // Ações do "próximo passo": vão à primeira unidade da casa (a unidade só importa para preencher a avaliação).
+  // A avaliação abre na unidade que a pessoa carimbou (guardada no aparelho); sem ela, na que está aberta no cartão.
+  const avaliar = (p, u) => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, codigo: EDICAO.codigo, slug: p.slug, unidade: lerUnidadeCarimbo(EDICAO.codigo, p.slug) || u.id, mapa: meu.mapa }))
+  // Ações do "próximo passo": "ver a casa" abre a primeira unidade; "avaliar" usa a unidade carimbada e, sem ela, só pré-marca
+  // a unidade quando a casa tem uma só (com várias, a pessoa escolhe: marcar a primeira poderia avaliar o endereço errado).
   const primeiraUnidade = (slug) => todas.find((x) => x.p.slug === slug)
   const verCasa = (slug) => { const x = primeiraUnidade(slug); if (x) escolher(x.u.id) }
-  const avaliarCasa = (slug) => { const x = primeiraUnidade(slug); if (x) avaliar(x.p, x.u) }
+  const avaliarCasa = (slug) => {
+    const x = primeiraUnidade(slug)
+    if (!x) return
+    const unicas = x.p.unidades || []
+    navigate(prepararAvaliacao({ caminho: EDICAO.caminho, codigo: EDICAO.codigo, slug, unidade: unicas.length === 1 ? unicas[0].id : undefined, mapa: meu.mapa }))
+  }
 
   const topo = (texto, acao = null) => (
     <TopoCanal canal="rota" className="ct-rota-topo ct-rota-topo--compacto" aria-labelledby="mapa-titulo">
@@ -269,7 +277,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   )
   const rotaEl = (
     <PainelRota dados={dados} navigate={navigate} paradas={paradas} pendentes={faltam} compartilhada={vendoCompartilhada ? compartilhada : null}
-      visitou={visitou} carimbada={carimbada} pendente={(p) => !!carimboDe.get(p.slug)?.podeAvaliar} mundo={comMundo ? mundo : null} />
+      visitou={visitou} estadoDe={estadoDe} revisitasDe={revisitasDe} mundo={comMundo ? mundo : null} />
   )
   // Lista de casas dos atalhos: as do desenho (na ordem do caminho) ou, sem o desenho, as unidades visíveis.
   const itensLista = comMundo

@@ -368,6 +368,7 @@ export const AWARDS = {
   nome: 'Seu nome',
   email: 'Seu e-mail',
   emailAjuda: 'Só para evitar avaliação repetida: uma por e-mail em cada casa, e vale a mais recente.',
+  emailDiferenteDoMapa: (e) => `Este e-mail é diferente do e-mail do seu mapa da Caça (${e}). A avaliação só valida o carimbo com o mesmo e-mail.`,
   novidades: 'Quero receber novidades do Sweet & Coffee Week (opcional)',
   privacidade: 'Ao enviar, você concorda com o uso dos dados descrito na',
   privacidadeLink: 'Política de Privacidade',

@@ -71,7 +71,8 @@ export function resolverParadas (ids, participantes = []) {
 
 /**
  * Paradas que faltam (a lista "quero ir" e a rota desenhada no Mundo): a casa visitada sai sem sair da rota; a
- * unidade que saiu da edição fica, sinalizada. `visitou(p)`: "já fui" marcado OU carimbo do Mapa da Doçura.
+ * unidade que saiu da edição fica, sinalizada. `visitou(p)`: "já fui" marcado OU casa CONQUISTADA na Caça (carimbo + avaliação
+ * validados); carimbo pendente não tira a parada: ela segue na rota com a etiqueta "falta avaliar".
  */
 export const pendentes = (paradas, visitou) => paradas.filter((pa) => !pa.ativa || !visitou(pa.participante))
 

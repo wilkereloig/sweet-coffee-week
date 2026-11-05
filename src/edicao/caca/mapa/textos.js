@@ -54,7 +54,14 @@ export const MAPA_CACA = {
   verCombo: 'Ver o combo',
   carimbarAqui: 'Carimbar aqui',
   avaliarCombo: 'Avaliar o combo',
-  avaliarValidar: 'Avaliar e validar o carimbo',
+  avaliarValidar: 'Avaliar o combo', // o mesmo nome em todo lugar; o estado "Falta avaliar" já diz que isso valida o carimbo
+  // Depois de "Já fui": o próximo passo certo para cada pessoa. "Já fui" é anotação; quem valida é o carimbo.
+  jaFuiPasso: {
+    semMapa: 'Anotado só para você. Quer que a casa valha na Caça aos Carimbos? Carimbe na casa e avalie o combo.',
+    'nao-visitada': 'Já provou? Carimbe na casa para ela valer na Caça.',
+    pendente: 'Carimbo registrado. Falta avaliar o combo para validar a casa.',
+  },
+  conhecerCaca: 'Conhecer a Caça',
   // Estados
   estadosTitulo: 'Como ler os pins',
   filtroEstado: 'Meu progresso',

@@ -139,6 +139,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
       setFalhas((n) => (deu ? 0 : falhaDeLocalizacao(final) ? n + 1 : n))
       setEstado(deu ? 'ok' : 'recusa')
       if (deu) {
+        C.gravarUnidadeCarimbo(EDICAO.codigo, final.slug, final.unidade) // a avaliação abre já na unidade carimbada
         setLendoMapa(true)
         api.mapaLer(k).then((m) => {
           if (!m.ok) return
@@ -152,7 +153,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
   // Apelido e e-mail vêm do mapa lido agora ou, se a leitura ainda não voltou, do perfil guardado no aparelho (E2E-4).
   const perfil = C.lerPerfil(EDICAO.codigo)
   const semDados = lendoMapa && !mapa && !perfil.email
-  const avaliar = () => navigate(C.prepararAvaliacao({ caminho: EDICAO.caminho, slug: r.slug, unidade: r.unidade, mapa: mapa || { apelido: perfil.nome, email: perfil.email } }))
+  const avaliar = () => navigate(C.prepararAvaliacao({ caminho: EDICAO.caminho, codigo: EDICAO.codigo, slug: r.slug, unidade: r.unidade, mapa: mapa || { apelido: perfil.nome, email: perfil.email } }))
 
   const links = (
     <>

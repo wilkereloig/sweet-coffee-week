@@ -40,6 +40,8 @@
   background: var(--ct-branco); color: var(--ct-chocolate); font: 500 16px/1.4 var(--ct-font);
 }
 .ct-campo small { font: 500 13px/1.4 var(--ct-font); }
+/* E-mail digitado diferente do e-mail do mapa da Caça: a avaliação não validaria o carimbo. Peso, não cor: o texto diz tudo. */
+.ct-campo .ct-campo__aviso { font-weight: 700; }
 .ct-campo--busca { flex: 1 1 280px; }
 .ct-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; }
 .ct-chip {

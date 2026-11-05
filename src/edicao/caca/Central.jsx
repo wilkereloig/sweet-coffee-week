@@ -63,7 +63,7 @@ function ProximaAcao ({ caca, dados, navigate }) {
         </div>
       </div>
       <div className="ct-acoes">
-        {avaliar && <button type="button" className="ct-botao" onClick={() => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, slug, mapa: caca.mapa }))}>{t.avaliar.acao}</button>}
+        {avaliar && <button type="button" className="ct-botao" onClick={() => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, codigo: EDICAO.codigo, slug, mapa: caca.mapa }))}>{t.avaliar.acao}</button>}
         {tipo === 'comecar' && <Link href={RUA.casas} navigate={navigate} className="ct-botao">{t.comecar.acao}</Link>}
         {tipo === 'continuar' && <Link href={RUA.mapa} navigate={navigate} className="ct-botao">{t.continuar.acao}</Link>}
         {tipo === 'completo' && <Link href={RUA.ranking} navigate={navigate} className="ct-botao">{t.completo.acao}</Link>}

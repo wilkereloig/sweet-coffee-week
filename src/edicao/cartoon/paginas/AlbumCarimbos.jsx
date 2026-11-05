@@ -71,7 +71,7 @@ export function AlbumCarimbos ({ dados, navigate, meu }) {
                 {c.carimbos > 1 && <span className="ct-album__vezes" aria-hidden="true">×{c.carimbos}</span>}
               </Link>
               {c.podeAvaliar && (
-                <button type="button" className="ct-album__avaliar" onClick={() => navigate(C.prepararAvaliacao({ caminho: C_, slug: c.slug, mapa }))}>
+                <button type="button" className="ct-album__avaliar" onClick={() => navigate(C.prepararAvaliacao({ caminho: C_, codigo: EDICAO.codigo, slug: c.slug, mapa }))}>
                   Avaliar e validar
                 </button>
               )}

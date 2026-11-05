@@ -19,7 +19,7 @@ import { AWARDS as T, PARTICIPANTE as TP, ICONE, TIPO_ORDEM } from '../../textos
 import { LogoDoPin } from '../mapa/LogoDoPin.jsx'
 import { Foto } from '../../../componentes/base.jsx'
 import * as M from '../../../dados/modelo.js'
-import { lerPerfil, gravarPerfil } from '../../../rota/carimbo.js'
+import { lerPerfil, gravarPerfil, mesmoEmail } from '../../../rota/carimbo.js'
 import { CacaAposAvaliar } from '../Carimbo.jsx'
 import { MAPA_NO_AR } from '../../contexto.js'
 
@@ -96,7 +96,7 @@ export function Formulario ({ dados, criterios, navigate }) {
     // Vindo da ficha da casa, já pula para as notas — menos quando a casa tem várias unidades e falta escolher uma.
     const varias = (casaPedida?.unidades || []).length > 1
     const pronta = !!casaPedida && (!varias || unidade)
-    return { slug, unidade, nome: r.nome || perfil.nome, email: r.email || perfil.email,
+    return { slug, unidade, nome: r.nome || perfil.nome, email: r.email || perfil.email, emailMapa: r.emailMapa || '',
       notas: r.notas || {}, comentario: r.comentario || '', novidades: false, passo: pronta ? 2 : 1 }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps -- estado inicial, lido uma vez
   const [form, setForm] = React.useState(inicial)
@@ -281,6 +281,7 @@ export function Formulario ({ dados, criterios, navigate }) {
           <label className="ct-campo"><span>{T.email}</span>
             <input type="email" autoComplete="email" value={form.email} maxLength={160} onChange={(e) => muda('email', e.target.value)} required />
             <small>{T.emailAjuda}</small>
+            {form.emailMapa && form.email.trim() && !mesmoEmail(form.email, form.emailMapa) && <small className="ct-campo__aviso" role="status">{T.emailDiferenteDoMapa(form.emailMapa)}</small>}
           </label>
           <label className="ct-check"><input type="checkbox" checked={form.novidades} onChange={(e) => muda('novidades', e.target.checked)} /> {T.novidades}</label>
           <input ref={armadilha} type="text" name="site" tabIndex={-1} autoComplete="off" className="ct-armadilha" aria-hidden="true" />

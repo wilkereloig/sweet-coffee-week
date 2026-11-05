@@ -16,9 +16,10 @@ import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Placa, Botao } from '../../../componentes/sistema/pecas.jsx'
 import { useRota } from '../../contexto.js'
 import { JaFui } from '../../MarcasLover.jsx'
+import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { ROTA as T } from '../../textos.js'
 
-export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada, visitou, carimbada, pendente, mundo }) {
+export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada, visitou, estadoDe = () => null, revisitasDe = () => 0, mundo }) {
   const rota = useRota()
   const lista = dados?.participantes || []
   const C = EDICAO.caminho
@@ -74,6 +75,8 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
                         <>
                           <p className="ct-parada__nome"><Link href={`${C}/participantes/${pa.participante.slug}`} navigate={navigate}>{M.tituloDaUnidade(pa.participante, pa.unidade)}</Link></p>
                           <p>{M.enderecoEmLinha(pa.unidade.endereco)}</p>
+                          {/* Quem participa da Caça vê o estado REAL de cada parada (do servidor); sem mapa, nada é desenhado. */}
+                          {estadoDe(pa.participante.slug) && <SeloEstado estado={estadoDe(pa.participante.slug)} revisitas={revisitasDe(pa.participante.slug)} tamanho={24} longo />}
                           {pa.unidade.combo && M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao)) && <p className="ct-nota">{M.textoEstado(M.estadoAgora(pa.unidade, undefined, dados?.edicao))}</p>}
                         </>
                       ) : <p className="ct-parada__nome">{T.saiu}</p>}
@@ -113,7 +116,8 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
                 <li key={p.slug} className="ct-visitada">
                   <IconeCartoon nome="ja-fui" tamanho={48} />
                   <Link className="ct-visitada__nome" href={`${C}/participantes/${p.slug}`} navigate={navigate}>{p.casa.nome}</Link>
-                  {carimbada(p) ? <span className="ct-album__selo">{pendente?.(p) ? T.carimbadaPendenteRotulo : T.carimbadaRotulo}</span> : <JaFui p={p} />}
+                  {['pendente', 'conquistada'].includes(estadoDe(p.slug)) && <SeloEstado estado={estadoDe(p.slug)} revisitas={revisitasDe(p.slug)} tamanho={24} longo />}
+                  {estadoDe(p.slug) !== 'conquistada' && <JaFui p={p} />}
                 </li>
               ))}
             </ul>
