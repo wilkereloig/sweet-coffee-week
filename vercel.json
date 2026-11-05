@@ -241,6 +241,21 @@
       "source": "/painel",
       "destination": "/painel/",
       "permanent": false
+    },
+    {
+      "source": "/festival/",
+      "destination": "/festival",
+      "permanent": false
+    },
+    {
+      "source": "/cartoon/",
+      "destination": "/cartoon",
+      "permanent": false
+    },
+    {
+      "source": "/cartoon/:path+/",
+      "destination": "/cartoon/:path+",
+      "permanent": false
     }
   ]
 }

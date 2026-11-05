@@ -103,6 +103,8 @@ function Cartao ({ p, modo, navigate, encerrada }) {
 
 export function Catalogo ({ modo, navigate, dados }) {
   const lista = dados.participantes || []
+  // Casa só com marca (combo ainda não revelado) fica na lista, mas não entra na contagem de combos.
+  const nCombos = lista.filter((p) => p.combo).length
   // "Aberto agora" é filtro do Mapa; no catálogo vale "com combo hoje".
   const [f, setF] = React.useState(() => ({ ...VAZIO, ...M.filtrosDaBusca(location.search), aberto: false }))
   const [painel, setPainel] = React.useState(false)
@@ -147,8 +149,8 @@ export function Catalogo ({ modo, navigate, dados }) {
           <div className="ct-catalogo__dados">
             {precoTexto
               ? <Preco rotulo={T.precoRotulo} valor={precoTexto} />
-              : <p className="ct-contagem">{lista.length} {combos ? T.placaCombos(lista.length) : T.placa(lista.length)}</p>}
-            <p className="ct-lead">{combos ? T.leadCombos(lista.length) : T.lead}</p>
+              : <p className="ct-contagem">{combos ? nCombos : lista.length} {combos ? T.placaCombos(nCombos) : T.placa(lista.length)}</p>}
+            <p className="ct-lead">{combos ? T.leadCombos(nCombos) : T.lead}</p>
           </div>
         </div>
         <div className="ct-catalogo__cena" aria-hidden="true">
