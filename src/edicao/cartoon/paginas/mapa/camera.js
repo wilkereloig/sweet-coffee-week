@@ -23,11 +23,18 @@ export function tamanhoDoPalco (c, j, a) {
   return { w: a.w * s, h: a.h * s }
 }
 
-/** Zoom e posição dentro dos limites: a arte nunca deixa uma faixa vazia na janela. */
+/** Folga além da borda da arte: um pin na borda tem o corpo acima/ao lado da ponta e os botões sobre o mapa (atalhos, zoom, barra)
+ *  cobrem o canto de cima — com a folga dá para arrastar qualquer pin para fora de baixo deles. Nunca passa de uma fração da janela. */
+export const FOLGA_TOPO = 132
+export const FOLGA_LADO = 32
+
+/** Zoom e posição dentro dos limites: a arte cobre a janela, com uma folga de pin em volta (topo e lados). */
 export function limitar (c, j, a) {
   const z = entre(c.z, ZOOM_MIN, ZOOM_MAX)
   const p = tamanhoDoPalco({ z }, j, a)
-  return { z, x: entre(c.x, Math.min(0, j.w - p.w), 0), y: entre(c.y, Math.min(0, j.h - p.h), 0) }
+  const t = Math.min(FOLGA_TOPO, j.h * 0.3)
+  const l = Math.min(FOLGA_LADO, j.w * 0.1)
+  return { z, x: entre(c.x, Math.min(0, j.w - p.w) - l, l), y: entre(c.y, Math.min(0, j.h - p.h), t) }
 }
 
 /** Câmera de abertura: zoom mínimo, arte centrada. */

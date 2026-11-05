@@ -1,16 +1,18 @@
 // Câmera do Mundo da Doçura: a arte cobre a janela, nunca deixa faixa vazia e o zoom/pinça/redimensionar mantêm o ponto certo.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ZOOM_MAX, ZOOM_MIN, centrarEm, escalaDeCobrir, inicial, limitar, panar, pinca, pontoNoCentro, redimensionar, tamanhoDoPalco, zoomarEm } from '../src/edicao/cartoon/paginas/mapa/camera.js'
+import { FOLGA_LADO, FOLGA_TOPO, ZOOM_MAX, ZOOM_MIN, centrarEm, escalaDeCobrir, inicial, limitar, panar, pinca, pontoNoCentro, redimensionar, tamanhoDoPalco, zoomarEm } from '../src/edicao/cartoon/paginas/mapa/camera.js'
 
 const arte = { w: 5882, h: 4146 }
 const JANELAS = { 'celular em pé': { w: 390, h: 520 }, 'celular deitado': { w: 780, h: 330 }, desktop: { w: 1280, h: 700 }, 'janela quase quadrada': { w: 900, h: 880 }, 'faixa larga': { w: 1800, h: 300 } }
 const quase = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} ≉ ${b}`)
 
+// Só a folga de pin (FOLGA_TOPO em cima, FOLGA_LADO nos lados) pode aparecer; embaixo a arte sempre cobre.
 function semFaixa (c, j) {
   const p = tamanhoDoPalco(c, j, arte)
-  assert.ok(c.x <= 1e-9 && c.y <= 1e-9, `canto fora: ${c.x},${c.y}`)
-  assert.ok(c.x + p.w >= j.w - 1e-6, `faixa à direita: ${c.x + p.w} < ${j.w}`)
+  const t = Math.min(FOLGA_TOPO, j.h * 0.3); const l = Math.min(FOLGA_LADO, j.w * 0.1)
+  assert.ok(c.x <= l + 1e-9 && c.y <= t + 1e-9, `canto fora: ${c.x},${c.y}`)
+  assert.ok(c.x + p.w >= j.w - l - 1e-6, `faixa à direita: ${c.x + p.w} < ${j.w}`)
   assert.ok(c.y + p.h >= j.h - 1e-6, `faixa embaixo: ${c.y + p.h} < ${j.h}`)
 }
 
@@ -36,10 +38,10 @@ test('arrastar chega a todas as bordas e nunca passa delas', () => {
   for (const [nome, j] of Object.entries(JANELAS)) {
     for (const z of [1, 1.7, ZOOM_MAX]) {
       let c = zoomarEm(inicial(j, arte), z, j.w / 2, j.h / 2, j, arte)
-      c = panar(c, 1e6, 1e6, j, arte); semFaixa(c, j); quase(c.x, 0); quase(c.y, 0) // canto superior esquerdo da arte
+      c = panar(c, 1e6, 1e6, j, arte); semFaixa(c, j); quase(c.x, Math.min(FOLGA_LADO, j.w * 0.1)); quase(c.y, Math.min(FOLGA_TOPO, j.h * 0.3)) // canto superior esquerdo da arte + folga de pin
       c = panar(c, -1e6, -1e6, j, arte); semFaixa(c, j)
       const p = tamanhoDoPalco(c, j, arte)
-      quase(c.x + p.w, j.w); quase(c.y + p.h, j.h) // canto inferior direito da arte
+      quase(c.x + p.w, j.w - Math.min(FOLGA_LADO, j.w * 0.1)); quase(c.y + p.h, j.h) // canto inferior direito: folga só nos lados
       assert.ok(true, nome)
     }
   }
