@@ -16,7 +16,7 @@ import * as M from '../../../dados/modelo.js'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { QueroIr, JaFui } from '../../MarcasLover.jsx'
-import { MAPA as T, PARTICIPANTE as TP, ATENDIMENTO, ICONE } from '../../textos.js'
+import { MAPA as T, ATENDIMENTO, ICONE } from '../../textos.js'
 import { LogoDoPin } from './LogoDoPin.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { ESTADO_TEXTO, MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
@@ -62,7 +62,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
           {aberto && agoraNo}
         </div>
       )}
-      <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco) || TP.unidadesNi}</span></p>
+      {M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
       <div className="ct-acoes ct-mapa__cartao-acoes">
         {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : comoChegarBotao}
         <Botao tipo="secundario" href={`${EDICAO.caminho}/combos/${p.slug}`} navigate={navigate}>{TC.verCombo}</Botao>

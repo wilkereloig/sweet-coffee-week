@@ -22,9 +22,10 @@ function Modo ({ p, k }) {
   const varias = todas > 1
   const emTodas = varias && unidades.length === todas
   const onde = () => M.juntar(unidades.map((u) => nomeDaUnidade(u, p)))
+  if (estado === 'nao_informado') return null // a casa não declarou: o cartão não aparece
   const texto = estado === 'sim'
     ? (varias ? (emTodas ? T.modo.todas : T.modo.simEm(onde())) : T.modo.sim)
-    : estado === 'nao_informado' && varias && unidades.length && !emTodas ? `${T.modo.nao_informado}: ${onde()}` : T.modo[estado]
+    : T.modo[estado]
   return (
     <li className={`ct-modo ct-modo--${k}`} data-estado={estado}>
       <IconeCartoon nome={ATENDIMENTO[k].icone} tamanho={48} />
@@ -48,12 +49,18 @@ function Delivery ({ p }) {
   const igual = (campo) => entregam.every((u) => (u.combo?.[campo] || '') === (entregam[0].combo?.[campo] || ''))
   const taxaUnica = igual('delivery_taxa')
   const regiaoUnica = igual('delivery_regioes')
-  const taxaDe = (u) => u.combo?.delivery_taxa || T.taxaNi
+  const taxaDe = (u) => u.combo?.delivery_taxa
+  // Só entra o que a casa informou: unidade sem canal, taxa nem região não ganha linha; sem nada para dizer, o painel some.
+  const temConteudo = (u) => M.canaisSeguros(u).length > 0 || (!taxaUnica && taxaDe(u)) || (!regiaoUnica && u.combo?.delivery_regioes)
+  const comConteudo = entregam.filter(temConteudo)
+  const taxaComum = taxaUnica && taxaDe(entregam[0])
+  const regiaoComum = regiaoUnica && entregam[0].combo?.delivery_regioes
+  if (!comConteudo.length && !taxaComum && !regiaoComum) return null
   return (
     <div id="delivery" className={`ct-delivery${varias ? ' ct-delivery--varias' : ''}`} role="group" aria-labelledby="delivery-titulo">
       <h3 id="delivery-titulo" className="ct-delivery__titulo"><IconeCartoon nome={ATENDIMENTO.delivery.icone} tamanho={32} />{T.pedirDelivery}</h3>
       <ul className="ct-delivery__lista">
-        {entregam.map((u) => {
+        {comConteudo.map((u) => {
           const canais = M.canaisSeguros(u)
           return (
             <li key={u.id} className="ct-delivery__unidade">
@@ -69,18 +76,18 @@ function Delivery ({ p }) {
                       ))}
                     </div>
                   )
-                  : <p className="ct-ni">{T.canalNi}</p>}
-                {!taxaUnica && <p className="ct-delivery__nota">{T.taxa}: {taxaDe(u)}</p>}
+                  : null}
+                {!taxaUnica && taxaDe(u) && <p className="ct-delivery__nota">{T.taxa}: {taxaDe(u)}</p>}
                 {!regiaoUnica && u.combo?.delivery_regioes && <p className="ct-delivery__nota">{T.regioes}: {u.combo.delivery_regioes}</p>}
               </div>
             </li>
           )
         })}
       </ul>
-      {(taxaUnica || regiaoUnica) && (
+      {(taxaComum || regiaoComum) && (
         <div className="ct-delivery__comum">
-          {taxaUnica && <p className="ct-delivery__nota">{T.taxa}: {taxaDe(entregam[0])}</p>}
-          {regiaoUnica && entregam[0].combo?.delivery_regioes && <p className="ct-delivery__nota">{T.regioes}: {entregam[0].combo.delivery_regioes}</p>}
+          {taxaComum && <p className="ct-delivery__nota">{T.taxa}: {taxaComum}</p>}
+          {regiaoComum && <p className="ct-delivery__nota">{T.regioes}: {regiaoComum}</p>}
         </div>
       )}
     </div>
@@ -90,12 +97,17 @@ function Delivery ({ p }) {
 export function ComoPedir ({ p }) {
   const instagram = p.casa.instagram && p.casa.instagram.replace(/^@/, '').trim()
   const site = p.casa.site && M.linkHttp(p.casa.site) ? p.casa.site : null
+  const modosDeclarados = M.MODOS.filter(([k]) => M.estadoModo(p, k).estado !== 'nao_informado')
+  // Nada declarado (nenhum modo, sem delivery, sem canais da casa): a seção não aparece.
+  if (!modosDeclarados.length && !instagram && !site) return null
   return (
     <section id="atendimento" className="ct-bloco ct-ficha__secao" aria-labelledby="atendimento-titulo">
       <Letreiro id="atendimento-titulo" texto={T.atendimentoTitulo} />
-      <ul className="ct-modos">
-        {M.MODOS.map(([k]) => <Modo key={k} p={p} k={k} />)}
-      </ul>
+      {modosDeclarados.length > 0 && (
+        <ul className="ct-modos">
+          {modosDeclarados.map(([k]) => <Modo key={k} p={p} k={k} />)}
+        </ul>
+      )}
       <Delivery p={p} />
       {(instagram || site) && (
         <div className="ct-ficha__fale">

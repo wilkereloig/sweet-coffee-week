@@ -2,7 +2,7 @@
 /* ------------------------------------------------------------- ficha da casa (E6, §10.7 + §10.14) */
 .ct-voltar { margin: 0; padding: 12px var(--ct-trilho) 0; }
 .ct-voltar a { display: inline-flex; align-items: center; min-height: 44px; font: 700 15px/1 var(--ct-font); }
-/* "Não informado" é dado, não erro: mesmo tom, peso de destaque. */
+/* Texto de apoio em peso de destaque (hoje: "já fui" vazio no painel da rota). */
 .ct-ni { font-weight: 600; }
 
 /* 1 · Topo (canal Elenco + cenário): logo desenhada no quadro, nome em letreiro display, selos de atendimento. */
@@ -178,7 +178,6 @@
   border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); font: 700 15px/1.3 var(--ct-font);
 }
 .ct-veredito--sim { background: var(--ct-turquesa); }
-.ct-veredito--nao_informado { border-style: dashed; background: transparent; }
 .ct-veredito__marca { flex: none; width: 14px; height: 14px; margin: 0 9px; border: 2.5px solid var(--ct-chocolate); border-radius: 50%; }
 .ct-veredito--nao .ct-veredito__marca { background: var(--ct-chocolate); }
 .ct-restricoes { display: grid; gap: 16px; }
@@ -194,21 +193,18 @@
 .ct-alimentar__linha--contem { background: var(--ct-amarelo); }
 /* "Pode conter": contorno vermelho inteiro (não faixa só de um lado), como o aviso do combo. */
 .ct-alimentar__linha--pode { background: var(--ct-creme); box-shadow: inset 0 0 0 2px var(--ct-vermelho); }
-.ct-alimentar__linha--ni { background: var(--ct-branco); border: 1.5px dashed var(--ct-chocolate); }
 .ct-alimentar__linha--extra dd { font-weight: 700; }
-.ct-alimentar__nada { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; border: 1.5px dashed var(--ct-chocolate); border-radius: 10px; font: 600 15px/1.4 var(--ct-font); }
 .ct-trocas summary { display: flex; align-items: center; gap: 8px; min-height: 44px; font: 800 15px/1.2 var(--ct-font); cursor: pointer; }
 .ct-trocas ul { display: grid; gap: 10px; margin: 0; padding: 0 16px 16px; list-style: none; }
 .ct-trocas li p { margin: 0; }
 .ct-trocas__meta { font: 500 14px/1.4 var(--ct-font); }
 .ct-confirme { max-width: 68ch; margin: 22px 0 0; padding: 14px 18px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-turquesa); font: 700 15px/1.45 var(--ct-font); }
 
-/* 4 · Como pedir: um cartão por modo. Disponível em branco com sombra; "não" em creme; "não informado" tracejado. */
+/* 4 · Como pedir: um cartão por modo. Disponível em branco com sombra; "não" em creme; o que a casa não declarou não tem cartão. */
 .ct-modos { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
 @media (min-width: 900px) { .ct-modos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
 .ct-modo { display: flex; align-items: flex-start; gap: 14px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-modo:not([data-estado='sim']) { background: var(--ct-creme); box-shadow: none; }
-.ct-modo[data-estado='nao_informado'] { border-style: dashed; }
 .ct-modo:not([data-estado='sim']) .ct-icone { opacity: .45; filter: grayscale(1); }
 .ct-modo__texto { display: grid; gap: 4px; min-width: 0; }
 .ct-modo__texto p { margin: 0; }
@@ -246,7 +242,7 @@
 .ct-unidade__linha { display: flex; align-items: center; gap: 8px; }
 .ct-unidade__linha .ct-icone { margin-left: -4px; }
 .ct-unidade__horario > .ct-unidade__linha { margin: 0; }
-.ct-unidade__obs, .ct-unidade__ni { font-size: 15px; }
+.ct-unidade__obs { font-size: 15px; }
 .ct-unidade__frases { margin: 0; padding-left: 18px; }
 /* O horário em frases, em destaque: é o que a pessoa procura primeiro; os dias um a um ficam logo abaixo ("Ver todos os dias"). */
 .ct-unidade__frases--destaque { display: grid; gap: 2px; padding: 0; list-style: none; font: 800 clamp(17px, 1.6vw, 20px)/1.35 var(--ct-font); }
