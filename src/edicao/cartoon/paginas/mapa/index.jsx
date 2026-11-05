@@ -41,6 +41,7 @@ import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { CasasEmLista } from '../../../caca/mapa/CasasEmLista.jsx'
 import { CartaoSicredi, ListaSicredi } from '../../../caca/mapa/Sicredi.jsx'
+import { AssinaturaPatrocinio } from '../../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Cobertura } from '../../../caca/mapa/Cobertura.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Avisos, Carregando } from '../../../componentes/base.jsx'
@@ -317,6 +318,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     <>
       {avisos}
       {topo(T.lead, botaoRota)}
+      <AssinaturaPatrocinio />
       <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
         <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
           proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />

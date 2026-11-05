@@ -9,7 +9,8 @@
  * (AdvancedMarkerElement) com um <button> nomeado dentro: a seleção sincroniza com a lista, como no outro mapa.
  */
 import React from 'react'
-import { pinDaCasa, pinSicredi } from './pin.js'
+import { pinDaCasa, pinSicredi, elementoDoGrupo } from './pin.js'
+import { agruparPontos } from './agrupar.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
@@ -63,8 +64,35 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
   const libs = React.useRef(null)
   const marcadores = React.useRef(new Map())
   const marcaVoce = React.useRef(null)
+  const grupos = React.useRef([])
+  const pontosAtuais = React.useRef(pontos)
+  const reagrupar = React.useRef(null)
   const [pronto, setPronto] = React.useState(false)
   const [erro, setErro] = React.useState(false)
+  pontosAtuais.current = pontos
+
+  // Casas que se cobririam na tela viram um círculo com o número (agrupar.js); a escolhida e o Sicredi ficam sempre soltos.
+  // Roda a cada parada do mapa (zoom/arrasto) e quando o conjunto ou a escolha mudam; só mexe em `map` dos marcadores.
+  reagrupar.current = () => {
+    const m = mapa.current
+    if (!m || !libs.current) return
+    const { AdvancedMarkerElement, LatLngBounds } = libs.current
+    for (const g of grupos.current) g.map = null
+    grupos.current = []
+    const achados = agruparPontos(pontosAtuais.current, { zoom: m.getZoom(), base: 256, zoomPerto: ZOOM_PERTO, fixos: [selecionada] })
+    const escondidos = new Set(achados.flatMap((g) => g.ids))
+    for (const [id, mk] of marcadores.current) mk.map = escondidos.has(id) ? null : m
+    for (const g of achados) {
+      const aproximar = () => {
+        const limites = new LatLngBounds()
+        for (const p of g.membros) limites.extend({ lat: p.lat, lng: p.lng })
+        m.fitBounds(limites, 72)
+        window.google.maps.event.addListenerOnce(m, 'idle', () => { if (m.getZoom() > 17) m.setZoom(17) })
+      }
+      const el = elementoDoGrupo(g.ids.length, TC.grupoNome(g.ids.length), aproximar)
+      grupos.current.push(new AdvancedMarkerElement({ map: m, position: { lat: g.lat, lng: g.lng }, content: el, zIndex: 1 }))
+    }
+  }
 
   React.useEffect(() => {
     let vivo = true
@@ -82,6 +110,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
         // Escala por zoom: de longe os pins encolhem (a cidade inteira cabe sem um cobrir o outro); de perto voltam ao tamanho cheio.
         const escala = () => caixa.current?.classList.toggle('ct-mapa__mapa--longe', (mapa.current?.getZoom() ?? 12) < ZOOM_PERTO)
         mapa.current.addListener('zoom_changed', escala)
+        mapa.current.addListener('idle', () => reagrupar.current?.())
         escala()
         setPronto(true)
       })
@@ -89,7 +118,9 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     return () => {
       vivo = false
       for (const mk of marcadores.current.values()) mk.map = null
+      for (const g of grupos.current) g.map = null
       marcadores.current.clear()
+      grupos.current = []
     }
   }, [])
 
@@ -128,6 +159,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     for (const p of alvo) limites.extend({ lat: p.lat, lng: p.lng })
     if (alvo.length > 1) m.fitBounds(limites, 48)
     else if (alvo.length === 1) { m.setCenter({ lat: alvo[0].lat, lng: alvo[0].lng }); m.setZoom(15) }
+    reagrupar.current?.()
   }, [pronto, pontos.map((p) => p.id).join(), aoSelecionar])
 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome.
@@ -152,6 +184,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
   })
 
   React.useEffect(() => {
+    reagrupar.current?.() // a casa escolhida sai do grupo (e a anterior pode voltar a ele)
     const mk = marcadores.current.get(selecionada)
     if (mk && mapa.current) {
       mapa.current.panTo(mk.position)

@@ -111,7 +111,7 @@
 /* Mapa real, escala por zoom: de longe (cidade inteira) o DESENHO do pin encolhe (a caixa do botão, o alvo de toque, segue de 44 px);
    o escolhido e os de perto ficam cheios. */
 .ct-pin, .ct-sicredi-pin { transform-origin: 50% 100%; transition: scale 180ms var(--ct-mo-quique); }
-.ct-mapa__mapa--longe .ct-marcador--pin:not(.is-sel) .ct-pin, .ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin { scale: .55; }
+.ct-mapa__mapa--longe .ct-marcador--pin:not(.is-sel) .ct-pin, .ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin { scale: .72; }
 .ct-mapa__fora { display: grid; gap: 8px; min-width: 0; }
 .ct-mapa__fora:empty { display: none; }
 @media (max-width: 899.98px) { .ct-mapa__item { scroll-margin-bottom: 340px; } }
@@ -294,7 +294,7 @@
   .ct-jogo__botao:active { translate: none; }
   .ct-folha-m--casa .ct-mapa__cartao, .ct-folha-m.is-modal .ct-folha-m__corpo, .ct-folha-m.is-modal .ct-folha-m__veu, .ct-folha-m--filtros .ct-folha-m__veu, .ct-folha-m--jogo .ct-folha-m__veu { animation: none; }
   .ct-mapa__ampliar:active, .ct-mapa__sair:active { translate: none; }
-  .ct-pin, .ct-sicredi-pin { transition: none; }
+  .ct-pin, .ct-sicredi-pin, .ct-grupo { transition: none; }
 }
 
 /* ------------------------------------------------------------- painel da rota: as três marcas (rota ≠ já fui ≠ carimbo) */

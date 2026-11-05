@@ -15,6 +15,7 @@ import { contarFiltros, casasEEnderecos, enderecosDaCasa } from '../src/edicao/c
 import { ESTADO_TEXTO, MAPA_CACA as T, distanciaCurta } from '../src/edicao/caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../src/edicao/caca/mapa/imagens.js'
 import { mundoEdicao, iconeEdicao } from '../src/data/imageLibrary.js'
+import { agruparPontos, paraPixel, ZOOM_SEM_GRUPO } from '../src/edicao/componentes/mapa/agrupar.js'
 
 const PUB = fileURLToPath(new URL('../public/', import.meta.url))
 const noDisco = (src) => existsSync(join(PUB, src.replace(/^\//, '')))
@@ -119,6 +120,38 @@ test('textos do próximo passo: distância curta e dica de localização', () =>
   assert.match(T.proximo.visitar('Diva do Café', 1.24), /mais perto de você, a 1,2 km/)
   assert.match(T.proximo.visitar('Diva do Café'), /próxima casa do caminho/)
   assert.ok(T.pertoDica.disponivel && T.pertoDica.negada && !T.pertoDica.indisponivel)
+})
+
+test('agrupar pins: casas que se cobririam viram um grupo; escolhida, Sicredi e zoom de rua ficam soltos', () => {
+  assert.deepEqual(paraPixel({ lat: 0, lng: 0 }, 0, 256), { x: 128, y: 128 })
+  assert.equal(paraPixel({ lat: 0, lng: 0 }, 0, 512).x, 256)
+  const A = { id: 'a', lat: -5.8000, lng: -35.2000 }
+  const B = { id: 'b', lat: -5.8002, lng: -35.2001 } // ~25 m de A
+  const C = { id: 'c', lat: -5.8300, lng: -35.2300 } // ~4 km
+  const S = { id: 's', lat: -5.8001, lng: -35.2000, sicredi: true }
+  const g = agruparPontos([A, B, C, S], { zoom: 14, zoomPerto: 13 })
+  assert.equal(g.length, 1, 'só A e B se cobrem; C está longe e o Sicredi nunca entra')
+  assert.deepEqual(g[0].ids, ['a', 'b'])
+  assert.ok(Math.abs(g[0].lat - -5.8001) < 1e-9 && Math.abs(g[0].lng - -35.20005) < 1e-9, 'o grupo fica no meio das casas')
+  assert.deepEqual(agruparPontos([A, B, C], { zoom: 14, zoomPerto: 13, fixos: ['b'] }), [], 'a casa escolhida sai do grupo')
+  assert.deepEqual(agruparPontos([A, B], { zoom: ZOOM_SEM_GRUPO, zoomPerto: 13 }), [], 'de rua em rua nada se agrupa')
+  assert.deepEqual(agruparPontos([A, B], { zoom: NaN }), [])
+  assert.deepEqual(agruparPontos([], { zoom: 10 }), [])
+  // de longe a caixa do pin é menor, mas na vista da cidade (zoom 11) casas a ~4 km ainda se tocam; de perto (zoom 14) não
+  assert.equal(agruparPontos([A, C], { zoom: 11, zoomPerto: 13 }).length, 1)
+  assert.equal(agruparPontos([A, C], { zoom: 14, zoomPerto: 13 }).length, 0)
+  assert.equal(agruparPontos([A, B, { id: 'd', lat: -5.8004, lng: -35.2003 }], { zoom: 12, zoomPerto: 13 })[0].ids.length, 3)
+  assert.match(T.grupoNome(3), /^3 casas/)
+})
+
+test('a assinatura do Sicredi abre a ficha da casa (só no site) e o Mapa, e não é fixa', () => {
+  const src = (f) => readFileSync(fileURLToPath(new URL(`../src/edicao/${f}`, import.meta.url)), 'utf8')
+  const ficha = src('cartoon/paginas/participante/index.jsx')
+  assert.match(ficha, /\{navigate && <AssinaturaPatrocinio \/>\}/, 'na ficha só com navigate: a prévia do painel não leva patrocinador')
+  assert.ok(ficha.indexOf('<AssinaturaPatrocinio />') < ficha.indexOf('<Topo '), 'a assinatura vem antes do topo da ficha')
+  assert.match(src('cartoon/paginas/mapa/index.jsx'), /<AssinaturaPatrocinio \/>/)
+  const css = readFileSync(fileURLToPath(new URL('../src/styles/cartoon/01-base.css', import.meta.url)), 'utf8')
+  assert.doesNotMatch(css.match(/\.ct-assina-patrocinio \{[^}]*\}/)[0], /position: (fixed|sticky)/, 'não é fixa na tela (manual da Sicredi)')
 })
 
 test('próximo passo ignora casa sem unidade (não há o que visitar)', () => {
