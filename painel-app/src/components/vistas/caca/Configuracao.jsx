@@ -1,7 +1,7 @@
 import React from 'react'
 import { Botao, Carregando, Erro, Secao, Selo } from '../../ui'
 import { confirmar } from '../../Confirmar'
-import { cacaApi, CAMPOS_CONFIG, validarConfig, textoDoValor, configMudou, horaNatal } from '../../../lib/caca'
+import { cacaApi, CAMPOS_CONFIG, AVISO_REGULAMENTO, validarConfig, textoDoValor, configMudou, horaNatal } from '../../../lib/caca'
 import { useExecutar, AvisoOk } from './comum'
 
 /*
@@ -18,7 +18,7 @@ export function Configuracao({ pode, dados }) {
   async function salvar(campo, valor) {
     const antes = c.dados?.[campo.chave]?.valor
     const mostra = (v) => (Array.isArray(v) ? v.join(', ') : String(v))
-    const ok = await confirmar(`${campo.rotulo}: de ${mostra(antes)} para ${mostra(valor)}. Isso entra na auditoria${campo.chave === 'peso_base' || campo.chave === 'ganhadores_final' ? ' e só vale para sorteios futuros' : ' e vale a partir das próximas apurações'}.`, { titulo: 'Mudar esta regra?', acao: 'Mudar' })
+    const ok = await confirmar(`${campo.rotulo}: de ${mostra(antes)} para ${mostra(valor)}. ${campo.regulamento ? ' ATENÇÃO: ' + AVISO_REGULAMENTO + ' ' : ''}Isso entra na auditoria${campo.chave === 'peso_base' || campo.chave === 'ganhadores_final' ? ' e só vale para sorteios futuros' : ' e vale a partir das próximas apurações'}.`, { titulo: 'Mudar esta regra?', acao: 'Mudar' })
     if (!ok) return false
     const r = await executar(campo.chave, () => cacaApi.gravarConfig(campo.chave, valor))
     if (!r) return false
@@ -80,6 +80,7 @@ function CampoConfig({ campo, atual, podeGravar, ocupado, onSalvar }) {
         {entradaEl}
       </label>
       <p id={ajudaId} className="ui-nota">{avisoCampo || campo.ajuda}</p>
+      {campo.regulamento && <p className="ui-nota"><Selo tom="atencao">No regulamento</Selo> {campo.regulamento}</p>}
       {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
       {atual.nota && <p className="ui-nota">{atual.nota}</p>}
       {atual.atualizado_em && <p className="ui-nota cp-meta">Última mudança: {horaNatal(atual.atualizado_em)}{atual.atualizado_por ? ` por ${atual.atualizado_por}` : ''}</p>}

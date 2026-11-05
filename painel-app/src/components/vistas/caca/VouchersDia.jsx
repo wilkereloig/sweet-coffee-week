@@ -7,6 +7,7 @@ import {
 } from '../../../lib/caca'
 import { useExecutar, AvisoOk, Tabela, contatoDe } from './comum'
 import { PremiosTabela, useAcoesDePremio } from './PremiosTabela'
+import { AvisoSemGps } from './SemGps'
 
 /*
  * Vouchers do dia (spec 15 §5): um por dia, apuração com a foto do ranking até o corte, ordem
@@ -48,6 +49,7 @@ export function VouchersDia({ edicao, pode, dados }) {
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
       <AvisoOk texto={acoes.aviso} onFechar={acoes.limparAviso} />
+      <AvisoSemGps edicao={edicao} />
       <ul className="ui-numeros ui-numeros--compacto">
         {ORDEM_ESTADOS.map((e) => <li key={e} className="ui-numero"><span className="ui-numero__n">{n[e]}</span><span className="ui-numero__rotulo">{rotuloEstado(e).toLowerCase()}</span></li>)}
         {n.vencidos > 0 && <li className="ui-numero cp-vencido-caixa"><span className="ui-numero__n">{n.vencidos}</span><span className="ui-numero__rotulo">com prazo vencido</span></li>}
@@ -68,7 +70,7 @@ export function VouchersDia({ edicao, pode, dados }) {
         <PremiosTabela premios={vouchers} tipo="voucher_dia" podeGerir={podeGerir} contato={contato} config={c.dados} acoes={acoes} vazio="Nenhum voucher ainda. Apure o primeiro dia depois do corte." />
       </Secao>
 
-      <Secao titulo="Fila de substituição" nota="Prévia de quem seria chamado a seguir, tirando quem já tem voucher no dia ou está bloqueado em outro. A foto guarda só os 10 primeiros; quem decide é o servidor.">
+      <Secao titulo="Fila de substituição" nota="Prévia de quem seria chamado a seguir, tirando quem já tem voucher no dia ou está bloqueado em outro. A foto guarda o ranking inteiro do dia; esta tela mostra só os 10 primeiros. Quem decide é o servidor, que escolhe o próximo elegível entre todos.">
         {regras.segundaChamadaMin != null && (
           <p className="ui-nota cp-proposta">
             Prazo da 2ª chamada: <strong>{regras.segundaChamadaMin} min</strong> depois do aviso.{' '}
@@ -90,7 +92,7 @@ export function VouchersDia({ edicao, pode, dados }) {
                   <ol className="cp-fila__lista" aria-label={`Próximos do dia ${diaBr(f.dia)}`}>
                     {f.proximos.slice(0, 3).map((r) => <li key={r.apelido + r.posicao}>{r.apelido} — {r.casas} casas, {r.extras} extras</li>)}
                   </ol>
-                ) : <p className="ui-nota">Ninguém sobrou entre os 10 primeiros da foto. O servidor ainda pode achar alguém mais abaixo, ou responder que não há próximo.</p>}
+                ) : <p className="ui-nota">Ninguém sobrou entre os 10 primeiros que a tela mostra. O servidor olha a foto inteira e ainda pode achar alguém mais abaixo, ou responder que não há próximo.</p>}
               </div>
             ))}
           </div>
@@ -133,7 +135,7 @@ function DiaApuracao({ dia, ap, situacao, regras, contato, podeGerir, ocupado, o
               ))}
             </Tabela>
           )}
-          <p className="ui-nota">Mostra os 10 primeiros da foto.</p>
+          <p className="ui-nota">Mostra os 10 primeiros da foto; a foto guarda o ranking inteiro.</p>
         </>
       )}
     </div>

@@ -41,6 +41,8 @@ begin
   -- Pessoas. A tem DOIS mapas (mesmo e-mail). B, C, F, H = integrantes. D = de fora com muito progresso. E = outro grupo. N = novato.
   k_a1 := public.mapa_criar(ed, 'Ana',  'a@exemplo.com.br', null, true, true) ->> 'chave';
   k_a2 := public.mapa_criar(ed, 'Ana2', 'a@exemplo.com.br', null, true, true) ->> 'chave';
+  -- 20261216: com dois mapas e nenhum confirmado a identidade está em disputa; a primeira (k_a1) prova o e-mail e vira a principal.
+  update public.mapas_lover set email_confirmado_em = now() - interval '1 hour' where chave_hash = public.mapa_hash(k_a1);
   k_b  := public.mapa_criar(ed, 'Beto', 'b@exemplo.com.br', null, true, true) ->> 'chave';
   k_c  := public.mapa_criar(ed, 'Cris', 'c@exemplo.com.br', null, true, true) ->> 'chave';
   k_d  := public.mapa_criar(ed, 'Davi', 'd@exemplo.com.br', null, true, true) ->> 'chave';

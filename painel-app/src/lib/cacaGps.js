@@ -1,0 +1,54 @@
+/*
+ * Caça aos Carimbos no painel: pedidos de revisão de presença (GPS) e resumo dos carimbos sem GPS.
+ * Contrato: docs/cartoon-2026-2/15-caca-contrato-gps.md. Funções puras; o banco decide permissão, regras e 12 h.
+ * Quem aprova ou nega é a organização, nunca a casa, e aprovar cria o carimbo com origem "excecao_painel".
+ */
+
+export const ESTADO_PEDIDO = Object.freeze({
+  pendente: ['Aguardando decisão', 'andamento'],
+  aprovado: ['Aprovado', 'ok'],
+  negado: ['Negado', 'encerrado'],
+})
+export const rotuloPedido = (e) => (ESTADO_PEDIDO[e] ? ESTADO_PEDIDO[e][0] : String(e || ''))
+export const tomPedido = (e) => (ESTADO_PEDIDO[e] ? ESTADO_PEDIDO[e][1] : 'neutro')
+
+export const MOTIVO_PEDIDO = Object.freeze({
+  sem_localizacao: 'Sem localização (negada, indisponível ou demorou)',
+  imprecisa: 'GPS impreciso (margem acima de 300 m)',
+  longe: 'Longe do ponto da casa',
+})
+export const rotuloMotivoPedido = (m) => MOTIVO_PEDIDO[m] || String(m || '')
+
+export const FILTROS_PEDIDO = Object.freeze([['pendente', 'Aguardando decisão'], ['aprovado', 'Aprovados'], ['negado', 'Negados'], ['todos', 'Todos']])
+export const filtrarPedidos = (itens, estado) => (itens || []).filter((p) => !estado || estado === 'todos' || p.estado === estado)
+
+/** O que o celular informou na hora: o servidor só guarda distância e margem, nunca a posição. */
+export function descricaoDoSinal(p) {
+  const d = Number.isFinite(p?.distancia_m) ? `a ${p.distancia_m} m do ponto conferido` : 'sem posição enviada'
+  const m = Number.isFinite(p?.precisao_m) ? `, margem de ±${p.precisao_m} m` : ''
+  return d + m
+}
+
+/** Só pedido pendente tem ação. */
+export const podeDecidir = (p) => !!p && p.estado === 'pendente'
+
+/** Texto da confirmação antes de decidir (a decisão não se desfaz por aqui). */
+export function textoDaDecisao(p, decisao) {
+  const quem = `${p.apelido} em ${p.casa}`
+  if (decisao === 'aprovar') {
+    return `Aprovar cria agora um carimbo de ${quem}, marcado como exceção do painel. Ele entra no placar depois da avaliação do combo, respeita as 12 horas da casa e fica na Revisão sem GPS. Confira antes se o caso faz sentido.`
+  }
+  return `Negar registra o motivo e a pessoa vê só que o pedido não foi aprovado (${quem}). Nada é carimbado. Ela só pode pedir de novo daqui a 12 horas.`
+}
+
+/** Faixa curta nas abas de apuração: quantos carimbos entram sem prova de GPS e quantos pedidos esperam. Vazio = nada a mostrar. */
+export function textoSemGps(r) {
+  if (!r) return ''
+  const total = Number(r.total) || 0
+  const contam = Number(r.contam) || 0
+  const pend = Number(r.pedidos_pendentes) || 0
+  const partes = []
+  if (total > 0) partes.push(`${total} carimbo${total === 1 ? '' : 's'} sem prova de GPS (${contam} ${contam === 1 ? 'conta' : 'contam'} no progresso)`)
+  if (pend > 0) partes.push(`${pend} pedido${pend === 1 ? '' : 's'} de presença aguardando decisão`)
+  return partes.join(' · ')
+}

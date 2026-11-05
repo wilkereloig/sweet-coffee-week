@@ -28,19 +28,26 @@ function useContagem () {
   return [fim ? Math.max(Math.ceil((fim - agora) / 1000), 0) : 0, () => { setAgora(Date.now()); setFim(Date.now() + ESPERA * 1000) }]
 }
 
-/** Quando o e-mail não sai: o que a pessoa pode fazer de verdade. */
-function Alternativa ({ chave, navigate, aoAbrirLink }) {
+/**
+ * Quando o e-mail não sai ('indisponivel') ou a pessoa diz que não chegou ('naoChegou'): o que ela pode fazer de verdade.
+ * `aoVoltar` só existe no 'naoChegou' (o código pode ainda chegar e valer 10 minutos).
+ */
+function Alternativa ({ chave, navigate, aoAbrirLink, variante = 'indisponivel', aoVoltar }) {
+  const naoChegou = variante === 'naoChegou'
   return (
-    <div className="ct-caca__alternativa" role="alert">
-      <p className="ct-sub">{T.indisponivelTitulo}</p>
-      <p className="ct-nota">{T.indisponivelTexto}</p>
+    <div className="ct-caca__alternativa" role={naoChegou ? 'region' : 'alert'} aria-label={naoChegou ? T.naoChegouTitulo : undefined}>
+      <p className="ct-sub">{naoChegou ? T.naoChegouTitulo : T.indisponivelTitulo}</p>
+      <p className="ct-nota">{naoChegou ? T.naoChegouTexto : T.indisponivelTexto}</p>
       <ul className="ct-carimbar__como">
         <li>{T.indisponivelLink}</li>
         <li>{T.indisponivelOrg}</li>
       </ul>
       {chave && <GuardarMapa chave={chave} />}
       {aoAbrirLink && <AbrirPeloLink aoAbrir={(k) => aoAbrirLink(k)} />}
-      {navigate && <div className="ct-acoes"><Link href="/contato" navigate={navigate} className="ct-botao ct-botao--contorno">{T.falarOrg}</Link></div>}
+      <div className="ct-acoes">
+        {aoVoltar && <button type="button" className="ct-botao" onClick={aoVoltar}>{T.voltarAoCodigo}</button>}
+        {navigate && <Link href="/contato" navigate={navigate} className="ct-botao ct-botao--contorno">{T.falarOrg}</Link>}
+      </div>
     </div>
   )
 }
@@ -52,28 +59,29 @@ function Alternativa ({ chave, navigate, aoAbrirLink }) {
  */
 export function CodigoPorEmail ({ finalidade, emailFixo = '', chave = null, navigate, aoConcluir, aoAbrirLink, api = apiPadrao }) {
   const [email, setEmail] = React.useState(() => emailFixo || C.lerPerfil(EDICAO.codigo).email)
-  const [etapa, setEtapa] = React.useState('pedir') // pedir · codigo · indisponivel
+  const [etapa, setEtapa] = React.useState('pedir') // pedir · codigo · indisponivel · naoChegou
   const [codigo, setCodigo] = React.useState('')
   const [ocupado, setOcupado] = React.useState(false)
-  const [aviso, setAviso] = React.useState(null) // { tipo: 'ok' | 'erro', texto }
+  const [aviso, setAviso] = React.useState(null) // { tipo: 'ok' | 'erro', texto, tentar?: true (mostra "Tentar de novo") }
   const [espera, comecarEspera] = useContagem()
   const alvo = emailFixo || email
 
   async function pedir (e) {
     e?.preventDefault()
     setOcupado(true); setAviso(null)
-    const r = await api.pedirCodigo({ email: alvo, finalidade })
+    const r = await api.pedirCodigo({ email: alvo, finalidade, chave: finalidade === 'confirmar' ? chave : null })
     setOcupado(false)
     if (r.ok && r.limitado) { setEtapa('codigo'); setAviso({ tipo: 'ok', texto: T.limitado }); return }
     if (r.ok) { setEtapa('codigo'); comecarEspera(); setAviso({ tipo: 'ok', texto: T.enviado }); return }
     if (r.motivo === 'email_indisponivel') { setEtapa('indisponivel'); return }
-    setAviso({ tipo: 'erro', texto: r.motivo === 'email_invalido' ? T.emailInvalido : r.motivo === 'rede' ? T.rede : mensagemDoMotivo(r.motivo) })
+    const temporaria = r.motivo === 'rede' || r.motivo === 'falha_temporaria'
+    setAviso({ tipo: 'erro', tentar: temporaria, texto: r.motivo === 'email_invalido' ? T.emailInvalido : r.motivo === 'rede' ? T.rede : mensagemDoMotivo(r.motivo) })
   }
 
   async function validar (e) {
     e.preventDefault()
     setOcupado(true); setAviso(null)
-    const r = await api.codigoValidar({ email: alvo, codigo, finalidade })
+    const r = await api.codigoValidar({ email: alvo, codigo, finalidade, chave: finalidade === 'confirmar' ? chave : null })
     setOcupado(false)
     if (!r.ok) { setAviso({ tipo: 'erro', texto: r.motivo === 'rede' ? T.rede : T.invalido }); setCodigo(''); return }
     setCodigo('')
@@ -81,6 +89,7 @@ export function CodigoPorEmail ({ finalidade, emailFixo = '', chave = null, navi
   }
 
   if (etapa === 'indisponivel') return <Alternativa chave={chave} navigate={navigate} aoAbrirLink={aoAbrirLink} />
+  if (etapa === 'naoChegou') return <Alternativa variante="naoChegou" chave={chave} navigate={navigate} aoAbrirLink={aoAbrirLink} aoVoltar={() => { setAviso(null); setEtapa('codigo') }} />
 
   return (
     <div className="ct-caca__codigo">
@@ -105,6 +114,7 @@ export function CodigoPorEmail ({ finalidade, emailFixo = '', chave = null, navi
             <div className="ct-acoes">
               <button type="submit" className="ct-botao" disabled={ocupado || codigo.replace(/\s/g, '').length !== 6}>{ocupado ? T.validando : T.validar}</button>
               <button type="button" className="ct-botao ct-botao--contorno" onClick={pedir} disabled={ocupado || espera > 0}>{espera > 0 ? T.reenviarEm(espera) : T.reenviar}</button>
+              <button type="button" className="ct-botao ct-botao--contorno" onClick={() => { setAviso(null); setEtapa('naoChegou') }}>{T.naoChegou}</button>
             </div>
           </form>
         </>
@@ -112,6 +122,7 @@ export function CodigoPorEmail ({ finalidade, emailFixo = '', chave = null, navi
       <div aria-live="polite">
         {aviso && <p className={aviso.tipo === 'erro' ? 'ct-aviso' : 'ct-nota'} role={aviso.tipo === 'erro' ? 'alert' : undefined}>{aviso.texto}</p>}
       </div>
+      {aviso?.tentar && <div className="ct-acoes"><button type="button" className="ct-botao ct-botao--contorno" onClick={pedir} disabled={ocupado}>{T.tentarDeNovo}</button></div>}
     </div>
   )
 }

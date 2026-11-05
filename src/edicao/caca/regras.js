@@ -79,17 +79,16 @@ export function ajudaLocalizacao (r) {
       : pos === 'demorou' ? 'A localização demorou demais'
         : pos === 'indisponivel' ? 'Este aparelho não conseguiu a localização'
           : 'Precisamos da sua localização'
+  const dist = imprecisa && Number.isFinite(r?.distancia_m) ? ` O celular a coloca a cerca de ${Math.round(r.distancia_m / 10) * 10} m da casa.` : ''
   const texto = imprecisa
-    ? `O celular informou uma margem de cerca de ${Math.round(r.precisao)} m, grande demais para conferir que você está na casa. Vá para perto da entrada ou do balcão, espere uns segundos e tente de novo.`
+    ? `O celular informou uma margem de cerca de ${Math.round(r.precisao)} m, grande demais para conferir que você está na casa.${dist} Vá para perto da entrada ou do balcão, espere uns segundos e tente de novo.`
     : pos === 'negada' ? 'O carimbo só confere que você está na casa e não guarda sua posição. Libere a localização para este site e tente de novo.'
       : pos === 'demorou' ? 'Em lugar fechado o sinal chega devagar. Chegue perto da entrada ou de uma janela, espere uns segundos e tente de novo.'
         : 'Ligue a localização do celular, confira se o navegador tem permissão e tente de novo.'
-  return {
-    titulo, texto,
-    passos: [
-      ['No iPhone', 'Ajustes › Privacidade e Segurança › Serviços de Localização › Safari (ou o navegador que você usa) › "Durante o Uso".'],
-      ['No Android', 'toque no cadeado ao lado do endereço do site › Permissões › Localização › Permitir.'],
-      ['Abriu pelo Instagram ou outro app?', 'toque em "Abrir no navegador" e carimbe por lá: o navegador do app costuma bloquear a localização.'],
-    ],
-  }
+  const passos = [
+    ['No iPhone', 'Ajustes › Privacidade e Segurança › Serviços de Localização (ligado) › Safari ou Chrome › "Durante o Uso" e "Localização Precisa" ligada.'],
+    ['No Android', 'toque no cadeado ao lado do endereço do site › Permissões › Localização › Permitir. Depois, nas configurações do celular, ligue a Localização e a "precisão alta" (GPS).'],
+    ['Abriu pelo Instagram ou outro app?', 'toque em "Abrir no navegador" e carimbe por lá: o navegador do app costuma bloquear a localização.'],
+  ]
+  return { titulo, texto, passos }
 }

@@ -299,6 +299,7 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
                             <span>{M.enderecoEmLinha(u.endereco)}</span>
                             {estadoDe(p.slug) && <SeloEstado estado={estadoDe(p.slug)} revisitas={revisitasDe(p.slug)} />}
                             {agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
+                            {!p.combo && <span className="ct-mapa__estado">{T.semComboAinda}</span>}
                             {dist != null && <span className="ct-nota">{T.distancia(dist, !!u.coordenada?.conferir)}</span>}
                             {nota && <span className={`ct-mapa__local${u.coordenada ? ' ct-mapa__local--aprox' : ''}`}>{nota}</span>}
                           </span>
@@ -335,7 +336,8 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
               )}
               {aba === 'rota'
                 ? <PainelRota dados={dados} navigate={navigate} paradas={paradas} pendentes={faltam} compartilhada={vendoCompartilhada ? compartilhada : null}
-                    visitou={visitou} carimbada={carimbada} mundo={comMundo ? mundo : null} />
+                    visitou={visitou} carimbada={carimbada} pendente={(p) => !!carimboDe.get(p.slug)?.podeAvaliar}
+                    servidor={meu.mapa ? { feitas: meu.mapa.casas_validadas, total: meu.mapa.total_casas } : null} mundo={comMundo ? mundo : null} />
                 : <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
             </section>
           </div>

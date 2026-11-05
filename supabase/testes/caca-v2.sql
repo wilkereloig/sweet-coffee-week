@@ -36,6 +36,7 @@ begin
   -- Pessoas. P1 tem DOIS mapas com o mesmo e-mail (20261210: o PRINCIPAL é o mais antigo, P1a, que não quer aparecer no ranking; P1b é secundário).
   ch_p1a := public.mapa_criar(ed, 'P1a', 'p1@exemplo.com.br', null, false, true) ->> 'chave';
   ch_p1b := public.mapa_criar(ed, 'P1b', 'p1@exemplo.com.br', null, true, true) ->> 'chave';
+  update public.mapas_lover set email_confirmado_em = now() - interval '1 hour' where chave_hash = public.mapa_hash(ch_p1a);   -- 20261216: P1a prova o e-mail e vira a principal
   ch_p2  := public.mapa_criar(ed, 'P2',  'p2@exemplo.com.br', null, true, true) ->> 'chave';
   ch_p3  := public.mapa_criar(ed, 'P3',  'p3@exemplo.com.br', null, true, true) ->> 'chave';
   ch_p4  := public.mapa_criar(ed, 'P4',  'p4@exemplo.com.br', null, true, true) ->> 'chave';

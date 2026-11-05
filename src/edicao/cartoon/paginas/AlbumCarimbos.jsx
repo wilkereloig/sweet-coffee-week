@@ -17,7 +17,7 @@ export function AlbumCarimbos ({ dados, navigate, meu }) {
   const { chave, mapa, estado } = meu
   const [naoApagou, setNaoApagou] = React.useState(false)
   async function apagar () {
-    if (!window.confirm('Apagar este Mapa da Doçura? Os carimbos dele somem e não voltam. Se você tem outro mapa com o mesmo e-mail, o progresso desse continua valendo.')) return
+    if (!window.confirm('Apagar este Mapa da Doçura? Os carimbos dele somem e não voltam. Se você tem outro mapa com o mesmo e-mail, o progresso desse continua valendo. Se participa de grupos, saia deles antes: o registro de integrante continua com o grupo. Sua avaliação dos combos não é apagada.')) return
     setNaoApagou(!(await meu.apagar()))
   }
 

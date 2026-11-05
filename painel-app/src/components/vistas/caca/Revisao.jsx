@@ -4,10 +4,12 @@ import { Botao, Carregando, Erro, Secao, Selo, Vazio } from '../../ui'
 import { pedirTexto, avisar } from '../../Confirmar'
 import { cacaApi, rotuloOrigem, horaNatal } from '../../../lib/caca'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
+import { ResumoSemGps } from './SemGps'
 
 /*
- * Carimbos válidos sem prova de localização conferida (unidade sem ponto, ou exceção do painel). Não há exceção
- * ao GPS (15-caca-gps-excecao.md): aqui a organização só confere e, se algo não fecha, anula com justificativa.
+ * Carimbos válidos sem prova de localização conferida (unidade sem ponto, ou exceção aprovada pelo painel). Quem pede
+ * exceção ao GPS decide na aba "Pedidos de presença" (15-caca-gps-excecao.md): aqui a organização confere o que já
+ * entrou e, se algo não fecha, anula com justificativa.
  */
 export function Revisao({ edicao, pode }) {
   const lista = useLeitura(() => cacaApi.revisao(edicao), ['carimbos'], { chave: edicao })
@@ -34,6 +36,7 @@ export function Revisao({ edicao, pode }) {
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
+      <ResumoSemGps edicao={edicao} />
       <Secao titulo="Carimbos sem localização conferida" nota="O carimbo entra, mas a unidade não tem ponto conferido (Participantes › Localizações) ou o carimbo veio de uma exceção. Confira antes de apurar um dia ou sortear.">
         {!itens.length ? <Vazio titulo="Nada para revisar">Todos os carimbos válidos têm a localização conferida.</Vazio> : (
           <>

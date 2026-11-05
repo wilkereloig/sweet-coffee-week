@@ -1,11 +1,13 @@
 import React from 'react'
 import { Botao, Carregando, Erro, Secao, Selo } from '../../ui'
 import { confirmar, pedirTexto } from '../../Confirmar'
+import { useLeitura } from '../../../lib/leituraVivaReact'
 import {
-  cacaApi, compararSimulacoes, pesoTotal, validarSemente, ROTULO_REGRA, rotuloMotivo, SORTEIO_OFICIAL_LIBERADO, realizarSorteioOficial, lerRegras,
+  cacaApi, compararSimulacoes, pesoTotal, validarSemente, hashDaSemente, ROTULO_REGRA, rotuloMotivo, SORTEIO_OFICIAL_LIBERADO, realizarSorteioOficial, lerRegras,
 } from '../../../lib/caca'
 import { useExecutar, AvisoOk, Tabela, contatoDe, baixarCsv } from './comum'
 import { PremiosTabela, useAcoesDePremio } from './PremiosTabela'
+import { AvisoSemGps } from './SemGps'
 
 /*
  * Prêmio final (spec 15 §6): concorre quem validou todas as casas; peso = base + carimbos extras; ganhadores sem
@@ -52,6 +54,7 @@ export function PremioFinal({ edicao, pode, dados }) {
   return (
     <div className="ui-pilha">
       <AvisoOk texto={acoes.aviso} onFechar={acoes.limparAviso} />
+      <AvisoSemGps edicao={edicao} />
       <Secao titulo="Quem concorre e simulação do sorteio" nota="Concorre quem validou todas as casas. Cada carimbo extra soma 1 ao peso; o peso mostra a vantagem relativa, não uma chance garantida. Ganhar voucher do dia não tira ninguém do prêmio final. A simulação não grava nada.">
         {!podeGerir ? <p className="ui-nota">Só quem gerencia a edição simula o sorteio.</p> : (
           <div className="ui-pilha">
@@ -74,6 +77,8 @@ export function PremioFinal({ edicao, pode, dados }) {
       <Secao titulo="Prêmios finais registrados" nota="Só existem depois do sorteio oficial. Confirmar, entregar, expirar e cancelar ficam na auditoria.">
         <PremiosTabela premios={finais} tipo="final" podeGerir={podeGerir} contato={contato} config={c.dados} acoes={acoes} vazio="O sorteio oficial ainda não foi realizado." />
       </Secao>
+
+      <CompromissoSemente edicao={edicao} podeGerir={podeGerir} />
 
       <SorteioOficial edicao={edicao} podeGerir={podeGerir} sim={sim} onFeito={p.recarregar} />
     </div>
@@ -154,6 +159,71 @@ function SorteioOficial({ edicao, podeGerir, sim, onFeito }) {
           {SORTEIO_OFICIAL_LIBERADO ? 'Liberado. Confira a simulação acima antes de continuar.' : 'Desativado nesta versão: o sorteio oficial ainda não foi liberado pela organização. Por enquanto, só a simulação.'}
         </p>
         <Botao variante="secundario" className="og-btn--perigo" disabled={!SORTEIO_OFICIAL_LIBERADO || !sim || !!ocupado} aria-disabled={!SORTEIO_OFICIAL_LIBERADO || !sim || undefined} onClick={realizar}>Realizar o sorteio oficial</Botao>
+      </div>
+    </Secao>
+  )
+}
+
+/**
+ * Passo obrigatório antes do sorteio real (regulamento, "Prêmio final"): registrar o CÓDIGO (sha256) da semente enquanto a avaliação
+ * ainda está aberta. O código é público; a semente só se revela junto com o resultado. Sem este registro o servidor recusa o sorteio real
+ * ('semente_nao_comprometida') e depois do fechamento já não dá para registrar ('compromisso_tardio').
+ */
+function CompromissoSemente({ edicao, podeGerir }) {
+  const est = useLeitura(() => cacaApi.sorteioEstado(edicao), ['carimbos'], { chave: 'sorteio-estado-' + edicao })
+  const [ocupado, executar] = useExecutar()
+  const [semente, setSemente] = React.useState('')
+  const [erro, setErro] = React.useState('')
+  const [feito, setFeito] = React.useState('')
+  if (!podeGerir) return null
+  if (est.bloqueada) return <Erro texto={est.erro} onTentar={est.recarregar} />
+  if (!est.dados) return <Carregando />
+  const e = est.dados
+
+  async function registrar() {
+    const v = validarSemente(semente)
+    setErro(v.ok ? '' : v.erro)
+    if (!v.ok) return
+    const hash = await hashDaSemente(v.semente)
+    const ok = await confirmar(`O código ${hash} será registrado e NÃO se troca. Guarde a frase da semente com segurança: é a única forma de rodar o sorteio real, e o código não permite recuperá-la. Registrar agora?`, { titulo: 'Registrar o código da semente?', acao: 'Registrar', perigo: true })
+    if (!ok) return
+    const r = await executar('comprometer', () => cacaApi.comprometerSemente(edicao, hash))
+    if (!r) return
+    setSemente('')
+    setFeito('Código registrado. Publique-o antes do fim da avaliação e guarde a frase da semente.')
+    await est.recarregar()
+  }
+
+  return (
+    <Secao titulo="Código da semente (antes do fim da avaliação)" nota="O sorteio real só roda com a semente cujo código foi registrado aqui antes de a avaliação fechar. O código é público; a semente fica com a organização até o resultado.">
+      <div className="ui-pilha">
+        <AvisoOk texto={feito} onFechar={() => setFeito('')} />
+        {e.registrado ? (
+          <div className="ui-pilha">
+            <p><Selo tom="ok">Código registrado</Selo></p>
+            <ul className="cp-fatos">
+              <li><span>Código (sha256)</span><code className="cp-hash">{e.hash}</code></li>
+              <li><span>Registrado em</span>{new Date(e.registrado_em).toLocaleString('pt-BR', { timeZone: 'America/Fortaleza' })}</li>
+            </ul>
+            <p className="ui-nota">Divulgue este código antes do fim da avaliação. Ele não revela a semente.</p>
+          </div>
+        ) : (
+          <div className="ui-pilha">
+            {e.fechada
+              ? <p className="ui-nota ui-nota--erro" role="alert">A avaliação já fechou sem código registrado. O servidor não aceita mais o registro e o sorteio real não poderá rodar nesta edição.</p>
+              : <p className="ui-nota">{e.sem_data_de_fechamento ? 'A data de fechamento da avaliação ainda não está definida. O registro já pode ser feito, mas confira a data na publicação da edição.' : 'Ainda dá tempo: o prazo é o fechamento da avaliação.'}</p>}
+            <div className="cp-semente">
+              <label className="og-campo">
+                <span>Semente do sorteio real</span>
+                <input type="text" value={semente} maxLength={200} aria-invalid={erro ? 'true' : undefined} aria-describedby="cp-compromisso-ajuda"
+                  disabled={e.fechada} onChange={(ev) => { setSemente(ev.target.value); setErro('') }} />
+              </label>
+              <Botao disabled={!!ocupado || e.fechada} aria-busy={ocupado === 'comprometer' || undefined} onClick={registrar}>Registrar o código</Botao>
+            </div>
+            <p id="cp-compromisso-ajuda" className="ui-nota">Escolha uma frase que ninguém adivinhe e que você consiga guardar. Só o código (um resumo irreversível dela) é registrado.</p>
+            {erro && <p className="ui-nota ui-nota--erro" role="alert">{erro}</p>}
+          </div>
+        )}
       </div>
     </Secao>
   )

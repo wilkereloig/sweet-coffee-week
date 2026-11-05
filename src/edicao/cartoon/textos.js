@@ -238,6 +238,9 @@ export const MAPA = {
   semMapa: 'As localizações no mapa estão em conferência. Use a lista.',
   falhou: 'O mapa não carregou. A lista tem todas as unidades.',
   semCoordenada: 'Localização no mapa em conferência.',
+  // Casa publicada só como marca, sem combo para avaliar: o servidor recusa o carimbo ('casa_sem_combo') e ela não entra no total.
+  semComboAinda: 'Sem combo ainda',
+  semComboNota: 'Esta casa ainda não tem combo para avaliar, então ainda não dá para carimbar.',
   aproximada: 'Ponto aproximado no mapa, em conferência.',
   aproximadaRua: 'Ponto aproximado no mapa: a rua confere, o número ainda não.',
   legendaPins: 'Cada pin traz a logo desenhada da casa.',
@@ -272,7 +275,7 @@ export const MAPA = {
   sicredi: (nome, endereco) => `${nome}, agência do patrocinador${endereco ? `: ${endereco}` : ''}`,
   parada: (n) => `Parada ${n} da sua rota`,
   carimbada: (n) => (n === 1 ? 'Carimbada' : `Carimbada ${n} vezes`),
-  avaliarMais2: 'Avaliar e validar o carimbo',
+  avaliarEValidar: 'Avaliar e validar o carimbo',
   avaliada: 'Avaliada',
 }
 
@@ -281,6 +284,8 @@ export const ROTA = {
   lead: 'Sua lista de casas para provar e as que você já visitou. Fica salva neste aparelho, sem conta.',
   progresso: (x, n) => `${x} de ${n} ${n === 1 ? 'casa' : 'casas'}`,
   progressoRotulo: 'marcadas por você',
+  // Com mapa da Caça, o progresso é o do servidor (só casa validada conta); o "já fui" não valida nada.
+  progressoValidadasRotulo: 'validadas na Caça aos Carimbos',
   queroIrTitulo: 'Quero ir',
   queroIrVazio: 'Sua lista está vazia. No mapa, no catálogo ou na página de cada casa, toque em "Quero ir".',
   tudoVisitado: 'Você já visitou todas as casas da sua lista.',
@@ -297,6 +302,7 @@ export const ROTA = {
   ordenadoCaminho: 'Paradas na ordem do caminho do mapa',
   ordenarNota: 'O caminho do mapa vai do Potengi a Ponta Negra. Não é o trajeto mais curto: é a ordem dos bairros no desenho.',
   carimbadaRotulo: 'Carimbada',
+  carimbadaPendenteRotulo: 'Carimbada, falta avaliar',
   jaFuiTitulo: 'Já fui',
   jaFuiVazio: 'Provou um combo? Toque em "Já fui" na casa para lembrar dela aqui. É só uma anotação sua: quem valida a casa é o carimbo da Caça aos Carimbos.',
   desfazer: 'Desfazer',

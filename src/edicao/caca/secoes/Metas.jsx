@@ -49,7 +49,7 @@ function ListaDeMarcos ({ marcos }) {
             <img className="ct-caca-meta__medalha-p" src={IMG_CACA.medalha(m.medalha)} width={56} height={69} alt="" loading="lazy" decoding="async" />
             <span className="ct-caca-meta__texto">
               <strong>{m.titulo}</strong>
-              <span>{T.marco(m.casas)}</span>
+              <span>{m.completa ? T.marcoCompleto(m.casas) : T.marco(m.casas)}</span>
             </span>
             <span className="ct-caca-meta__estado">{m.alcancada ? T.alcancada : T.faltam(m.faltam)}</span>
           </li>
@@ -80,7 +80,7 @@ export default function Metas ({ caca, navigate }) {
       <p className="ct-caca__grande"><strong>{T.resumo(metas.validadas, metas.total)}</strong> <span>{T.resumoRotulo}</span></p>
       {novas.length > 0 && <Celebracao novas={novas} />}
       {metas.marcos.length === 0
-        ? <p className="ct-nota">{metas.emDefinicao ? T.emDefinicao : T.semMetas}</p>
+        ? <p className="ct-nota">{T.semMetas}</p>
         : (<><Proxima metas={metas} /><ListaDeMarcos marcos={metas.marcos} /></>)}
       <p className="ct-nota">{T.nota}</p>
       <div className="ct-acoes"><Link href={RUA.mapa} navigate={navigate} className="ct-botao ct-botao--contorno">{T.verMapa}</Link></div>

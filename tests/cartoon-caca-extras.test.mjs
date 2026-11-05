@@ -36,17 +36,15 @@ test('metas: ordena, descarta marco torto, recalcula alcançada/faltam do númer
   assert.equal(organizarMetas({ ...RESP, casas_validadas: 30 }).todasAlcancadas, true)
 })
 
-test('metas: marcos que o servidor ainda marca como exemplo não viram marco (nem festa, nem aviso)', () => {
-  const exemplo = { total_casas: 27, casas_validadas: 12, metas: [{ casas: 5, titulo: 'A', exemplo: true }, { casas: 10, titulo: 'B', exemplo: true }] }
-  const m = organizarMetas(exemplo)
-  assert.deepEqual(m.marcos, []); assert.equal(m.emDefinicao, true); assert.equal(m.proxima, null); assert.equal(m.todasAlcancadas, false)
-  assert.equal(organizarMetas(RESP).emDefinicao, false)
-  // um marco decidido entre exemplos já basta para a tela usar a lista (a organização gravou números de verdade)
-  assert.equal(organizarMetas({ ...exemplo, metas: [...exemplo.metas, { casas: 20, titulo: 'C' }] }).emDefinicao, false)
-})
-
-test('metas: marco gravado pela organização fica de fora do "em definição" e a lista vazia continua sendo só lista vazia', () => {
-  assert.equal(organizarMetas({ total_casas: 27, casas_validadas: 0, metas: [] }).emDefinicao, false)
+test('metas: o marco "completa" do servidor (todas as casas) acompanha o total e a tela o lê como veio', () => {
+  const resp = { total_casas: 26, casas_validadas: 26, metas: [
+    { casas: 1, titulo: 'Primeiro carimbo', completa: false }, { casas: 9, titulo: 'Pegou o jeito' }, { casas: 26, titulo: 'Mapa completo', completa: true }] }
+  const m = organizarMetas(resp)
+  assert.deepEqual(m.marcos.map((x) => x.completa), [false, false, true])
+  assert.equal(m.marcos[2].casas, 26); assert.equal(m.todasAlcancadas, true)
+  assert.equal('emDefinicao' in m, false, 'o estado "em definição" saiu: não há mais marco de exemplo')
+  // um rótulo antigo `exemplo: true` não esconde mais nada: o servidor deixou de mandá-lo
+  assert.equal(organizarMetas({ total_casas: 27, casas_validadas: 12, metas: [{ casas: 5, titulo: 'A', exemplo: true }] }).marcos.length, 1)
 })
 
 test('metas: dado estranho vira lista vazia, nunca exceção', () => {

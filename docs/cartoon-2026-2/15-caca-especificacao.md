@@ -9,7 +9,7 @@ não mexer em flags públicas como `MAPA_PUBLICO`, nunca ler/mostrar/versionar s
 - Progresso principal = **casas diferentes validadas (0..27)**. Revisita válida = **carimbo extra**.
 - Casa NÃO é validada por estar na rota nem por marcação manual "já fui".
 - Total de casas vem da fonte da edição (hoje 27), nunca de um número escrito à mão.
-- Sem "+2 por avaliação": só casas e extras contam. A pessoa é o **e-mail normalizado** (dois mapas com o mesmo e-mail = uma pessoa).
+- Não há pontuação por avaliação: só casas e extras contam. A pessoa é o **e-mail normalizado** (dois mapas com o mesmo e-mail = uma pessoa).
 
 ## 2. Primeiro carimbo e avaliação
 Para validar o primeiro carimbo de uma casa: mapa criado/recuperado + carimbo presencial na casa + avaliação do combo daquela casa
@@ -86,7 +86,7 @@ Alternativa excepcional para falha persistente **ainda não decidida**: analisar
 implementar exceção insegura. QR fixo sozinho não prova presença.
 
 ## 13. Metas, compartilhamento, notificações
-- Marcos comemorativos por casas validadas, **configuráveis** (5/10/20 eram só exemplo). Não prometer prêmios novos.
+- Marcos comemorativos por casas validadas, **configuráveis pelo painel** e **relativos ao total de casas** (1, cerca de 1/3, cerca de 2/3 e todas; decisão técnica revisável de 05/11/2026, contrato em `15-caca-contrato-metas-push.md` §1). Não prometer prêmios novos.
 - Compartilhar progresso em arte vertical para Stories (apelido + casas + convite), sem e-mail/WhatsApp/chave/link de recuperação.
   Link público de divulgação não expõe dados do grupo.
 - Notificações com consentimento e gestão da preferência; avisos úteis (avaliação pendente, meta, retorno, grupo, edição), sem
@@ -98,5 +98,7 @@ no iPhone o armazenamento do app instalado pode ser separado: caminho simples e 
 sem quebrar o PWA do Painel SCW (`/painel/`). Não prometer offline completo.
 
 ## Pendências de decisão (não inventar)
-2ª chamada do voucher (2 h = proposta); alternativa ao GPS; números dos marcos; regulamento (idade mínima, entrega do prêmio final,
-retenção); posições exatas das agências Sicredi (só com fonte oficial).
+Atualizado em 05/11/2026. Resolvidas por decisão técnica registrada: números dos marcos (relativos ao total, `15-caca-contrato-metas-push.md`), alternativa ao GPS
+(pedido de revisão de presença, `15-caca-gps-excecao.md`). Seguem abertas e listadas, com quem decide e se bloqueiam a publicação, em `15-caca-publicacao-pendencias.md`:
+idade mínima, data e forma de entrega do prêmio final, prazo de retenção, 2ª chamada do voucher (120 min é proposta), provedor de e-mail, datas da janela da avaliação,
+posições exatas das agências Sicredi (só com fonte oficial).

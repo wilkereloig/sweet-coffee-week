@@ -70,9 +70,11 @@ export function mensagemRecusa (r, { casa = 'esta casa', agora = new Date() } = 
       texto: `${Number.isFinite(r.distancia_m) ? `Seu celular está a ${distanciaTexto(r.distancia_m)} da casa. ` : ''}Chegue perto do balcão e tente de novo.`,
     }
     case 'sem_localizacao': return { titulo: 'Precisamos da sua localização', texto: `O carimbo confere que você está na ${casa}. Ligue a localização do celular e tente de novo.` }
-    case 'nao_aberta': return { titulo: 'O Mapa da Doçura ainda não abriu', texto: r.abre_em ? `Os carimbos começam ${quandoVolta(r.abre_em, agora).replace('depois das', 'às')}.` : 'Os carimbos começam junto com a edição.' }
-    case 'encerrada': return { titulo: 'O Mapa da Doçura encerrou', texto: 'Obrigado por rodar a cidade com a gente. O resultado sai pelos canais do festival.' }
-    case 'qr_invalido': return { titulo: 'Este QR não vale', texto: 'Ele não é do Mapa da Doçura desta edição ou foi trocado. Leia o adesivo que está no balcão da casa.' }
+    case 'nao_aberta': return { titulo: 'A Caça aos Carimbos ainda não abriu', texto: r.abre_em ? `Os carimbos começam ${quandoVolta(r.abre_em, agora).replace('depois das', 'às')}.` : 'Os carimbos começam junto com a edição.' }
+    case 'encerrada': return { titulo: 'A Caça aos Carimbos encerrou', texto: 'Obrigado por rodar a cidade com a gente. O resultado sai pelos canais do festival.' }
+    case 'qr_invalido': return { titulo: 'Este QR não vale', texto: 'Ele não é da Caça aos Carimbos desta edição ou foi trocado. Leia o adesivo que está no balcão da casa.' }
+    case 'casa_sem_combo': return { titulo: 'Esta casa ainda não tem combo', texto: 'O carimbo só vale em casa com combo para avaliar. Quando o combo da casa entrar no ar, o carimbo abre.' }
+    case 'sem_ponto': return { titulo: 'Esta casa precisa de uma conferência', texto: 'O ponto exato desta casa ainda está sendo conferido, e o QR sozinho não prova que você está lá. Você pode pedir à organização que confira a sua visita.' }
     case 'mapa_desconhecido': return { titulo: 'Não achamos seu mapa', texto: 'Abra pelo seu link pessoal ou comece um mapa novo.' }
     default: return { titulo: 'Não deu para carimbar agora', texto: 'Tente de novo em instantes.' }
   }
@@ -134,6 +136,51 @@ export function pedirPosicao ({ geo = globalThis.navigator?.geolocation, espera 
       (e) => resolve({ erro: e?.code === 1 ? 'negada' : e?.code === 3 ? 'demorou' : 'indisponivel' }),
       { enableHighAccuracy: true, timeout: espera, maximumAge: 0 })
   })
+}
+
+/**
+ * Três tentativas progressivas de ler o GPS, para o toque em "Carimbar" (Caça aos Carimbos, GPS autônomo).
+ * Cada tentativa escuta o sinal (`watchPosition`, alta precisão) por uma janela e pára cedo se a margem fecha no `alvo`
+ * dela; senão guarda a MELHOR leitura e tenta de novo com mais folga. Permissão negada pára na hora (não adianta insistir).
+ * O servidor decide: aceita até 200 m + a margem do GPS (no máximo 300 m). A posição só vive em memória e só segue para a RPC.
+ * Devolve { lat, lng, precisao, tentativas } ou { erro: 'negada' · 'indisponivel' · 'demorou' }.
+ */
+export const TENTATIVAS_GPS = Object.freeze([
+  { janela: 6000, alvo: 50 },
+  { janela: 9000, alvo: 100 },
+  { janela: 12000, alvo: 250 },
+])
+function ouvirSinal (geo, { janela, alvo }, { setT, clearT }) {
+  return new Promise((resolve) => {
+    let melhor = null; let erro = null; let id = null; let fim = false
+    const fechar = (r) => { if (fim) return; fim = true; clearT(timer); try { geo.clearWatch(id) } catch { /* sem watch */ } resolve(r) }
+    const timer = setT(() => fechar({ melhor, erro }), janela)
+    try {
+      id = geo.watchPosition(
+        (p) => {
+          const lido = { lat: p.coords.latitude, lng: p.coords.longitude, precisao: Number.isFinite(p.coords.accuracy) ? p.coords.accuracy : 100000 }
+          if (!Number.isFinite(lido.lat) || !Number.isFinite(lido.lng)) return
+          if (!melhor || !(lido.precisao >= melhor.precisao)) melhor = lido
+          if (melhor.precisao <= alvo) fechar({ melhor, erro })
+        },
+        (e) => { erro = e?.code === 1 ? 'negada' : e?.code === 3 ? 'demorou' : 'indisponivel'; if (erro === 'negada') fechar({ melhor, erro }) },
+        { enableHighAccuracy: true, timeout: janela + 3000, maximumAge: 0 })
+    } catch { fechar({ melhor, erro: 'indisponivel' }) }
+    if (fim) try { geo.clearWatch(id) } catch { /* sem watch */ }
+  })
+}
+export async function capturarPosicao ({ geo = globalThis.navigator?.geolocation, tentativas = TENTATIVAS_GPS, aoTentar, setT = setTimeout, clearT = clearTimeout } = {}) {
+  if (!geo || typeof geo.watchPosition !== 'function') return { erro: 'indisponivel' }
+  let melhor = null; let erro = null
+  for (let i = 0; i < tentativas.length; i += 1) {
+    aoTentar?.(i + 1, tentativas.length)
+    const r = await ouvirSinal(geo, tentativas[i], { setT, clearT })
+    if (r.melhor && (!melhor || r.melhor.precisao < melhor.precisao)) melhor = r.melhor
+    if (r.erro) erro = r.erro
+    if (r.erro === 'negada') return { erro: 'negada' }
+    if (melhor && melhor.precisao <= tentativas[i].alvo) return { ...melhor, tentativas: i + 1 }
+  }
+  return melhor ? { ...melhor, tentativas: tentativas.length } : { erro: erro || 'demorou' }
 }
 
 const RASCUNHO_AVALIACAO = 'scw:cartoon:avaliacao:rascunho' // o mesmo de cartoon/paginas/awards/Formulario.jsx

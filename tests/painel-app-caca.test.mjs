@@ -178,20 +178,51 @@ test('o que mudou: só o que difere e nunca contato', () => {
 })
 
 // ── metas ────────────────────────────────────────────────────────────────────
-test('metas: mesmas regras do banco e comando pronto', () => {
-  const ok = C.validarMetas([{ casas: '10', titulo: 'Dez' }, { casas: '5', titulo: 'Cinco' }], 27)
-  assert.equal(ok.ok, true); assert.deepEqual(ok.metas.map((m) => m.casas), [5, 10])
-  assert.equal(C.validarMetas([{ casas: '28', titulo: 'x' }], 27).ok, false, 'mais que as casas da edição')
-  assert.equal(C.validarMetas([{ casas: '28', titulo: 'x' }], undefined).ok, true, 'sem o total só confere o piso')
-  assert.equal(C.validarMetas([{ casas: '5', titulo: 'a' }, { casas: '5', titulo: 'b' }], 27).ok, false, 'repetida')
-  assert.equal(C.validarMetas([{ casas: '0', titulo: 'a' }], 27).ok, false)
-  assert.equal(C.validarMetas([{ casas: '3,5', titulo: 'a' }], 27).ok, false)
-  assert.equal(C.validarMetas([{ casas: '3', titulo: ' ' }], 27).ok, false)
-  assert.equal(C.validarMetas([], 27).ok, false)
-  const sql = C.sqlDasMetas([{ casas: 5, titulo: "L'amour" }])
-  assert.equal(sql, `update public.caca_config set valor = '[{"casas":5,"titulo":"L''amour"}]'::jsonb, atualizado_em = now() where chave = 'metas';`)
-  assert.ok(!/exemplo/i.test(sql), 'o comando não carrega a marca de exemplo')
-  assert.deepEqual(C.METAS_EXEMPLO.map((m) => m.casas), [5, 10, 20, 27])
+const L = (tipo, valor, titulo) => ({ tipo, valor: String(valor), titulo })
+test('metas: mesmas regras do banco, prévia relativa ao total e nada de comando manual', () => {
+  const semente = [L('casas', 1, 'Primeiro carimbo'), L('percentual', 33, 'Pegou o jeito'), L('percentual', 67, 'Quase lá'), L('todas', '', 'Mapa completo')]
+  const ok = C.validarMetas(semente, 26)
+  assert.equal(ok.ok, true); assert.deepEqual(ok.previa, [1, 9, 17, 26])
+  assert.deepEqual(ok.marcos, [{ casas: 1, titulo: 'Primeiro carimbo' }, { fracao: 0.33, titulo: 'Pegou o jeito' }, { fracao: 0.67, titulo: 'Quase lá' }, { casas: 'todas', titulo: 'Mapa completo' }])
+  assert.deepEqual(C.validarMetas(semente, 27).previa, [1, 9, 18, 27], '"todas" e as frações acompanham o total')
+  assert.deepEqual(C.validarMetas(semente, 0).previa, [1, 9, 18, 27], 'sem casas contadas, ordem conferida contra 27 (como o banco)')
+  const ruins = [
+    [[L('casas', 5, 'a'), L('casas', 3, 'b')], 'ordem'], [[L('casas', 5, 'a'), L('casas', 5, 'b')], 'repetida'],
+    [[L('todas', '', 'a'), L('casas', 30, 'b')], '"todas" só no fim'], [[L('casas', 0, 'a')], 'zero'], [[L('casas', '3,5', 'a')], 'decimal'],
+    [[L('casas', 201, 'a')], 'acima do teto'], [[L('percentual', 0, 'a')], '0%'], [[L('percentual', 100, 'a')], '100%'], [[L('casas', 3, ' ')], 'sem título'],
+    [[L('casas', 3, 'x'.repeat(41))], 'título longo'], [[], 'vazia'], [Array.from({ length: 21 }, (_, i) => L('casas', i + 1, 'x')), 'mais de 20'],
+    [[L('percentual', 3, 'a'), L('casas', 1, 'b')], 'frações que resolvem para menos que o anterior'],
+  ]
+  for (const [linhas, porque] of ruins) assert.equal(C.validarMetas(linhas, 26).ok, false, porque)
+  const acima = C.validarMetas([L('casas', 30, 'Alto')], 26)
+  assert.equal(acima.ok, true, 'acima do total é aviso, não erro: o total pode crescer'); assert.equal(acima.avisos.length, 1)
+  assert.equal(C.casasDoMarco({ fracao: 0.33 }, 1), 1, 'nunca menos de 1')
+  assert.equal(C.casasDoMarco({ casas: 'todas' }, 26), 26)
+  assert.equal('sqlDasMetas' in C, false); assert.equal('METAS_EXEMPLO' in C, false)
+})
+
+test('metas: do banco para a tela e de volta, e só marca "mudou" quando mudou', () => {
+  const doBanco = [{ casas: 1, titulo: 'A' }, { fracao: 0.33, titulo: 'B' }, { casas: 'todas', titulo: 'C' }]
+  const linhas = doBanco.map(C.linhaDoMarco)
+  assert.deepEqual(linhas, [L('casas', 1, 'A'), L('percentual', 33, 'B'), L('todas', '', 'C')])
+  const v = C.validarMetas(linhas, 26)
+  assert.equal(C.metasMudaram(v.marcos, doBanco), false)
+  linhas[0].titulo = 'A2'
+  assert.equal(C.metasMudaram(C.validarMetas(linhas, 26).marcos, doBanco), true)
+})
+
+test('metas: a tela lê e grava pelas RPCs do painel (gate no banco), com os mesmos nomes do contrato', async () => {
+  mem.set('scw_org', 'senha-de-teste')
+  const { f, chamadas } = falsoFetch({})
+  await C.cacaApi.metas('2026.2', f); await C.cacaApi.gravarMetas([{ casas: 'todas', titulo: 'Tudo' }], f)
+  assert.match(chamadas[0].url, /rpc\/caca_metas_painel_ler$/); assert.deepEqual(chamadas[0].corpo, { p_secret: 'senha-de-teste', p_edicao: '2026.2' })
+  assert.match(chamadas[1].url, /rpc\/caca_metas_gravar$/); assert.deepEqual(chamadas[1].corpo.p_metas, [{ casas: 'todas', titulo: 'Tudo' }])
+  for (const c of ['metas_ordem', 'metas_fracao', 'metas_todas_so_no_fim']) assert.ok(!/^metas_/.test(C.mensagemCaca(new Error(c))), `${c} em português`)
+  const dom = ler('painel-app/src/lib/sync/dominios.js')
+  assert.match(dom, /'caca_metas_painel_ler'/); assert.match(dom, /caca_metas_gravar: \['carimbos'\]/)
+  const tela = ler('painel-app/src/components/vistas/caca/Metas.jsx')
+  assert.ok(!/clipboard|sqlDasMetas|Copiar comando/.test(tela), 'a aba grava de verdade, não gera comando')
+  assert.ok(/cacaApi\.gravarMetas/.test(tela) && /confirmar\(/.test(tela), 'grava só depois de confirmar')
 })
 
 test('mensagens de erro em português; código desconhecido aparece cru', () => {
@@ -303,8 +334,16 @@ test('rótulo de sorteio_final não fala em simulação: o evento só existe no 
   assert.equal(C.rotuloEvento('sorteio_final'), 'Ganhador sorteado')
 })
 
-test('Mapa e adesivos não vende o ranking legado como decisão de prêmio', () => {
+test('Mapa e adesivos não mostra pontos nem ranking por pontos (C15)', () => {
   const src = ler('painel-app/src/components/vistas/CarimbosMapa.jsx')
-  assert.ok(/legado, não decide prêmio/.test(src))
+  assert.ok(/Não é ranking e não decide prêmio/.test(src))
+  assert.ok(!/pontos \(legado\)|Pontuação do Mapa|<th scope="col">Pontos<\/th>|m\.pontos/.test(src), 'sobrou pontuação legada na tela')
   assert.ok(!/avaliações com bônus/.test(src))
+})
+
+test('código da semente: sha256 do texto sem espaços nas pontas, em hexa minúsculo; semente vazia não vira código (C03)', async () => {
+  assert.equal(await C.hashDaSemente('  abc '), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
+  await assert.rejects(() => C.hashDaSemente('   '), /semente_obrigatoria/)
+  assert.match(C.mensagemCaca(new Error('compromisso_tardio')), /fechou/)
+  assert.match(C.mensagemCaca(new Error('email_nao_confirmado')), /e-mail dessa pessoa/)
 })

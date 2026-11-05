@@ -3,6 +3,7 @@ import { useDadosCaca } from './comum'
 import { VouchersDia } from './VouchersDia'
 import { PremioFinal } from './PremioFinal'
 import { Revisao } from './Revisao'
+import { Excecoes } from './Excecoes'
 import { Configuracao } from './Configuracao'
 import { Metas } from './Metas'
 import { Avisos } from './Avisos'
@@ -14,6 +15,7 @@ export const ABAS_CACA = Object.freeze([
   { chave: 'vouchers', rotulo: 'Vouchers do dia' },
   { chave: 'final', rotulo: 'Prêmio final' },
   { chave: 'revisao', rotulo: 'Revisão sem GPS' },
+  { chave: 'presenca', rotulo: 'Pedidos de presença' },
   { chave: 'config', rotulo: 'Regras e prazos' },
   { chave: 'metas', rotulo: 'Metas' },
   { chave: 'avisos', rotulo: 'Avisos (simulação)' },
@@ -26,8 +28,9 @@ export function PainelCaca({ edicao, pode, aba }) {
     case 'vouchers': return <VouchersDia edicao={edicao} pode={pode} dados={dados} />
     case 'final': return <PremioFinal edicao={edicao} pode={pode} dados={dados} />
     case 'revisao': return <Revisao edicao={edicao} pode={pode} />
+    case 'presenca': return <Excecoes edicao={edicao} pode={pode} />
     case 'config': return <Configuracao pode={pode} dados={dados} />
-    case 'metas': return <Metas dados={dados} />
+    case 'metas': return <Metas edicao={edicao} pode={pode} />
     case 'avisos': return <Avisos pode={pode} />
     case 'auditoria': return <Auditoria dados={dados} />
     default: return null

@@ -47,6 +47,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
           {est.estado === 'aberto' ? <IconeCartoon nome="aberto-agora" tamanho={32} /> : <ScwIcon nome={ICONE.horario} tamanho={20} />}{agora}
         </p>
       )}
+      {!p.combo && <p className="ct-nota">{T.semComboNota}</p>}
       {parada && <p className="ct-mapa__cartao-linha"><ScwIcon nome="trajeto" tamanho={20} /><span>{T.parada(parada)}</span></p>}
       {estado && (
         <div className="ct-caca-mapa__cartao-estado">

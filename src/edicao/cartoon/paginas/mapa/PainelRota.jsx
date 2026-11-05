@@ -18,14 +18,18 @@ import { useRota } from '../../contexto.js'
 import { JaFui } from '../../MarcasLover.jsx'
 import { ROTA as T } from '../../textos.js'
 
-export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada, visitou, carimbada, mundo }) {
+export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada, visitou, carimbada, pendente, servidor, mundo }) {
   const rota = useRota()
   const lista = dados?.participantes || []
   const C = EDICAO.caminho
   const visiveis = pendentes.map((pa) => pa.id)
   const links = linksDeRota(pendentes)
   const visitadas = lista.filter(visitou)
-  const prog = { total: progresso([], lista).total, feitas: visitadas.filter((p) => (p.unidades || []).length).length }
+  // Uma só conta na tela: com mapa da Caça vale a do servidor (casas validadas de total_casas); sem mapa, o "já fui" local.
+  const doServidor = servidor && Number(servidor.total) > 0
+  const prog = doServidor
+    ? { total: Number(servidor.total), feitas: Math.min(Number(servidor.feitas) || 0, Number(servidor.total)) }
+    : { total: progresso([], lista).total, feitas: visitadas.filter((p) => (p.unidades || []).length).length }
   const podeOrdenar = !compartilhada && mundo && pendentes.filter((pa) => mundo.unidades[pa.id]).length > 1
   const [copiado, setCopiado] = React.useState('')
 
@@ -43,7 +47,7 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
         <div className="ct-progresso">
           <IconeCartoon nome="progresso" tamanho={64} />
           <div className="ct-progresso__corpo">
-            <p className="ct-progresso__texto" id="rota-progresso"><strong>{T.progresso(prog.feitas, prog.total)}</strong> {T.progressoRotulo}</p>
+            <p className="ct-progresso__texto" id="rota-progresso"><strong>{T.progresso(prog.feitas, prog.total)}</strong> {doServidor ? T.progressoValidadasRotulo : T.progressoRotulo}</p>
             <progress className="ct-progresso__barra" max={prog.total} value={prog.feitas} aria-labelledby="rota-progresso" />
           </div>
         </div>
@@ -114,7 +118,7 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
                 <li key={p.slug} className="ct-visitada">
                   <IconeCartoon nome="ja-fui" tamanho={48} />
                   <Link className="ct-visitada__nome" href={`${C}/participantes/${p.slug}`} navigate={navigate}>{p.casa.nome}</Link>
-                  {carimbada(p) ? <span className="ct-album__selo">{T.carimbadaRotulo}</span> : <JaFui p={p} />}
+                  {carimbada(p) ? <span className="ct-album__selo">{pendente?.(p) ? T.carimbadaPendenteRotulo : T.carimbadaRotulo}</span> : <JaFui p={p} />}
                 </li>
               ))}
             </ul>

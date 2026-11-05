@@ -68,7 +68,7 @@ function MapaDocura({ edicao, pode }) {
       {resumo.bloqueada ? <Erro texto={resumo.erro} onTentar={resumo.recarregar} /> : !r ? <Carregando /> : (
         <>
           <ul className="ui-numeros ui-numeros--compacto">
-            {[['mapas', 'mapas'], ['carimbos', 'carimbos'], ['pontos', 'pontos'], ['avaliadas', 'avaliações (legado)'], ['anulados', 'anulados'], ['sem_conferencia', 'sem ponto conferido']]
+            {[['mapas', 'mapas'], ['carimbos', 'carimbos'], ['anulados', 'anulados'], ['sem_conferencia', 'sem ponto conferido']]
               .map(([k, rotulo]) => <li key={k} className="ui-numero"><span className="ui-numero__n">{r.totais?.[k] ?? 0}</span><span className="ui-numero__rotulo">{rotulo}</span></li>)}
           </ul>
 
@@ -89,14 +89,14 @@ function MapaDocura({ edicao, pode }) {
             )}
           </Secao>
 
-          <Secao titulo="Pontuação do Mapa da Doçura (legado, não decide prêmio)" nota="Regra antiga, por mapa: 1 ponto por carimbo + 2 por casa avaliada. Não vale para a Caça: voucher do dia e prêmio final contam casas e extras por pessoa (e-mail). Veja Vouchers do dia e Prêmio final. Não divulgue esta lista como pódio.">
-            {!r.ranking?.length ? <Vazio titulo="Nenhum carimbo ainda">O ranking aparece aqui no primeiro carimbo.</Vazio> : (
-              <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Ranking do Mapa da Doçura">
+          <Secao titulo="Mapas criados" nota="Lista de apoio: contatos, link novo e contagem simples de casas e carimbos. Não é ranking e não decide prêmio: o voucher do dia e o prêmio final contam casas diferentes e carimbos extras por pessoa (e-mail), em Vouchers do dia e Prêmio final.">
+            {!r.ranking?.length ? <Vazio titulo="Nenhum carimbo ainda">Os mapas aparecem aqui no primeiro carimbo.</Vazio> : (
+              <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Mapas com carimbos">
                 <table className="ui-tabela">
-                  <thead><tr><th scope="col">#</th><th scope="col">Apelido</th><th scope="col">Pontos</th><th scope="col">Casas</th><th scope="col">Carimbos</th><th scope="col">Avaliadas</th><th scope="col">Último</th>{pode('relatorio.ler') && <th scope="col">Contato</th>}{gerir && <th scope="col"><span className="ui-sr">Ações</span></th>}</tr></thead>
-                  <tbody>{r.ranking.map((m) => (
+                  <thead><tr><th scope="col">Apelido</th><th scope="col">Casas</th><th scope="col">Carimbos</th><th scope="col">Último</th>{pode('relatorio.ler') && <th scope="col">Contato</th>}{gerir && <th scope="col"><span className="ui-sr">Ações</span></th>}</tr></thead>
+                  <tbody>{[...r.ranking].sort((x, y) => String(y.ultimo || '').localeCompare(String(x.ultimo || ''))).map((m) => (
                     <tr key={m.mapa_id}>
-                      <td>{m.posicao}</td><th scope="row">{m.apelido}{m.no_ranking ? '' : ' (oculto)'}</th><td>{m.pontos}</td><td>{m.casas}</td><td>{m.carimbos}</td><td>{m.avaliadas}</td><td>{hora(m.ultimo)}</td>
+                      <th scope="row">{m.apelido}{m.no_ranking ? '' : ' (oculto)'}</th><td>{m.casas}</td><td>{m.carimbos}</td><td>{hora(m.ultimo)}</td>
                       {pode('relatorio.ler') && <td>{[m.email, m.whatsapp].filter(Boolean).join(' · ')}</td>}
                       {gerir && <td><Botao variante="secundario" onClick={() => linkNovo(m)}>Link novo</Botao></td>}
                     </tr>
@@ -138,7 +138,7 @@ function Adesivos({ leitura, gerir }) {
 
   const semPonto = lista.filter((u) => !u.conferida).length
   return (
-    <Secao titulo="Adesivos do balcão" nota={`Um QR por unidade (${lista.length}). Confira o nome da unidade antes de colar.${semPonto ? ` ${semPonto} sem ponto conferido em Participantes › Localizações: o carimbo entra, mas vai para os alertas.` : ''}`}
+    <Secao titulo="Adesivos do balcão" nota={`Um QR por unidade (${lista.length}). Confira o nome da unidade antes de colar.${semPonto ? ` ${semPonto} sem ponto conferido em Participantes › Localizações. Se a casa não tem nenhuma unidade conferida, o carimbo entra sem localização e vai para a revisão; se tem alguma conferida, o carimbo desta unidade não conta no progresso.` : ''}`}
       acoes={lista.length > 0 && <Botao icone="baixar" variante="secundario" onClick={imprimir}>Imprimir adesivos</Botao>}>
       {leitura.bloqueada ? <Erro texto={leitura.erro} onTentar={leitura.recarregar} /> : !leitura.dados ? <Carregando /> : !lista.length ? <Vazio titulo="Nenhuma unidade na edição" /> : (
         <ul className="cm-adesivos">

@@ -179,16 +179,18 @@ export function filaDeSubstituicao(premios, apuracoes) {
  * Os campos da configuração, na ordem da tela. A faixa de cada um repete a do banco para avisar antes do envio.
  * `informativo`/`inerte` são avisos honestos: valor que ainda não manda em nada.
  */
+/** O regulamento público escreve estes valores como fixos (C10). Mudar aqui NÃO muda o texto: o aviso aparece na tela e na confirmação. */
+export const AVISO_REGULAMENTO = 'O regulamento publicado cita este valor como fixo. Se mudar aqui, o texto do regulamento fica desatualizado: altere o regulamento no mesmo dia e avise quem já o leu.'
 export const CAMPOS_CONFIG = Object.freeze([
-  { chave: 'voucher_dias', rotulo: 'Dias dos vouchers', tipo: 'datas', ajuda: 'Um voucher por dia. Datas no formato AAAA-MM-DD, uma por linha (de 1 a 31).' },
-  { chave: 'corte_hora_local', rotulo: 'Hora do corte', tipo: 'hora', ajuda: 'Vale o minuto inteiro: 23:59 inclui quem validou às 23:59:59.' },
+  { chave: 'voucher_dias', regulamento: AVISO_REGULAMENTO, rotulo: 'Dias dos vouchers', tipo: 'datas', ajuda: 'Um voucher por dia. Datas no formato AAAA-MM-DD, uma por linha (de 1 a 31).' },
+  { chave: 'corte_hora_local', regulamento: AVISO_REGULAMENTO, rotulo: 'Hora do corte', tipo: 'hora', ajuda: 'Vale o minuto inteiro: 23:59 inclui quem validou às 23:59:59.' },
   { chave: 'fuso', rotulo: 'Fuso do corte', tipo: 'texto', ajuda: 'Nome do fuso, como America/Fortaleza.' },
-  { chave: 'prazo_confirmacao_proximo_dia_hora', rotulo: 'Prazo da 1ª chamada (hora do dia seguinte)', tipo: 'inteiro', min: 0, max: 23, ajuda: 'Quem não confirmou o e-mail tem até essa hora, no dia seguinte à apuração.' },
+  { chave: 'prazo_confirmacao_proximo_dia_hora', regulamento: AVISO_REGULAMENTO, rotulo: 'Prazo da 1ª chamada (hora do dia seguinte)', tipo: 'inteiro', min: 0, max: 23, ajuda: 'Quem não confirmou o e-mail tem até essa hora, no dia seguinte à apuração.' },
   { chave: 'prazo_segunda_chamada_min', rotulo: 'Prazo da 2ª chamada (minutos)', tipo: 'inteiro', min: 1, max: 1440, ajuda: 'Contado a partir do aviso ao próximo da fila.' },
-  { chave: 'voucher_validade_ate', rotulo: 'Validade do voucher', tipo: 'data', ajuda: 'Último dia de uso.' },
+  { chave: 'voucher_validade_ate', regulamento: AVISO_REGULAMENTO, rotulo: 'Validade do voucher', tipo: 'data', ajuda: 'Último dia de uso.' },
   { chave: 'peso_base', rotulo: 'Peso base do prêmio final', tipo: 'inteiro', min: 1, max: 10000, ajuda: 'Peso = base + carimbos extras. Só vale para sorteios futuros.' },
-  { chave: 'ganhadores_final', rotulo: 'Ganhadores do prêmio final', tipo: 'inteiro', min: 1, max: 20, ajuda: 'Só vale para sorteios futuros.' },
-  { chave: 'intervalo_carimbo_h', rotulo: 'Intervalo entre carimbos na mesma casa (horas)', tipo: 'inteiro', min: 0, max: 72, informativo: 'Informativo: o carimbo ainda usa 12 horas fixas; mudar aqui não muda a regra.' },
+  { chave: 'ganhadores_final', regulamento: AVISO_REGULAMENTO, rotulo: 'Ganhadores do prêmio final', tipo: 'inteiro', min: 1, max: 20, ajuda: 'Só vale para sorteios futuros.' },
+  { chave: 'intervalo_carimbo_h', rotulo: 'Intervalo entre carimbos na mesma casa (horas)', tipo: 'inteiro', min: 0, max: 72, informativo: 'Sem efeito: o carimbo usa 12 horas fixas no servidor (e o regulamento diz 12 horas). Mudar este número não muda a regra.' },
   { chave: 'email_confirmado_se_sem_coluna', rotulo: 'E-mail confirmado (plano B)', tipo: 'booleano', inerte: 'Sem efeito hoje: a coluna de e-mail confirmado já existe.' },
 ])
 
@@ -265,6 +267,15 @@ export function validarSemente(texto) {
   return { ok: true, semente }
 }
 
+/** sha256 em hexadecimal minúsculo do texto SEM espaços nas pontas: o código que o regulamento promete registrar antes do fim da avaliação. */
+export async function hashDaSemente(texto, subtle = globalThis.crypto?.subtle) {
+  const v = validarSemente(texto)
+  if (!v.ok) throw new Error('semente_obrigatoria')
+  if (!subtle) throw new Error('sem_crypto')
+  const buf = await subtle.digest('SHA-256', new TextEncoder().encode(v.semente))
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 export const pesoTotal = (concorrentes) => (concorrentes || []).reduce((s, c) => s + (Number(c.peso) || 0), 0)
 
 const assinaturaGanhadores = (r) => JSON.stringify((r?.ganhadores || []).map((g) => [g.posicao, g.apelido, g.casas, g.extras, g.peso, g.motivo]))
@@ -286,6 +297,7 @@ export const ROTULO_EVENTO = Object.freeze({
   apurar_dia: 'Dia apurado', selecionar: 'Selecionado', chamar_proximo: 'Próximo chamado', confirmar: 'Confirmado',
   entregar: 'Entregue', expirar: 'Expirado', cancelar: 'Cancelado', substituir: 'Substituído',
   sorteio_final: 'Ganhador sorteado', sorteio_final_realizado: 'Sorteio final realizado', config_gravar: 'Regra alterada',
+  excecao_pedida: 'Pedido de presença', excecao_aprovada: 'Presença aprovada', excecao_negada: 'Presença negada',
 })
 export const rotuloEvento = (a) => ROTULO_EVENTO[a] || String(a || '')
 const curto = (v) => { const s = typeof v === 'string' ? v : JSON.stringify(v); return s && s.length > 48 ? s.slice(0, 47) + '…' : String(s) }
@@ -311,44 +323,72 @@ export const ROTULO_ORIGEM = Object.freeze({
 export const rotuloOrigem = (o) => ROTULO_ORIGEM[o] || String(o || '')
 
 // ── Metas (marcos comemorativos) ─────────────────────────────────────────────
-/** Os marcos que o banco traz de partida. São EXEMPLO: o Wilker ainda não decidiu os números. */
-export const METAS_EXEMPLO = Object.freeze([
-  { casas: 5, titulo: 'Primeiros passos' },
-  { casas: 10, titulo: 'Já pegou o jeito' },
-  { casas: 20, titulo: 'Quase lá' },
-  { casas: 27, titulo: 'Todas as casas' },
+// O banco guarda marcos RELATIVOS ao total de casas (caca_config 'metas', migration 20261213): cada um é
+// { titulo, e UM de: casas:int | fracao:0.01..0.99 | casas:'todas' }. Aqui ficam a edição na tela e a conta de prévia, com as
+// MESMAS regras de caca_metas_gravar; quem decide, valida e audita é o banco.
+export const MARCO_TIPOS = Object.freeze([
+  ['casas', 'Número de casas'],
+  ['percentual', 'Parte das casas (%)'],
+  ['todas', 'Todas as casas (mapa completo)'],
 ])
+export const META_LIMITE = Object.freeze({ marcos: 20, titulo: 40, casas: 200 })
+
+/** Marco gravado no banco → linha editável da tela. */
+export function linhaDoMarco(m) {
+  const titulo = String(m?.titulo ?? '')
+  if (m?.casas === 'todas') return { tipo: 'todas', valor: '', titulo }
+  if (m && m.fracao != null) return { tipo: 'percentual', valor: String(Math.round(Number(m.fracao) * 100)), titulo }
+  return { tipo: 'casas', valor: String(m?.casas ?? ''), titulo }
+}
+/** Quantas casas o marco vale hoje (mesma conta do banco: fração arredondada, nunca menos de 1; "todas" = o total). */
+export function casasDoMarco(m, total) {
+  if (m.casas === 'todas') return total
+  if (m.fracao != null) return Math.max(1, Math.round(Math.round(total * m.fracao * 1e6) / 1e6))
+  return m.casas
+}
 /**
- * Mesmas regras do banco (caca_metas_ler ignora o que não cabe): casas inteiras de 1 até o total da edição, sem
- * repetir, com título. `totalCasas` vem do servidor; sem ele só o piso é conferido.
- * @param {{casas:string|number,titulo:string}[]} linhas
+ * Linhas da tela → o que o banco recebe (`marcos`) + erros em português + a prévia (quantas casas cada marco vale hoje).
+ * `total` = casas da edição agora (se vier 0/vazio, 27 só para conferir a ordem, como o banco).
+ * @param {{tipo:string,valor:string,titulo:string}[]} linhas
  */
-export function validarMetas(linhas, totalCasas) {
+export function validarMetas(linhas, total) {
   const erros = []
-  const vistas = new Set()
-  const metas = []
+  const avisos = []
+  const marcos = []
+  const previa = []
+  const ref = total > 0 ? total : 27
+  let anterior = 0
+  let jaTodas = false
   ;(linhas || []).forEach((l, i) => {
-    const n = String(l.casas ?? '').trim()
-    const titulo = String(l.titulo ?? '').trim()
     const onde = `Marco ${i + 1}`
-    if (!NUMERO.test(n) || Number(n) < 1) { erros.push(`${onde}: informe o número de casas (inteiro, 1 ou mais).`); return }
-    const casas = Number(n)
-    if (totalCasas && casas > totalCasas) erros.push(`${onde}: ${casas} casas é mais do que a edição tem (${totalCasas}); esse marco nunca seria alcançado.`)
-    if (vistas.has(casas)) erros.push(`${onde}: já existe um marco de ${casas} casas.`)
+    const titulo = String(l.titulo ?? '').trim()
+    const v = String(l.valor ?? '').trim()
     if (!titulo) erros.push(`${onde}: escreva o título.`)
-    else if (titulo.length > 60) erros.push(`${onde}: título com mais de 60 caracteres.`)
-    vistas.add(casas)
-    metas.push({ casas, titulo })
+    else if (titulo.length > META_LIMITE.titulo) erros.push(`${onde}: título com mais de ${META_LIMITE.titulo} caracteres.`)
+    if (jaTodas) { erros.push(`${onde}: o marco "todas as casas" tem de ser o último.`); return }
+    let marco
+    if (l.tipo === 'todas') { marco = { casas: 'todas', titulo }; jaTodas = true }
+    else if (l.tipo === 'percentual') {
+      if (!NUMERO.test(v) || Number(v) < 1 || Number(v) > 99) { erros.push(`${onde}: informe a parte das casas de 1 a 99 (%).`); return }
+      marco = { fracao: Number(v) / 100, titulo }
+    } else {
+      if (!NUMERO.test(v) || Number(v) < 1) { erros.push(`${onde}: informe o número de casas (inteiro, 1 ou mais).`); return }
+      if (Number(v) > META_LIMITE.casas) { erros.push(`${onde}: no máximo ${META_LIMITE.casas} casas.`); return }
+      marco = { casas: Number(v), titulo }
+    }
+    const casas = casasDoMarco(marco, ref)
+    if (casas <= anterior) erros.push(`${onde}: vale ${casas} ${casas === 1 ? 'casa' : 'casas'} hoje, não passa do marco anterior (${anterior}). Mantenha a ordem crescente e sem repetir.`)
+    else if (marco.casas !== 'todas' && marco.casas > ref) avisos.push(`${onde}: ${marco.casas} casas é mais do que a edição tem hoje (${ref}). O marco só aparece para o público quando a edição chegar a esse total.`)
+    anterior = casas
+    marcos.push(marco)
+    previa.push(casas)
   })
-  if (!metas.length && !erros.length) erros.push('Informe pelo menos um marco.')
-  metas.sort((a, b) => a.casas - b.casas)
-  return { ok: erros.length === 0, erros, metas }
+  if (!marcos.length && !erros.length) erros.push('Informe pelo menos um marco.')
+  if ((linhas || []).length > META_LIMITE.marcos) erros.push(`No máximo ${META_LIMITE.marcos} marcos.`)
+  return { ok: erros.length === 0, erros, avisos, marcos, previa }
 }
-/** O comando que grava os marcos. Roda por quem tem acesso ao banco: o painel ainda não tem função para isso. */
-export function sqlDasMetas(metas) {
-  const json = JSON.stringify(metas.map((m) => ({ casas: m.casas, titulo: m.titulo })))
-  return `update public.caca_config set valor = '${json.replace(/'/g, "''")}'::jsonb, atualizado_em = now() where chave = 'metas';`
-}
+export const metasMudaram = (marcos, doBanco) => JSON.stringify(marcos) !== JSON.stringify(
+  (doBanco || []).map((m) => (m?.casas === 'todas' ? { casas: 'todas', titulo: m.titulo } : m?.fracao != null ? { fracao: Number(m.fracao), titulo: m.titulo } : { casas: m?.casas, titulo: m?.titulo })))
 
 // ── Avisos (push): só simulação ──────────────────────────────────────────────
 export const TIPOS_PUSH = Object.freeze([
@@ -375,15 +415,33 @@ const MENSAGENS = [
   ['dia_fora_do_periodo', 'Esse dia não está na lista de dias dos vouchers (aba Regras e prazos).'],
   ['transicao_invalida', 'O prêmio já mudou de estado (talvez alguém tenha mexido agora). Atualize a tela e confira.'],
   ['sem_proximo_elegivel', 'Não há próximo elegível neste dia. Nada foi alterado.'],
+  ['email_nao_confirmado', 'O e-mail dessa pessoa ainda não foi confirmado, e o regulamento exige confirmar antes de receber o prêmio. Peça que ela confirme na central da Caça.'],
+  ['compromisso_ja_registrado', 'O código da semente já foi registrado nesta edição e não se troca.'],
+  ['compromisso_tardio', 'A avaliação já fechou: o código da semente só pode ser registrado antes do fechamento. O sorteio real não poderá rodar.'],
+  ['hash_invalido', 'O código da semente precisa ter 64 caracteres (0-9 e a-f).'],
+  ['edicao_desconhecida', 'O servidor não conhece essa edição.'],
   ['premio_nao_encontrado', 'Esse prêmio não existe mais. Atualize a lista.'],
   ['acao_invalida', 'Ação não reconhecida pelo servidor. Atualize a página e tente de novo.'],
   ['parametro_invalido', 'Algum dado do pedido está inválido. Atualize a tela e tente de novo.'],
   ['chave_desconhecida', 'O servidor não conhece essa regra. Atualize a página.'],
   ['valor_invalido', 'O servidor recusou o valor: confira o formato e a faixa.'],
+  ['metas_invalidas', 'A lista de marcos está fora do formato (de 1 a 20 marcos, só título e casas). Atualize a tela e tente de novo.'],
+  ['metas_titulo', 'Cada marco precisa de um título de até 40 caracteres.'],
+  ['metas_casas', 'Um dos marcos tem número de casas inválido.'],
+  ['metas_fracao', 'Um dos marcos tem parte das casas inválida (use de 1% a 99%).'],
+  ['metas_ordem', 'Os marcos precisam vir em ordem crescente e sem repetir, considerando quantas casas cada um vale hoje.'],
+  ['metas_todas_so_no_fim', 'O marco "todas as casas" só pode existir uma vez, e tem de ser o último.'],
   ['semente_obrigatoria', 'Escreva uma semente: é ela que torna o sorteio reproduzível.'],
   ['sorteio_final_ja_realizado', 'O sorteio final já foi realizado nesta edição.'],
   ['tipo_invalido', 'Tipo de aviso inválido.'],
   ['vapid_ausente', 'O envio de avisos ainda não está configurado no servidor (isso não afeta a simulação).'],
+  ['pedido_nao_encontrado', 'Esse pedido não existe mais. Atualize a lista.'],
+  ['nota_obrigatoria', 'Para negar, escreva o motivo: ele fica no histórico.'],
+  ['cedo', 'Essa pessoa já tem um carimbo nessa casa há menos de 12 horas, então um novo ainda não pode entrar. Negue o pedido ou espere.'],
+  ['nao_aberta', 'A janela dos carimbos não está aberta agora, então não dá para aprovar.'],
+  ['encerrada', 'A janela dos carimbos já encerrou, então não dá para aprovar. Dá para negar com o motivo.'],
+  ['casa_sem_combo', 'A casa não tem combo publicado para avaliar, então não entra na Caça.'],
+  ['qr_invalido', 'A unidade desse pedido não tem adesivo (QR) ativo. Confira em Mapa e adesivos.'],
   ['nao_autorizado', 'Sua função não permite esta ação, ou a sessão não vale mais.'],
   ['Failed to fetch', 'Sem conexão com o servidor. Confira a internet e tente de novo.'],
   ['Load failed', 'Sem conexão com o servidor. Confira a internet e tente de novo.'],
@@ -402,10 +460,20 @@ export const cacaApi = {
   premios: (edicao, f) => rpc('caca_premio_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),
   apurarDia: (edicao, dia, f) => rpc('caca_apurar_dia', { p_secret: lerSenha(), p_edicao: edicao, p_dia: dia }, f),
   acaoDoPremio: (premio, acao, nota, f) => rpc('caca_premio_acao', { p_secret: lerSenha(), p_premio: premio, p_acao: acao, p_nota: nota || null }, f),
+  /** Compromisso da semente do sorteio real: { registrado, hash, registrado_em, avaliacao_fecha_em, fechada, sem_data_de_fechamento }. */
+  sorteioEstado: (edicao, f) => rpc('caca_sorteio_estado', { p_secret: lerSenha(), p_edicao: edicao }, f),
+  /** Registra o código (sha256) da semente. Um só por edição, antes de o fechamento da avaliação; a semente em si NÃO sai daqui. */
+  comprometerSemente: (edicao, hash, f) => rpc('caca_sorteio_comprometer', { p_secret: lerSenha(), p_edicao: edicao, p_hash: hash }, f),
   /** SIMULAÇÃO. `p_simular` é fixo em true: nada é gravado, nem evento. */
   sortear: (edicao, semente, f) => rpc('caca_sorteio_final', { p_secret: lerSenha(), p_edicao: edicao, p_semente: semente, p_simular: true }, f),
+  metas: (edicao, f) => rpc('caca_metas_painel_ler', { p_secret: lerSenha(), p_edicao: edicao }, f),
+  gravarMetas: (marcos, f) => rpc('caca_metas_gravar', { p_secret: lerSenha(), p_metas: marcos }, f),
   revisao: (edicao, f) => rpc('caca_carimbo_revisao_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),
   anularCarimbo: (carimbo, motivo, f) => rpc('carimbo_anular', { p_secret: lerSenha(), p_carimbo: carimbo, p_motivo: motivo }, f),
+  // Pedidos de revisão de presença (GPS) e o resumo de carimbos sem GPS (15-caca-contrato-gps.md).
+  excecoes: (edicao, estado, f) => rpc('caca_excecao_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null }, f),
+  decidirExcecao: (id, decisao, nota, f) => rpc('caca_excecao_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),
+  gpsResumo: (edicao, f) => rpc('caca_gps_resumo', { p_secret: lerSenha(), p_edicao: edicao }, f),
   /** SIMULAÇÃO. `dry_run` é fixo em true: a função só conta quem receberia. */
   simularPush: (tipo, f) => chamarFuncao('caca-push', { secret: lerSenha(), tipo, dry_run: true, titulo: 'Simulação', corpo: 'Simulação de alcance: nada é enviado.' }, f),
 }

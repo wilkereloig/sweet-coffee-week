@@ -15,6 +15,9 @@ import * as C from '../../rota/carimbo.js'
 import { api } from '../../caca/api.js'
 import { ajudaLocalizacao, resumoProgresso } from '../../caca/regras.js'
 import { CACA, CACA_CAMINHOS } from '../../caca/textos.js'
+import { GPS } from '../../caca/textos-gps.js'
+import { falhaDeLocalizacao, podePedirPresenca, pedidoDaCasa, precisaDeRevisao } from '../../caca/gps.js'
+import { PedidoPresenca } from '../../caca/PedidoPresenca.jsx'
 import { CriarMapa } from '../../caca/CriarMapa.jsx'
 import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
 
@@ -26,6 +29,16 @@ function AjudaDeLocalizacao ({ ajuda }) {
     <ul className="ct-carimbar__como">
       {ajuda.passos.map(([onde, passos]) => <li key={onde}><strong>{onde}:</strong> {passos}</li>)}
     </ul>
+  )
+}
+
+/** Dicas para o GPS pegar melhor, mostradas em toda falha de localização (inclusive "você está longe"). */
+function DicasDeSinal () {
+  return (
+    <div className="ct-carimbar__dicas">
+      <p className="ct-sub">{GPS.dicas.titulo}</p>
+      <ul className="ct-carimbar__como">{GPS.dicas.itens.map((d) => <li key={d}>{d}</li>)}</ul>
+    </div>
   )
 }
 
@@ -71,14 +84,30 @@ export function Carimbo ({ codigo, navigate, dados }) {
   const [r, setR] = React.useState(null)
   const [novo, setNovo] = React.useState(false)
   const [mapa, setMapa] = React.useState(null)
+  const [lendoMapa, setLendoMapa] = React.useState(false) // mapa_ler_v2 em curso depois do carimbo (E2E-4)
+  const [progresso, setProgresso] = React.useState(null) // { i, n }: tentativa de GPS em curso
+  const [falhas, setFalhas] = React.useState(0) // falhas de localização seguidas nesta abertura da página
+  const [pedido, setPedido] = React.useState(null) // pedido de revisão desta casa: 'pendente' · 'aprovado' · 'negado'
+  const posicao = React.useRef(null) // última leitura do GPS: só em memória, só segue para a RPC do pedido
   const titulo = React.useRef(null)
   const casa = (dados?.participantes || []).find((p) => p.slug === (r?.slug || (porCasa ? codigo : null)))?.casa
 
   React.useEffect(() => { if (estado === 'ok' || estado === 'recusa') titulo.current?.focus() }, [estado])
 
+  // Pedido de revisão já feito para esta casa? Só consulta quando a localização falhou e há mapa neste aparelho.
+  const slugDaRecusa = r?.slug || (porCasa ? codigo : null)
+  const consultarPedido = estado === 'recusa' && (falhaDeLocalizacao(r) || precisaDeRevisao(r)) && chave && slugDaRecusa
+  React.useEffect(() => {
+    if (!consultarPedido) return undefined
+    let vivo = true
+    api.excecaoMinhas(chave).then((m) => { if (vivo && m.ok) setPedido(pedidoDaCasa(m.pedidos, slugDaRecusa)?.estado || null) })
+    return () => { vivo = false }
+  }, [consultarPedido, chave, slugDaRecusa])
+
   async function carimbar (k = chave) {
-    setEstado('carimbando'); setR(null)
-    const pos = await C.pedirPosicao()
+    setEstado('carimbando'); setR(null); setProgresso(null)
+    const pos = await C.capturarPosicao({ aoTentar: (i, n) => setProgresso({ i, n }) })
+    posicao.current = Number.isFinite(pos.lat) ? { lat: pos.lat, lng: pos.lng, precisao: pos.precisao } : null
     try {
       const onde = { p_lat: pos.lat ?? null, p_lng: pos.lng ?? null, p_precisao: pos.precisao ?? null }
       const resp = porCasa
@@ -86,19 +115,27 @@ export function Carimbo ({ codigo, navigate, dados }) {
         : await C.chamar('mapa_carimbar', { p_chave: k, p_qr: codigo, ...onde })
       if (resp?.motivo === 'mapa_desconhecido') { C.apagarChave(EDICAO.codigo); setChave(null); setEstado('pronto'); return }
       // `posicao` = erro do navegador (negada · indisponivel · demorou) e `precisao` = margem do GPS, para explicar a recusa.
-      setR(resp?.motivo === 'sem_localizacao' ? { ...resp, posicao: pos.erro } : resp?.motivo === 'longe' ? { ...resp, precisao: pos.precisao } : resp)
-      setEstado(resp?.ok ? 'ok' : 'recusa')
-      if (resp?.ok) {
+      // Só é "carimbado" com `ok: true` do servidor; qualquer outra resposta é recusa.
+      const final = resp && typeof resp === 'object' ? resp : { motivo: 'rede' }
+      setR(final.motivo === 'sem_localizacao' ? { ...final, posicao: pos.erro } : final.motivo === 'longe' ? { ...final, precisao: pos.precisao } : final)
+      const deu = final.ok === true
+      setFalhas((n) => (deu ? 0 : falhaDeLocalizacao(final) ? n + 1 : n))
+      setEstado(deu ? 'ok' : 'recusa')
+      if (deu) {
+        setLendoMapa(true)
         api.mapaLer(k).then((m) => {
           if (!m.ok) return
           setMapa(m.mapa)
           C.gravarPerfil(EDICAO.codigo, { nome: m.mapa.apelido, email: m.mapa.email, whatsapp: m.mapa.whatsapp })
-        })
+        }).finally(() => setLendoMapa(false))
       }
     } catch { setR({ motivo: 'rede' }); setEstado('recusa') }
   }
   function abrir (k, criado) { setChave(k); setNovo(criado); carimbar(k) }
-  const avaliar = () => navigate(C.prepararAvaliacao({ caminho: EDICAO.caminho, slug: r.slug, unidade: r.unidade, mapa }))
+  // Apelido e e-mail vêm do mapa lido agora ou, se a leitura ainda não voltou, do perfil guardado no aparelho (E2E-4).
+  const perfil = C.lerPerfil(EDICAO.codigo)
+  const semDados = lendoMapa && !mapa && !perfil.email
+  const avaliar = () => navigate(C.prepararAvaliacao({ caminho: EDICAO.caminho, slug: r.slug, unidade: r.unidade, mapa: mapa || { apelido: perfil.nome, email: perfil.email } }))
 
   const links = (
     <div className="ct-acoes">
@@ -139,7 +176,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
           <div className="ct-carimbar__avaliar">
             <p className="ct-sub">{T.pendenteSub}</p>
             <p className="ct-nota">{T.pendenteTexto(nome)}</p>
-            <div className="ct-acoes"><button type="button" className="ct-botao" onClick={avaliar}>{T.pendenteAcao}</button></div>
+            <div className="ct-acoes"><button type="button" className="ct-botao" disabled={semDados} aria-busy={semDados || undefined} onClick={avaliar}>{T.pendenteAcao}</button></div>
           </div>
         )}
         {novo && <GuardarMapa chave={chave} />}
@@ -154,14 +191,40 @@ export function Carimbo ({ codigo, navigate, dados }) {
       : r?.motivo === 'rede' ? T.semConexao
         : C.mensagemRecusa(r, { casa: casa?.nome })
     const deNovo = ['longe', 'sem_localizacao', 'rede'].includes(r?.motivo)
+    const podePedir = chave && slugDaRecusa && podePedirPresenca(r, falhas) && !pedido
+    const nomeCasa = casa?.nome || 'casa'
     return (
       <section className="ct-bloco ct-carimbar">
         <p className="ct-rotulo">{T.rotulo}</p>
         <h1 ref={titulo} tabIndex={-1} className="ct-h1">{m.titulo}</h1>
         <p className="ct-lead">{m.texto}</p>
         {ajuda && <AjudaDeLocalizacao ajuda={ajuda} />}
+        {falhaDeLocalizacao(r) && <DicasDeSinal />}
         {deNovo && <div className="ct-acoes"><button type="button" className="ct-botao" onClick={() => carimbar()}>{T.tentar}</button></div>}
+        {pedido === 'pendente' && <p className="ct-nota" role="status">{GPS.pedido.emAnalise(nomeCasa)}</p>}
+        {pedido === 'negado' && <p className="ct-nota" role="status">{GPS.pedido.negadoNota(nomeCasa)}</p>}
+        {pedido === 'aprovado' && <p className="ct-nota" role="status">{GPS.pedido.aprovadoNota(nomeCasa)}</p>}
+        {podePedir && (
+          <div className="ct-carimbar__avaliar">
+            <p className="ct-nota">{precisaDeRevisao(r) ? GPS.pedido.leadSemPonto : GPS.pedido.lead}</p>
+            <div className="ct-acoes"><button type="button" className="ct-botao ct-botao--contorno" onClick={() => setEstado('pedido')}>{GPS.pedido.abrir}</button></div>
+          </div>
+        )}
         {novo && <GuardarMapa chave={chave} />}
+        {links}
+      </section>
+    )
+  }
+
+  if (estado === 'pedido') {
+    return (
+      <section className="ct-bloco ct-carimbar">
+        <p className="ct-rotulo">{T.rotulo}</p>
+        <h1 className="ct-h1">{casa?.nome || T.titulo}</h1>
+        <PedidoPresenca
+          chave={chave} slug={slugDaRecusa} casa={casa?.nome || 'casa'} recusa={r} posicao={posicao.current}
+          aoVoltar={() => setEstado('recusa')} aoEnviar={() => setPedido('pendente')}
+        />
         {links}
       </section>
     )
@@ -190,8 +253,11 @@ export function Carimbo ({ codigo, navigate, dados }) {
           </>
           )
         : <CriarMapa navigate={navigate} titulo="Primeira vez? Comece seu mapa" botao="Começar e carimbar" aoAbrir={abrir} />}
-      <p className="ct-sr" aria-live="polite">{estado === 'carimbando' ? 'Conferindo o carimbo.' : ''}</p>
-      <p className="ct-nota"><Link href={CACA_CAMINHOS.regulamento} navigate={navigate}>Regulamento da Caça aos Carimbos</Link></p>
+      {estado === 'carimbando' && progresso && (
+        <p className="ct-nota ct-carimbar__buscando">{GPS.buscando(progresso.i, progresso.n)} {GPS.buscandoDica}</p>
+      )}
+      <p className="ct-sr" aria-live="polite">{estado === 'carimbando' ? (progresso ? GPS.buscando(progresso.i, progresso.n) : 'Conferindo o carimbo.') : ''}</p>
+      <p className="ct-nota"><Link className="ct-link-solto" href={CACA_CAMINHOS.regulamento} navigate={navigate}>Regulamento da Caça aos Carimbos</Link></p>
     </section>
   )
 }

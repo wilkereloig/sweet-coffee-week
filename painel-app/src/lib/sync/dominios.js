@@ -67,7 +67,8 @@ export const RPC_LEITURA = new Set([
   'social_biblioteca', 'social_pastas_listar',
   // Caça aos Carimbos (painel): leituras. `caca_sorteio_final` só é chamada em SIMULAÇÃO (p_simular: true) — o
   // sorteio oficial grava prêmios, mas a tela não o liga (lib/caca.js › SORTEIO_OFICIAL_LIBERADO).
-  'caca_config_ler', 'caca_premio_listar', 'caca_carimbo_revisao_listar', 'caca_sorteio_final',
+  'caca_config_ler', 'caca_metas_painel_ler', 'caca_premio_listar', 'caca_carimbo_revisao_listar', 'caca_sorteio_final',
+  'caca_excecao_listar', 'caca_gps_resumo',
   // Canais de tempo real que ESTA conta pode ouvir (lista do servidor).
   'sync_meus_canais',
 ])
@@ -217,6 +218,8 @@ export const RPC_ESCRITA = Object.freeze({
   caca_apurar_dia: ['carimbos'],
   caca_premio_acao: ['carimbos'],
   caca_config_gravar: ['carimbos'],
+  caca_excecao_decidir: ['carimbos'], // aprovar cria o carimbo; negar só registra
+  caca_metas_gravar: ['carimbos'],
   marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
   marcar_senha_trocada: ['perfis'],
 })

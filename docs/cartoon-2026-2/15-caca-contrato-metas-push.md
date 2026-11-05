@@ -7,22 +7,43 @@ Regra: `15-caca-especificacao.md` §12 e §13. Todas as RPCs abaixo são chamada
 Convenções: **chave** = a chave pessoal do mapa (a mesma de `mapa_ler_v2`). Chave desconhecida em `caca_metas_ler` devolve `null`;
 nas RPCs de push devolve `{ ok:false, motivo:'mapa_desconhecido' }` (nunca exceção). Nenhuma RPC devolve endpoint, `p256dh` ou `auth`.
 
-## 1. `caca_metas_ler(p_chave text) → jsonb | null`
-Quem pode: qualquer visitante com a chave.
+## 1. Marcos de progresso (migration `20261213_caca_metas_marcos.sql`, aplicada em `dgfmoibynftadsyjcclg`; teste `supabase/testes/caca-metas-marcos.sql`)
+Substitui os marcos de exemplo antigos (números absolutos escritos à mão). **Decisão técnica revisável** (Wilker mandou decidir em 05/11/2026): marcos RELATIVOS ao total de casas, que só
+comemoram. **Nenhum prêmio por marco**: os benefícios continuam sendo os vouchers diários e o prêmio final (`15-caca-especificacao.md`).
 
+Configuração (`caca_config.chave='metas'`, array de 1 a 20 marcos; cada um é `{ titulo }` mais UM de):
+- `casas: int` (1 a 200): número absoluto de casas diferentes;
+- `fracao: 0.01..0.99`: parte do total, `round(total × fração)`, nunca menos que 1;
+- `casas: 'todas'`: o mapa completo = o total da edição (acompanha o total, nunca fica à mão em 27). Só um, e o último.
+
+Valores de partida: `Primeiro carimbo` (1) · `Pegou o jeito` (fração 0,33) · `Quase lá` (fração 0,67) · `Mapa completo` (todas). Com 27 casas: 1, 9, 18, 27;
+com 26 (hoje, porque `caroli-douces` ainda é só "marca"): 1, 9, 17, 26. A migration só troca o valor se ele ainda for o exemplo antigo (nunca sobrescreve
+uma gravação da organização). `caca_config` ganhou `nota` e `atualizado_por`.
+
+Resolução (interna `caca_metas_resolver(cfg, total)`, uma só para o visitante e o painel): ordena por casas resolvidas; marcos que caem no mesmo número viram um
+(o `todas` vence); marco absoluto acima do total some até o total chegar lá; configuração torta vira lista vazia, nunca exceção.
+
+### `caca_metas_ler(p_chave text) → jsonb | null` (visitante, qualquer pessoa com a chave)
 ```
 {
-  total_casas: int,                 // casas da edição que contam (caca_casas_conta: não encerradas, com combo; mesma conta de mapa_ler_v2)
-  casas_validadas: int,             // casas diferentes validadas da PESSOA (e-mail), via caca_ranking_v2
-  metas: [ { casas:int, titulo:text, exemplo:bool, alcancada:bool, faltam:int } ],   // ordenadas por casas, sem repetir
+  total_casas: int,                 // caca_total_casas: não encerradas, com combo
+  casas_validadas: int,             // casas diferentes validadas da PESSOA (mapa principal), via caca_ranking_v2
+  metas: [ { casas:int, titulo:text, completa:bool, alcancada:bool, faltam:int } ],   // ordenadas por casas, sem repetir; completa = "todas as casas"
   alcancadas: [ ...as metas com alcancada=true ],
-  proxima: { ...a primeira meta não alcançada } | null    // null = todas alcançadas (ou sem metas)
+  proxima: { ...a primeira meta não alcançada } | null
 }
 ```
-- Metas vêm de `caca_config.chave='metas'` (array de `{casas, titulo, exemplo?}`). Meta com `casas` fora de `1..total_casas`, sem número
-  ou repetida é ignorada; valor de configuração que não é array vira `metas: []`.
-- ⚠️ **Os marcos 5/10/20/27 e seus títulos são EXEMPLO** (`exemplo: true`): o Wilker não decidiu os números. O front não deve
-  prometer prêmio por meta. Para mudar: `update caca_config set valor = '[...]' where chave='metas'` (sem migration).
+Chave desconhecida devolve `null`. O front lê `completa` para escrever "Todas as casas (N)"; o rótulo `exemplo` não existe mais.
+
+### `caca_metas_painel_ler(p_secret text, p_edicao text) → jsonb` (painel; `dado.ler`)
+`{ total_casas, marcos (como gravados), resolvidos: [{casas,titulo,tipo}], nota, atualizado_em, atualizado_por }`.
+
+### `caca_metas_gravar(p_secret text, p_metas jsonb) → { ok:true, metas }` (painel; `edicao.gerir`)
+Valida de novo no banco e **recusa** (exceção): `nao_autorizado` · `metas_invalidas` (não é lista de 1..20, item que não é objeto, campo além de `casas`/`fracao`/`titulo`)
+· `metas_titulo` (vazio ou > 40) · `metas_casas` · `metas_fracao` · `metas_ordem` (a ordem é conferida contra o total atual, ou 27 se a edição ainda não tem casas; não repete)
+· `metas_todas_so_no_fim`. Grava, apaga a `nota` ("decisão técnica"), registra `atualizado_por`, audita em `caca_evento` (`metas_gravar`, antes/depois) e o gatilho
+`sync_caca_config` avisa os painéis abertos (domínio `carimbos`). O painel (Edição › Carimbos › Metas) edita por linhas (número de casas, parte em % ou todas) e mostra
+"Hoje: N casas" para cada marco.
 
 ## 2. Origem do carimbo (sem RPC nova)
 Coluna `carimbos.origem` (`'gps' | 'unidade_sem_coordenada' | 'excecao_painel'`), definida por **trigger BEFORE INSERT** a partir

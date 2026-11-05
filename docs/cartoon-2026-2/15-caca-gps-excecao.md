@@ -1,8 +1,9 @@
 # 15 · Caça — alternativa excepcional ao GPS: opções analisadas
 
-**Status: DECISÃO DO WILKER PENDENTE.** Nada disto está implementado. Hoje não existe exceção ao GPS: o carimbo só entra por
-`mapa_carimbar` (QR + localização). Spec §12: a alternativa não pode enfraquecer a validação, e **QR fixo sozinho não prova presença**
-(o adesivo pode ser fotografado e repassado).
+**Status (05/11/2026): IMPLEMENTADO — a opção F foi construída em formato de PEDIDO, com decisão da organização.** O Wilker mandou decidir
+a alternativa mais segura e viável; esta é ela (ver "Decisão e o que foi implementado", no fim). O texto das opções abaixo é o da análise original.
+Spec §12: a alternativa não pode enfraquecer a validação, e **QR fixo sozinho não prova presença** (o adesivo pode ser fotografado e repassado).
+Contrato técnico: `15-caca-contrato-gps.md`.
 
 ## O que o sistema já entrega (migration 20261207)
 - `carimbos.origem`: todo carimbo fica marcado `gps` (unidade com coordenada conferida e celular dentro do raio) ou
@@ -37,14 +38,47 @@ Cada opção abaixo tenta dar um caminho **sem** abrir a porta para carimbo remo
 - Avaliação não substitui presença: ela já é exigida para validar a casa (ordem livre), então D não prova nada que a avaliação
   sozinha não prove, só acrescenta a foto.
 
-## Recomendação (não é decisão)
-1. **Agora, sem exceção:** opção **G** + conferir as coordenadas que faltam. É o único caminho que não cria fraude nova, e a revisão
-   (`caca_carimbo_revisao_listar`) já cobre o que entrar sem prova.
-2. **Se a decisão for ter uma exceção**, a de menor risco e menor trabalho é **F** (carimbo manual na hora, por pedido, pela organização,
-   com `origem='excecao_painel'`, motivo registrado e visível na revisão), porque é rara, auditada e não exige a marca nem hardware.
-   **A** (revisão posterior) como segunda escolha se o volume for alto.
-3. **Evitar:** E (enfraquece a validação) e D (guarda foto de visitante sem base pronta). B e C só se a organização topar a
-   operação por casa.
+## Decisão e o que foi implementado (05/11/2026)
 
-Pergunta para o Wilker: quer manter **sem exceção** (G) ou habilitar **F** (carimbo manual auditado)? Habilitar F custa uma RPC de painel
-(`producao.gerir`) e uma ação na tela de revisão; o campo `origem` e a lista já estão prontos.
+**Escolhida: F (carimbo manual pela organização), no formato de _pedido de revisão de presença_ feito pelo próprio app.** Junto com G
+(melhorar o caminho do GPS), que é a primeira linha de defesa, e a lista de coordenadas pendentes (`15-caca-coordenadas-pendentes.md`).
+
+### Como funciona
+1. **GPS melhor primeiro (G):** a permissão só é pedida no toque em "Carimbar"; até 3 tentativas de leitura em alta precisão, guardando a melhor;
+   mensagens por motivo (negada, indisponível, demorou, imprecisa, longe com a distância) e passo a passo para iPhone e Android; "Tentar de novo".
+2. **Pedido de revisão (F):** depois de **2 falhas de localização seguidas** — e só se ainda é plausível estar na casa (sem localização, margem
+   > 100 m ou a ≤ 500 m) — aparece "Estou na casa e o GPS não funciona". O pedido grava um registro **pendente** em `caca_carimbo_excecao`
+   (motivo, distância e margem calculadas pelo servidor, nota opcional de até 200 caracteres). **Não carimba e não conta nada.**
+3. **A organização decide no painel** (Edição › Carimbos › "Pedidos de presença"): vê apelido, casa/unidade, motivo, distância, margem, nota,
+   se já avaliou, quantos carimbos já tem na casa e quantos pedidos fez. **Aprovar** cria o carimbo com `origem = 'excecao_painel'`
+   (`conferido = false`), respeitando a janela e as 12 h, e ele cai também em "Revisão sem GPS"; **negar exige o motivo**. Tudo auditado em
+   `caca_evento` com a conta pessoal. A pessoa vê só o estado (em análise · aprovado · não aprovado) — nunca a nota interna.
+4. **Contadores visíveis:** a aba "Revisão sem GPS" mostra quantos carimbos vieram sem GPS por dia e por pessoa (e quantos contam), e as
+   abas "Vouchers do dia" e "Prêmio final" mostram uma faixa quando há carimbo sem GPS ou pedido esperando — antes de apurar.
+
+### Por que é a mais segura e viável
+- **A decisão é humana e da organização, nunca da casa.** Nenhum funcionário entra no fluxo normal nem no da exceção; ninguém precisa treinar balcão.
+- **O pedido sozinho não vale nada.** Quem tenta "fabricar" pedidos não ganha carimbo; vira fila para a organização (e fila tem teto: 5 pendentes por
+  pessoa, 1 pedido por casa a cada 12 h, 2 por casa por dia, 20 pendentes por casa desde 20261217 — era 300 na edição).
+- **Não abre porta nova ao QR fixo:** foto do adesivo repassada não gera carimbo; só o pedido com decisão humana gera.
+- **Não enfraquece a validação normal:** o raio (200 m + margem ≤ 300 m) não mudou; o pedido é recusado (`nao_precisa`) quando o carimbo normal
+  funcionaria — nas casas sem ponto conferido e quando o celular está no raio.
+- **Mínimo de dado:** o servidor guarda distância e margem, **não a posição**; mapa apagado apaga os pedidos.
+- **Auditável e reversível:** o carimbo aprovado é marcado como exceção, aparece na revisão e pode ser anulado com `carimbo_anular`.
+- **Viável:** sem hardware, sem foto de visitante (D), sem operação por casa (B, C); uma tabela, cinco RPCs e uma aba de painel.
+
+### Contras assumidos
+- Trabalho humano da organização durante 7–11/11 (a fila tem teto para não virar enxurrada). A aprovação deve sair **antes do corte do dia**
+  (23h59 de Natal): uma decisão tardia gera o carimbo no instante da aprovação e **não retroage** apuração já fotografada.
+- A organização decide com pouca prova (distância, margem e nota). Orientação operacional: aprovar quando o pedido é coerente (distância
+  plausível, pessoa já avaliou, histórico limpo) e negar quando destoa; na dúvida, negar com motivo e pedir que tente de novo no local.
+- Como todo GPS de navegador, a posição pode ser forjada por quem controla o aparelho; isso já era verdade antes e não piora.
+
+### O que NÃO foi feito (e por quê)
+- E (relaxar o limite): enfraquece a validação. D (foto): sem base legal/armazenamento. B e C (código ou QR rotativo): exigem a casa no fluxo.
+- Notificação ao visitante quando o pedido é decidido: não disparada (sem push real nesta etapa); a pessoa vê o estado ao reabrir a tela do carimbo.
+- Prazo de **retenção** dos pedidos: não decidido (depende do Wilker/jurídico) — hoje ficam enquanto o mapa existir.
+
+### Ordem de grandeza esperada
+Com 14 unidades ainda sem ponto (9 casas) e 27 conferidas, a maioria dos carimbos tem GPS. O pedido deve ser raro; se o volume subir,
+o gargalo certo é conferir as coordenadas (`15-caca-coordenadas-pendentes.md`), que elimina a necessidade nas casas sem ponto.

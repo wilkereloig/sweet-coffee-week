@@ -48,7 +48,7 @@ export function LinksPublicos ({ dados, navigate }) {
       <div className="ct-acoes">
         {rota
           ? <button type="button" className="ct-botao ct-botao--contorno" onClick={() => enviar(T.tituloRota, rota)}>{T.rotaCompartilhar}</button>
-          : <p className="ct-nota">{T.rotaVazia} <Link href={RUA.rota} navigate={navigate}>{T.verRota}</Link></p>}
+          : <p className="ct-nota">{T.rotaVazia} <Link className="ct-link-frase" href={RUA.rota} navigate={navigate}>{T.verRota}</Link></p>}
       </div>
       <p className="ct-nota" role="status">{aviso}</p>
     </section>

@@ -13,6 +13,8 @@ import { tokenValido, grupoIdValido } from './regras.js'
 
 const MOTIVO = /^[a-z][a-z0-9_]{1,59}$/
 const FINALIDADES = ['confirmar', 'recuperar']
+// Mesmo formato que a edge function e o banco aceitam para ENVIAR código (SEC-07): sem vírgula, aspas, <> ou espaço.
+const EMAIL_ENTREGAVEL = /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,190}.[a-z]{2,24}$/i
 const sem = (motivo) => ({ ok: false, motivo })
 
 /** Mensagem de exceção do PostgREST (ex.: 'email_invalido') → motivo. Qualquer outra coisa (inclusive texto livre) vira 'rede'. */
@@ -57,17 +59,18 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
     }),
 
     /**
-     * Edge function `caca-email` (POST sem JWT): pede o código de 6 dígitos por e-mail.
-     * `{ ok:true }` · `{ ok:true, limitado:true }` (espere 1 min) · `{ ok:false, motivo:'email_indisponivel' }` (provedor não configurado, nada gravado)
-     * · `pedido_invalido` · `email_invalido` · `rede`. A resposta de sucesso é igual exista ou não mapa para o e-mail: não inferir nada dela.
+     * Edge function `caca-email` (POST sem JWT): pede o código de 6 dígitos por e-mail. 'confirmar' leva a `chave` do mapa (o código
+     * sai para o mapa de quem pediu); 'recuperar' não (a pessoa perdeu a chave).
+     * `{ ok:true }` · `{ ok:true, limitado:true }` (1 pedido por minuto e 5 por hora: ver CACA.codigo.limitado) · `{ ok:false, motivo:'email_indisponivel' }` (provedor não configurado, nada gravado)
+     * · `falha_temporaria` (banco lento/fora, nada foi enviado: tentar de novo) · `pedido_invalido` · `email_invalido` · `rede`. A resposta de sucesso é igual exista ou não mapa para o e-mail: não inferir nada dela.
      */
-    async pedirCodigo ({ email, finalidade }) {
+    async pedirCodigo ({ email, finalidade, chave = null }) {
       const e = String(email ?? '').trim()
       if (!FINALIDADES.includes(finalidade)) return sem('pedido_invalido')
-      if (!e || e.length > 254 || !e.includes('@')) return sem('email_invalido')
+      if (!e || e.length > 254 || !EMAIL_ENTREGAVEL.test(e)) return sem('email_invalido')
       try {
         const r = await buscar(`${urlBase}/functions/v1/caca-email`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ edicao, email: e, finalidade }),
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ edicao, email: e, finalidade, ...(finalidade === 'confirmar' && chave ? { chave: String(chave) } : {}) }),
         })
         const d = await r.json().catch(() => null)
         if (d?.ok === true) return d.limitado ? { ok: true, limitado: true } : { ok: true }
@@ -79,10 +82,11 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
      * `mapa_codigo_validar`: `{ ok:true, finalidade:'confirmar' }` ou `{ ok:true, finalidade:'recuperar', chave, apelido }`
      * (a chave nova vem uma única vez). Toda falha do banco é `codigo_invalido` (errado, vencido, usado, sem pedido); o código malformado nem sai daqui.
      */
-    async codigoValidar ({ email, codigo, finalidade }) {
+    async codigoValidar ({ email, codigo, finalidade, chave = null }) {
       const c = String(codigo ?? '').replace(/\s+/g, '')
       if (!FINALIDADES.includes(finalidade) || !/^\d{6}$/.test(c)) return sem('codigo_invalido')
-      const r = await rpcOk('mapa_codigo_validar', { p_edicao: edicao, p_email: String(email ?? '').trim(), p_codigo: c, p_finalidade: finalidade })
+      if (finalidade === 'confirmar' && !chave) return sem('codigo_invalido')
+      const r = await rpcOk('mapa_codigo_validar', { p_edicao: edicao, p_email: String(email ?? '').trim(), p_codigo: c, p_finalidade: finalidade, p_chave: finalidade === 'confirmar' ? String(chave) : null })
       if (!r.ok) return sem(r.motivo === 'rede' ? 'rede' : 'codigo_invalido')
       if (finalidade === 'recuperar' && !chaveValida(r.chave)) return sem('resposta_invalida')
       return finalidade === 'recuperar' ? { ok: true, finalidade, chave: r.chave, apelido: String(r.apelido || '') } : { ok: true, finalidade }
@@ -99,6 +103,28 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
       try { await chamar('mapa_apagar', { p_chave: chave }); return { ok: true } } catch (e) { return sem(motivoDoErro(e)) }
     }),
 
+    /* ---- pedido de revisão de presença (15-caca-contrato-gps.md) ---- */
+
+    /**
+     * `caca_excecao_pedir`: pede à organização que olhe o caso quando o GPS falha de forma persistente. NÃO carimba nem conta nada.
+     * `{ ok:true, id, estado:'pendente' }` · motivos: nao_precisa · cedo · ja_pedido · limite_dia · muitos_pendentes · fila_cheia · nao_aberta · encerrada
+     * · casa_sem_combo · qr_invalido · motivo_invalido · mapa_desconhecido. A posição segue só para esta RPC, que calcula a distância e não a guarda.
+     */
+    excecaoPedir: (chave, { slug, motivo, lat = null, lng = null, precisao = null, nota = '' }) => comChave(chave, () => {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(slug || ''))) return Promise.resolve(sem('qr_invalido'))
+      const num = (v) => (Number.isFinite(v) ? v : null)
+      return rpcOk('caca_excecao_pedir', {
+        p_chave: chave, p_slug: slug, p_motivo: motivo, p_lat: num(lat), p_lng: num(lng), p_precisao: num(precisao),
+        p_nota: String(nota || '').trim().slice(0, 200) || null,
+      })
+    }),
+
+    /** `caca_excecao_minhas`: `{ ok:true, pedidos:[{slug, estado:'pendente'|'aprovado'|'negado', criado_em, decidido_em}] }`, do mais novo ao mais antigo. */
+    excecaoMinhas: (chave) => comChave(chave, async () => {
+      const r = await rpcOk('caca_excecao_minhas', { p_chave: chave })
+      return r.ok ? { ok: true, pedidos: Array.isArray(r.pedidos) ? r.pedidos : [] } : r
+    }),
+
     /* ---- ranking geral e metas ---- */
 
     /** `caca_ranking_publico`: `{ ok:true, ranking:[{posicao, apelido, casas, extras}] }`, só quem optou por aparecer, até `limite` (1 a 50). Pública, sem chave. */
@@ -107,7 +133,7 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
       return r.ok && Array.isArray(r.dado) ? { ok: true, ranking: r.dado } : r.ok ? sem('resposta_invalida') : r
     },
 
-    /** `caca_metas_ler`: `{ ok:true, metas:{ total_casas, casas_validadas, metas[], alcancadas[], proxima|null } }`. Os marcos são exemplo (`exemplo:true`): não prometer prêmio por meta. */
+    /** `caca_metas_ler`: `{ ok:true, metas:{ total_casas, casas_validadas, metas[], alcancadas[], proxima|null } }`. Os marcos são relativos ao total (`completa:true` = todas as casas): não prometer prêmio por meta. */
     metasLer: (chave) => comChave(chave, async () => {
       const r = await rpcDado('caca_metas_ler', { p_chave: chave })
       return r.ok ? { ok: true, metas: r.dado } : r

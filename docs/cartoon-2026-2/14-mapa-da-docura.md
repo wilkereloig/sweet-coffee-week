@@ -5,6 +5,8 @@
 rota e álbum **unificados numa página** com o Mundo desenhado em prévia (§14.13), esperando a arte final. Abre **junto com o site, em 05/11**. O primeiro desenho (o lojista lendo o QR do visitante) caiu no
 mesmo dia — ver §14.1.
 Marcas como no [README](README.md): **[Fato]** · **[Proposta]** · **[Decisão]**.
+> **Regra vigente: `15-caca-especificacao.md` (05/11/2026).** Este documento é o desenho de 03/11 e a história até a Caça. As regras de pontos (leitura e avaliação), de "números da sorte" e de pódio por pontos (§14.2, §14.3, §14.6, §14.7) foram **substituídas** pela regra de casas diferentes + carimbos extras, com vouchers por dia e prêmio final por sorteio ponderado; o que vale hoje está no fim do §14.14. O que ficou idêntico: QR + localização, 12 h por casa, sem conta e sem funcionário no fluxo. Onde o texto antigo fala em pontos, leia como histórico.
+
 Nome de trabalho: "Mapa da Doçura" (o nome da página do mapa segue em aberto, §10 do doc 10).
 
 ## 14.1 O pedido
@@ -41,18 +43,18 @@ Decisões do Wilker (03/11/2026):
 | Regra | Valor |
 |---|---|
 | Como carimba | o visitante lê o **QR fixo da unidade** com a câmera do celular; o site pede a localização e o banco confere |
-| Pontos | **leitura = 1 ponto**. **Avaliação da casa = +2**, uma vez por casa: vale quando o mapa tem carimbo daquela casa **e** existe a avaliação dela com o e-mail do mapa (a ordem não importa). [Proposta] nos números; mudar não mexe no resto |
+| Pontos (**extinto em 04/11**) | a regra antiga era um ponto por leitura mais um bônus por avaliação. **Hoje não há pontos**: conta casa diferente validada (carimbo + avaliação com o e-mail do mapa, ordem livre) e, em revisita, carimbo extra (fim do §14.14) |
 | Limite | **Várias casas no mesmo dia, à vontade.** Na **mesma casa**, 1 leitura a cada **12 h** — contada pelo mapa **e** pelo e-mail do mapa (mapa novo com o mesmo e-mail não zera). Casa com várias unidades conta junto |
 | Localização | celular a até **200 m** da unidade lida, mais a margem do GPS limitada a 300 m (raio máximo de 500 m). Sem permissão de localização, sem carimbo |
-| Unidade sem ponto conferido | [Proposta] o carimbo entra marcado "sem conferência" e aparece nos alertas, para não travar o dia 5. Meta: as 41 conferidas em Participantes › Localizações antes da abertura |
-| Sorteio | cada ponto = **1 número da sorte** |
-| Pódio | 3 primeiros em pontos, fora os carimbos anulados na auditoria. Empate: mais casas diferentes; depois, quem chegou primeiro ao total |
+| Unidade sem ponto conferido | ~~[Proposta] o carimbo entra marcado "sem conferência" e aparece nos alertas, para não travar o dia 5. Meta: as 41 conferidas em Participantes › Localizações antes da abertura~~ **SUPERADO (20261217):** o QR sozinho nunca vale carimbo; em casa sem ponto conferido o servidor responde `sem_ponto` e a pessoa pede revisão de presença, que a organização decide (`15-caca-contrato-gps.md`) |
+| Sorteio | ~~cada ponto = 1 número da sorte~~ **SUPERADO em 04/11:** não há pontos nem números da sorte; o prêmio final sorteia por peso (base + carimbos extras), conforme o regulamento e `15-caca-contrato-premiacao.md` |
+| Pódio | ~~3 primeiros em pontos~~ **SUPERADO em 04/11:** não há pódio por pontos; o ranking é por pessoa (casas diferentes, depois extras) e **empate fica na mesma posição**. Vale `15-caca-especificacao.md` |
 | Ranking público | só apelido, só de quem marcou "quero aparecer no ranking" |
 | Janela | a mesma da avaliação: carimbo só com a avaliação aberta no banco (sem interruptor novo) |
 
-**[Proposta]** Os números da sorte são distribuídos **no fechamento**, depois da auditoria, em ordem de chegada
+**[SUPERADO em 04/11 — não há números da sorte]** ~~Os números da sorte são distribuídos **no fechamento**, depois da auditoria, em ordem de chegada
 dos pontos, e a lista (apelido + faixa de números) é publicada antes do sorteio. Durante o festival a tela mostra
-"N chances". Assim anular um carimbo suspeito não muda número já mostrado a ninguém.
+"N chances". Assim anular um carimbo suspeito não muda número já mostrado a ninguém.~~
 
 **Por que cada camada** (03/11): as 12 h acabam com "ficar no balcão escaneando"; a localização acaba com a foto
 do QR no grupo; o limite pelo e-mail acaba com a aba anônima; a auditoria pega quem driblar a localização.
@@ -69,7 +71,7 @@ aleatório de 8 letras por unidade; a rota já é coberta pelo rewrite `/cartoon
    Sem senha.
 2. **Localização:** uma linha explica ("para carimbar, o mapa confere que você está na casa") e o site pede a
    posição (`navigator.geolocation`, alta precisão, até 15 s).
-3. **Resultado:** "Carimbado! +1 · <casa>". Primeira vez sem avaliação: botão **"Avaliar o combo e ganhar +2"**,
+3. **Resultado:** "Carimbado! · <casa>". Primeira vez sem avaliação: botão **"Avaliar o combo e validar"**,
    que abre a avaliação daquela casa com apelido e e-mail preenchidos.
 4. **Recusas, sempre com o que fazer:** "Você já carimbou aqui. Volte depois das 20h40" · "Você não parece estar
    na <casa>: chegue perto do balcão e tente de novo" · "Localização desligada: veja como ligar" (passo a passo
@@ -81,16 +83,16 @@ guarda a chave no aparelho (`localStorage`); o banco guarda só o **hash**.
 - **Guardar meu mapa:** botão que abre o WhatsApp com o link pessoal `/cartoon/minha-rota#mapa=<chave>` para a
   pessoa mandar para si mesma, e botão de copiar. A chave vai **depois do `#`**: não chega à Vercel, ao
   Analytics nem aos logs. Abrir o link em qualquer navegador grava a chave e mostra o mapa.
-- **Perdeu tudo:** a organização acha o mapa pelo e-mail no painel e gera um link novo (a chave velha morre).
-- Dois mapas não dão vantagem: cada ponto nasce de uma leitura na casa; dividir pontos só derruba no ranking.
+- **Perdeu tudo:** ~~a organização acha o mapa pelo e-mail no painel e gera um link novo~~ **SUPERADO:** a própria pessoa recupera o mapa pelo e-mail, com código de 6 dígitos (`15-caca-contrato-identidade.md`); a chave velha morre. O painel ainda tem "Link novo" como último recurso da organização.
+- Dois mapas não dão vantagem: ~~cada ponto nasce de uma leitura na casa~~ **(pontos extintos)** o progresso e o ranking contam por pessoa (e-mail), então mapas do mesmo e-mail se somam na pessoa e não rendem mais casas.
 
 **Privacidade da localização:** a posição vai ao banco só para o cálculo e **não é gravada** — o carimbo guarda
 a distância em metros e a precisão informada.
 
-**Minha rota** passa a ser também "meu mapa" (sem rota nova no menu): no topo, o **álbum das 27 casas** — logo
+**Minha rota** passa a ser também "meu mapa" (sem rota nova no menu): no topo, o **álbum das casas da edição** (o total vem do servidor, `total_casas`; hoje 26, porque casa sem combo não conta) — logo
 desenhada em rascunho (P&B) que ganha cor no primeiro carimbo (casa sem desenho: a logo oficial, em cinza até
-lá), contador "×N" nas repetidas, selo de avaliação feita e "avalie e ganhe +2" nas que faltam —, os pontos
-("N chances"), a posição no ranking, "Guardar meu mapa" e "Apagar meu mapa". O progresso deixa de vir do "Já fui"
+lá), contador "×N" nas repetidas, selo de avaliação feita e "avalie para validar" nas que faltam —, ~~os pontos
+("N chances")~~ **(superado: sem pontos nem chances)**, a posição no ranking, "Guardar meu mapa" e "Apagar meu mapa". O progresso deixa de vir do "Já fui"
 (autodeclarado) e passa a vir dos carimbos. Nas casas (ficha, cartão do mapa e catálogo) o chip "Já fui" dá lugar
 ao estado do carimbo e à dica "leia o QR no balcão". "Quero ir" e as paradas continuam como estão.
 
@@ -110,8 +112,8 @@ ao estado do carimbo e à dica "leia o QR no balcão". "Quero ir" e as paradas c
 
 Aba **Edição › Carimbos** (permissão `dado.ler`; números da sorte e contatos só com `relatorio.ler`):
 
-- totais (mapas, carimbos, pontos, avaliações que deram bônus) e carimbos por casa por dia;
-- ranking completo (apelido, e-mail, WhatsApp, pontos, casas diferentes, hora do último);
+- totais (mapas, carimbos, anulados, sem ponto conferido) e carimbos por casa por dia (~~pontos e avaliações com bônus~~ **superado**: a tela não mostra mais pontos);
+- lista de mapas (apelido, e-mail, WhatsApp, casas, carimbos, hora do último; ~~ranking por pontos~~ **superado**: não é ranking, só apoio para contato e link novo);
 - **alertas**, para a auditoria do pódio:
   - **viagem impossível**: dois carimbos do mesmo mapa cuja distância entre as unidades pediria mais de 60 km/h
     (rodar várias casas no mesmo dia é o esperado e não gera alerta — Wilker, 03/11);
@@ -119,7 +121,7 @@ Aba **Edição › Carimbos** (permissão `dado.ler`; números da sorte e contat
 - **anular carimbo** (com motivo): sai do pódio e do sorteio; o mapa continua;
 - **QR das unidades**: o código de cada uma, **gerar código novo** (o velho morre) e **imprimir os adesivos**
   (página com os 41, impressão pelo navegador; o Wilker pode trocar a arte no Illustrator mantendo o QR);
-- **lista dos números da sorte** no fechamento (exporta CSV);
+- ~~lista dos números da sorte no fechamento (exporta CSV)~~ **superado**: o prêmio final é sorteado por peso, na aba Prêmio final;
 - **link novo** para um mapa (perdeu o aparelho).
 
 **[Fato]** As coordenadas são as de **Participantes › Localizações** — a fila de conferência que já existe
@@ -136,7 +138,7 @@ acesso só por funções `security definer`. `pgcrypto` está no schema `extensi
 | `carimbo_qr` | `codigo` (8 letras aleatórias), `unidade_id` (unidade do painel), `participacao_id`, `ativo`, `criado_em` | `codigo` único; um ativo por unidade; a migration cria um para cada unidade da edição |
 | `carimbos` | `id`, `mapa_id`, `participacao_id`, `unidade_id`, `qr_codigo`, `distancia_m`, `precisao_m`, `conferido` (a unidade tinha ponto conferido), `criado_em`, `anulado_em`, `anulado_motivo` | as 12 h são conferidas na função, sob um bloqueio por mapa (`pg_advisory_xact_lock`), para duas leituras simultâneas não passarem juntas |
 
-Pontos não são coluna: são calculados — 1 por carimbo não anulado + 2 por casa com carimbo e avaliação
+Pontos não são coluna: eram calculados (regra antiga, extinta em 04/11; hoje o progresso é `caca_placar_v2`: casas validadas e extras por e-mail)
 (`avaliacoes.participacao_id` + `email_norm` do mapa). Sem gatilho.
 
 | Função | Quem chama | Faz |
@@ -163,7 +165,7 @@ Página `/cartoon/regulamento` (rota nova no roteador; o rewrite `/cartoon/:path
 que está decidido e marca **[A DEFINIR]** o que falta — nada inventado (A4):
 
 - realizadora (F2 Experience), período (05 a 15/11/2026), quem participa;
-- como acumula (§14.2): QR na unidade, localização exigida, 1 leitura por casa a cada 12 h, pontos (1 + 2 pela
+- como acumula (§14.2): QR na unidade, localização exigida, 1 leitura por casa a cada 12 h, pontos (regra antiga, extinta em 04/11: 1 por leitura e um bônus pela
   avaliação), números distribuídos no fechamento;
 - **[A DEFINIR]** lista e quantidade de prêmios; data, local e método do sorteio (ao vivo ou pela Loteria
   Federal); prazo e forma de retirada; idade mínima;
@@ -184,12 +186,12 @@ e-mail · Turnstile · ficha de uso único (plano B, §14.1) · moderação por 
 ## 14.9 Testes
 
 - `tests/mapa-docura.test.mjs` (sem navegador): estado do álbum a partir das linhas do banco (cor, ×N, avaliação,
-  pontos 1 + 2), textos de recusa (a hora das 12 h no fuso de Natal), a chave **só** depois do `#` e nunca em
+  pontos da regra antiga, extinta), textos de recusa (a hora das 12 h no fuso de Natal), a chave **só** depois do `#` e nunca em
   query string, rotas `/cartoon/carimbo/<código>` e do regulamento, textos sem "Sweet" sozinho.
 - `test:cartoon-navegador`: abrir `/cartoon/carimbo/<código>` com o banco interceptado e a localização simulada
   (perto, longe, negada); criar mapa; "Guardar meu mapa" restaurando em outro contexto; 360 e 1440 px.
 - Banco: depois de aplicada, uma transação de teste **desfeita (rollback)**: criar → carimbar perto → recusa antes
-  das 12 h (no mesmo mapa e num mapa novo com o mesmo e-mail) → recusa longe → +2 com avaliação → anular. Só com ok
+  das 12 h (no mesmo mapa e num mapa novo com o mesmo e-mail) → recusa longe → validar com a avaliação → anular. Só com ok
   do Wilker na hora.
 - Na rua: um carimbo de verdade numa unidade, com um iPhone e um Android — o GPS dentro de shopping é o que mais
   precisa ser medido.
@@ -322,7 +324,7 @@ impressão, ainda a definir.
   pessoal (`#mapa=`) seguem valendo. O endereço guarda `?vista`, `?painel`, `?unidade` e os filtros.
 - **Três vistas das mesmas casas:** **Mundo** (o mapa desenhado), **Mapa real** (Google; MapLibre de reserva) e **Lista**.
   Filtros valem nas três; no Mundo a casa fora do filtro fica apagada, não some.
-- **Ao lado:** o cartão da casa escolhida (parada da rota, carimbos, "Avaliar e ganhar +2") e o painel com duas abas:
+- **Ao lado:** o cartão da casa escolhida (parada da rota, carimbos, "Avaliar e validar o carimbo") e o painel com duas abas:
   **Minha rota** (paradas, Google Maps em trechos, compartilhar, **"Ordenar pelo caminho do mapa"**, visitadas) e
   **Carimbos** (o álbum). Visitada = "já fui" marcado **ou** carimbo; o estado do Mapa da Doçura é lido uma vez por página
   (`rota/useMeuMapa.js`) e repartido entre álbum, cartão e Mundo.
@@ -367,22 +369,50 @@ impressão, ainda a definir.
 
 - **[Decisão]** Wilker, 04/11: a ativação se chama **Caça aos Carimbos** (Mapa da Doçura é o nome do mapa). Regras completas
   no documento interno `06_MATERIAIS_PDV/03_MAPA_IMPRESSO/04_SINALIZACAO/caca-aos-carimbos/caca-aos-carimbos-regras.pdf`:
-  5 vouchers digitais (dias 7 a 11/11, um por dia, mais carimbos acumulados desde 5/11, 1 por pessoa, empate por
-  sorteio) e prêmio final (press kit + surpresa) por sorteio entre quem completou o mapa, cada carimbo uma chance.
+  5 vouchers digitais (dias 7 a 11/11, um por dia, mais casas diferentes acumuladas, 1 por pessoa, empate por
+  sorteio) e prêmio final (press kit + surpresa) por sorteio entre quem completou o mapa. **Em 04/11 a contagem virou casas diferentes + extras, e cada extra soma 1 ao peso do sorteio (regra vigente no fim deste item).**
 - **[Decisão]** O **QR do display de mesa** (face do combo, `/q/d1-<casa>`) também carimba: `destinoDoCodigo` leva a
   `/cartoon/carimbo/<slug>`, que mostra o nome e a logo da casa, **"Ver o combo"** e o botão de carimbar. A página aceita os
   dois formatos (código de 8 caracteres da unidade ou slug da casa; nenhum slug da edição tem o formato do código).
   `mapa_carimbar_casa(chave, slug, lat, lng, precisão)` escolhe a unidade da casa mais perto do celular e chama
   `mapa_carimbar` (mesmas regras: janela da avaliação, distância, 12 h por casa e por e-mail).
 - **[Decisão]** **Carimbo pendente até a avaliação:** os carimbos de uma casa só contam depois que o mapa avaliou o combo
-  dela; avaliada, vale os carimbos + 2. Voltas contam sem nova avaliação. `carimbo_placar` conta só casas validadas
-  (`avaliadas` = `casas`); o álbum mostra "X de 27 casas validadas" e os pendentes com "Avaliar e validar".
+  dela; avaliada, os carimbos passam a valer (sem pontos: `carimbo_placar` é legado e **não decide nada**; as RPCs antigas de pontos foram fechadas na migration 20261218). Voltas contam sem nova avaliação. `carimbo_placar` conta só casas validadas
+  (`avaliadas` = `casas`); o álbum mostra "X de N casas validadas" (N = `total_casas` do servidor) e os pendentes com "Avaliar e validar".
 - Migration `20261202_carimbo_por_casa_pendente.sql` (só funções, nenhuma tabela) — ✅ **aplicada em 04/11/2026** com o ok do Wilker; teste `supabase/testes/caca-carimbos.sql` → `TESTE_OK`.
-- **Apuração no painel** (Edição › Carimbos): `get_caca_apuracao` (mesma migration) dá, para os dias 7 a 11/11 (corte 23h59 de
+- **Apuração no painel (versão antiga, substituída pelas abas Vouchers do dia e Prêmio final, migration 20261204)** (Edição › Carimbos): `get_caca_apuracao` (mesma migration) dá, para os dias 7 a 11/11 (corte 23h59 de
   Natal), o top 10 em carimbos validados acumulados — validado ATÉ aquela hora (carimbo e avaliação) —, o sorteio final (só quem
-  validou todas as casas, 1 chance por carimbo, CSV com as faixas de números) e as reservas por casas. O sistema não guarda o
+  validou todas as casas, regra antiga de uma chance por carimbo, CSV com as faixas de números) e as reservas por casas. O sistema não guarda o
   ganhador do voucher: a organização pula quem já ganhou. Os "números da sorte" antigos de `get_mapa_carimbos` saíram da tela.
 - **Perfil único** (`lerPerfil`/`gravarPerfil` em `rota/carimbo.js`, localStorage `scw:edicao:<código>:perfil`): nome, e-mail
   e WhatsApp do mapa preenchem a avaliação e vice-versa. Depois de avaliar, `CacaAposAvaliar` (tela de sucesso do formulário)
   diz que a avaliação vale na Caça aos Carimbos e oferece criar o mapa com os mesmos dados.
 - **Regulamento** (`cartoon/regulamento.js`) reescrito com as regras da ativação; o prêmio surpresa não é revelado.
+
+### Regra vigente da Caça aos Carimbos (conferida em 05/11/2026 contra as migrations 20261203 a 20261220)
+
+Fonte única da regra: `15-caca-especificacao.md`; contratos: `15-caca-contrato-*.md`; textos públicos: `src/edicao/cartoon/regulamento.js`
+e `src/data/conteudo/legal.js`; o que ainda precisa de decisão: `15-caca-publicacao-pendencias.md`.
+
+- **Pessoa = e-mail normalizado.** Progresso = casas diferentes validadas (0 até o total de casas com combo publicado); revisita válida = carimbo
+  extra. Ordem: mais casas, depois mais extras; empate na MESMA posição. Não há pontos nem "números da sorte".
+- **Validar uma casa:** mapa + carimbo presencial + avaliação do combo com o e-mail do mapa, em qualquer ordem. Avaliar sozinho não carimba.
+  12 h por casa e por pessoa (unidades da mesma casa juntas). Carimbos e avaliações só existem com a janela da avaliação aberta.
+- **Carimbo:** QR do display ou do balcão + localização do celular (até 200 m da unidade conferida mais a margem do GPS, no máximo 300 m).
+  A posição não é guardada, só distância e margem. Casa sem nenhuma unidade com ponto conferido: carimbo sem localização, em revisão.
+  QR sozinho nunca prova presença. Falha persistente de GPS: depois de 2 falhas o app oferece o **pedido de revisão de presença**; só a
+  organização decide (nunca a casa), no painel; aprovado, o carimbo nasce na hora da aprovação, respeitando as 12 h e a janela (`15-caca-contrato-gps.md`).
+- **Vouchers:** 7 a 11/11, corte 23h59 de Natal, quem tem mais casas, depois extras, depois sorteio verificável entre os empatados; 1 por
+  pessoa; e-mail confirmado (senão 12 h do dia seguinte para confirmar, depois a organização chama o próximo); validade até 15/11.
+  A entrega é manual, pela organização. O prazo da chamada seguinte (120 min) é proposta e não está no regulamento.
+- **Prêmio final:** quem validou todas as casas; peso 100 + 1 por extra; 3 ganhadores sem reposição; ganhar voucher não exclui; se até 3
+  completaram, todas ganham e as vagas sobrantes vão por casas, extras, sorteio. Sorteio com semente comprometida (hash) antes do fechamento
+  da avaliação. A surpresa nunca é descrita ao público (escrever "uma surpresa").
+- **Ranking e grupos:** ranking público só de quem optou, só apelido, casas e extras; grupo privado (aceite de visibilidade, rota de
+  planejamento que nunca marca visita, convite que não torna nada público).
+- **Marcos:** relativos ao total de casas (hoje 1, 1/3, 2/3 e todas), editáveis no painel, comemorativos, sem prêmio.
+- **E-mail e recuperação:** código de 6 dígitos (10 min, uso único); recuperar emite chave nova e invalida a anterior do mapa principal;
+  o envio depende de provedor de e-mail e hoje está sem provedor ativo (`15-caca-contrato-identidade.md`).
+- **App e avisos:** PWA própria, opcional; push opcional, enviado pela organização, sem promessa de entrega.
+- **Apagar o mapa** apaga mapa, carimbos, pedidos e avisos; apaga também o registro de integrante de grupo (e-mail e apelido) quando é o último mapa do e-mail (migration 20261216; a rota fica no grupo, sem o nome); **não** apaga a
+  avaliação nem o registro de prêmio já sorteado.

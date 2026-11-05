@@ -1,7 +1,8 @@
 /*
  * Metas da Caça (spec 15 §13) — lógica pura, testada em tests/cartoon-caca-extras.test.mjs.
- * Os marcos (quantas casas, que título) moram no servidor (`caca_metas_ler`) e são configuráveis: nenhum número de marco é
- * escrito aqui, e nenhum prêmio é prometido por meta. A tela só celebra e mostra a próxima.
+ * Os marcos moram no servidor (`caca_metas_ler`): são relativos ao total de casas (o último, `completa`, é o mapa inteiro e
+ * acompanha o total) e a organização os edita pelo painel. Nenhum número de marco é escrito aqui e nenhum prêmio é prometido
+ * por meta: a tela só celebra e mostra a próxima.
  */
 import { EDICAO } from '../../config.js'
 import { QTD_MEDALHAS } from '../imagens.js'
@@ -18,17 +19,13 @@ export function medalhaDoMarco (indice, quantidade, total = QTD_MEDALHAS) {
 /**
  * Resposta de `caca_metas_ler` → o que a tela usa. Defensivo: configuração torta vira lista vazia, nunca exceção.
  * `faltam` e `alcancada` são recalculados do número de casas validadas, para a tela nunca se contradizer.
- * Marcos que o servidor ainda marca como `exemplo: true` (números que a organização não decidiu) NÃO viram marco da tela:
- * não se comemora nem se lista o que pode mudar. `emDefinicao` diz que foi isso; sai sozinho quando a organização grava os marcos.
  */
 export function organizarMetas (dado) {
   const total = num(dado?.total_casas)
   const validadas = num(dado?.casas_validadas)
-  const todos0 = Array.isArray(dado?.metas) ? dado.metas : []
-  const emDefinicao = todos0.length > 0 && todos0.every((m) => m?.exemplo === true)
-  const lista = emDefinicao ? [] : todos0
+  const lista = Array.isArray(dado?.metas) ? dado.metas : []
   const marcos = lista
-    .map((m) => ({ casas: num(m?.casas), titulo: String(m?.titulo ?? '').trim() }))
+    .map((m) => ({ casas: num(m?.casas), titulo: String(m?.titulo ?? '').trim(), completa: m?.completa === true }))
     .filter((m) => m.casas > 0 && m.titulo)
     .sort((a, b) => a.casas - b.casas)
     .map((m, i, todos) => ({
@@ -38,7 +35,7 @@ export function organizarMetas (dado) {
       medalha: medalhaDoMarco(i, todos.length),
     }))
   const proxima = marcos.find((m) => !m.alcancada) || null
-  return { total, validadas, marcos, proxima, emDefinicao, todasAlcancadas: marcos.length > 0 && !proxima }
+  return { total, validadas, marcos, proxima, todasAlcancadas: marcos.length > 0 && !proxima }
 }
 
 /** Marcos alcançados que a pessoa ainda não viu comemorar (`vistas` = a maior meta, em casas, já comemorada). */

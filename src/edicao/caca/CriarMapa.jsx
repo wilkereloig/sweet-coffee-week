@@ -76,7 +76,7 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
         <label className="ct-check"><input type="checkbox" checked={f.ranking} onChange={(e) => muda('ranking', e.target.checked)} /> {T.ranking}</label>
         <label className="ct-check">
           <input type="checkbox" checked={f.aceite} onChange={(e) => muda('aceite', e.target.checked)} required />
-          <span>{T.aceite} <a href={`${EDICAO.caminho}/regulamento`} target="_blank" rel="noopener">{T.regulamento}</a></span>
+          <span>{T.aceite} <a className="ct-link-frase" href={`${EDICAO.caminho}/regulamento`} target="_blank" rel="noopener">{T.regulamento}</a></span>
         </label>
         {erro && <p className="ct-aviso" role="alert">{erro}</p>}
         <div className="ct-acoes"><button type="submit" className="ct-botao" disabled={enviando}>{enviando ? T.criando : botao}</button></div>

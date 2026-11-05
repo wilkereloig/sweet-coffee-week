@@ -26,22 +26,26 @@ export function useAcoesDePremio({ premios, apuracoes, config, recarregar }) {
   const regras = lerRegras(config)
 
   async function acionar(premio, acao) {
-    const def = ACOES[acao]
+    const def = acao === 'confirmar_excecao'
+      ? { rotulo: 'Confirmar com exceção', nota: true, perigo: true, minNota: 10 }
+      : ACOES[acao]
     const quem = premio.apelido
     let texto
-    if (acao === 'substituir') {
+    if (acao === 'confirmar_excecao') {
+      texto = `O e-mail de ${quem} ainda NÃO foi confirmado, e o regulamento exige isso. Confirme só se a organização já falou com a pessoa por outro canal (WhatsApp, por exemplo). Explique como a identidade foi conferida (mínimo 10 caracteres): fica na auditoria.`
+    } else if (acao === 'substituir') {
       const prox = filaDoDia(premio.dia, premios, apuracoes)[0]
       const prazo = regras.segundaChamadaMin
         ? ` O prazo da 2ª chamada é de ${regras.segundaChamadaMin} min${regras.segundaChamadaProposta ? ' (PROPOSTA, ainda não decidida)' : ''}; se o e-mail da pessoa já estiver confirmado, ela entra confirmada, sem prazo.` : ''
       texto = `O prêmio de ${quem} passa a "substituído" e o próximo elegível do dia ${diaBr(premio.dia)} é chamado. `
-        + (prox ? `Prévia de quem entra: ${prox.apelido} (quem decide é o servidor).` : 'Não consigo prever quem entra (a foto do dia mostra só os 10 primeiros); o servidor escolhe e avisa se não houver ninguém.') + prazo
+        + (prox ? `Prévia de quem entra: ${prox.apelido} (quem decide é o servidor).` : 'Não consigo prever quem entra (a tela mostra só os 10 primeiros da foto, mas o servidor olha a foto inteira); o servidor escolhe e avisa se não houver ninguém.') + prazo
     } else texto = TEXTO[acao](quem, premio)
 
     let nota = null
     if (def.nota) {
       const n = await pedirTexto(texto, { rotulo: 'Motivo (fica na auditoria)' }, { titulo: `${def.rotulo}?`, acao: def.rotulo, perigo: def.perigo })
       if (n === null) return
-      if (!n.trim()) { await avisar('Escreva o motivo: ele fica registrado na auditoria.'); return }
+      if (!n.trim() || n.trim().length < (def.minNota || 1)) { await avisar(def.minNota ? `Escreva pelo menos ${def.minNota} caracteres: fica registrado na auditoria.` : 'Escreva o motivo: ele fica registrado na auditoria.'); return }
       nota = n.trim()
     } else if (!await confirmar(texto, { titulo: `${def.rotulo}?`, acao: def.rotulo })) return
 
@@ -111,10 +115,15 @@ export function PremiosTabela({ premios, tipo, podeGerir, contato, config, acoes
                   <td>
                     <div className="cp-acoes">
                       {acoesPossiveis(x).map((a) => (
-                        <Botao key={a} variante={sugeridas.includes(a) ? 'destaque' : 'secundario'} disabled={!!acoes.ocupado}
+                        <Botao key={a} variante={sugeridas.includes(a) ? 'destaque' : 'secundario'} disabled={!!acoes.ocupado || (a === 'confirmar' && x.email_confirmado === false)}
                           aria-busy={acoes.ocupado === x.id + a || undefined}
+                          title={a === 'confirmar' && x.email_confirmado === false ? 'O e-mail da pessoa ainda não foi confirmado: o regulamento exige confirmar antes.' : undefined}
                           aria-label={`${ACOES[a].rotulo}: ${x.apelido}`} onClick={() => acoes.acionar(x, a)}>{ACOES[a].rotulo}</Botao>
                       ))}
+                      {x.estado === 'selecionado' && x.email_confirmado === false && (
+                        <Botao variante="secundario" disabled={!!acoes.ocupado} aria-busy={acoes.ocupado === x.id + 'confirmar_excecao' || undefined}
+                          aria-label={`Confirmar com exceção: ${x.apelido}`} onClick={() => acoes.acionar(x, 'confirmar_excecao')}>Confirmar com exceção</Botao>
+                      )}
                     </div>
                   </td>
                 )}

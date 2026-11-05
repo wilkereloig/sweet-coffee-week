@@ -4,7 +4,7 @@ create or replace function public.pode(p_secret text default null, p_acao text d
 
 do $t$
 declare
-  v_chave text; r jsonb; m jsonb; a jsonb; c record; v_id uuid; v_total int; v_longe record;
+  v_chave text; r jsonb; m jsonb; c record; v_id uuid; v_longe record;
 begin
   insert into public.publicacoes (participacao_id, versao, nivel, conteudo, vigente)
   select distinct pa.id, 999, 'marca_e_combo', '{}'::jsonb, true
@@ -35,21 +35,20 @@ begin
   if not (r ->> 'ok')::boolean then raise exception 'carimbar pela casa recusou: %', r; end if;
   if r ->> 'unidade' <> c.unidade then raise exception 'não escolheu a unidade mais perto: % x %', r ->> 'unidade', c.unidade; end if;
   if (r ->> 'avaliou')::boolean or not (r ->> 'primeira')::boolean then raise exception 'primeira visita errada: %', r; end if;
-  if (r ->> 'pontos')::int <> 0 then raise exception 'carimbo pendente contou ponto: %', r; end if;
 
   m := public.mapa_ler(v_chave);
-  if (m ->> 'pontos')::int <> 0 or (m -> 'casas' -> 0 ->> 'carimbos')::int <> 1 then raise exception 'mapa_ler com pendente: %', m; end if;
+  if (m -> 'casas' -> 0 ->> 'carimbos')::int <> 1 then raise exception 'mapa_ler com pendente: %', m; end if;
 
   r := public.mapa_carimbar_casa(v_chave, c.slug, c.lat, c.lng, 10);
   if r ->> 'motivo' <> 'cedo' then raise exception 'as 12 h não travaram: %', r; end if;
 
   insert into public.avaliacoes (edicao_codigo, participacao_id, nome, email_norm, notas)
   values ('2026.2', c.participacao, 'Teste', 'teste-caca@exemplo.com.br', '{}'::jsonb);
-  if (public.mapa_ler(v_chave) ->> 'pontos')::int <> 3 then raise exception 'avaliar não validou (1 + 2)'; end if;
+  if (public.mapa_ler_v2(v_chave) ->> 'casas_validadas')::int <> 1 then raise exception 'avaliar não validou a casa'; end if;
 
   update public.carimbos set criado_em = now() - interval '13 hours' where mapa_id = v_id;
   r := public.mapa_carimbar_casa(v_chave, c.slug, c.lat, c.lng, 10);
-  if not (r ->> 'ok')::boolean or (r ->> 'primeira')::boolean or (r ->> 'pontos')::int <> 4 then raise exception 'volta à casa: %', r; end if;
+  if not (r ->> 'ok')::boolean or (r ->> 'primeira')::boolean then raise exception 'volta à casa: %', r; end if;
 
   -- Longe de toda unidade conferida: recusa.
   select pa.slug_publico slug into v_longe
@@ -64,27 +63,6 @@ begin
   if public.mapa_carimbar_casa(v_chave, 'casa-que-nao-existe', 0, 0, 10) ->> 'motivo' <> 'qr_invalido' then raise exception 'slug ruim'; end if;
   if public.mapa_carimbar_casa('chave-errada', c.slug, 0, 0, 10) ->> 'motivo' <> 'mapa_desconhecido' then raise exception 'chave ruim'; end if;
 
-  a := public.get_caca_apuracao('x', '2026.2');
-  v_total := (a ->> 'total_casas')::int;
-  if jsonb_array_length(a -> 'apuracoes') <> 5 then raise exception 'apurações: %', a -> 'apuracoes'; end if;
-  if (a -> 'apuracoes' -> 0 ->> 'dia') <> '2026-11-07' or (a -> 'apuracoes' -> 0 -> 'ranking' -> 0 ->> 'carimbos')::int <> 2
-    then raise exception 'ranking do dia 7: %', a -> 'apuracoes' -> 0; end if;
-  if jsonb_array_length(a -> 'sorteio_final') <> 0 or jsonb_array_length(a -> 'reservas') <> 1 then raise exception 'mapa incompleto no sorteio: %', a; end if;
-
-  -- Completa o mapa: entra no sorteio com uma chance por carimbo.
-  insert into public.carimbos (mapa_id, participacao_id, participacao_unidade_id, qr_codigo, conferido)
-  select distinct on (pa.id) v_id, pa.id, pu.id, q.codigo, true
-    from public.publicacoes pb join public.participacoes pa on pa.id = pb.participacao_id and pb.vigente
-    join public.participacao_unidades pu on pu.participacao_id = pa.id and pu.participa
-    join public.carimbo_qr q on q.participacao_unidade_id = pu.id and q.ativo
-   where pa.edicao_codigo = '2026.2' and pa.id <> c.participacao;
-  insert into public.avaliacoes (edicao_codigo, participacao_id, nome, email_norm, notas)
-  select '2026.2', pa.id, 'Teste', 'teste-caca@exemplo.com.br', '{}'::jsonb
-    from public.publicacoes pb join public.participacoes pa on pa.id = pb.participacao_id and pb.vigente
-   where pa.edicao_codigo = '2026.2' and pa.id <> c.participacao;
-  a := public.get_caca_apuracao('x', '2026.2');
-  if jsonb_array_length(a -> 'sorteio_final') <> 1 or (a -> 'sorteio_final' -> 0 ->> 'chances')::int <> v_total + 1
-    then raise exception 'sorteio final: % (total %)', a -> 'sorteio_final', v_total; end if;
-
-  raise exception 'TESTE_OK casas=% casa=%', v_total, c.slug;
+  -- (O trecho de apuração/sorteio v1, com pontos e 'chances', saiu em 05/11/2026: regra extinta; ver caca-premiacao.sql e caca-v2.sql.)
+  raise exception 'TESTE_OK casa=%', c.slug;
 end $t$;

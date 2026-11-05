@@ -161,7 +161,10 @@ begin
   perform pg_temp.espera(format('select public.caca_premio_acao(%L,%L::uuid,%L)', 'x', prem1, 'entregar'), 'transicao_invalida');
   perform pg_temp.espera(format('select public.caca_premio_acao(%L,%L::uuid,%L)', 'x', prem1, 'dançar'), 'acao_invalida');
   perform pg_temp.espera(format('select public.caca_premio_acao(%L,%L::uuid,%L)', 'x', gen_random_uuid(), 'confirmar'), 'premio_nao_encontrado');
+  perform pg_temp.espera(format('select public.caca_premio_acao(%L,%L::uuid,%L)', 'x', prem1, 'confirmar'), 'email_nao_confirmado');   -- 20261218
+  update public.mapas_lover set email_confirmado_em = now() where edicao_codigo = ed and email_norm = (select pessoa from public.caca_premio where id = prem1);
   r := public.caca_premio_acao('x', prem1, 'confirmar', 'conferido');
+  update public.mapas_lover set email_confirmado_em = null where edicao_codigo = ed and email_norm = (select pessoa from public.caca_premio where id = prem1);
   if r -> 'premio' ->> 'estado' <> 'confirmado' or (r -> 'premio' ->> 'prazo_ate') is not null or r -> 'premio' ->> 'motivo' <> 'conferido'
     then raise exception 'confirmar: %', r; end if;
 

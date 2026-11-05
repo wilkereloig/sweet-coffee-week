@@ -1,7 +1,16 @@
 /* Caça aos Carimbos — central, recuperação e blocos das seções (docs/cartoon-2026-2/15-caca-front.md). Só tokens da edição. */
 .ct-caca { max-width: 960px; }
 .ct-caca__voltar { margin: 0 0 8px; }
-.ct-caca__central { display: grid; gap: 20px; margin-top: 8px; }
+/* Alvo de toque ≥ 44 px também para link de texto (E2E-5; CLAUDE.md §6.10). Link avulso ocupa a própria linha; link dentro de frase ganha altura por padding
+   (inline-block com padding e margem negativa iguais aumenta a área tocável sem mexer na altura da linha). */
+.ct-caca__voltar a, .ct-link-solto { display: inline-flex; align-items: center; min-height: 44px; }
+.ct-link-frase { display: inline-block; padding-block: 14px; margin-block: -14px; }
+/* Coluna única que NUNCA passa da largura do celular (E2E-1, 360 px): sem minmax(0, 1fr) a coluna implícita cresce até o filho mais largo
+   (o <select> de casas tem a largura do nome mais comprido) e o texto corta à direita. */
+.ct-caca__central { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin-top: 8px; }
+.ct-caca__central > * { min-width: 0; }
+.ct-caca__central .ct-campo { grid-template-columns: minmax(0, 1fr); }
+.ct-caca__central .ct-campo select { width: 100%; max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 .ct-caca__bloco,
 .ct-caca__progresso,
 .ct-caca__alternativa {

@@ -52,8 +52,8 @@ URLs de compartilhamento, logs e analytics nunca levam chave, token de convite o
 
 ## Pendências / avisos
 
-- `caca-email` responde `email_indisponivel` até haver `RESEND_API_KEY` no projeto: a tela mostra a alternativa honesta (copiar o link pessoal, colar o link, falar com a organização em `/contato`).
-- `src/edicao/cartoon/regulamento.js` ainda descreve "1 ponto por carimbo e +2 por avaliação"; a regra nova (casas diferentes + extras) é decisão de texto jurídico, não tocada aqui.
+- `caca-email` responde `email_indisponivel` quando não há provedor configurado e `falha_temporaria` quando o banco falha (a tela mostra "Tentar de novo"); a falha do provedor não pode ser dita (revelaria se o e-mail tem mapa), então depois de enviar a tela oferece "Não chegou?" com as alternativas honestas (copiar o link pessoal, colar o link, falar com a organização em `/contato`). Estado e como ligar o envio: `15-caca-contrato-identidade.md`.
+- `src/edicao/cartoon/regulamento.js` e a seção do mapa em `src/data/conteudo/legal.js` foram reescritos em 05/11/2026 para a regra efetiva (ver "Regulamento e textos" abaixo). O que depende de decisão do Wilker segue como `{ aDefinir }` e está em `15-caca-publicacao-pendencias.md`.
 - O botão de abrir a Caça na entrada da edição (`Entrada.jsx`) não foi mexido; hoje a Caça está no cabeçalho, no menu do celular e no rodapé (não na barra de abas).
 - Imagens `public/images/caca/*-v1` são propostas e não foram ligadas.
 
@@ -64,3 +64,30 @@ URLs de compartilhamento, logs e analytics nunca levam chave, token de convite o
 - Rota do grupo: lista de planejamento (nunca marca visita), Subir/Descer/Tirar por botão, `p_versao` em toda operação, conflito mostra a rota atual e pede para repetir. A rota pessoal (`/cartoon/minha-rota`, `?u=`) não foi tocada.
 - CSS: `src/styles/cartoon/14-caca-grupos.css`, importado em `src/styles/scw-cartoon.css` logo depois de `13-caca.css`.
 - Testes: `tests/cartoon-caca-grupos.test.mjs` e `tests/cartoon-caca-ranking.test.mjs` (rodam em `npm run test:caca`; `test:cartoon` lista arquivos à mão e ainda não os inclui).
+
+## Frente GPS e pedido de revisão de presença (05/11/2026)
+
+Contrato: `15-caca-contrato-gps.md`; decisão: `15-caca-gps-excecao.md`; coordenadas que faltam: `15-caca-coordenadas-pendentes.md`.
+
+- `rota/carimbo.js › capturarPosicao` (3 tentativas com `watchPosition`, melhor leitura, negada pára na hora; `pedirPosicao` fica como leitura única). Só roda no toque em "Carimbar".
+- `caca/gps.js` (puro): `podePedirPresenca` (2 falhas seguidas + plausível estar na casa), `motivoDoPedido`, `pedidoDaCasa`. Textos em `caca/textos-gps.js` (`GPS`).
+- `caca/PedidoPresenca.jsx`: formulário do pedido (nota opcional de 200 caracteres); só diz "enviado" com `ok` do servidor; nunca promete carimbo.
+- `caca/api.js`: `excecaoPedir(chave, { slug, motivo, lat, lng, precisao, nota })` e `excecaoMinhas(chave)`.
+- `cartoon/paginas/Carimbo.jsx`: progresso "tentativa N de 3", dicas de sinal, orientação por plataforma (`regras.js › ajudaLocalizacao`), estado `pedido` e o status do pedido já feito. A posição fica em memória (ref) e só segue para a RPC do pedido.
+- Estilo: bloco "GPS autônomo…" ao fim de `styles/cartoon/10-carimbo.css`. Testes: `tests/cartoon-caca-gps.test.mjs` (entra em `npm run test:caca`).
+- Painel: aba "Pedidos de presença" (`vistas/caca/Excecoes.jsx`), resumo em "Revisão sem GPS" e faixa nas abas de apuração (`SemGps.jsx`); lógica em `painel-app/src/lib/cacaGps.js`; teste `tests/painel-app-caca-gps.test.mjs` (em `test:organizacao`).
+
+## Regulamento e textos (05/11/2026)
+
+Texto público conferido frase a frase contra as migrations 20261203 a 20261220 e os contratos `15-caca-contrato-*.md`.
+
+- `src/edicao/cartoon/regulamento.js`: casas diferentes e extras, avaliação para validar o 1º carimbo (ordem livre), 12 horas, QR + localização,
+  pedido de revisão de presença (decisão da organização), vouchers de 7 a 11/11 (corte 23h59 de Natal, desempate, 1 por pessoa, e-mail
+  confirmado, prazos), prêmio final (todas as casas, peso 100 + 1 por extra, 3 ganhadores, sorteio verificável), ranking, grupos e metas
+  (sem prêmio), e-mail e recuperação, avisos e app (sem promessa de entrega), dados. Três lacunas ficam marcadas como `aDefinir`
+  (idade mínima, data e forma de entrega do prêmio final, prazo de guarda). O total de casas não é escrito no texto (hoje 26 ou 27, conforme o combo da Caroli Douces).
+- `src/data/conteudo/legal.js` (Política de Privacidade): dados do mapa, e-mail, localização só no instante do carimbo com distância e margem guardadas,
+  pedido de revisão, grupos, avisos, ranking, registro de prêmio, IP embaralhado por 2 dias, apagar mapa, retenção "ainda não definida".
+- Textos da Caça (`caca/textos*.js`): a frase do mapa completo diz "concorre ao prêmio final".
+- Painel (`CarimbosMapa.jsx`): a pontuação antiga ficou rotulada como legado extinto; a nota dos adesivos descreve a regra da unidade sem ponto.
+- Testes que travam o texto: `tests/cartoon-caca-regras.test.mjs` (regulamento) e `tests/cartoon-caca-textos-regras.test.mjs` (regras efetivas e frases proibidas).

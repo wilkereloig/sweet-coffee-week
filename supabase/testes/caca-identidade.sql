@@ -38,51 +38,51 @@ begin
   if (select count(*) from public.mapa_codigo) <> 0 then raise exception 'linhas de código indevidas'; end if;
 
   -- 3. Limite: o pedido do e-mail inexistente (acima) e o de um existente contam igual. 1/min e 5/hora.
-  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar');
+  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar', ch_b);
   if not (r ->> 'enviar')::boolean or (r ->> 'codigo') !~ '^\d{6}$' then raise exception 'B deveria receber código: %', r; end if;
   cod := r ->> 'codigo';
-  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar');
+  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar', ch_b);
   if (r ->> 'enviar')::boolean or not (r ->> 'limitado')::boolean then raise exception '2º pedido no mesmo minuto deveria ser limitado: %', r; end if;
   r := public.mapa_codigo_emitir_interno(ed, 'naoexiste@exemplo.com.br', 'confirmar');   -- inexistente: 1º pedido do minuto, nada a enviar
   r2 := public.mapa_codigo_emitir_interno(ed, 'naoexiste@exemplo.com.br', 'confirmar');
   if not (r2 ->> 'limitado')::boolean then raise exception 'limite deveria valer igual para e-mail sem mapa: %', r2; end if;
   -- 5 por hora: recua o minuto, e vê o 6º ser barrado mesmo sem o minuto.
   for i in 1..4 loop
-    update public.mapa_codigo_pedido set criado_em = now() - interval '2 minutes' - (id::text || ' seconds')::interval where criado_em > now() - interval '1 minute';
-    r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar');
+    update public.mapa_codigo_pedido set criado_em = now() - interval '2 minutes' - ((id % 600)::text || ' seconds')::interval where criado_em > now() - interval '1 minute';
+    r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar', ch_b);
   end loop;
-  update public.mapa_codigo_pedido set criado_em = now() - interval '2 minutes' - (id::text || ' seconds')::interval where criado_em > now() - interval '1 minute';
-  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar');
+  update public.mapa_codigo_pedido set criado_em = now() - interval '2 minutes' - ((id % 600)::text || ' seconds')::interval where criado_em > now() - interval '1 minute';
+  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar', ch_b);
   if (r ->> 'enviar')::boolean or not (r ->> 'limitado')::boolean then raise exception '6º pedido na hora deveria ser limitado: %', r; end if;
   -- passou a hora: libera.
   update public.mapa_codigo_pedido set criado_em = now() - interval '2 hours';
   delete from public.mapa_codigo;
 
   -- 4. Validar: errado, certo, reuso. Código só em hash.
-  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar');
+  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar', ch_b);
   cod := r ->> 'codigo';
   if exists (select 1 from public.mapa_codigo where codigo_hash = cod or length(codigo_hash) <> 64) then raise exception 'código não está só em hash'; end if;
   if (public.mapa_confirmar_email_status(ch_b) ->> 'confirmado')::boolean then raise exception 'B não deveria estar confirmado ainda'; end if;
   cod2 := lpad(((cod::int + 1) % 1000000)::text, 6, '0');
-  r := public.mapa_codigo_validar(ed, 'pessoab@exemplo.com.br', cod2, 'confirmar');
+  r := public.mapa_codigo_validar(ed, 'pessoab@exemplo.com.br', cod2, 'confirmar', ch_b);
   if r <> '{"ok": false, "motivo": "codigo_invalido"}'::jsonb then raise exception 'código errado: %', r; end if;
   if (select tentativas from public.mapa_codigo limit 1) <> 1 then raise exception 'tentativa não contou'; end if;
   r := public.mapa_codigo_validar(ed, 'pessoab@exemplo.com.br', cod, 'recuperar');   -- finalidade trocada
   if (r ->> 'ok')::boolean then raise exception 'código de confirmar serviu para recuperar'; end if;
-  r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'confirmar');   -- outra pessoa
+  r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'confirmar', ch_a1);   -- outra pessoa
   if (r ->> 'ok')::boolean then raise exception 'código de B serviu para A'; end if;
-  r := public.mapa_codigo_validar(ed, 'naoexiste@exemplo.com.br', cod, 'confirmar'); -- e-mail sem mapa responde igual a código errado
+  r := public.mapa_codigo_validar(ed, 'naoexiste@exemplo.com.br', cod, 'confirmar', ch_b); -- e-mail sem mapa responde igual a código errado
   if r <> '{"ok": false, "motivo": "codigo_invalido"}'::jsonb then raise exception 'e-mail sem mapa respondeu diferente: %', r; end if;
-  r := public.mapa_codigo_validar(ed, ' PessoaB@exemplo.com.br ', cod, 'confirmar');
+  r := public.mapa_codigo_validar(ed, ' PessoaB@exemplo.com.br ', cod, 'confirmar', ch_b);
   if r <> '{"ok": true, "finalidade": "confirmar"}'::jsonb then raise exception 'código certo não confirmou: %', r; end if;
   if not (public.mapa_confirmar_email_status(ch_b) ->> 'confirmado')::boolean then raise exception 'status não mostra confirmado'; end if;
   if not public.caca_email_confirmado(ed, 'pessoab@exemplo.com.br') then raise exception 'caca_email_confirmado'; end if;
-  r := public.mapa_codigo_validar(ed, 'pessoab@exemplo.com.br', cod, 'confirmar');   -- reuso
+  r := public.mapa_codigo_validar(ed, 'pessoab@exemplo.com.br', cod, 'confirmar', ch_b);   -- reuso
   if (r ->> 'ok')::boolean then raise exception 'código reutilizado'; end if;
   if (select ultimo_acesso_em from public.mapas_lover where chave_hash = public.mapa_hash(ch_b)) is null then raise exception 'ultimo_acesso_em não gravou'; end if;
   -- já confirmado: nada a enviar (e não vaza).
   update public.mapa_codigo_pedido set criado_em = now() - interval '2 hours';
-  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar');
+  r := public.mapa_codigo_emitir_interno(ed, 'pessoab@exemplo.com.br', 'confirmar', ch_b);
   if (r ->> 'enviar')::boolean then raise exception 'já confirmado não deveria receber código'; end if;
   -- chave desconhecida
   r := public.mapa_confirmar_email_status('chave-errada');
@@ -90,17 +90,17 @@ begin
 
   -- 5. Vencido e tentativas esgotadas.
   update public.mapa_codigo_pedido set criado_em = now() - interval '2 hours';
-  r := public.mapa_codigo_emitir_interno(ed, 'pessoaa@exemplo.com.br', 'confirmar');
+  r := public.mapa_codigo_emitir_interno(ed, 'pessoaa@exemplo.com.br', 'confirmar', ch_a1);
   cod := r ->> 'codigo';
   update public.mapa_codigo set expira_em = now() - interval '1 second' where finalidade = 'confirmar' and usado_em is null;
-  r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'confirmar');
+  r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'confirmar', ch_a1);
   if (r ->> 'ok')::boolean then raise exception 'código vencido valeu'; end if;
   update public.mapa_codigo_pedido set criado_em = now() - interval '2 hours';
-  r := public.mapa_codigo_emitir_interno(ed, 'pessoaa@exemplo.com.br', 'confirmar');   -- pedido novo invalida o anterior
+  r := public.mapa_codigo_emitir_interno(ed, 'pessoaa@exemplo.com.br', 'confirmar', ch_a1);   -- (desde 20261216 o pedido novo NÃO invalida o anterior)
   cod := r ->> 'codigo';
   cod2 := lpad(((cod::int + 7) % 1000000)::text, 6, '0');
-  for i in 1..5 loop perform public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod2, 'confirmar'); end loop;
-  r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'confirmar');       -- certo, mas já passou de 5 erros
+  for i in 1..5 loop perform public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod2, 'confirmar', ch_a1); end loop;
+  r := public.mapa_codigo_validar(ed, 'pessoaa@exemplo.com.br', cod, 'confirmar', ch_a1);       -- certo, mas já passou de 5 erros
   if (r ->> 'ok')::boolean then raise exception 'passou de 5 tentativas e ainda valeu'; end if;
   if (select tentativas from public.mapa_codigo where finalidade = 'confirmar' and usado_em is null order by criado_em desc limit 1) > 5 then raise exception 'tentativas passou de 5'; end if;
 
@@ -143,13 +143,13 @@ begin
   -- 8. Privilégios: anon não toca tabelas nem funções internas; anon pode validar/status/criar_v2; service_role pode emitir.
   if has_table_privilege('anon', 'public.mapa_codigo', 'select') or has_table_privilege('authenticated', 'public.caca_segredo', 'select')
      or has_table_privilege('anon', 'public.mapa_codigo_pedido', 'insert') then raise exception 'tabela aberta'; end if;
-  if has_function_privilege('anon', 'public.mapa_codigo_emitir_interno(text,text,text)', 'execute')
-     or has_function_privilege('authenticated', 'public.mapa_codigo_emitir_interno(text,text,text)', 'execute')
+  if has_function_privilege('anon', 'public.mapa_codigo_emitir_interno(text,text,text,text,text)', 'execute')
+     or has_function_privilege('authenticated', 'public.mapa_codigo_emitir_interno(text,text,text,text,text)', 'execute')
      or has_function_privilege('anon', 'public.mapa_codigo_pedir(text,text,text)', 'execute')
      or has_function_privilege('anon', 'public.caca_email_confirmado(text,text)', 'execute')
      or has_function_privilege('anon', 'public.caca_hash_texto(text)', 'execute') then raise exception 'função interna aberta ao anon'; end if;
-  if not has_function_privilege('service_role', 'public.mapa_codigo_emitir_interno(text,text,text)', 'execute') then raise exception 'service_role sem emitir'; end if;
-  if not (has_function_privilege('anon', 'public.mapa_codigo_validar(text,text,text,text)', 'execute')
+  if not has_function_privilege('service_role', 'public.mapa_codigo_emitir_interno(text,text,text,text,text)', 'execute') then raise exception 'service_role sem emitir'; end if;
+  if not (has_function_privilege('anon', 'public.mapa_codigo_validar(text,text,text,text,text)', 'execute')
           and has_function_privilege('anon', 'public.mapa_confirmar_email_status(text)', 'execute')
           and has_function_privilege('anon', 'public.mapa_criar_v2(text,text,text,text,boolean,boolean)', 'execute')) then raise exception 'anon sem as funções públicas'; end if;
 

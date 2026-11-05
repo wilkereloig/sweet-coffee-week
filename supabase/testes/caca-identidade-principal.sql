@@ -24,8 +24,8 @@ begin
   kv1 := public.mapa_criar_v2(ed, 'Vitima', 'vitima@exemplo.com.br', '85999990001', true, true) ->> 'chave';
   select id into id_v1 from public.mapas_lover where chave_hash = public.mapa_hash(kv1);
   update public.mapas_lover set criado_em = now() - interval '3 days' where id = id_v1;
-  r := public.mapa_codigo_emitir_interno(ed, 'vitima@exemplo.com.br', 'confirmar');
-  r := public.mapa_codigo_validar(ed, 'vitima@exemplo.com.br', r ->> 'codigo', 'confirmar');
+  r := public.mapa_codigo_emitir_interno(ed, 'vitima@exemplo.com.br', 'confirmar', kv1);
+  r := public.mapa_codigo_validar(ed, 'vitima@exemplo.com.br', r ->> 'codigo', 'confirmar', kv1);
   if not (r ->> 'ok')::boolean then raise exception 'V não confirmou: %', r; end if;
   kv2 := public.mapa_criar_v2(ed, 'Atacante', 'vitima@exemplo.com.br', '85988880002', false, true) ->> 'chave';
   select id into id_v2 from public.mapas_lover where chave_hash = public.mapa_hash(kv2);
@@ -104,7 +104,8 @@ begin
   for i in 1..305 loop perform public.mapa_criar_v2(ed, 'Massa' || i, 'massa' || i || '@exemplo.com.br', null, false, true); end loop;
   update public.mapa_codigo_pedido set criado_em = now() - interval '2 hours';
   for i in 1..505 loop perform public.mapa_codigo_emitir_interno(ed, 'nx' || i || '@exemplo.com.br', 'confirmar'); end loop;
-  r := public.mapa_codigo_emitir_interno(ed, 'massa7@exemplo.com.br', 'confirmar');
+  ko := public.mapa_criar_v2(ed, 'Massa7b', 'massa7b@exemplo.com.br', null, false, true) ->> 'chave';
+  r := public.mapa_codigo_emitir_interno(ed, 'massa7b@exemplo.com.br', 'confirmar', ko);
   if not (r ->> 'enviar')::boolean or r ? 'limitado' then raise exception 'teto global bloqueou um usuário legítimo: %', r; end if;
 
   -- 8. Limite por IP (quando o cabeçalho chega): 60 mapas em 10 min por IP; outro IP segue livre.

@@ -48,4 +48,7 @@
 .cp-metas__linha { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--e-2) var(--e-3); }
 .cp-metas__linha .og-campo { flex: 0 1 9rem; }
 .cp-metas__linha .cp-metas__titulo { flex: 1 1 14rem; }
+.cp-metas__linha .og-campo select { min-height: 44px; }
+.cp-metas__vale { margin: 0; flex: 0 0 100%; }
 .cp-erros { margin: 0; padding-left: 1.6em; display: grid; gap: 4px; }
+.cp-aviso-gps { margin: 0; padding: var(--e-2) var(--e-3); border-radius: var(--r-2); background: var(--sup-2); box-shadow: inset 0 0 0 2px var(--scw-laranja); }

@@ -5,7 +5,7 @@ do $t$
 declare
   ed constant text := '2026.2';
   hx record; hy record; hz record; hw record;
-  k_p1 text; k_p2 text; k_p3 text; id_p2 uuid; id_p3 uuid; r jsonb; v_total int; v_esperado int; v_antes int;
+  k_p1 text; k_p2 text; k_p3 text; k_c1 text; id_p2 uuid; id_p3 uuid; r jsonb; v_total int; v_esperado int; v_antes int;
 begin
   -- Todas as casas com QR publicadas e com combo; depois cada cenário muda a sua.
   insert into public.publicacoes (participacao_id, versao, nivel, conteudo, vigente)
@@ -69,6 +69,30 @@ begin
   values (ed, hx.participacao, 'Teste', 'p2@exemplo.com.br', '{}'::jsonb, now() - interval '4 hours');
   if (select k.origem from public.carimbos k where k.mapa_id = id_p2) <> 'unidade_sem_coordenada' then raise exception 'origem do carimbo sem coordenada'; end if;
   if exists (select 1 from public.caca_placar_v2(ed) p where p.pessoa = 'p2@exemplo.com.br') then raise exception 'carimbo sem GPS contou em casa com unidade conferida'; end if;
+  -- C01 (20261217): o GPS é decidido pela CASA. QR da unidade sem ponto numa casa com unidade conferida: mede até a conferida.
+  k_c1 := public.mapa_criar_v2(ed, 'C1', 'c1@exemplo.com.br', null, true, true) ->> 'chave';
+  r := public.mapa_carimbar(k_c1, hx.qrs[2], 0, 0, 10);
+  if r ->> 'motivo' is distinct from 'longe' then raise exception 'unidade sem ponto, celular longe da conferida: %', r; end if;
+  r := public.mapa_carimbar(k_c1, hx.qrs[2], null, null, null);
+  if r ->> 'motivo' is distinct from 'sem_localizacao' then raise exception 'unidade sem ponto, sem GPS: %', r; end if;
+  r := public.mapa_carimbar(k_c1, hx.qrs[2], 'Infinity'::numeric, 'NaN'::numeric, 10);   -- 20261217: coordenada invalida nunca vira erro de banco
+  if r ->> 'motivo' is distinct from 'sem_localizacao' then raise exception 'unidade sem ponto, Infinity: %', r; end if;
+  r := public.mapa_carimbar(k_c1, hx.qrs[2], -5.8, -35.2, 10);
+  if not (r ->> 'ok')::boolean or (select k.origem from public.carimbos k join public.mapas_lover m on m.id = k.mapa_id
+                                    where m.email_norm = 'c1@exemplo.com.br' and k.participacao_id = hx.participacao) <> 'gps'
+    then raise exception 'unidade sem ponto, celular na conferida: deveria carimbar com origem gps: %', r; end if;
+  if r ? 'pontos' then raise exception 'pontos é regra extinta'; end if;
+  -- C02: casa sem NENHUM ponto conferido não carimba só pelo QR (padrão revisao); com 'conta' (decisão do Wilker) volta ao antigo.
+  r := public.mapa_carimbar(k_c1, hy.qr, null, null, null);
+  if r ->> 'motivo' is distinct from 'sem_ponto' then raise exception 'QR sozinho deveria recusar com sem_ponto: %', r; end if;
+  r := public.mapa_carimbar(k_c1, hy.qr, -5.8, -35.2, 10);
+  if r ->> 'motivo' is distinct from 'sem_ponto' then raise exception 'com GPS também (não há ponto para comparar): %', r; end if;
+  if exists (select 1 from public.carimbos k join public.mapas_lover m on m.id = k.mapa_id where m.email_norm = 'c1@exemplo.com.br' and k.participacao_id = hy.participacao)
+    then raise exception 'sem_ponto não pode gravar carimbo'; end if;
+  if public.caca_carimbo_conta(hy.participacao, 'unidade_sem_coordenada') then raise exception 'carimbo sem ponto contou no modo revisao'; end if;
+  update public.caca_config set valor = '"conta"'::jsonb where chave = 'carimbo_sem_ponto';
+  if not public.caca_carimbo_conta(hy.participacao, 'unidade_sem_coordenada') then raise exception 'modo conta deveria contar em casa sem ponto'; end if;
+  if public.caca_carimbo_conta(hx.participacao, 'unidade_sem_coordenada') then raise exception 'casa com ponto nunca conta sem GPS'; end if;
   -- Já em casa em que NENHUMA unidade tem coordenada conferida, o carimbo sem GPS conta (decisão pendente do Wilker, ver 15-caca-gps-excecao.md).
   insert into public.carimbos (mapa_id, participacao_id, participacao_unidade_id, qr_codigo, conferido, criado_em)
   values (id_p2, hy.participacao, hy.pu, hy.qr, false, now() - interval '3 hours');
