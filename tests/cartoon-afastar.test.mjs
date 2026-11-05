@@ -154,3 +154,17 @@ test('mapa real: o limite do selo sobe de perto (12) e some a partir do zoom 16'
   assert.deepEqual(fundo.grupos, [], 'no zoom 16 ninguém fica num selo')
   assert.equal(fundo.desloc.size, 13)
 })
+
+test('selo de grupo não fica em cima de pin nem de outro selo: quem ele cobriria entra no grupo', () => {
+  const grupo = Array.from({ length: 8 }, (_, i) => pin(`g${i}`, 500, 400))
+  const vizinho = pin('v', 500 + 30, 400 - 10) // dentro dos 48 px do selo
+  const r = afastarPins([...grupo, vizinho])
+  assert.equal(r.grupos.length, 1)
+  assert.ok(r.grupos[0].ids.includes('v'), 'o vizinho foi para dentro do selo')
+  const outro = Array.from({ length: 8 }, (_, i) => pin(`h${i}`, 500 + 150, 400))
+  const dois = afastarPins([...grupo, ...outro])
+  assert.equal(dois.grupos.length, 2, 'dois selos longe um do outro continuam dois')
+  const colados = afastarPins([...grupo, ...Array.from({ length: 8 }, (_, i) => pin(`h${i}`, 500 + 120, 400))])
+  assert.ok(colados.grupos.length >= 1)
+  for (const a of colados.grupos) for (const b of colados.grupos) if (a !== b) assert.ok(Math.hypot(a.x - b.x, a.y - b.y) >= 48 || false, 'selos não se tocam')
+})

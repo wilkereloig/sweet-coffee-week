@@ -9,7 +9,8 @@
  *  · Grupo de 2 a `limite` pins: cada pin vai para um lugar de um anel em volta do grupo, e nenhum corpo cobre o ponto verdadeiro
  *    de outro (o fio precisa terminar num ponto visível). O pin vai para o lugar mais perto do seu ponto, sem cruzar fios.
  *  · Depois do afastamento um pin pode passar a cobrir outro de fora: os grupos se juntam e o desenho é refeito.
- *  · Grupo maior que `limite` (zoom longe): ninguém é afastado; sai em `grupos` para virar um selo "+N", que ao tocar aproxima.
+ *  · Grupo maior que `limite` (zoom longe): ninguém é afastado; sai em `grupos` para virar um selo "+N", que ao tocar aproxima. O selo é uma
+ *    caixa de 48 px no centro do grupo: pin ou outro selo que ele cobriria entra no grupo (nada fica debaixo de um selo).
  *    Com `limite: Infinity` (zoom perto) nunca agrupa: todo mundo é afastado.
  *  · Estável: a ordem vem do `id`, nunca da ordem da lista; mesmos pontos e mesmo zoom → mesmo desenho. Quem chama recalcula
  *    só quando o zoom assenta, não a cada arrasto (o arrasto não muda a posição relativa dos pins).
@@ -21,6 +22,7 @@ export const LIMITE_GRUPO = 6
 const FOLGA = 2 // px: separação mínima para o par NÃO contar como colisão
 const ESPACO = 8 // px: respiro entre os pins no anel
 const VOLTAS_MAX = 12
+const SELO = 48 // px: o selo de grupo (disco de 44 px + o contorno)
 
 /** Projeção Web Mercator para pixels de mundo no zoom dado. `tile`: 256 no Google, 512 no MapLibre. Só as diferenças importam. */
 export function projetar (lat, lng, zoom, tile = 256) {
@@ -96,12 +98,15 @@ export function afastarPins (itens, { folga = FOLGA, limite = LIMITE_GRUPO } = {
     const grupos = new Map()
     lista.forEach((_, i) => { const r = raiz(i); if (!grupos.has(r)) grupos.set(r, []); grupos.get(r).push(i) })
     desloc = new Map(); grande = []
+    const selos = [] // a caixa de cada selo de grupo: ele também não pode cobrir pin nenhum nem outro selo
     const corpoDe = new Map() // índice → caixa onde o pin está desenhado agora
     for (const idx of grupos.values()) {
       if (idx.length === 1) { corpoDe.set(idx[0], originais[idx[0]]); continue }
       const membros = idx.map((i) => lista[i])
       if (idx.length > limite) {
-        grande.push({ ids: membros.map((m) => m.id), x: membros.reduce((s, m) => s + m.x, 0) / idx.length, y: membros.reduce((s, m) => s + m.y, 0) / idx.length })
+        const g = { ids: membros.map((m) => m.id), x: membros.reduce((s, m) => s + m.x, 0) / idx.length, y: membros.reduce((s, m) => s + m.y, 0) / idx.length }
+        grande.push(g)
+        selos.push({ idx, caixa: { e: g.x - SELO / 2, d: g.x + SELO / 2, t: g.y - SELO / 2, b: g.y + SELO / 2 } })
         for (const i of idx) corpoDe.set(i, originais[i])
         continue
       }
@@ -114,6 +119,10 @@ export function afastarPins (itens, { folga = FOLGA, limite = LIMITE_GRUPO } = {
       for (let b = a + 1; b < n; b++) {
         if (raiz(a) !== raiz(b) && batem(corpoDe.get(a), corpoDe.get(b), folga)) { unir(a, b); juntou = true }
       }
+    }
+    for (const sl of selos) {
+      for (let i = 0; i < n; i++) if (!sl.idx.includes(i) && batem(sl.caixa, corpoDe.get(i), 0)) { unir(i, sl.idx[0]); juntou = true }
+      for (const o of selos) if (o !== sl && o.idx[0] < sl.idx[0] && batem(sl.caixa, o.caixa, 0)) { unir(o.idx[0], sl.idx[0]); juntou = true }
     }
     if (!juntou) break
   }
