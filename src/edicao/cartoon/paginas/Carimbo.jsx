@@ -1,145 +1,59 @@
 /*
- * Caça aos Carimbos — a página que o QR abre (docs/cartoon-2026-2/14 §14.3 e §14.14):
+ * Caça aos Carimbos — a página que o QR abre (docs/cartoon-2026-2/14 §14.3 e §14.14; 15-caca-especificacao §2, §3, §12):
  *   /cartoon/carimbo/<código da unidade>  QR do balcão (8 caracteres);
  *   /cartoon/carimbo/<slug da casa>        QR do display de mesa (/q/d1-<casa>): mostra "Ver o combo" e "Carimbar",
  *                                          e o banco escolhe a unidade da casa mais perto do celular.
  * Sem mapa no aparelho: começa um (sem senha) ou cola o link pessoal. Com mapa: um toque pede a posição e carimba.
- * Primeira vez na casa = carimbo PENDENTE até avaliar o combo (Wilker, 04/11). Regras e limites são do banco
- * (`mapa_carimbar` / `mapa_carimbar_casa`); aqui só se pede, mostra e explica.
+ * Primeira vez na casa = carimbo PENDENTE até avaliar o combo (a ordem entre carimbar e avaliar é livre). Regras e
+ * limites são do banco (`mapa_carimbar` / `mapa_carimbar_casa`); aqui só se pede, mostra e explica, e nada é dado como
+ * gravado sem a confirmação do servidor. A criação do mapa e o guardar vivem em src/edicao/caca/.
  */
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import { Link, Logo } from '../../componentes/base.jsx'
 import * as C from '../../rota/carimbo.js'
+import { api } from '../../caca/api.js'
+import { ajudaLocalizacao, resumoProgresso } from '../../caca/regras.js'
+import { CACA, CACA_CAMINHOS } from '../../caca/textos.js'
+import { CriarMapa } from '../../caca/CriarMapa.jsx'
+import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
 
-const pontos = (n) => `${n} ${n === 1 ? 'ponto' : 'pontos'}`
 const SLUG_CASA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const T = CACA.carimbo
 
-const COMO_LIGAR = [
-  ['No iPhone', 'Ajustes › Privacidade e Segurança › Serviços de Localização › Safari (ou o navegador que você usa) › "Durante o Uso".'],
-  ['No Android', 'toque no cadeado ao lado do endereço do site › Permissões › Localização › Permitir.'],
-]
-
-export function GuardarMapa ({ chave }) {
-  const [copiado, setCopiado] = React.useState(false)
-  const link = C.linkDoMapa(globalThis.location?.origin || '', chave)
-  const zap = `https://wa.me/?text=${encodeURIComponent(`Meu Mapa da Doçura. Guardo este link para não perder meus carimbos: ${link}`)}`
-  const copiar = async () => {
-    try { await navigator.clipboard.writeText(link); setCopiado(true) } catch { setCopiado(false) }
-  }
+function AjudaDeLocalizacao ({ ajuda }) {
   return (
-    <div className="ct-carimbar__guardar">
-      <p className="ct-sub">Guarde seu mapa</p>
-      <p className="ct-nota">Seus carimbos ficam neste aparelho. Mande o link para você mesmo: com ele, o mapa abre em qualquer celular.</p>
-      <div className="ct-acoes">
-        <a className="ct-botao" href={zap} target="_blank" rel="noopener noreferrer">Mandar no WhatsApp</a>
-        <button type="button" className="ct-botao ct-botao--contorno" onClick={copiar}>{copiado ? 'Link copiado' : 'Copiar o link'}</button>
-      </div>
-      <p className="ct-sr" aria-live="polite">{copiado ? 'Link copiado.' : ''}</p>
-    </div>
-  )
-}
-
-function ComecarMapa ({ aoAbrir, titulo = 'Primeira vez? Comece seu mapa', nota = 'Sem senha e sem cadastro longo. Leva meio minuto.', botao = 'Começar e carimbar', comLink = true }) {
-  // Nome, e-mail e WhatsApp já digitados na avaliação (perfil do aparelho) chegam preenchidos.
-  const [f, setF] = React.useState(() => {
-    const p = C.lerPerfil(EDICAO.codigo)
-    return { apelido: p.nome.slice(0, 24), email: p.email, whatsapp: p.whatsapp, ranking: false, aceite: false }
-  })
-  const [erro, setErro] = React.useState('')
-  const [enviando, setEnviando] = React.useState(false)
-  const [colado, setColado] = React.useState('')
-  const [erroLink, setErroLink] = React.useState('')
-  const muda = (k, v) => setF((x) => ({ ...x, [k]: v }))
-
-  async function criar (e) {
-    e.preventDefault()
-    setEnviando(true); setErro('')
-    try {
-      const r = await C.chamar('mapa_criar', {
-        p_edicao: EDICAO.codigo, p_apelido: f.apelido, p_email: f.email, p_whatsapp: f.whatsapp || null, p_ranking: f.ranking, p_aceite: f.aceite,
-      })
-      if (!C.chaveValida(r?.chave)) throw new Error('resposta')
-      C.gravarChave(EDICAO.codigo, r.chave) // sem storage, o mapa segue nesta visita; o link pessoal salva o resto
-      C.gravarPerfil(EDICAO.codigo, { nome: f.apelido, email: f.email, whatsapp: f.whatsapp })
-      aoAbrir(r.chave, true)
-    } catch (err) { setErro(C.mensagemCriar(err.message)) } finally { setEnviando(false) }
-  }
-  function abrirPeloLink (e) {
-    e.preventDefault()
-    const t = colado.trim(); const i = t.indexOf('#')
-    const chave = C.chaveDoHash(i >= 0 ? t.slice(i) : `#mapa=${t}`)
-    if (!chave) { setErroLink('Esse não parece o link do seu mapa. Ele termina com #mapa= e uma sequência de letras.'); return }
-    C.gravarChave(EDICAO.codigo, chave)
-    aoAbrir(chave, false)
-  }
-
-  return (
-    <>
-      <form className="ct-form ct-carimbar__form" onSubmit={criar} noValidate aria-labelledby="mapa-novo">
-        <p id="mapa-novo" className="ct-sub">{titulo}</p>
-        <p className="ct-nota">{nota}</p>
-        <label className="ct-campo"><span>Apelido (aparece no ranking, se você quiser)</span>
-          <input type="text" autoComplete="nickname" value={f.apelido} maxLength={24} onChange={(e) => muda('apelido', e.target.value)} required />
-        </label>
-        <label className="ct-campo"><span>E-mail</span>
-          <input type="email" autoComplete="email" value={f.email} maxLength={160} onChange={(e) => muda('email', e.target.value)} required />
-          <small>É com ele que você avalia os combos e ganha os pontos extras.</small>
-        </label>
-        <label className="ct-campo"><span>WhatsApp (opcional, para avisar se você ganhar)</span>
-          <input type="tel" autoComplete="tel" inputMode="tel" value={f.whatsapp} maxLength={20} onChange={(e) => muda('whatsapp', e.target.value)} />
-        </label>
-        <label className="ct-check"><input type="checkbox" checked={f.ranking} onChange={(e) => muda('ranking', e.target.checked)} /> Quero aparecer no ranking</label>
-        <label className="ct-check">
-          <input type="checkbox" checked={f.aceite} onChange={(e) => muda('aceite', e.target.checked)} required />
-          <span>Li e aceito o <a href={`${EDICAO.caminho}/regulamento`} target="_blank" rel="noopener">regulamento</a></span>
-        </label>
-        {erro && <p className="ct-aviso" role="alert">{erro}</p>}
-        <div className="ct-acoes"><button type="submit" className="ct-botao" disabled={enviando}>{enviando ? 'Criando…' : botao}</button></div>
-      </form>
-
-      {comLink && <details className="ct-carimbar__ja-tenho">
-        <summary>Já tenho mapa: abrir pelo meu link</summary>
-        <form onSubmit={abrirPeloLink} noValidate>
-          <label className="ct-campo"><span>Cole aqui o link do seu mapa</span>
-            <input type="url" value={colado} onChange={(e) => { setColado(e.target.value); setErroLink('') }} />
-          </label>
-          {erroLink && <p className="ct-aviso" role="alert">{erroLink}</p>}
-          <div className="ct-acoes"><button type="submit" className="ct-botao ct-botao--contorno">Abrir meu mapa</button></div>
-        </form>
-      </details>}
-    </>
+    <ul className="ct-carimbar__como">
+      {ajuda.passos.map(([onde, passos]) => <li key={onde}><strong>{onde}:</strong> {passos}</li>)}
+    </ul>
   )
 }
 
 /*
- * Depois de avaliar (tela de sucesso do formulário): a avaliação já conta na Caça aos Carimbos. Com mapa no aparelho,
- * avisa que valida o carimbo da casa; sem mapa, oferece criar um com os mesmos dados (já preenchidos).
+ * Depois de avaliar (tela de sucesso do formulário): a avaliação também vale na Caça aos Carimbos. Com mapa no aparelho,
+ * avisa que valida o carimbo da casa (e que carimbar é presencial); sem mapa, oferece criar um com os mesmos dados.
  */
 export function CacaAposAvaliar ({ casa, navigate }) {
   const [chave, setChave] = React.useState(() => C.lerChave(EDICAO.codigo))
   const [novo, setNovo] = React.useState(false)
-  const verMapa = <Link href={`${EDICAO.caminho}/minha-rota?painel=album`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver meu mapa</Link>
+  const A = CACA.aposAvaliar
   return (
     <div className="ct-carimbar__avaliar">
-      <p className="ct-rotulo">Caça aos Carimbos</p>
+      <p className="ct-rotulo">{T.rotulo}</p>
       {chave
         ? (
           <>
-            <p className="ct-sub">{novo ? 'Mapa criado! Agora é só carimbar' : 'Sua avaliação vale na Caça aos Carimbos'}</p>
-            <p className="ct-nota">
-              Ela valida o carimbo {casa ? `da ${casa}` : 'desta casa'}: já carimbou, ele conta agora; ainda não, escaneie o QR do display na casa.
-              Cada carimbo conta para os vouchers (7 a 11/11) e para o prêmio final.
-            </p>
+            <p className="ct-sub">{novo ? A.mapaCriado : A.titulo}</p>
+            <p className="ct-nota">{A.textoComMapa(casa)}</p>
             {novo && <GuardarMapa chave={chave} />}
-            <div className="ct-acoes">{verMapa}</div>
+            <div className="ct-acoes"><Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-botao ct-botao--contorno">{T.central}</Link></div>
           </>
           )
         : (
-          <ComecarMapa
-            titulo="Essa avaliação te coloca na Caça aos Carimbos!"
-            nota="Crie seu mapa com os mesmos dados e concorra a vouchers e ao prêmio final. Depois é só escanear o QR do display em cada casa."
-            botao="Criar meu mapa"
+          <CriarMapa
+            titulo={A.criarTitulo}
+            nota={A.criarNota}
+            botao={A.criarAcao}
             comLink={false}
             aoAbrir={(k) => { setChave(k); setNovo(true) }}
           />
@@ -171,13 +85,15 @@ export function Carimbo ({ codigo, navigate, dados }) {
         ? await C.chamar('mapa_carimbar_casa', { p_chave: k, p_slug: codigo, ...onde })
         : await C.chamar('mapa_carimbar', { p_chave: k, p_qr: codigo, ...onde })
       if (resp?.motivo === 'mapa_desconhecido') { C.apagarChave(EDICAO.codigo); setChave(null); setEstado('pronto'); return }
-      setR(resp?.motivo === 'sem_localizacao' ? { ...resp, posicao: pos.erro } : resp)
+      // `posicao` = erro do navegador (negada · indisponivel · demorou) e `precisao` = margem do GPS, para explicar a recusa.
+      setR(resp?.motivo === 'sem_localizacao' ? { ...resp, posicao: pos.erro } : resp?.motivo === 'longe' ? { ...resp, precisao: pos.precisao } : resp)
       setEstado(resp?.ok ? 'ok' : 'recusa')
       if (resp?.ok) {
-        C.chamar('mapa_ler', { p_chave: k }).then((m) => {
-          setMapa(m)
-          if (m) C.gravarPerfil(EDICAO.codigo, { nome: m.apelido, email: m.email, whatsapp: m.whatsapp })
-        }).catch(() => {})
+        api.mapaLer(k).then((m) => {
+          if (!m.ok) return
+          setMapa(m.mapa)
+          C.gravarPerfil(EDICAO.codigo, { nome: m.mapa.apelido, email: m.mapa.email, whatsapp: m.mapa.whatsapp })
+        })
       }
     } catch { setR({ motivo: 'rede' }); setEstado('recusa') }
   }
@@ -186,8 +102,8 @@ export function Carimbo ({ codigo, navigate, dados }) {
 
   const links = (
     <div className="ct-acoes">
-      <Link href={`${EDICAO.caminho}/minha-rota?painel=album`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver meu mapa</Link>
-      <Link href={`${EDICAO.caminho}/participantes`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver as casas</Link>
+      <Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-botao ct-botao--contorno">{T.central}</Link>
+      <Link href={CACA_CAMINHOS.casas} navigate={navigate} className="ct-botao ct-botao--contorno">{T.casas}</Link>
     </div>
   )
 
@@ -195,7 +111,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
     const m = C.mensagemRecusa({ motivo: 'qr_invalido' })
     return (
       <section className="ct-bloco ct-carimbar">
-        <p className="ct-rotulo">Caça aos Carimbos</p>
+        <p className="ct-rotulo">{T.rotulo}</p>
         <h1 className="ct-h1">{m.titulo}</h1>
         <p className="ct-lead">{m.texto}</p>
         {links}
@@ -205,22 +121,25 @@ export function Carimbo ({ codigo, navigate, dados }) {
 
   if (estado === 'ok') {
     const nome = casa?.nome || 'a casa'
+    const resumo = mapa ? resumoProgresso(mapa) : null
     return (
       <section className="ct-bloco ct-carimbar ct-carimbar--ok">
-        <p className="ct-rotulo">Caça aos Carimbos</p>
-        <h1 ref={titulo} tabIndex={-1} className="ct-h1">{r.avaliou ? 'Carimbado! +1' : 'Carimbo pendente'}</h1>
+        <p className="ct-rotulo">{T.rotulo}</p>
+        <h1 ref={titulo} tabIndex={-1} className="ct-h1">{r.avaliou ? T.okTitulo : T.pendenteTitulo}</h1>
         <div className="ct-carimbar__casa">
           {casa && <Logo casa={casa} tamanho={88} />}
           <p className="ct-lead">
-            {r.primeira ? `Primeira visita na ${nome}.` : `Mais uma visita na ${nome}.`}
-            {r.avaliou ? ` Você tem ${pontos(r.pontos)}.` : ' Falta um passo para o carimbo valer.'}
+            {r.primeira ? T.primeira(nome) : T.outra(nome)}
+            {r.avaliou ? '' : ` ${T.pendenteLead}`}
+            {r.avaliou && resumo?.total > 0 ? ` ${T.validadas(resumo.validadas, resumo.total)}` : ''}
           </p>
         </div>
+        {r.avaliou && !r.primeira && <p className="ct-nota">{T.extra}</p>}
         {!r.avaliou && (
           <div className="ct-carimbar__avaliar">
-            <p className="ct-sub">Avalie o combo para validar</p>
-            <p className="ct-nota">O carimbo da {nome} conta depois da avaliação do combo, feita com o mesmo e-mail do seu mapa. Avaliou, ele vale e a casa ainda dá +2 pontos.</p>
-            <div className="ct-acoes"><button type="button" className="ct-botao" onClick={avaliar}>Avaliar o combo e validar</button></div>
+            <p className="ct-sub">{T.pendenteSub}</p>
+            <p className="ct-nota">{T.pendenteTexto(nome)}</p>
+            <div className="ct-acoes"><button type="button" className="ct-botao" onClick={avaliar}>{T.pendenteAcao}</button></div>
           </div>
         )}
         {novo && <GuardarMapa chave={chave} />}
@@ -230,21 +149,18 @@ export function Carimbo ({ codigo, navigate, dados }) {
   }
 
   if (estado === 'recusa') {
-    const m = r?.motivo === 'rede'
-      ? { titulo: 'Sem conexão agora', texto: 'Confira a internet do celular e tente de novo.' }
-      : C.mensagemRecusa(r, { casa: casa?.nome })
+    const ajuda = ajudaLocalizacao(r)
+    const m = ajuda ? { titulo: ajuda.titulo, texto: ajuda.texto }
+      : r?.motivo === 'rede' ? T.semConexao
+        : C.mensagemRecusa(r, { casa: casa?.nome })
     const deNovo = ['longe', 'sem_localizacao', 'rede'].includes(r?.motivo)
     return (
       <section className="ct-bloco ct-carimbar">
-        <p className="ct-rotulo">Caça aos Carimbos</p>
+        <p className="ct-rotulo">{T.rotulo}</p>
         <h1 ref={titulo} tabIndex={-1} className="ct-h1">{m.titulo}</h1>
         <p className="ct-lead">{m.texto}</p>
-        {r?.motivo === 'sem_localizacao' && (
-          <ul className="ct-carimbar__como">
-            {COMO_LIGAR.map(([onde, passos]) => <li key={onde}><strong>{onde}:</strong> {passos}</li>)}
-          </ul>
-        )}
-        {deNovo && <div className="ct-acoes"><button type="button" className="ct-botao" onClick={() => carimbar()}>Tentar de novo</button></div>}
+        {ajuda && <AjudaDeLocalizacao ajuda={ajuda} />}
+        {deNovo && <div className="ct-acoes"><button type="button" className="ct-botao" onClick={() => carimbar()}>{T.tentar}</button></div>}
         {novo && <GuardarMapa chave={chave} />}
         {links}
       </section>
@@ -253,10 +169,10 @@ export function Carimbo ({ codigo, navigate, dados }) {
 
   return (
     <section className="ct-bloco ct-carimbar">
-      <p className="ct-rotulo">Caça aos Carimbos</p>
-      <h1 className="ct-h1">{porCasa && casa ? casa.nome : 'Carimbe sua visita'}</h1>
+      <p className="ct-rotulo">{T.rotulo}</p>
+      <h1 className="ct-h1">{porCasa && casa ? casa.nome : T.titulo}</h1>
       {porCasa && casa && <div className="ct-carimbar__casa"><Logo casa={casa} tamanho={88} /></div>}
-      <p className="ct-lead">Comeu o combo? Carimbe e junte pontos para os vouchers e o prêmio final. Na primeira vez na casa, avalie o combo para o carimbo valer.</p>
+      <p className="ct-lead">{T.lead}</p>
       {porCasa && (
         <div className="ct-acoes">
           <Link href={`${EDICAO.caminho}/participantes/${codigo}`} navigate={navigate} className="ct-botao ct-botao--contorno">Ver o combo</Link>
@@ -267,15 +183,15 @@ export function Carimbo ({ codigo, navigate, dados }) {
           <>
             <div className="ct-acoes">
               <button type="button" className="ct-botao ct-carimbar__principal" onClick={() => carimbar()} disabled={estado === 'carimbando'}>
-                {estado === 'carimbando' ? 'Conferindo…' : 'Carimbar aqui'}
+                {estado === 'carimbando' ? T.conferindo : T.carimbar}
               </button>
             </div>
-            <p className="ct-nota">O celular pede a sua localização só agora, para conferir que você está na casa. Ela não é guardada.</p>
+            <p className="ct-nota">{T.privacidade}</p>
           </>
           )
-        : <ComecarMapa aoAbrir={abrir} />}
+        : <CriarMapa navigate={navigate} titulo="Primeira vez? Comece seu mapa" botao="Começar e carimbar" aoAbrir={abrir} />}
       <p className="ct-sr" aria-live="polite">{estado === 'carimbando' ? 'Conferindo o carimbo.' : ''}</p>
-      <p className="ct-nota"><Link href={`${EDICAO.caminho}/regulamento`} navigate={navigate}>Regulamento da Caça aos Carimbos</Link></p>
+      <p className="ct-nota"><Link href={CACA_CAMINHOS.regulamento} navigate={navigate}>Regulamento da Caça aos Carimbos</Link></p>
     </section>
   )
 }

@@ -1,0 +1,35 @@
+/* Textos do ranking da Caça (CLAUDE.md §5.6). Tom de Sweet Lovers; nunca "voto/votação"; só apelido e progresso. */
+import { rotuloPosicao } from './regras.js'
+
+export const RANKING = {
+  regra: {
+    titulo: 'Como o ranking funciona',
+    itens: [
+      'Vence quem conheceu mais casas diferentes.',
+      'Se o número de casas for igual, os carimbos extras (voltar a uma casa que você já validou) desempatam.',
+      'Continuou igual? Vocês ficam empatados, na mesma posição. Não desempatamos por horário.',
+    ],
+    privacidade: 'Aparece só o apelido e o progresso, e só de quem escolheu aparecer.',
+  },
+  carregando: 'Buscando o ranking…',
+  falha: { titulo: 'Não conseguimos abrir o ranking agora', texto: 'Confira a conexão e tente de novo.' },
+  vazio: { titulo: 'O ranking ainda está vazio', texto: 'Quando alguém que escolheu aparecer validar a primeira casa, ele entra aqui. Que tal ser você?' },
+  lista: { titulo: 'Quem mais conheceu casas', vazia: 'Ninguém para mostrar ainda.' },
+  verMais: 'Ver mais',
+  carregandoMais: 'Buscando…',
+  voce: 'você',
+  empatado: 'empatado',
+  empatadoEm: (p) => `empatado em ${rotuloPosicao(p)}`,
+  semPosicao: 'ainda sem casa validada',
+  minha: {
+    titulo: 'Sua posição',
+    posicao: (p, comEmpate) => (comEmpate > 0
+      ? `Você está empatado em ${rotuloPosicao(p)} lugar com mais ${comEmpate} ${comEmpate === 1 ? 'pessoa' : 'pessoas'}.`
+      : `Você está em ${rotuloPosicao(p)} lugar.`),
+    semPosicao: 'Valide sua primeira casa para ganhar uma posição no ranking.',
+    foraDaLista: 'Seu mapa não aparece na lista pública, mas a sua posição é essa. Só você vê.',
+    semMapa: 'Crie seu mapa para ver a sua posição.',
+    criarMapa: 'Criar meu mapa',
+    abrirMapa: 'Abrir o mapa',
+  },
+}

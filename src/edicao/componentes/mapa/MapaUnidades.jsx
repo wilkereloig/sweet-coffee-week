@@ -16,7 +16,8 @@
 import React from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { pinDaCasa } from './pin.js'
+import { pinDaCasa, pinSicredi } from './pin.js'
+import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const ESTILO = 'https://tiles.openfreemap.org/styles/liberty'
 const NATAL = [-35.21, -5.81]
@@ -48,9 +49,18 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     for (const mk of marcadores.current.values()) mk.remove()
     marcadores.current.clear()
     const limites = new maplibregl.LngLatBounds()
+    // O enquadramento segue as casas; só sem nenhuma casa na tela (filtro vazio) ele vai para as agências do Sicredi.
+    const alvo = pontos.some((p) => !p.sicredi) ? pontos.filter((p) => !p.sicredi) : pontos
     for (const p of pontos) {
       const el = document.createElement('button')
       el.type = 'button'
+      if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
+        el.className = 'ct-sicredi-marcador'
+        el.append(pinSicredi(p.pin))
+        el.addEventListener('click', () => aoSelecionar(p.id))
+        marcadores.current.set(p.id, new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.lng, p.lat]).addTo(m))
+        continue
+      }
       if (p.pin) {
         // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui): o MapLibre posiciona o botão.
         el.append(pinDaCasa(p.pin))
@@ -59,10 +69,10 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
       el.addEventListener('click', () => aoSelecionar(p.id))
       const mk = new maplibregl.Marker({ element: el, anchor: p.pin ? 'bottom' : 'center' }).setLngLat([p.lng, p.lat]).addTo(m)
       marcadores.current.set(p.id, mk)
-      limites.extend([p.lng, p.lat])
     }
-    if (pontos.length > 1) m.fitBounds(limites, { padding: 48, maxZoom: 15, duration: 0 })
-    else if (pontos.length === 1) m.jumpTo({ center: [pontos[0].lng, pontos[0].lat], zoom: 15 })
+    for (const p of alvo) limites.extend([p.lng, p.lat])
+    if (alvo.length > 1) m.fitBounds(limites, { padding: 48, maxZoom: 15, duration: 0 })
+    else if (alvo.length === 1) m.jumpTo({ center: [alvo[0].lng, alvo[0].lat], zoom: 15 })
   }, [pontos.map((p) => p.id).join(), aoSelecionar])
 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome. classList, não
@@ -71,6 +81,13 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     for (const p of pontos) {
       const el = marcadores.current.get(p.id)?.getElement()
       if (!el) continue
+      if (p.sicredi) {
+        el.classList.toggle('ct-sicredi-marcador--aprox', !!p.aproximada)
+        el.classList.toggle('is-sel', p.id === selecionada)
+        el.setAttribute('aria-label', TC.sicrediNomeMarcador(p.titulo, !!p.aproximada))
+        el.setAttribute('aria-pressed', String(p.id === selecionada))
+        continue
+      }
       el.classList.add('ct-marcador')
       el.classList.toggle('ct-marcador--aprox', !!p.aproximada)
       el.classList.toggle('ct-marcador--quero', !!p.quero)

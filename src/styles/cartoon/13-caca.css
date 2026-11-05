@@ -1,0 +1,48 @@
+/* Caça aos Carimbos — central, recuperação e blocos das seções (docs/cartoon-2026-2/15-caca-front.md). Só tokens da edição. */
+.ct-caca { max-width: 960px; }
+.ct-caca__voltar { margin: 0 0 8px; }
+.ct-caca__central { display: grid; gap: 20px; margin-top: 8px; }
+.ct-caca__bloco,
+.ct-caca__progresso,
+.ct-caca__alternativa {
+  margin: 0; padding: 16px 20px;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+}
+.ct-caca__proxima {
+  margin: 0; padding: 16px 20px;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-turquesa); box-shadow: var(--ct-sombra-p);
+}
+.ct-caca__progresso .ct-sub,
+.ct-caca__proxima .ct-sub { margin-bottom: 6px; }
+.ct-caca__grande { margin: 0 0 10px; font: 500 var(--ct-fs-texto)/1.2 var(--ct-font); }
+.ct-caca__grande strong { display: block; font: 900 var(--ct-fs-titulo)/1 var(--ct-font); }
+.ct-caca__numeros { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 12px 0 0; padding: 0; list-style: none; font: 700 16px/1.3 var(--ct-font); }
+
+/* Barra de progresso: <progress> nativo (leitor de tela anuncia o valor), só redesenhado com os tokens. */
+.ct-caca__barra {
+  display: block; width: 100%; height: 22px; appearance: none; -webkit-appearance: none;
+  border: var(--ct-traco); border-radius: 999px; background: var(--ct-creme); overflow: hidden;
+}
+.ct-caca__barra::-webkit-progress-bar { background: var(--ct-creme); }
+.ct-caca__barra::-webkit-progress-value { background: var(--ct-turquesa); border-radius: 999px; }
+.ct-caca__barra::-moz-progress-bar { background: var(--ct-turquesa); border-radius: 999px; }
+
+.ct-caca__atalhos ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ct-caca__atalho {
+  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme); color: inherit; text-decoration: none;
+}
+.ct-caca__atalho:hover { background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-caca__atalho-texto { display: grid; gap: 2px; font: 500 14px/1.3 var(--ct-font); }
+.ct-caca__atalho-texto strong { font: 900 17px/1.2 var(--ct-font); }
+
+/* Lembrete discreto de e-mail pendente: faixa tracejada, sem competir com o progresso. */
+.ct-caca__aviso { padding: 10px 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
+.ct-caca__aviso-texto { margin: 0; font: 500 15px/1.45 var(--ct-font); }
+.ct-caca__aviso .ct-acoes { margin-top: 10px; }
+
+.ct-caca__recuperar { display: grid; gap: 16px; margin-top: 8px; }
+.ct-caca__codigo .ct-form { max-width: 480px; }
+.ct-caca__link { max-width: 520px; }
+.ct-caca__subtitulo { margin-top: 16px; }
+.ct-caca__stub { padding: 8px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); }

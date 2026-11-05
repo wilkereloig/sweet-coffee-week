@@ -7,16 +7,31 @@
  * Filtros: busca, bairro, como pedir, aberto agora (só no festival), quero ir e já fui (salvo no aparelho); no
  * Mundo a casa fora do filtro fica apagada, não some. "Perto de mim" só por botão; a posição não sai do navegador.
  * Endereço: ?vista, ?painel, ?unidade, os filtros e ?u (rota compartilhada) — o link reabre a mesma tela.
+ *
+ * Caça aos Carimbos (docs/cartoon-2026-2/15-caca-especificacao.md §10–§11): no alto, o progresso pessoal ("X de N casas
+ * validadas") e o próximo passo; cada casa tem o estado do SERVIDOR (ainda não visitada · carimbo pendente, falta avaliar ·
+ * conquistada, + revisitas), dito por forma, texto e cor; o Sicredi (patrocinador) aparece nas três vistas, fora de toda
+ * contagem. A arte ilustrada só é a vista principal quando aprovada (ou no DEV, como prévia) — `arteLiberada`.
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { EDICAO } from '../../../config.js'
 import * as M from '../../../dados/modelo.js'
-import { mundoEdicao, letreiroEdicao } from '../../../../data/imageLibrary'
+import { mundoEdicao, letreiroEdicao, MARCAS_PARCEIROS } from '../../../../data/imageLibrary'
 import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.js'
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao } from '../../../rota/carimbo.js'
-import { useMeuMapa } from '../../../rota/useMeuMapa.js'
+import { useCaca } from '../../../caca/useCaca.js'
+import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, arteLiberada, filtrarPorEstado } from '../../../caca/mapa/estados.js'
+import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
+import { useConquistas } from '../../../caca/mapa/useConquistas.js'
+import { ProgressoPessoal } from '../../../caca/mapa/Progresso.jsx'
+import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
+import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
+import { CasasEmLista } from '../../../caca/mapa/CasasEmLista.jsx'
+import { CartaoSicredi, ListaSicredi } from '../../../caca/mapa/Sicredi.jsx'
+import { Cobertura } from '../../../caca/mapa/Cobertura.jsx'
+import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Avisos } from '../../../componentes/base.jsx'
 import { TopoCanal, CenaTopo } from '../../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
@@ -36,7 +51,8 @@ import { PainelRota } from './PainelRota.jsx'
 // ou não carregar —, o MapLibre (OpenFreeMap), que não pede chave. A página só conhece a interface comum.
 const MapaGoogle = React.lazy(() => import('../../../componentes/mapa/MapaGoogle.jsx'))
 const MapaLibre = React.lazy(() => import('../../../componentes/mapa/MapaUnidades.jsx'))
-const VAZIO = { q: '', bairro: '', modo: '', aberto: false, queroIr: false, jaFui: false }
+const VAZIO = { q: '', bairro: '', modo: '', aberto: false, queroIr: false, jaFui: false, estado: '' }
+const ESTADOS_FILTRO = ['pendente', 'nao-visitada', 'conquistada']
 const VISTAS = ['mundo', 'real', 'lista']
 const PAINEIS = ['rota', 'album']
 const largo = () => matchMedia('(min-width: 900px)').matches
@@ -46,10 +62,10 @@ const notaDoLugar = (c) => (!c ? T.semCoordenada : c.conferir ? (c.precisao === 
 
 export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const rota = useRota()
-  const meu = useMeuMapa()
+  const meu = useCaca({ comEmail: false })
   const mundo = React.useMemo(() => mundoEdicao(), [])
   // Arte provisória (não aprovada) só como prévia no DEV: no ar, o Mundo só entra com a arte aprovada pelo Wilker.
-  const comMundo = mundo.aprovada || import.meta.env.DEV
+  const comMundo = arteLiberada({ aprovada: mundo.aprovada, dev: !!import.meta.env.DEV })
   const vistas = comMundo ? VISTAS : VISTAS.slice(1)
   const pedido = React.useMemo(() => new URLSearchParams(location.search), [])
   const compartilhada = React.useMemo(() => idsDaBusca(location.search), [])
@@ -73,11 +89,19 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, periodo), [lista, periodo])
   const filtro = { ...f, aberto: f.aberto && opcoes.hoje } // fora do festival, ?aberto=1 antigo não esconde nada
   const marcas = { rota: rota.ids, foi: rota.foi }
-  const linhas = M.unidadesDoMapa(lista, filtro, marcas, { periodo, posicao })
+  // Estado de cada casa na Caça: SEMPRE o do servidor (mapa_ler_v2). Sem mapa, nenhum estado é desenhado.
+  const casasMapa = React.useMemo(() => casasDoMapa(meu.mapa), [meu.mapa])
+  const estadoDe = (slug) => (casasMapa ? estadoDaCasa(casasMapa.get(slug)) : null)
+  const revisitasDe = (slug) => (casasMapa ? revisitasDaCasa(casasMapa.get(slug)) : 0)
+  const filtroEstado = casasMapa ? f.estado : ''
+  const linhas = filtrarPorEstado(M.unidadesDoMapa(lista, filtro, marcas, { periodo, posicao }), filtroEstado, casasMapa)
   const noMapa = linhas.filter((x) => x.u.coordenada)
-  const todas = comMundo ? M.unidadesDoMapa(lista, {}, marcas, { periodo }) : linhas
-  const escolhida = linhas.find((x) => x.u.id === sel) || todas.find((x) => x.u.id === sel) || null
-  const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui].filter(Boolean).length
+  const todas = M.unidadesDoMapa(lista, {}, marcas, { periodo })
+  const agencias = React.useMemo(() => agenciasSicredi(mundo.sicredi), [mundo])
+  const agenciasVisiveis = agencias.filter((a) => agenciaCombina(a, f.q))
+  const agenciaEscolhida = ehSicredi(sel) ? agencias.find((a) => a.id === sel) || null : null
+  const escolhida = agenciaEscolhida ? null : linhas.find((x) => x.u.id === sel) || todas.find((x) => x.u.id === sel) || null
+  const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui, filtroEstado].filter(Boolean).length
   const bairroOpcao = opcoes.bairros.find((b) => M.normalizar(b) === M.normalizar(f.bairro)) || ''
 
   // Carimbos (Mapa da Doçura) e rota: o que o álbum, o painel e o Mundo mostram vem daqui, uma vez.
@@ -91,12 +115,21 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
   const paradaDe = new Map(faltam.map((pa, i) => [pa.id, i + 1]))
   const aba = vendoCompartilhada ? 'rota' : painel
 
+  // Próximo passo (avaliar > parada da rota > próxima casa do caminho) e conquista nova, tudo pelo estado do servidor.
+  const nomeDeSlug = (slug) => lista.find((p) => p.slug === slug)?.casa?.nome || 'a casa'
+  const passo = React.useMemo(() => {
+    const ordem = ordemDasCasas(lista, mundo.unidades)
+    const minhas = resolverParadas(rota.ids, lista).filter((pa) => pa.ativa).map((pa) => pa.participante.slug)
+    return proximoPasso({ mapa: meu.mapa, casas: casasMapa, ordem, paradas: [...new Set(minhas)], visitaveis: lista.filter((p) => (p.unidades || []).length).map((p) => p.slug) })
+  }, [lista, mundo, rota.ids, meu.mapa, casasMapa])
+  const proximaSlug = ['avaliar', 'rota', 'visitar'].includes(passo.tipo) ? passo.slug : ''
+  const { recentes, aviso: avisoConquista } = useConquistas(casasMapa, nomeDeSlug)
+
   const visiveis = new Set(linhas.map((x) => x.u.id))
   const casasMundo = comMundo ? casasNoMundo(mundo.unidades, todas).map(({ u, p, x, y, numero }) => {
-    const c = carimboDe.get(p.slug)
     return {
-      id: u.id, x, y, numero, titulo: M.tituloDaUnidade(p, u), tema: p.casa?.tema || '', doceria: mundo.doceria(p.slug), bandeira: mundo.bandeira(numero), pin: mundo.logo(p.slug), inicial: inicial(p),
-      apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, carimbos: c?.carimbos || 0, avaliou: !!c?.avaliou,
+      id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', doceria: mundo.doceria(p.slug), bandeira: mundo.bandeira(numero), pin: mundo.logo(p.slug), inicial: inicial(p),
+      apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug,
     }
   }) : []
   const trilha = comMundo ? tracado(pontosDaRota(faltam.filter((pa) => pa.ativa).map((pa) => pa.id), mundo.unidades), mundo.quadro) : ''
@@ -124,6 +157,10 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
     if (id && !largo()) requestAnimationFrame(() => document.querySelector('.ct-mapa__cartao')?.scrollIntoView({ block: 'nearest' }))
   }, [])
   const avaliar = (p, u) => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, slug: p.slug, unidade: u.id, mapa: meu.mapa }))
+  // Ações do "próximo passo": vão à primeira unidade da casa (a unidade só importa para preencher a avaliação).
+  const primeiraUnidade = (slug) => todas.find((x) => x.p.slug === slug)
+  const verCasa = (slug) => { const x = primeiraUnidade(slug); if (x) escolher(x.u.id) }
+  const avaliarCasa = (slug) => { const x = primeiraUnidade(slug); if (x) avaliar(x.p, x.u) }
 
   const topo = (texto) => (
     <TopoCanal canal="rota" className="ct-rota-topo" aria-labelledby="mapa-titulo">
@@ -149,6 +186,11 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
       <section className={`ct-bloco ct-mapa${entrada === 'rota' ? ' ct-mapa--rota' : ''}`} aria-label="Casas da Cartoon">
         <div className="ct-mapa__corpo">
           <div className="ct-mapa__vista">
+            {entrada === 'mapa' && (
+              <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
+                proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+            )}
+            <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
             <div className="ct-chips ct-mapa__vistas" role="group" aria-label={T.vistas}>
               {vistas.map((v) => <Chip key={v} ativo={vista === v} onClick={() => setVista(v)}>{T.vista[v]}</Chip>)}
             </div>
@@ -182,6 +224,14 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
                   <Chip ativo={f.jaFui} icone="ja-fui" onClick={() => muda('jaFui', !f.jaFui)}>{LOVER.jaFui}</Chip>
                 </div>
               </fieldset>
+              {casasMapa && (
+                <fieldset className="ct-filtros__grupo">
+                  <legend className="ct-rotulo">{TC.filtroEstado}</legend>
+                  <div className="ct-chips">
+                    {ESTADOS_FILTRO.map((k) => <Chip key={k} ativo={f.estado === k} onClick={() => muda('estado', f.estado === k ? '' : k)}>{TC.filtroEstados[k]}</Chip>)}
+                  </div>
+                </fieldset>
+              )}
               {geo === 'disponivel' && <button type="button" className="ct-botao ct-botao--contorno ct-mapa__perto" onClick={localizar}><ScwIcon nome="local" tamanho={20} />{T.pertoDeMim}</button>}
               {geo === 'pedindo' && <p className="ct-nota" role="status">{T.pedindo}</p>}
               {geo === 'ok' && <p className="ct-nota" role="status">{T.ordenado}</p>}
@@ -196,34 +246,44 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
             <div className="ct-mapa__tela">
               {vista === 'mundo' && (
                 <>
-                  {!mundo.aprovada && <p className="ct-nota ct-mapa__previa" role="note">{T.previa}</p>}
-                  <Mundo mundo={mundo} casas={casasMundo} trilha={trilha} selecionada={sel} aoSelecionar={escolher} />
+                  {!mundo.aprovada && <p className="ct-nota ct-mapa__previa" role="note">{TC.previa}</p>}
+                  <Mundo mundo={mundo} casas={casasMundo} agencias={agencias.filter((a) => a.x !== null && a.y !== null)} trilha={trilha}
+                    selecionada={sel} aoSelecionar={escolher} recentes={recentes} />
+                  <LegendaEstados comEstados={!!casasMapa} sicrediImagem={MARCAS_PARCEIROS.sicredi.src} />
+                  <CasasEmLista itens={casasMundo.filter((c) => !c.apagada)} agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} aberta={!!f.q} />
                 </>
               )}
 
               {vista === 'real' && (
                 <>
+                  <Cobertura linhas={linhas} selecionada={sel} aoSelecionar={escolher} />
                   <div className="ct-mapa__area">
                     {noMapa.length === 0 ? <p className="ct-nota">{T.semMapa}</p>
                       : verMapa ? (
                         <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
                           <ErroDoMapa>
                             <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined}
-                              pontos={noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDaCasa(p) }))} />
+                              pontos={[
+                                ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDaCasa(p) })),
+                                ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src, rotulo: TC.sicrediRotulo }),
+                              ]} />
                           </ErroDoMapa>
                         </React.Suspense>
                       ) : <button type="button" className="ct-botao" onClick={() => setVerMapa(true)}><IconeCartoon nome="mapa" tamanho={32} />{T.verMapa(noMapa.length)}</button>}
                   </div>
                   {verMapa && noMapa.length > 0 && (
+                    <>
                     <ul className="ct-legenda" aria-label="Legenda do mapa">
                       <li className="ct-legenda__nota">{T.legendaPins}</li>
                       {Object.entries(T.legenda).filter(([k]) => k !== 'voce' || posicao).map(([k, texto]) => <li key={k}><span className={`ct-legenda__ponto ct-legenda__ponto--${k}`} aria-hidden="true" />{texto}</li>)}
                     </ul>
+                    <LegendaEstados comEstados={false} sicrediImagem={MARCAS_PARCEIROS.sicredi.src} />
+                    </>
                   )}
                 </>
               )}
 
-              {vista === 'lista' && (linhas.length ? (
+              {vista === 'lista' && (<>{linhas.length ? (
                 <ul className="ct-mapa__lista" aria-label={T.contagem(linhas.length)}>
                   {linhas.map(({ u, p, dist, foi }) => {
                     const titulo = M.tituloDaUnidade(p, u)
@@ -237,6 +297,7 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
                           <span className="ct-mapa__sel-texto">
                             <strong>{titulo}</strong>
                             <span>{M.enderecoEmLinha(u.endereco)}</span>
+                            {estadoDe(p.slug) && <SeloEstado estado={estadoDe(p.slug)} revisitas={revisitasDe(p.slug)} />}
                             {agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
                             {dist != null && <span className="ct-nota">{T.distancia(dist, !!u.coordenada?.conferir)}</span>}
                             {nota && <span className={`ct-mapa__local${u.coordenada ? ' ct-mapa__local--aprox' : ''}`}>{nota}</span>}
@@ -253,14 +314,18 @@ export function Mapa ({ navigate, dados, entrada = 'mapa' }) {
                   <p>{T.nenhuma}</p>
                   <button type="button" className="ct-botao" onClick={() => setF(VAZIO)}>{T.limpar}</button>
                 </div>
-              ))}
+              )}
+              <ListaSicredi agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} /></>)}
             </div>
           </div>
 
           <div className="ct-mapa__lado">
-            {(escolhida || entrada === 'mapa') && ( // entrando pela rota, a dica de "escolha uma casa" só atrapalha
+            {agenciaEscolhida && <CartaoSicredi agencia={agenciaEscolhida} fechar={() => setSel('')} />}
+            {!agenciaEscolhida && (escolhida || entrada === 'mapa') && ( // entrando pela rota, a dica de "escolha uma casa" só atrapalha
               <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={() => setSel('')}
-                parada={escolhida ? paradaDe.get(escolhida.u.id) || null : null} carimbo={escolhida ? carimboDe.get(escolhida.p.slug) || null : null} aoAvaliar={avaliar} />
+                parada={escolhida ? paradaDe.get(escolhida.u.id) || null : null}
+                estado={escolhida ? estadoDe(escolhida.p.slug) : null} revisitas={escolhida ? revisitasDe(escolhida.p.slug) : 0}
+                proxima={!!escolhida && escolhida.p.slug === proximaSlug} aoAvaliar={avaliar} />
             )}
             <section className="ct-mapa__painel" aria-label={T.painel}>
               {!vendoCompartilhada && (

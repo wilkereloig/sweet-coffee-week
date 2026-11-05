@@ -5,7 +5,9 @@
 .ct-mundo__janela {
   position: relative; overflow: auto; overscroll-behavior: contain;
   border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-azul); box-shadow: var(--ct-sombra-p); cursor: grab;
+  touch-action: manipulation; /* rolagem e pinça do navegador seguem; o duplo toque é do desenho (zoom) */
 }
+.ct-mundo__janela:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
 .ct-mundo__janela.is-zoom { max-height: 78svh; }
 /* Zoom 1 = o mundo inteiro: retrato no celular ocupa a largura da tela; paisagem (v2) ganha 62% da altura da tela e rola
    de lado dentro da janela. No desktop, cabe na altura da janela. */
@@ -28,9 +30,24 @@
   border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); color: var(--ct-chocolate);
   font: 700 12px/1.3 var(--ct-font); white-space: nowrap; pointer-events: none;
 }
-/* Sicredi: a bandeira com a logo oficial em box (04_SINALIZACAO); o pé do mastro (10% da largura) toca o ponto. */
-.ct-mundo__sicredi { position: absolute; z-index: 1; width: clamp(40px, 5cqi, 96px); translate: -10% -98%; pointer-events: none; }
-.ct-mundo__sicredi img { display: block; width: 100%; height: auto; user-select: none; }
+/* Sicredi (patrocinador): o letreiro branco com a marca oficial (04_SINALIZACAO) num <button> de 44 px no mínimo; o pé do
+   mastro (10% da largura) toca o ponto. É de OUTRA forma que a bandeirinha das casas e leva o rótulo "Patrocinador"
+   (zoom, ponteiro, foco e escolhida): não é casa, não conta carimbo. */
+.ct-mundo__sicredi {
+  position: absolute; z-index: 1; display: flex; align-items: flex-end; width: clamp(44px, 5cqi, 96px); min-height: 44px;
+  padding: 0; border: 0; background: none; color: var(--ct-chocolate); cursor: pointer; translate: -10% -98%;
+  transition: transform var(--ct-mo), filter var(--ct-mo);
+}
+.ct-mundo__sicredi:hover { transform: translateY(-4px); }
+.ct-mundo__sicredi:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+.ct-mundo__sicredi.is-sel { z-index: 3; transform: translateY(-4px) scale(1.12); filter: drop-shadow(0 0 6px var(--ct-amarelo)); }
+.ct-mundo__sicredi-letreiro { display: block; width: 100%; height: auto; user-select: none; }
+.ct-mundo__patrocinador {
+  position: absolute; bottom: 100%; left: 0; display: none; padding: 1px 8px; border: 2px solid var(--ct-chocolate); border-radius: 6px;
+  background: var(--ct-branco); font: 800 12px/1.3 var(--ct-font); white-space: nowrap;
+}
+.ct-mundo__janela.is-zoom .ct-mundo__patrocinador, .ct-mundo__sicredi:hover .ct-mundo__patrocinador,
+.ct-mundo__sicredi:focus-visible .ct-mundo__patrocinador, .ct-mundo__sicredi.is-sel .ct-mundo__patrocinador { display: block; }
 
 /* Casa = botão com a BANDEIRINHA NUMERADA da sinalização (Wilker 04/11, igual no impresso). A bandeira acompanha o
    mapa (--ct-bandeira, em cqi do palco) para não cobrir os mundos pintados; o botão nunca fica abaixo de 44 px e a
@@ -71,16 +88,49 @@
 .ct-mundo__casa:focus-visible .ct-mundo__pin, .ct-mundo__casa.is-sel .ct-mundo__pin { display: grid; }
 .ct-mundo__casa.is-carimbada .ct-mundo__pin { border-color: var(--ct-amarelo); box-shadow: 0 0 0 2.5px var(--ct-chocolate), var(--ct-sombra-p); }
 
-/* Selos da casa, numa fileira embaixo da bandeira, à direita do mastro: parada da rota (turquesa = canal Rota, tinta
-   chocolate), carimbo (selo com ×N; não é bandeira, para não confundir com a sinalização) e estrela da avaliação. */
+/* Selo da parada da rota (turquesa = canal Rota, tinta chocolate), numa fileira embaixo da bandeira, à direita do mastro. */
 .ct-mundo__selos { position: absolute; bottom: -8px; left: calc(var(--ct-bandeira) * .3); display: flex; gap: 2px; }
-.ct-mundo__parada, .ct-mundo__carimbo, .ct-mundo__estrela {
-  display: inline-flex; align-items: center; justify-content: center; gap: 1px; min-width: 22px; height: 22px; padding: 0 4px;
-  border: 2px solid var(--ct-chocolate); border-radius: 999px; color: var(--ct-chocolate); font: 900 12px/1 var(--ct-font);
+.ct-mundo__parada {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 4px;
+  border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-turquesa); color: var(--ct-chocolate); font: 900 12px/1 var(--ct-font);
 }
-.ct-mundo__parada { background: var(--ct-turquesa); }
-.ct-mundo__carimbo, .ct-mundo__estrela { background: var(--ct-amarelo); }
-.ct-mundo__estrela { padding: 0; }
+
+/* ESTADO da casa na Caça (src/edicao/caca/mapa; imagens em public/images/caca, ainda propostas): o pin de cada estado
+   tem forma própria (furo vazio · estrela com ampulheta · carimbo com brilhos), então não depende só de cor. Fica logo
+   acima da bandeira; a revisita é o selo serrilhado com "+N"; o botão e a lista dizem o mesmo por escrito. */
+.ct-mundo__estado, .ct-mundo__revisita { position: absolute; pointer-events: none; user-select: none; }
+.ct-mundo__estado {
+  left: calc(var(--ct-bandeira) * .08); bottom: calc(var(--ct-bandeira) * .86); width: clamp(20px, calc(var(--ct-bandeira) * .8), 46px);
+  transform-origin: 50% 100%; filter: drop-shadow(1px 2px 0 color-mix(in srgb, var(--ct-chocolate) 35%, transparent));
+}
+.ct-mundo__estado img, .ct-mundo__revisita img { display: block; width: 100%; height: auto; }
+.ct-mundo__revisita { left: calc(var(--ct-bandeira) * .78); bottom: calc(var(--ct-bandeira) * 1.1); width: clamp(22px, calc(var(--ct-bandeira) * .72), 40px); aspect-ratio: 1; }
+.ct-mundo__revisita b {
+  position: absolute; right: -6px; bottom: -4px; min-width: 20px; padding: 0 4px; border: 2px solid var(--ct-chocolate); border-radius: 999px;
+  background: var(--ct-creme); color: var(--ct-chocolate); font: 900 12px/16px var(--ct-font); text-align: center;
+}
+
+/* Próximo passo: anel tracejado atrás da bandeira + rótulo "Próxima" (texto, não só cor). Pulsa devagar; sem movimento, fica o anel. */
+.ct-mundo__casa.is-proxima::after {
+  content: ''; position: absolute; z-index: -1; left: calc(var(--ct-bandeira) * -.25); bottom: calc(var(--ct-bandeira) * -.25); width: calc(var(--ct-bandeira) * 1.5); aspect-ratio: 1;
+  border: 3px dashed var(--ct-chocolate); border-radius: 50%; background: color-mix(in srgb, var(--ct-amarelo) 55%, transparent);
+  animation: ct-mundo-pulso 1.8s ease-in-out infinite; pointer-events: none;
+}
+.ct-mundo__proxima {
+  position: absolute; left: 0; bottom: calc(var(--ct-bandeira) * 1.75); padding: 1px 8px; border: 2px solid var(--ct-chocolate); border-radius: 999px;
+  background: var(--ct-amarelo); color: var(--ct-chocolate); font: 800 12px/1.3 var(--ct-font); white-space: nowrap; pointer-events: none;
+}
+@keyframes ct-mundo-pulso { 50% { scale: 1.12; } }
+
+/* Conquista nova (microanimação de ~1,4 s): o pin pousa com um quique e uma onda amarela se abre. Sem movimento: anel fixo. */
+.ct-mundo__casa.is-recente { z-index: 3; }
+.ct-mundo__casa.is-recente .ct-mundo__estado { animation: ct-mundo-conquista 1.4s var(--ct-mo-quique) both; }
+.ct-mundo__casa.is-recente::before {
+  content: ''; position: absolute; z-index: -1; left: calc(var(--ct-bandeira) * -.25); bottom: calc(var(--ct-bandeira) * -.25); width: calc(var(--ct-bandeira) * 1.5); aspect-ratio: 1;
+  border: 4px solid var(--ct-amarelo); border-radius: 50%; animation: ct-mundo-onda 1.4s ease-out both; pointer-events: none;
+}
+@keyframes ct-mundo-conquista { 0% { scale: .3; rotate: -20deg; } 55% { scale: 1.5; rotate: 8deg; } 100% { scale: 1; rotate: 0deg; } }
+@keyframes ct-mundo-onda { from { scale: .4; opacity: 1; } to { scale: 2.6; opacity: 0; } }
 
 .ct-mundo__zoom { position: absolute; top: 10px; right: 10px; z-index: 4; display: grid; gap: 6px; }
 .ct-mundo__zoom-botao {
@@ -88,8 +138,116 @@
   border: var(--ct-traco); border-radius: 12px; background: var(--ct-branco); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); cursor: pointer;
 }
 .ct-mundo__zoom-botao:disabled { opacity: .45; cursor: default; pointer-events: none; }
-.ct-mundo__nota { margin: 0; }
+.ct-mundo__aviso { margin: 0; padding: 8px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); font: 700 14px/1.4 var(--ct-font); }
 .ct-mundo__credito { margin: 0; font: 500 12px/1.4 var(--ct-font); }
 .ct-mapa__previa { margin: 0; padding: 8px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); }
 
-@media (prefers-reduced-motion: reduce) { .ct-mundo__casa { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .ct-mundo__casa, .ct-mundo__sicredi { transition: none; }
+  .ct-mundo__casa.is-proxima::after { animation: none; }
+  .ct-mundo__casa.is-recente .ct-mundo__estado { animation: none; outline: 3px solid var(--ct-amarelo); outline-offset: 2px; border-radius: 50%; }
+  .ct-mundo__casa.is-recente::before { animation: none; opacity: .9; scale: 1; }
+}
+
+/* ---- Caça aos Carimbos no mapa (src/edicao/caca/mapa/*; docs/cartoon-2026-2/15-caca-especificacao.md §10–§11) ---- */
+
+/* Progresso pessoal + próximo passo (reaproveita .ct-progresso do painel da rota) */
+.ct-caca-mapa__progresso { flex-wrap: wrap; align-items: flex-start; background: var(--ct-branco); }
+.ct-caca-mapa__progresso p { margin: 0; }
+.ct-caca-mapa__progresso-corpo { flex: 1 1 240px; }
+.ct-caca-mapa__proximo { display: grid; gap: 8px; justify-items: start; padding: 10px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); font: 600 15px/1.4 var(--ct-font); }
+
+/* Estado da casa: pin (forma) + texto (+ selo de revisita). A cor é a última pista, nunca a única. */
+.ct-selo-estado { display: inline-flex; align-items: center; gap: 6px; font: 800 14px/1.2 var(--ct-font); }
+.ct-selo-estado img { display: block; flex: none; width: auto; }
+.ct-selo-estado__revisita { position: relative; display: inline-grid; place-items: center; margin-left: 2px; }
+.ct-selo-estado__revisita b {
+  position: absolute; right: -8px; bottom: -4px; min-width: 20px; padding: 0 4px; border: 2px solid var(--ct-chocolate); border-radius: 999px;
+  background: var(--ct-creme); font: 900 12px/16px var(--ct-font); text-align: center;
+}
+.ct-caca-mapa__cartao-estado { display: grid; gap: 4px; }
+.ct-caca-mapa__cartao-estado .ct-nota { margin: 0; }
+
+/* Legenda dos pins */
+.ct-caca-mapa__legenda { display: grid; gap: 6px; padding: 12px 14px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-caca-mapa__legenda .ct-rotulo { margin: 0; }
+.ct-caca-mapa__legenda-lista { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ct-caca-mapa__legenda-lista li { display: flex; align-items: center; gap: 10px; }
+.ct-caca-mapa__legenda-lista .ct-selo-estado { flex: 0 0 150px; }
+.ct-caca-mapa__legenda-texto { font: 500 14px/1.35 var(--ct-font); }
+.ct-caca-mapa__legenda-selo { flex: none; width: 28px; height: 28px; margin-right: 122px; }
+.ct-caca-mapa__legenda-sicredi { flex: none; width: 56px; height: auto; margin-right: 94px; }
+@media (max-width: 520px) {
+  .ct-caca-mapa__legenda-lista li { flex-wrap: wrap; }
+  .ct-caca-mapa__legenda-lista .ct-selo-estado { flex-basis: 100%; }
+  .ct-caca-mapa__legenda-selo, .ct-caca-mapa__legenda-sicredi { margin-right: 0; }
+}
+
+/* Lista rápida abaixo do desenho */
+.ct-caca-mapa__rapida { border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-caca-mapa__rapida > summary { min-height: 44px; padding: 10px 14px; font: 800 16px/1.3 var(--ct-font); cursor: pointer; }
+.ct-caca-mapa__rapida > summary:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+.ct-caca-mapa__rapida > .ct-nota { margin: 0; padding: 0 14px 6px; }
+.ct-caca-mapa__rapida-lista { display: grid; gap: 6px; max-height: 340px; margin: 0; padding: 4px 10px 12px; overflow: auto; list-style: none; }
+.ct-caca-mapa__rapida-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 10px;
+  border: 2px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-creme); color: var(--ct-chocolate); font: 500 14px/1.3 var(--ct-font); text-align: left; cursor: pointer;
+}
+.ct-caca-mapa__rapida-item.is-sel { background: var(--ct-amarelo); }
+.ct-caca-mapa__rapida-item:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+.ct-caca-mapa__rapida-num {
+  display: grid; place-items: center; flex: none; width: 32px; height: 32px; border: 2px solid var(--ct-chocolate); border-radius: 50%;
+  background: var(--ct-amarelo); color: var(--ct-chocolate); font: 900 14px/1 var(--ct-font);
+}
+.ct-caca-mapa__rapida-texto { display: grid; gap: 2px; min-width: 0; }
+.ct-caca-mapa__rapida-texto strong { font: 800 15px/1.25 var(--ct-font); }
+.ct-caca-mapa__rapida-marcas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.ct-caca-mapa__rapida-parada, .ct-caca-mapa__rapida-proxima { padding: 0 8px; border: 2px solid var(--ct-chocolate); border-radius: 999px; font: 800 12px/1.5 var(--ct-font); }
+.ct-caca-mapa__rapida-parada { background: var(--ct-turquesa); }
+.ct-caca-mapa__rapida-proxima { background: var(--ct-amarelo); }
+
+/* Sicredi: seção da lista, cartão e marcador do mapa real. Letreiro retangular, tarja "Patrocinador" (forma + texto). */
+.ct-caca-mapa__sicredi { display: grid; gap: 8px; margin-top: 12px; padding: 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-caca-mapa__sicredi .ct-sub { margin: 0; }
+.ct-caca-mapa__sicredi .ct-nota { margin: 0; }
+.ct-caca-mapa__sicredi-lista { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ct-caca-mapa__sicredi-item { border: 2px solid var(--ct-chocolate); border-radius: 8px; background: var(--ct-creme); }
+.ct-caca-mapa__sicredi-item.is-sel { background: var(--ct-amarelo); }
+.ct-caca-mapa__sicredi-sel {
+  display: grid; justify-items: start; gap: 2px; width: 100%; min-height: 56px; padding: 10px 12px 6px; border: 0; border-radius: 8px;
+  background: none; color: inherit; font: 500 14px/1.4 var(--ct-font); text-align: left; cursor: pointer;
+}
+.ct-caca-mapa__sicredi-sel:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+.ct-caca-mapa__sicredi-sel strong { font: 800 16px/1.3 var(--ct-font); }
+.ct-caca-mapa__sicredi-selo { display: inline-block; padding: 0 8px; border: 2px solid var(--ct-chocolate); border-radius: 6px; background: var(--ct-branco); font: 800 12px/1.5 var(--ct-font); text-transform: uppercase; letter-spacing: .04em; }
+.ct-caca-mapa__sicredi-logo { display: block; width: 80px; height: auto; }
+.ct-caca-mapa__sicredi-cartao { border-style: dashed; }
+.ct-caca-mapa__sicredi-aviso { margin: 0; }
+.ct-caca-mapa__rapida-item--sicredi { background: var(--ct-branco); }
+
+.ct-sicredi-marcador { display: block; padding: 0; border: 0; background: none; cursor: pointer; transform-origin: 50% 100%; transition: scale 180ms var(--ct-mo-quique); }
+.ct-sicredi-marcador:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
+.ct-sicredi-marcador.is-sel { scale: 1.25; z-index: 2; }
+.ct-sicredi-pin { display: grid; justify-items: center; min-width: 44px; min-height: 44px; }
+.ct-sicredi-pin__placa { display: grid; justify-items: center; overflow: hidden; border: 3px solid var(--ct-chocolate); border-radius: 4px; background: var(--ct-branco); box-shadow: 2px 3px 0 rgba(58, 21, 15, .35); }
+.ct-edicao .ct-sicredi-pin__placa img { display: block; width: auto; max-width: 96px; height: 22px; margin: 4px 8px 2px; object-fit: contain; }
+.ct-sicredi-pin__tarja { align-self: stretch; padding: 0 6px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 11px/1.5 var(--ct-font); text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+.ct-sicredi-pin__ponta { width: 12px; height: 12px; margin-top: -8px; rotate: 45deg; border: solid var(--ct-chocolate); border-width: 0 3px 3px 0; background: var(--ct-chocolate); }
+.ct-sicredi-marcador--aprox .ct-sicredi-pin__placa { border-style: dashed; }
+
+/* Cobertura do mapa real */
+.ct-caca-mapa__cobertura { display: grid; gap: 6px; }
+.ct-caca-mapa__cobertura .ct-nota { margin: 0; }
+.ct-caca-mapa__sem-ponto { border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
+.ct-caca-mapa__sem-ponto > summary { min-height: 44px; padding: 10px 14px; font: 800 15px/1.3 var(--ct-font); cursor: pointer; }
+.ct-caca-mapa__sem-ponto > summary:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+.ct-caca-mapa__sem-ponto > .ct-nota { margin: 0; padding: 0 14px 6px; }
+.ct-caca-mapa__sem-ponto ul { display: grid; gap: 6px; margin: 0; padding: 4px 10px 12px; list-style: none; }
+.ct-caca-mapa__sem-ponto button {
+  display: grid; gap: 2px; width: 100%; min-height: 48px; padding: 6px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px;
+  background: var(--ct-branco); color: var(--ct-chocolate); font: 500 14px/1.3 var(--ct-font); text-align: left; cursor: pointer;
+}
+.ct-caca-mapa__sem-ponto button[aria-pressed="true"] { background: var(--ct-amarelo); }
+.ct-caca-mapa__sem-ponto button:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) { .ct-sicredi-marcador { transition: none; } }

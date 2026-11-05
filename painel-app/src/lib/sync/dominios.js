@@ -65,6 +65,9 @@ export const RPC_LEITURA = new Set([
   'org_ver_como_ler',
   'redes_listar', 'redes_opcoes', 'redes_post', 'redes_resumo', 'redes_campanhas_listar', 'redes_checklist_modelos_listar',
   'social_biblioteca', 'social_pastas_listar',
+  // Caça aos Carimbos (painel): leituras. `caca_sorteio_final` só é chamada em SIMULAÇÃO (p_simular: true) — o
+  // sorteio oficial grava prêmios, mas a tela não o liga (lib/caca.js › SORTEIO_OFICIAL_LIBERADO).
+  'caca_config_ler', 'caca_premio_listar', 'caca_carimbo_revisao_listar', 'caca_sorteio_final',
   // Canais de tempo real que ESTA conta pode ouvir (lista do servidor).
   'sync_meus_canais',
 ])
@@ -210,6 +213,10 @@ export const RPC_ESCRITA = Object.freeze({
   carimbo_anular: ['carimbos'],
   carimbo_qr_novo: ['carimbos'],
   mapa_nova_chave: ['carimbos'],
+  // Caça aos Carimbos: apurar o dia, agir sobre um prêmio e mudar uma regra releem a aba Carimbos.
+  caca_apurar_dia: ['carimbos'],
+  caca_premio_acao: ['carimbos'],
+  caca_config_gravar: ['carimbos'],
   marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
   marcar_senha_trocada: ['perfis'],
 })
@@ -221,7 +228,8 @@ export const FUNCOES_ESCRITA = Object.freeze({
   'criar-conta-organizacao': ['perfis'],
 })
 // Assinam URL, mandam push de teste: não gravam dado de painel.
-export const FUNCOES_SEM_SINAL = new Set(['arquivo-url', 'enviar-push'])
+// `caca-push` aqui só roda em simulação (dry_run: true fixo em lib/caca.js): conta destinatários, não grava nada.
+export const FUNCOES_SEM_SINAL = new Set(['arquivo-url', 'enviar-push', 'caca-push'])
 
 // ── Gravações diretas em tabela (lado marca, por RLS) ───────────────────────
 export const TABELA_ESCRITA = Object.freeze({

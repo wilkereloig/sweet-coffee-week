@@ -17,6 +17,8 @@ export const NAV = [
   { cena: 'participantes', rotulo: 'Casas', aba: 'Casas', icone: 'casas', href: `${C}/participantes` },
   { cena: 'mapa', rotulo: 'Mapa', aba: 'Mapa', icone: 'mapa', href: `${C}/mapa` },
   { cena: 'minha-rota', rotulo: 'Minha rota', aba: 'Rota', icone: 'rota', href: `${C}/minha-rota` },
+  // Caça aos Carimbos: no cabeçalho, no menu e no rodapé; fora da barra de abas do celular, que fica nos cinco atalhos (`semAba`).
+  { cena: 'caca', rotulo: 'Caça aos Carimbos', aba: 'Caça', icone: 'ja-fui', href: `${C}/caca`, semAba: true },
   { cena: 'avaliar', rotulo: 'Sweet Awards', aba: 'Avaliar', abaResultados: 'Prêmios', icone: 'avaliar', iconeResultados: 'premio', href: `${C}/avaliar` },
 ]
 
@@ -382,6 +384,7 @@ export const AWARDS = {
     avaliacao_encerrada: 'A avaliação desta edição foi encerrada.',
     participante_inelegivel: 'Esta casa não está disponível para avaliação.',
     unidade_inelegivel: 'Esta unidade não está disponível para avaliação.',
+    unidade_obrigatoria: 'Escolha a unidade que você visitou.',
     email_invalido: 'Confira o e-mail.',
     nome_invalido: 'Confira o nome.',
     notas_incompletas: 'Dê uma nota para cada item.',

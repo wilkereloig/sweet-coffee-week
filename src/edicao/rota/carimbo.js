@@ -85,6 +85,7 @@ export function mensagemCriar (erro) {
     email_invalido: 'Confira o e-mail.',
     whatsapp_invalido: 'Confira o WhatsApp, com DDD.',
     aceite_obrigatorio: 'Para participar, aceite o regulamento.',
+    muitos_pedidos: 'Muitos pedidos agora, tente de novo em alguns minutos.',
   })[erro] || 'Não deu para criar o mapa agora. Tente de novo em instantes.'
 }
 
@@ -105,7 +106,10 @@ export function estadoAlbum (participantes = [], mapa = null) {
     casas,
     visitadas: casas.filter((c) => c.colorida && c.avaliou).length,
     pendentes: casas.filter((c) => c.podeAvaliar).length,
-    total: casas.length, pontos: mapa?.pontos || 0, posicao: mapa?.posicao ?? null,
+    // Caça (mapa_ler_v2): o total e o resto do progresso vêm do servidor; sem eles, a lista da edição.
+    total: Number.isFinite(mapa?.total_casas) ? mapa.total_casas : casas.length,
+    extras: mapa?.extras || 0, faltam: mapa?.faltam ?? null, empatados: mapa?.empatados || 0,
+    pontos: mapa?.pontos || 0, posicao: mapa?.posicao ?? null,
   }
 }
 

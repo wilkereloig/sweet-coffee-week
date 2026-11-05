@@ -32,6 +32,7 @@ import { Mapa } from './paginas/mapa/index.jsx'
 import { MinhaRota } from './paginas/MinhaRota.jsx'
 import { SweetAwards } from './paginas/awards/index.jsx'
 import { Carimbo } from './paginas/Carimbo.jsx'
+import { Caca } from './paginas/caca/index.jsx'
 import { VoucherVirtual } from './paginas/VoucherVirtual.jsx'
 import { Regulamento } from './paginas/Regulamento.jsx'
 
@@ -104,17 +105,17 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
 }
 
 // Sem o mapa no ar, a navegação fica sem Mapa e Minha rota, e estas páginas mostram o "em breve".
-const PAGINAS = NAV.filter((n) => MAPA_NO_AR || !['mapa', 'minha-rota'].includes(n.cena))
-const CENAS_DO_MAPA = ['mapa', 'minha-rota', 'carimbo', 'regulamento']
+const PAGINAS = NAV.filter((n) => MAPA_NO_AR || !['mapa', 'minha-rota', 'caca'].includes(n.cena))
+const CENAS_DO_MAPA = ['mapa', 'minha-rota', 'carimbo', 'caca', 'regulamento']
 
 const TITULOS = {
   'mapa-em-breve': 'Mapa', participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
-  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', inexistente: 'Página não encontrada',
+  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', caca: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
   const pedida = resolverCena(path)
-  const { slug, foco, codigo, token } = pedida
+  const { slug, foco, codigo, token, secao, grupoId } = pedida
   const cena = pedida.cena === 'sistema' && !Sistema ? 'inexistente' : !MAPA_NO_AR && CENAS_DO_MAPA.includes(pedida.cena) ? 'mapa-em-breve' : pedida.cena
   const ed = useEdicao()
   const rota = useMinhaRota(EDICAO.codigo)
@@ -125,7 +126,7 @@ export function CartoonPage ({ path, navigate }) {
   const dados = ed.dados
   const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena === 'carimbo' ? 'minha-rota' : cena
   // Barra do celular: os cinco atalhos; depois dos resultados, a aba do Sweet Awards vira "Prêmios" (§10.6).
-  const abas = PAGINAS.map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
+  const abas = PAGINAS.filter((n) => !n.semAba).map((n) => (dados?.resultados_publicos && n.abaResultados ? { ...n, aba: n.abaResultados, icone: n.iconeResultados } : n))
   const paradas = rota.ids.length
   const linkNav = (item, className, filhos) => (
     <Link href={item.href} navigate={navigate} className={className} aria-current={ativa === item.cena ? 'page' : undefined}>
@@ -143,7 +144,8 @@ export function CartoonPage ({ path, navigate }) {
   }, [cena])
 
   // Páginas que dependem da lista da edição esperam por ela; o participante busca o seu.
-  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'mapa-em-breve', 'carimbo', 'voucher', 'regulamento'].includes(cena)
+  // A Caça só espera a lista na seção do mapa; a central e o resto usam a lista se já houver (nome da casa) e seguem sem ela.
+  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'mapa-em-breve', 'carimbo', 'voucher', 'regulamento'].includes(cena) && (cena !== 'caca' || secao === 'mapa')
   let conteudo
   if (precisaLista && ed.estado === 'carregando') conteudo = <Carregando texto="Carregando a edição…" />
   else if (precisaLista && ed.estado === 'falha') {
@@ -158,6 +160,7 @@ export function CartoonPage ({ path, navigate }) {
       case 'minha-rota': conteudo = <MinhaRota navigate={navigate} dados={dados} />; break
       case 'avaliar':
       case 'premiacao': conteudo = <SweetAwards navigate={navigate} dados={dados} foco={cena} />; break
+      case 'caca': conteudo = <Caca secao={secao} grupoId={grupoId} token={token} navigate={navigate} dados={dados} />; break
       case 'carimbo': conteudo = <Carimbo key={codigo} codigo={codigo} navigate={navigate} dados={dados} />; break
       case 'voucher': conteudo = <VoucherVirtual key={token} token={token} navigate={navigate} dados={dados} />; break
       case 'regulamento': conteudo = <Regulamento navigate={navigate} />; break

@@ -1,7 +1,7 @@
 /*
  * Mapa da Doçura na Minha rota (docs/cartoon-2026-2/14 §14.3): o álbum das casas com os carimbos de verdade.
- * Logo desenhada em rascunho que ganha cor no primeiro carimbo, "×N" nas repetidas, "avalie e ganhe +2",
- * pontos, posição, guardar e apagar o mapa. A chave e a leitura no banco moram em useMeuMapa (o link pessoal
+ * Logo desenhada em rascunho que ganha cor no primeiro carimbo, "×N" nas repetidas, "avaliar e validar" nas pendentes,
+ * casas validadas, extras, posição, guardar e apagar o mapa (a leitura é a v2 da Caça: não há mais pontos). A chave e a leitura no banco moram em useMeuMapa (o link pessoal
  * `#mapa=<chave>` grava a chave e sai do endereço).
  */
 import React from 'react'
@@ -9,13 +9,14 @@ import { EDICAO } from '../../config.js'
 import { imagemPublica } from '../../dados/publico.js'
 import { Link } from '../../componentes/base.jsx'
 import * as C from '../../rota/carimbo.js'
-import { GuardarMapa } from './Carimbo.jsx'
+import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
+import { CACA, CACA_CAMINHOS } from '../../caca/textos.js'
 
 /** `meu`: o estado de useMeuMapa (rota/useMeuMapa.js), lido uma vez pela página e repartido com o Mundo. */
 export function AlbumCarimbos ({ dados, navigate, meu }) {
   const { chave, mapa, estado } = meu
   async function apagar () {
-    if (!window.confirm('Apagar seu Mapa da Doçura? Os carimbos e os pontos somem e não voltam.')) return
+    if (!window.confirm('Apagar seu Mapa da Doçura? Os carimbos e o progresso somem e não voltam.')) return
     await meu.apagar()
   }
 
@@ -24,7 +25,8 @@ export function AlbumCarimbos ({ dados, navigate, meu }) {
     return (
       <section className="ct-bloco ct-album" aria-labelledby="album-titulo">
         <h2 id="album-titulo" className="ct-h2">Mapa da Doçura</h2>
-        <p className="ct-lead">Cada casa tem um QR no balcão. Leia com a câmera do celular e ganhe pontos para o sorteio de itens do festival. Seu mapa começa na primeira leitura.</p>
+        <p className="ct-lead">Cada casa tem um QR no balcão. Leia com a câmera do celular, avalie o combo e valide casas diferentes na Caça aos Carimbos.</p>
+        <div className="ct-acoes"><Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-botao">{CACA.criar.titulo}</Link></div>
         <p className="ct-nota"><Link href={`${C_}/regulamento`} navigate={navigate}>Como funciona e regulamento</Link></p>
       </section>
     )
@@ -43,8 +45,9 @@ export function AlbumCarimbos ({ dados, navigate, meu }) {
     <section className="ct-bloco ct-album" aria-labelledby="album-titulo">
       <h2 id="album-titulo" className="ct-h2">Mapa da Doçura de {mapa.apelido}</h2>
       <p className="ct-lead">
-        <strong>{album.pontos} {album.pontos === 1 ? 'ponto' : 'pontos'}</strong> · {album.visitadas} de {album.total} casas validadas
-        {album.posicao ? ` · ${album.posicao}º no ranking` : ''}
+        <strong>{CACA.progresso.casas(album.visitadas, album.total)}</strong> validadas
+        {album.extras > 0 ? ` · ${CACA.progresso.extras(album.extras)}` : ''}
+        {album.posicao ? ` · ${CACA.progresso.posicao(album.posicao)}` : ''}
       </p>
       {album.pendentes > 0 && (
         <p className="ct-nota">

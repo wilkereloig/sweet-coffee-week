@@ -1,2 +1,2 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
-Vouchers virtuais: Contatos › Vouchers ganha o canal Virtuais (gerar, destinar e copiar o link) e, na marca, ler o QR do cliente para registrar o uso. Arquivos ganha a aba Links dos combos, com a pasta de fotos de todas as marcas.
+Caça aos Carimbos: Edição › Carimbos ganha abas para apurar os vouchers de cada dia, acompanhar prazos e prêmios, simular o sorteio final, revisar carimbos sem GPS, mudar regras e prazos e ver a auditoria.

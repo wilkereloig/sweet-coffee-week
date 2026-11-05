@@ -9,7 +9,8 @@
  * (AdvancedMarkerElement) com um <button> nomeado dentro: a seleção sincroniza com a lista, como no outro mapa.
  */
 import React from 'react'
-import { pinDaCasa } from './pin.js'
+import { pinDaCasa, pinSicredi } from './pin.js'
+import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
@@ -40,6 +41,12 @@ const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quer
 function elementoDoPonto (p, aoSelecionar) {
   const el = document.createElement('button')
   el.type = 'button'
+  if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
+    el.className = 'ct-sicredi-marcador'
+    el.append(pinSicredi(p.pin))
+    el.addEventListener('click', () => aoSelecionar(p.id))
+    return el
+  }
   el.className = `ct-marcador${p.pin ? ' ct-marcador--pin' : ''}`
   // O <span> carrega o anel (aproximado) e o selo (quero ir / já fui); o botão é do provedor do mapa.
   if (p.pin) el.append(pinDaCasa(p.pin))
@@ -87,13 +94,16 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     for (const mk of marcadores.current.values()) mk.map = null
     marcadores.current.clear()
     const limites = new LatLngBounds()
+    // O enquadramento segue as casas; só sem nenhuma casa na tela (filtro vazio) ele vai para as agências do Sicredi.
+    const casas = pontos.filter((p) => !p.sicredi)
+    const alvo = casas.length ? casas : pontos
     for (const p of pontos) {
       const pos = { lat: p.lat, lng: p.lng }
       marcadores.current.set(p.id, new AdvancedMarkerElement({ map: m, position: pos, content: elementoDoPonto(p, aoSelecionar), title: p.titulo }))
-      limites.extend(pos)
     }
-    if (pontos.length > 1) m.fitBounds(limites, 48)
-    else if (pontos.length === 1) { m.setCenter({ lat: pontos[0].lat, lng: pontos[0].lng }); m.setZoom(15) }
+    for (const p of alvo) limites.extend({ lat: p.lat, lng: p.lng })
+    if (alvo.length > 1) m.fitBounds(limites, 48)
+    else if (alvo.length === 1) { m.setCenter({ lat: alvo[0].lat, lng: alvo[0].lng }); m.setZoom(15) }
   }, [pronto, pontos.map((p) => p.id).join(), aoSelecionar])
 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome.
@@ -101,6 +111,13 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     for (const p of pontos) {
       const el = marcadores.current.get(p.id)?.content
       if (!el) continue
+      if (p.sicredi) {
+        el.classList.toggle('ct-sicredi-marcador--aprox', !!p.aproximada)
+        el.classList.toggle('is-sel', p.id === selecionada)
+        el.setAttribute('aria-label', TC.sicrediNomeMarcador(p.titulo, !!p.aproximada))
+        el.setAttribute('aria-pressed', String(p.id === selecionada))
+        continue
+      }
       el.classList.toggle('ct-marcador--aprox', !!p.aproximada)
       el.classList.toggle('ct-marcador--quero', !!p.quero)
       el.classList.toggle('ct-marcador--foi', !!p.foi)

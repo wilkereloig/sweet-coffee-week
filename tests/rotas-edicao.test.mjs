@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { resolverRota } from '../src/lib/rotas.js'
-import { resolverCena } from '../src/edicao/rotas.js'
+import { resolverCena, CENAS } from '../src/edicao/rotas.js'
 import { EDICAO, CARTOON_PUBLICA, ENTRADA_PRINCIPAL, INICIO_INSTITUCIONAL } from '../src/edicao/config.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
@@ -66,12 +66,23 @@ test('cenas da edição', () => {
   assert.deepEqual(c('/cartoon/combos'), { cena: 'combos' })
   assert.deepEqual(c('/cartoon/combos/paneer-patisserie'), { cena: 'participante', slug: 'paneer-patisserie', foco: 'combo' })
   for (const s of ['mapa', 'minha-rota', 'avaliar', 'premiacao']) assert.deepEqual(c(`/cartoon/${s}`), { cena: s })
+  assert.deepEqual(c('/cartoon/caca'), { cena: 'caca', secao: 'central' })
+  assert.deepEqual(c('/cartoon/caca/ranking'), { cena: 'caca', secao: 'ranking' })
+  assert.deepEqual(c('/cartoon/caca/xyz'), { cena: 'inexistente' })
   assert.deepEqual(c('/cartoon/sistema'), { cena: 'sistema' })
   assert.deepEqual(c('/cartoon/sistema/x'), { cena: 'inexistente' })
   assert.deepEqual(c('/cartoon/mapa?unidade=u7k2'), { cena: 'mapa' })
   for (const p of ['/cartoon/xyz', '/cartoon/participantes/Casa_A', '/cartoon/participantes/a/b', '/cartoon/mapa/x', '/outra']) {
     assert.deepEqual(c(p), { cena: 'inexistente' }, p)
   }
+})
+
+test('a Caça aos Carimbos segue o mesmo gate do mapa e não mexe nas flags', () => {
+  const idx = ler('src/edicao/cartoon/index.jsx')
+  assert.match(idx, /CENAS_DO_MAPA = \[[^\]]*'caca'/, 'sem MAPA_NO_AR a cena vira "em breve"')
+  assert.match(idx, /MAPA_NO_AR \|\| !\['mapa', 'minha-rota', 'caca'\]/, 'o item some do menu como o Mapa')
+  assert.match(ler('src/edicao/config.js'), /export const MAPA_PUBLICO = false/)
+  assert.ok(CENAS.includes('caca'))
 })
 
 test('cada caminho limpo tem rewrite na Vercel', () => {

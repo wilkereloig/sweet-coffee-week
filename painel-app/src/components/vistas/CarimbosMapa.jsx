@@ -2,33 +2,47 @@ import React from 'react'
 import QRCode from 'qrcode'
 import { rpc } from '../../lib/rpc'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
-import { Carregando, Vazio, Erro, Secao, Botao } from '../ui'
+import { Carregando, Vazio, Erro, Secao, Botao, Abas, painelDaAba } from '../ui'
 import { useLeitura } from '../../lib/leituraVivaReact'
-import { entregar } from '../../lib/entrega'
+import { horaNatal as hora } from '../../lib/caca'
+import { PainelCaca, ABAS_CACA } from './caca/PainelCaca'
 import { ComEdicaoAtual } from './Edicao'
 import { confirmar, pedirTexto, avisar } from '../Confirmar'
 import '../../styles/carimbos.css'
 
 /*
  * Edição › Carimbos — Mapa da Doçura (docs/cartoon-2026-2/14-mapa-da-docura.md §14.5).
- * Totais, alertas para a auditoria (viagem impossível, unidade sem ponto conferido), ranking, a apuração da
- * Caça aos Carimbos (vouchers dia a dia e sorteio final, §14.14) e os QR das unidades para os adesivos do balcão.
+ * Aba "Mapa e adesivos": totais, alertas para a auditoria (viagem impossível, unidade sem ponto conferido), ranking e os
+ * QR das unidades para os adesivos do balcão. As outras abas são a Caça aos Carimbos (vouchers do dia, prêmio final,
+ * revisão, regras, metas, avisos e auditoria: vistas/caca/*, regra em docs/cartoon-2026-2/15-caca-especificacao.md).
  * Ler: dado.ler. Anular carimbo, trocar QR e gerar link novo: producao.gerir (o banco confere).
  */
 
 const lerSenha = () => sessionStorage.getItem(CHAVE_SESSAO) || ''
 const SITE = 'https://www.sweetcoffeeweek.com.br'
 export const urlDoCarimbo = (codigo) => `${SITE}/cartoon/carimbo/${codigo}`
-const hora = (iso) => (iso ? new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Fortaleza', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '')
-const csv = (linhas) => linhas.map((l) => l.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\n')
-const baixar = (nome, texto) => entregar(new File(['﻿' + texto], nome, { type: 'text/csv;charset=utf-8' }))
 
 export function CarimbosMapa({ pode, registrarAtualizar }) {
   if (!pode('dado.ler')) return <p className="ui-nota">Sua função não lê os dados da edição.</p>
   return <ComEdicaoAtual registrarAtualizar={registrarAtualizar}>{(atual) => <Painel edicao={atual.codigo} pode={pode} />}</ComEdicaoAtual>
 }
 
+const ABAS = [{ chave: 'mapa', rotulo: 'Mapa e adesivos' }, ...ABAS_CACA]
+
 function Painel({ edicao, pode }) {
+  const [aba, setAba] = React.useState('mapa')
+  const idAbas = React.useId()
+  return (
+    <div className="ui-pilha">
+      <Abas idBase={idAbas} rotulo="Seções dos carimbos e da Caça aos Carimbos" ativa={aba} onMudar={setAba} abas={ABAS} />
+      <div {...painelDaAba(idAbas, aba)} className="ui-painel-aba">
+        {aba === 'mapa' ? <MapaDocura edicao={edicao} pode={pode} /> : <PainelCaca edicao={edicao} pode={pode} aba={aba} />}
+      </div>
+    </div>
+  )
+}
+
+function MapaDocura({ edicao, pode }) {
   const resumo = useLeitura(async () => rpc('get_mapa_carimbos', { p_secret: lerSenha(), p_edicao: edicao }), ['carimbos'], { chave: edicao })
   const qrs = useLeitura(async () => rpc('get_carimbo_qr', { p_secret: lerSenha(), p_edicao: edicao }), ['carimbos'], { chave: edicao })
   const gerir = pode('producao.gerir')
@@ -93,67 +107,8 @@ function Painel({ edicao, pode }) {
           </Secao>
         </>
       )}
-      <Apuracao edicao={edicao} pode={pode} />
       <Adesivos leitura={qrs} gerir={gerir} />
     </div>
-  )
-}
-
-const diaBr = (d) => d.split('-').reverse().slice(0, 2).join('/')
-
-/** Números do sorteio final: cada carimbo é uma chance, em faixas contínuas na ordem da lista. */
-export function faixasDoSorteio(lista) {
-  let fim = 0
-  return lista.map((p) => { const de = fim + 1; fim += Number(p.chances) || 0; return { ...p, de, ate: fim } })
-}
-
-/*
- * Apuração da Caça aos Carimbos (get_caca_apuracao). Leitura à parte, com erro próprio: a função só existe depois da
- * migration 20261202 — sem ela, só este bloco mostra o erro.
- */
-function Apuracao({ edicao, pode }) {
-  const ap = useLeitura(async () => rpc('get_caca_apuracao', { p_secret: lerSenha(), p_edicao: edicao }), ['carimbos'], { chave: edicao })
-  const contato = pode('relatorio.ler')
-  const a = ap.dados
-  const linhaContato = (m) => contato && <td>{[m.email, m.whatsapp].filter(Boolean).join(' · ')}</td>
-  const tabela = (rotulo, linhas, colunas, celulas) => (
-    <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label={rotulo}>
-      <table className="ui-tabela">
-        <thead><tr>{colunas.map((c) => <th key={c} scope="col">{c}</th>)}{contato && <th scope="col">Contato</th>}</tr></thead>
-        <tbody>{linhas.map((m, i) => <tr key={`${m.apelido}-${i}`}>{celulas(m)}{linhaContato(m)}</tr>)}</tbody>
-      </table>
-    </div>
-  )
-  if (ap.bloqueada) return <Secao titulo="Caça aos Carimbos: apuração"><Erro texto={ap.erro} onTentar={ap.recarregar} /></Secao>
-  if (!a) return <Secao titulo="Caça aos Carimbos: apuração"><Carregando /></Secao>
-  const finais = faixasDoSorteio(a.sorteio_final || [])
-  return (
-    <>
-      <Secao titulo="Vouchers do dia" nota="Carimbos validados acumulados desde 5/11, até 23h59 de cada dia. Um voucher por pessoa: quem já ganhou sai das apurações seguintes (pule o nome e use o próximo). Posição repetida = empate, resolvido por sorteio.">
-        {(a.apuracoes || []).map((d) => (
-          <div key={d.dia} className="ui-pilha">
-            <h3 className="ui-modulo__titulo">{diaBr(d.dia)}</h3>
-            {!d.ranking?.length ? <p className="ui-nota">Ninguém com carimbo validado até esse dia.</p>
-              : tabela(`Apuração de ${diaBr(d.dia)}`, d.ranking, ['#', 'Apelido', 'Carimbos', 'Casas'],
-                (m) => <><td>{m.posicao}</td><th scope="row">{m.apelido}</th><td>{m.carimbos}</td><td>{m.casas}</td></>)}
-          </div>
-        ))}
-      </Secao>
-      <Secao titulo="Prêmio final" nota={`Concorre quem validou as ${a.total_casas} casas. Cada carimbo validado é uma chance: os números do sorteio vão em faixas, na ordem da lista. Sorteie 3, um de cada vez; quem sair não volta.`}
-        acoes={contato && finais.length > 0 && <Botao icone="baixar" variante="secundario" onClick={() => baixar('caca-aos-carimbos-sorteio-final.csv',
-          csv([['de', 'ate', 'apelido', 'chances', 'email', 'whatsapp'], ...finais.map((n) => [n.de, n.ate, n.apelido, n.chances, n.email, n.whatsapp])]))}>Lista do sorteio (CSV)</Botao>}>
-        {!finais.length ? <p className="ui-nota">Ninguém completou o mapa ainda.</p>
-          : tabela('Concorrentes do prêmio final', finais, ['Números', 'Apelido', 'Chances'],
-            (m) => <><td>{m.de}–{m.ate}</td><th scope="row">{m.apelido}</th><td>{m.chances}</td></>)}
-        {finais.length < 3 && a.reservas?.length > 0 && (
-          <>
-            <p className="ui-nota">Menos de 3 mapas completos: as vagas que sobram vão, nesta ordem, para quem tem mais casas validadas (empate: mais carimbos; persistindo, sorteio).</p>
-            {tabela('Próximos para as vagas que sobram', a.reservas, ['Apelido', 'Casas', 'Carimbos'],
-              (m) => <><th scope="row">{m.apelido}</th><td>{m.casas}</td><td>{m.carimbos}</td></>)}
-          </>
-        )}
-      </Secao>
-    </>
   )
 }
 
