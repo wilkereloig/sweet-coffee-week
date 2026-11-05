@@ -409,7 +409,7 @@ export const AWARDS = {
 }
 
 export const RODAPE = {
-  assinatura: 'Sweet & Coffee Week Cartoon é uma edição do Sweet & Coffee Week.',
+  logoAlt: 'Sweet & Coffee Week, página do festival',
   paginas: 'A edição',
   festival: 'O festival',
   legais: 'Documentos',

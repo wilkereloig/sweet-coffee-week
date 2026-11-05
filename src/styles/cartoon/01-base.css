@@ -8,22 +8,34 @@
 .ct-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ------------------------------------------------------------- casca (§10.6) */
-/* Cabeçalho creme igual em todas as páginas: selo à esquerda (nunca centralizado). Preso ao topo em todas as telas,
-   sem linha embaixo (04/11, pedido do Wilker: a marca fica sempre à vista, inclusive para quem chega pelo QR do prisma).
-   Celular: selo + "Menu"; a partir de 900 a navegação aparece. Quebras da camada: 600 / 900 / 1200. */
+/* Cabeçalho em degradê (05/11, pedido do Wilker): sem a faixa sólida. O creme é opaco atrás da marca e dos controles e se dissolve
+   numa borda de --ct-topo-fade abaixo deles; a margem negativa devolve esse trecho ao conteúdo, que passa por baixo sem corte seco.
+   O cabeçalho em si não pega clique (a zona do degradê fica sobre o conteúdo): só a marca, a navegação e o Menu pegam.
+   Preso ao topo em todas as telas, marca à esquerda (nunca centralizada). Celular: marca + "Menu"; a partir de 900 a navegação aparece.
+   A marca muda por página (selo da edição, letreiro do Mapa da Doçura, letreiro da Caça aos Carimbos): classe --edicao/--mapa/--caca.
+   Quebras da camada: 600 / 900 / 1200. */
 .ct-topo {
+  --ct-topo-fade: 20px;
   position: sticky; top: 0; z-index: 20;
   display: flex; align-items: center; justify-content: space-between; gap: 8px 24px;
-  padding: 6px var(--ct-trilho);
-  background: var(--ct-creme);
+  padding: 6px var(--ct-trilho) calc(6px + var(--ct-topo-fade));
+  margin-bottom: calc(var(--ct-topo-fade) * -1);
+  background: linear-gradient(to bottom,
+    var(--ct-creme) 0, var(--ct-creme) calc(100% - var(--ct-topo-fade) - 10px),
+    color-mix(in srgb, var(--ct-creme) 62%, transparent) calc(100% - var(--ct-topo-fade) * .45),
+    color-mix(in srgb, var(--ct-creme) 18%, transparent) calc(100% - var(--ct-topo-fade) * .15), transparent 100%);
+  pointer-events: none;
 }
+.ct-topo > * { pointer-events: auto; }
 .ct-topo__marca { display: inline-flex; flex: none; min-height: 44px; align-items: center; }
-.ct-topo__marca img { display: block; width: auto; height: 48px; }
+.ct-topo__marca img { display: block; width: auto; height: 64px; }
+/* Letreiros largos (proporção ≈ 2:1): mais altos que o selo para o texto ler, com margem negativa para não engordar a barra. */
+.ct-topo__marca--mapa img, .ct-topo__marca--caca img { height: 72px; margin-block: -4px; }
 /* Botão "Menu" do celular: ícone + palavra, mais baixo que o botão de ação para não competir com o conteúdo. */
 .ct-edicao .ct-topo__menu.ct-botao { min-height: 44px; padding: 0 14px 0 12px; border-width: 2.5px; border-radius: 12px; box-shadow: 3px 3px 0 var(--ct-chocolate); font-size: 15px; }
 .ct-edicao .ct-topo__menu.ct-botao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
 /* Âncoras (#combo, #unidades…) param abaixo do cabeçalho preso. */
-.ct-edicao [id] { scroll-margin-top: 72px; }
+.ct-edicao [id] { scroll-margin-top: 88px; }
 .ct-topo__nav { display: none; }
 .ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 0; list-style: none; }
 /* Links do topo como etiquetas de gibi (repaginação de 04/11): no hover ganham a borda e a sombra dura; a página atual é
@@ -36,9 +48,10 @@
 .ct-topo__nav a:hover { border-color: var(--ct-chocolate); background: var(--ct-branco); box-shadow: 3px 3px 0 var(--ct-chocolate); }
 .ct-edicao .ct-topo__nav a[aria-current='page'] { border-color: var(--ct-chocolate); background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: 3px 3px 0 var(--ct-chocolate); rotate: -2deg; }
 @media (min-width: 900px) {
-  .ct-topo { padding-block: 10px; }
-  .ct-edicao [id] { scroll-margin-top: 92px; }
-  .ct-topo__marca img { height: 60px; }
+  .ct-topo { --ct-topo-fade: 26px; padding-top: 10px; padding-bottom: calc(10px + var(--ct-topo-fade)); }
+  .ct-edicao [id] { scroll-margin-top: 112px; }
+  .ct-topo__marca img { height: 84px; }
+  .ct-topo__marca--mapa img, .ct-topo__marca--caca img { height: 92px; margin-block: -4px; }
   .ct-topo__nav { display: block; }
   /* (0,3,0): .ct-edicao .ct-botao (0,2,0) vem depois no arquivo e daria display ao botão de novo. */
   .ct-edicao .ct-topo__menu.ct-botao { display: none; }
@@ -94,6 +107,8 @@
 .ct-rodape__assina { display: grid; align-content: start; gap: 16px; }
 @media (min-width: 600px) and (max-width: 1199.98px) { .ct-rodape__assina { grid-column: 1 / -1; } }
 .ct-rodape p { max-width: 46ch; margin: 0; }
+.ct-rodape__logo { display: inline-flex; width: fit-content; min-height: 44px; }
+.ct-rodape__logo img { display: block; width: clamp(120px, 14vw, 160px); height: auto; }
 .ct-rodape__titulo { font: 800 var(--ct-fs-servico)/1.3 var(--ct-font); letter-spacing: .1em; text-transform: uppercase; color: var(--ct-amarelo); }
 .ct-rodape__links { display: flex; flex-wrap: wrap; gap: 0 20px; margin: 0; padding: 0; list-style: none; }
 .ct-rodape__grupo .ct-rodape__links { display: grid; grid-template-columns: repeat(2, max-content); gap: 0 28px; margin-top: 4px; }

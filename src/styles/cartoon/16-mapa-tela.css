@@ -359,3 +359,6 @@
 .ct-rota__ajuda[open] { padding-bottom: 8px; }
 .ct-rota__marcas { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font: 600 14px/1.4 var(--ct-font); }
 .ct-rota__marcas strong { font-weight: 900; }
+
+/* O letreiro do Mapa da Doçura já está na barra do topo (marca da página): o título da faixa turquesa fica só para leitor de tela. */
+.ct-edicao:has(.ct-topo__marca--mapa) .ct-rota-topo--compacto #mapa-titulo { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

@@ -15,7 +15,7 @@ import { EDICAO, INICIO_INSTITUCIONAL } from '../config.js'
 import { resolverCena } from '../rotas.js'
 import { carregarEdicao } from '../dados/publico.js'
 import { useMinhaRota } from '../rota/useMinhaRota.js'
-import { seloEdicao, srcSet } from '../../data/imageLibrary'
+import { marcaDoTopo, srcSet } from '../../data/imageLibrary'
 import { LINKS_LEGAIS } from '../../components/SiteFooter'
 import { abrirPreferencias } from '../../lib/consentimento'
 import { useReservaDaBase } from '../../hooks/useReservaDaBase'
@@ -121,7 +121,8 @@ export function CartoonPage ({ path, navigate }) {
   // A barra de abas do celular é fixa na base: o aviso de cookies sobe acima dela.
   const abasRef = React.useRef(null)
   useReservaDaBase(abasRef)
-  const selo = seloEdicao()
+  // Marca do topo conforme a página: letreiro do Mapa da Doçura no mapa; o da Caça aos Carimbos na Caça (e no carimbo, voucher e regulamento).
+  const marca = marcaDoTopo(cena === 'mapa' ? 'mapa' : ['caca', 'carimbo', 'voucher', 'regulamento'].includes(cena) ? 'caca' : 'edicao')
   const dados = ed.dados
   const ativa = cena === 'participante' || cena === 'combos' ? 'participantes' : cena === 'premiacao' ? 'avaliar' : cena === 'carimbo' ? 'mapa' : cena
   // Barra do celular: os cinco atalhos; depois dos resultados, a aba do Sweet Awards vira "Prêmios" (§10.6).
@@ -195,8 +196,8 @@ export function CartoonPage ({ path, navigate }) {
     <RotaContexto.Provider value={MAPA_NO_AR ? rota : null}>
       <div className="ct-edicao">
         <header className="ct-topo">
-          <Link href={EDICAO.caminho} navigate={navigate} className="ct-topo__marca" aria-label={`${EDICAO.nome}, início`}>
-            <img src={selo.src} srcSet={srcSet(selo.src)} sizes="64px" alt="" width={selo.largura} height={selo.altura} />
+          <Link href={EDICAO.caminho} navigate={navigate} className={`ct-topo__marca ct-topo__marca--${marca.grupo}`} aria-label={marca.grupo === 'edicao' ? `${EDICAO.nome}, início` : `${marca.nome}, início da edição ${EDICAO.tema}`}>
+            <img src={marca.src} srcSet={marca.grupo === 'edicao' ? srcSet(marca.src) : undefined} sizes="96px" alt="" width={marca.largura} height={marca.altura} />
           </Link>
           <nav className="ct-topo__nav" aria-label="Navegação da edição">
             <ul>
@@ -214,7 +215,7 @@ export function CartoonPage ({ path, navigate }) {
         <footer className="ct-rodape">
           <div className="ct-rodape__corpo">
             <div className="ct-rodape__assina">
-              <p>{RODAPE.assinatura}</p>
+              <Link href={INICIO_INSTITUCIONAL} navigate={navigate} className="ct-rodape__logo"><img src="/logos/lockup-scw-creme.svg" alt={RODAPE.logoAlt} width="160" height="124" /></Link>
             </div>
             <nav className="ct-rodape__grupo" aria-labelledby="ct-rodape-edicao">
               <p id="ct-rodape-edicao" className="ct-rodape__titulo">{RODAPE.paginas}</p>

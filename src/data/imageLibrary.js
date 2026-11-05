@@ -435,6 +435,21 @@ export function seloEdicao() {
   return SELO_EDICAO
 }
 
+/* Marcas do cabeçalho da edição por página (05/11/2026, pedido do Wilker): o selo da Cartoon nas páginas gerais, o
+   letreiro oficial do Mapa da Doçura no mapa e o da Caça aos Carimbos na Caça. Arquivos oficiais de
+   06_MATERIAIS_PDV/03_MAPA_IMPRESSO/04_SINALIZACAO (titulo-mapa-da-docura_… e logo-caca-aos-carimbos_…), só recortados
+   ao conteúdo e convertidos para WebP (960 no uso; 480 e 1200 ficam ao lado) — nunca redesenhados. */
+const MARCAS_TOPO = {
+  mapa: { src: '/images/marcas-edicoes/2026.2/logos-topo/mapa-da-docura-960.webp', largura: 960, altura: 497, nome: 'Mapa da Doçura' },
+  caca: { src: '/images/marcas-edicoes/2026.2/logos-topo/caca-aos-carimbos-960.webp', largura: 960, altura: 482, nome: 'Caça aos Carimbos' },
+}
+
+/** Marca do cabeçalho conforme a página: 'mapa' | 'caca' trazem o letreiro próprio; qualquer outra, o selo da edição. */
+export function marcaDoTopo(grupo) {
+  const m = MARCAS_TOPO[grupo]
+  return m ? { ...m, grupo } : { ...SELO_EDICAO, grupo: 'edicao', nome: SELO_EDICAO.alt }
+}
+
 /* Troféu do Sweet Awards v15 (decisões de 22/10: fatia de bolo com colher de sobremesa, base no
    formato do selo; 1º ouro, 2º prata, 3º cobre), de 01_SWEET_AWARDS_MARCA/TROFEU-ARTES/*-frente.png,
    recortado ao conteúdo e convertido para WebP, fundo transparente. O metal só existe nestes arquivos
