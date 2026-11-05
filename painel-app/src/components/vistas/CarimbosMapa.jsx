@@ -30,7 +30,11 @@ export function CarimbosMapa({ pode, registrarAtualizar }) {
 const ABAS = [{ chave: 'mapa', rotulo: 'Mapa e adesivos' }, ...ABAS_CACA]
 
 function Painel({ edicao, pode }) {
-  const [aba, setAba] = React.useState('mapa')
+  // O aviso de pedido novo abre direto na aba pedida (#edicao/carimbos?sub=presenca).
+  const [aba, setAba] = React.useState(() => {
+    const sub = new URLSearchParams(String(window.location.hash).split('?')[1] || '').get('sub')
+    return ABAS.some((a) => a.chave === sub) ? sub : 'mapa'
+  })
   const idAbas = React.useId()
   return (
     <div className="ui-pilha">

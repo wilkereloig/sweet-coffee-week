@@ -117,6 +117,8 @@ function rotaCrua(link) {
       return { vista, aba, filtros: b ? { item: b } : {} }
     }
     case 'edicao': {
+      // Aviso de pedido de visita anterior: edicao/carimbos/presenca abre Edição › Carimbos na aba "Pedidos de presença".
+      if (a === 'carimbos') return { vista: 'edicao', aba: 'carimbos', filtros: b ? { sub: b } : {} }
       const [vista, aba] = (Object.hasOwn(EDICAO_ABA, a) && EDICAO_ABA[a]) || ['edicao', 'configuracao']
       return { vista, aba, filtros: {} }
     }

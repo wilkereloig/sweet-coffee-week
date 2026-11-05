@@ -120,3 +120,14 @@ test('a central monta o cartão (com mapa e sem mapa) e o painel decide pela mes
   const painel = ler('painel-app/src/components/vistas/caca/Excecoes.jsx')
   assert.match(painel, /visita_anterior/)
 })
+
+test('aviso à organização: gatilho notifica o painel e o link abre Carimbos › Pedidos de presença', async () => {
+  const sql = ler('supabase/migrations/20261228_caca_visita_anterior_avisa.sql')
+  assert.match(sql, /perform public\.notificar\('organizacao'/)
+  assert.match(sql, /after insert on public\.caca_carimbo_excecao/)
+  assert.match(sql, /'edicao\/carimbos\/presenca'/)
+  assert.doesNotMatch(sql, /email|whatsapp/i, 'o aviso não leva contato')
+  const { rotaDoLink } = await import('../painel-app/src/lib/rota.js')
+  assert.deepEqual(rotaDoLink('edicao/carimbos/presenca'), { vista: 'edicao', aba: 'carimbos', filtros: { sub: 'presenca' } })
+  assert.equal(rotaDoLink('edicao/temas')?.aba, 'temas', 'os links antigos da edição seguem iguais')
+})
