@@ -1,5 +1,6 @@
 -- Caça aos Carimbos · leitura PÚBLICA dos prêmios (aba "Prêmios" do Mapa da Doçura).
--- NÃO APLICADA: gravar no banco só com o ok do Wilker (ver docs/cartoon-2026-2/15-caca-contrato-premiacao.md).
+-- APLICADA no banco em 05/11/2026 (21:58 UTC), com o ok do Wilker (ver docs/cartoon-2026-2/15-caca-contrato-premiacao.md).
+-- Reverter: supabase/reverter/20261223_caca_premios_publico.sql
 --
 -- Por quê: `caca_config_ler` é só de painel (p_secret). O visitante não tinha como ler os dias dos vouchers, a validade, o
 -- número de ganhadores finais nem o estado de cada dia; a tela escreveria 7..11 e 15/11 à mão (segunda fonte da verdade).

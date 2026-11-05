@@ -94,12 +94,14 @@ export function montarEmailLink (chave) {
   const assunto = 'O link do seu mapa da Caça aos Carimbos'
   const aviso = 'Este link é como uma senha: quem tiver o link abre o seu mapa. Guarde só para você e não poste nem mande para outras pessoas.'
   const uso = 'Para abrir o seu mapa em outro celular, copie o endereço abaixo e cole no navegador.'
+  const validade = 'Este link vale até você recuperar o mapa em outro aparelho: aí ele é trocado por um novo.'
   const ignore = 'Se não foi você quem pediu, ignore este e-mail. Se você perder o acesso, dá para recuperar o mapa com o código que enviamos para este e-mail.'
   const html = moldura(assunto, `        <p style="margin:0 0 14px;">Seu e-mail foi confirmado. ${esc(uso)}</p>
         <p style="margin:0 0 16px;padding:12px 14px;background:#FDF0DE;border:3px solid #3A150F;border-radius:14px;font-size:15px;word-break:break-all;color:#6424AB;font-weight:700;">${esc(link)}</p>
         <p style="margin:0 0 14px;padding:10px 14px;background:#FDF0DE;border:3px solid #E8195A;border-radius:14px;font-size:15px;font-weight:700;">${esc(aviso)}</p>
+        ${nota(validade)}
         ${nota(ignore)}`)
-  const texto = ['Oi, Sweet Lover!', '', `Seu e-mail foi confirmado. ${uso}`, '', link, '', aviso, '', ignore, '', 'Sweet & Coffee Week, edição Cartoon'].join('\n')
+  const texto = ['Oi, Sweet Lover!', '', `Seu e-mail foi confirmado. ${uso}`, '', link, '', aviso, '', validade, '', ignore, '', 'Sweet & Coffee Week, edição Cartoon'].join('\n')
   return { assunto, html, texto }
 }
 

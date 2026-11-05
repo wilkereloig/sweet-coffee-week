@@ -139,7 +139,7 @@ export const CACA = {
     tenhoLink: 'Tenho o link pessoal do mapa',
     jaTemNoAparelho: 'Este aparelho já tem um mapa, e cada e-mail tem um só.',
     abrirMeuMapa: 'Abrir meu mapa',
-    jaTemMapa: { titulo: 'Esse e-mail já tem um mapa', texto: 'Cada e-mail tem um só mapa, e não dá para criar outro. Para entrar no seu, peça um código de 6 dígitos no e-mail do mapa.', acao: 'Entrar no meu mapa' },
+    jaTemMapa: { titulo: 'Esse e-mail já tem um mapa', texto: 'Cada e-mail tem um só mapa, e não dá para criar outro. Para entrar no seu, peça um código de 6 dígitos no e-mail do mapa. Se o mapa não for seu ou estiver com dados errados, entre nele pelo código, use "Apagar meu mapa" em Carimbos e crie o seu.', acao: 'Entrar no meu mapa' },
     outroAparelho: 'Abriu em outro celular, ou pelo app instalado? Recupere seu mapa com o e-mail.',
     recuperar: 'Recuperar meu mapa',
   },
