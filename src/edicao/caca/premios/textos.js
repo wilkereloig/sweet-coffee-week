@@ -1,0 +1,69 @@
+/*
+ * Textos da aba "Prêmios" (mapa). Regras na linguagem do regulamento (src/edicao/cartoon/regulamento.js, vouchers e prêmio final);
+ * NENHUMA data, hora, validade ou quantidade de ganhadores é escrita aqui: entram por parâmetro, vindas de `caca_premios_publico`.
+ */
+export const PREMIOS = {
+  titulo: 'Prêmios',
+  intro: 'Valide casas diferentes para concorrer a vouchers durante o festival e ao prêmio final.',
+  // Voucher do dia
+  vouchersTitulo: 'Vouchers durante o festival',
+  vouchersResumo: (n) => (n === 1 ? '1 dia, com 1 voucher em disputa' : `${n} dias, com 1 voucher em disputa por dia`),
+  proximoRotulo: { em_disputa: 'Em disputa agora', proximo: 'Próximo voucher', em_apuracao: 'Em apuração', resultado: 'Último resultado' },
+  diaTitulo: (d) => `${d.semana[0].toUpperCase()}${d.semana.slice(1)}, ${d.longa}`,
+  umVoucher: '1 voucher em disputa',
+  umVoucherCurto: '1 voucher',
+  estado: { proximo: 'Em breve', em_disputa: 'Em disputa', em_apuracao: 'Em apuração', resultado: 'Resultado confirmado' },
+  estadoDica: {
+    proximo: 'A disputa deste dia ainda não começou.',
+    em_disputa: 'A disputa deste dia está aberta.',
+    em_apuracao: 'O dia encerrou. A organização apura e confirma o resultado; ainda não há confirmação.',
+    resultado: 'A organização já confirmou o voucher deste dia. Quem ganhou recebe o aviso pelo contato do mapa.',
+  },
+  comoConcorre: (corte) => `Conta quem tem mais casas diferentes validadas até ${corte ? `as ${corte}` : 'o fim'} do dia (horário de Natal).`,
+  apurando: (d) => `O dia ${d.curta} encerrou e está em apuração. Ainda não há resultado confirmado.`,
+  verTodos: 'Ver todos os dias',
+  todosTitulo: 'Todos os dias de voucher',
+  semDias: 'Os dias dos vouchers não estão disponíveis agora. Tente de novo em instantes.',
+  tentar: 'Tentar de novo',
+  carregando: 'Carregando os prêmios…',
+  regrasTitulo: 'Como o voucher do dia é decidido',
+  regras: (corte, validade) => [
+    `A classificação considera primeiro quem tem mais casas diferentes validadas até ${corte ? `as ${corte}` : 'o fim'} do dia.`,
+    'Empate: os carimbos extras de revisitas desempatam. Se ainda empatar, há sorteio entre as pessoas empatadas.',
+    'Cada pessoa ganha no máximo um voucher por dia, e continua na Caça e no prêmio final.',
+    'Uma casa só conta na apuração quando o carimbo está validado pela avaliação. Carimbo pendente ainda não conta.',
+    'A apuração e a confirmação acontecem depois que o dia encerra.',
+    validade ? `Os vouchers desta ação valem até ${validade.longa}.` : 'A validade dos vouchers está no regulamento.',
+  ],
+  // Prêmio final
+  finalTitulo: 'Prêmio final',
+  finalMeta: (total) => `Complete as ${total} casas`,
+  finalSemTotal: 'Complete todas as casas do mapa',
+  finalTexto: (ganhadores) => `Quem valida todas as casas concorre ao sorteio principal. ${ganhadores ? (ganhadores === 1 ? 'Há 1 ganhador previsto' : `Há ${ganhadores} ganhadores previstos`) : 'Há ganhadores previstos'}, e cada um leva o press kit oficial da edição e uma surpresa.`,
+  finalExtras: 'Carimbos extras dão uma pequena vantagem no sorteio entre mapas completos. É uma vantagem pequena, não uma chance garantida.',
+  finalRegras: 'Se houver poucos mapas completos, as vagas restantes seguem uma regra própria. Está no regulamento.',
+  regulamento: 'Ler o regulamento',
+  // Progresso pessoal
+  progresso: (feitas, total) => `${feitas} de ${total} casas validadas`,
+  faltam: (n) => (n === 0 ? 'Mapa completo!' : n === 1 ? 'Falta 1 casa' : `Faltam ${n} casas`),
+  completo: 'Mapa completo: você concorre ao prêmio final.',
+  pendentes: (n) => (n === 1 ? '1 carimbo aguarda avaliação. Só conta quando for validado.' : `${n} carimbos aguardam avaliação. Só contam quando forem validados.`),
+  extras: (n) => (n === 1 ? '1 carimbo extra' : `${n} carimbos extras`),
+  vouchersNaoTiram: 'Ganhar um voucher não tira você do prêmio final.',
+  // Sem mapa / vazio
+  semMapa: 'Crie seu mapa para acompanhar sua posição. Dá para conhecer os prêmios antes.',
+  criarMapa: 'Criar meu mapa',
+  vazio: 'Seu mapa está vazio. A primeira casa validada já entra na disputa dos vouchers.',
+  // Diferenças
+  diferencaTitulo: 'O que conta e o que não conta',
+  diferenca: [
+    ['Casa validada', 'Carimbo aprovado pela avaliação numa casa diferente. É o que conta para vouchers e prêmio final.'],
+    ['Carimbo extra', 'Revisita a uma casa já validada. Não soma casa; só desempata e dá peso no sorteio final.'],
+    ['Já fui', 'Anotação sua. Não conta casa, carimbo nem prêmio.'],
+  ],
+  // Metas
+  metasTitulo: 'Metas comemorativas',
+  metasNota: 'As metas comemoram seu caminho e não dão prêmio. O que vale como prêmio são os vouchers e o prêmio final.',
+  metaProxima: (titulo, faltam) => `${titulo}: ${faltam === 1 ? 'falta 1 casa' : `faltam ${faltam} casas`}`,
+  metasTodas: 'Você alcançou todas as metas!',
+}

@@ -56,6 +56,7 @@ import { MAPA as T, FASE_TEXTO } from '../../textos.js'
 import { AlbumCarimbos } from '../AlbumCarimbos.jsx'
 import { Cartao } from './Cartao.jsx'
 import { Atalhos } from './Atalhos.jsx'
+import { PainelPremios } from './PainelPremios.jsx'
 import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
 import { Folha } from './Folha.jsx'
 import { LogoDoPin, logoDoPin } from './LogoDoPin.jsx'
@@ -73,7 +74,7 @@ const Ranking = React.lazy(() => import('../../../caca/secoes/Ranking.jsx'))
 const Grupos = React.lazy(() => import('../../../caca/secoes/Grupos.jsx'))
 const VAZIO = { q: '', bairro: '', modo: '', aberto: false, queroIr: false, jaFui: false, estado: '' }
 const VISTAS = ['mundo', 'real', 'lista']
-const PAINEIS = ['rota', 'album']
+const PAINEIS = ['rota', 'album', 'premios']
 const largo = () => matchMedia('(min-width: 900px)').matches
 const reduzirMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 const inicial = (p) => (p.casa?.nome || '?').replace(/^\[DEMO\]\s*/, '').trim().charAt(0).toUpperCase()
@@ -278,6 +279,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     : linhas.map(({ u, p }) => ({ id: u.id, slug: p.slug, numero: mundo.unidades[u.id]?.numero ?? '', titulo: M.tituloDaUnidade(p, u), bairro: u.endereco?.bairro || '', estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), parada: paradaDe.get(u.id) || null, proxima: p.slug === proximaSlug }))
   const progressoDoJogo = meu.estado === 'pronto' ? progressoPessoal(meu.mapa, lista.filter((p) => (p.unidades || []).length).length) : null
   // O que cada atalho da tela cheia mostra: os componentes que já existem, nada novo. Sem mapa criado, o convite curto da Central.
+  const premiosEl = <PainelPremios caca={meu} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length} navigate={navigate} />
   const conteudoAtalho = (chave, fechar) => {
     const convite = (texto) => <div className="ct-jogo__convite"><p>{texto}</p><Botao href={TC.caminhos.central} navigate={navigate}>{TC.criarMapa}</Botao></div>
     switch (chave) {
@@ -297,6 +299,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
           </>
         )
       case 'rota': return rotaEl
+      case 'premios': return premiosEl
       case 'ranking': return <React.Suspense fallback={<Carregando texto={TC.atalhoCarregando} />}><Ranking caca={meu} navigate={navigate} dados={dados} /></React.Suspense>
       default: // grupos: precisam de mapa (a Central faz o mesmo convite)
         return meu.estado === 'sem-mapa'
@@ -456,7 +459,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                   {PAINEIS.map((k) => <Chip key={k} ativo={aba === k} onClick={() => setPainel(k)}>{T.abas[k]}</Chip>)}
                 </div>
               )}
-              {aba === 'rota' ? rotaEl : <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
+              {aba === 'rota' ? rotaEl : aba === 'premios' ? premiosEl : <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
             </Folha>}
           </div>
         </div>

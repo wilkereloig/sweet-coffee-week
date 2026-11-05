@@ -158,6 +158,12 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
       return r.ok ? { ok: true, metas: r.dado } : r
     }),
 
+    /** `caca_premios_publico` (migration 20261223): `{ ok:true, premios:{ dias[{dia,corte,estado}], corte_hora_local, voucher_validade_ate, ganhadores_final } }`. Público, sem chave; nunca traz nome nem posição de ninguém. */
+    premiosLer: async () => {
+      const r = await rpcDado('caca_premios_publico', { p_edicao: edicao })
+      return r.ok ? { ok: true, premios: r.dado } : r
+    },
+
     /* ---- grupos e rota colaborativa (15-caca-contrato-grupos.md) ---- */
 
     /** `caca_grupo_criar`: `{ ok:true, grupo_id, nome, convite_token, convite_expira_em }` · nome_invalido · aceite_obrigatorio · limite_grupos. O token só aparece aqui. */

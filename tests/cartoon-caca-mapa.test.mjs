@@ -376,10 +376,10 @@ test('o Mundo não conhece a tela cheia: a interface dele segue só com os dados
 
 // ---- Atalhos do jogo na tela cheia (06/11/2026) ----
 
-test('atalhos do jogo: cinco itens na ordem pedida, cada um com ícone ilustrado da edição, rótulo curto e título de folha', () => {
+test('atalhos do jogo: seis itens na ordem pedida, cada um com ícone ilustrado da edição, rótulo curto e título de folha', () => {
   const fonte = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Atalhos.jsx', import.meta.url), 'utf8')
   const chaves = [...fonte.matchAll(/\['(\w+)', '([\w-]+)'\]/g)].map((m) => [m[1], m[2]])
-  assert.deepEqual(chaves.map((c) => c[0]), ['progresso', 'casas', 'rota', 'ranking', 'grupos'])
+  assert.deepEqual(chaves.map((c) => c[0]), ['progresso', 'casas', 'rota', 'premios', 'ranking', 'grupos'])
   for (const [chave, icone] of chaves) {
     assert.ok(iconeEdicao(icone), `ícone da edição "${icone}" existe`)
     assert.ok(T.atalho[chave] && T.atalhoTitulo[chave], `rótulo e título de ${chave}`)

@@ -1,7 +1,7 @@
 /*
  * Atalhos do jogo (06/11/2026) — o mapa em tela cheia com cara de jogo de celular: UM botão compacto sobre o mapa (canto
  * oposto ao zoom, abaixo da barra, respeitando o entalhe) que mostra o placar ("2/26") e, ao toque, abre uma lista curta de
- * cinco atalhos com ícone e rótulo: Progresso · Casas · Rota · Ranking · Grupos. Cada atalho abre UMA folha por vez (Folha,
+ * seis atalhos com ícone e rótulo: Progresso · Casas · Rota · Prêmios · Ranking · Grupos. Cada atalho abre UMA folha por vez (Folha,
  * variante "jogo"); ao abrir a folha a lista recolhe sozinha. Nada de barra larga nem cartão permanente.
  *
  * Escape (pilha de interacao.js): folha → lista → tela cheia. Ao fechar a folha o foco volta ao botão dos atalhos; fechar a
@@ -17,7 +17,7 @@ import { Folha } from './Folha.jsx'
 import { useEscape } from './interacao.js'
 
 // [chave, ícone ilustrado da edição]: o ícone nunca está sozinho, o rótulo vai ao lado.
-export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['ranking', 'premio'], ['grupos', 'conversar']]
+export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['premios', 'premio'], ['ranking', 'premio'], ['grupos', 'conversar']]
 
 export function Atalhos ({ placar = '', resumo = '', conteudo }) {
   const [lista, setLista] = React.useState(false)

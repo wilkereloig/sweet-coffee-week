@@ -64,14 +64,14 @@
 .ct-central__numeros .ct-central__esperando { background: var(--ct-amarelo); }
 
 /* "Como conta?" e as linhas com opções: <details> nativo, fechado, com a seta desenhada em CSS (indicador funcional). */
-.ct-central__como summary, .ct-central__detalhes > summary, .ct-como-carimbar > summary, .ct-rota__ajuda > summary {
+.ct-central__como summary, .ct-central__detalhes > summary, .ct-como-carimbar > summary, .ct-rota__ajuda > summary, .ct-premios__dias > summary, .ct-premios__regras > summary {
   display: flex; align-items: center; gap: 10px; min-height: 44px; list-style: none; cursor: pointer; font: 700 15px/1.3 var(--ct-font);
 }
-.ct-central__como summary::-webkit-details-marker, .ct-central__detalhes > summary::-webkit-details-marker, .ct-como-carimbar > summary::-webkit-details-marker, .ct-rota__ajuda > summary::-webkit-details-marker { display: none; }
-.ct-central__como summary::after, .ct-central__detalhes > summary::after, .ct-como-carimbar > summary::after, .ct-rota__ajuda > summary::after {
+.ct-central__como summary::-webkit-details-marker, .ct-central__detalhes > summary::-webkit-details-marker, .ct-como-carimbar > summary::-webkit-details-marker, .ct-rota__ajuda > summary::-webkit-details-marker, .ct-premios__dias > summary::-webkit-details-marker, .ct-premios__regras > summary::-webkit-details-marker { display: none; }
+.ct-central__como summary::after, .ct-central__detalhes > summary::after, .ct-como-carimbar > summary::after, .ct-rota__ajuda > summary::after, .ct-premios__dias > summary::after, .ct-premios__regras > summary::after {
   content: ''; flex: none; width: 8px; height: 8px; margin: 0 4px 3px auto; border: solid var(--ct-chocolate); border-width: 0 3px 3px 0; transform: rotate(45deg);
 }
-.ct-central__como[open] > summary::after, .ct-central__detalhes[open] > summary::after, .ct-como-carimbar[open] > summary::after, .ct-rota__ajuda[open] > summary::after { margin-bottom: -3px; transform: rotate(-135deg); }
+.ct-central__como[open] > summary::after, .ct-central__detalhes[open] > summary::after, .ct-como-carimbar[open] > summary::after, .ct-rota__ajuda[open] > summary::after, .ct-premios__dias[open] > summary::after, .ct-premios__regras[open] > summary::after { margin-bottom: -3px; transform: rotate(-135deg); }
 .ct-central__como ul { margin: 0 0 10px; padding-left: 20px; font: 500 14px/1.5 var(--ct-font); }
 .ct-central__como li + li { margin-top: 4px; }
 

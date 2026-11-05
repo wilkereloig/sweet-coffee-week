@@ -262,7 +262,7 @@ export const MAPA = {
   vistas: 'Ver as casas como',
   vista: { mundo: 'Mundo', real: 'Mapa real', lista: 'Lista' },
   painel: 'Sua rota e seus carimbos',
-  abas: { rota: 'Minha rota', album: 'Carimbos' },
+  abas: { rota: 'Minha rota', album: 'Carimbos', premios: 'Prêmios' },
   mundoRegiao: 'Mundo da Doçura: Natal desenhada com as casas da Cartoon. A lista tem as mesmas casas.',
   mundoNota: 'O desenho mostra o bairro e a ordem das casas, não a rua exata. Para chegar, use "Como chegar" ou a rota no Google Maps.',
   previa: 'Prévia com a arte provisória: só aparece no ambiente de desenvolvimento.',

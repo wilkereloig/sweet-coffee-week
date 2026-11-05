@@ -322,6 +322,34 @@
   .ct-pin, .ct-sicredi-pin { transition: none; }
 }
 
+/* ------------------------------------------------------------- PRÊMIOS (PainelPremios.jsx): voucher do dia, prêmio final, metas */
+.ct-premios { display: grid; gap: 18px; }
+.ct-premios p, .ct-premios h3, .ct-premios ul, .ct-premios ol, .ct-premios dl, .ct-premios dd { margin: 0; }
+.ct-premios__bloco { display: grid; gap: 10px; }
+.ct-premios__destaque {
+  display: grid; gap: 6px; padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p);
+}
+.ct-premios__final { padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
+.ct-premios__linha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.ct-premios__ok { padding: 8px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-creme); font-weight: 800; }
+.ct-premios__estado {
+  display: inline-block; padding: 3px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-branco); color: var(--ct-chocolate);
+  font: 800 13px/1.2 var(--ct-font); white-space: nowrap;
+}
+.ct-premios__estado.is-em_disputa { background: var(--ct-creme); }
+.ct-premios__estado.is-em_apuracao { border-style: dashed; }
+.ct-premios__estado.is-resultado { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-premios__lista { display: grid; gap: 6px; padding: 0; list-style: none; }
+.ct-premios__dia { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 48px; padding: 6px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-branco); }
+.ct-premios__dia.is-foco { background: var(--ct-amarelo); }
+.ct-premios__data { display: grid; line-height: 1.15; }
+.ct-premios__data span { font-size: 12px; text-transform: capitalize; }
+.ct-premios__regras ul { display: grid; gap: 6px; margin: 0 0 8px; padding-left: 20px; font: 600 14px/1.4 var(--ct-font); }
+.ct-premios__diferenca { display: grid; gap: 8px; }
+.ct-premios__diferenca div { display: grid; gap: 2px; padding-bottom: 8px; border-bottom: 2px dashed color-mix(in srgb, var(--ct-chocolate) 35%, transparent); }
+.ct-premios__diferenca dt { font-weight: 900; }
+@media (prefers-reduced-motion: reduce) { .ct-premios * { transition: none; } }
+
 /* ------------------------------------------------------------- painel da rota: as três marcas (rota ≠ já fui ≠ carimbo) */
 /* Estado vazio dentro do painel (lista sem paradas, sem visitadas): sem o respiro de página inteira. */
 .ct-rota__secao .ct-estado { padding-block: 4px 8px; }
