@@ -8,7 +8,7 @@
  */
 import { EDICAO } from './config.js'
 
-export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'carimbo', 'voucher', 'regulamento', 'patrocinador', 'inexistente']
+export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'carimbo', 'voucher', 'regulamento', 'inexistente']
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -32,6 +32,8 @@ export function resolverCena (path = '', base = EDICAO.caminho) {
       ? { cena: 'participante', slug, foco: 'combo' }
       : { cena: 'participante', slug }
   }
-  if (!slug && ['mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'regulamento', 'patrocinador'].includes(primeira)) return { cena: primeira }
+  if (!slug && ['mapa', 'minha-rota', 'avaliar', 'premiacao', 'sistema', 'regulamento'].includes(primeira)) return { cena: primeira }
+  // A página própria do patrocinador saiu (04/11): o endereço já divulgado abre a entrada, que ganhou a assinatura do Sicredi.
+  if (!slug && primeira === 'patrocinador') return { cena: 'entrada', legado: true }
   return { cena: 'inexistente' }
 }

@@ -55,10 +55,10 @@ export const ENTRADA = {
 }
 
 export const DUVIDAS = [
-  ['Quanto custa o combo?', 'O valor do combo é o mesmo em todas as casas e aparece na página de cada uma.'],
+  ['Quanto custa o combo?', 'O valor de cada combo aparece na página da casa.'],
   ['Tem delivery?', 'Depende da casa e da unidade. Cada página diz onde o combo sai por delivery e por qual canal.'],
   ['Tenho alergia ou restrição. O que faço?', 'Cada componente traz o que a casa informou sobre alergênicos e trocas. Confirme sempre com a loja antes de pedir: a informação é da casa, e "não informado" quer dizer que ela não declarou.'],
-  ['Como avalio?', 'A avaliação abre durante o festival, na página Avaliar e no fim da página de cada casa.'],
+  ['Como avalio?', 'A avaliação abre durante o festival, na página do Sweet Awards. Vindo da página de uma casa, ela já fica escolhida.'],
 ]
 
 export const FASE_TEXTO = {
@@ -199,22 +199,7 @@ export const ICONE = {
 
 /* Faixa de marcas (rodapé e telas da ativação); marca aprovada pela Sicredi antes de mudar. */
 export const MARCAS = {
-  realizacao: 'Realização', patrocinio: 'Patrocinador', apoio: 'Apoio',
-}
-
-/* Página do patrocinador (/cartoon/patrocinador) — o QR do verso do mapa A5 leva aqui (Wilker 04/11).
-   As agências vêm do mundo da edição (src/data/mundoEdicao.js), a mesma fonte das bandeiras do mapa. */
-export const PATROCINADOR = {
-  rotulo: 'Patrocinador',
-  titulo: 'O Sicredi no Sweet & Coffee Week',
-  sobre: 'O Sicredi é uma instituição financeira cooperativa comprometida com a vida financeira dos seus associados e com as regiões onde atua.',
-  edicao: 'É o patrocinador da edição Cartoon do Sweet & Coffee Week, de 5 a 15 de novembro, em Natal.',
-  agencias: 'Agências em Natal e região',
-  verNoMapa: 'Ver no mapa',
-  verNoMapaRotulo: (nome) => `Ver ${nome} no Google Maps (abre em nova aba)`,
-  site: 'Conhecer o Sicredi RN',
-  siteUrl: 'https://www.sicredi.com.br/coop/riograndedonorte/',
-  voltar: 'Voltar ao mapa',
+  realizacao: 'Realização', patrocinio: 'Patrocínio', apoio: 'Apoio',
 }
 
 export const CENA_TEXTO = {
@@ -349,7 +334,7 @@ export const AWARDS = {
     bebida: { pergunta: 'Que nota você dá para a bebida?', ajuda: 'Sabor e harmonia da bebida com o combo.' },
     apresentacao: { pergunta: 'Que nota você dá para a apresentação?', ajuda: 'Capricho e beleza na montagem do combo.' },
     criatividade: { pergunta: 'Que nota você dá para a criatividade?', ajuda: 'Originalidade e ousadia do combo dentro do tema da casa.' },
-    atendimento: { pergunta: 'Que nota você dá para o atendimento?', ajuda: 'Simpatia, agilidade e cuidado da equipe.' },
+    atendimento: { pergunta: 'Que nota você dá para o atendimento?', ajuda: 'Simpatia, agilidade e cuidado da equipe. Pediu por delivery? Avalie o atendimento que recebeu no pedido e na entrega.' },
     encantamento: { pergunta: 'Que nota você dá para o encantamento em loja?', ajuda: 'Como a casa viveu o tema: ambientação, ações, vestimenta, cantinho para fotos. Pediu por delivery? Avalie o que chegou até você.' },
   },
   pergunta: (rotulo) => `Que nota você dá para ${rotulo.toLowerCase()}?`,

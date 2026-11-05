@@ -20,6 +20,7 @@ import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
+import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Botao, Passos, Gibi, Preco } from '../../componentes/sistema/pecas.jsx'
 import { ENTRADA as T, CATALOGO, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
 
@@ -97,7 +98,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
   const elenco = dados?.participantes_publicos ? dados.participantes || [] : []
   const bairros = M.contarBairros(elenco)
   const periodo = M.periodoDaEdicao(dados?.edicao, PERIODO)
-  const preco = dados?.combos_publicos ? elenco.find((p) => p.combo?.preco)?.combo.preco : null
+  const preco = dados?.combos_publicos ? M.precoGeral(elenco) : null
   const precoTexto = preco ? M.formatarPreco(preco) : null
   const encerrada = dados?.fase === 'encerrada'
   const aberta = !!dados?.avaliacao?.aberta
@@ -139,6 +140,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           <Olhinhos expressao="encantado" lado="direita" olhar={{ x: -0.6, y: 0.2 }} tamanho={150} className="ct-estreia__olhos" />
         </div>
       </TopoCanal>
+      <AssinaturaPatrocinio />
 
       <section className="ct-bloco ct-entrada__elenco ct-reticula" aria-labelledby="ct-elenco">
         <Letreiro id="ct-elenco" texto={T.elencoTitulo} />
@@ -193,7 +195,8 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           <p className="ct-palco__texto">{textoAvalie}</p>
           <div className="ct-acoes">
             {!encerrada && <Botao href={`${C}/avaliar`} navigate={navigate}>{aberta ? T.avaliar : T.comoAvaliar}</Botao>}
-            <Botao tipo={encerrada ? 'primario' : 'secundario'} href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao>
+            {/* Antes dos resultados a premiação é a mesma página da avaliação: o segundo botão só entra quando leva a algo novo. */}
+            {(encerrada || dados?.resultados_publicos) && <Botao tipo={encerrada ? 'primario' : 'secundario'} href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao>}
           </div>
         </div>
         <img className="ct-palco__trofeu" src={trofeu.src} width={trofeu.largura} height={trofeu.altura} alt="" aria-hidden="true" loading="lazy" decoding="async" />

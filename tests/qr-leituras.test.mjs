@@ -41,7 +41,7 @@ test('regra do código: cada peça leva para o destino certo e o resto vai para 
     ['inicio', '/cartoon'],
     ['avaliar', '/cartoon/avaliar'],
     ['premiacao', '/cartoon/premiacao'],
-    ['patrocinador', '/cartoon/patrocinador'],
+    ['patrocinador', '/cartoon'],
     ['constructor', '/cartoon'],
     ['mapa-bitly', '/cartoon'],
     ['teste', '/cartoon'],

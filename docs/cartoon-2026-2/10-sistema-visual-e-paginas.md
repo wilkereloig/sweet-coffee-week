@@ -467,3 +467,11 @@ Medido em produção, com dado publicado, em 390 e 1440 px (7 casas: uma unidade
 Efeito: Jolie no celular de 10.418 para 9.660 px; Boldfood com a foto na primeira tela. Wow Cookies cresce (+700 px no celular) porque ganhou a faixa dos itens e as linhas de "Contém"/"Pode conter" — informação que antes faltava.
 
 **Dado a corrigir no painel (não é do site):** Cookitos Lagoa Nova com link de site digitado errado (`…/unidsdes`); Mariana's com o link do Instagram cadastrado como "WhatsApp" e como "Site" em duas unidades iguais; Caroli Douces publicada sem combo e com 5 unidades; o retrato local do painel difere do publicado (Wow e Caroli).
+
+### 10.19 Fechamento da edição (04/11/2026)
+
+- **Página do patrocinador removida.** `/cartoon/patrocinador` resolve para a entrada com `legado: true` e a URL é trocada por `/cartoon` (`replaceState`); `/q/patrocinador` (código já impresso no verso do mapa A5) leva à entrada. Saíram `Patrocinador.jsx`, o bloco `PATROCINADOR` de `textos.js` e o CSS `.ct-patrocinador*`.
+- **Sicredi como "Patrocínio":** `AssinaturaPatrocinio` (um componente) logo abaixo do topo da Entrada e do Catálogo, sobre branco, logo oficial sem tratamento; a faixa de marcas antes do rodapé continua.
+- **Preço geral só com combos iguais:** `M.precoGeral` (Entrada e Catálogo) devolve o valor apenas quando todos os combos que declaram preço declaram o mesmo; antes pegava o primeiro encontrado.
+- **Avaliação:** trocar de casa limpa notas e comentário; vários itens do mesmo tipo aparecem juntos; o atendimento orienta quem pediu por delivery; "Ver a premiação" só aparece na Entrada com resultados ou edição encerrada (antes dos resultados é a mesma página da avaliação).
+- **Estado real (consulta, sem gravação):** 7 critérios de 5 a 10 aplicados em `edicao_criterios`; avaliação fechada (`avaliacao_aberta=false`, sem janela), 0 avaliações, 0 premiações. Pendente de decisão (D-06): "Melhor Combo", pesos, mínimo e desempate — a publicação lê só `premiacoes`, preenchida pela organização; `submit_avaliacao` aceita casa de várias unidades sem unidade (o formulário exige).

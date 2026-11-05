@@ -8,6 +8,7 @@
  * de rolagem volta quando o visitante retorna de uma casa. "Quero ir" e "Já fui" ficam abaixo do cartão,
  * fora do link (área própria, nunca botão dentro de link).
  */
+import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import React from 'react'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
@@ -111,7 +112,7 @@ export function Catalogo ({ modo, navigate, dados }) {
   const restricoes = FILTROS_RESTRICAO.filter(([k]) => opcoes[k])
   const combos = modo === 'combos'
   // O preço é o da edição (o mesmo em todas as casas): no topo dos combos, o preço em letreiro "Combo R$ …".
-  const preco = lista.find((p) => p.combo?.preco)?.combo.preco
+  const preco = M.precoGeral(lista)
   const precoTexto = combos && preco ? M.formatarPreco(preco) : null
   const titulo = <Letreiro nivel={1} id="cat-titulo" texto={combos ? T.tituloCombos : T.titulo} />
 
@@ -155,6 +156,7 @@ export function Catalogo ({ modo, navigate, dados }) {
           <Gibi chave={combos ? 'bandeja' : 'loja'} className="ct-catalogo__desenho" prioridade />
         </div>
       </TopoCanal>
+      <AssinaturaPatrocinio />
 
       <section className="ct-bloco ct-catalogo__corpo">
         <div className="ct-filtros ct-filtros--catalogo">

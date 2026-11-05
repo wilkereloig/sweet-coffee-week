@@ -487,3 +487,12 @@ export const diaMesDoRetrato = (iso) => {
   const m = /^\d{4}-(\d{2})-(\d{2})/.exec(String(iso || ''))
   return m ? `${m[2]}/${m[1]}` : ''
 }
+
+/**
+ * Preço para comunicar como "o preço da edição": só existe quando TODOS os combos que declaram preço declaram o mesmo valor.
+ * Com valores diferentes (ou nenhum) devolve null — a página não escolhe um combo como amostra.
+ */
+export function precoGeral (participantes) {
+  const valores = new Set((participantes || []).map((p) => p?.combo?.preco).filter((v) => v !== null && v !== undefined && v !== '').map((v) => String(Number(v))))
+  return valores.size === 1 ? [...valores][0] : null
+}

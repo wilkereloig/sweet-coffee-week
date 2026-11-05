@@ -118,7 +118,8 @@ export function Formulario ({ dados, criterios, navigate }) {
   const muda = (k, v) => setForm((f) => ({ ...f, [k]: v }))
   const trocouPasso = React.useRef(false)
   const irPara = (passo) => { trocouPasso.current = true; setForm((f) => ({ ...f, passo })) }
-  const nomeDoItem = (chave) => (TIPO_ORDEM.includes(chave) ? (casa?.combo?.itens || []).find((i) => i.tipo === chave)?.nome : null)
+  const nomeDoItem = (chave) => (TIPO_ORDEM.includes(chave)
+    ? (casa?.combo?.itens || []).filter((i) => i.tipo === chave && i.nome).map((i) => M.caixaLegivel(i.nome)).join(' · ') || null : null)
 
   const casaOk = !!casa && (unidades.length < 2 || !!form.unidade)
   const faltamNotas = criterios.filter((c) => !Number.isInteger(form.notas[c.chave])).length
@@ -188,7 +189,7 @@ export function Formulario ({ dados, criterios, navigate }) {
               {visiveis.map((p) => (
                 <label key={p.slug} className="ct-form__casa">
                   <input type="radio" name="av-casa" value={p.slug} checked={form.slug === p.slug}
-                    onChange={() => setForm((f) => ({ ...f, slug: p.slug, unidade: '' }))} />
+                    onChange={() => setForm((f) => (f.slug === p.slug ? f : { ...f, slug: p.slug, unidade: '', notas: {}, comentario: '' }))} />
                   {/* Quem provou lembra do combo: a foto dele identifica a casa (sem foto, a logo). */}
                   {p.combo?.fotos?.principal
                     ? <span className="ct-form__casa-foto"><Foto foto={p.combo.fotos.principal} proporcao="1 / 1" alt="" /></span>
@@ -236,7 +237,7 @@ export function Formulario ({ dados, criterios, navigate }) {
                   {TIPO_ORDEM.includes(c.chave) && <ScwIcon nome={ICONE.tipo[c.chave]} tamanho={20} />}
                   <span>{texto?.pergunta || T.pergunta(c.rotulo)}</span>
                 </legend>
-                {item && <p className="ct-nota-campo__item">{TP.tipos[c.chave]}: <strong>{M.caixaLegivel(item)}</strong></p>}
+                {item && <p className="ct-nota-campo__item">{TP.tipos[c.chave]}: <strong>{item}</strong></p>}
                 {texto?.ajuda && <p className="ct-nota-campo__ajuda">{texto.ajuda}</p>}
                 <div className="ct-escala">
                   {Array.from({ length: c.maximo - c.minimo + 1 }, (_, i) => c.minimo + i).map((n) => (

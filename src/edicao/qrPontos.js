@@ -12,7 +12,7 @@
  *           avaliar    avaliação GERAL (a pessoa escolhe a casa lá)      → /avaliar
  *           premiacao  premiação                                          → /premiacao
  *           mapa-…     mapa (inclui o Bitly do cliente)                  → /mapa
- *           patrocinador  página do Sicredi (verso do mapa A5)           → /patrocinador
+ *           patrocinador  verso do mapa A5 (a página própria saiu, 04/11)   → entrada da edição
  *           d2-<slug>, pl-…  sem peça impressa desde 30/10/2026 (a avaliação virou um QR só); a regra fica
  *           qualquer outro                                                → entrada da edição (nunca erro)
  */
@@ -22,7 +22,7 @@ import { EDICAO, MAPA_PUBLICO } from './config.js'
 const CODIGO = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
 // Peça única para a edição inteira (Map, não objeto: 'constructor' é um código válido).
-const GERAIS = new Map([['avaliar', '/avaliar'], ['premiacao', '/premiacao'], ['patrocinador', '/patrocinador']])
+const GERAIS = new Map([['avaliar', '/avaliar'], ['premiacao', '/premiacao'], ['patrocinador', '']])
 
 /** Código válido, em minúsculas, ou null. Nunca lança. */
 export function normalizarCodigo (bruto) {

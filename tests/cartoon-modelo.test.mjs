@@ -310,3 +310,11 @@ test('observação da unidade: "Nada" e afins não viram aviso na ficha; texto d
   assert.equal(M.observacaoUtil('  Não aceita cartão  '), 'Não aceita cartão')
   assert.equal(M.observacaoUtil('Nada de glúten no recheio'), 'Nada de glúten no recheio')
 })
+
+test('precoGeral só existe quando todos os combos declaram o mesmo valor', () => {
+  const c = (preco) => ({ combo: { preco } })
+  assert.equal(M.precoGeral([c(38.9), c('38.90'), { combo: null }]), '38.9')
+  assert.equal(M.precoGeral([c(38.9), c(42)]), null, 'valores diferentes: sem preço geral')
+  assert.equal(M.precoGeral([{ combo: {} }, { combo: null }]), null)
+  assert.equal(M.precoGeral(undefined), null)
+})

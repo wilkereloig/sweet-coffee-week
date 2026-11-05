@@ -81,6 +81,11 @@
 .ct-edicao img.ct-marcas__senac { height: 28px; }
 .ct-edicao img.ct-marcas__espaco { height: 14px; }
 
+/* Assinatura de patrocínio (entrada e catálogo): linha branca, rótulo e logo lado a lado, sem rotação nem sombra. */
+.ct-assina-patrocinio { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 20px; padding: 14px var(--ct-trilho); background: #fff; color: var(--ct-chocolate); }
+.ct-edicao .ct-assina-patrocinio__rotulo { margin: 0; font: 700 13px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
+.ct-edicao .ct-assina-patrocinio img { display: block; width: auto; max-width: none; height: 34px; }
+
 /* Rodapé chocolate: a assinatura com a realização F2, as páginas, o festival e os documentos. */
 .ct-rodape { padding: 0 0 40px; background: var(--ct-chocolate); color: var(--ct-creme); font: 500 15px/1.5 var(--ct-font); }
 .ct-rodape__corpo { display: grid; gap: 24px 40px; padding: 32px var(--ct-trilho) 0; }

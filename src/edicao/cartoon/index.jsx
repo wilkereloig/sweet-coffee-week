@@ -34,7 +34,6 @@ import { SweetAwards } from './paginas/awards/index.jsx'
 import { Carimbo } from './paginas/Carimbo.jsx'
 import { VoucherVirtual } from './paginas/VoucherVirtual.jsx'
 import { Regulamento } from './paginas/Regulamento.jsx'
-import { Patrocinador } from './paginas/Patrocinador.jsx'
 
 // Vitrine do sistema visual (docs/cartoon-2026-2/10 §10.12): só no DEV. Fora
 // dele o import nem existe no código, então a vitrine não entra no build.
@@ -110,7 +109,7 @@ const CENAS_DO_MAPA = ['mapa', 'minha-rota', 'carimbo', 'regulamento']
 
 const TITULOS = {
   'mapa-em-breve': 'Mapa', participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa', 'minha-rota': 'Minha rota',
-  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', patrocinador: 'Patrocinador', inexistente: 'Página não encontrada',
+  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
@@ -134,12 +133,17 @@ export function CartoonPage ({ path, navigate }) {
     </Link>
   )
 
+  // Endereço antigo da página do patrocinador (QR já impresso): mostra a entrada e troca a URL, sem entrada no histórico.
+  React.useEffect(() => {
+    if (pedida.legado) window.history.replaceState(window.history.state, '', EDICAO.caminho)
+  }, [pedida.legado])
+
   React.useEffect(() => {
     if (cena !== 'participante') document.title = cena === 'entrada' ? `${EDICAO.nome} · 5 a 15 de novembro` : `${TITULOS[cena]} · ${EDICAO.nome}`
   }, [cena])
 
   // Páginas que dependem da lista da edição esperam por ela; o participante busca o seu.
-  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'mapa-em-breve', 'carimbo', 'voucher', 'regulamento', 'patrocinador'].includes(cena)
+  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'mapa-em-breve', 'carimbo', 'voucher', 'regulamento'].includes(cena)
   let conteudo
   if (precisaLista && ed.estado === 'carregando') conteudo = <Carregando texto="Carregando a edição…" />
   else if (precisaLista && ed.estado === 'falha') {
@@ -157,7 +161,6 @@ export function CartoonPage ({ path, navigate }) {
       case 'carimbo': conteudo = <Carimbo key={codigo} codigo={codigo} navigate={navigate} dados={dados} />; break
       case 'voucher': conteudo = <VoucherVirtual key={token} token={token} navigate={navigate} dados={dados} />; break
       case 'regulamento': conteudo = <Regulamento navigate={navigate} />; break
-      case 'patrocinador': conteudo = <Patrocinador navigate={navigate} />; break
       case 'sistema': conteudo = <React.Suspense fallback={<Carregando texto="Carregando a vitrine…" />}><Sistema /></React.Suspense>; break
       case 'mapa-em-breve':
         conteudo = (
