@@ -21,6 +21,7 @@
     "test:caca-navegador": "node tests/cartoon-caca-navegador.mjs",
     "test:mapa-camera": "node tests/cartoon-mapa-camera-navegador.mjs",
     "test:mapa-pin": "node tests/cartoon-mapa-pin-navegador.mjs",
+    "test:mapa-layout": "node tests/cartoon-mapa-layout-navegador.mjs",
     "test:mapa-afastar": "node tests/cartoon-mapa-afastar-navegador.mjs",
     "test:cartoon-sistema": "node tests/cartoon-sistema-navegador.mjs",
     "test:cartoon-voucher": "node tests/cartoon-voucher-virtual-navegador.mjs",
