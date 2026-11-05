@@ -54,6 +54,44 @@ export function montarEmail (finalidade, codigo) {
   return { assunto, html, texto }
 }
 
+/**
+ * LINK PESSOAL por e-mail (05/11/2026), só depois do e-mail confirmado (a edge confere no banco). O link é uma CREDENCIAL:
+ * vai como TEXTO PURO, sem <a>, para o provedor não reescrever o endereço em link de contagem de cliques (a chave passaria
+ * por servidor de terceiro). Só entra chave de exatamente 32 caracteres [A-Za-z0-9_-]; qualquer outra coisa não monta e-mail.
+ * Mesmo formato de src/edicao/rota/carimbo.js (linkDoMapa) e FORMATO_CHAVE.
+ */
+export const SITE_ORIGEM = 'https://www.sweetcoffeeweek.com.br'
+export const chaveDoMapaValida = (c) => typeof c === 'string' && /^[A-Za-z0-9_-]{32}$/.test(c)
+export const linkDoMapaPorEmail = (chave) => (chaveDoMapaValida(chave) ? `${SITE_ORIGEM}/cartoon/mapa#mapa=${chave}` : null)
+
+/** `{ assunto, html, texto }` ou `null` se a chave for inválida. */
+export function montarEmailLink (chave) {
+  const link = linkDoMapaPorEmail(chave)
+  if (!link) return null
+  const assunto = 'O link do seu mapa da Caça aos Carimbos'
+  const aviso = 'Este link é como uma senha: quem tiver o link abre o seu mapa. Guarde só para você e não poste nem mande para outras pessoas.'
+  const uso = 'Para abrir o seu mapa em outro celular, copie o endereço abaixo e cole no navegador.'
+  const ignore = 'Se não foi você quem pediu, ignore este e-mail. Se você perder o acesso, dá para recuperar o mapa com o código que enviamos para este e-mail.'
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(assunto)}</title></head>
+<body style="margin:0;padding:0;background:#FFF4EC;font-family:Helvetica,Arial,sans-serif;color:#3F1A0A;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:20px;border:3px solid #4F2092;">
+      <tr><td style="padding:28px 28px 8px;font-size:16px;line-height:1.6;">
+        <p style="margin:0 0 14px;font-weight:700;font-size:18px;color:#870E2D;">Oi, Sweet Lover!</p>
+        <p style="margin:0 0 14px;">Seu e-mail foi confirmado. ${esc(uso)}</p>
+        <p style="margin:0 0 14px;font-size:15px;word-break:break-all;color:#4F2092;font-weight:700;">${esc(link)}</p>
+        <p style="margin:0 0 14px;"><strong>${esc(aviso)}</strong></p>
+        <p style="margin:0 0 14px;color:#6b5a50;font-size:14px;">${esc(ignore)}</p>
+      </td></tr>
+      <tr><td style="padding:0 28px 24px;font-size:13px;color:#6b5a50;">Sweet &amp; Coffee Week, edição Cartoon</td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`
+  const texto = ['Oi, Sweet Lover!', '', `Seu e-mail foi confirmado. ${uso}`, '', link, '', aviso, '', ignore, '', 'Sweet & Coffee Week, edição Cartoon'].join('\n')
+  return { assunto, html, texto }
+}
+
 /** `"Nome <a@b.com>"` ou `"a@b.com"` → `{ nome, email }`; qualquer outra coisa → null. */
 export function parseRemetente (bruto) {
   const s = String(bruto ?? '').trim()

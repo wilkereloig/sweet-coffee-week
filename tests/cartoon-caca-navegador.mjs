@@ -397,6 +397,11 @@ secao(2, 'recuperar e confirmar por e-mail (estados do envio)', async () => {
   await validar(c.page)
   await c.page.getByText(/confirmado/i).first().waitFor({ timeout: 8000 }).catch(() => falha('confirmar e-mail: sem a confirmação'))
   checar(c.pedidos.find((p) => p.fn === 'caca-email')?.corpo.finalidade === 'confirmar', 'confirmar e-mail pede o código com finalidade "confirmar"')
+  await c.page.getByText(/Enviamos o link do seu mapa/).first().waitFor({ timeout: 8000 }).catch(() => falha('confirmar e-mail: a tela não disse que o link foi enviado'))
+  const pedidoLink = c.pedidos.find((p) => p.fn === 'caca-email' && p.corpo.finalidade === 'link')
+  checar(!!pedidoLink && pedidoLink.corpo.chave === alvo.chave && /^[a-z0-9._%+-]+@/i.test(pedidoLink.corpo.email || ''), 'depois de confirmar, o app pede o envio do link pessoal (finalidade "link", com a chave do mapa)')
+  checar(/Enviamos o link do seu mapa para e\*+@/.test(await texto(c.page)), 'depois de confirmar, a tela diz que o link foi enviado, com o e-mail mascarado')
+  checar(!(await texto(c.page)).includes(alvo.chave), 'o link/chave nunca aparece na tela de confirmação')
   await semErros(c, 'recuperar')
   await c.ctx.close()
 

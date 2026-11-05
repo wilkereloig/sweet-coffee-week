@@ -1,7 +1,7 @@
 // Caça aos Carimbos — parte pura da edge function caca-email (supabase/functions/caca-email/montar.js).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { REMETENTE_PADRAO, montarEmail, esc, codigoValido, parseRemetente, mensagemParaLog, provedorEscolhido, politicaFalha, MOTIVOS_PUBLICOS, emailEntregavel, esperaParaPiso, PISO_RESPOSTA_MS, JITTER_RESPOSTA_MS } from '../supabase/functions/caca-email/montar.js'
+import { montarEmailLink, linkDoMapaPorEmail, chaveDoMapaValida, SITE_ORIGEM, REMETENTE_PADRAO, montarEmail, esc, codigoValido, parseRemetente, mensagemParaLog, provedorEscolhido, politicaFalha, MOTIVOS_PUBLICOS, emailEntregavel, esperaParaPiso, PISO_RESPOSTA_MS, JITTER_RESPOSTA_MS } from '../supabase/functions/caca-email/montar.js'
 
 test('e-mail de recuperar e de confirmar: código, validade, aviso de ignorar, sem apelido', () => {
   for (const fin of ['recuperar', 'confirmar']) {
@@ -88,4 +88,52 @@ test('SEC-07: toda resposta aceita espera o piso fixo mais um acréscimo aleató
   assert.ok(esperaParaPiso(0, 0.999999) < PISO_RESPOSTA_MS + JITTER_RESPOSTA_MS)
   // respostas rápidas e lentas da RPC terminam no mesmo instante (decorrido + espera = piso), qualquer que seja o sorteio
   for (const decorrido of [5, 40, 300]) assert.equal(decorrido + esperaParaPiso(decorrido, 0), PISO_RESPOSTA_MS)
+})
+
+// ---------------------------------------------------------------- link pessoal por e-mail (05/11/2026)
+import { readFileSync } from 'node:fs'
+const lerArq = (c) => readFileSync(new URL(`../${c}`, import.meta.url), 'utf8')
+const CHAVE_OK = 'AbCdEfGhIjKlMnOpQrStUvWxYz012-_9'
+
+test('e-mail do link: texto puro (sem <a>), com o link do mapa, aviso de senha e sem dado do mapa', () => {
+  const m = montarEmailLink(CHAVE_OK)
+  const link = `${SITE_ORIGEM}/cartoon/mapa#mapa=${CHAVE_OK}`
+  assert.equal(linkDoMapaPorEmail(CHAVE_OK), link)
+  for (const parte of [m.html, m.texto]) { assert.ok(parte.includes(link)); assert.match(parte, /como uma senha/); assert.match(parte, /ignore este e-mail/) }
+  assert.doesNotMatch(m.html, /<a[\s>]/i, 'link como texto: o provedor não pode reescrever em link de contagem de cliques')
+  assert.doesNotMatch(m.html, /href=/i)
+  assert.ok(!m.assunto.includes(CHAVE_OK), 'a chave não vai no assunto')
+  assert.equal(new URL(link).origin, 'https://www.sweetcoffeeweek.com.br')
+})
+
+test('e-mail do link só monta com chave de exatamente 32 caracteres [A-Za-z0-9_-]', () => {
+  assert.equal(chaveDoMapaValida(CHAVE_OK), true)
+  for (const ruim of ['', 'curta', CHAVE_OK + 'x', CHAVE_OK.slice(1), `${CHAVE_OK.slice(0, 31)}<`, `${CHAVE_OK.slice(0, 31)} `, '"><script>alert(1)</script>aaaaaaaaaaaa', null, undefined, 123]) {
+    assert.equal(chaveDoMapaValida(ruim), false, String(ruim))
+    assert.equal(montarEmailLink(ruim), null)
+    assert.equal(linkDoMapaPorEmail(ruim), null)
+  }
+})
+
+test('o link por e-mail só sai depois de o e-mail estar confirmado: migration confere chave + e-mail + confirmação e é função interna', () => {
+  const sql = lerArq('supabase/migrations/20261222_caca_link_por_email.sql')
+  assert.match(sql, /chave_hash = public\.mapa_hash\(p_chave\)/)
+  assert.match(sql, /email_norm = v_email/)
+  assert.match(sql, /email_confirmado_em is null/)
+  assert.match(sql, /revoke all on function public\.mapa_link_validar_interno\(text, text, text, text\) from public, anon, authenticated/)
+  assert.match(sql, /grant execute on function public\.mapa_link_validar_interno\(text, text, text, text\) to service_role/)
+  assert.doesNotMatch(sql, /to anon|to authenticated/)
+  assert.match(sql, /interval '1 minute'/); assert.match(sql, />= 5/)
+  assert.ok(fs0('supabase/reverter/20261222_caca_link_por_email.sql').includes('drop function if exists public.mapa_link_validar_interno'))
+})
+
+function fs0 (c) { return lerArq(c) }
+
+test('edge function: finalidade link exige chave válida, chama a função de validação e monta o e-mail só do link', () => {
+  const ts = lerArq('supabase/functions/caca-email/index.ts')
+  assert.match(ts, /finalidade !== 'link'/)
+  assert.match(ts, /finalidade === 'link' && !chaveDoMapaValida\(chave\)/)
+  assert.match(ts, /mapa_link_validar_interno/)
+  assert.match(ts, /montarEmailLink\(chave\)/)
+  assert.doesNotMatch(ts, /console\.(log|error)\([^)]*chave/, 'a chave nunca vai para o log')
 })

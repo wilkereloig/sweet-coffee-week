@@ -175,3 +175,15 @@ Provedor, nesta ordem: **Resend** (`RESEND_API_KEY`) → **Brevo** (`BREVO_API_K
 - **E-mail entregável (SEC-07).** `mapa_criar_v2` e a emissão exigem `^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,190}.[a-z]{2,24}$`; a edge function responde `400 email_invalido` antes de qualquer RPC. Canal lateral: enchimento na RPC e piso de tempo na borda (D5/emitir).
 - **Apagar o mapa** só mantém a pessoa nos grupos se sobrar **outro mapa com e-mail confirmado**; um mapa irmão não confirmado (pode ser de invasor) não herda grupo nem posse. O registro de prêmio já sorteado fica (`caca_premio` não tem FK), como diz o regulamento.
 - Teste novo: `supabase/testes/caca-identidade-sequestro.sql` (atacante primeiro, recuperar em disputa, ranking, grupos, prêmio, apagar). Edge function `caca-email` v6.
+
+## Atualização 05/11/2026 — link pessoal por e-mail (pedido do Wilker)
+
+Depois de confirmar o e-mail, o app manda o **link pessoal** do mapa para esse e-mail; a central ganha o botão "Receber meu link por e-mail" (só com e-mail confirmado).
+
+- **Por que a chave vai no pedido:** o banco guarda só o hash (`chave_hash`), então não reconstrói o link. O app manda `{ edicao, email, finalidade: 'link', chave }` à `caca-email`.
+- **Trava (migration `20261222_caca_link_por_email`, função interna `mapa_link_validar_interno`, só `service_role`):** só envia se a chave é de um mapa da edição, o e-mail do pedido é o do mapa **e esse e-mail já foi confirmado por código**. Quem cria mapa com o e-mail de outra pessoa não lê o código, então nunca recebe (nem a vítima recebe um link de mapa alheio, porque o e-mail vai ao dono do mapa confirmado).
+- **Limites:** 1 por minuto e 5 por hora por mapa; 40 por 10 minutos por IP (hash). Resposta uniforme (`{ ok: true }` ou `{ ok: true, limitado: true }`), igual exista ou não mapa.
+- **E-mail:** o link vai como **texto puro, sem `<a>`**, para o provedor não reescrever em link de contagem de cliques (a chave passaria por servidor de terceiro). Aviso "é como uma senha". Sem apelido nem dado do mapa. `montarEmailLink` em `supabase/functions/caca-email/montar.js`.
+- **Risco aceito:** quem acessar a caixa de e-mail abre o mapa. Já era verdade pela recuperação por código.
+- **Para ligar (nada disto foi aplicado ainda):** aplicar a migration, fazer deploy da `caca-email` e publicar o app. Sem a migration, o envio do link responde `falha_temporaria` e o app mostra "Não deu para enviar o link agora".
+- **Reverter:** `supabase/reverter/20261222_caca_link_por_email.sql` (e voltar a edge function à versão anterior).

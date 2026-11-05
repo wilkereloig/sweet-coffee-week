@@ -14,6 +14,7 @@ import { nomeDaCasa } from './regras.js'
 import { CACA, CACA_CAMINHOS as RUA } from './textos.js'
 import { CriarMapa } from './CriarMapa.jsx'
 import { GuardarMapa } from './GuardarMapa.jsx'
+import { ReceberLink } from './ReceberLink.jsx'
 import { EmailPendente } from './EmailPendente.jsx'
 import Notificacoes from './secoes/Notificacoes.jsx'
 import Instalar from './secoes/Instalar.jsx'
@@ -106,6 +107,7 @@ export function Central ({ caca, dados, navigate }) {
         <ProximaAcao caca={caca} dados={dados} navigate={navigate} />
         {caca.recemCriado && <GuardarMapa chave={caca.chave} />}
         <EmailPendente caca={caca} navigate={navigate} />
+        <ReceberLink caca={caca} />
       </div>
       <div className="ct-central__col">
         <Entradas navigate={navigate} />

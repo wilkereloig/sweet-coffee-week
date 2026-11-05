@@ -50,6 +50,24 @@ test('emailStatus: confirmado e chave trocada', async () => {
   assert.deepEqual(await mock({ mapa_confirmar_email_status: { confirmado: false, valido: false } }).api.emailStatus(CHAVE), { ok: true, confirmado: false, valido: false })
 })
 
+test('enviarLink pede o link pessoal à edge function (finalidade link), com a chave e só entrada válida', async () => {
+  const pedidos = []
+  const com = (corpo, ok = true) => criarApi({
+    edicao: '2026.2', urlBase: 'https://x.supabase.co',
+    buscar: async (url, init) => { pedidos.push([url, JSON.parse(init.body)]); return { ok, json: async () => corpo } },
+  })
+  assert.deepEqual(await com({ ok: true }).enviarLink({ email: ' ana@b.co ', chave: CHAVE }), { ok: true })
+  assert.deepEqual(pedidos[0], ['https://x.supabase.co/functions/v1/caca-email', { edicao: '2026.2', email: 'ana@b.co', finalidade: 'link', chave: CHAVE }])
+  assert.deepEqual(await com({ ok: true, limitado: true }).enviarLink({ email: 'a@b.co', chave: CHAVE }), { ok: true, limitado: true })
+  assert.deepEqual(await com({ ok: false, motivo: 'email_indisponivel' }).enviarLink({ email: 'a@b.co', chave: CHAVE }), { ok: false, motivo: 'email_indisponivel' })
+  assert.equal((await com({ ok: false, motivo: 'Texto Livre!' }, false).enviarLink({ email: 'a@b.co', chave: CHAVE })).motivo, 'rede')
+  const antes = pedidos.length
+  assert.equal((await com({}).enviarLink({ email: 'a@b.co', chave: 'curta' })).motivo, 'pedido_invalido')
+  assert.equal((await com({}).enviarLink({ email: 'a@b.co', chave: null })).motivo, 'pedido_invalido')
+  for (const ruim of ['sem-arroba', 'a,b@x.co', 'a"b@x.co', '<a>@x.co', '']) assert.equal((await com({}).enviarLink({ email: ruim, chave: CHAVE })).motivo, 'email_invalido', ruim)
+  assert.equal(pedidos.length, antes, 'entrada ruim não chega à rede')
+})
+
 test('pedirCodigo fala com a edge function e respeita os códigos do contrato', async () => {
   const pedidos = []
   const com = (corpo, ok = true) => criarApi({

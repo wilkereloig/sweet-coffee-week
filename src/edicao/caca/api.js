@@ -79,6 +79,25 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
     },
 
     /**
+     * Edge function `caca-email`, finalidade 'link': manda o LINK PESSOAL do mapa para o e-mail, SÓ se o e-mail já foi confirmado
+     * (o servidor guarda só o hash da chave, então a chave vai no pedido). Mesma resposta exista ou não mapa; a tela nunca promete mais
+     * do que "se o e-mail estiver confirmado". `{ ok:true }` · `{ ok:true, limitado:true }` · `email_indisponivel` · `falha_temporaria` · `pedido_invalido` · `email_invalido` · `rede`.
+     */
+    async enviarLink ({ email, chave }) {
+      const e = String(email ?? '').trim()
+      if (!e || e.length > 254 || !EMAIL_ENTREGAVEL.test(e)) return sem('email_invalido')
+      if (!chaveValida(chave)) return sem('pedido_invalido')
+      try {
+        const r = await buscar(`${urlBase}/functions/v1/caca-email`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ edicao, email: e, finalidade: 'link', chave: String(chave) }),
+        })
+        const d = await r.json().catch(() => null)
+        if (d?.ok === true) return d.limitado ? { ok: true, limitado: true } : { ok: true }
+        return sem(typeof d?.motivo === 'string' && MOTIVO.test(d.motivo) ? d.motivo : 'rede')
+      } catch { return sem('rede') }
+    },
+
+    /**
      * `mapa_codigo_validar`: `{ ok:true, finalidade:'confirmar' }` ou `{ ok:true, finalidade:'recuperar', chave, apelido }`
      * (a chave nova vem uma única vez). Toda falha do banco é `codigo_invalido` (errado, vencido, usado, sem pedido); o código malformado nem sai daqui.
      */

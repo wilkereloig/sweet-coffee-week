@@ -2,7 +2,9 @@
  * caca-email — envia o código de 6 dígitos da Caça aos Carimbos (confirmar e-mail / recuperar mapa).
  * Contrato: docs/cartoon-2026-2/15-caca-contrato-identidade.md
  *
- * Entrada (POST JSON): { edicao, email, finalidade: 'confirmar' | 'recuperar', chave? }
+ * Entrada (POST JSON): { edicao, email, finalidade: 'confirmar' | 'recuperar' | 'link', chave? }
+ *   'link' (05/11/2026): manda o LINK PESSOAL do mapa (texto puro, sem <a>) para o e-mail do mapa, SÓ se o e-mail já foi confirmado; exige `chave`
+ *   (32 caracteres) porque o banco guarda só o hash. Mesma resposta uniforme e mesmos limites (migration 20261222).
  *   `chave` (a do mapa deste aparelho) é OBRIGATÓRIA para 'confirmar': o código sai para o mapa de quem pediu e só ele o valida;
  *   sem chave (ou de outro e-mail) nada é enviado e a resposta é a mesma. 'recuperar' não usa chave (a pessoa a perdeu).
  *   Limites: 1/min e 5/h por mapa (confirmar) ou por e-mail (recuperar), 40/10 min por IP (hash no banco), teto de 600/h por finalidade.
@@ -25,7 +27,7 @@
  */
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { montarEmail, provedorEscolhido, politicaFalha, mensagemParaLog, emailEntregavel, esperaParaPiso } from './montar.js'
+import { montarEmail, montarEmailLink, chaveDoMapaValida, provedorEscolhido, politicaFalha, mensagemParaLog, emailEntregavel, esperaParaPiso } from './montar.js'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -97,7 +99,9 @@ Deno.serve(async (req: Request) => {
   const chave = String(entrada?.chave ?? '').slice(0, 200)
   // IP só viaja ao banco para virar hash e contar o limite; nunca é logado.
   const ip = (req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0] ?? '').trim().slice(0, 64)
-  if (!edicao || (finalidade !== 'confirmar' && finalidade !== 'recuperar')) return resp({ ok: false, motivo: 'pedido_invalido' }, 400)
+  if (!edicao || (finalidade !== 'confirmar' && finalidade !== 'recuperar' && finalidade !== 'link')) return resp({ ok: false, motivo: 'pedido_invalido' }, 400)
+  // 'link' manda o link pessoal do mapa (credencial) para o e-mail JÁ confirmado: sem chave de formato válido nem chega ao banco.
+  if (finalidade === 'link' && !chaveDoMapaValida(chave)) return resp({ ok: false, motivo: 'pedido_invalido' }, 400)
   // O valor vai direto ao campo "to" do provedor: só endereço de formato seguro passa (SEC-07).
   if (!emailEntregavel(email)) return resp({ ok: false, motivo: 'email_invalido' }, 400)
 
@@ -119,10 +123,13 @@ Deno.serve(async (req: Request) => {
 
   let emitido: { ok?: boolean; enviar?: boolean; limitado?: boolean; teto?: boolean; codigo?: string } = {}
   try {
-    const r = await fetch(`${url}/rest/v1/rpc/mapa_codigo_emitir_interno`, {
+    const eLink = finalidade === 'link'
+    const r = await fetch(`${url}/rest/v1/rpc/${eLink ? 'mapa_link_validar_interno' : 'mapa_codigo_emitir_interno'}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: servico, Authorization: `Bearer ${servico}` },
-      body: JSON.stringify({ p_edicao: edicao, p_email: email, p_finalidade: finalidade, p_chave: chave || null, p_ip: ip || null }),
+      body: JSON.stringify(eLink
+        ? { p_edicao: edicao, p_email: email, p_chave: chave, p_ip: ip || null }
+        : { p_edicao: edicao, p_email: email, p_finalidade: finalidade, p_chave: chave || null, p_ip: ip || null }),
       signal: AbortSignal.timeout(8_000),
     })
     if (!r.ok) throw new Error('rpc ' + r.status)
@@ -136,8 +143,8 @@ Deno.serve(async (req: Request) => {
   // Teto de envios da hora atingido: ninguém recebe até a janela andar. Só o nome da finalidade vai ao log.
   if (emitido.teto) console.error('caca_codigo_teto_atingido', finalidade)
 
-  if (emitido.enviar && emitido.codigo) {
-    const montado = montarEmail(finalidade, emitido.codigo)
+  if (emitido.enviar && (emitido.codigo || finalidade === 'link')) {
+    const montado = finalidade === 'link' ? montarEmailLink(chave) : montarEmail(finalidade, emitido.codigo as string)
     if (montado) {
       // Responde já e envia em segundo plano: o tempo da resposta é o mesmo exista ou não mapa. Falha do provedor vai só ao log.
       const tarefa = enviar(cfg, email, montado)

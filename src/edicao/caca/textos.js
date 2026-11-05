@@ -124,7 +124,7 @@ export const CACA = {
   },
   link: {
     titulo: 'Abrir pelo meu link pessoal',
-    campo: 'Cole aqui o link pessoal do seu mapa',
+    campo: 'Cole aqui o link que você copiou ao criar o mapa ou recebeu por e-mail',
     erro: 'Esse não parece o link do seu mapa. Ele termina com #mapa= e uma sequência de letras.',
     acao: 'Abrir meu mapa',
   },
@@ -145,6 +145,14 @@ export const CACA = {
     acao: 'Confirmar e-mail',
     fechar: 'Agora não',
     confirmado: 'E-mail confirmado. Obrigado!',
+    linkEnviado: (email) => `E-mail confirmado. Enviamos o link do seu mapa para ${email}. Ele é como uma senha: guarde só para você.`,
+    linkFalhou: 'E-mail confirmado. Não deu para enviar o link agora; use "Receber meu link por e-mail" na sua página.',
+    receberLink: 'Receber meu link por e-mail',
+    receberLinkAjuda: 'Enviamos o link pessoal do seu mapa para o seu e-mail confirmado. Serve para abrir o mapa em outro celular.',
+    enviandoLink: 'Enviando…',
+    linkReenviado: (email) => `Pronto. Se o e-mail estiver confirmado, o link chega em ${email} em instantes.`,
+    linkLimitado: 'Você já pediu o link há pouco. Espere um minuto e confira a caixa de entrada e o spam.',
+    linkRede: 'Sem conexão agora. Tente de novo em instantes.',
   },
   codigo: {
     pedirRecuperar: 'Digite o e-mail que você usou ao criar o mapa. Enviaremos um código de 6 dígitos.',
