@@ -6,13 +6,13 @@ import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import {
   estadoDaCasa, revisitasDaCasa, casasDoMapa, progressoPessoal, ordemDasCasas, proximoPasso, novasConquistas, fotografia,
-  arteLiberada, filtrarPorEstado, coberturaDoMapa,
+  arteLiberada, filtrarPorEstado, coberturaDoMapa, distanciasPorCasa,
 } from '../src/edicao/caca/mapa/estados.js'
 import {
   AGENCIAS_SICREDI, agenciasSicredi, pontosSicredi, linkComoChegarSicredi, ehSicredi, agenciaCombina,
 } from '../src/edicao/caca/mapa/sicredi.js'
 import { contarFiltros, casasEEnderecos, enderecosDaCasa } from '../src/edicao/caca/mapa/tela.js'
-import { ESTADO_TEXTO, MAPA_CACA as T } from '../src/edicao/caca/mapa/textos.js'
+import { ESTADO_TEXTO, MAPA_CACA as T, distanciaCurta } from '../src/edicao/caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../src/edicao/caca/mapa/imagens.js'
 import { mundoEdicao, iconeEdicao } from '../src/data/imageLibrary.js'
 
@@ -75,6 +75,50 @@ test('próximo passo: avaliar vence rota, rota vence caminho, e cada caso tem o 
   const tudo = casasDoMapa({ casas: ordem.map((slug) => ({ slug, estado: 'validada' })) })
   assert.deepEqual(proximoPasso({ mapa: {}, casas: tudo, ordem }), { tipo: 'completo' })
   assert.deepEqual(proximoPasso({ mapa: {}, casas: casasDoMapa({ casas: [] }), ordem: [] }), { tipo: 'nenhum' })
+})
+
+test('próximo passo sem objetivo: a casa não visitada mais perto do celular; a seguinte quando essa é validada', () => {
+  const lista = [
+    { slug: 'longe', unidades: [{ coordenada: { lat: -5.80, lng: -35.20 } }] },
+    { slug: 'perto', unidades: [{ coordenada: { lat: -5.7945, lng: -35.2110 } }, { coordenada: { lat: -5.90, lng: -35.30 } }] },
+    { slug: 'meio', unidades: [{ coordenada: { lat: -5.7960, lng: -35.2000 } }] },
+    { slug: 'sem-ponto', unidades: [{}] },
+  ]
+  const ordem = ['sem-ponto', 'longe', 'meio', 'perto']
+  const eu = { lat: -5.7945, lng: -35.2100 }
+  const d = distanciasPorCasa(lista, eu)
+  assert.deepEqual([...d.keys()].sort(), ['longe', 'meio', 'perto'], 'casa sem coordenada fica fora; várias unidades valem pela mais perto')
+  assert.ok(d.get('perto') < 0.2 && d.get('perto') < d.get('meio') && d.get('meio') < d.get('longe'))
+  assert.equal(distanciasPorCasa(lista, null).size, 0)
+  assert.equal(distanciasPorCasa(lista, { lat: NaN, lng: 1 }).size, 0)
+  const sem = casasDoMapa({ casas: [] })
+  const p1 = proximoPasso({ mapa: {}, casas: sem, ordem, distancias: d })
+  assert.equal(p1.tipo, 'visitar'); assert.equal(p1.slug, 'perto'); assert.equal(p1.km, d.get('perto'))
+  const feita = casasDoMapa({ casas: [{ slug: 'perto', estado: 'validada' }] })
+  assert.equal(proximoPasso({ mapa: {}, casas: feita, ordem, distancias: d }).slug, 'meio', 'validou a mais perto: vai para a segunda')
+  const duas = casasDoMapa({ casas: [{ slug: 'perto', estado: 'validada' }, { slug: 'meio', estado: 'validada' }] })
+  assert.equal(proximoPasso({ mapa: {}, casas: duas, ordem, distancias: d }).slug, 'longe')
+  // sem posição (negada/desligada): a ordem do mapa, sem distância
+  assert.deepEqual(proximoPasso({ mapa: {}, casas: sem, ordem, distancias: new Map() }), { tipo: 'visitar', slug: 'sem-ponto' })
+  assert.deepEqual(proximoPasso({ mapa: {}, casas: sem, ordem }), { tipo: 'visitar', slug: 'sem-ponto' })
+  // objetivo marcado vence a distância: avaliar e rota continuam na frente
+  const pend = casasDoMapa({ casas: [{ slug: 'longe', estado: 'pendente' }] })
+  assert.deepEqual(proximoPasso({ mapa: {}, casas: pend, ordem, distancias: d }), { tipo: 'avaliar', slug: 'longe' })
+  assert.deepEqual(proximoPasso({ mapa: {}, casas: sem, ordem, paradas: ['longe'], distancias: d }), { tipo: 'rota', slug: 'longe' })
+  // todas as visitáveis validadas: completo, com ou sem distância
+  const tudo = casasDoMapa({ casas: ordem.map((slug) => ({ slug, estado: 'validada' })) })
+  assert.deepEqual(proximoPasso({ mapa: {}, casas: tudo, ordem, distancias: d }), { tipo: 'completo' })
+})
+
+test('textos do próximo passo: distância curta e dica de localização', () => {
+  assert.equal(distanciaCurta(0.35), 'a 350 m')
+  assert.equal(distanciaCurta(0.004), 'a 10 m')
+  assert.equal(distanciaCurta(1.24), 'a 1,2 km')
+  assert.equal(T.proximoAcao.visitar('Diva do Café', 0.35), 'Conhecer Diva do Café · a 350 m')
+  assert.equal(T.proximoAcao.visitar('Diva do Café'), 'Conhecer Diva do Café')
+  assert.match(T.proximo.visitar('Diva do Café', 1.24), /mais perto de você, a 1,2 km/)
+  assert.match(T.proximo.visitar('Diva do Café'), /próxima casa do caminho/)
+  assert.ok(T.pertoDica.disponivel && T.pertoDica.negada && !T.pertoDica.indisponivel)
 })
 
 test('próximo passo ignora casa sem unidade (não há o que visitar)', () => {

@@ -5,6 +5,9 @@
  */
 import { CACA_CAMINHOS } from '../textos.js'
 
+/** "a 350 m" / "a 1,2 km" — distância em linha reta, arredondada (o celular não dá precisão de metro). */
+export const distanciaCurta = (km) => (km < 1 ? `a ${Math.max(10, Math.round(km * 100) * 10)} m` : `a ${km.toFixed(1).replace('.', ',')} km`)
+
 export const ESTADO_TEXTO = {
   'nao-visitada': { curto: 'Ainda não visitada', rotulo: 'Ainda não visitada', explica: 'Para conquistar: carimbe na casa e avalie o combo dela. Avaliar sozinho não cria carimbo.' },
   pendente: { curto: 'Falta avaliar', rotulo: 'Carimbo pendente: falta avaliar', explica: 'Você já carimbou aqui. Avalie o combo desta casa para validar o carimbo.' },
@@ -30,7 +33,9 @@ export const MAPA_CACA = {
   proximo: {
     avaliar: (nome) => `Falta avaliar o combo de ${nome} para validar o seu carimbo.`,
     rota: (nome) => `A próxima parada da sua rota é ${nome}.`,
-    visitar: (nome) => `Que tal conhecer ${nome}? É a próxima casa do caminho que você ainda não visitou.`,
+    visitar: (nome, km) => (Number.isFinite(km)
+      ? `Que tal conhecer ${nome}? É a casa que você ainda não visitou mais perto de você, ${distanciaCurta(km)} em linha reta.`
+      : `Que tal conhecer ${nome}? É a próxima casa do caminho que você ainda não visitou.`),
     completo: 'Mapa completo! Você validou todas as casas e concorre ao prêmio final: uma surpresa.',
   },
   // O botão do próximo passo diz a ação inteira (sem frase em volta): é a ação principal da tela. `proximo` (a frase) segue
@@ -38,7 +43,12 @@ export const MAPA_CACA = {
   proximoAcao: {
     avaliar: (nome) => `Avaliar o combo de ${nome}`,
     rota: (nome) => `Ver ${nome} no mapa`,
-    visitar: (nome) => `Conhecer ${nome}`,
+    visitar: (nome, km) => (Number.isFinite(km) ? `Conhecer ${nome} · ${distanciaCurta(km)}` : `Conhecer ${nome}`),
+  },
+  // Sem a posição do celular o próximo passo cai na ordem do mapa; a linha abaixo diz como ter a casa mais perto.
+  pertoDica: {
+    disponivel: 'Toque no mapa e permita a localização para ver a casa mais perto de você.',
+    negada: 'A localização está bloqueada. Libere nas configurações do navegador para ver a casa mais perto de você.',
   },
   // Cartão da casa
   verCombo: 'Ver o combo',

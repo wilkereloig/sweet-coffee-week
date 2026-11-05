@@ -13,7 +13,7 @@ import { Carregando } from '../../componentes/base.jsx'
 import { progressoPessoal } from './estados.js'
 import { MAPA_CACA as T } from './textos.js'
 
-export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, aoVerCasa, aoAvaliar, atualizar, navigate }) {
+export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, geo, aoVerCasa, aoAvaliar, atualizar, navigate }) {
   const id = React.useId()
   const moldura = (corpo, extra = null) => (
     <section className="ct-progresso ct-caca-mapa__progresso ct-mapa__progresso" aria-label={T.progressoTitulo}>
@@ -50,16 +50,16 @@ export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, aoVerC
     </>,
     <>
       {detalhe && <p className="ct-nota ct-mapa__progresso-detalhe">{detalhe}</p>}
-      <ProximoPasso proximo={proximo} aoVerCasa={aoVerCasa} aoAvaliar={aoAvaliar} />
+      <ProximoPasso proximo={proximo} geo={geo} aoVerCasa={aoVerCasa} aoAvaliar={aoAvaliar} />
     </>,
   )
 }
 
 /** A ação principal da tela. Só existe com algo a fazer ('criar-mapa' e 'nenhum' não têm botão: o convite já está na faixa). */
-function ProximoPasso ({ proximo, aoVerCasa, aoAvaliar }) {
+function ProximoPasso ({ proximo, geo, aoVerCasa, aoAvaliar }) {
   const idDescricao = React.useId()
   if (!proximo || proximo.tipo === 'criar-mapa' || proximo.tipo === 'nenhum') return null
-  const { tipo, slug, nome } = proximo
+  const { tipo, slug, nome, km } = proximo
   if (tipo === 'completo') return <div className="ct-mapa__proximo" role="group" aria-label={T.proximoTitulo}><p>{T.proximo.completo}</p></div>
   const aoClicar = tipo === 'avaliar' ? aoAvaliar : aoVerCasa
   if (!aoClicar) return null
@@ -67,9 +67,10 @@ function ProximoPasso ({ proximo, aoVerCasa, aoAvaliar }) {
     <div className="ct-mapa__proximo" role="group" aria-label={T.proximoTitulo}>
       <button type="button" className={`ct-botao ct-mapa__proximo-botao${tipo === 'avaliar' ? '' : ' ct-botao--contorno'}`} aria-describedby={idDescricao} onClick={() => aoClicar(slug)}>
         <span className="ct-mapa__proximo-rotulo">{T.proximoTitulo}</span>
-        <span>{T.proximoAcao[tipo](nome)}</span>
+        <span>{T.proximoAcao[tipo](nome, km)}</span>
       </button>
-      <span id={idDescricao} className="ct-sr">{T.proximo[tipo](nome)}</span>
+      <span id={idDescricao} className="ct-sr">{T.proximo[tipo](nome, km)}</span>
+      {tipo === 'visitar' && !Number.isFinite(km) && T.pertoDica[geo] && <p className="ct-nota">{T.pertoDica[geo]}</p>}
     </div>
   )
 }
