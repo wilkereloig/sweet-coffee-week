@@ -145,3 +145,12 @@ test('os tamanhos usados na conta batem com o CSS do pin (se mudar o desenho, mu
   assert.ok(CAIXA_CASA.w >= 54 && CAIXA_CASA.h >= 54 * 1.24, 'a caixa cobre o disco + a cauda')
   assert.match(ler('src/styles/cartoon/16-mapa-tela.css'), new RegExp(`\{ scale: ${String(ESCALA_LONGE).replace('0.', '\.')}; \}`))
 })
+
+test('mapa real: o limite do selo sobe de perto (12) e some a partir do zoom 16', () => {
+  const treze = perto(13)
+  assert.equal(planejarNoMapa(treze, { zoom: 14, zoomPerto: 13 }).grupos.length, 1, '13 pins no zoom 14: selo')
+  assert.equal(planejarNoMapa(perto(12), { zoom: 14, zoomPerto: 13 }).grupos.length, 0, '12 pins no zoom 14: afastados')
+  const fundo = planejarNoMapa(treze, { zoom: 16, zoomPerto: 13 })
+  assert.deepEqual(fundo.grupos, [], 'no zoom 16 ninguém fica num selo')
+  assert.equal(fundo.desloc.size, 13)
+})
