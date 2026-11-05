@@ -20,7 +20,7 @@
  *  - resíduo que o produto não apaga (grupos de teste): o SQL de limpeza é impresso no fim da execução.
  *
  * Reprova (cada item vira "✗" com a descrição; "⚠" é achado de produto conhecido, que não derruba o teste):
- *  1 criar mapa pelo formulário, reabrir (recarregar), guardar o link, validações do formulário, mesmo e-mail = mesma pessoa
+ *  1 criar mapa pelo formulário, reabrir (recarregar), guardar o link, validações do formulário, um mapa por e-mail (o segundo pedido avisa e leva à recuperação)
  *  2 recuperar: e-mail indisponível, envio ok, limitado, falha temporária, sem rede, código inválido, código válido troca a chave,
  *    confirmar e-mail, sonda real com endereço de sandbox
  *  3 duas portas: QR → avaliar (e carimbo real recusado com "ainda não abriu") e avaliação → criar mapa / mapa existente
@@ -301,15 +301,26 @@ secao(1, 'criar o mapa, reabrir, guardar o link e validar o formulário', async 
     await semErros(c, `@${w} criar/reabrir`)
     await outro.ctx.close(); await c.ctx.close()
   }
-  // Mesmo e-mail = mesma pessoa: sem e-mail confirmado, dois mapas deixam a identidade em disputa (nenhum é principal); o sexto em 24 h é recusado.
+  // Um mapa por e-mail (20261225): o segundo pedido com o mesmo e-mail não cria nada; a tela avisa e leva a "Entrar no meu mapa".
   const a = await mapaReal('par-a', { mail: email('par') })
-  const b = await mapaReal('par-b', { mail: email('par') })
-  const la = await chamar('mapa_ler_v2', { p_chave: a.chave }); const lb = await chamar('mapa_ler_v2', { p_chave: b.chave })
-  checar(la?.principal === false && lb?.principal === false, 'mesmo e-mail em dois mapas, nenhum confirmado: identidade em disputa, ninguém é principal (20261216)')
-  let recusado = ''
-  for (let i = 0; i < 4; i++) { try { const r = await chamar('mapa_criar_v2', { p_edicao: EDICAO, p_apelido: `E2E lim ${i}`, p_email: email('par'), p_whatsapp: null, p_ranking: false, p_aceite: true }); criados.push(r.chave) } catch (e) { recusado = e.message } }
-  try { const r = await chamar('mapa_criar_v2', { p_edicao: EDICAO, p_apelido: 'E2E lim 9', p_email: email('par'), p_whatsapp: null, p_ranking: false, p_aceite: true }); criados.push(r.chave) } catch (e) { recusado = e.message }
-  checar(recusado === 'muitos_pedidos', `o 6º mapa do mesmo e-mail em 24 h é recusado (${recusado || 'não recusou'})`)
+  const dup = await chamar('mapa_criar_v2', { p_edicao: EDICAO, p_apelido: 'E2E par-b', p_email: email('par').toUpperCase(), p_whatsapp: null, p_ranking: false, p_aceite: true })
+  checar(dup?.ok === false && dup?.motivo === 'email_ja_tem_mapa' && !dup?.chave, 'o mesmo e-mail (até em maiúsculas) não cria um segundo mapa: devolve email_ja_tem_mapa, sem chave')
+  checar(!!(await chamar('mapa_ler_v2', { p_chave: a.chave })), 'o mapa que já existia segue lendo depois da tentativa duplicada')
+  {
+    const c = await contexto(nav, {})
+    await ir(c.page, '/cartoon/caca')
+    await c.page.getByLabel(/Apelido/).fill('E2E par-c')
+    await c.page.getByLabel(/^E-mail/).fill(email('par'))
+    await c.page.getByLabel(/Li e aceito/).check()
+    await c.page.getByRole('button', { name: 'Criar meu mapa' }).click()
+    await c.page.getByText('Esse e-mail já tem um mapa').waitFor({ timeout: 10000 }).catch(() => falha('e-mail com mapa: a tela não avisou'))
+    checar(!(await registrar(c.page)), 'e-mail com mapa: nenhuma chave foi gravada no aparelho')
+    checar(await c.page.getByRole('link', { name: 'Entrar no meu mapa' }).isVisible(), 'e-mail com mapa: "Entrar no meu mapa" leva à recuperação')
+    await c.page.getByRole('link', { name: 'Entrar no meu mapa' }).click()
+    await c.page.getByLabel(/E-mail do mapa/).waitFor({ timeout: 8000 }).catch(() => falha('recuperação não abriu'))
+    checar((await c.page.getByLabel(/E-mail do mapa/).inputValue()) === email('par'), 'a recuperação já vem com o e-mail digitado')
+    await c.ctx.close()
+  }
 })
 
 // ================================================================ 2 · recuperar

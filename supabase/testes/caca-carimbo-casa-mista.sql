@@ -40,7 +40,7 @@ begin
   update public.unidades set coordenada_verificada_em = null
    where id in (select pu.unidade_id from public.participacao_unidades pu where pu.participacao_id = hy.participacao);
 
-  k1 := public.mapa_criar_v2(ed, 'P1', 'p1-mista@exemplo.com.br', null, true, true) ->> 'chave';
+  k1 := public.mapa_criar(ed, 'P1', 'p1-mista@exemplo.com.br', null, true, true) ->> 'chave';
   select id into m1 from public.mapas_lover where chave_hash = public.mapa_hash(k1);
 
   -- ---- C01: QR da unidade SEM ponto em casa com unidade conferida. O GPS manda; nunca "ok" que depois não conta.
@@ -76,8 +76,8 @@ begin
   r := public.mapa_carimbar(k1, hx.qrs[1], -5.8, -35.2, 10);
   if not (r ->> 'ok')::boolean or not (r ->> 'primeira')::boolean then raise exception 'anulado deveria liberar e ser "primeira": %', r; end if;
   -- C09: "primeira" é por E-MAIL: o segundo mapa da mesma pessoa, depois da janela, não refaz a primeira vez.
-  k9a := public.mapa_criar_v2(ed, 'N9a', 'p9-mista@exemplo.com.br', null, false, true) ->> 'chave';
-  k9b := public.mapa_criar_v2(ed, 'N9b', 'p9-mista@exemplo.com.br', null, false, true) ->> 'chave';
+  k9a := public.mapa_criar(ed, 'N9a', 'p9-mista@exemplo.com.br', null, false, true) ->> 'chave';
+  k9b := public.mapa_criar(ed, 'N9b', 'p9-mista@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.mapa_carimbar(k9a, hx.qrs[1], -5.8, -35.2, 10);
   if not (r ->> 'ok')::boolean or not (r ->> 'primeira')::boolean then raise exception 'p9a primeira: %', r; end if;
   update public.carimbos set criado_em = now() - interval '13 hours'
@@ -86,7 +86,7 @@ begin
   if not (r ->> 'ok')::boolean or (r ->> 'primeira')::boolean then raise exception 'p9b não é a primeira da pessoa: %', r; end if;
 
   -- ---- C02: casa SEM nenhum ponto conferido. Padrão revisao: o QR sozinho não carimba.
-  k3 := public.mapa_criar_v2(ed, 'P3', 'p3-mista@exemplo.com.br', null, true, true) ->> 'chave';
+  k3 := public.mapa_criar(ed, 'P3', 'p3-mista@exemplo.com.br', null, true, true) ->> 'chave';
   select id into m3 from public.mapas_lover where chave_hash = public.mapa_hash(k3);
   update public.caca_config set valor = '"revisao"'::jsonb where chave = 'carimbo_sem_ponto';
   r := public.mapa_carimbar(k3, hy.qr, null, null, null);
@@ -112,7 +112,7 @@ begin
      or public.carimbo_distancia(91, 0, 0, 0) is not null or public.carimbo_distancia(0, 181, 0, 0) is not null
     then raise exception 'distância de coordenada inválida deveria ser NULL'; end if;
   if abs(public.carimbo_distancia(0, 0, 0, 1) - 111195) > 300 then raise exception 'distância de 1 grau: %', public.carimbo_distancia(0, 0, 0, 1); end if;
-  k5 := public.mapa_criar_v2(ed, 'P5', 'p5-mista@exemplo.com.br', null, true, true) ->> 'chave';
+  k5 := public.mapa_criar(ed, 'P5', 'p5-mista@exemplo.com.br', null, true, true) ->> 'chave';
   update public.mapas_lover set email_confirmado_em = now() - interval '1 hour' where email_norm = 'p5-mista@exemplo.com.br';
   r := public.caca_excecao_pedir(k5, hx.slug, 'longe', 'NaN'::numeric, 'Infinity'::numeric, '-Infinity'::numeric, null);
   if not (r ->> 'ok')::boolean then raise exception 'NaN/Infinity no pedido deveria virar pedido sem posição: %', r; end if;
@@ -124,10 +124,10 @@ begin
     raise exception 'nota não foi limpa: %', (select nota from public.caca_carimbo_excecao where id = (r ->> 'id')::uuid); end if;
   if public.caca_texto_limpo(chr(8203) || chr(8238), 50) is not null then raise exception 'só invisíveis deveria virar NULL'; end if;
   -- apelido sem caractere invisível/de direção
-  perform public.mapa_criar_v2(ed, 'A' || chr(8203) || 'b' || chr(8238), 'p6-mista@exemplo.com.br', null, false, true);
+  perform public.mapa_criar(ed, 'A' || chr(8203) || 'b' || chr(8238), 'p6-mista@exemplo.com.br', null, false, true);
   if (select apelido from public.mapas_lover where email_norm = 'p6-mista@exemplo.com.br') <> 'Ab' then raise exception 'apelido não foi limpo'; end if;
   begin
-    perform public.mapa_criar_v2(ed, 'X' || chr(8203) || chr(8203), 'p7-mista@exemplo.com.br', null, false, true);
+    perform public.mapa_criar(ed, 'X' || chr(8203) || chr(8203), 'p7-mista@exemplo.com.br', null, false, true);
     raise exception 'apelido só de invisíveis aceito';
   exception when others then if sqlerrm not like '%apelido_invalido%' then raise; end if; end;
 

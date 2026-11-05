@@ -33,6 +33,7 @@ test('mapaCriar usa mapa_criar_v2, exige chave válida e traduz as exceções', 
   assert.deepEqual(chamadas[0], ['mapa_criar_v2', { p_edicao: '2026.2', p_apelido: 'Ana', p_email: 'a@b.co', p_whatsapp: null, p_ranking: true, p_aceite: true }])
   assert.equal((await mock({ mapa_criar_v2: { chave: 'curta' } }).api.mapaCriar({})).motivo, 'resposta_invalida')
   assert.equal((await mock({ mapa_criar_v2: new Error('muitos_pedidos') }).api.mapaCriar({})).motivo, 'muitos_pedidos')
+  assert.deepEqual(await mock({ mapa_criar_v2: { ok: false, motivo: 'email_ja_tem_mapa' } }).api.mapaCriar({}), { ok: false, motivo: 'email_ja_tem_mapa' }, 'um mapa por e-mail: nenhuma chave')
 })
 
 test('mapaLer: chave ruim nem chama o banco; null do banco = mapa_desconhecido', async () => {

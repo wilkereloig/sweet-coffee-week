@@ -25,13 +25,13 @@ begin
   foreach e in array array['a,b@exemplo.com.br', 'a"b@exemplo.com.br', '<a>@exemplo.com.br', 'a b@exemplo.com.br', 'a;b@exemplo.com.br',
                            'a@exemplo.com.br,x@y.com', 'joão@exemplo.com.br', 'a@@exemplo.com.br', 'a@exemplo'] loop
     begin
-      perform public.mapa_criar_v2(ed, 'X', e, null, false, true);
+      perform public.mapa_criar(ed, 'X', e, null, false, true);
       v_erro := 'criou';
     exception when others then v_erro := sqlerrm; end;
     if v_erro is distinct from 'email_invalido' then raise exception 'mapa_criar_v2 com "%" deveria dar email_invalido, deu %', e, v_erro; end if;
     if (public.mapa_codigo_emitir_interno(ed, e, 'recuperar', null, null) ->> 'enviar')::boolean then raise exception 'emitiu código para "%"', e; end if;
   end loop;
-  perform public.mapa_criar_v2(ed, 'Com mais', 'ana.maria+caca@exemplo.com.br', null, false, true);   -- ponto e + continuam valendo
+  perform public.mapa_criar(ed, 'Com mais', 'ana.maria+caca@exemplo.com.br', null, false, true);   -- ponto e + continuam valendo
   if exists (select 1 from public.mapas_lover where email_norm like '%,%' or email_norm like '%<%') then raise exception 'mapa com e-mail estranho'; end if;
 
   -- ===== SEC-07: sem mapa responde igual e faz trabalho de enchimento; o limite também independe de existir mapa
@@ -41,17 +41,17 @@ begin
   if (select count(*) from public.mapa_codigo_pedido where email_hash like 'pad:%') <> pad0 + 1 then raise exception 'falta o enchimento no caminho sem mapa'; end if;
   r := public.mapa_codigo_emitir_interno(ed, 'ninguem@exemplo.com.br', 'recuperar', null, null);
   if coalesce((r ->> 'limitado')::boolean, false) is not true then raise exception 'sem mapa: o limite por minuto deveria valer igual: %', r; end if;
-  kb := public.mapa_criar_v2(ed, 'Bia', 'bia@exemplo.com.br', null, false, true) ->> 'chave';
+  kb := public.mapa_criar(ed, 'Bia', 'bia@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.mapa_codigo_emitir_interno(ed, 'bia@exemplo.com.br', 'recuperar', null, null);
   if not (r ->> 'enviar')::boolean then raise exception 'com mapa deveria emitir: %', r; end if;
   r := public.mapa_codigo_emitir_interno(ed, 'bia@exemplo.com.br', 'recuperar', null, null);
   if coalesce((r ->> 'limitado')::boolean, false) is not true then raise exception 'com mapa: o limite por minuto deveria valer igual: %', r; end if;
 
   -- ===== SEC-01: o invasor cria o mapa ANTES da vítima
-  ka := public.mapa_criar_v2(ed, 'Atacante', em, null, true, true) ->> 'chave';
+  ka := public.mapa_criar(ed, 'Atacante', em, null, true, true) ->> 'chave';
   select id into id_a from public.mapas_lover where chave_hash = public.mapa_hash(ka);
   update public.mapas_lover set criado_em = now() - interval '2 days' where id = id_a;
-  kv := public.mapa_criar_v2(ed, 'Vitima', em, '85999990001', true, true) ->> 'chave';
+  kv := public.mapa_criar(ed, 'Vitima', em, '85999990001', true, true) ->> 'chave';
   select id into id_v from public.mapas_lover where chave_hash = public.mapa_hash(kv);
   insert into public.carimbos (mapa_id, participacao_id, participacao_unidade_id, qr_codigo, conferido, criado_em)
   values (id_v, ca.participacao, ca.unidade, ca.qr, true, now() - interval '5 hours');
@@ -96,7 +96,7 @@ begin
   r := public.caca_grupo_criar(kv, 'Grupo da vítima', true);
   if not (r ->> 'ok')::boolean then raise exception 'vítima não criou grupo: %', r; end if;
   gid := (r ->> 'grupo_id')::uuid;
-  kz := public.mapa_criar_v2(ed, 'Zeca', 'zeca@exemplo.com.br', null, false, true) ->> 'chave';
+  kz := public.mapa_criar(ed, 'Zeca', 'zeca@exemplo.com.br', null, false, true) ->> 'chave';
   r2 := public.caca_grupo_entrar(kz, r ->> 'convite_token', true);
   if not (r2 ->> 'ok')::boolean then raise exception 'Zeca não entrou: %', r2; end if;
   if (public.caca_grupo_ler(ka, gid) ->> 'ok')::boolean then raise exception 'o invasor leu o grupo da vítima'; end if;
@@ -118,18 +118,18 @@ begin
   if jsonb_array_length(r -> 'casas') <> 0 or (r ->> 'casas_validadas')::int <> 0 then raise exception 'o invasor viu carimbo depois que a vítima apagou: %', r; end if;
 
   -- com OUTRO mapa confirmado do mesmo e-mail a pessoa segue no grupo (apagar o mapa não confirmado não a tira)
-  kv := public.mapa_criar_v2(ed, 'Dois A', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
+  kv := public.mapa_criar(ed, 'Dois A', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.caca_grupo_criar(kv, 'Grupo de dois', true);
   gid := (r ->> 'grupo_id')::uuid;
-  kb := public.mapa_criar_v2(ed, 'Dois B', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
+  kb := public.mapa_criar(ed, 'Dois B', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
   update public.mapas_lover set email_confirmado_em = now() - interval '1 hour' where chave_hash = public.mapa_hash(kb);
   perform public.mapa_apagar(kv);
   if not exists (select 1 from public.caca_grupo_membro where grupo_id = gid and pessoa = 'dois@exemplo.com.br') then raise exception 'com outro mapa confirmado a pessoa fica no grupo'; end if;
   -- mas se o outro mapa NÃO é confirmado, ela sai (ele poderia ser de outra pessoa) e o grupo vazio some
-  kv := public.mapa_criar_v2(ed, 'Tres A', 'tres@exemplo.com.br', null, false, true) ->> 'chave';
+  kv := public.mapa_criar(ed, 'Tres A', 'tres@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.caca_grupo_criar(kv, 'Grupo de tres', true);
   gid := (r ->> 'grupo_id')::uuid;
-  perform public.mapa_criar_v2(ed, 'Tres B', 'tres@exemplo.com.br', null, false, true);
+  perform public.mapa_criar(ed, 'Tres B', 'tres@exemplo.com.br', null, false, true);
   perform public.mapa_apagar(kv);
   if exists (select 1 from public.caca_grupo_membro where pessoa = 'tres@exemplo.com.br') or exists (select 1 from public.caca_grupo where id = gid)
     then raise exception 'sem mapa confirmado restante a pessoa deveria sair do grupo, e o grupo vazio sumir'; end if;
@@ -140,7 +140,7 @@ begin
      or has_function_privilege('authenticated', 'public.mapa_codigo_emitir_interno(text,text,text,text,text)', 'execute')
      or has_function_privilege('anon', 'public.caca_mapa_principal(text,text)', 'execute') then raise exception 'função interna aberta'; end if;
   if not has_function_privilege('service_role', 'public.mapa_codigo_emitir_interno(text,text,text,text,text)', 'execute') then raise exception 'service_role sem emitir'; end if;
-  if not has_function_privilege('anon', 'public.mapa_apagar(text)', 'execute') or not has_function_privilege('anon', 'public.mapa_criar_v2(text,text,text,text,boolean,boolean)', 'execute')
+  if not has_function_privilege('anon', 'public.mapa_apagar(text)', 'execute') or not has_function_privilege('anon', 'public.mapa_criar(text,text,text,text,boolean,boolean)', 'execute')
     then raise exception 'visitante sem apagar/criar'; end if;
 
   raise exception 'TESTE_OK';

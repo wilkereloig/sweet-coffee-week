@@ -31,3 +31,12 @@ test('cartão montado na Central, no mapa e no carimbo; recuperar visível antes
   assert.match(fonte('src/edicao/cartoon/paginas/Carimbo.jsx'), /<CartaoEmailDoAparelho/)
   assert.match(fonte('src/edicao/caca/CriarMapa.jsx'), /T\.jaTenhoTopo/)
 })
+
+test('um mapa por e-mail: motivo com frase, aviso leva à recuperação sem gravar chave', () => {
+  assert.match(CACA.criar.jaTemMapa.titulo, /já tem um mapa/)
+  assert.match(fonte('src/edicao/caca/textos.js'), /email_ja_tem_mapa:/)
+  const f = fonte('src/edicao/caca/CriarMapa.jsx')
+  assert.match(f, /r\.motivo === 'email_ja_tem_mapa'[\s\S]*setJaTem\(true\); return/, 'sai antes de gravar chave')
+  assert.match(f, /\/caca\/recuperar/)
+  assert.match(fonte('supabase/migrations/20261225_caca_um_mapa_por_email.sql'), /'motivo', 'email_ja_tem_mapa'/)
+})

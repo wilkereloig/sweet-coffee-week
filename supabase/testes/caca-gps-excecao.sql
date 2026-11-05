@@ -155,7 +155,7 @@ begin
   if not exists (select 1 from public.caca_evento where acao = 'excecao_aprovada' and nota = 'Conferido com a loja') then raise exception 'evento da aprovação sem nota'; end if;
 
   -- ---- 20261217: casa SEM ponto conferido (modo revisao): o QR sozinho não carimba; o pedido é decidido pela organização e vale
-  v_chave3 := public.mapa_criar_v2('2026.2', 'Terceira', 'terceira-gps@exemplo.com.br', null, false, true) ->> 'chave';
+  v_chave3 := public.mapa_criar('2026.2', 'Terceira', 'terceira-gps@exemplo.com.br', null, false, true) ->> 'chave';
   select id into v_mapa3 from public.mapas_lover where chave_hash = public.mapa_hash(v_chave3);
   r := public.caca_excecao_pedir(v_chave3, sem.slug, 'sem_localizacao', null, null, null, null);
   if r ->> 'motivo' <> 'email_nao_confirmado' then raise exception 'e-mail não confirmado pediu: %', r; end if;
@@ -170,7 +170,7 @@ begin
   values ('2026.2', sem.participacao, 'Teste', 'terceira-gps@exemplo.com.br', '{}'::jsonb);
   if (public.mapa_ler_v2(v_chave3) ->> 'casas_validadas')::int <> 1 then raise exception 'exceção em casa sem ponto não contou: %', public.mapa_ler_v2(v_chave3); end if;
   -- mapa que não é o principal (mesmo e-mail) não pede
-  v_chave4 := public.mapa_criar_v2('2026.2', 'Terceira2', 'terceira-gps@exemplo.com.br', null, false, true) ->> 'chave';
+  v_chave4 := public.mapa_criar('2026.2', 'Terceira2', 'terceira-gps@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.caca_excecao_pedir(v_chave4, b.slug, 'sem_localizacao', null, null, null, null);
   if r ->> 'motivo' <> 'email_nao_confirmado' then raise exception 'mapa que não é o principal pediu: %', r; end if;
   -- fila cheia é POR CASA (20 pendentes): a casa lotada recusa, outra casa segue aceitando

@@ -33,3 +33,8 @@ Não muda: banco, edge function, chaves, mapas existentes, flags. Nenhum e-mail 
 - **Unir os 4 e-mails com 2+ mapas:** não fazer sem ordem. Só dá para unir com decisão sua, caso a caso.
 - **Teste real de entrega:** mandar 1 código e 1 link para um e-mail seu, com sua combinação.
 - **Detectar "e-mail já tem mapa" no formulário:** revela quem tem mapa; só com verificação por código. Proposta: não fazer.
+
+## Decisão posterior (05/11/2026): um mapa por e-mail
+
+Wilker: um e-mail não pode ter vários mapas; quem tentar criar de novo é avisado e entra no mapa que já tem.
+Aplicado: migration `20261225_caca_um_mapa_por_email` (aplicada no Supabase em 05/11) — `mapa_criar_v2` devolve `{ ok:false, motivo:'email_ja_tem_mapa' }` (JSON, para o pedido seguir contando no limite por IP) e não cria. A tela (`CriarMapa`) mostra "Esse e-mail já tem um mapa" e leva a "Entrar no meu mapa" (recuperação por código, e-mail já preenchido). Mapas já duplicados (4 e-mails) não foram tocados. Custo declarado: o aviso revela que o e-mail participa; limites de 60/10 min por IP e 5/24 h por e-mail seguem. Reverter: `supabase/reverter/20261225_caca_um_mapa_por_email.sql`. Testes SQL antigos que duplicavam e-mail passaram a usar `mapa_criar` (v1); só `caca-um-mapa-por-email.sql` foi rodado de novo no banco.

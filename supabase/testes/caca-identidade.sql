@@ -16,9 +16,9 @@ begin
     then raise exception 'colunas novas deveriam ser nulas'; end if;
 
   -- 1. criar_v2: mesmo retorno de criar; pessoa A com dois mapas, pessoa B com um.
-  ch_a1 := public.mapa_criar_v2(ed, 'A1', '  PessoaA@Exemplo.com.br ', null, true, true) ->> 'chave';
-  ch_a2 := public.mapa_criar_v2(ed, 'A2', 'pessoaa@exemplo.com.br', null, true, true) ->> 'chave';
-  ch_b  := public.mapa_criar_v2(ed, 'Bia', 'pessoab@exemplo.com.br', null, true, true) ->> 'chave';
+  ch_a1 := public.mapa_criar(ed, 'A1', '  PessoaA@Exemplo.com.br ', null, true, true) ->> 'chave';
+  ch_a2 := public.mapa_criar(ed, 'A2', 'pessoaa@exemplo.com.br', null, true, true) ->> 'chave';
+  ch_b  := public.mapa_criar(ed, 'Bia', 'pessoab@exemplo.com.br', null, true, true) ->> 'chave';
   if ch_a1 is null or length(ch_a1) < 30 then raise exception 'criar_v2 sem chave'; end if;
   if (select count(*) from public.mapas_lover where email_norm = 'pessoaa@exemplo.com.br') <> 2 then raise exception 'e-mail não normalizado'; end if;
   update public.mapas_lover set criado_em = now() - interval '2 days' where chave_hash = public.mapa_hash(ch_a1);   -- A1 é o mais antigo = principal
@@ -126,7 +126,7 @@ begin
 
   -- 7. criar_v2: 5 mapas por e-mail em 24 h; o 6º dá muitos_pedidos; as validações antigas continuam.
   for i in 1..5 loop
-    begin perform public.mapa_criar_v2(ed, 'Spam' || i, 'spam@exemplo.com.br', null, false, true);
+    begin perform public.mapa_criar(ed, 'Spam' || i, 'spam@exemplo.com.br', null, false, true);
     exception when others then v_erro := sqlerrm; end;
   end loop;
   begin perform public.mapa_criar_v2(ed, 'Spam6', 'spam@exemplo.com.br', null, false, true); v_erro := null;
@@ -151,7 +151,7 @@ begin
   if not has_function_privilege('service_role', 'public.mapa_codigo_emitir_interno(text,text,text,text,text)', 'execute') then raise exception 'service_role sem emitir'; end if;
   if not (has_function_privilege('anon', 'public.mapa_codigo_validar(text,text,text,text,text)', 'execute')
           and has_function_privilege('anon', 'public.mapa_confirmar_email_status(text)', 'execute')
-          and has_function_privilege('anon', 'public.mapa_criar_v2(text,text,text,text,boolean,boolean)', 'execute')) then raise exception 'anon sem as funções públicas'; end if;
+          and has_function_privilege('anon', 'public.mapa_criar(text,text,text,text,boolean,boolean)', 'execute')) then raise exception 'anon sem as funções públicas'; end if;
 
   raise exception 'TESTE_OK mapas_antes=%', v_antes;
 end $t$;

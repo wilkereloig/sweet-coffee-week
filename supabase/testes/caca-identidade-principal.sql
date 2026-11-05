@@ -21,13 +21,13 @@ begin
   if ca.participacao is null then raise exception 'falta casa com QR'; end if;
 
   -- 1. Vítima V (mapa mais antigo, e-mail confirmado) e invasor com o MESMO e-mail (mapa novo).
-  kv1 := public.mapa_criar_v2(ed, 'Vitima', 'vitima@exemplo.com.br', '85999990001', true, true) ->> 'chave';
+  kv1 := public.mapa_criar(ed, 'Vitima', 'vitima@exemplo.com.br', '85999990001', true, true) ->> 'chave';
   select id into id_v1 from public.mapas_lover where chave_hash = public.mapa_hash(kv1);
   update public.mapas_lover set criado_em = now() - interval '3 days' where id = id_v1;
   r := public.mapa_codigo_emitir_interno(ed, 'vitima@exemplo.com.br', 'confirmar', kv1);
   r := public.mapa_codigo_validar(ed, 'vitima@exemplo.com.br', r ->> 'codigo', 'confirmar', kv1);
   if not (r ->> 'ok')::boolean then raise exception 'V não confirmou: %', r; end if;
-  kv2 := public.mapa_criar_v2(ed, 'Atacante', 'vitima@exemplo.com.br', '85988880002', false, true) ->> 'chave';
+  kv2 := public.mapa_criar(ed, 'Atacante', 'vitima@exemplo.com.br', '85988880002', false, true) ->> 'chave';
   select id into id_v2 from public.mapas_lover where chave_hash = public.mapa_hash(kv2);
 
   if public.caca_mapa_principal(ed, 'Vitima@Exemplo.com.br') is distinct from id_v1 then raise exception 'principal deveria ser o mapa confirmado/antigo'; end if;
@@ -78,9 +78,9 @@ begin
   if (select email_confirmado_em from public.mapas_lover where id = id_v2) is not null then raise exception 'recuperar confirmou o mapa do invasor'; end if;
 
   -- 5. Invasor que se cadastrou ANTES do dono: o dono do e-mail retoma o principal pela recuperação.
-  ks := public.mapa_criar_v2(ed, 'Invasor', 'dono@exemplo.com.br', null, true, true) ->> 'chave';
+  ks := public.mapa_criar(ed, 'Invasor', 'dono@exemplo.com.br', null, true, true) ->> 'chave';
   update public.mapas_lover set criado_em = now() - interval '1 day' where chave_hash = public.mapa_hash(ks);
-  ko := public.mapa_criar_v2(ed, 'Dono', 'dono@exemplo.com.br', null, true, true) ->> 'chave';
+  ko := public.mapa_criar(ed, 'Dono', 'dono@exemplo.com.br', null, true, true) ->> 'chave';
   r := public.mapa_codigo_emitir_interno(ed, 'dono@exemplo.com.br', 'recuperar');
   r := public.mapa_codigo_validar(ed, 'dono@exemplo.com.br', r ->> 'codigo', 'recuperar');
   if not (r ->> 'ok')::boolean or public.mapa_ler_v2(ks) is not null then raise exception 'a chave do invasor deveria morrer na recuperação'; end if;
@@ -101,21 +101,21 @@ begin
 
   -- 7. SEC-06: sem teto global. 305 mapas de e-mails diferentes em 10 min passam; 505 pedidos de código para e-mails sem mapa
   --    não impedem o pedido de quem tem mapa.
-  for i in 1..305 loop perform public.mapa_criar_v2(ed, 'Massa' || i, 'massa' || i || '@exemplo.com.br', null, false, true); end loop;
+  for i in 1..305 loop perform public.mapa_criar(ed, 'Massa' || i, 'massa' || i || '@exemplo.com.br', null, false, true); end loop;
   update public.mapa_codigo_pedido set criado_em = now() - interval '2 hours';
   for i in 1..505 loop perform public.mapa_codigo_emitir_interno(ed, 'nx' || i || '@exemplo.com.br', 'confirmar'); end loop;
-  ko := public.mapa_criar_v2(ed, 'Massa7b', 'massa7b@exemplo.com.br', null, false, true) ->> 'chave';
+  ko := public.mapa_criar(ed, 'Massa7b', 'massa7b@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.mapa_codigo_emitir_interno(ed, 'massa7b@exemplo.com.br', 'confirmar', ko);
   if not (r ->> 'enviar')::boolean or r ? 'limitado' then raise exception 'teto global bloqueou um usuário legítimo: %', r; end if;
 
   -- 8. Limite por IP (quando o cabeçalho chega): 60 mapas em 10 min por IP; outro IP segue livre.
   perform set_config('request.headers', '{"cf-connecting-ip":"203.0.113.9"}', true);
-  for i in 1..60 loop perform public.mapa_criar_v2(ed, 'Ip' || i, 'ip' || i || '@exemplo.com.br', null, false, true); end loop;
-  begin perform public.mapa_criar_v2(ed, 'Ip61', 'ip61@exemplo.com.br', null, false, true); v_erro := null;
+  for i in 1..60 loop perform public.mapa_criar(ed, 'Ip' || i, 'ip' || i || '@exemplo.com.br', null, false, true); end loop;
+  begin perform public.mapa_criar(ed, 'Ip61', 'ip61@exemplo.com.br', null, false, true); v_erro := null;
   exception when others then v_erro := sqlerrm; end;
   if v_erro is distinct from 'muitos_pedidos' then raise exception '61º mapa do mesmo IP deveria ser barrado: %', v_erro; end if;
   perform set_config('request.headers', '{"cf-connecting-ip":"203.0.113.10"}', true);
-  perform public.mapa_criar_v2(ed, 'OutroIp', 'outroip@exemplo.com.br', null, false, true);
+  perform public.mapa_criar(ed, 'OutroIp', 'outroip@exemplo.com.br', null, false, true);
   if exists (select 1 from public.mapa_criar_ip where ip_hash like '%203.0.113%') then raise exception 'IP em claro'; end if;
   if has_table_privilege('anon', 'public.mapa_criar_ip', 'select') then raise exception 'mapa_criar_ip aberta'; end if;
   perform set_config('request.headers', '', true);

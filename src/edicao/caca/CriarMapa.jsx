@@ -44,14 +44,16 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
     return { apelido: p.nome.slice(0, 24), email: p.email, whatsapp: p.whatsapp, ranking: false, aceite: false }
   })
   const [erro, setErro] = React.useState('')
+  const [jaTem, setJaTem] = React.useState(false) // o e-mail já tem mapa: não cria outro, leva à recuperação
   const [enviando, setEnviando] = React.useState(false)
   const muda = (k, v) => setF((x) => ({ ...x, [k]: v }))
 
   async function criar (e) {
     e.preventDefault()
-    setEnviando(true); setErro('')
+    setEnviando(true); setErro(''); setJaTem(false)
     const r = await api.mapaCriar({ apelido: f.apelido, email: f.email, whatsapp: f.whatsapp, ranking: f.ranking, aceite: f.aceite })
     setEnviando(false)
+    if (!r.ok && r.motivo === 'email_ja_tem_mapa') { C.gravarPerfil(EDICAO.codigo, { nome: f.apelido, email: f.email, whatsapp: f.whatsapp }); setJaTem(true); return } // a recuperação já vem com o e-mail
     if (!r.ok) { setErro(mensagemDoMotivo(r.motivo)); return }
     C.gravarChave(EDICAO.codigo, r.chave) // sem storage, o mapa segue nesta visita
     C.gravarPerfil(EDICAO.codigo, { nome: f.apelido, email: f.email, whatsapp: f.whatsapp })
@@ -84,6 +86,13 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
           <span>{T.aceite} <a className="ct-link-frase" href={`${EDICAO.caminho}/regulamento`} target="_blank" rel="noopener">{T.regulamento}</a></span>
         </label>
         {erro && <p className="ct-aviso" role="alert">{erro}</p>}
+        {jaTem && (
+          <div className="ct-aviso" role="alert">
+            <p className="ct-sub">{T.jaTemMapa.titulo}</p>
+            <p>{T.jaTemMapa.texto}</p>
+            {navigate && <div className="ct-acoes"><Link href={`${EDICAO.caminho}/caca/recuperar`} navigate={navigate} className="ct-botao">{T.jaTemMapa.acao}</Link></div>}
+          </div>
+        )}
         <div className="ct-acoes"><button type="submit" className="ct-botao" disabled={enviando}>{enviando ? T.criando : botao}</button></div>
       </form>
 

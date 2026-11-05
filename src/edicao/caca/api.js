@@ -45,10 +45,11 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fe
   return {
     /* ---- identidade e recuperação (15-caca-contrato-identidade.md) ---- */
 
-    /** `mapa_criar_v2`: `{ ok:true, chave }` (a chave aparece uma única vez) · motivos: muitos_pedidos · edicao_desconhecida · aceite_obrigatorio · apelido_invalido · email_invalido · whatsapp_invalido. */
+    /** `mapa_criar_v2`: `{ ok:true, chave }` (a chave aparece uma única vez) · motivos: muitos_pedidos · email_ja_tem_mapa · edicao_desconhecida · aceite_obrigatorio · apelido_invalido · email_invalido · whatsapp_invalido. */
     async mapaCriar ({ apelido, email, whatsapp = null, ranking = false, aceite = false }) {
       const r = await rpcDado('mapa_criar_v2', { p_edicao: edicao, p_apelido: apelido, p_email: email, p_whatsapp: whatsapp || null, p_ranking: !!ranking, p_aceite: !!aceite })
       if (!r.ok) return r
+      if (r.dado?.motivo === 'email_ja_tem_mapa') return sem('email_ja_tem_mapa') // um mapa por e-mail (20261225): não cria outro
       return chaveValida(r.dado?.chave) ? { ok: true, chave: r.dado.chave } : sem('resposta_invalida')
     },
 

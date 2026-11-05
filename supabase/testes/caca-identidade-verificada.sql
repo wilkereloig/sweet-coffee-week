@@ -20,11 +20,11 @@ begin
   if ca.participacao is null then raise exception 'falta casa com QR'; end if;
 
   -- ===== SEC-01: invasor cria o mapa ANTES da vítima
-  ka := public.mapa_criar_v2(ed, 'Atacante', 'vitima@exemplo.com.br', null, true, true) ->> 'chave';
+  ka := public.mapa_criar(ed, 'Atacante', 'vitima@exemplo.com.br', null, true, true) ->> 'chave';
   select id into id_a from public.mapas_lover where chave_hash = public.mapa_hash(ka);
   update public.mapas_lover set criado_em = now() - interval '2 days' where id = id_a;
   if public.caca_mapa_principal(ed, 'vitima@exemplo.com.br') is distinct from id_a then raise exception 'mapa único deveria ser o principal'; end if;
-  kv := public.mapa_criar_v2(ed, 'Vitima', 'vitima@exemplo.com.br', '85999990001', true, true) ->> 'chave';
+  kv := public.mapa_criar(ed, 'Vitima', 'vitima@exemplo.com.br', '85999990001', true, true) ->> 'chave';
   select id into id_v from public.mapas_lover where chave_hash = public.mapa_hash(kv);
   if public.caca_mapa_principal(ed, 'vitima@exemplo.com.br') is not null then raise exception 'dois mapas sem confirmação: identidade em disputa, sem principal'; end if;
 
@@ -44,7 +44,7 @@ begin
   if not (r2 ->> 'enviar')::boolean then raise exception 'confirmar com a chave do próprio mapa deveria emitir'; end if;
   if (public.mapa_codigo_emitir_interno(ed, 'vitima@exemplo.com.br', 'confirmar', null, null) ->> 'enviar')::boolean then raise exception 'confirmar sem chave emitiu'; end if;
   if (public.mapa_codigo_emitir_interno(ed, 'vitima@exemplo.com.br', 'confirmar', 'chave-qualquer', null) ->> 'enviar')::boolean then raise exception 'chave inválida emitiu'; end if;
-  kb := public.mapa_criar_v2(ed, 'Outra', 'outra@exemplo.com.br', null, false, true) ->> 'chave';
+  kb := public.mapa_criar(ed, 'Outra', 'outra@exemplo.com.br', null, false, true) ->> 'chave';
   if (public.mapa_codigo_emitir_interno(ed, 'vitima@exemplo.com.br', 'confirmar', kb, null) ->> 'enviar')::boolean then raise exception 'chave de OUTRO e-mail emitiu para a vítima'; end if;
 
   -- A vítima digita o código do invasor com a chave dela: não confirma o mapa errado nem o dela.
@@ -110,8 +110,8 @@ begin
   if not (r ->> 'enviar')::boolean then raise exception 'o teto de recuperar bloqueou confirmar: %', r; end if;
 
   -- ===== E2E-2: apagar o mapa não deixa e-mail nem apelido em grupos
-  kp := public.mapa_criar_v2(ed, 'Pessoa P', 'p@exemplo.com.br', null, false, true) ->> 'chave';
-  kp2 := public.mapa_criar_v2(ed, 'Pessoa Q', 'q@exemplo.com.br', null, false, true) ->> 'chave';
+  kp := public.mapa_criar(ed, 'Pessoa P', 'p@exemplo.com.br', null, false, true) ->> 'chave';
+  kp2 := public.mapa_criar(ed, 'Pessoa Q', 'q@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.caca_grupo_criar(kp, 'Grupo de P', true);
   if not (r ->> 'ok')::boolean then raise exception 'P não criou grupo: %', r; end if;
   gid := (r ->> 'grupo_id')::uuid;
@@ -133,10 +133,10 @@ begin
   if not exists (select 1 from public.caca_grupo_rota where grupo_id = gid and adicionado_por_pessoa = 'removido') then raise exception 'rota do grupo deveria ficar, anônima'; end if;
   if public.mapa_apagar('chave-inexistente') then raise exception 'apagou chave inexistente'; end if;
   -- pessoa com DOIS mapas: só segue no grupo se o outro mapa estiver CONFIRMADO (20261220; o outro, não confirmado, poderia ser de um invasor)
-  kp := public.mapa_criar_v2(ed, 'Dois A', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
+  kp := public.mapa_criar(ed, 'Dois A', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
   r := public.caca_grupo_criar(kp, 'Grupo de dois', true);
   gid2 := (r ->> 'grupo_id')::uuid;
-  kp2 := public.mapa_criar_v2(ed, 'Dois B', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
+  kp2 := public.mapa_criar(ed, 'Dois B', 'dois@exemplo.com.br', null, false, true) ->> 'chave';
   update public.mapas_lover set email_confirmado_em = now() - interval '1 hour' where chave_hash = public.mapa_hash(kp2);
   perform public.mapa_apagar(kp);
   if not exists (select 1 from public.caca_grupo_membro where grupo_id = gid2 and pessoa = 'dois@exemplo.com.br') then raise exception 'com outro mapa confirmado a pessoa fica no grupo'; end if;
