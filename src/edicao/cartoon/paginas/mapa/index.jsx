@@ -270,8 +270,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   )
   const rotaEl = (
     <PainelRota dados={dados} navigate={navigate} paradas={paradas} pendentes={faltam} compartilhada={vendoCompartilhada ? compartilhada : null}
-      visitou={visitou} carimbada={carimbada} pendente={(p) => !!carimboDe.get(p.slug)?.podeAvaliar}
-      servidor={meu.mapa ? { feitas: meu.mapa.casas_validadas, total: meu.mapa.total_casas } : null} mundo={comMundo ? mundo : null} />
+      visitou={visitou} carimbada={carimbada} pendente={(p) => !!carimboDe.get(p.slug)?.podeAvaliar} mundo={comMundo ? mundo : null} />
   )
   // Lista de casas dos atalhos: as do desenho (na ordem do caminho) ou, sem o desenho, as unidades visíveis.
   const itensLista = comMundo

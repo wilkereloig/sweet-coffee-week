@@ -8,7 +8,7 @@
 import React from 'react'
 import { EDICAO } from '../../../config.js'
 import * as M from '../../../dados/modelo.js'
-import { linksDeRota, progresso } from '../../../rota/minhaRota.js'
+import { linksDeRota } from '../../../rota/minhaRota.js'
 import { ordemDoCaminho } from '../../../rota/mundo.js'
 import { Link } from '../../../componentes/base.jsx'
 import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
@@ -18,18 +18,13 @@ import { useRota } from '../../contexto.js'
 import { JaFui } from '../../MarcasLover.jsx'
 import { ROTA as T } from '../../textos.js'
 
-export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada, visitou, carimbada, pendente, servidor, mundo }) {
+export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada, visitou, carimbada, pendente, mundo }) {
   const rota = useRota()
   const lista = dados?.participantes || []
   const C = EDICAO.caminho
   const visiveis = pendentes.map((pa) => pa.id)
   const links = linksDeRota(pendentes)
   const visitadas = lista.filter(visitou)
-  // Uma só conta na tela: com mapa da Caça vale a do servidor (casas validadas de total_casas); sem mapa, o "já fui" local.
-  const doServidor = servidor && Number(servidor.total) > 0
-  const prog = doServidor
-    ? { total: Number(servidor.total), feitas: Math.min(Number(servidor.feitas) || 0, Number(servidor.total)) }
-    : { total: progresso([], lista).total, feitas: visitadas.filter((p) => (p.unidades || []).length).length }
   const podeOrdenar = !compartilhada && mundo && pendentes.filter((pa) => mundo.unidades[pa.id]).length > 1
   const [copiado, setCopiado] = React.useState('')
 
@@ -43,20 +38,14 @@ export function PainelRota ({ dados, navigate, paradas, pendentes, compartilhada
 
   return (
     <div className="ct-rota ct-painel-rota">
-      {!compartilhada && prog.total > 0 && (
-        <div className="ct-progresso">
-          <IconeCartoon nome="progresso" tamanho={64} />
-          <div className="ct-progresso__corpo">
-            <p className="ct-progresso__texto" id="rota-progresso"><strong>{T.progresso(prog.feitas, prog.total)}</strong> {doServidor ? T.progressoValidadasRotulo : T.progressoRotulo}</p>
-            <progress className="ct-progresso__barra" max={prog.total} value={prog.feitas} aria-labelledby="rota-progresso" />
-          </div>
-        </div>
-      )}
-
+      {/* O progresso ("X de N casas") mora na faixa do alto da página; aqui não se repete a mesma conta. */}
       {!compartilhada && (
-        <ul className="ct-rota__marcas" aria-label={T.tresMarcasRotulo}>
-          {T.tresMarcas.map(([nome, texto]) => <li key={nome}><strong>{nome}:</strong> {texto}</li>)}
-        </ul>
+        <details className="ct-rota__ajuda">
+          <summary>{T.tresMarcasRotulo}</summary>
+          <ul className="ct-rota__marcas">
+            {T.tresMarcas.map(([nome, texto]) => <li key={nome}><strong>{nome}:</strong> {texto}</li>)}
+          </ul>
+        </details>
       )}
 
       <section className="ct-rota__secao" aria-labelledby="rota-quero">
