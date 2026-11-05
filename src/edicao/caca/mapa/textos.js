@@ -28,8 +28,6 @@ export const MAPA_CACA = {
   lendoMapa: 'Lendo o seu mapa…',
   falhaMapa: 'Não deu para ler o seu mapa agora. As casas seguem no mapa, sem o seu progresso.',
   tentarDeNovo: 'Tentar de novo',
-  // Casas muito próximas viram um círculo com o número; tocar aproxima o mapa
-  grupoNome: (n) => `${n} casas neste ponto do mapa. Toque para aproximar.`,
   // Próximo passo
   proximoTitulo: 'Próximo passo',
   proximo: {
