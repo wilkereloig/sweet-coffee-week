@@ -101,6 +101,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Celular: o painel da rota é uma folha aberta por botão; um link com ?painel= ou ?u= já a abre.
   const [painelAberto, setPainelAberto] = React.useState(() => abrirRota || PAINEIS.includes(pedido.get('painel')) || compartilhada.length > 0)
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
+  const [pedidoAtalho, setPedidoAtalho] = React.useState(null)
   const [posicao, setPosicao] = React.useState(null)
   const [geo, setGeo] = React.useState(podeLocalizar() ? 'disponivel' : 'indisponivel')
   const [provedor, setProvedor] = React.useState(import.meta.env.VITE_GOOGLE_MAPS_KEY ? 'google' : 'maplibre')
@@ -251,11 +252,11 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     navigate(prepararAvaliacao({ caminho: EDICAO.caminho, codigo: EDICAO.codigo, slug, unidade: unicas.length === 1 ? unicas[0].id : undefined, mapa: meu.mapa }))
   }
 
-  const topo = (texto, acao = null) => (
+  // "Minha rota" mora na barra do mapa, não aqui: no celular a faixa do alto não tem mais o que mostrar (o título e a frase são só para leitor de tela).
+  const topo = (texto) => (
     <TopoCanal canal="rota" className="ct-rota-topo ct-rota-topo--compacto" aria-labelledby="mapa-titulo">
       <Letreiro nivel={1} id="mapa-titulo" texto={T.titulo} cor="amarelo" />
       <p className="ct-lead">{texto}</p>
-      {acao}
       <CenaTopo chave="placas" />
     </TopoCanal>
   )
@@ -269,9 +270,10 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // A tela cheia só existe onde há mapa para ampliar: o ilustrado, ou o real já carregado. O botão segue montado dentro da tela
   // cheia (o CSS o esconde): o foco volta ao MESMO elemento que abriu.
   const podeAmpliar = vista === 'mundo' || (vista === 'real' && noMapa.length > 0)
+  // Normal: abre a folha da rota sobre a página. Tela cheia: a mesma rota, na folha dos atalhos, sobre o mapa. Nos dois casos o mapa não é tocado.
   const botaoRota = (
-    <button type="button" className="ct-chip ct-mapa__rota-botao" aria-haspopup="dialog" aria-expanded={painelAberto} aria-label={TC.minhaRotaConta(rota.ids.length)}
-      onClick={() => setPainelAberto(true)}>
+    <button type="button" className="ct-chip ct-mapa__rota-botao" aria-haspopup="dialog" aria-expanded={cheia ? false : painelAberto} aria-label={TC.minhaRotaConta(rota.ids.length)}
+      onClick={() => (cheia ? setPedidoAtalho((p) => ({ chave: 'rota', n: (p?.n || 0) + 1 })) : setPainelAberto(true))}>
       <ScwIcon nome="trajeto" tamanho={20} /><span>{TC.minhaRota}</span>{rota.ids.length > 0 && <b className="ct-mapa__filtros-conta" aria-hidden="true">{rota.ids.length}</b>}
     </button>
   )
@@ -330,7 +332,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   return (
     <>
       {avisos}
-      {topo(T.lead, botaoRota)}
+      {topo(T.lead)}
       <AssinaturaPatrocinio />
       <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
@@ -338,7 +340,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
             {...(cheia ? { role: 'dialog', 'aria-modal': true, 'aria-label': TC.telaCheiaRegiao } : {})}>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
-              aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} />
+              aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} />
 
             <div className="ct-mapa__resumo">
               <p className="ct-catalogo__conta" aria-live="polite">{resumo}</p>
@@ -452,7 +454,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
             {cheia && (
               <Atalhos placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
-                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} />
+                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} pedido={pedidoAtalho} />
             )}
             {cheia && cartao}
             <Folha variante="filtros" aberta={filtrosAbertos} titulo={TC.filtrosTitulo} rotuloFechar={TC.fecharFiltros} aoFechar={() => setFiltrosAbertos(false)}>

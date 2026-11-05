@@ -7,16 +7,16 @@
 .ct-rota-topo--compacto .ct-letreiro { grid-column: 1; margin: 0; }
 .ct-rota-topo--compacto .ct-letreiro--titulo .ct-letreiro__linha { font-size: clamp(26px, 9cqi, 40px); }
 .ct-rota-topo--compacto .ct-lead { grid-column: 1; max-width: 70ch; font-size: 16px; }
-.ct-rota-topo--compacto .ct-mapa__rota-botao { grid-column: 2; grid-row: 1; justify-self: end; }
 /* Celular: a frase de apoio fica só para o leitor de tela, e o cenário sai — o mapa é o assunto. */
 @media (max-width: 899.98px) {
   .ct-rota-topo--compacto .ct-lead { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .ct-edicao .ct-rota-topo--compacto .ct-topo__cena { display: none; }
+  /* Sem o botão (ele foi para a barra do mapa), a faixa do celular não tem o que mostrar: sai do fluxo e fica só o <h1> para leitor de tela. */
+  .ct-canal.ct-rota-topo--compacto { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; box-shadow: none; }
 }
 @media (min-width: 900px) {
   .ct-canal.ct-rota-topo--compacto:has(> .ct-topo__cena) { grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; }
   .ct-edicao .ct-rota-topo--compacto .ct-topo__cena { grid-column: 2; grid-row: 1 / span 2; width: 84px; margin: -4px 0; align-self: center; }
-  .ct-rota-topo--compacto .ct-mapa__rota-botao { display: none; }
 }
 
 /* ------------------------------------------------------------- progresso: uma linha, e o próximo passo só quando há o que fazer */
@@ -80,7 +80,7 @@
 }
 
 /* Barra: vistas · busca · Filtros. Celular: vistas numa linha (colunas iguais), busca + Filtros na de baixo. */
-.ct-mapa__barra { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.ct-mapa__barra { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; }
 .ct-mapa__vistas { grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; margin: 0; }
 .ct-mapa__vistas .ct-chip { justify-content: center; padding: 0 8px; }
 .ct-mapa__vistas .ct-chip[aria-pressed='true'] { background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: inset 0 0 0 1.5px var(--ct-chocolate), var(--ct-sombra-p); }
@@ -91,9 +91,21 @@
   display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border: 2px solid var(--ct-chocolate); border-radius: 999px;
   background: var(--ct-creme); color: var(--ct-chocolate); font: 900 12px/1 var(--ct-font);
 }
-.ct-mapa__rota-botao { flex: none; }
+/* Minha rota: na barra, ao lado de Filtros, em turquesa (a cor do canal Rota) para ser achada sem competir com as vistas. Só o desktop normal a esconde:
+   ali a rota já é a coluna ao lado do mapa. */
+.ct-mapa__rota-botao { flex: none; background: var(--ct-turquesa); color: var(--ct-chocolate); }
+.ct-mapa__rota-botao:hover { background: color-mix(in srgb, var(--ct-turquesa) 82%, var(--ct-branco)); }
+.ct-mapa__busca { grid-column: 1; }
+/* Celular e tablet (fora da tela cheia): vistas · busca · [Filtros | Minha rota]. A busca nunca divide a linha com os botões (apertava a 360 px). */
+@media (max-width: 899.98px) {
+  .ct-mapa__explorar:not(.is-cheia) .ct-mapa__barra { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ct-mapa__explorar:not(.is-cheia) .ct-mapa__vistas, .ct-mapa__explorar:not(.is-cheia) .ct-mapa__busca { grid-column: 1 / -1; }
+  .ct-mapa__explorar:not(.is-cheia) .ct-mapa__filtros-botao, .ct-mapa__explorar:not(.is-cheia) .ct-mapa__rota-botao { grid-column: auto; justify-content: center; }
+}
+@media (min-width: 900px) { .ct-mapa__explorar:not(.is-cheia) .ct-mapa__rota-botao { display: none; } .ct-mapa__explorar:not(.is-cheia) .ct-mapa__barra { grid-template-columns: auto minmax(0, 1fr) auto; } }
 @media (min-width: 600px) {
-  .ct-mapa__barra { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ct-mapa__barra { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+  .ct-mapa__busca { grid-column: auto; }
   .ct-mapa__vistas { grid-column: auto; grid-auto-columns: auto; }
 }
 @media (max-width: 599.98px) {
@@ -254,7 +266,7 @@
 }
 .ct-mapa__explorar.is-cheia:fullscreen { width: 100vw; height: 100vh; }
 .is-cheia .ct-mapa__barra {
-  grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px;
   padding: calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));
   border-bottom: var(--ct-traco); background: var(--ct-creme);
 }
@@ -266,8 +278,8 @@
 }
 .ct-mapa__sair:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
 @media (max-width: 419.98px) {
-  .is-cheia .ct-mapa__sair span, .is-cheia .ct-mapa__filtros-botao span:not(.ct-mapa__filtros-conta) { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .is-cheia .ct-mapa__sair, .is-cheia .ct-mapa__filtros-botao { padding: 0 11px; }
+  .is-cheia .ct-mapa__sair span, .is-cheia .ct-mapa__filtros-botao span:not(.ct-mapa__filtros-conta), .is-cheia .ct-mapa__rota-botao span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .is-cheia .ct-mapa__sair, .is-cheia .ct-mapa__filtros-botao, .is-cheia .ct-mapa__rota-botao { padding: 0 11px; }
 }
 .is-cheia .ct-mapa__resumo, .is-cheia .ct-mapa__fora { display: none; }
 .is-cheia .ct-mapa__moldura { display: block; flex: 1 1 auto; min-height: 0; }

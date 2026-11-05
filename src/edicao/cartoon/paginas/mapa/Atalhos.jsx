@@ -19,7 +19,7 @@ import { useEscape } from './interacao.js'
 // [chave, ícone ilustrado da edição]: o ícone nunca está sozinho, o rótulo vai ao lado.
 export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['premios', 'premio'], ['ranking', 'premio'], ['grupos', 'conversar']]
 
-export function Atalhos ({ placar = '', resumo = '', conteudo }) {
+export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null }) {
   const [lista, setLista] = React.useState(false)
   const [aberta, setAberta] = React.useState(null)
   const botao = React.useRef(null)
@@ -40,6 +40,8 @@ export function Atalhos ({ placar = '', resumo = '', conteudo }) {
   }, [lista])
 
   const abrir = (chave) => { setLista(false); setAberta(chave) }
+  // Pedido de fora (o botão "Minha rota" da barra): abre a folha daquele atalho sobre o mapa, sem mexer em zoom nem seleção.
+  React.useEffect(() => { if (pedido) abrir(pedido.chave) }, [pedido]) // eslint-disable-line react-hooks/exhaustive-deps -- só quando chega um pedido novo
   const titulo = aberta ? TC.atalhoTitulo[aberta] : ''
   return (
     <div ref={raiz} className="ct-jogo">

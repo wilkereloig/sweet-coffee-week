@@ -19,7 +19,7 @@ export const Busca = ({ q, aoBuscar }) => (
   </label>
 )
 
-export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoFiltros, cheia, aoFechar, filtrosAbertos }) {
+export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoFiltros, cheia, aoFechar, filtrosAbertos, botaoRota = null }) {
   return (
     <div className="ct-mapa__barra">
       {cheia && (
@@ -40,6 +40,7 @@ export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoF
         <ScwIcon nome="configuracoes" tamanho={20} /><span>{TC.filtros}</span>
         {filtros > 0 && <b className="ct-mapa__filtros-conta" aria-hidden="true">{filtros}</b>}
       </button>
+      {botaoRota}
     </div>
   )
 }
