@@ -115,6 +115,16 @@ export function Formulario ({ dados, criterios, navigate }) {
 
   const casa = elegiveis.find((p) => p.slug === form.slug)
   const unidades = casa?.unidades || []
+
+  // Escolheu a casa: a lista é longa e o que vem depois (a unidade, se houver; senão o "Continuar") fica fora da tela.
+  const proximo = React.useRef(null)
+  const escolheuCasa = React.useRef(false)
+  React.useEffect(() => {
+    if (!escolheuCasa.current || !form.slug || form.passo !== 1) return
+    escolheuCasa.current = false
+    const reduzido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    proximo.current?.scrollIntoView({ block: 'center', behavior: reduzido ? 'auto' : 'smooth' })
+  }, [form.slug, form.passo])
   const muda = (k, v) => setForm((f) => ({ ...f, [k]: v }))
   const trocouPasso = React.useRef(false)
   const irPara = (passo) => { trocouPasso.current = true; setForm((f) => ({ ...f, passo })) }
@@ -189,7 +199,7 @@ export function Formulario ({ dados, criterios, navigate }) {
               {visiveis.map((p) => (
                 <label key={p.slug} className="ct-form__casa">
                   <input type="radio" name="av-casa" value={p.slug} checked={form.slug === p.slug}
-                    onChange={() => setForm((f) => (f.slug === p.slug ? f : { ...f, slug: p.slug, unidade: '', notas: {}, comentario: '' }))} />
+                    onChange={() => { escolheuCasa.current = true; setForm((f) => (f.slug === p.slug ? f : { ...f, slug: p.slug, unidade: '', notas: {}, comentario: '' })) }} />
                   {/* Quem provou lembra do combo: a foto dele identifica a casa (sem foto, a logo). */}
                   {p.combo?.fotos?.principal
                     ? <span className="ct-form__casa-foto"><Foto foto={p.combo.fotos.principal} proporcao="1 / 1" alt="" /></span>
@@ -203,14 +213,14 @@ export function Formulario ({ dados, criterios, navigate }) {
             </fieldset>
           ) : <p className="ct-nota">{T.casaNenhuma}</p>}
           {unidades.length > 1 && (
-            <label className="ct-campo"><span>{T.unidade}</span>
+            <label ref={proximo} className="ct-campo"><span>{T.unidade}</span>
               <select value={form.unidade} onChange={(e) => muda('unidade', e.target.value)} required>
                 <option value="">{T.unidadeEscolha}</option>
                 {unidades.map((u) => <option key={u.id} value={u.id}>{u.nome || u.endereco?.bairro || u.id}</option>)}
               </select>
             </label>
           )}
-          <div className="ct-form__navegar">
+          <div ref={unidades.length > 1 ? null : proximo} className="ct-form__navegar">
             <button type="button" className="ct-botao" disabled={!casaOk} onClick={() => irPara(2)}>{T.continuar}</button>
             {!casaOk && <p className="ct-nota">{T.faltaCasa}</p>}
           </div>

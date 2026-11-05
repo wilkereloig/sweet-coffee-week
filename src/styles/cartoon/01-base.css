@@ -108,6 +108,9 @@
   .ct-abas {
     position: fixed; inset: auto 0 0; z-index: 30; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px;
     padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: var(--ct-creme); border-top: var(--ct-traco);
+    /* Camada própria: no Safari do iPhone, com a barra do navegador recolhendo e expandindo na rolagem, a barra fixa
+       às vezes ficava parada no meio da tela. Na própria camada ela acompanha a base. */
+    transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform;
   }
   .ct-edicao .ct-aba {
     position: relative; display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 56px; padding: 4px 2px;
