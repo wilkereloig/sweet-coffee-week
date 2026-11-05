@@ -16,6 +16,11 @@
  * prefers-reduced-motion). O Sicredi é um letreiro retangular branco com a marca oficial, de outra forma que o disco das
  * casas, e leva o rótulo "Patrocinador": não é casa.
  *
+ * PINS QUE SE COBREM (afastar.js, o mesmo do mapa real): o que colide vai para o lado e fica preso ao ponto verdadeiro por um fio
+ * fino com uma bolinha (`--dx/--dy` no botão; o fio é um irmão do botão, para não crescer no hover nem na seleção). O desenho é por
+ * zoom: recalcula quando a câmera assenta, nunca durante o arrasto. Com o desenho todo à vista (zoom < 1,6), grupo de mais de 6 pins
+ * vira um selo com a contagem que aproxima a câmera; a casa escolhida nunca some num selo.
+ *
  * A rota do visitante é um traçado SVG esquemático entre as paradas (não segue rua; o aviso fixo diz isso). A arte NÃO mostra
  * posição real: para chegar, o cartão da casa abre o Google Maps.
  * CÂMERA (camera.js; docs/cartoon-2026-2/14 §14.13-b): o desenho COBRE a janela — escala mínima = a que preenche as duas
@@ -33,9 +38,14 @@ import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../../../caca/mapa/imagens.js'
 import { agruparPorCasa } from '../../../rota/mundo.js'
-import { ZOOM_MAX, ZOOM_MIN, ZOOM_PASSO, entreCameras, inicial, limitar, panar, pinca, redimensionar, tamanhoDoPalco, zoomarEm } from './camera.js'
+import { afastarPins, LIMITE_GRUPO } from '../../../componentes/mapa/afastar.js'
+import { ZOOM_MAX, ZOOM_MIN, ZOOM_PASSO, centrarEm, entreCameras, inicial, limitar, panar, pinca, redimensionar, tamanhoDoPalco, zoomarEm } from './camera.js'
 
 const PASSO_TECLA = 80
+const ZOOM_AGRUPA = 1.6 // abaixo deste zoom (desenho todo à vista) grupo de pins grande demais vira selo; daqui para cima todo pin é afastado
+const ESPERA_AFASTAR = 160 // ms depois do último movimento da câmera: só recalcula quando o zoom assenta
+const PLANO_VAZIO = { desloc: new Map(), grupos: [] }
+const emPx = (v) => `${v.toFixed(1)}px`
 const LIMIAR_ARRASTO = 6 // px: abaixo disso é toque (seleciona a casa); acima é arraste (não aciona o pin)
 const JANELA_DO_CLIQUE = 350 // ms depois de um arraste em que o clique do pin é descartado
 const DUPLO_TOQUE = { ms: 320, px: 30 }
@@ -53,6 +63,7 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
   const animacao = React.useRef(0)
   const fimDoArrasto = React.useRef(0)
   const toqueAnterior = React.useRef(null)
+  const agendarRef = React.useRef(null) // recalcula o afastamento depois que a câmera assenta (pintar chama a cada quadro)
   const rodaRef = React.useRef(rodaAproxima)
   rodaRef.current = rodaAproxima
   const [largura, altura] = mundo.quadro
@@ -66,7 +77,41 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
   const alvo = React.useMemo(() => grupos.find((g) => g.ids.includes(selecionada))?.id || selecionada, [grupos, selecionada])
   const ajudaId = React.useId()
 
-  const parar = () => { cancelAnimationFrame(animacao.current); animacao.current = 0 }
+  // AFASTAMENTO (afastar.js): pin que cobre outro vai para o lado, preso ao ponto verdadeiro por um fio. Em px de tela, então só
+  // depende do tamanho atual dos botões e do zoom: recalcula quando a câmera assenta, quando as casas mudam e quando a escolha muda.
+  const [plano, setPlano] = React.useState(PLANO_VAZIO)
+  const chavePlano = React.useRef('')
+  const espera = React.useRef(0)
+  const alvoRef = React.useRef(alvo)
+  alvoRef.current = alvo
+  const recalcular = React.useCallback(() => {
+    const el = palco.current; const c = camera.current
+    if (!el || !c || !el.offsetWidth || !el.offsetHeight) return
+    const W = el.offsetWidth; const H = el.offsetHeight
+    const itens = [...el.querySelectorAll('[data-casa]')].map((b) => ({
+      id: b.dataset.casa, x: (parseFloat(b.style.left) / 100) * W, y: (parseFloat(b.style.top) / 100) * H,
+      w: b.offsetWidth, h: b.offsetHeight, ax: b.dataset.ancora ? Number(b.dataset.ancora) / 100 : 0.5,
+    }))
+    let r = afastarPins(itens, { limite: c.z < ZOOM_AGRUPA ? LIMITE_GRUPO : Infinity })
+    if (r.grupos.some((g) => g.ids.includes(alvoRef.current))) r = afastarPins(itens, { limite: Infinity }) // a casa escolhida nunca some num selo
+    const chave = JSON.stringify([[...r.desloc].map(([id, d]) => [id, Math.round(d.dx), Math.round(d.dy)]), r.grupos.map((g) => g.ids)])
+    if (chave === chavePlano.current) return
+    chavePlano.current = chave
+    setPlano({ desloc: r.desloc, grupos: r.grupos.map((g) => ({ ...g, fx: g.x / W, fy: g.y / H })) })
+  }, [])
+  agendarRef.current = (ms = ESPERA_AFASTAR) => { clearTimeout(espera.current); espera.current = setTimeout(recalcular, ms) }
+  React.useEffect(() => { agendarRef.current(0) }, [grupos, agencias, alvo])
+  React.useEffect(() => () => clearTimeout(espera.current), [])
+  const agrupados = React.useMemo(() => new Set(plano.grupos.flatMap((g) => g.ids)), [plano])
+  // Onde cada pin tem o ponto verdadeiro (left/top em %), para o fio nascer ali.
+  const pontoDe = React.useMemo(() => {
+    const m = new Map(agencias.map((a) => [a.id, pos(a)]))
+    for (const c of grupos) m.set(c.id, pos(mundo.casas?.[c.slug]?.ponto || c))
+    return m
+  }, [agencias, grupos, mundo])
+  const deslocamento = (id) => { const d = plano.desloc.get(id); return d ? { '--dx': emPx(d.dx), '--dy': emPx(d.dy) } : null }
+
+  const parar =() => { cancelAnimationFrame(animacao.current); animacao.current = 0 }
 
   // Aplica a câmera ao palco (limitada): largura em px + translate. É a única escrita no desenho.
   const pintar = React.useCallback((c) => {
@@ -80,6 +125,7 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
     el.dataset.z = k.z.toFixed(3); el.dataset.x = String(Math.round(k.x)); el.dataset.y = String(Math.round(k.y)) // leitura para testes e depuração
     const prox = { zoom: k.z > 1.2, min: k.z <= ZOOM_MIN + 1e-3, max: k.z >= ZOOM_MAX - 1e-3, larg: Math.ceil(p.w / 256) * 256 }
     setVista((v) => (v.zoom === prox.zoom && v.min === prox.min && v.max === prox.max && v.larg === prox.larg ? v : prox))
+    agendarRef.current?.()
   }, [A])
 
   // Vai até a câmera `c1` (botões, duplo toque, casa escolhida); sem animação com prefers-reduced-motion.
@@ -104,6 +150,11 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
     irPara(zoomarEm(c, c.z * fator, fx ?? j.w / 2, fy ?? j.h / 2, j, A))
   }
   const restaurar = () => { if (medida.current) irPara(inicial(medida.current, A)) }
+  // Selo "N locais muito próximos": aproxima o desenho até o grupo se abrir (a partir de ZOOM_AGRUPA todos são afastados).
+  const aproximarGrupo = (g) => {
+    const c = camera.current; const j = medida.current
+    if (c && j) irPara(centrarEm({ ...c, z: Math.max(Math.min(ZOOM_MAX, c.z * 2), ZOOM_AGRUPA) }, g.fx, g.fy, j, A))
+  }
 
   // Mede a janela e a cobre com a arte. Ao mudar de tamanho (rotação, janela maior ou menor, janela do navegador) o ponto que estava no
   // CENTRO continua no centro, no mesmo zoom: sem salto. O ResizeObserver avisa antes da pintura.
@@ -256,9 +307,21 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             </svg>
           )}
           {mundo.marcos.map((m) => <span key={m.nome} className="ct-mundo__marco" style={pos(m)} aria-hidden="true">{m.nome}</span>)}
+          {[...plano.desloc].map(([id, d]) => {
+            const ponto = pontoDe.get(id)
+            return ponto && !agrupados.has(id) && (Math.abs(d.dx) > 0.5 || Math.abs(d.dy) > 0.5) ? (
+              <span key={`fio-${id}`} className="ct-fio ct-mundo__fio" style={ponto} aria-hidden="true">
+                <svg width="1" height="1" viewBox="0 0 1 1" overflow="visible">
+                  <line className="ct-fio__base" x1="0" y1="0" x2={d.dx.toFixed(1)} y2={d.dy.toFixed(1)} />
+                  <line className="ct-fio__linha" x1="0" y1="0" x2={d.dx.toFixed(1)} y2={d.dy.toFixed(1)} />
+                  <circle className="ct-fio__ponto" cx="0" cy="0" r="4.5" />
+                </svg>
+              </span>
+            ) : null
+          })}
           {agencias.map((a) => (
-            <button key={a.id} type="button" data-casa={a.id} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%' }} aria-pressed={a.id === selecionada} aria-label={TC.sicrediNoMundo(a.nome, a.endereco)}
-              className={`ct-mundo__sicredi${a.id === selecionada ? ' is-sel' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
+            <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={TC.sicrediNoMundo(a.nome, a.endereco)}
+              className={`ct-mundo__sicredi${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
               <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={mundo.sicrediLogo} alt="" draggable={false} /></span>
               <span className="ct-mundo__patrocinador" aria-hidden="true">{TC.sicrediRotulo}</span>
             </button>
@@ -269,9 +332,9 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             const ponto = arte?.ponto || c
             const estado = c.estado ? IMAGENS_ESTADO[c.estado] : null
             return (
-              <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} style={pos(ponto)} aria-pressed={marcada}
+              <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} style={{ ...pos(ponto), ...deslocamento(c.id) }} aria-pressed={marcada}
                 aria-label={TC.casaNoMundo({ ...c, enderecos: c.enderecos })}
-                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}`}
+                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}`}
                 onClick={() => aoSelecionar(marcada ? '' : c.id)}>
                 <span className="ct-mundo__ponta" aria-hidden="true" />
                 <span className="ct-mundo__disco" aria-hidden="true">
@@ -295,6 +358,12 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
               </button>
             )
           })}
+          {plano.grupos.map((g) => (
+            <button key={g.ids.join(' ')} type="button" className="ct-selo-grupo ct-mundo__selo" style={{ left: `${g.fx * 100}%`, top: `${g.fy * 100}%` }}
+              aria-label={TC.grupoSelo(g.ids.length)} onClick={() => aproximarGrupo(g)}>
+              <span aria-hidden="true">{TC.grupoSeloCurto(g.ids.length)}</span>
+            </button>
+          ))}
         </div>
       </div>
       <div className="ct-mundo__zoom" role="group" aria-label={TC.zoom}>

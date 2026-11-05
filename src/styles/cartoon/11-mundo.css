@@ -41,12 +41,13 @@
   --rim: calc(var(--d) * .354); /* 45° no aro do disco: d/2 · cos 45° */
   position: absolute; display: block; box-sizing: border-box; padding: 0; border: 0; background: none; color: var(--ct-chocolate); cursor: pointer;
   translate: -50% -100%; transform-origin: 50% 100%;
-  transition: transform var(--ct-mo), opacity var(--ct-mo), filter var(--ct-mo);
+  transition: transform var(--ct-mo), translate var(--ct-mo), opacity var(--ct-mo), filter var(--ct-mo);
 }
 /* O MESMO pin no mapa real (pin.js): o <span class="ct-pin"> é a caixa do disco; o MapLibre/Google posiciona o botão. Tamanho fixo
    (o palco ilustrado escala por cqi; aqui o zoom do mapa já escala, e de longe .ct-mapa__mapa--longe encolhe). */
 .ct-pin { --d: 54px; position: relative; display: block; width: var(--d); height: calc(var(--d) + var(--cauda)); translate: none; }
-.ct-mundo__casa { z-index: 2; width: max(44px, var(--d)); height: max(44px, calc(var(--d) + var(--cauda))); }
+/* --dx/--dy: pin afastado de outro que o cobria (afastar.js); só visual, o ponto verdadeiro fica no `left/top` e o fio liga os dois. */
+.ct-mundo__casa { z-index: 2; width: max(44px, var(--d)); height: max(44px, calc(var(--d) + var(--cauda))); translate: calc(-50% + var(--dx, 0px)) calc(-100% + var(--dy, 0px)); }
 .ct-mundo__casa:hover, .ct-mundo__sicredi:hover { transform: translateY(-3px); }
 .ct-mundo__casa:focus-visible, .ct-mundo__sicredi:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; border-radius: 12px; }
 .ct-mundo__casa:hover, .ct-mundo__casa:focus-visible, .ct-mundo__casa.is-sel, .ct-mundo__casa.is-proxima, .ct-mundo__casa.is-recente { z-index: 5; }
@@ -131,7 +132,7 @@
 
 /* Sicredi (patrocinador): letreiro retangular branco com a marca oficial, de OUTRA forma que o disco das casas, com o rótulo
    "Patrocinador" (zoom, ponteiro, foco e escolhido). Não é casa: não conta carimbo, não tem selo de estado nem número. */
-.ct-mundo__sicredi { z-index: 1; translate: calc(var(--ancora, 50%) * -1) -100%; transform-origin: var(--ancora, 50%) 100%; width: max(44px, calc(var(--d) * 1.5)); height: max(44px, calc(var(--d) * .62 + var(--cauda))); }
+.ct-mundo__sicredi { z-index: 1; translate: calc(var(--ancora, 50%) * -1 + var(--dx, 0px)) calc(-100% + var(--dy, 0px)); transform-origin: var(--ancora, 50%) 100%; width: max(44px, calc(var(--d) * 1.5)); height: max(44px, calc(var(--d) * .62 + var(--cauda))); }
 .ct-mundo__sicredi.is-sel { z-index: 5; transform: translateY(-4px) scale(1.12); filter: drop-shadow(0 0 6px var(--ct-amarelo)); }
 .ct-mundo__sicredi::after {
   content: ''; position: absolute; left: var(--ancora, 50%); bottom: 0; width: calc(var(--d) * .36); height: calc(var(--cauda) + var(--d) * .1); translate: -50% 0;
@@ -142,6 +143,27 @@
   border: 3px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
 }
 .ct-mundo__sicredi-letreiro img { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; }
+
+/* AFASTAMENTO DE PINS — peças dos DOIS mapas (afastar.js; pin.js no mapa real; Mundo.jsx no ilustrado).
+   Fio: caixa de 0×0 sobre o ponto verdadeiro; o desenho vaza dela (overflow visível) até a ponta do pin deslocado, com um halo
+   creme por baixo para ler sobre a arte e sobre o mapa. Selo: o grupo grande demais para afastar (zoom da cidade) vira um disco com a
+   contagem, de 44 px; quem some no selo fica `is-agrupado` (visibility: hidden: sai do Tab e do leitor de tela, o selo o substitui). */
+.ct-fio { position: absolute; display: block; width: 0; height: 0; pointer-events: none; }
+.ct-fio[hidden] { display: none; }
+.ct-fio svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.ct-fio__base { stroke: var(--ct-creme); stroke-width: 5; stroke-linecap: round; }
+.ct-fio__linha { stroke: var(--ct-chocolate); stroke-width: 2; stroke-linecap: round; }
+.ct-fio__ponto { fill: var(--ct-chocolate); stroke: var(--ct-creme); stroke-width: 2; }
+.ct-selo-grupo {
+  display: grid; place-items: center; box-sizing: border-box; min-width: 44px; min-height: 44px; padding: 0;
+  border: 3px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); color: var(--ct-chocolate);
+  box-shadow: var(--ct-sombra-p); font: 900 17px/1 var(--ct-font); cursor: pointer;
+}
+.ct-selo-grupo:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; }
+.ct-marcador.is-agrupado, .ct-sicredi-marcador.is-agrupado, .ct-mundo__casa.is-agrupado, .ct-mundo__sicredi.is-agrupado { visibility: hidden; pointer-events: none; }
+.ct-mundo__fio { z-index: 1; }
+.ct-mundo__selo { position: absolute; z-index: 5; translate: -50% -50%; transition: transform var(--ct-mo); }
+.ct-mundo__selo:hover { transform: scale(1.08); }
 
 .ct-mundo__zoom { position: absolute; top: 10px; right: 10px; z-index: 4; display: grid; gap: 6px; }
 .ct-mundo__zoom-botao {
@@ -155,7 +177,7 @@
 .ct-mapa__previa { margin: 0; padding: 8px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); }
 
 @media (prefers-reduced-motion: reduce) {
-  .ct-mundo__casa, .ct-mundo__sicredi { transition: none; }
+  .ct-mundo__casa, .ct-mundo__sicredi, .ct-mundo__selo { transition: none; }
   .ct-mundo__casa.is-proxima::after { animation: none; }
   .ct-mundo__casa.is-recente .ct-mundo__estado { animation: none; outline: 3px solid var(--ct-amarelo); outline-offset: 2px; border-radius: 50%; }
   .ct-mundo__casa.is-recente::before { animation: none; opacity: .9; scale: 1; }
