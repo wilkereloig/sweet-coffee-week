@@ -345,3 +345,31 @@ export function criteriosDe(linhas) {
 }
 export const rotuloCriterio = (k) => { const s = String(k || '').replace(/_/g, ' '); return s.charAt(0).toUpperCase() + s.slice(1) }
 export const media = (v) => (v == null || v === '' || !isFinite(Number(v)) ? '—' : Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+
+// ------------------------------------------------- exportação das avaliações (planilha)
+// A apuração (pesos, mínimo, desempate) é decisão da organização: aqui só se entrega o dado, sem nome nem e-mail.
+const aspasCsv = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'
+/** Planilha para o Excel em português: separador ";", BOM no começo, nota com vírgula decimal. */
+export const csvPlanilha = (linhas) => '\ufeff' + linhas.map((l) => l.map(aspasCsv).join(';')).join('\r\n')
+const numBr = (v) => (v == null || v === '' || !isFinite(Number(v)) ? '' : String(Number(v)).replace('.', ','))
+const dataFortaleza = (iso) => (iso ? new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Fortaleza' }) : '')
+
+/** Resumo por casa (get_avaliacoes_resumo): avaliações, substituições e média de cada critério. */
+export function csvResumoAvaliacoes(linhas) {
+  const criterios = criteriosDe(linhas)
+  return csvPlanilha([
+    ['Casa', 'Avaliações', 'Substituições', ...criterios.map(rotuloCriterio)],
+    ...(linhas || []).map((l) => [l.nome, l.avaliacoes, l.substituicoes, ...criterios.map((k) => numBr(l.medias && l.medias[k]))]),
+  ])
+}
+
+/** Uma linha por avaliação (get_avaliacoes_dados), sem nome nem e-mail de quem avaliou. */
+export function csvDadosAvaliacoes(dados) {
+  const criterios = []
+  for (const d of dados || []) for (const k of Object.keys(d.notas || {})) if (!criterios.includes(k)) criterios.push(k)
+  return csvPlanilha([
+    ['Casa', 'Unidade', ...criterios.map(rotuloCriterio), 'Comentário', 'Substituições', 'Enviada em', 'Atualizada em'],
+    ...(dados || []).map((d) => [d.casa, d.unidade || '', ...criterios.map((k) => numBr(d.notas && d.notas[k])),
+      d.comentario || '', d.substituicoes, dataFortaleza(d.criado_em), dataFortaleza(d.atualizado_em)]),
+  ])
+}

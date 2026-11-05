@@ -9,7 +9,7 @@
 .ct-estreia__texto { position: relative; z-index: 1; display: grid; justify-items: start; gap: 18px; min-width: 0; }
 .ct-estreia__texto .ct-letreiro { margin: 0; }
 /* Prefixo: .scw-raiz img { display: block } (0,1,1) venceria a classe sozinha (CLAUDE.md §10.1). */
-.ct-edicao .ct-estreia__selo { display: none; height: auto; }
+.ct-edicao .ct-estreia__selo { display: none; height: auto; margin-bottom: 10px; }
 .ct-estreia__frase { max-width: 40ch; margin: 0; font: 600 clamp(18px, 1.5vw, 21px)/1.45 var(--ct-font); }
 .ct-estreia__texto .ct-acoes { margin-top: 4px; }
 @media (min-width: 900px) {

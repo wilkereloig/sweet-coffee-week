@@ -7,7 +7,7 @@ import {
   estadoPublicacao, textoPublicacao, filtrarPublicacoes, podePublicarCombo, traduzirPendencia,
   camposPublicos, diferencas, problemaChaves, bloqueioMudanca, paraLocalFortaleza, deLocalFortaleza,
   lerCoordenada, linkMapa, validarSlug, caminhoMidia, motivoNaoAprovar, traduzirErroPublicacao,
-  criteriosDe, rotuloCriterio, media, urlPublicaParticipante, textoHorarioFestival,
+  criteriosDe, rotuloCriterio, media, csvResumoAvaliacoes, csvDadosAvaliacoes, urlPublicaParticipante, textoHorarioFestival,
 } from '../painel-app/src/lib/publicacao.js'
 import { datasDoFestival } from '../painel-app/src/lib/horarioFestival.js'
 
@@ -207,4 +207,15 @@ test('resumo das avaliações: critérios, rótulo e média', () => {
   assert.equal(rotuloCriterio('apresentacao_visual'), 'Apresentacao visual')
   assert.equal(media(8.5), '8,50')
   assert.equal(media(null), '—')
+})
+
+test('planilhas das avaliações: ";" com BOM, vírgula decimal, aspas dobradas e nada pessoal', () => {
+  const r = csvResumoAvaliacoes([{ nome: 'Casa "A"', avaliacoes: 2, substituicoes: 1, medias: { sabor: 8.5, atendimento: null } }])
+  assert.ok(r.startsWith('﻿"Casa";"Avaliações";"Substituições";"Sabor";"Atendimento"'))
+  assert.ok(r.includes('"Casa ""A""";"2";"1";"8,5";""'))
+  const d = csvDadosAvaliacoes([{ casa: 'Casa', unidade: 'Centro', notas: { sabor: 9, atendimento: 7 }, comentario: 'bom; "top"',
+    substituicoes: 0, criado_em: '2026-11-06T15:00:00Z', atualizado_em: '2026-11-06T15:00:00Z', email_norm: 'x@y.com', nome: 'Fulano' }])
+  assert.ok(d.includes('"Casa";"Centro";"9";"7";"bom; ""top""";"0"'))
+  assert.ok(!d.includes('x@y.com') && !d.includes('Fulano'))
+  assert.equal(csvDadosAvaliacoes([]).split(String.fromCharCode(13, 10)).length, 1)
 })

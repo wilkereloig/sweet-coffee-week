@@ -3,11 +3,12 @@ import { rpc } from '../../lib/rpc'
 import { dataHoraCurta } from '../../lib/painelFormat'
 import {
   FASES, CHAVES_EDICAO, bloqueioMudanca, paraLocalFortaleza, deLocalFortaleza, traduzirErroPublicacao,
-  criteriosDe, rotuloCriterio, media,
+  criteriosDe, rotuloCriterio, media, csvResumoAvaliacoes, csvDadosAvaliacoes,
 } from '../../lib/publicacao'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { Carregando, Vazio, Erro, Secao, Selo, Botao, Escolha, traduzirErro } from '../ui'
 import { confirmar } from '../Confirmar'
+import { entregar } from '../../lib/entrega'
 import { AvisoMudancaExterna } from '../AvisoMudancaExterna'
 import { useLeitura, useEdicaoProtegida } from '../../lib/leituraVivaReact'
 import '../../styles/edicao-org.css'
@@ -161,6 +162,27 @@ function Aviso({ aviso }) {
     : <p className="ui-nota ui-nota--erro" role="alert">{aviso}</p>
 }
 
+/* Planilhas para a organização apurar: resumo por casa e uma linha por avaliação (sem nome nem e-mail). */
+function ExportarAvaliacoes({ edicao, linhas }) {
+  const [erro, setErro] = React.useState('')
+  const [baixando, setBaixando] = React.useState(false)
+  const arquivo = (assunto, texto) => new File([texto], 'avaliacoes-' + assunto + '-' + edicao.codigo + '.csv', { type: 'text/csv;charset=utf-8' })
+  const todas = async () => {
+    setErro(''); setBaixando(true)
+    try {
+      const dados = (await rpc('get_avaliacoes_dados', { p_secret: lerSenha(), p_edicao: edicao.codigo })) || []
+      await entregar(arquivo('todas', csvDadosAvaliacoes(dados)))
+    } catch (e) { setErro(msgErro(e)) } finally { setBaixando(false) }
+  }
+  return (
+    <span className="ui-acoes">
+      <Botao icone="baixar" variante="secundario" onClick={() => entregar(arquivo('resumo', csvResumoAvaliacoes(linhas)))}>Baixar resumo (CSV)</Botao>
+      <Botao icone="baixar" variante="secundario" onClick={todas} disabled={baixando} aria-busy={baixando}>Baixar todas as avaliações (CSV)</Botao>
+      {erro && <span className="ui-nota ui-nota--erro" role="alert">{erro}</span>}
+    </span>
+  )
+}
+
 /* ── Avaliações: só números por casa, nenhum dado pessoal ──────────────── */
 export function Avaliacoes({ edicao, pode }) {
   const podeLer = pode('relatorio.ler')
@@ -183,7 +205,8 @@ export function Avaliacoes({ edicao, pode }) {
   return (
     <>
     {aviso}
-    <Secao titulo={'Avaliações da edição ' + edicao.codigo} nota={total + (total === 1 ? ' avaliação' : ' avaliações') + '. Média por critério; quem avaliou não aparece aqui.'}>
+    <Secao titulo={'Avaliações da edição ' + edicao.codigo} nota={total + (total === 1 ? ' avaliação' : ' avaliações') + '. Média por critério; quem avaliou não aparece aqui.'}
+      acoes={<ExportarAvaliacoes edicao={edicao} linhas={linhas} />}>
       <div className="ui-tabela-rolagem" tabIndex={0} role="region" aria-label="Avaliações por casa">
         <table className="ui-tabela">
           <thead><tr>

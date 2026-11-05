@@ -43,7 +43,8 @@
 }
 .ct-letreiro__palavra:first-child::before { right: calc(100% + .12em); scale: -1 1; }
 .ct-letreiro__palavra:last-child::after { left: calc(100% + .06em); }
-@media (max-width: 599.98px) { .ct-letreiro__palavra:first-child::before { display: none; } }
+/* A faísca da esquerda cai fora do trilho enquanto a margem é estreita (a 768 ela saía da tela): só a partir de 900. */
+@media (max-width: 899.98px) { .ct-letreiro__palavra:first-child::before { display: none; } }
 .ct-letreiro--cor-vermelho { --ct-letra: var(--ct-vermelho); }
 .ct-letreiro--cor-chocolate { --ct-letra: var(--ct-chocolate); --ct-contorno: var(--ct-creme); --ct-volume: var(--ct-amarelo); }
 .ct-letreiro--cor-chocolate .ct-letreiro__linha { -webkit-text-stroke-width: .07em; }
