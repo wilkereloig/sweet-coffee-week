@@ -113,3 +113,16 @@ Corpo: `{ secret? , tipo:'avaliacao_pendente'|'meta'|'grupo'|'edicao', dry_run?:
   Nunca vão apelido, e-mail, chave ou link de recuperação.
 - Sem agendamento, sem gatilho e sem botão no painel: nada chama esta função sozinho. **Nunca disparar envio real em teste.**
 - Variáveis de ambiente usadas (nomes; já existem para o `enviar-push`): `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+
+## 6. Central de avisos, comunicados e limites (30/12/2026, migration `20261230_caca_avisos`)
+
+**Uma fonte por conceito.** Dispositivos e preferências seguem em `caca_push`; o aviso mora em `caca_aviso`; quem recebe cada aviso (lista da central, visto/novo, estado do push) em `caca_aviso_entrega`, única por `(aviso, mapa)` — é a idempotência. Tabelas sem policy e sem grant.
+
+- **Preferências (6 chaves):** `avaliacao_pendente`, `meta`, `grupo` (ligadas), `imprevisto` (ligada), `edicao` e `voucher` (divulgação: desligadas até a pessoa escolher). Toda categoria de aviso é uma preferência que a pessoa controla.
+- **Central (visitante, pela chave do mapa):** `caca_avisos_ler(p_chave)` → `{ avisos[], novos }` (só os avisos DESTE mapa, novo/visto, sem dado de ninguém) e `caca_avisos_visto(p_chave, p_ids)`. Funciona com ou sem push.
+- **Comunicados (painel, `producao.gerir` no banco):** `caca_aviso_criar` (rascunho/agendado; título ≤80, texto ≤240; sem e-mail/telefone/`#mapa=`; destino só `/cartoon/caca…`; vigência futura), `caca_aviso_estimar` (contagens), `caca_aviso_enviar` (ação explícita; materializa a central, audita quem e quando), `caca_aviso_cancelar` (só antes do envio), `caca_aviso_listar` (só contagens), `caca_avisos_casas`.
+- **Imprevisto:** exige casa + dia, é urgente e só vai a membros ativos de grupo com a casa na rota (`casa_na_rota`). Rota individual fica só no aparelho: não é dado do servidor, então não é público possível. Nada é inferido: o texto vem de fatos escritos por quem confirmou.
+- **Limites** (`caca_config.avisos_limites`, fuso `America/Fortaleza`): janela 08h–21h, no máximo 2 lembretes por pessoa/dia e 1 por categoria/dia. Urgente ignora janela e teto de lembretes, nunca a duplicata. Decisão por entrega: `preferencia`, `sem_aparelho`, `limite`, `adiado` (volta na próxima rodada), `enviado`, `falhou`.
+- **Push do aviso:** `caca-push` v4, `{ aviso_id, dry_run }`. Título, corpo e destino vêm do banco; `dry_run` é o padrão; real só com `dry_run:false` + `producao.gerir`. Lotes de 200, repetir enquanto `restam > 0`.
+- **Automáticos (meta e avaliação pendente):** `caca_avisos_gerar_automaticos()` cria um aviso por evento (`chave_dedupe`: `meta:<mapa>:<casas>`, `pendente:<mapa>:<casa>`); lembrete só se a avaliação continua pendente; nasce DESLIGADO (`caca_config.avisos_auto`). ⚠️ **Não há agendador criado**: ligar o interruptor (`caca_avisos_auto_definir`) não faz nada até alguém agendar a função e o processamento do push. Voucher e imprevisto nunca são automáticos (voucher só por comunicado, porque `caca_premio` está vazia e não se anuncia resultado antes da apuração).
+- **Testes:** `supabase/testes/caca-avisos.sql` (rollback, `TESTE_OK`), `tests/cartoon-caca-avisos.test.mjs`, `tests/painel-app-caca-avisos.test.mjs`. Nenhum push real foi enviado.

@@ -278,16 +278,25 @@ test('o sorteio oficial está travado e nem chega ao banco', async () => {
 })
 
 // ── regras de código da frente ───────────────────────────────────────────────
-test('só o sorteio oficial grava: p_simular:false e dry_run:false não existem fora dele', () => {
+test('só o sorteio oficial grava prêmio; o único envio real é o do aviso confirmado (aviso_id), nunca por tipo', () => {
   const lib = ler('painel-app/src/lib/caca.js')
   assert.equal((lib.match(/p_simular:\s*false/g) || []).length, 1)
   assert.match(lib, /export const SORTEIO_OFICIAL_LIBERADO = false/)
-  assert.ok(!/dry_run:\s*false/.test(lib))
+  // 30/12/2026: o painel passou a enviar COMUNICADOS (caca_aviso_enviar + caca-push com aviso_id). Esse é o único dry_run:false,
+  // sempre por id de um aviso já criado e enviado; o envio por tipo (título/corpo livres) continua só simulação.
+  assert.equal((lib.match(/dry_run:\s*false/g) || []).length, 1)
+  assert.match(lib, /enviarPushDoAviso: \(id, f\) => chamarFuncao\('caca-push', \{ secret: lerSenha\(\), aviso_id: id, dry_run: false \}/)
+  assert.match(lib, /simularPush: \(tipo, f\) => chamarFuncao\('caca-push', \{ secret: lerSenha\(\), tipo, dry_run: true/)
   assert.ok(!/Math\.random/.test(lib), 'a semente é de quem sorteia, nunca escondida')
   for (const [nome, src] of fontesCaca()) {
     assert.ok(!/p_simular|dry_run/.test(src), nome + ' monta a chamada na mão')
     if (nome !== 'PremioFinal.jsx') assert.ok(!/realizarSorteioOficial/.test(src), nome)
   }
+  // O envio real só é chamado pela tela de Avisos, depois de `confirmar(...)` e de `caca_aviso_enviar`.
+  for (const [nome, src] of fontesCaca()) if (nome !== 'Avisos.jsx') assert.ok(!/enviarPushDoAviso|enviarAviso/.test(src), nome + ' envia aviso')
+  const avisosSrc = ler('painel-app/src/components/vistas/caca/Avisos.jsx')
+  assert.ok(avisosSrc.indexOf('await confirmar(texto') > -1 && avisosSrc.indexOf('await confirmar(texto') < avisosSrc.indexOf('cacaApi.enviarAviso('), 'confirmação antes do envio')
+  assert.ok(avisosSrc.indexOf('cacaApi.enviarAviso(') < avisosSrc.indexOf('cacaApi.enviarPushDoAviso('), 'a central recebe antes do push')
   const final = ler('painel-app/src/components/vistas/caca/PremioFinal.jsx')
   assert.match(final, /disabled=\{!SORTEIO_OFICIAL_LIBERADO/)
   assert.match(final, /Etapa 1 de 2/); assert.match(final, /Etapa 2 de 2/)

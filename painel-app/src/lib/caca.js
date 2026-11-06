@@ -392,14 +392,87 @@ export function validarMetas(linhas, total) {
 export const metasMudaram = (marcos, doBanco) => JSON.stringify(marcos) !== JSON.stringify(
   (doBanco || []).map((m) => (m?.casas === 'todas' ? { casas: 'todas', titulo: m.titulo } : m?.fracao != null ? { fracao: Number(m.fracao), titulo: m.titulo } : { casas: m?.casas, titulo: m?.titulo })))
 
-// ── Avisos (push): só simulação ──────────────────────────────────────────────
+// ── Avisos: comunicados da organização + push (migration 20261230) ───────────
 export const TIPOS_PUSH = Object.freeze([
   ['avaliacao_pendente', 'Avaliação pendente'],
   ['meta', 'Meta alcançada'],
   ['grupo', 'Aviso de grupo'],
   ['edicao', 'Novidade da edição (só quem escolheu receber)'],
+  ['voucher', 'Voucher do dia (só quem escolheu receber)'],
+  ['imprevisto', 'Imprevisto confirmado em casa da rota'],
 ])
 export const tipoPushValido = (t) => TIPOS_PUSH.some(([k]) => k === t)
+
+/** O que a organização pode criar à mão. Meta e avaliação pendente são automáticas; grupo vem do próprio grupo. */
+export const CATEGORIAS_AVISO = Object.freeze([
+  ['edicao', 'Novidade da edição'],
+  ['voucher', 'Voucher do dia'],
+  ['imprevisto', 'Imprevisto confirmado (urgente)'],
+])
+/** Para onde o toque no aviso leva: só dentro da Caça (o banco confere de novo). */
+export const DESTINOS_AVISO = Object.freeze([
+  ['/cartoon/caca', 'Central da Caça'],
+  ['/cartoon/caca/metas', 'Metas'],
+  ['/cartoon/caca/grupos', 'Grupos'],
+  ['/cartoon/caca/ranking', 'Ranking'],
+])
+export const PUBLICOS_AVISO = Object.freeze([
+  ['todos', 'Todas as pessoas com mapa nesta edição'],
+  ['com_push', 'Só quem ligou as notificações no celular'],
+])
+export const AVISO_LIMITES = Object.freeze({ titulo: 80, corpo: 240, situacao: 90, unidade: 40 })
+export const ROTULO_ESTADO_AVISO = Object.freeze({ rascunho: 'Rascunho', agendado: 'Agendado', enviado: 'Enviado', cancelado: 'Cancelado' })
+
+const diaBrCurto = (iso) => { const [, m, d] = String(iso || '').split('-'); return d && m ? `${d}/${m}` : '' }
+
+/**
+ * Texto do imprevisto a partir de FATOS confirmados (casa, unidade, dia, situação). Nunca inventa nem infere: sem casa, dia ou
+ * situação não há texto. Cabe em título/corpo do aviso (80/240) e não carrega contato.
+ */
+export function comporImprevisto({ casa, unidade, dia, situacao }) {
+  const c = String(casa || '').trim(); const s = String(situacao || '').trim(); const u = String(unidade || '').trim()
+  const d = diaBrCurto(dia)
+  if (!c || !s || !d) return null
+  const onde = u ? `${c} (${u})` : c
+  const titulo = `Aviso sobre ${c}`.slice(0, AVISO_LIMITES.titulo)
+  const corpo = `${onde}: ${s} em ${d}. Confirmado pela organização.`.slice(0, AVISO_LIMITES.corpo)
+  return { titulo, corpo }
+}
+
+/** Valida o formulário no navegador (o banco valida de novo). Devolve a lista de problemas em português. */
+export function validarAviso(f) {
+  const erros = []
+  const titulo = String(f.titulo || '').trim(); const corpo = String(f.corpo || '').trim()
+  if (!titulo) erros.push('Escreva o título.')
+  else if (titulo.length > AVISO_LIMITES.titulo) erros.push(`O título passa de ${AVISO_LIMITES.titulo} caracteres.`)
+  if (!corpo) erros.push('Escreva o texto do aviso.')
+  else if (corpo.length > AVISO_LIMITES.corpo) erros.push(`O texto passa de ${AVISO_LIMITES.corpo} caracteres.`)
+  if (/@[a-z0-9.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d|#mapa=/i.test(`${titulo} ${corpo}`)) erros.push('Não coloque e-mail, telefone nem link pessoal no aviso.')
+  if (f.categoria === 'imprevisto') {
+    if (!f.casa) erros.push('Escolha a casa afetada.')
+    if (!f.dia) erros.push('Informe o dia afetado.')
+  }
+  if (f.enviar_em && Number.isNaN(new Date(f.enviar_em).getTime())) erros.push('A data de envio não é válida.')
+  if (f.vigente_ate && Number.isNaN(new Date(f.vigente_ate).getTime())) erros.push('A data de validade não é válida.')
+  return erros
+}
+
+/** Corpo da RPC `caca_aviso_criar` a partir do formulário. Imprevisto só vai para quem tem a casa na rota de um grupo. */
+export function corpoDoAviso(f) {
+  const base = { categoria: f.categoria, titulo: String(f.titulo || '').trim(), corpo: String(f.corpo || '').trim(), destino: f.destino || '/cartoon/caca' }
+  if (f.enviar_em) base.enviar_em = new Date(f.enviar_em).toISOString()
+  if (f.vigente_ate) base.vigente_ate = new Date(f.vigente_ate).toISOString()
+  if (f.categoria === 'imprevisto') return { ...base, publico: { tipo: 'casa_na_rota' }, participacao_id: f.casa, dia: f.dia }
+  return { ...base, publico: { tipo: f.publico === 'com_push' ? 'com_push' : 'todos' } }
+}
+
+/** Resumo de um aviso enviado, sem dado pessoal: quantas pessoas viram, quantos pushes saíram. */
+export function resumoDoEnvio(a) {
+  if (!a || a.estado !== 'enviado') return ''
+  const partes = [`${a.alvos} na central`, `${a.vistos} ${a.vistos === 1 ? 'viu' : 'viram'}`, `${a.push_enviados} no celular`]
+  if (a.push_falhas > 0) partes.push(`${a.push_falhas} ${a.push_falhas === 1 ? 'falha' : 'falhas'}`)
+  return partes.join(' · ')
+}
 
 // ── CSV ──────────────────────────────────────────────────────────────────────
 // Texto livre do visitante (apelido) entra na planilha: célula de texto que começa com = + - @ TAB CR vira fórmula no Excel.
@@ -446,6 +519,17 @@ const MENSAGENS = [
   ['casa_sem_combo', 'A casa não tem combo publicado para avaliar, então não entra na Caça.'],
   ['qr_invalido', 'A unidade desse pedido não tem adesivo (QR) ativo. Confira em Mapa e adesivos.'],
   ['nao_autorizado', 'Sua função não permite esta ação, ou a sessão não vale mais.'],
+  ['conteudo_com_dado_pessoal', 'O aviso parece ter e-mail, telefone ou link pessoal. Tire isso do texto.'],
+  ['destino_invalido', 'O destino do aviso precisa ser uma tela da Caça.'],
+  ['vigencia_passada', 'A validade já passou. Escolha uma data futura.'],
+  ['agendamento_passado', 'A data de envio já passou. Escolha uma data futura ou envie agora.'],
+  ['imprevisto_so_para_quem_tem_a_casa', 'Imprevisto só vai para quem tem a casa na rota de um grupo.'],
+  ['imprevisto_sem_casa_ou_dia', 'Imprevisto precisa de casa e dia.'],
+  ['casa_desconhecida', 'Essa casa não está na edição atual.'],
+  ['aviso_ja_enviado', 'Esse aviso já foi enviado. Nada foi reenviado.'],
+  ['aviso_ja_cancelado', 'Esse aviso foi cancelado e não pode ser enviado.'],
+  ['so_antes_do_envio', 'Só dá para cancelar antes do envio.'],
+  ['aviso_nao_enviado', 'O aviso ainda não foi enviado, então não há notificação para processar.'],
   ['Failed to fetch', 'Sem conexão com o servidor. Confira a internet e tente de novo.'],
   ['Load failed', 'Sem conexão com o servidor. Confira a internet e tente de novo.'],
 ]
@@ -479,6 +563,18 @@ export const cacaApi = {
   gpsResumo: (edicao, f) => rpc('caca_gps_resumo', { p_secret: lerSenha(), p_edicao: edicao }, f),
   /** SIMULAÇÃO. `dry_run` é fixo em true: a função só conta quem receberia. */
   simularPush: (tipo, f) => chamarFuncao('caca-push', { secret: lerSenha(), tipo, dry_run: true, titulo: 'Simulação', corpo: 'Simulação de alcance: nada é enviado.' }, f),
+  // Comunicados (20261230). Criar/enviar/cancelar exigem producao.gerir NO BANCO; listar e estimar, dado.ler.
+  avisosListar: (edicao, f) => rpc('caca_aviso_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),
+  avisosCasas: (edicao, f) => rpc('caca_avisos_casas', { p_secret: lerSenha(), p_edicao: edicao }, f),
+  criarAviso: (formulario, f) => rpc('caca_aviso_criar', { p_secret: lerSenha(), p_dados: corpoDoAviso(formulario) }, f),
+  estimarAviso: (id, f) => rpc('caca_aviso_estimar', { p_secret: lerSenha(), p_id: id }, f),
+  /** AÇÃO REAL: põe o aviso na central de quem ele atinge. O push sai em seguida, por `enviarPushDoAviso`. */
+  enviarAviso: (id, f) => rpc('caca_aviso_enviar', { p_secret: lerSenha(), p_id: id }, f),
+  cancelarAviso: (id, f) => rpc('caca_aviso_cancelar', { p_secret: lerSenha(), p_id: id }, f),
+  /** Quantas entregas esperam push (não envia nada). */
+  pushDoAvisoSimular: (id, f) => chamarFuncao('caca-push', { secret: lerSenha(), aviso_id: id, dry_run: true }, f),
+  /** AÇÃO REAL: processa um lote de até 200 aparelhos de um aviso JÁ enviado; repetir enquanto `restam > 0`. */
+  enviarPushDoAviso: (id, f) => chamarFuncao('caca-push', { secret: lerSenha(), aviso_id: id, dry_run: false }, f),
 }
 
 /**

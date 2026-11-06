@@ -1,3 +1,4 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
+Caça aos Carimbos › Avisos: agora dá para criar um aviso, revisar quantas pessoas recebem, enviar de propósito (central e celular) e cancelar antes do envio. Imprevisto confirmado vai só para quem tem a casa na rota.
 Balcão: no Início da marca, escanear ou digitar o voucher do cliente e ajudar com o carimbo ficam logo no topo; na Visão geral da equipe, atalhos para Vouchers e Pedidos de carimbo.
 Caça aos Carimbos: Edição › Carimbos ganha abas para apurar os vouchers de cada dia, acompanhar prazos e prêmios, simular o sorteio final, revisar carimbos sem GPS, mudar regras e prazos e ver a auditoria.

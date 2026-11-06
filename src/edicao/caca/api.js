@@ -188,6 +188,15 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       return r.ok ? { ok: true, premios: r.dado } : r
     },
 
+    /** `caca_avisos_ler` (migration 20261230): `{ ok:true, avisos:[{ id, categoria, urgente, titulo, corpo, destino, quando, visto }], novos }`. Só os avisos DESTE mapa; sem dado de ninguém. */
+    avisosLer: (chave) => comChave(chave, async () => {
+      const r = await rpcDado('caca_avisos_ler', { p_chave: chave })
+      return r.ok && Array.isArray(r.dado?.avisos) ? { ok: true, avisos: r.dado.avisos, novos: Number(r.dado.novos) || 0 } : r.ok ? sem('resposta_invalida') : r
+    }),
+
+    /** `caca_avisos_visto`: marca os avisos como vistos neste mapa. `{ ok:true, marcados }`. */
+    avisosVisto: (chave, ids) => comChave(chave, () => rpcOk('caca_avisos_visto', { p_chave: chave, p_ids: Array.isArray(ids) ? ids : [] })),
+
     /* ---- grupos e rota colaborativa (15-caca-contrato-grupos.md) ---- */
 
     /** `caca_grupo_criar`: `{ ok:true, grupo_id, nome, convite_token, convite_expira_em }` · nome_invalido · aceite_obrigatorio · limite_grupos. O token só aparece aqui. */

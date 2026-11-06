@@ -68,7 +68,7 @@ export const RPC_LEITURA = new Set([
   // Caça aos Carimbos (painel): leituras. `caca_sorteio_final` só é chamada em SIMULAÇÃO (p_simular: true) — o
   // sorteio oficial grava prêmios, mas a tela não o liga (lib/caca.js › SORTEIO_OFICIAL_LIBERADO).
   'caca_config_ler', 'caca_metas_painel_ler', 'caca_premio_listar', 'caca_carimbo_revisao_listar', 'caca_sorteio_final',
-  'caca_excecao_listar', 'caca_gps_resumo', 'caca_sorteio_estado', // estado = leitura (SQL stable): diz se a semente já foi comprometida
+  'caca_excecao_listar', 'caca_gps_resumo', 'caca_aviso_listar', 'caca_avisos_casas', 'caca_aviso_estimar', 'caca_sorteio_estado', // estado = leitura (SQL stable): diz se a semente já foi comprometida
   // Canais de tempo real que ESTA conta pode ouvir (lista do servidor).
   'sync_meus_canais',
 ])
@@ -220,6 +220,7 @@ export const RPC_ESCRITA = Object.freeze({
   caca_config_gravar: ['carimbos'],
   caca_excecao_decidir: ['carimbos'], // aprovar cria o carimbo; negar só registra
   caca_metas_gravar: ['carimbos'],
+  caca_aviso_criar: ['carimbos'], caca_aviso_enviar: ['carimbos'], caca_aviso_cancelar: ['carimbos'], caca_avisos_auto_definir: ['carimbos'],
   caca_sorteio_comprometer: ['carimbos'], // grava o código da semente (aba Prêmio final, em Edição › Carimbos)
   marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
   marcar_senha_trocada: ['perfis'],

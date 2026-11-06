@@ -18,7 +18,7 @@ export const ABAS_CACA = Object.freeze([
   { chave: 'presenca', rotulo: 'Pedidos de presença' },
   { chave: 'config', rotulo: 'Regras e prazos' },
   { chave: 'metas', rotulo: 'Metas' },
-  { chave: 'avisos', rotulo: 'Avisos (simulação)' },
+  { chave: 'avisos', rotulo: 'Avisos' },
   { chave: 'auditoria', rotulo: 'Auditoria' },
 ])
 
@@ -31,7 +31,7 @@ export function PainelCaca({ edicao, pode, aba }) {
     case 'presenca': return <Excecoes edicao={edicao} pode={pode} />
     case 'config': return <Configuracao pode={pode} dados={dados} />
     case 'metas': return <Metas edicao={edicao} pode={pode} />
-    case 'avisos': return <Avisos pode={pode} />
+    case 'avisos': return <Avisos edicao={edicao} pode={pode} />
     case 'auditoria': return <Auditoria dados={dados} />
     default: return null
   }
