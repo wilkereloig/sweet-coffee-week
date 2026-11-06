@@ -412,5 +412,6 @@ test('atalhos: uma folha por vez (variante "jogo"), lista recolhe ao abrir, Esca
   const css = readFileSync(new URL('../src/styles/cartoon/16-mapa-tela.css', import.meta.url), 'utf8')
   assert.match(css, /\.ct-jogo__botao \{[^}]*min-height: 48px/, 'alvo do botão ≥ 44 px')
   assert.match(css, /\.ct-jogo__item \{[^}]*min-height: 48px/)
-  assert.match(css, /\.ct-jogo \{[^}]*env\(safe-area-inset-left\)/, 'respeita o entalhe')
+  assert.match(css, /\.ct-jogo__linha \{[^}]*env\(safe-area-inset-left\)/, 'o menu respeita o entalhe à esquerda')
+  assert.match(css, /\.ct-jogo__fixos \{[^}]*env\(safe-area-inset-right\)[^}]*env\(safe-area-inset-bottom\)/, 'os fixos respeitam o entalhe à direita e a base')
 })
