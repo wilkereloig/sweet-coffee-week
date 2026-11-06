@@ -92,7 +92,11 @@ async function novoContexto ({ mobile = true } = {}) {
   return ctx
 }
 const idDaPagina = (page) => page.evaluate(() => document.querySelector('meta[name="scw-versao"]')?.getAttribute('content') || null)
-const esperarVersao = (page, id, ms = 15000) => page.waitForFunction((v) => document.querySelector('meta[name="scw-versao"]')?.getAttribute('content') === v, id, { timeout: ms })
+// Espera a meta da versão E o evento `load` da página nova: sem isso a contagem de cargas corria contra o `load` (falha esporádica em máquina ocupada).
+const esperarVersao = async (page, id, ms = 15000) => {
+  await page.waitForFunction((v) => document.querySelector('meta[name="scw-versao"]')?.getAttribute('content') === v, id, { timeout: ms })
+  await page.waitForLoadState('load', { timeout: ms })
+}
 const scriptDeEntrada = (page) => page.evaluate(() => document.querySelector('script[type="module"][src*="/assets/main-"]')?.getAttribute('src') || null)
 async function abrir (ctx, caminho = '/cartoon/caca?origem=app') {
   const page = await ctx.newPage()
