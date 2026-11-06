@@ -19,6 +19,20 @@ export function diaDoFormulario({ hoje, atual, sujo }) {
   return sujo && atual ? atual : hoje
 }
 
+/**
+ * Dias em que a marca pode lançar venda: do primeiro dia do festival até hoje (ou até o último dia,
+ * se já acabou), do mais recente ao mais antigo. Sem datas da edição, só hoje. Lançar o que ficou
+ * para trás (ontem, anteontem…) é o mesmo registro do dia, só com outra data.
+ */
+export function diasLancaveis({ inicio, fim, hoje }) {
+  const ini = String(inicio || '').slice(0, 10)
+  if (!ini || ini > hoje) return [hoje]
+  const teto = fim && String(fim).slice(0, 10) < hoje ? String(fim).slice(0, 10) : hoje
+  const dias = []
+  for (let d = new Date(ini + 'T00:00:00'); chaveDia(d) <= teto && dias.length < 60; d.setDate(d.getDate() + 1)) dias.push(chaveDia(d))
+  return dias.length ? dias.reverse() : [hoje]
+}
+
 /** "Hoje", "Ontem" ou dd/mm — o dia a que o campo se refere. */
 export function rotuloDoDia(dia, hoje) {
   if (!dia || dia === hoje) return 'Hoje'

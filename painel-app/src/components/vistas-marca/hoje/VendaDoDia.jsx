@@ -3,7 +3,7 @@ import { api } from '../../../lib/marcaApi'
 import { useRegistroEditavel } from '../../../lib/sync/react'
 import { usePendencia } from '../../../lib/pendencias'
 import { AvisoMudancaExterna } from '../../AvisoMudancaExterna'
-import { diaDoFormulario, rotuloDoDia, textoDaVenda } from '../../../lib/sincMarca'
+import { diaDoFormulario, diasLancaveis, rotuloDoDia, textoDaVenda } from '../../../lib/sincMarca'
 
 /*
  * Combos vendidos — o gesto diário da marca. O número digitado NUNCA é trocado por uma
@@ -16,8 +16,10 @@ import { diaDoFormulario, rotuloDoDia, textoDaVenda } from '../../../lib/sincMar
  * ⚠️ Tem estado que o Início não pode perder (número digitado, pendência registrada): quem a
  * desenha a mantém sempre sob a mesma `key`, para que mudar de lugar na página não a remonte.
  */
-export function VendaDoDia({ vendas, hoje, total, participacaoId, aoGravar, recarregar, invalidar }) {
+export function VendaDoDia({ vendas, hoje, total, participacaoId, aoGravar, recarregar, invalidar, inicio, fim }) {
   const [diaForm, setDiaForm] = React.useState(hoje)
+  const [escolhido, setEscolhido] = React.useState(false)   // a pessoa escolheu um dia: a virada da meia-noite não a tira dele
+  const dias = React.useMemo(() => diasLancaveis({ inicio, fim, hoje }), [inicio, fim, hoje])
   const [salvando, setSalvando] = React.useState(false)
   const [erro, setErro] = React.useState(null)
   const linhaDoDia = vendas.find((v) => v.dia === diaForm)
@@ -26,9 +28,9 @@ export function VendaDoDia({ vendas, hoje, total, participacaoId, aoGravar, reca
   const venda = useRegistroEditavel(servidor, ['quantidade'], { chave: diaForm })
 
   React.useEffect(() => {
-    const alvo = diaDoFormulario({ hoje, atual: diaForm, sujo: venda.sujo })
+    const alvo = diaDoFormulario({ hoje, atual: diaForm, sujo: venda.sujo || escolhido })
     if (alvo !== diaForm) setDiaForm(alvo)
-  }, [hoje, diaForm, venda.sujo])
+  }, [hoje, diaForm, venda.sujo, escolhido])
 
   async function gravar() {
     const n = parseInt(venda.local.quantidade, 10)
@@ -69,6 +71,16 @@ export function VendaDoDia({ vendas, hoje, total, participacaoId, aoGravar, reca
       <AvisoMudancaExterna registro={venda} rotulos={{ quantidade: 'Combos vendidos' }} />
       <form className="mc-venda" onSubmit={(ev) => { ev.preventDefault(); gravar() }}>
         <div className="mc-venda__linha">
+          {dias.length > 1 && (
+            <label className="mc-venda__rotulo">
+              <span>Dia</span>
+              <select className="mc-venda__campo" value={diaForm} disabled={venda.sujo || salvando}
+                title={venda.sujo ? 'Salve ou apague o número digitado antes de trocar de dia.' : undefined}
+                onChange={(e) => { setErro(null); setEscolhido(e.target.value !== hoje); setDiaForm(e.target.value) }}>
+                {dias.map((d) => <option key={d} value={d}>{rotuloDoDia(d, hoje)}{d === hoje || rotuloDoDia(d, hoje) === 'Ontem' ? ' (' + d.slice(8, 10) + '/' + d.slice(5, 7) + ')' : ''}</option>)}
+              </select>
+            </label>
+          )}
           <label className="mc-venda__rotulo">
             <span>{rotuloDoDia(diaForm, hoje)}</span>
             <input className="mc-venda__campo" type="number" inputMode="numeric" min="0" step="1" placeholder="0" value={venda.local.quantidade} onChange={(e) => venda.editar('quantidade', e.target.value)} />

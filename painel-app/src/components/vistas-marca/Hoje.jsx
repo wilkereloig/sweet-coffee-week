@@ -155,7 +155,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
           <Secao id="venda-do-dia" titulo="Combos vendidos" nota={notaVenda}>
             {vendas === null
               ? <Carregando linhas={2} texto="Carregando as vendas…" />
-              : <VendaDoDia vendas={vendas} hoje={hoje} total={total} participacaoId={participacaoId}
+              : <VendaDoDia vendas={vendas} hoje={hoje} total={total} participacaoId={participacaoId} inicio={edicao && edicao.festival_inicio} fim={edicao && edicao.festival_fim}
                   aoGravar={(linha) => setVendas((atual) => comVendaGravada(atual, linha))}
                   recarregar={carregarLocal} invalidar={() => { guarda() }} />}
           </Secao>

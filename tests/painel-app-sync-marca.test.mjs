@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  diaDoFormulario, rotuloDoDia, textoDaVenda, msAteMeiaNoite, comVendaGravada,
+  diaDoFormulario, diasLancaveis, rotuloDoDia, textoDaVenda, msAteMeiaNoite, comVendaGravada,
   fotoDoPedido, mudancaDoPedido, textoDaMudanca, repartirPedidos, rascunhosSemPedido,
   idsParaMarcarLidas,
 } from '../painel-app/src/lib/sincMarca.js'
@@ -20,6 +20,13 @@ test('rótulo do campo: Hoje, Ontem ou dd/mm (inclusive na virada do mês)', () 
   assert.equal(rotuloDoDia('2026-10-19', '2026-10-20'), 'Ontem')
   assert.equal(rotuloDoDia('2026-10-31', '2026-11-01'), 'Ontem')
   assert.equal(rotuloDoDia('2026-10-17', '2026-10-20'), '17/10')
+})
+
+test('diasLancaveis: do 1º dia do festival até hoje, mais recente primeiro; depois do fim, até o último dia', () => {
+  assert.deepEqual(diasLancaveis({ inicio: '2026-11-05', fim: '2026-11-15', hoje: '2026-11-07' }), ['2026-11-07', '2026-11-06', '2026-11-05'])
+  assert.deepEqual(diasLancaveis({ inicio: '2026-11-05', fim: '2026-11-15', hoje: '2026-11-20' }).slice(0, 2), ['2026-11-15', '2026-11-14'])
+  assert.deepEqual(diasLancaveis({ inicio: '2026-11-05', fim: '2026-11-15', hoje: '2026-11-01' }), ['2026-11-01'], 'antes do festival: só hoje')
+  assert.deepEqual(diasLancaveis({ hoje: '2026-11-06' }), ['2026-11-06'], 'sem datas da edição')
 })
 
 test('quantidade do dia como texto de campo; sem lançamento = vazio', () => {
