@@ -204,6 +204,10 @@ try {
     checar(p.b <= e.b && p.x >= e.x && p.r <= e.r, `${vista}: o painel respeita as bordas da tela`)
     const barra = await caixa(page, '.is-cheia .ct-mapa__barra')
     checar(p.y > barra.b, `${vista}: o painel não cobre a barra de controles`)
+    // Os três atalhos fixos ficam no canto de baixo à direita e o painel nunca passa por baixo deles.
+    const f = await caixa(page, '.is-cheia .ct-jogo__fixos')
+    checar(f && e.r - f.r <= 20 && f.y > e.y + (e.b - e.y) / 2, `${vista}: os três atalhos fixos ficam no canto inferior direito`)
+    checar(f && (f.x >= p.r || f.b <= p.y || f.y >= p.b), `${vista}: o painel não cobre os atalhos fixos`)
     await foto(c, `celular-${vista}-cheia-painel`)
     await page.locator('.is-cheia .ct-perto__cartao').first().click(); await esperar(800)
     checar(await page.locator('.is-cheia .ct-perto').count() === 0 && await page.locator('.ct-mapa__cartao').count() === 1, `${vista}: escolher a casa abre os detalhes (o painel espera)`)

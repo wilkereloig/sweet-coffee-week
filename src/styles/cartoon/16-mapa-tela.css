@@ -169,7 +169,8 @@
 .ct-mundo__janela > .ct-perto { cursor: default; }
 @media (min-width: 900px) { .ct-perto { left: 12px; right: auto; width: min(760px, calc(100% - 24px)); bottom: 12px; } .ct-mapa__area > .ct-perto { bottom: 34px; } .ct-perto__cartao { width: 240px; } }
 /* Tela cheia: respeita a área segura; no desenho o painel sobe acima do aviso "ilustrativo" e do crédito. */
-.is-cheia .ct-perto { bottom: calc(10px + env(safe-area-inset-bottom)); left: calc(8px + env(safe-area-inset-left)); right: calc(8px + env(safe-area-inset-right)); }
+/* A direita fica livre para a coluna dos três atalhos fixos (44px + 10px de borda + 8px de respiro): o painel nunca passa por baixo deles. */
+.is-cheia .ct-perto { bottom: calc(10px + env(safe-area-inset-bottom)); left: calc(8px + env(safe-area-inset-left)); right: calc(62px + env(safe-area-inset-right)); }
 .is-cheia .ct-mundo__janela > .ct-perto { bottom: calc(62px + env(safe-area-inset-bottom)); }
 .is-cheia .ct-mapa__area > .ct-perto { bottom: calc(34px + env(safe-area-inset-bottom)); }
 @media (min-width: 900px) { .is-cheia .ct-perto { right: auto; left: calc(16px + env(safe-area-inset-left)); } }
@@ -407,9 +408,8 @@
 .ct-jogo__linha .ct-mapa__perto-botao { display: inline-grid; place-items: center; width: 48px; min-height: 48px; height: 48px; padding: 0; border-radius: 50%; }
 /* O placar ("2/26") vira um selo no canto do botão: o número continua à vista, sem gastar largura. */
 .ct-jogo__placar { position: absolute; top: -7px; left: 30px; display: inline-grid; place-items: center; min-width: 30px; height: 20px; padding: 0 5px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 900 11px/1 var(--ct-font); }
-/* Atalhos FIXOS: três círculos em coluna no canto de baixo à direita (acima do aviso de cookies; com o painel "Perto de mim" aberto sobem acima dele). */
+/* Atalhos FIXOS: três círculos em coluna no canto de baixo à direita (acima do aviso de cookies; o painel "Perto de mim" estreita para não passar por baixo deles). */
 .ct-jogo__fixos { position: absolute; z-index: 35; right: calc(10px + env(safe-area-inset-right)); bottom: calc(44px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); display: grid; gap: 8px; }
-.is-cheia:has(.ct-perto) .ct-jogo__fixos { bottom: calc(196px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); }
 .ct-jogo__fixo {
   display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: var(--ct-traco); border-radius: 50%;
   background: var(--ct-creme); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); cursor: pointer;
