@@ -67,6 +67,21 @@ test('estados nunca afirmam entrega ou vencedor; só "resultado confirmado" fala
   assert.match(P.estado.resultado, /confirmado/)
 })
 
+test('a disputa já está aberta: dia que ainda não chegou diz "em andamento", nunca "em breve" nem "ainda não começou"', () => {
+  assert.equal(P.estado.proximo, 'Disputa em andamento')
+  assert.equal(P.estado.em_disputa, 'Disputa em andamento')
+  for (const k of ['proximo', 'em_disputa']) {
+    assert.doesNotMatch(`${P.estado[k]} ${P.estadoDica[k]}`, /em breve|ainda não começou|não começou/i, k)
+    assert.match(P.estadoDica[k], /acumular carimbos/, `${k}: a pessoa já pode acumular carimbos`)
+  }
+  const f = P.fimDoDia('23h59')
+  assert.match(f, /Ao fim do dia/); assert.match(f, /mais casas diferentes validadas até as 23h59/); assert.match(f, /sorteio entre as pessoas empatadas/)
+  assert.doesNotMatch(P.fimDoDia(null), /undefined|null/, 'sem corte do servidor, nenhum horário é inventado')
+  // O servidor segue chamando de 'proximo' o dia que ainda não chegou: a tela traduz, a lógica não muda (foco = o dia em disputa, senão o próximo).
+  const antes = organizarPremios(resposta(['proximo', 'proximo', 'proximo', 'proximo', 'proximo']))
+  assert.equal(antes.foco.iso, '2026-11-07'); assert.equal(antes.foco.estado, 'proximo')
+})
+
 test('pessoa sem mapa, com mapa vazio, com carimbo pendente, com casas validadas e completa', () => {
   assert.equal(situacaoDoJogador(null, 27).tipo, 'sem-mapa'); assert.equal(situacaoDoJogador(null, 27).faltam, 27)
   assert.equal(situacaoDoJogador({ total_casas: 27, casas_validadas: 0, casas: [], extras: 0 }).tipo, 'vazio')

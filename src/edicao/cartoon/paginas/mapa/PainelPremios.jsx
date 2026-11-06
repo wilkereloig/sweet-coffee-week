@@ -37,6 +37,9 @@ function Estado ({ estado }) {
   return <span className={`ct-premios__estado is-${estado}`}>{P.estado[estado]}</span>
 }
 
+/** Dia ainda sem encerrar: a disputa está aberta (o servidor chama de 'proximo' o dia que ainda não chegou). */
+const aberto = (estado) => estado === 'proximo' || estado === 'em_disputa'
+
 function Voucher ({ foco, corte }) {
   return (
     <section className="ct-premios__destaque" aria-labelledby="premio-voucher">
@@ -44,7 +47,8 @@ function Voucher ({ foco, corte }) {
       <h3 id="premio-voucher" className="ct-sub">{P.diaTitulo(foco.data)}</h3>
       <p className="ct-premios__linha"><strong>{P.umVoucher}</strong><Estado estado={foco.estado} /></p>
       <p className="ct-nota">{P.estadoDica[foco.estado]}</p>
-      {foco.estado !== 'resultado' && <p className="ct-nota">{P.comoConcorre(corte)}</p>}
+      {aberto(foco.estado) && <p className="ct-nota">{P.fimDoDia(corte)}</p>}
+      {foco.estado === 'em_apuracao' && <p className="ct-nota">{P.comoConcorre(corte)}</p>}
     </section>
   )
 }

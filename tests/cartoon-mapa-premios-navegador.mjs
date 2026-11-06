@@ -87,7 +87,7 @@ try {
     checar(/Casa validada/.test(t) && /Carimbo extra/.test(t) && /Já fui/.test(t), 'diferencia casa validada, carimbo extra e "Já fui"')
     await c.page.getByText('Ver todos os dias').click()
     const lista = await c.page.locator('.ct-premios__dia').allInnerTexts()
-    checar(lista.length === 5 && /Resultado confirmado/.test(lista[0]) && /Em disputa/.test(lista[1]) && /Em breve/.test(lista[2]), 'lista dos 5 dias com estado de cada um (confirmado, em disputa, em breve)')
+    checar(lista.length === 5 && /Resultado confirmado/.test(lista[0]) && /Disputa em andamento/.test(lista[1]) && /Disputa em andamento/.test(lista[2]) && !lista.some((l) => /Em breve/.test(l)), 'lista dos 5 dias com estado de cada um (confirmado, disputa em andamento nos demais, nunca "em breve")')
     await c.page.getByText('Como o voucher do dia é decidido').click()
     const r = await texto(c.page)
     checar(/até as 23h59/.test(r) && /valem até 15 de novembro/.test(r) && /no máximo um voucher por dia/.test(r), 'regras curtas com corte e validade lidos do servidor')
@@ -122,7 +122,7 @@ try {
 
   console.log('\nantes e depois dos dias (estado vem do servidor)')
   for (const [rot, estados, foco, esperado] of [
-    ['antes de tudo', ['proximo', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Sábado, 7 de novembro/i, /Em breve/],
+    ['antes de tudo', ['proximo', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Sábado, 7 de novembro/i, /Disputa em andamento[\s\S]*você já pode acumular carimbos[\s\S]*Ao fim do dia[\s\S]*sorteio entre as pessoas empatadas/],
     ['dia encerrado, sem confirmação', ['em_apuracao', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Domingo, 8 de novembro/i, /O dia 7\/11 encerrou e está em apuração\. Ainda não há resultado confirmado/],
     ['tudo confirmado', ['resultado', 'resultado', 'resultado', 'resultado', 'resultado'], /Último resultado[\s\S]*Quarta, 11 de novembro/i, /Resultado confirmado/],
   ]) {
@@ -156,7 +156,7 @@ try {
     const z0 = await c.page.locator('.ct-mundo__palco').getAttribute('data-z')
     await c.page.locator('.ct-jogo__botao').click()
     const itens = await c.page.locator('.ct-jogo__item').allInnerTexts()
-    checar(itens.map((s) => s.trim()).join('|') === 'Progresso|Casas|Rota|Prêmios|Ranking|Grupos', `atalhos: ${itens.map((s) => s.trim()).join(' · ')}`)
+    checar(itens.map((s) => s.trim()).join('|') === 'Progresso|Casas|Rota|Prêmios|Ranking|Grupos|Escolher atalhos fixos', `atalhos: ${itens.map((s) => s.trim()).join(' · ')}`)
     await c.page.locator('[data-atalho="premios"]').click()
     await c.page.locator('.ct-premios').waitFor({ timeout: 10000 })
     await c.page.getByText(/Em disputa agora/).waitFor({ timeout: 10000 })
