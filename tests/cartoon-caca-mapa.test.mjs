@@ -372,7 +372,7 @@ test('a tela cheia é do próprio contêiner (CSS fixo + 100dvh + safe areas), c
 test('o Mundo não conhece a tela cheia: a interface dele segue só com os dados (trocar a arte não mexe nela)', () => {
   const mundo = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Mundo.jsx', import.meta.url), 'utf8')
   assert.doesNotMatch(mundo, /cheia|fullscreen|Fullscreen/)
-  assert.match(mundo, /export function Mundo \(\{ mundo, casas, agencias = \[\], trilha, selecionada, aoSelecionar, recentes = new Set\(\), rodaAproxima = false \}\)/)
+  assert.match(mundo, /export function Mundo \(\{ mundo, casas, agencias = \[\], trilha, selecionada, aoSelecionar, recentes = new Set\(\), rodaAproxima = false, destaque = null, sobre = null \}\)/)
 })
 
 // ---- Atalhos do jogo na tela cheia (06/11/2026) ----

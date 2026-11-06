@@ -53,6 +53,15 @@
 .ct-mundo__casa:hover, .ct-mundo__casa:focus-visible, .ct-mundo__casa.is-sel, .ct-mundo__casa.is-proxima, .ct-mundo__casa.is-recente { z-index: 5; }
 .ct-mundo__casa.is-sel { transform: translateY(-4px) scale(1.14); filter: drop-shadow(0 0 6px var(--ct-amarelo)); }
 .ct-mundo__casa.is-apagada { opacity: .35; }
+/* Casas da lista do Perto de mim: anel amarelo + número de ordem (1 = a mais perto) acima do disco. A posição da pessoa nunca é desenhada aqui. */
+.ct-mundo__casa.is-perto { z-index: 4; }
+.ct-mundo__casa.is-perto .ct-mundo__disco { box-shadow: 0 0 0 3px var(--ct-amarelo), 0 0 0 5.5px var(--ct-chocolate), var(--ct-sombra-p); }
+.ct-mundo__ordem, .ct-marcador--perto::after {
+  position: absolute; z-index: 3; left: 50%; top: -9px; translate: -50% 0; display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px;
+  border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-amarelo); color: var(--ct-chocolate); font: 900 13px/1 var(--ct-font); pointer-events: none;
+}
+.ct-marcador--perto::after { content: attr(data-perto); }
+.ct-marcador--perto .ct-mundo__disco { box-shadow: 0 0 0 3px var(--ct-amarelo), 0 0 0 5.5px var(--ct-chocolate), var(--ct-sombra-p); }
 .ct-mundo__ponta {
   position: absolute; left: 50%; bottom: 0; width: calc(var(--d) * .36); height: calc(var(--cauda) + var(--d) * .1); translate: -50% 0;
   background: var(--ct-chocolate); clip-path: polygon(0 0, 100% 0, 50% 100%);

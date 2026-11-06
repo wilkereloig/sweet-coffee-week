@@ -53,7 +53,7 @@ const pos = (p) => ({ left: `${p.x * 100}%`, top: `${p.y * 100}%` })
 const reduzirMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 const limite = (v, m) => Math.min(m, Math.max(-m, v))
 
-export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSelecionar, recentes = new Set(), rodaAproxima = false }) {
+export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSelecionar, recentes = new Set(), rodaAproxima = false, destaque = null, sobre = null }) {
   const janela = React.useRef(null)
   const palco = React.useRef(null)
   const camera = React.useRef(null) // {z, x, y} (camera.js): fica em ref, o desenho é aplicado direto no palco (60 fps sem re-render)
@@ -202,6 +202,7 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
     const el = janela.current
     if (!el) return undefined
     const roda = (e) => {
+      if (e.target.closest?.('.ct-perto')) return // o carrossel do Perto de mim rola de lado sem mexer no mapa
       const pinca = e.ctrlKey || e.metaKey
       if (!pinca && !rodaRef.current) return
       const c = camera.current; const j = medida.current
@@ -341,13 +342,14 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             return (
               <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} style={{ ...pos(ponto), ...deslocamento(c.id) }} aria-pressed={marcada}
                 aria-label={TC.casaNoMundo({ ...c, enderecos: c.enderecos })}
-                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}`}
+                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}${destaque?.has(c.slug) ? ' is-perto' : ''}`}
                 onClick={() => aoSelecionar(marcada ? '' : c.id)}>
                 <span className="ct-mundo__ponta" aria-hidden="true" />
                 <span className="ct-mundo__disco" aria-hidden="true">
                   {c.pin ? <img src={c.pin} alt="" loading="lazy" decoding="async" draggable={false} /> : <span className="ct-mundo__inicial">{c.inicial}</span>}
                 </span>
                 <span className="ct-mundo__num" aria-hidden="true">{c.numero}</span>
+                {destaque?.has(c.slug) && <span className="ct-mundo__ordem" aria-hidden="true">{destaque.get(c.slug)}</span>}
                 {estado && (
                   <span className="ct-mundo__estado" aria-hidden="true">
                     <img src={estado.src} width={estado.largura} height={estado.altura} alt="" draggable={false} />
@@ -372,6 +374,7 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             </button>
           ))}
         </div>
+        {sobre}
       </div>
       <div className="ct-mundo__zoom" role="group" aria-label={TC.zoom}>
         <button type="button" className="ct-mundo__zoom-botao" onClick={() => zoomar(ZOOM_PASSO)} disabled={vista.max} aria-label={TC.aproximar}><ScwIcon nome="mais" tamanho={20} /></button>

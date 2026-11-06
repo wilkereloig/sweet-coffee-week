@@ -64,7 +64,9 @@ import { LogoDoPin, logoDoPin } from './LogoDoPin.jsx'
 import { Mundo } from './Mundo.jsx'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { PainelRota } from './PainelRota.jsx'
-import { BotaoPerto, AvisoPerto } from './Perto.jsx'
+import { BotaoPerto, PainelPerto } from './Perto.jsx'
+import { casasMaisPerto } from '../../../caca/mapa/casasPerto.js'
+import { useCelular } from './interacao.js'
 import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, adiarConvite, casasDispensadas, dispensarCasa } from '../../../caca/mapa/proximidade.js'
 import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/mapa/Proximidade.jsx'
 import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
@@ -124,6 +126,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const explorar = React.useRef(null)
   const moldura = React.useRef(null)
   const { cheia, abrir: abrirCheia, fechar: fecharCheia } = useTelaCheia(explorar)
+  const celular = useCelular()
 
   const lista = dados?.participantes || []
   const periodo = dados?.edicao
@@ -240,8 +243,17 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     )
   }, [])
   // O botão da barra. O navegador só pergunta aqui; com a posição já lida, o toque só mostra de novo (e enquadra) sem perguntar nada.
+  // O painel mora na base do mapa: com o mapa cortado pela dobra (ou pela barra de abas do celular) a página rola até o mapa inteiro caber.
+  const mostrarMapaInteiro = () => requestAnimationFrame(() => {
+    const m = moldura.current
+    const mapaEl = m?.querySelector('.ct-mundo__janela, .ct-mapa__area')
+    if (!m || !mapaEl || cheia) return
+    const r = mapaEl.getBoundingClientRect()
+    if (r.bottom > window.innerHeight - 96 || r.top < 70) m.scrollIntoView({ block: 'start', behavior: reduzirMovimento() ? 'auto' : 'smooth' })
+  })
   const localizar = () => {
     setPerto(true)
+    mostrarMapaInteiro()
     aguardaFoco.current = true
     if (geo === 'pedindo') return // leitura já em curso (a automática da abertura): só espera o resultado
     if (geo === 'ok' && posicao) { setFoco((f) => ({ n: (f?.n || 0) + 1 })); aguardaFoco.current = false; lerPosicao(30000); return }
@@ -250,6 +262,12 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     lerPosicao(60000)
   }
   const sairDePerto = () => { setPerto(false); aguardaFoco.current = false }
+  // Trocar de mapa com o painel aberto: o mapa novo carrega depois e a rolagem pode se perder — o painel nunca fica sob a barra de abas.
+  React.useEffect(() => {
+    if (!perto) return undefined
+    const t = setTimeout(mostrarMapaInteiro, 500)
+    return () => clearTimeout(t)
+  }, [perto, vista]) // eslint-disable-line react-hooks/exhaustive-deps -- mostrarMapaInteiro só lê refs e o estado da tela cheia
   React.useEffect(() => {
     if (!aguardaFoco.current || geo === 'pedindo') return
     if (geo === 'ok' && posicao) setFoco((f) => ({ n: (f?.n || 0) + 1 }))
@@ -313,16 +331,21 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
       <ScwIcon nome="trajeto" tamanho={20} /><span>{TC.minhaRota}</span>{rota.ids.length > 0 && <b className="ct-mapa__filtros-conta" aria-hidden="true">{rota.ids.length}</b>}
     </button>
   )
-  // Perto de mim: as três unidades mais perto (já filtradas e ordenadas), as sem ponto, e se a pessoa está longe demais para "perto" fazer sentido.
+  // Perto de mim: as cinco casas mais perto (uma unidade por casa, já filtradas e ordenadas por casasMaisPerto — a mesma lista para o desenho e o mapa real).
   const posicaoViva = perto ? posicao : null
-  const proximas = posicaoViva ? linhas.filter((x) => x.dist != null).slice(0, 3) : []
-  const semCoordenada = posicaoViva ? linhas.filter((x) => x.dist == null).length : 0
-  const longe = proximas.length > 0 && proximas[0].dist > 60
-  const focoDoMapa = foco && posicaoViva && proximas.length && !longe ? { n: foco.n, pontos: [posicaoViva, ...proximas.map((x) => x.u.coordenada)] } : null
+  const listaPerto = posicaoViva ? casasMaisPerto(linhas) : null
+  const itensPerto = listaPerto?.itens || []
+  const destaquePorUnidade = new Map(itensPerto.map((x) => [x.u.id, x.rank]))
+  const destaquePorCasa = new Map(itensPerto.map((x) => [x.p.slug, x.rank]))
+  const focoDoMapa = foco && posicaoViva && itensPerto.length && !listaPerto.longe ? { n: foco.n, pontos: [posicaoViva, ...itensPerto.map((x) => x.u.coordenada)] } : null
+  // Círculo discreto ao redor da pessoa, só no mapa real: o raio chega à quinta casa e NUNCA decide quem entra na lista.
+  const circuloPerto = posicaoViva && itensPerto.length && !listaPerto.longe ? { lat: posicaoViva.lat, lng: posicaoViva.lng, raioKm: Math.max(0.2, ...itensPerto.map((x) => x.dist)) } : null
   const botaoPerto = <BotaoPerto geo={geo} ativo={perto && geo === 'ok'} aoTocar={localizar} />
-  const avisoPerto = (
-    <AvisoPerto geo={geo} posicao={posicaoViva} proximas={proximas} semCoordenada={semCoordenada} longe={longe} vista={vista} cheia={cheia}
-      podeReal={noMapa.length > 0} aoVista={setVista} aoTentar={localizar} aoSair={sairDePerto} aoEscolher={escolher} />
+  // O painel mora sobre a base do mapa. Com a folha da casa aberta no celular (ou na tela cheia) ela ocupa o mesmo canto: o painel espera e volta ao fechar.
+  const recolherPerto = !!(sel && vista !== 'lista' && (celular || cheia))
+  const painelPerto = perto && !recolherPerto && (
+    <PainelPerto geo={geo} posicao={posicaoViva} perto={listaPerto} selecionada={sel} estadoDe={estadoDe} vista={vista}
+      aoTentar={localizar} aoFechar={sairDePerto} aoEscolher={escolher} />
   )
   // Convite de localização e sugestão de casa perto (docs/cartoon-2026-2/16): o navegador só pergunta no toque do convite, o convite só aparece
   // no mapa (nunca na tela cheia), uma vez a cada 7 dias; a sugestão ajuda a escolher e nunca marca visita, carimbo ou avaliação.
@@ -409,7 +432,6 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             </div>
 
             {mostrarConvite && <ConviteLocalizacao buscando={geo === 'pedindo'} aoUsar={localizar} aoAdiar={adiarConviteAgora} />}
-            {perto && avisoPerto}
             {/* Na lista a sugestão vem ANTES das casas (abaixo da lista ela ficaria longe da vista); com mapa, abaixo dele, junto do progresso. */}
             {vista === 'lista' && cartaoSugestao()}
 
@@ -425,7 +447,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                 <>
                   {!mundo.aprovada && <p className="ct-nota ct-mapa__previa" role="note">{TC.previa}</p>}
                   <Mundo rodaAproxima={cheia} mundo={mundo} casas={casasMundo} agencias={agencias.filter((a) => a.x !== null && a.y !== null)} trilha={trilha}
-                    selecionada={sel} aoSelecionar={escolher} recentes={recentes} />
+                    selecionada={sel} aoSelecionar={escolher} recentes={recentes} destaque={perto ? destaquePorCasa : null} sobre={painelPerto || null} />
                 </>
               )}
 
@@ -435,19 +457,21 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                     : (
                       <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
                         <ErroDoMapa>
-                          <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={perto ? posicao : null} foco={focoDoMapa} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
+                          <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={perto ? posicao : null} circulo={circuloPerto} foco={focoDoMapa} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
                             pontos={[
-                              ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDe(p, u) })),
+                              ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, perto: destaquePorUnidade.get(u.id), pin: pinDe(p, u) })),
                               ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src }),
                             ]} />
                         </ErroDoMapa>
                       </React.Suspense>
                     )}
+                  {painelPerto}
                 </div>
               )}
 
               {vista === 'lista' && (
                 <>
+                  {painelPerto && <div className="ct-perto-fluxo">{painelPerto}</div>}
                   {linhas.length ? (
                     <ul className="ct-mapa__lista" aria-label={T.contagem(linhas.length)}>
                       {linhas.map(({ u, p, dist, foi }) => {

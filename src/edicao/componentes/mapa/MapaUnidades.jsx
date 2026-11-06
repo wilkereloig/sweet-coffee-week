@@ -18,6 +18,7 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { pinDaCasa, pinSicredi, atualizarPin, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
 import { planejarNoMapa } from './afastar.js'
+import { poligonoCirculo } from './circulo.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const ESTILO = 'https://tiles.openfreemap.org/styles/liberty'
@@ -29,7 +30,7 @@ const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quer
 // `gestos`: 'cooperativo' (padrão: um dedo rola a página, dois movem o mapa) ou 'livre' (tela cheia: não há página para rolar,
 // um dedo move o mapa). O contêiner pode mudar de tamanho (tela cheia): o MapLibre acompanha sozinho (trackResize) e
 // mantém centro e zoom — o mapa não é recriado ao entrar e sair da tela cheia.
-export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce = null, foco = null, gestos = 'cooperativo' }) {
+export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce = null, circulo = null, foco = null, gestos = 'cooperativo' }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const marcadores = React.useRef(new Map())
@@ -155,6 +156,8 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
       el.classList.toggle('ct-marcador--quero', !!p.quero)
       el.classList.toggle('ct-marcador--foi', !!p.foi)
       el.classList.toggle('is-sel', p.id === selecionada)
+      el.classList.toggle('ct-marcador--perto', !!p.perto) // as casas da lista do Perto de mim: anel e número de ordem (data-perto)
+      if (p.perto) el.dataset.perto = String(p.perto); else delete el.dataset.perto
       el.setAttribute('aria-label', nomeDoPonto(p))
       el.setAttribute('aria-pressed', String(p.id === selecionada))
     }
@@ -180,6 +183,23 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     el.setAttribute('aria-label', 'Você está aqui')
     marcaVoce.current = new maplibregl.Marker({ element: el }).setLngLat([voce.lng, voce.lat]).addTo(mapa.current)
   }, [voce?.lat, voce?.lng])
+
+  // Círculo discreto ao redor da pessoa (`circulo`: { lat, lng, raioKm }). Só enquadra visualmente: nunca decide quais casas entram na lista.
+  React.useEffect(() => {
+    const m = mapa.current
+    if (!m) return undefined
+    const pinta = () => {
+      if (m.getLayer('perto-linha')) m.removeLayer('perto-linha')
+      if (m.getLayer('perto-fundo')) m.removeLayer('perto-fundo')
+      if (m.getSource('perto-circulo')) m.removeSource('perto-circulo')
+      if (!circulo) return
+      m.addSource('perto-circulo', { type: 'geojson', data: poligonoCirculo(circulo, circulo.raioKm) })
+      m.addLayer({ id: 'perto-fundo', type: 'fill', source: 'perto-circulo', paint: { 'fill-color': '#3D1308', 'fill-opacity': 0.05 } })
+      m.addLayer({ id: 'perto-linha', type: 'line', source: 'perto-circulo', paint: { 'line-color': '#3D1308', 'line-width': 1.5, 'line-opacity': 0.45, 'line-dasharray': [2, 2] } })
+    }
+    if (m.isStyleLoaded()) pinta(); else m.once('load', pinta)
+    return () => { m.off('load', pinta) }
+  }, [circulo?.lat, circulo?.lng, circulo?.raioKm])
 
   if (erro) return <p className="ct-nota" role="alert">O mapa não carregou. A lista tem todas as unidades.</p>
   return <div ref={caixa} className="ct-mapa__mapa" role="region" aria-label="Mapa das unidades (a lista tem as mesmas informações)" />

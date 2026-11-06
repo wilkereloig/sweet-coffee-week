@@ -68,7 +68,7 @@ function elementoDoPonto (p) {
 
 // `gestos`: 'cooperativo' (padrão: ctrl/dois dedos para mover, a página rola) ou 'livre' (tela cheia: um dedo move o mapa).
 // O contêiner pode mudar de tamanho (tela cheia): o mapa NÃO é recriado; o tamanho novo é avisado ao Google, com o centro mantido.
-export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null, foco = null, aoFalhar = null, gestos = 'cooperativo' }) {
+export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null, circulo = null, foco = null, aoFalhar = null, gestos = 'cooperativo' }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const libs = React.useRef(null)
@@ -219,6 +219,8 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       el.classList.toggle('ct-marcador--quero', !!p.quero)
       el.classList.toggle('ct-marcador--foi', !!p.foi)
       el.classList.toggle('is-sel', p.id === selecionada)
+      el.classList.toggle('ct-marcador--perto', !!p.perto) // as casas da lista do Perto de mim: anel e número de ordem (data-perto)
+      if (p.perto) el.dataset.perto = String(p.perto); else delete el.dataset.perto
       mk.setAttribute('aria-label', nomeDoPonto(p))
     }
   })
@@ -243,6 +245,19 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     el.setAttribute('aria-label', 'Você está aqui')
     marcaVoce.current = new libs.current.AdvancedMarkerElement({ map: mapa.current, position: { lat: voce.lat, lng: voce.lng }, content: el })
   }, [voce?.lat, voce?.lng, pronto])
+
+  // Círculo discreto ao redor da pessoa (`circulo`: { lat, lng, raioKm }). Só enquadra visualmente: nunca decide quais casas entram na lista.
+  const aro = React.useRef(null)
+  React.useEffect(() => {
+    aro.current?.setMap(null)
+    aro.current = null
+    if (!circulo || !pronto || !mapa.current) return undefined
+    aro.current = new window.google.maps.Circle({
+      map: mapa.current, center: { lat: circulo.lat, lng: circulo.lng }, radius: circulo.raioKm * 1000, clickable: false,
+      strokeColor: '#3D1308', strokeOpacity: 0.45, strokeWeight: 1.5, fillColor: '#3D1308', fillOpacity: 0.05,
+    })
+    return () => { aro.current?.setMap(null); aro.current = null }
+  }, [circulo?.lat, circulo?.lng, circulo?.raioKm, pronto])
 
   if (erro) return <p className="ct-nota" role="alert">O mapa não carregou. A lista tem todas as unidades.</p>
   return <div ref={caixa} className="ct-mapa__mapa" role="region" aria-label="Mapa das unidades (a lista tem as mesmas informações)" />

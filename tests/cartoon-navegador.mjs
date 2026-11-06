@@ -705,7 +705,7 @@ try {
     c = await contexto(nav, { opcoes: { permissions: ['geolocation'], geolocation: { latitude: -5.876, longitude: -35.178 } } })
     await ir(c.page, '/cartoon/mapa?vista=lista')
     await c.page.click('.ct-mapa__perto-botao')
-    await c.page.waitForSelector('text=Ordenado pela distância em linha reta', { timeout: 12000 }).catch(() => falha('posição concedida sem ordenar'))
+    await c.page.waitForSelector('.ct-perto__cartao', { timeout: 12000 }).catch(() => falha('posição concedida sem o painel das casas mais perto'))
     if (!(await c.page.locator('.ct-mapa__item').first().innerText()).includes('em linha reta')) falha('distância sem "em linha reta"')
     await c.ctx.close()
     if (falhas.length === antes) ok('Mapa: canal Rota, linha por unidade, "em conferência", aproximada na lista e no marcador, quero ir/já fui, ?bairro=, perto de mim (recusa e posição)')
