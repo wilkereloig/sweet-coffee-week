@@ -2,7 +2,7 @@
 /* ------------------------------------------------------------- mapa e minha rota (E7, §10.14) */
 /* Topo no canal Rota (turquesa): letreiro em CSS e a chamada; na Minha rota, o progresso.
    (0,2,0): .ct-canal (gap/padding) vem depois no arquivo e apagaria o espaçamento (armadilha da E6). */
-.ct-canal.ct-rota-topo { gap: 12px; padding-block: clamp(28px, 4.5vw, 56px); }
+.ct-canal.ct-rota-topo { gap: 12px; padding-block: calc(clamp(28px, 4.5vw, 56px) + var(--ct-topo-extra, 0px)) clamp(28px, 4.5vw, 56px); }
 .ct-rota-topo .ct-letreiro, .ct-rota-topo .ct-lead { margin: 0; }
 .ct-rota-topo .ct-lead { max-width: 56ch; }
 

@@ -18,9 +18,27 @@
   --ct-topo-fade: 66px; --ct-topo-raio: 84px;
   position: sticky; top: 0; z-index: 20;
   display: flex; align-items: center; justify-content: space-between; gap: 8px 24px;
-  padding: 6px var(--ct-trilho) calc(6px + var(--ct-topo-fade));
-  margin-bottom: calc(var(--ct-topo-fade) * -1);
-  /* Rampa em S elevada à 4ª (11 paradas): começa dentro da base dos controles, cai depressa para o transparente e deixa uma cauda longa e fraca (src/CLAUDE.md §10.4). */
+  /* Entalhe do aparelho (viewport-fit=cover): a barra desce o que o sistema ocupa; --ct-topo-barra fica igual por causa do fallback abaixo. */
+  padding: calc(6px + env(safe-area-inset-top)) var(--ct-trilho) calc(6px + var(--ct-topo-fade));
+  /* SOBREPOSTO (06/11, pedido do Wilker): o cabeçalho não ocupa lugar no fluxo — a margem devolve a ele a altura TODA (controles + degradê),
+     então o fundo da primeira seção sobe até o topo da janela, por trás da marca e do menu. Quem protege o conteúdo é a área segura
+     --ct-topo-barra (abaixo), que cada seção inicial soma ao próprio padding-top. */
+  margin-bottom: calc(-1 * (var(--ct-topo-barra) + var(--ct-topo-fade)));
+  /* Rampa em S elevada à 4ª (11 paradas): começa dentro da base dos controles, cai depressa para o transparente e deixa uma cauda longa e fraca (src/CLAUDE.md §10.4).
+     Parada do topo: creme a 42% — no início da página o fundo da seção aparece por baixo, sem faixa sólida. Ao rolar (.is-rolado), a camada ::before
+     põe o creme pleno atrás da marca e do menu para o conteúdo que passa por baixo não brigar com eles. */
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--ct-creme) 42%, transparent) 0,
+    color-mix(in srgb, var(--ct-creme) 36%, transparent) calc(100% - var(--ct-topo-raio)),
+    color-mix(in srgb, var(--ct-creme) 24%, transparent) calc(100% - var(--ct-topo-raio) * 0.8),
+    color-mix(in srgb, var(--ct-creme) 10%, transparent) calc(100% - var(--ct-topo-raio) * 0.6),
+    color-mix(in srgb, var(--ct-creme) 2%, transparent) calc(100% - var(--ct-topo-raio) * 0.4),
+    transparent calc(100% - var(--ct-topo-raio) * 0.2),
+    transparent 100%);
+  pointer-events: none;
+}
+.ct-topo::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity var(--ct-mo); pointer-events: none;
   background: linear-gradient(to bottom,
     var(--ct-creme) 0,
     var(--ct-creme) calc(100% - var(--ct-topo-raio)),
@@ -31,12 +49,22 @@
     color-mix(in srgb, var(--ct-creme) 6.2%, transparent) calc(100% - var(--ct-topo-raio) * 0.5),
     color-mix(in srgb, var(--ct-creme) 1.5%, transparent) calc(100% - var(--ct-topo-raio) * 0.4),
     color-mix(in srgb, var(--ct-creme) 0.2%, transparent) calc(100% - var(--ct-topo-raio) * 0.3),
-    color-mix(in srgb, var(--ct-creme) 0.0%, transparent) calc(100% - var(--ct-topo-raio) * 0.2),
-    color-mix(in srgb, var(--ct-creme) 0.0%, transparent) calc(100% - var(--ct-topo-raio) * 0.1),
+    transparent calc(100% - var(--ct-topo-raio) * 0.2),
     transparent 100%);
-  pointer-events: none;
 }
+.ct-topo.is-rolado::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ct-topo::before { transition: none; } }
 .ct-topo > * { pointer-events: auto; }
+/* Área segura do conteúdo: o que o cabeçalho cobre no topo da página. Fallback = 6 + 64 + 6 (celular) e 10 + 84 + 10 (a partir de 900) mais o entalhe;
+   useTopoSobreSecao.js troca pela medida real (logo maior, navegação quebrada em duas linhas, zoom). */
+.ct-edicao { --ct-topo-barra: calc(76px + env(safe-area-inset-top)); }
+/* A seção inicial começa por trás do cabeçalho: sem espaço reservado no .ct-conteudo, e ela soma --ct-topo-extra ao próprio padding-top
+   (cada regra de padding da seção inicial usa var(--ct-topo-extra, 0px)). Página que abre com conteúdo sem fundo (ficha, Caça, regulamento,
+   mapa no celular) fica com a reserva no .ct-conteudo. */
+.ct-conteudo { padding-top: var(--ct-topo-barra); }
+/* :where() zera a especificidade do :has() — a exceção do mapa no celular (16-mapa-tela.css) precisa vencer esta regra. */
+.ct-conteudo:where(:has(> .ct-canal:first-child, > .ct-catalogo:first-child > .ct-canal:first-child)) { padding-top: 0; }
+.ct-conteudo > .ct-canal:first-child, .ct-conteudo > .ct-catalogo:first-child > .ct-canal:first-child { --ct-topo-extra: var(--ct-topo-barra); }
 .ct-topo__marca { display: inline-flex; flex: none; min-height: 44px; align-items: center; }
 .ct-topo__marca img { display: block; width: auto; height: 64px; }
 /* Letreiros largos (proporção ≈ 2:1): mais altos que o selo para o texto ler, com margem negativa para não engordar a barra. */
@@ -47,7 +75,8 @@
 /* Âncoras (#combo, #unidades…) param abaixo do cabeçalho preso. */
 .ct-edicao [id] { scroll-margin-top: 88px; }
 .ct-topo__nav { display: none; }
-.ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 0; list-style: none; }
+/* Placa de creme translúcido atrás dos links: com o cabeçalho sobre a seção inicial, o texto chocolate cai em cima de fundo roxo, vermelho ou turquesa. */
+.ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 3px 6px; border-radius: 16px; background: color-mix(in srgb, var(--ct-creme) 90%, transparent); list-style: none; }
 /* Links do topo como etiquetas de gibi (repaginação de 04/11): no hover ganham a borda e a sombra dura; a página atual é
    a etiqueta amarela inclinada ("ENTROU PARA O ELENCO"), como as das peças. A borda transparente reserva o espaço. */
 .ct-topo__nav a {
@@ -58,7 +87,8 @@
 .ct-topo__nav a:hover { border-color: var(--ct-chocolate); background: var(--ct-branco); box-shadow: 3px 3px 0 var(--ct-chocolate); }
 .ct-edicao .ct-topo__nav a[aria-current='page'] { border-color: var(--ct-chocolate); background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: 3px 3px 0 var(--ct-chocolate); rotate: -2deg; }
 @media (min-width: 900px) {
-  .ct-topo { --ct-topo-fade: 90px; --ct-topo-raio: 112px; padding-top: 10px; padding-bottom: calc(10px + var(--ct-topo-fade)); }
+  .ct-edicao { --ct-topo-barra: calc(104px + env(safe-area-inset-top)); }
+  .ct-topo { --ct-topo-fade: 90px; --ct-topo-raio: 112px; padding-top: calc(10px + env(safe-area-inset-top)); padding-bottom: calc(10px + var(--ct-topo-fade)); }
   .ct-edicao [id] { scroll-margin-top: 112px; }
   .ct-topo__marca img { height: 84px; }
   .ct-topo__marca--mapa img, .ct-topo__marca--caca img { height: 92px; margin-block: -4px; }

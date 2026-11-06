@@ -3,7 +3,7 @@
    Só tokens da edição (--ct-*). Quebra única de layout: 900px — abaixo, o cartão e o painel são folhas; a partir daí, coluna. */
 
 /* ------------------------------------------------------------- abertura compacta */
-.ct-canal.ct-rota-topo--compacto { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 12px; padding-block: 8px 10px; }
+.ct-canal.ct-rota-topo--compacto { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 12px; padding-block: calc(8px + var(--ct-topo-extra, 0px)) 10px; }
 .ct-rota-topo--compacto .ct-letreiro { grid-column: 1; margin: 0; }
 .ct-rota-topo--compacto .ct-letreiro--titulo .ct-letreiro__linha { font-size: clamp(26px, 9cqi, 40px); }
 .ct-rota-topo--compacto .ct-lead { grid-column: 1; max-width: 70ch; font-size: 16px; }
@@ -12,6 +12,8 @@
   .ct-rota-topo--compacto .ct-lead { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .ct-edicao .ct-rota-topo--compacto .ct-topo__cena { display: none; }
   /* Sem o botão (ele foi para a barra do mapa), a faixa do celular não tem o que mostrar: sai do fluxo e fica só o <h1> para leitor de tela. */
+  /* A faixa escondida não é seção inicial visível: quem abre a página é o mapa, e ele começa abaixo do cabeçalho (área segura no .ct-conteudo). */
+  .ct-conteudo:has(> .ct-rota-topo--compacto:first-child) { padding-top: var(--ct-topo-barra); }
   .ct-canal.ct-rota-topo--compacto { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; box-shadow: none; }
 }
 @media (min-width: 900px) {
@@ -59,7 +61,7 @@
   .ct-mapa__convite > .ct-como-carimbar .ct-como-carimbar__passos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
-  .ct-canal.ct-rota-topo--compacto { padding-block: 4px 6px; }
+  .ct-canal.ct-rota-topo--compacto { padding-block: calc(4px + var(--ct-topo-extra, 0px)) 6px; }
   .ct-rota-topo--compacto .ct-letreiro--titulo .ct-letreiro__linha { font-size: clamp(22px, 5cqi, 30px); }
   .ct-edicao .ct-mapa__progresso { margin-bottom: 6px; padding-block: 6px; }
   .ct-mapa { padding-top: 8px; }

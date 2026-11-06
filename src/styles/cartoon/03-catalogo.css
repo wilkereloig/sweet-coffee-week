@@ -3,7 +3,7 @@
 /* Topo amarelo com retícula (repaginação de 04/11): o letreiro, o preço em letreiro (combos) ou a contagem (casas) com
    a chamada; à direita, o objeto desenhado do assunto (bandeja nos combos, lojinha nas casas) sobre a explosão.
    Celular: o desenho sai — a vitrine sobe para logo depois do topo. */
-.ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 12px 40px; overflow: hidden; padding-block: clamp(28px, 4.5vw, 56px); }
+.ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 12px 40px; overflow: hidden; padding-block: calc(clamp(28px, 4.5vw, 56px) + var(--ct-topo-extra, 0px)) clamp(28px, 4.5vw, 56px); }
 .ct-catalogo__chamada { display: grid; justify-items: start; gap: 14px; min-width: 0; }
 .ct-catalogo__topo .ct-letreiro { margin: 0; }
 .ct-catalogo__dados { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 26px; }
@@ -13,7 +13,7 @@
 .ct-edicao .ct-catalogo__desenho { position: relative; z-index: 1; display: block; width: 78%; height: auto; rotate: -6deg; }
 /* (0,2,0), como a regra de base acima: com um seletor só, ela vencia e o desktop ficava em uma coluna. */
 @media (min-width: 900px) {
-  .ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr) minmax(0, 300px); padding-block: clamp(24px, 2.6vw, 36px); }
+  .ct-canal.ct-catalogo__topo { grid-template-columns: minmax(0, 1fr) minmax(0, 300px); padding-block: calc(clamp(24px, 2.6vw, 36px) + var(--ct-topo-extra, 0px)) clamp(24px, 2.6vw, 36px); }
   .ct-catalogo__cena { display: grid; }
 }
 .ct-catalogo__corpo { padding-top: clamp(24px, 3.5vw, 40px); }

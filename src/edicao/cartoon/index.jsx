@@ -19,6 +19,7 @@ import { marcaDoTopo, srcSet } from '../../data/imageLibrary'
 import { LINKS_LEGAIS } from '../../components/SiteFooter'
 import { abrirPreferencias } from '../../lib/consentimento'
 import { useReservaDaBase } from '../../hooks/useReservaDaBase'
+import { useTopoSobreSecao } from './useTopoSobreSecao.js'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
 import { FaixaMarcas } from '../componentes/sistema/Marcas.jsx'
@@ -121,6 +122,9 @@ export function CartoonPage ({ path, navigate }) {
   // A barra de abas do celular é fixa na base: o aviso de cookies sobe acima dela.
   const abasRef = React.useRef(null)
   useReservaDaBase(abasRef)
+  // O cabeçalho fica sobre a seção inicial; o hook entrega ao CSS a altura real dos controles (--ct-topo-barra).
+  const topoRef = React.useRef(null)
+  useTopoSobreSecao(topoRef)
   // Marca do topo conforme a página: letreiro do Mapa da Doçura no mapa; o da Caça aos Carimbos na Caça (e no carimbo, voucher e regulamento).
   const marca = marcaDoTopo(cena === 'mapa' ? 'mapa' : ['caca', 'carimbo', 'voucher', 'regulamento'].includes(cena) ? 'caca' : 'edicao')
   const dados = ed.dados
@@ -195,7 +199,7 @@ export function CartoonPage ({ path, navigate }) {
   return (
     <RotaContexto.Provider value={MAPA_NO_AR ? rota : null}>
       <div className="ct-edicao">
-        <header className="ct-topo">
+        <header className="ct-topo" ref={topoRef}>
           <Link href={EDICAO.caminho} navigate={navigate} className={`ct-topo__marca ct-topo__marca--${marca.grupo}`} aria-label={marca.grupo === 'edicao' ? `${EDICAO.nome}, início` : `${marca.nome}, início da edição ${EDICAO.tema}`}>
             <img src={marca.src} srcSet={marca.grupo === 'edicao' ? srcSet(marca.src) : undefined} sizes="96px" alt="" width={marca.largura} height={marca.altura} />
           </Link>
