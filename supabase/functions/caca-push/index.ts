@@ -10,6 +10,7 @@
 //   (caca_aviso_enviar). Título/corpo/destino vêm do banco; preferência, janela (08–21h Fortaleza), teto por pessoa/dia e
 //   urgente são decididos em caca_aviso_entregas_pendentes. dry_run (padrão) só conta; nada é enviado sem `dry_run:false`.
 //   Repetir a chamada enquanto `restam > 0`. Entrega 'adiada' (fora da janela) volta a ser considerada na próxima chamada.
+// v5: modo CICLO `{ ciclo:true }` (agendador do banco, a cada 15 min): sem credencial e sem escolha; só processa o que caca_avisos_para_processar() lista.
 // Entrada (POST JSON):
 //   { secret?, tipo: 'avaliacao_pendente'|'meta'|'grupo'|'edicao', dry_run?: boolean (padrão true),
 //     titulo, corpo, url?, mapa_ids?: uuid[], apos?: {criado_em, id} }   titulo/corpo/url só são exigidos no envio real.
@@ -180,6 +181,41 @@ function lerVapid() {
   return { publica: deB64url(publicaB64), privadaD, sub }
 }
 
+// Processa um lote (até 200 aparelhos) de um aviso JÁ enviado. As regras (preferência, janela, teto, urgente) são decididas no banco.
+// deno-lint-ignore no-explicit-any
+async function processarAviso(admin: any, aviso: any, vapid: { publica: Uint8Array, privadaD: string, sub: string }) {
+  const { data: alvos, error: pErr } = await admin.rpc('caca_aviso_entregas_pendentes', { p_aviso: aviso.id, p_max: 200 })
+  if (pErr) return null
+  const carga = JSON.stringify({
+    titulo: aviso.titulo, corpo: aviso.corpo, url: aviso.destino,
+    tag: aviso.urgente ? 'scw-caca-' + aviso.categoria + '-' + aviso.id.slice(0, 8) : 'scw-caca-' + aviso.categoria, tipo: 'caca',
+  })
+  // deno-lint-ignore no-explicit-any
+  const lista: any[] = alvos || []
+  const porMapa = new Map<string, boolean>() // mapa -> algum aparelho aceitou
+  const mortas: string[] = []
+  for (let i = 0; i < lista.length; i += 10) {
+    const lote = lista.slice(i, i + 10)
+    const res = await Promise.all(lote.map((a) => enviarUm(a, carga, vapid)))
+    res.forEach((r, j) => {
+      const mid = lote[j].mapa_id as string
+      if (r === 'ok') porMapa.set(mid, true)
+      else {
+        if (!porMapa.has(mid)) porMapa.set(mid, false)
+        if (r === 'morta') mortas.push(lote[j].push_id)
+      }
+    })
+  }
+  if (mortas.length) await admin.from('caca_push').update({ ativo: false }).in('id', mortas)
+  const ok = [...porMapa].filter(([, v]) => v).map(([k]) => k)
+  const falhou = [...porMapa].filter(([, v]) => !v).map(([k]) => k)
+  if (ok.length) await admin.rpc('caca_aviso_entrega_marcar', { p_estado: 'enviado', p_aviso: aviso.id, p_mapas: ok })
+  if (falhou.length) await admin.rpc('caca_aviso_entrega_marcar', { p_estado: 'falhou', p_aviso: aviso.id, p_mapas: falhou })
+  const { count: restam } = await admin.from('caca_aviso_entrega')
+    .select('mapa_id', { count: 'exact', head: true }).eq('aviso_id', aviso.id).is('push_estado', null)
+  return { enviados: ok.length, falharam: falhou.length, removidos: mortas.length, restam: restam ?? 0 }
+}
+
 // ── A função ─────────────────────────────────────────────────────────────────
 const TIPOS = ['avaliacao_pendente', 'meta', 'grupo', 'edicao', 'voucher', 'imprevisto']
 const LIMITE_POR_CHAMADA = 500
@@ -192,7 +228,7 @@ Deno.serve(async (req) => {
 
   let payload: {
     secret?: string; tipo?: string; dry_run?: boolean; titulo?: string; corpo?: string; url?: string; mapa_ids?: string[]
-    aviso_id?: string
+    aviso_id?: string; ciclo?: boolean
     apos?: { criado_em: string; id: string } | null
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
@@ -202,6 +238,22 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
+
+  // ── Modo CICLO (agendador do banco, a cada 15 min): sem credencial e SEM escolha. Só processa avisos que o banco diz que têm
+  // entrega pendente (caca_avisos_para_processar); título, destino e destinatários vêm todos do banco, como no `reenviar` do enviar-push.
+  if (payload.ciclo === true) {
+    const vapidC = lerVapid()
+    if (!vapidC) return json({ ok: true, processados: 0, vapid_configurado: false })
+    const { data: ids } = await admin.rpc('caca_avisos_para_processar')
+    let enviados = 0; let falharam = 0; let processados = 0
+    for (const id of (Array.isArray(ids) ? ids : []).slice(0, 5)) {
+      const { data: av } = await admin.from('caca_aviso').select('id, categoria, urgente, titulo, corpo, destino, estado').eq('id', id).maybeSingle()
+      if (!av || av.estado !== 'enviado') continue
+      const o = await processarAviso(admin, av, vapidC)
+      if (o) { processados++; enviados += o.enviados; falharam += o.falharam }
+    }
+    return json({ ok: true, processados, enviados, falharam })
+  }
 
   // Autenticação de organização ANTES de qualquer outra coisa (inclusive o dry_run): contar assinantes também é dado interno.
   // Duas portas, como em enviar-push: `secret` (senha única) ou JWT nominal.
@@ -243,36 +295,9 @@ Deno.serve(async (req) => {
     if (dryRun) return json({ ok: true, dry_run: true, aguardando: aguardando ?? 0, vapid_configurado: !!vapidAviso })
     if (!vapidAviso) return json({ erro: 'vapid_ausente' }, 503)
 
-    const { data: alvos, error: pErr } = await admin.rpc('caca_aviso_entregas_pendentes', { p_aviso: aviso.id, p_max: 200 })
-    if (pErr) return json({ erro: 'db_error' }, 500)
-    const cargaAviso = JSON.stringify({
-      titulo: aviso.titulo, corpo: aviso.corpo, url: aviso.destino,
-      tag: aviso.urgente ? 'scw-caca-' + aviso.categoria + '-' + aviso.id.slice(0, 8) : 'scw-caca-' + aviso.categoria, tipo: 'caca',
-    })
-    // deno-lint-ignore no-explicit-any
-    const lista: any[] = alvos || []
-    const porMapa = new Map<string, boolean>() // mapa -> algum aparelho aceitou
-    const mortasAviso: string[] = []
-    for (let i = 0; i < lista.length; i += 10) {
-      const lote = lista.slice(i, i + 10)
-      const res = await Promise.all(lote.map((a) => enviarUm(a, cargaAviso, vapidAviso)))
-      res.forEach((r, j) => {
-        const mid = lote[j].mapa_id as string
-        if (r === 'ok') porMapa.set(mid, true)
-        else {
-          if (!porMapa.has(mid)) porMapa.set(mid, false)
-          if (r === 'morta') mortasAviso.push(lote[j].push_id)
-        }
-      })
-    }
-    if (mortasAviso.length) await admin.from('caca_push').update({ ativo: false }).in('id', mortasAviso)
-    const ok = [...porMapa].filter(([, v]) => v).map(([k]) => k)
-    const falhou = [...porMapa].filter(([, v]) => !v).map(([k]) => k)
-    if (ok.length) await admin.rpc('caca_aviso_entrega_marcar', { p_estado: 'enviado', p_aviso: aviso.id, p_mapas: ok })
-    if (falhou.length) await admin.rpc('caca_aviso_entrega_marcar', { p_estado: 'falhou', p_aviso: aviso.id, p_mapas: falhou })
-    const { count: restam } = await admin.from('caca_aviso_entrega')
-      .select('mapa_id', { count: 'exact', head: true }).eq('aviso_id', aviso.id).is('push_estado', null)
-    return json({ ok: true, dry_run: false, enviados: ok.length, falharam: falhou.length, removidos: mortasAviso.length, restam: restam ?? 0 })
+    const out = await processarAviso(admin, aviso, vapidAviso)
+    if (out === null) return json({ erro: 'db_error' }, 500)
+    return json({ ok: true, dry_run: false, ...out })
   }
 
   const tipo = (payload.tipo || '').trim()

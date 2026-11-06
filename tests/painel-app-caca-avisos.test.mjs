@@ -102,3 +102,14 @@ test('resumo do envio só tem contagens', () => {
   assert.equal(C.resumoDoEnvio({ estado: 'enviado', alvos: 10, vistos: 1, push_enviados: 3, push_falhas: 0 }), '10 na central · 1 viu · 3 no celular')
   assert.equal(C.resumoDoEnvio({ estado: 'enviado', alvos: 10, vistos: 2, push_enviados: 3, push_falhas: 2 }), '10 na central · 2 viram · 3 no celular · 2 falhas')
 })
+
+test('avisos automáticos: o interruptor pede confirmação e fala com as RPCs certas', async () => {
+  mem.set('scw_org', 'senha-de-teste')
+  const { f, chamadas } = falsoFetch({ ligado: false })
+  await C.cacaApi.avisosAutoEstado(f); await C.cacaApi.avisosAutoDefinir(true, f); await C.cacaApi.avisosAutoDefinir(0, f)
+  assert.deepEqual(chamadas.map((c) => c.url.split('/').pop()), ['caca_avisos_auto_estado', 'caca_avisos_auto_definir', 'caca_avisos_auto_definir'])
+  assert.equal(chamadas[1].corpo.p_ligado, true); assert.equal(chamadas[2].corpo.p_ligado, false)
+  const src = ler('painel-app/src/components/vistas/caca/Avisos.jsx')
+  const f2 = src.slice(src.indexOf('async function trocar()'))
+  assert.ok(f2.indexOf('await confirmar(') < f2.indexOf('cacaApi.avisosAutoDefinir('), 'confirma antes de ligar')
+})

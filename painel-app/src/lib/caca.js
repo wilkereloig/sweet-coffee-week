@@ -571,6 +571,10 @@ export const cacaApi = {
   /** AÇÃO REAL: põe o aviso na central de quem ele atinge. O push sai em seguida, por `enviarPushDoAviso`. */
   enviarAviso: (id, f) => rpc('caca_aviso_enviar', { p_secret: lerSenha(), p_id: id }, f),
   cancelarAviso: (id, f) => rpc('caca_aviso_cancelar', { p_secret: lerSenha(), p_id: id }, f),
+  /** Avisos automáticos (meta, avaliação pendente): estado do interruptor e se o agendador existe. */
+  avisosAutoEstado: (f) => rpc('caca_avisos_auto_estado', { p_secret: lerSenha() }, f),
+  /** Liga/desliga. Ligar grava o instante: só vale o que acontecer DEPOIS (nada do histórico). */
+  avisosAutoDefinir: (ligado, f) => rpc('caca_avisos_auto_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
   /** Quantas entregas esperam push (não envia nada). */
   pushDoAvisoSimular: (id, f) => chamarFuncao('caca-push', { secret: lerSenha(), aviso_id: id, dry_run: true }, f),
   /** AÇÃO REAL: processa um lote de até 200 aparelhos de um aviso JÁ enviado; repetir enquanto `restam > 0`. */

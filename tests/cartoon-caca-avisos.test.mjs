@@ -117,10 +117,28 @@ test('edge caca-push: simulação é o padrão e o modo aviso lê o conteúdo do
   assert.match(bloco, /estado !== 'enviado'/, 'só aviso já enviado pelo painel')
   assert.ok(!/payload\.(titulo|corpo|url)/.test(bloco), 'título/corpo/destino não vêm do corpo da chamada')
   assert.match(bloco, /if \(dryRun\) return/)
-  assert.match(bloco, /caca_aviso_entregas_pendentes/)
-  // a autorização continua antes de tudo
-  assert.ok(src.indexOf("nao_autorizado") < src.indexOf('if (payload.aviso_id !== undefined)'))
+  assert.match(bloco, /processarAviso\(/)
+  const fn = src.slice(src.indexOf('async function processarAviso'), src.indexOf('// ── A função'))
+  assert.match(fn, /caca_aviso_entregas_pendentes/); assert.match(fn, /caca_aviso_entrega_marcar/)
+  assert.ok(!/payload/.test(fn), 'o processamento não enxerga a chamada')
+  // o ciclo roda sem credencial: só lê o que o banco manda e não aceita nada da chamada além do gatilho
+  const ciclo = src.slice(src.indexOf('if (payload.ciclo === true)'), src.indexOf('// Autenticação de organização'))
+  assert.match(ciclo, /caca_avisos_para_processar/); assert.match(ciclo, /\.slice\(0, 5\)/)
+  assert.ok(!/payload\.(titulo|corpo|url|mapa_ids|secret|tipo|aviso_id)/.test(ciclo), 'ciclo não escolhe conteúdo nem destinatário')
+  // fora do ciclo, a autorização continua antes de tudo
+  assert.ok(src.indexOf('nao_autorizado') < src.indexOf('if (payload.aviso_id !== undefined)'))
   assert.ok(!/console\.log\([^)]*(endpoint|p256dh|auth_chave)/.test(src))
+})
+
+test('agendador: job de 15 min; ligar grava o instante e só vale o que vem DEPOIS; funções internas sem grant', () => {
+  const sql = ler('supabase/migrations/20261230_caca_avisos_ciclo.sql')
+  assert.match(sql, /cron\.schedule\('scw-caca-avisos', '\*\/15 \* \* \* \*'/)
+  assert.match(sql, /'ligado', true, 'desde', now\(\)/)
+  assert.match(sql, /caca_ranking_v2\(v_ed, v_desde\)/); assert.match(sql, />= v_desde/)
+  assert.match(sql, /revoke all on function public\.caca_avisos_ciclo\(\) from public, anon, authenticated/)
+  assert.match(sql, /revoke all on function public\.caca_avisos_para_processar\(\) from public, anon, authenticated/)
+  assert.ok(!/grant execute on function public\.caca_avisos_(ciclo|para_processar)/.test(sql))
+  assert.match(sql, /pode\(p_secret, 'producao\.gerir'\)/)
 })
 
 test('central no app: estados de carregando, falha e vazio; link do aviso usa aoIr (onClick sobrescreve a navegação)', () => {

@@ -171,8 +171,39 @@ export function Avisos({ edicao, pode }) {
         </ul>
       </Secao>
 
+      <Automaticos pode={pode} />
+
       <Simulacao pode={pode} />
     </div>
+  )
+}
+
+/** Interruptor dos avisos automáticos (meta alcançada e avaliação pendente). Ligar vale daqui para a frente: nada do que já aconteceu vira aviso. */
+function Automaticos({ pode }) {
+  const est = useLeitura(() => cacaApi.avisosAutoEstado(), ['carimbos'], { chave: 'caca-avisos-auto' })
+  const [ocupado, executar] = useExecutar()
+  if (!pode('producao.gerir') || !est.dados) return null
+  const ligado = est.dados.ligado === true
+  async function trocar() {
+    const ok = await confirmar(ligado
+      ? 'Os avisos automáticos param. Quem já recebeu continua com o aviso na central.'
+      : 'Meta alcançada e avaliação pendente passam a gerar aviso sozinhos, só para o que acontecer a partir de agora (nada do histórico). Entram na central de cada pessoa e, no celular, só para quem ligou a categoria, respeitando horário e limite diário.',
+    { titulo: ligado ? 'Desligar os avisos automáticos?' : 'Ligar os avisos automáticos?', acao: ligado ? 'Desligar' : 'Ligar', perigo: !ligado })
+    if (!ok) return
+    const r = await executar('auto', () => cacaApi.avisosAutoDefinir(!ligado))
+    if (r) await est.recarregar()
+  }
+  return (
+    <Secao titulo="Avisos automáticos" nota="Meta alcançada e avaliação pendente. Um aviso por evento, sem repetir; a avaliação só avisa se continua pendente. Voucher e imprevisto nunca são automáticos.">
+      <p className="ui-nota" role="status">
+        <Selo tom={ligado ? 'ok' : 'neutro'}>{ligado ? 'Ligados' : 'Desligados'}</Selo>{' '}
+        {est.dados.agendado ? 'O agendador roda a cada 15 minutos.' : 'O agendador não está ativo.'}
+        {ligado && est.dados.desde ? ` Valem desde ${horaNatal(est.dados.desde)}.` : ''}
+      </p>
+      <div className="ui-linha-acoes">
+        <Botao variante={ligado ? 'secundario' : undefined} disabled={!!ocupado} aria-busy={ocupado === 'auto' || undefined} onClick={trocar}>{ligado ? 'Desligar avisos automáticos' : 'Ligar avisos automáticos…'}</Botao>
+      </div>
+    </Secao>
   )
 }
 
