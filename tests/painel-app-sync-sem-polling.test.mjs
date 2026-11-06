@@ -15,6 +15,7 @@ const PERMITIDOS = {
   'lib/sync/': 'a própria camada de sincronização (heartbeat, renovação de token, periódico/conferência)',
   'components/Conexao.jsx': 'verificação de versão publicada (versao.json), não é dado do painel',
   'lib/redesArquivos.js': 'renovação de endereço assinado de imagem (vence em 5 min), não é releitura de dado',
+  'lib/vigia.js': 'relógio de 1 s só para medir engasgo do JavaScript; não lê dado do painel',
   'App.jsx': 'nova tentativa de minhas_permissoes enquanto a leitura inicial FALHOU (estado de erro), parada ao ter sucesso',
 }
 

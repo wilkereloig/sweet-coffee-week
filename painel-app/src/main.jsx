@@ -7,6 +7,9 @@ import './lib/instalar'
 // QR do voucher virtual (?voucher=): guarda o código antes do login; a tela de vouchers da marca o usa.
 import { capturarVoucherDaUrl } from './lib/voucherPendente'
 capturarVoucherDaUrl()
+// Vigia de travamento: só observa e grava evidência neste aparelho (Conta › Verificar atualização).
+import { ligarVigia } from './lib/vigia'
+ligarVigia()
 
 // O painel vive em /painel/ — /organizacao e /marca redirecionam para cá
 // (vercel.json e o plugin de dev), porque é o escopo do service worker: fora
