@@ -1,4 +1,6 @@
 import { IMAGENS_ESTADO } from '../../caca/mapa/imagens.js'
+import { hierarquiaDoPin, ICONE_NIVEL } from './indicadores.js'
+import { iconeDom } from './iconeDom.js'
 
 /*
  * O pin da casa no mapa real (Google Maps e MapLibre): O MESMO desenho do mapa ilustrado (Mundo.jsx) — disco com a logo,
@@ -8,7 +10,10 @@ import { IMAGENS_ESTADO } from '../../caca/mapa/imagens.js'
  * pronto aos dois mapas). O <span class="ct-pin"> também carrega o anel tracejado (ponto aproximado) e o selo de
  * quero ir / já fui, pelas classes do botão (05-mapa-rota.css).
  *
- * `pin`: { logo (src ou null), inicial, numero, estado ('nao-visitada' | 'pendente' | 'conquistada' | null) }.
+ * `pin`: { logo (src ou null), inicial, numero, estado ('nao-visitada' | 'pendente' | 'conquistada' | null),
+ *          nivel ('aberto' | 'breve' | 'fechado' | null: o horário de hoje), mudou (o nível acabou de mudar: um pulso) }.
+ * Quem fica onde (e a prioridade) está em indicadores.js: selo principal no aro de cima, extras embaixo à direita e o ponto do
+ * horário (`.ct-mundo__abertura`, com ícone do catálogo) na base do disco.
  */
 /** A área de toque do pin (≥ 44 px, mesmo com o desenho encolhido de longe): é a única parte da caixa do marcador que recebe o toque. */
 const alvoDeToque = () => { const a = document.createElement('span'); a.className = 'ct-alvo'; a.setAttribute('aria-hidden', 'true'); return a }
@@ -49,6 +54,9 @@ export function atualizarPin (caixa, pin) {
   }
   num.textContent = pin.numero ?? ''
   num.hidden = pin.numero === '' || pin.numero == null
+  const { ponto, mudou } = hierarquiaDoPin(pin) // o mapa real não desenha o "+N": o ponto do horário nunca perde o canto
+  atualizarAbertura(caixa, ponto)
+  caixa.classList.toggle('is-mudou', mudou)
   const selo = caixa.querySelector('.ct-mundo__estado')
   const arte = pin.estado ? IMAGENS_ESTADO[pin.estado] : null
   if (!arte) { selo?.remove(); return }
@@ -59,6 +67,17 @@ export function atualizarPin (caixa, pin) {
   Object.assign(img, { src: arte.src, width: arte.largura, height: arte.altura, alt: '', draggable: false })
   novo.append(img)
   caixa.append(novo)
+}
+
+/** O ponto do horário (aberto · abre em breve · fechado) na base do disco; sem nível (horário desconhecido), não existe. */
+function atualizarAbertura (caixa, nivel) {
+  let ponto = caixa.querySelector('.ct-mundo__abertura')
+  if (!nivel) { ponto?.remove(); delete caixa.dataset.abertura; return }
+  caixa.dataset.abertura = nivel
+  if (ponto?.dataset.nivel === nivel) return
+  if (!ponto) { ponto = document.createElement('span'); ponto.className = 'ct-mundo__abertura'; ponto.setAttribute('aria-hidden', 'true'); caixa.append(ponto) }
+  ponto.dataset.nivel = nivel
+  ponto.replaceChildren(iconeDom(ICONE_NIVEL[nivel], 16))
 }
 
 /*

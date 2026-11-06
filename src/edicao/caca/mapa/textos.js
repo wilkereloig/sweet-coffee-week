@@ -83,7 +83,7 @@ export const MAPA_CACA = {
   afastar: 'Afastar',
   teclado: 'Com o desenho em foco: setas movem, + e − dão zoom, 0 volta à vista de abertura. Também dá para arrastar, usar a pinça e os botões de zoom, ou escolher a casa na lista.',
   credito: 'Base geográfica © colaboradores do OpenStreetMap',
-  casaNoMundo: ({ numero, titulo, nomeCasa, enderecos, tema, estado, revisitas, parada, proxima }) => [
+  casaNoMundo: ({ numero, titulo, nomeCasa, enderecos, tema, estado, revisitas, parada, proxima, abertura }) => [
     `${numero}. ${nomeCasa || titulo}`,
     tema && `tema ${tema}`,
     enderecos > 1 && `${enderecos} endereços`,
@@ -91,6 +91,7 @@ export const MAPA_CACA = {
     revisitas > 0 && (revisitas === 1 ? '1 revisita' : `${revisitas} revisitas`),
     parada && `parada ${parada} da sua rota`,
     proxima && 'sua próxima casa',
+    abertura, // horário de hoje (indicadores.js), vazio quando não dá para afirmar
   ].filter(Boolean).join(', '),
   // Página do mapa compacta (redesign de 06/11/2026): vistas, filtros, tela cheia, rota e cartão em folha
   vistaMundoVisivel: 'Ilustrado',

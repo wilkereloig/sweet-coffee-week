@@ -61,6 +61,7 @@ import { PainelPremios } from './PainelPremios.jsx'
 import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
 import { Folha } from './Folha.jsx'
 import { LogoDoPin, logoDoPin } from './LogoDoPin.jsx'
+import { useAberturas } from './useAberturas.js'
 import { Mundo } from './Mundo.jsx'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { PainelRota } from './PainelRota.jsx'
@@ -185,17 +186,21 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   }, [lista, mundo, rota.ids, meu.mapa, casasMapa, distancias])
   const proximaSlug = ['avaliar', 'rota', 'visitar'].includes(passo.tipo) ? passo.slug : ''
   const { recentes, aviso: avisoConquista } = useConquistas(casasMapa, nomeDeSlug)
+  // Horário de hoje de cada pin (aberto · abre em breve · fechado): o relógio só refaz a tela quando algum nível muda (useAberturas.js).
+  const aberturas = useAberturas(lista, periodo)
 
   // O pin é UM só nos dois mapas (ilustrado e real): a mesma logo, o mesmo número e o mesmo estado, calculados aqui uma vez.
   // Logo desenhada P&B sem carimbo, colorida com carimbo; casa sem desenho cai na oficial reduzida do Mundo e, sem ela, na inicial.
   const pinDe = (p, u) => ({
     logo: logoDoPin(p, estadoDe(p.slug)) || mundo.logo(p.slug), inicial: inicial(p), numero: mundo.unidades[u.id]?.numero ?? '', estado: estadoDe(p.slug),
+    revisitas: revisitasDe(p.slug), nivel: aberturas.nivelDaUnidade(u.id), mudou: aberturas.mudouUnidade(u.id),
   })
   const visiveis = new Set(linhas.map((x) => x.u.id))
   const casasMundo = comMundo ? casasNoMundo(mundo.unidades, todas).map(({ u, p, x, y, numero }) => {
     return {
       id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), nomeCasa: p.casa?.nome || '', tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', pin: pinDe(p, u).logo, inicial: inicial(p),
       apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug,
+      nivel: aberturas.nivelDaCasa(p.slug), mudou: aberturas.mudouCasa(p.slug),
     }
   }) : []
   const trilha = comMundo ? tracado(pontosDaRota(faltam.filter((pa) => pa.ativa).map((pa) => pa.id), mundo.unidades), mundo.quadro) : ''

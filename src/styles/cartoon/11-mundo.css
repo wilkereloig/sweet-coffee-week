@@ -108,6 +108,20 @@
   display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 4px;
   border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-turquesa); color: var(--ct-chocolate); font: 900 12px/1 var(--ct-font); pointer-events: none;
 }
+/* Horário de hoje (indicadores.js): ponto menor entre o disco e a ponta, à direita — o canto de baixo que nenhum outro selo usa (selo da Caça em cima,
+   parada e número à esquerda, "+N" no aro de baixo). Ícone do catálogo (check · relógio · pausa) + cor, então não depende só de cor; a ponta, que
+   toca o lugar, fica livre. Sem horário conhecido o elemento nem existe. */
+.ct-mundo__abertura {
+  position: absolute; z-index: 1; left: calc(50% + 7px); bottom: 0; display: grid; place-items: center; box-sizing: border-box; width: 20px; height: 20px;
+  border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); color: var(--ct-chocolate);
+  pointer-events: none; user-select: none; transition: scale var(--ct-mo);
+}
+.ct-mundo__abertura[data-nivel="aberto"] { background: var(--ct-turquesa); }
+.ct-mundo__abertura[data-nivel="breve"] { background: var(--ct-amarelo); }
+/* Seleção: o ponto cresce um pouco junto com o pin. Mudou de nível: um pulso só (a classe sai sozinha depois de ~2,6 s; useAberturas.js). */
+.ct-mundo__casa.is-sel .ct-mundo__abertura, .ct-marcador--pin.is-sel .ct-mundo__abertura { scale: 1.15; }
+.ct-mundo__casa.is-mudou .ct-mundo__abertura, .ct-pin.is-mudou .ct-mundo__abertura { animation: ct-mundo-abertura 1.2s var(--ct-mo-quique) 1 both; }
+@keyframes ct-mundo-abertura { 0% { scale: .4; } 50% { scale: 1.6; } 100% { scale: 1; } }
 /* Nome da casa: sobre o pin, só com intenção (ponteiro, foco, escolhida). */
 .ct-mundo__nome {
   position: absolute; bottom: calc(100% + 6px); left: 50%; translate: -50% 0; display: none; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
@@ -189,6 +203,8 @@
   .ct-mundo__casa.is-proxima::after { animation: none; }
   .ct-mundo__casa.is-recente .ct-mundo__estado { animation: none; outline: 3px solid var(--ct-amarelo); outline-offset: 2px; border-radius: 50%; }
   .ct-mundo__casa.is-recente::before { animation: none; opacity: .9; scale: 1; }
+  .ct-mundo__abertura { transition: none; }
+  .ct-mundo__casa.is-mudou .ct-mundo__abertura, .ct-pin.is-mudou .ct-mundo__abertura { animation: none; outline: 3px solid var(--ct-amarelo); outline-offset: 1px; }
 }
 
 /* ---- Caça aos Carimbos no mapa (src/edicao/caca/mapa/*; docs/cartoon-2026-2/15-caca-especificacao.md §10–§11) ---- */

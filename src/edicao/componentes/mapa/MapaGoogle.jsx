@@ -10,6 +10,7 @@
  */
 import React from 'react'
 import { pinDaCasa, pinSicredi, atualizarPin, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
+import { partesDoNome } from './indicadores.js'
 import { planejarNoMapa } from './afastar.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
@@ -38,7 +39,7 @@ function carregarGoogle () {
   return carregando
 }
 
-const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quero && 'quero ir', p.foi && 'já fui'].filter(Boolean).join(', ')
+const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quero && 'quero ir', p.foi && 'já fui', ...partesDoNome(p.pin)].filter(Boolean).join(', ')
 
 /**
  * O Google NÃO aceita filho focável (<button>) dentro de AdvancedMarkerElement: o invólucro engole o clique do botão. O marcador é que é o

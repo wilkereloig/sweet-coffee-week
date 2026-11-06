@@ -17,6 +17,7 @@ import React from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { pinDaCasa, pinSicredi, atualizarPin, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
+import { partesDoNome } from './indicadores.js'
 import { planejarNoMapa } from './afastar.js'
 import { poligonoCirculo } from './circulo.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
@@ -25,7 +26,7 @@ const ESTILO = 'https://tiles.openfreemap.org/styles/liberty'
 const NATAL = [-35.21, -5.81]
 const ZOOM_PERTO = 13.5 // abaixo disso o mapa mostra a cidade toda: pins pequenos (16-mapa-tela.css, .ct-mapa__mapa--longe)
 
-const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quero && 'quero ir', p.foi && 'já fui'].filter(Boolean).join(', ')
+const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quero && 'quero ir', p.foi && 'já fui', ...partesDoNome(p.pin)].filter(Boolean).join(', ')
 
 // `gestos`: 'cooperativo' (padrão: um dedo rola a página, dois movem o mapa) ou 'livre' (tela cheia: não há página para rolar,
 // um dedo move o mapa). O contêiner pode mudar de tamanho (tela cheia): o MapLibre acompanha sozinho (trackResize) e

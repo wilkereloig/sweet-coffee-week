@@ -270,6 +270,29 @@ export function textoEstado (e) {
   }
 }
 
+/** Até quantos minutos antes da abertura o combo "abre em breve" (pin do mapa e cartão da casa). */
+export const JANELA_ABRE_EM_BREVE = 60
+
+/** Minutos inteiros, hoje em Natal, até `hhmm` ('HH:MM'); negativo ou 0 = já passou. Hora inválida, `null`. */
+export function minutosAte (hhmm, agora = new Date()) {
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(hhmm || ''))
+  if (!m) return null
+  const [h, min] = partesLocais(agora).hora.split(':').map(Number)
+  return Number(m[1]) * 60 + Number(m[2]) - (h * 60 + min)
+}
+
+/**
+ * `textoEstado` com a contagem regressiva: "Combo abre em 30 min" quando a abertura de hoje está a até JANELA_ABRE_EM_BREVE minutos
+ * (o dado é confiável: vem da própria faixa do dia); fora disso, o texto de sempre. Horário indeterminado nunca vira contagem.
+ */
+export function textoEstadoAgora (e, agora = new Date()) {
+  if (e?.estado === 'abre_hoje') {
+    const min = minutosAte(e.as, agora)
+    if (min !== null && min >= 1 && min <= JANELA_ABRE_EM_BREVE) return `Combo abre em ${min} min`
+  }
+  return textoEstado(e)
+}
+
 /**
  * O elenco no momento (vitrine da Entrada): casas com o combo disponível AGORA e casas que abrem ainda hoje. Mesma regra do Mapa
  * e dos filtros — `estadoAgora`, por UNIDADE: a casa conta como aberta se pelo menos uma unidade estiver atendendo com o combo.

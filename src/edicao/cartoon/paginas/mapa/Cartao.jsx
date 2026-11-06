@@ -18,6 +18,8 @@ import { Link } from '../../../componentes/base.jsx'
 import { Botao, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { QueroIr, JaFui } from '../../MarcasLover.jsx'
 import { useRota } from '../../contexto.js'
+import { useAgora } from '../../useAgora.js'
+import { nivelDaUnidade } from '../../../componentes/mapa/indicadores.js'
 import { MAPA as T, ATENDIMENTO, ICONE } from '../../textos.js'
 import { LogoDoPin } from './LogoDoPin.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
@@ -27,6 +29,7 @@ import { DELIVERY as TD } from '../../../caca/delivery/textos.js'
 
 export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher }) {
   const [mais, setMais] = React.useState(false)
+  const relogio = useAgora(60000) // "Abre em 30 min" anda com o relógio sem recarregar
   const rota = useRota()
   const idMais = React.useId()
   // Trocou de casa ou de endereço: o cartão volta compacto (o resto está em "Mais").
@@ -40,8 +43,8 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   if (!linha) return null
   const { u, p, dist } = linha
   const titulo = M.tituloDaUnidade(p, u)
-  const est = u.combo ? M.estadoAgora(u, undefined, periodo) : null
-  const agora = est ? M.textoEstado(est) : ''
+  const est = u.combo ? M.estadoAgora(u, relogio, periodo) : null
+  const agora = est ? M.textoEstadoAgora(est, relogio) : ''
   const modos = M.MODOS.map(([k]) => k).filter((k) => u.combo?.modos?.[k] === 'sim')
   const comoChegar = M.linkComoChegar(u)
   const c = u.coordenada
@@ -49,11 +52,11 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   const pendente = estado === 'pendente'
   const deliveryApenas = M.soDelivery(u)
   const passoJaFui = rota?.foi?.(p) && estado !== 'conquistada' ? TC.jaFuiPasso[estado || 'semMapa'] : ''
-  // "Aberto agora" é decisão de ir e fica à vista; os outros horários ("abre hoje às 11h") esperam em "Mais".
-  const aberto = est?.estado === 'aberto'
+  // "Aberto agora" e "Abre em 30 min" são decisão de ir e ficam à vista; os outros horários ("abre hoje às 11h") esperam em "Mais".
+  const aberto = est?.estado === 'aberto' || nivelDaUnidade(u, relogio, periodo) === 'breve'
   const agoraNo = agora && (
     <p className={`ct-agora ct-agora--${est.estado} ct-mapa__cartao-linha`}>
-      {aberto ? <IconeCartoon nome="aberto-agora" tamanho={32} /> : <ScwIcon nome={ICONE.horario} tamanho={20} />}{agora}
+      {est.estado === 'aberto' ? <IconeCartoon nome="aberto-agora" tamanho={32} /> : <ScwIcon nome={ICONE.horario} tamanho={20} />}{agora}
     </p>
   )
   const comoChegarBotao = comoChegar && !deliveryApenas && (

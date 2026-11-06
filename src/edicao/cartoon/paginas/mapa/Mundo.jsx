@@ -39,6 +39,7 @@ import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../../../caca/mapa/imagens.js'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { afastarPins, LIMITE_GRUPO } from '../../../componentes/mapa/afastar.js'
+import { hierarquiaDoPin, ICONE_NIVEL } from '../../../componentes/mapa/indicadores.js'
 import { ZOOM_MAX, ZOOM_MIN, ZOOM_PASSO, centrarEm, entreCameras, inicial, limitar, panar, pinca, redimensionar, tamanhoDoPalco, zoomarEm } from './camera.js'
 
 const PASSO_TECLA = 80
@@ -352,11 +353,12 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             const marcada = c.ids.includes(selecionada)
             const arte = mundo.casas?.[c.slug]
             const ponto = arte?.ponto || c
-            const estado = c.estado ? IMAGENS_ESTADO[c.estado] : null
+            const h = hierarquiaDoPin({ ...c, revisitasVisiveis: vista.zoom }) // um selo principal; extras e horário em lugares próprios (indicadores.js)
+            const estado = h.selo ? IMAGENS_ESTADO[h.selo] : null
             return (
-              <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} style={{ ...pos(ponto), ...deslocamento(c.id) }} aria-pressed={marcada}
-                aria-label={TC.casaNoMundo({ ...c, enderecos: c.enderecos })}
-                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}${destaque?.has(c.slug) ? ' is-perto' : ''}`}
+              <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} data-abertura={h.nivel || undefined} style={{ ...pos(ponto), ...deslocamento(c.id) }} aria-pressed={marcada}
+                aria-label={TC.casaNoMundo({ ...c, enderecos: c.enderecos, abertura: h.rotulo })}
+                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}${h.mudou ? ' is-mudou' : ''}${destaque?.has(c.slug) ? ' is-perto' : ''}`}
                 onClick={() => aoSelecionar(marcada ? '' : c.id)}>
                 <span className="ct-mundo__ponta" aria-hidden="true" />
                 <span className="ct-mundo__disco" aria-hidden="true">
@@ -369,10 +371,13 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
                     <img src={estado.src} width={estado.largura} height={estado.altura} alt="" draggable={false} />
                   </span>
                 )}
-                {c.revisitas > 0 && (
+                {h.ponto && (
+                  <span className="ct-mundo__abertura" data-nivel={h.ponto} aria-hidden="true"><ScwIcon nome={ICONE_NIVEL[h.ponto]} tamanho={16} /></span>
+                )}
+                {h.extras > 0 && (
                   <span className="ct-mundo__revisita" aria-hidden="true">
                     <img src={IMAGEM_REVISITA.src} width={IMAGEM_REVISITA.largura} height={IMAGEM_REVISITA.altura} alt="" draggable={false} />
-                    <b>{TC.revisitaCurta(c.revisitas)}</b>
+                    <b>{TC.revisitaCurta(h.extras)}</b>
                   </span>
                 )}
                 {c.parada && <span className="ct-mundo__parada" aria-hidden="true">{c.parada}</span>}
