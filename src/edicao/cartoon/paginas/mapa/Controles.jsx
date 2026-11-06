@@ -10,6 +10,7 @@ import * as M from '../../../dados/modelo.js'
 import { Chip } from '../../../componentes/sistema/pecas.jsx'
 import { MAPA as T, LOVER, ATENDIMENTO } from '../../textos.js'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
+import { InterruptorSugestoes } from '../../../caca/mapa/Proximidade.jsx'
 
 const ESTADOS_FILTRO = ['pendente', 'nao-visitada', 'conquistada']
 
@@ -46,7 +47,7 @@ export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoF
   )
 }
 
-export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje, comBusca, aoBuscar, total, ativos, aoLimpar, aoAplicar }) {
+export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje, sugestoes = true, aoSugestoes = null, comBusca, aoBuscar, total, ativos, aoLimpar, aoAplicar }) {
   return (
     <div className="ct-mapa__filtros">
       {comBusca && <Busca q={f.q} aoBuscar={aoBuscar} />}
@@ -83,6 +84,7 @@ export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje
           </div>
         </fieldset>
       )}
+      {aoSugestoes && <InterruptorSugestoes ligadas={sugestoes} aoMudar={aoSugestoes} />}
       <div className="ct-folha-m__rodape">
         {ativos > 0 && <button type="button" className="ct-link" onClick={aoLimpar}>{TC.filtrosLimpar}</button>}
         <button type="button" className="ct-botao ct-folha-m__aplicar" onClick={aoAplicar}>{TC.filtrosVer(total)}</button>

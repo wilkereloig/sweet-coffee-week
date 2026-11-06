@@ -65,6 +65,9 @@ import { Mundo } from './Mundo.jsx'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { PainelRota } from './PainelRota.jsx'
 import { BotaoPerto, AvisoPerto } from './Perto.jsx'
+import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, adiarConvite, casasDispensadas, dispensarCasa } from '../../../caca/mapa/proximidade.js'
+import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/mapa/Proximidade.jsx'
+import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
 import { useTelaCheia } from './useTelaCheia.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
@@ -110,6 +113,11 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const [perto, setPerto] = React.useState(false)
   const [foco, setFoco] = React.useState(null)
   const aguardaFoco = React.useRef(false)
+  // Sugestão de casa perto (docs/cartoon-2026-2/16): escolhas da pessoa guardadas só neste aparelho (nunca coordenadas).
+  const [sugestoes, setSugestoes] = React.useState(() => sugestoesLigadas())
+  const [conviteFechado, setConviteFechado] = React.useState(() => conviteAdiado())
+  const [dispensadas, setDispensadas] = React.useState(() => casasDispensadas())
+  const permissao = usePermissaoLocalizacao()
   const [provedor, setProvedor] = React.useState(import.meta.env.VITE_GOOGLE_MAPS_KEY ? 'google' : 'maplibre')
   const usarReserva = React.useCallback(() => setProvedor('maplibre'), [])
   const MapaUnidades = provedor === 'google' ? MapaGoogle : MapaLibre
@@ -155,7 +163,17 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Próximo passo (avaliar > parada da rota > próxima casa do caminho) e conquista nova, tudo pelo estado do servidor.
   const nomeDeSlug = (slug) => lista.find((p) => p.slug === slug)?.casa?.nome || 'a casa'
   // Sem rota marcada, o próximo passo é a casa ainda não visitada mais perto do celular (precisa da localização).
-  const distancias = React.useMemo(() => distanciasPorCasa(lista, posicao), [lista, posicao])
+  // A sugestão de casa perto é a MESMA recomendação do próximo passo "visitar": com sugestões ligadas e posição lida, a distância usada
+  // é a da casa sugerida (respeita horário, conquista, rota e "agora não"), para os dois nunca apontarem casas diferentes.
+  const paradasDaPessoa = pendentes(resolverParadas(rota.ids, lista), visitou).filter((pa) => pa.ativa).map((pa) => pa.participante.slug)
+  const chaveParadas = paradasDaPessoa.join()
+  const sugestao = React.useMemo(() => (sugestoes && posicao
+    ? sugerirProximaCasa({ lista, posicao, estadoDe: casasMapa ? (slug) => estadoDaCasa(casasMapa.get(slug)) : null, paradasPendentes: paradasDaPessoa, periodo, dispensadas })
+    : null), [sugestoes, posicao, lista, casasMapa, chaveParadas, periodo, dispensadas]) // eslint-disable-line react-hooks/exhaustive-deps -- chaveParadas representa paradasDaPessoa
+  const distancias = React.useMemo(() => {
+    if (sugestoes && posicao) return new Map(sugestao?.tipo === 'sugestao' ? [[sugestao.slug, sugestao.km ?? Infinity]] : [])
+    return distanciasPorCasa(lista, posicao)
+  }, [lista, posicao, sugestoes, sugestao])
   const passo = React.useMemo(() => {
     const ordem = ordemDasCasas(lista, mundo.unidades)
     const minhas = resolverParadas(rota.ids, lista).filter((pa) => pa.ativa).map((pa) => pa.participante.slug)
@@ -242,13 +260,13 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // para o "próximo passo" seguir a pessoa (a segunda mais perto, depois a terceira…). Sem leitura contínua: gasta bateria.
   const validadas = meu.mapa?.casas_validadas
   React.useEffect(() => {
-    if (motivoSemLocalizacao()) return undefined
+    if (motivoSemLocalizacao() || !sugestoes) return undefined // sugestões desligadas: nada lê a posição sozinho, só o botão "Perto de mim"
     let vivo = true
     if (geo === 'disponivel') {
       navigator.permissions?.query({ name: 'geolocation' }).then((r) => { if (vivo && r.state === 'granted') { setGeo('pedindo'); lerPosicao(300000) } }).catch(() => {})
     }
     return () => { vivo = false }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- só na abertura
+  }, [sugestoes]) // eslint-disable-line react-hooks/exhaustive-deps -- na abertura e quando a pessoa religa as sugestões
   React.useEffect(() => {
     if (geo !== 'ok') return undefined
     lerPosicao(30000)
@@ -306,6 +324,17 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     <AvisoPerto geo={geo} posicao={posicaoViva} proximas={proximas} semCoordenada={semCoordenada} longe={longe} vista={vista} cheia={cheia}
       podeReal={noMapa.length > 0} aoVista={setVista} aoTentar={localizar} aoSair={sairDePerto} aoEscolher={escolher} />
   )
+  // Convite de localização e sugestão de casa perto (docs/cartoon-2026-2/16): o navegador só pergunta no toque do convite, o convite só aparece
+  // no mapa (nunca na tela cheia), uma vez a cada 7 dias; a sugestão ajuda a escolher e nunca marca visita, carimbo ou avaliação.
+  const mostrarConvite = !cheia && sugestoes && !conviteFechado && !perto && geo === 'disponivel' && (permissao === 'prompt' || permissao === 'desconhecido')
+  const adiarConviteAgora = () => { adiarConvite(); setConviteFechado(true) }
+  const desligarSugestoes = () => setSugestoes(ligarSugestoes(false))
+  const dispensarSugestao = (slug) => setDispensadas(dispensarCasa(slug))
+  const cartaoSugestao = (fechar) => (sugestao?.tipo === 'sugestao'
+    ? <SugestaoPerto sugestao={sugestao} navigate={navigate} aoVerNoMapa={(slug, unidadeId) => { fechar?.(); escolher(unidadeId) }} aoAgoraNao={dispensarSugestao} aoDesligar={desligarSugestoes} />
+    : perto && sugestao?.tipo === 'nenhuma' ? <SemSugestao motivo={sugestao.motivo} /> : null)
+  // Com a sugestão na tela, o botão "Conhecer X" do próximo passo some: eram a mesma recomendação dita duas vezes.
+  const proximoMostrado = passo.tipo === 'visitar' && sugestao?.tipo === 'sugestao' ? { tipo: 'nenhum' } : { ...passo, nome: nomeDeSlug(passo.slug) }
   const rotaEl = (
     <PainelRota dados={dados} navigate={navigate} paradas={paradas} pendentes={faltam} compartilhada={vendoCompartilhada ? compartilhada : null}
       visitou={visitou} estadoDe={estadoDe} revisitasDe={revisitasDe} mundo={comMundo ? mundo : null} />
@@ -323,8 +352,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
       case 'progresso':
         return (
           <>
+            {cartaoSugestao(fechar)}
             <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
-              proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} geo={geo} aoVerCasa={(slug) => { fechar(); verCasa(slug) }} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+              proximo={proximoMostrado} geo={geo} aoVerCasa={(slug) => { fechar(); verCasa(slug) }} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
             {meu.mapa && <AlbumCarimbos dados={dados} navigate={navigate} meu={meu} />}
           </>
         )
@@ -378,7 +408,10 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                 : nEnderecos > nCasas && <p className="ct-mapa__resumo-regra">{TC.casasEnderecosCurta}</p>}
             </div>
 
+            {mostrarConvite && <ConviteLocalizacao buscando={geo === 'pedindo'} aoUsar={localizar} aoAdiar={adiarConviteAgora} />}
             {perto && avisoPerto}
+            {/* Na lista a sugestão vem ANTES das casas (abaixo da lista ela ficaria longe da vista); com mapa, abaixo dele, junto do progresso. */}
+            {vista === 'lista' && cartaoSugestao()}
 
             <div ref={moldura} className="ct-mapa__moldura">
               {podeAmpliar && (
@@ -455,8 +488,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
             {/* O mapa vem primeiro: convite para criar o mapa, "Como carimbar", progresso e e-mail ficam ABAIXO dele (Wilker, 05/11/2026). Na tela cheia somem; os atalhos cobrem. */}
             <div className="ct-mapa__abaixo">
+              {vista !== 'lista' && cartaoSugestao()}
               <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
-                proximo={{ ...passo, nome: nomeDeSlug(passo.slug) }} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
+                proximo={proximoMostrado} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
               <CartaoEmail caca={meu} navigate={navigate} />
             </div>
 
@@ -490,7 +524,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             {cheia && cartao}
             <Folha variante="filtros" aberta={filtrosAbertos} titulo={TC.filtrosTitulo} rotuloFechar={TC.fecharFiltros} aoFechar={() => setFiltrosAbertos(false)}>
               <CorpoDosFiltros f={f} muda={muda} opcoes={opcoes} bairroOpcao={bairroOpcao} temEstado={!!casasMapa} hoje={opcoes.hoje}
-                comBusca={cheia} aoBuscar={(v) => muda('q', v)} total={linhas.length} ativos={ativos} aoLimpar={() => setF(VAZIO)} aoAplicar={() => setFiltrosAbertos(false)} />
+                sugestoes={sugestoes} aoSugestoes={(v) => setSugestoes(ligarSugestoes(v))} comBusca={cheia} aoBuscar={(v) => muda('q', v)} total={linhas.length} ativos={ativos} aoLimpar={() => setF(VAZIO)} aoAplicar={() => setFiltrosAbertos(false)} />
             </Folha>
           </div>
 
