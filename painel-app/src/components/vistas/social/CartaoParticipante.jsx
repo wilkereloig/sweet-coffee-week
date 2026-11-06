@@ -69,7 +69,7 @@ export function CartaoParticipante({ d, bruto, editorial, datas = [], valorCombo
     >
       {n > 0 && (
         <div className="scb-novidades" role="status">
-          <p><Icone nome="alerta" tamanho={18} /><span><b>{n === 1 ? '1 alteração' : n + ' alterações'} da marca</b> desde a sua última visita.</span></p>
+          <p><Icone nome="alerta" tamanho={20} /><span><b>{n === 1 ? '1 alteração' : n + ' alterações'} da marca</b> desde a sua última visita.</span></p>
           {onVisto && <Botao variante="secundario" icone="feito" disabled={marcando} onClick={onVisto}>Marquei como visto</Botao>}
         </div>
       )}

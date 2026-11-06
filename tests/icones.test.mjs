@@ -7,6 +7,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { INTERFACE, EXPRESSIVA, ALIASES, FAMILIAS, existe, temDesenho, canonico } from './_icones.mjs'
 import { ANATOMIA_COMBO } from '../src/components/scw-icons/anatomia-combo.js'
+import { iconeEdicao } from '../src/data/imageLibrary.js'
 
 const RAIZ = new URL('..', import.meta.url)
 const ler = (rel) => readFileSync(new URL(rel, RAIZ), 'utf8')
@@ -24,7 +25,7 @@ test('todo nome citado no código existe — nenhum ícone vazio', () => {
   for (const a of CODIGO) {
     const txt = ler(a)
     for (const m of txt.matchAll(/<(?:ScwIcon|IconeUi|Icone)\b[^>]*?\bnome="([a-z0-9/-]+)"/g)) if (!existe(m[1])) faltam.push(a + ': ' + m[1])
-    for (const m of txt.matchAll(/\bicone(?:=|: )["']([a-z0-9/-]+)["']/g)) if (!existe(m[1])) faltam.push(a + ': ' + m[1])
+    for (const m of txt.matchAll(/\bicone(?:=|: )["']([a-z0-9/-]+)["']/g)) if (!existe(m[1]) && !(a.startsWith('src/edicao/cartoon/') && iconeEdicao(m[1]))) faltam.push(a + ': ' + m[1])
     for (const m of txt.matchAll(/\bi: '([a-z0-9/-]+)'/g)) if (!existe(m[1])) faltam.push(a + ': ' + m[1])
   }
   assert.deepEqual(faltam, [])

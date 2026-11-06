@@ -46,14 +46,14 @@ function daFuncao(arquivo, exportar) {
   const fonte = ler('supabase/functions/' + arquivo + '/index.ts')
     .replace(/import \{ createClient \}[^\n]*\n/, '')
     .replace(/Deno\.serve\([\s\S]*$/, '')
-  const js = transformSync(fonte, { loader: 'ts', format: 'cjs' }).code
+  const js = transformSync(fonte + '\n' + exportar, { loader: 'ts', format: 'cjs' }).code
   const mod = { exports: {} }
-  new Function('module', 'exports', 'Deno', js + '\n' + exportar)(
+  new Function('module', 'exports', 'Deno', js)(
     mod, mod.exports, { env: { get: () => '' } })
   return mod.exports
 }
 
-const { caminhoValido, caminhoEdicaoValido } = daFuncao('arquivo-url', 'exports.caminhoValido = caminhoValido; exports.caminhoEdicaoValido = caminhoEdicaoValido')
+const { caminhoValido, caminhoEdicaoValido } = daFuncao('arquivo-url', 'export { caminhoValido, caminhoEdicaoValido }')
 const UUID = '3f1a2b4c-5d6e-4f70-8a9b-0c1d2e3f4a5b'
 
 test('fotos da edição: só <edição>/<participação>/<uuid>.webp', () => {

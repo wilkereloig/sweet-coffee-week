@@ -59,63 +59,52 @@ async function pagina (nav, voucher, { w = 390, h = 844 } = {}) {
 }
 const captura = async (page, nome) => { if (CAP) await page.screenshot({ path: join(CAP, `voucher-virtual-${nome}.png`), fullPage: true }) }
 
-const preview = spawn('npm', ['run', 'preview', '--', '--port', String(PORT), '--strictPort'], { cwd: join(__dirname, '..'), shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
+const preview = spawn('npm', ['run', 'preview', '--', '--port', String(PORT), '--strictPort', ...(process.env.CARTOON_BUILD_DIR ? ['--outDir', process.env.CARTOON_BUILD_DIR] : [])], { cwd: join(__dirname, '..'), shell: true, stdio: ['ignore', 'pipe', 'pipe'] })
 let nav
 try {
   await waitForServer(BASE)
   nav = await chromium.launch()
 
-  console.log('\n1 · voucher válido, casa com cartão impresso')
+  console.log('\n1 · voucher válido: abrir e conferir código e QR')
   {
     const antes = falhas.length
     const c = await pagina(nav, { codigo: 'SCW-2ZMRN', marca: 'Adocee Doceria', slug: 'adocee-doceria', estado: 'valido' })
     const p = c.page
     if ((await p.locator('h1').count()) !== 1) falha('mais de um <h1>')
-    if (!(await p.locator('h1').textContent()).includes('garantido')) falha('título do estado válido ausente')
-    const svg = p.locator('svg.ct-vcard')
-    if ((await svg.count()) !== 1) falha('cartão ausente')
+    if (!(await p.locator('.ct-vale__casa').innerText()).includes('Adocee')) falha('casa não aparece no vale')
+    const botao = p.getByRole('button', { name: 'Abrir voucher' })
+    if (!(await botao.count())) falha('botão de abertura ausente')
     else {
-      const href = await svg.locator('image').first().getAttribute('href')
-      if (!/frente-adocee-doceria\.webp$/.test(href || '')) falha(`frente errada: ${href}`)
-      if (!(await svg.getAttribute('aria-label')).startsWith('Frente do cartão-voucher')) falha('rótulo da frente')
-      await captura(p, 'frente')
-      await p.getByRole('button', { name: 'Ver o verso' }).click()
-      const hv = await svg.locator('image').first().getAttribute('href')
-      if (!/verso-amarelo\.webp$/.test(hv || '')) falha(`verso errado (adocee é amarelo): ${hv}`)
-      await p.waitForSelector('svg.ct-vcard image:nth-of-type(2)')
-      const qr = await svg.locator('image').nth(1).getAttribute('href')
-      if (!(qr || '').startsWith('data:image/png')) falha('verso sem QR desenhado')
-      if ((await svg.locator('text.ct-vcard__codigo').textContent()) !== 'SCW-2ZMRN') falha('código do verso diferente do voucher')
-      if (!(await p.getByRole('button', { name: 'Ver a frente' }).count())) falha('botão não virou "Ver a frente"')
-      await captura(p, 'verso')
-      await p.getByRole('button', { name: 'Ver a frente' }).click()
-      if (!/frente-/.test((await svg.locator('image').first().getAttribute('href')) || '')) falha('não voltou para a frente')
+      await botao.click()
+      if (!(await p.locator('.ct-vale').evaluate((el) => el.classList.contains('is-aberto')))) falha('vale não abriu')
+      await p.waitForSelector('img.ct-voucher__qr')
+      const qr = await p.locator('img.ct-voucher__qr').getAttribute('src')
+      if (!(qr || '').startsWith('data:image/png')) falha('QR não foi desenhado')
+      if ((await p.locator('.ct-voucher__codigo').innerText()).trim() !== 'SCW-2ZMRN') falha('código incorreto')
     }
-    if ((await p.locator('.ct-voucher__qr').count()) !== 1) falha('QR grande de leitura ausente')
-    if ((await p.locator('.ct-voucher__codigo').textContent()).trim() !== 'SCW-2ZMRN') falha('código grande ausente')
     const largura = await p.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth])
     if (largura[0] > largura[1]) falha(`rolagem lateral em 390 (${largura.join(' > ')})`)
-    const ruins = c.imagens.filter(([, s]) => s !== 200)
-    if (ruins.length || !c.imagens.length) falha(`imagens do cartão não carregaram: ${JSON.stringify(c.imagens)}`)
     if (c.erros.length) falha(`erros de console: ${c.erros.join(' | ')}`)
+    await captura(p, 'aberto')
     await c.ctx.close()
-    if (falhas.length === antes) ok('cartão da casa (frente e verso), código, QR, botão e imagens 200; sem rolagem lateral em 390')
+    if (falhas.length === antes) ok('vale abre com código e QR, sem rolagem lateral ou erro')
   }
 
-  console.log('\n2 · casa sem cartão impresso, e estados que não mostram o cartão')
+  console.log('\n2 · casa sem dados adicionais e voucher usado')
   {
     const antes = falhas.length
     let c = await pagina(nav, { codigo: 'SCW-AAAAA', marca: 'Casa Nova', slug: 'casa-sem-cartao', estado: 'valido' })
-    if (await c.page.locator('svg.ct-vcard').count()) falha('casa sem cartão impresso ganhou cartão')
-    if (!(await c.page.locator('.ct-voucher__casa').count())) falha('casa sem cartão perdeu o bloco da casa')
-    if (!(await c.page.locator('.ct-voucher__qr').count())) falha('casa sem cartão ficou sem o QR')
+    if (!(await c.page.locator('.ct-vale__casa').innerText()).includes('Casa Nova')) falha('casa sem dados adicionais não aparece')
+    await c.page.getByRole('button', { name: 'Abrir voucher' }).click()
+    await c.page.waitForSelector('img.ct-voucher__qr')
     await c.ctx.close()
     c = await pagina(nav, { codigo: 'SCW-2ZMRN', marca: 'Adocee Doceria', slug: 'adocee-doceria', estado: 'usado' })
-    if (await c.page.locator('svg.ct-vcard').count()) falha('voucher usado mostrou o cartão')
+    if (await c.page.locator('.ct-vale').count()) falha('voucher usado mostrou vale utilizável')
     if (!(await c.page.locator('h1').textContent()).includes('já foi usado')) falha('estado usado sem o título')
     await c.ctx.close()
-    if (falhas.length === antes) ok('sem cartão cai no bloco da casa; usado não mostra cartão')
+    if (falhas.length === antes) ok('casa aparece e voucher usado não mostra vale utilizável')
   }
+
 } finally {
   if (nav) await nav.close()
   killTree(preview.pid)

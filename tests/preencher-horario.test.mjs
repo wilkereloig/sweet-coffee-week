@@ -897,14 +897,14 @@ test('site: nenhum texto "horário da loja" nem "horário do combo" nas páginas
   // A ficha mostra o horário dia a dia (E6, 28/10) com as regras do mesmo módulo: dia sem linha = não abre; sem as datas da
   // edição (ou sem linha dentro delas), cai nas frases de sempre.
   const ficha = ler('src/edicao/cartoon/paginas/participante/Unidades.jsx')
-  assert.match(ficha, /<Dias linhas=\{u\.combo\?\.disponibilidade\} periodo=\{periodo\} \/>/)
+  assert.match(ficha, /<Dias linhas=\{u\.combo\?\.disponibilidade\} periodo=\{periodo\} instante=\{instante\} \/>/)
   assert.match(ficha, /H\.diasDeLinhas\(linhas, datas\)/)
   assert.match(ficha, /M\.horarioNoFestival\(linhas, periodo\)/)
   assert.match(ler('src/edicao/cartoon/paginas/participante/index.jsx'), /periodo=\{edicao\?\.edicao\}/, 'o período da edição chega à unidade')
 })
 
 test('site: as telas passam o período da edição a estadoAgora (dia sem linha DENTRO do festival é "sem combo hoje", não "fora do período")', () => {
-  assert.match(ler('src/edicao/cartoon/paginas/participante/Unidades.jsx'), /M\.estadoAgora\(u, undefined, periodo\)/)
+  assert.match(ler('src/edicao/cartoon/paginas/participante/Unidades.jsx'), /M\.estadoAgora\(u, instante, periodo\)/)
   assert.match(ler('src/edicao/cartoon/paginas/mapa/index.jsx'), /M\.estadoAgora\(u, undefined, dados\?\.edicao\)/)
   // A Minha rota virou o painel da página do mapa (unificação de 04/11): a lista de paradas mora em mapa/PainelRota.
   assert.match(ler('src/edicao/cartoon/paginas/mapa/PainelRota.jsx'), /M\.estadoAgora\(pa\.unidade, undefined, dados\?\.edicao\)/)
