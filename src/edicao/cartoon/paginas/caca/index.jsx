@@ -21,6 +21,7 @@ import Compartilhar from '../../../caca/secoes/Compartilhar.jsx'
 import { Delivery } from '../../../caca/delivery/Delivery.jsx'
 import Convite from '../../../caca/secoes/Convite.jsx'
 import { ManifestoDaCaca } from '../../../caca/pwa/ManifestoDaCaca.jsx'
+import { EntradaDaCaca } from '../../../caca/pwa/EntradaDaCaca.jsx'
 
 // Seções que só fazem sentido com mapa: sem ele, mostram a criação rápida no lugar do conteúdo.
 const PRECISA_DE_MAPA = ['grupos', 'grupo', 'metas', 'compartilhar', 'delivery']
@@ -94,6 +95,7 @@ export function Caca ({ secao = 'central', navigate, dados, grupoId, token }) {
   return (
     <>
       <ManifestoDaCaca />
+      <EntradaDaCaca />
       {secao === 'mapa'
         ? <Mapa navigate={navigate} dados={dados} entrada="mapa" />
         : <PaginaDaCaca secao={secao} navigate={navigate} dados={dados} grupoId={grupoId} token={token} />}

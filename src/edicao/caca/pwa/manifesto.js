@@ -14,7 +14,10 @@ export const CACA_PWA = {
   sw: '/caca-sw.js',
   escopo: ESCOPO,
   inicio: `${ESCOPO}?origem=app`,
-  titulo: 'Caça aos Carimbos',
+  /** Nome do app, com espaços: é o `name` do manifest. */
+  nome: 'Caça aos Tesouros SCW',
+  /** Rótulo sob o ícone (iPhone corta perto de 12 letras): curto, legível, palavras separadas. */
+  titulo: 'Caça SCW',
 }
 
 /** `/cartoon/caca` e tudo dentro dele; `/cartoon/cacaxyz` não conta. */

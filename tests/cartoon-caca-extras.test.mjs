@@ -327,7 +327,7 @@ test('SW da Caça: mostra push do tipo caca, só aceita caminho interno da Caça
   assert.equal(primeira[0], 'Falta avaliar'); assert.equal(primeira[1].data.url, '/cartoon/caca/metas'); assert.equal(primeira[1].tag, 'scw-caca-meta')
   assert.equal(longa[0].length, 80); assert.equal(longa[1].body.length, 240); assert.equal(longa[1].data.url, '/cartoon/caca', 'URL externa vira a central')
   assert.equal(painel[1].data.url, '/cartoon/caca', 'o painel nunca é destino')
-  assert.equal(ruim[0], 'Caça aos Carimbos', 'carga ilegível ainda mostra algo (push exige notificação visível)')
+  assert.equal(ruim[0], 'Caça aos Tesouros SCW', 'carga ilegível ainda mostra algo (push exige notificação visível)')
   let fechou = false
   await sw.esperar('notificationclick', { notification: { data: { url: '/cartoon/caca/metas' }, close: () => { fechou = true } } })
   assert.ok(fechou); assert.deepEqual(sw.abertas, ['/cartoon/caca/metas'])
@@ -361,4 +361,13 @@ test('textos extras: sem voto/votação, sem "Sweet" sozinho, sem prêmio por me
   assert.match(EXTRAS.metas.nota, /uma surpresa/)
   assert.doesNotMatch(todos, /ganha(r)? um|prêmio por meta|troféu/i)
   assert.match(EXTRAS.push.honestidade, /podem atrasar ou não chegar/)
+})
+
+test('nome do app: "Caça aos Tesouros SCW" com espaços em manifest, título do iPhone e SW; rótulo curto legível', () => {
+  const m = JSON.parse(ler('public/caca/manifest.webmanifest'))
+  assert.equal(m.name, 'Caça aos Tesouros SCW'); assert.equal(CACA_PWA.nome, m.name)
+  assert.equal(m.short_name, CACA_PWA.titulo); assert.match(m.short_name, /^\S+ \S+$/); assert.ok(m.short_name.length <= 12)
+  assert.match(ler('public/caca-sw.js'), /: 'Caça aos Tesouros SCW';/)
+  const painel = JSON.parse(ler('public/painel/app.webmanifest'))
+  assert.doesNotMatch(painel.name, /Tesouros/, 'o Painel SCW mantém o nome')
 })

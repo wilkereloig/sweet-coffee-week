@@ -1,0 +1,16 @@
+/* Camada Cartoon · entrada do app instalado da Caça (~1 s). Só anima sem prefers-reduced-motion; o componente nem monta com movimento reduzido. */
+.ct-caca-entrada {
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: #FDF0DE; /* = background_color do manifest: sem tela branca entre a abertura do sistema e o app */
+  animation: ct-caca-entrada-fundo var(--entrada-ms, 1000ms) ease-out both;
+}
+.ct-caca-entrada__logo { width: min(52vw, 240px); height: auto; animation: ct-caca-entrada-logo var(--entrada-ms, 1000ms) cubic-bezier(.22, .9, .24, 1) both; }
+.ct-caca-entrada__texto {
+  margin: 0; font-family: 'Grandstander', system-ui, sans-serif; font-weight: 800; font-size: clamp(22px, 6vw, 30px); color: #3A150F;
+  animation: ct-caca-entrada-texto var(--entrada-ms, 1000ms) ease-out both;
+}
+@keyframes ct-caca-entrada-fundo { 0%, 70% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes ct-caca-entrada-logo { 0% { transform: scale(.8); opacity: 0 } 25% { transform: scale(1); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
+@keyframes ct-caca-entrada-texto { 0%, 20% { opacity: 0; transform: translateY(8px) } 40%, 100% { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) { .ct-caca-entrada { display: none } }

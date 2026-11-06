@@ -13,7 +13,7 @@
  */
 var ESCOPO = '/cartoon/caca';
 var CENTRAL = '/cartoon/caca';
-var ICONE = '/images/caca/app-icone-192-v1.png';
+var ICONE = '/images/caca/app-icone-192-v2.png';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
 self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });
@@ -31,7 +31,7 @@ function destino(url) {
 self.addEventListener('push', function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = {}; }
-  var titulo = typeof d.titulo === 'string' && d.titulo ? d.titulo.slice(0, 80) : 'Caça aos Carimbos';
+  var titulo = typeof d.titulo === 'string' && d.titulo ? d.titulo.slice(0, 80) : 'Caça aos Tesouros SCW';
   var corpo = typeof d.corpo === 'string' ? d.corpo.slice(0, 240) : '';
   e.waitUntil(self.registration.showNotification(titulo, {
     body: corpo,

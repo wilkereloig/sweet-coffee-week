@@ -1,7 +1,7 @@
 {
   "id": "/cartoon/caca",
-  "name": "Caça aos Carimbos · Sweet & Coffee Week Cartoon",
-  "short_name": "Caça aos Carimbos",
+  "name": "Caça aos Tesouros SCW",
+  "short_name": "Caça SCW",
   "description": "Descubra casas diferentes, carimbe a visita e acompanhe seu mapa na Sweet & Coffee Week Cartoon.",
   "lang": "pt-BR",
   "dir": "ltr",
@@ -12,8 +12,8 @@
   "theme_color": "#3A150F",
   "categories": ["food", "events", "lifestyle"],
   "icons": [
-    { "src": "/images/caca/app-icone-192-v1.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
-    { "src": "/images/caca/app-icone-512-v1.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
-    { "src": "/images/caca/app-icone-512-maskable-v1.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+    { "src": "/images/caca/app-icone-192-v2.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/images/caca/app-icone-512-v2.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "/images/caca/app-icone-512-maskable-v2.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
   ]
 }
