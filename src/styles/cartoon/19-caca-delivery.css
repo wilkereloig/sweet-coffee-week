@@ -1,0 +1,29 @@
+/*
+ * Carimbo de delivery (Caça): pedido de quem recebeu o combo em casa. Tudo sob .ct-edicao (este arquivo só entra no chunk da edição).
+ * Segue o desenho do pedido de visita anterior (.ct-visita): chapa creme com traço de chocolate, cartões brancos, estado em pílula.
+ * Estado nunca só por cor: texto + borda (tracejada em análise, riscada em não aprovado).
+ */
+.ct-dlv { display: grid; gap: 14px; padding: 16px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-creme); }
+.ct-dlv__form { display: grid; gap: 12px; padding: 14px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); min-width: 0; }
+.ct-dlv__ajuda { font: 500 13px/1.4 var(--ct-font); }
+.ct-dlv__vias { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; align-items: start; }
+.ct-dlv__via { display: grid; gap: 6px; justify-items: start; }
+.ct-dlv__lista ul { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.ct-dlv__pedido { display: grid; gap: 8px; padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); min-width: 0; }
+.ct-dlv__pedido.is-analise { border-style: dashed; }
+.ct-dlv__linha { margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.ct-dlv__estado { padding: 2px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; font-weight: 700; font-size: .85rem; background: var(--ct-creme); }
+.ct-dlv__estado.is-analise { border-style: dashed; }
+.ct-dlv__estado.is-codigo { background: var(--ct-amarelo); }
+.ct-dlv__estado.is-aprovadoAvaliar { background: var(--ct-amarelo); }
+.ct-dlv__estado.is-aprovadoValido { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-dlv__estado.is-negado { text-decoration: line-through; text-decoration-thickness: 1px; }
+.ct-dlv__codigo { display: grid; gap: 8px; padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-dlv__codigo-rotulo { margin: 0; font: 900 14px/1.2 var(--ct-font); text-transform: uppercase; letter-spacing: .04em; }
+.ct-dlv__codigo-valor { margin: 0; font: 900 clamp(34px, 11vw, 48px)/1.05 var(--ct-font); letter-spacing: .12em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ct-dlv__imagem { display: grid; gap: 10px; padding-top: 6px; border-top: 2px dashed var(--ct-chocolate); }
+.ct-dlv__arquivo { position: relative; cursor: pointer; }
+.ct-dlv__arquivo:focus-within { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
+.ct-dlv__previa { max-width: min(100%, 320px); max-height: 320px; object-fit: contain; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-dlv .ct-botao { justify-self: start; }
+.ct-delivery__carimbo { display: grid; gap: 6px; justify-items: start; margin-top: 12px; }

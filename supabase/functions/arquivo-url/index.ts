@@ -56,7 +56,11 @@ const CORS = {
 // na PRÓPRIA pasta (o id vem do JWT, não do corpo); outra pasta exige
 // `acesso.gerir`. Baixar: qualquer conta que trabalha no painel (dado.ler ou
 // redes.ver) — é o que mostra quem fez cada coisa. Nunca por cima.
-const BUCKETS = ['arquivos', 'combos', 'logos', 'edicao-publico', 'redes', 'equipe']
+// `caca-delivery` (06/11/2026): imagem de pedido de carimbo de delivery (print ou foto do cliente). PRIVADO e sem policy. Quem SOBE é a
+// edge function `caca-delivery` (chave do mapa do visitante), nunca esta: aqui `subir` é recusado. Aqui só se LÊ (URL de 300 s) e se
+// REMOVE, ambos com `producao.gerir`, e só para um caminho que está gravado num pedido (`caca_carimbo_excecao.imagem_path`).
+// Caminho <edição>/<uuid do pedido>/<uuid>.(jpg|png|webp). Sem prazo de retenção aprovado: nada é apagado sozinho.
+const BUCKETS = ['arquivos', 'combos', 'logos', 'edicao-publico', 'redes', 'equipe', 'caca-delivery']
 
 // Uma pasta e um arquivo, nada mais. A pasta é `geral` ou um UUID de
 // participação; o arquivo é o que sobra depois de tirar tudo que não seja letra,
@@ -78,6 +82,13 @@ const EQUIPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[
 /** Foto de perfil: exatamente <user_id>/<uuid>.(webp|jpg) (mesma regra do CHECK de perfis). */
 export function caminhoEquipeValido(path: string): boolean {
   return EQUIPE.test(path)
+}
+
+const DELIVERY = /^\d{4}(\.\d)?\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/
+
+/** Imagem de delivery: exatamente <edição>/<uuid do pedido>/<uuid>.(jpg|png|webp). */
+export function caminhoDeliveryValido(path: string): boolean {
+  return DELIVERY.test(path)
 }
 
 /** Fotos da edição: exatamente <edição>/<uuid da participação>/<uuid>.webp. */
@@ -115,9 +126,13 @@ Deno.serve(async (req) => {
 
   // `baixar_varios` (redes, equipe): as miniaturas e as fotos de perfil numa chamada só.
   const paths = Array.isArray(payload.paths) ? payload.paths.map((x) => String(x || '').trim()) : []
-  if (acao !== 'subir' && acao !== 'baixar' && acao !== 'baixar_varios') return json({ erro: 'acao_invalida' }, 400)
+  if (acao !== 'subir' && acao !== 'baixar' && acao !== 'baixar_varios' && acao !== 'remover') return json({ erro: 'acao_invalida' }, 400)
   if (!BUCKETS.includes(bucket)) return json({ erro: 'bucket_invalido' }, 400)
-  const validar = bucket === 'redes' ? caminhoRedesValido
+  // `remover` só existe para as imagens de delivery; e `subir` nelas é da edge function caca-delivery, não desta.
+  if (acao === 'remover' && bucket !== 'caca-delivery') return json({ erro: 'acao_invalida' }, 400)
+  if (bucket === 'caca-delivery' && (acao === 'subir' || acao === 'baixar_varios')) return json({ erro: 'acao_invalida' }, 400)
+  const validar = bucket === 'caca-delivery' ? caminhoDeliveryValido
+    : bucket === 'redes' ? caminhoRedesValido
     : bucket === 'equipe' ? caminhoEquipeValido
     : bucket === 'edicao-publico' ? caminhoEdicaoValido : caminhoValido
   if (acao === 'baixar_varios') {
@@ -141,7 +156,8 @@ Deno.serve(async (req) => {
   //   · `arquivos` em `geral/`: a Social media (redes.ver) baixa os materiais
   //     da campanha pela biblioteca — os da pasta de uma marca, não.
   //   · `equipe`, subir: a própria pasta (conta ativa) ou acesso.gerir.
-  const acoes = bucket === 'redes' ? [acao === 'subir' ? 'redes.arquivos' : 'redes.ver']
+  const acoes = bucket === 'caca-delivery' ? ['producao.gerir']
+    : bucket === 'redes' ? [acao === 'subir' ? 'redes.arquivos' : 'redes.ver']
     : bucket === 'equipe' ? (acao === 'subir' ? ['acesso.gerir'] : ['dado.ler', 'redes.ver'])
     : acao === 'subir' ? [bucket === 'logos' ? 'cadastro.editar' : 'producao.gerir']
     : bucket === 'arquivos' && path.startsWith('geral/') ? ['dado.ler', 'redes.ver']
@@ -190,6 +206,23 @@ Deno.serve(async (req) => {
       .in('categoria', ['identidade', 'combo', 'guia']).limit(1).maybeSingle()
     if (arErr) return json({ erro: 'db_error', detalhe: arErr.message }, 500)
     if (!ar) return json({ erro: 'nao_autorizado' }, 401)
+  }
+
+  // Imagem de delivery: o caminho precisa estar gravado num pedido. Sem isso um caminho "válido" mas solto (upload abandonado) não abre.
+  if (bucket === 'caca-delivery') {
+    const { data: pedido, error: pedErr } = await admin.from('caca_carimbo_excecao').select('id, participacao_id')
+      .eq('imagem_path', path).eq('motivo', 'delivery').is('imagem_removida_em', null).limit(1).maybeSingle()
+    if (pedErr) return json({ erro: 'db_error', detalhe: pedErr.message }, 500)
+    if (!pedido) return json({ erro: 'nao_encontrado' }, 404)
+    if (acao === 'remover') {
+      // Exclusão manual da organização (não há prazo de retenção aprovado). Apaga o objeto e marca o pedido; o carimbo e a decisão ficam.
+      const { error: rmErr } = await admin.storage.from(bucket).remove([path])
+      if (rmErr) return json({ erro: 'remocao_falhou', detalhe: rmErr.message }, 500)
+      await admin.from('caca_carimbo_excecao').update({ imagem_removida_em: new Date().toISOString() }).eq('id', pedido.id)
+      await admin.from('auditoria').insert({ acao: 'delivery.imagem_removida', alvo_tabela: 'caca_carimbo_excecao', alvo_id: String(pedido.id),
+        participacao_id: pedido.participacao_id, detalhe: {} })
+      return json({ ok: true })
+    }
   }
 
   if (acao === 'subir') {

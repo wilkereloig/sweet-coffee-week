@@ -218,6 +218,7 @@ export const RPC_ESCRITA = Object.freeze({
   caca_apurar_dia: ['carimbos'],
   caca_premio_acao: ['carimbos'],
   caca_config_gravar: ['carimbos'],
+  caca_delivery_confirmar: ['carimbos'], // a casa confirma o delivery: cria o carimbo
   caca_excecao_decidir: ['carimbos'], // aprovar cria o carimbo; negar só registra
   caca_metas_gravar: ['carimbos'],
   caca_aviso_criar: ['carimbos'], caca_aviso_enviar: ['carimbos'], caca_aviso_cancelar: ['carimbos'], caca_avisos_auto_definir: ['carimbos'],

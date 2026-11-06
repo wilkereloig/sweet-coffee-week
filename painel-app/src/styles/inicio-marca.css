@@ -74,7 +74,11 @@ button.im-linha{cursor:pointer}
 .bal-acao:focus-visible{outline:3px solid var(--scw-choco);outline-offset:2px}
 .bal-acao:disabled{opacity:.5;cursor:not-allowed}
 .bal-acao[aria-pressed="true"]{background:var(--scw-choco);color:var(--scw-creme)}
-@media (min-width:700px){ .bal-acoes{grid-template-columns:repeat(3,1fr)} }
+@media (min-width:700px){ .bal-acoes{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))} }
+.bal-pedido{display:grid;gap:6px;margin:0 0 var(--e-3)}
+.bal-pedido>div{display:flex;flex-wrap:wrap;gap:4px 10px;padding:8px 0;border-bottom:1px solid rgba(61,19,8,.14)}
+.bal-pedido dt{font-weight:700}
+.bal-pedido dd{margin:0}
 
 /* Folha "Ajudar com carimbo". */
 .bal-ajuda{display:grid;gap:var(--e-4);font:400 16px/1.5 var(--f-texto)}

@@ -13,6 +13,8 @@ import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { PARTICIPANTE as T, ATENDIMENTO, ICONE } from '../../textos.js'
+import { CACA_CAMINHOS } from '../../../caca/textos.js'
+import { DELIVERY as TD } from '../../../caca/delivery/textos.js'
 
 const nomeDaUnidade = (u, p) => M.caixaLegivel(u.nome || u.endereco?.bairro || p.casa.nome)
 
@@ -109,6 +111,13 @@ export function ComoPedir ({ p }) {
         </ul>
       )}
       <Delivery p={p} />
+      {/* Carimbo de delivery (Caça): só com delivery declarado "sim" por alguma unidade ("não informado" não é delivery). */}
+      {M.estadoModo(p, 'delivery').estado === 'sim' && p.slug && (
+        <div className="ct-delivery__carimbo">
+          <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`}>{TD.acaoFicha}</Botao>
+          <p className="ct-delivery__nota">{TD.acaoFichaDica}</p>
+        </div>
+      )}
       {(instagram || site) && (
         <div className="ct-ficha__fale">
           <Rotulo icone={ICONE.whatsapp}>{T.faleCom}</Rotulo>

@@ -16,7 +16,7 @@ export function AjudaCarimbo({ aberto, onFechar }) {
           <li><b>Se a localização falhar:</b> peça que ligue o GPS do celular, libere a localização para o navegador, chegue mais perto do balcão e toque em “Tentar de novo”. A tela mostra o passo a passo do iPhone e do Android.</li>
           <li><b>Se continuar sem funcionar</b> (ou se o navegador bloqueou a localização), a própria tela mostra o botão <b>“Estou na casa e o GPS não funciona”</b>. O cliente envia o pedido ali.</li>
         </ol>
-        <p><b>Quem decide o pedido é a organização.</b> A casa não aprova nem cria carimbo, e o cliente vê o andamento na mesma tela (em análise, aprovado ou não aprovado).</p>
+        <p><b>Quem decide o pedido é a organização.</b> A casa não aprova carimbo presencial nem de outra casa, e o cliente vê o andamento na mesma tela (em análise, aprovado ou não aprovado). A única exceção é o delivery: para o cliente que recebeu o combo em casa, use o botão “Carimbo de delivery” e confirme só o pedido da sua própria casa.</p>
         <p><b>Cuidado:</b> nunca peça nem aceite o link de acesso ou a chave pessoal do cliente. Ele usa o próprio celular.</p>
         <p className="ui-nota">Carimbo não é voucher. O voucher do combo é registrado no campo do balcão, logo acima.</p>
       </div>

@@ -16,6 +16,7 @@ const MOTIVO = /^[a-z][a-z0-9_]{1,59}$/
 const FINALIDADES = ['confirmar', 'recuperar']
 // Mesmo formato que a edge function e o banco aceitam para ENVIAR código (SEC-07): sem vírgula, aspas, <> ou espaço.
 const EMAIL_ENTREGAVEL = /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,190}\.[a-z]{2,24}$/i
+const FORMATO_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const sem = (motivo) => ({ ok: false, motivo })
 
 /** Mensagem de exceção do PostgREST (ex.: 'email_invalido') → motivo. Qualquer outra coisa (inclusive texto livre) vira 'rede'. */
@@ -166,6 +167,47 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
         p_chave: chave, p_slug: slug, p_unidade: unidade ? String(unidade).slice(0, 64) : null, p_data: data,
         p_nota: String(nota || '').trim().slice(0, 200) || null,
       })
+    }),
+
+    /* ---- carimbo de delivery (migration 20261231): confirmação pela casa (código) ou imagem para a organização ---- */
+
+    /**
+     * `caca_delivery_pedir`: abre o pedido e já devolve o código temporário (24 h, uso único) para a CASA confirmar. NÃO carimba nem conta nada.
+     * `{ ok:true, id, estado:'pendente', via:'casa', codigo, expira_em, slug }` · motivos: email_nao_confirmado · qr_invalido · casa_sem_combo · encerrada · nao_aberta ·
+     * data_invalida · data_futura · sem_delivery · unidade_obrigatoria · unidade_invalida · ja_pedido · limite_pedidos · muitos_pendentes · fila_cheia · mapa_desconhecido.
+     */
+    deliveryPedir: (chave, { slug, unidade = null, data, ref = '', nota = '' }) => comChave(chave, () => {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(slug || ''))) return Promise.resolve(sem('qr_invalido'))
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data || ''))) return Promise.resolve(sem('data_invalida'))
+      return rpcOk('caca_delivery_pedir', {
+        p_chave: chave, p_slug: slug, p_unidade: unidade ? String(unidade).slice(0, 64) : null, p_data: data,
+        p_ref: String(ref || '').trim().slice(0, 40) || null, p_nota: String(nota || '').trim().slice(0, 200) || null,
+      })
+    }),
+
+    /** `caca_delivery_novo_codigo`: código novo quando o anterior venceu (até 3 por pedido). `{ ok:true, id, codigo, expira_em }` · limite_codigos · transicao_invalida · pedido_nao_encontrado. */
+    deliveryNovoCodigo: (chave, id) => comChave(chave, () => (FORMATO_UUID.test(String(id || '')) ? rpcOk('caca_delivery_novo_codigo', { p_chave: chave, p_id: id }) : Promise.resolve(sem('pedido_nao_encontrado')))),
+
+    /** `caca_delivery_anexar`: confirma o upload da imagem e põe o pedido em análise pela organização. `{ ok:true, id, estado:'pendente', via:'imagem' }`. */
+    deliveryAnexar: (chave, id, path) => comChave(chave, () => (FORMATO_UUID.test(String(id || '')) ? rpcOk('caca_delivery_anexar', { p_chave: chave, p_id: id, p_path: String(path || '') }) : Promise.resolve(sem('pedido_nao_encontrado')))),
+
+    /**
+     * Envia UMA imagem (já reduzida no aparelho): pede a URL assinada à edge function `caca-delivery`, faz o PUT direto no armazenamento privado
+     * e confirma no banco. Falha em qualquer passo devolve `{ ok:false, motivo }` e NÃO perde o pedido: dá para tentar de novo (até 5 reservas).
+     * Motivos: limite_imagem · formato_invalido · upload_falhou · imagem_ausente · imagem_invalida · transicao_invalida · rede · falha_temporaria.
+     */
+    deliveryEnviarImagem: (chave, id, { blob, ext, tipo }) => comChave(chave, async () => {
+      if (!FORMATO_UUID.test(String(id || '')) || !blob) return sem('pedido_nao_encontrado')
+      try {
+        const r = await buscar(`${urlBase}/functions/v1/caca-delivery`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'subir', chave, pedido: id, ext }),
+        })
+        const d = await r.json().catch(() => null)
+        if (d?.ok !== true || typeof d.url !== 'string') return sem(typeof d?.motivo === 'string' && MOTIVO.test(d.motivo) ? d.motivo : 'rede')
+        const up = await buscar(d.url, { method: 'PUT', body: blob, headers: { 'Content-Type': tipo } })
+        if (!up.ok) return sem('upload_falhou')
+        return await rpcOk('caca_delivery_anexar', { p_chave: chave, p_id: id, p_path: d.path })
+      } catch { return sem('rede') }
     }),
 
     /* ---- ranking geral e metas ---- */

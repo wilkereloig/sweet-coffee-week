@@ -56,7 +56,7 @@ test('marca: a baixa continua só no botão "Registrar uso"; ler QR só preenche
   const ajuda = ler('vistas-marca/AjudaCarimbo.jsx')
   assert.doesNotMatch(ajuda, /api\(|rpc\(|fetch\(/, 'a ajuda é só orientação')
   assert.match(ajuda, /nunca peça nem aceite/i)
-  assert.match(ajuda, /A casa não aprova nem cria carimbo/)
+  assert.match(ajuda, /A casa não aprova carimbo presencial nem de outra casa/)
   assert.match(balcao, /recadoDoVoucher/, 'os erros vêm da tabela testada')
 })
 

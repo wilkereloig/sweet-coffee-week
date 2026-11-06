@@ -1,10 +1,10 @@
 import React from 'react'
 import { useLeitura } from '../../../lib/leituraVivaReact'
 import { Botao, Carregando, Erro, Escolha, Secao, Selo, Vazio } from '../../ui'
-import { pedirTexto, avisar } from '../../Confirmar'
+import { pedirTexto, avisar, confirmar } from '../../Confirmar'
 import { cacaApi, horaNatal } from '../../../lib/caca'
 import {
-  FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao,
+  FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao, aguardandoACasa,
 } from '../../../lib/cacaGps'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
 
@@ -21,6 +21,23 @@ export function Excecoes({ edicao, pode }) {
   const gerir = pode('producao.gerir')
   const contato = pode('relatorio.ler')
 
+  // Imagem do pedido de delivery (bucket privado): link de 300 s, aberto numa aba nova; excluir é manual e não desfaz o carimbo.
+  async function verImagem(p) {
+    const aba = window.open('about:blank', '_blank')
+    try {
+      const r = await executar('img-' + p.id, () => cacaApi.imagemDelivery(p.imagem))
+      if (r && r.url && aba) { aba.opener = null; aba.location.href = r.url } else if (aba) aba.close()
+    } catch (e) { if (aba) aba.close() }
+  }
+  async function excluirImagem(p) {
+    const ok = await confirmar('A imagem é apagada do armazenamento privado e não volta. A decisão e o carimbo, se houver, continuam. Ainda não há prazo de retenção aprovado: use isto quando a imagem não for mais necessária.', { titulo: 'Excluir a imagem deste pedido?', acao: 'Excluir imagem', perigo: true })
+    if (!ok) return
+    const r = await executar('rm-' + p.id, () => cacaApi.removerImagemDelivery(p.imagem))
+    if (r === undefined) return
+    await lista.recarregar()
+    setAviso('Imagem do pedido de ' + p.apelido + ' em ' + p.casa + ' excluída.')
+  }
+
   async function decidir(p, decisao) {
     const aprova = decisao === 'aprovar'
     const nota = await pedirTexto(textoDaDecisao(p, decisao), { rotulo: aprova ? 'Observação (opcional)' : 'Motivo (obrigatório)' },
@@ -36,11 +53,12 @@ export function Excecoes({ edicao, pode }) {
   if (lista.bloqueada) return <Erro texto={lista.erro} onTentar={lista.recarregar} />
   if (!lista.dados) return <Carregando />
   const itens = filtrarPedidos(lista.dados.itens, estado)
-  const colunas = ['Apelido', 'Quando', 'Casa', 'Motivo', 'O celular informou', 'Nota da pessoa', 'Contexto', ...(contato ? ['Contato'] : []), 'Situação', ...(gerir ? ['Ação'] : [])]
+  const comImagem = itens.some((x) => x.imagem || x.imagem_removida)
+  const colunas = ['Apelido', 'Quando', 'Casa', 'Motivo', 'O celular informou', 'Nota da pessoa', ...(comImagem ? ['Imagem'] : []), 'Contexto', ...(contato ? ['Contato'] : []), 'Situação', ...(gerir ? ['Ação'] : [])]
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
-      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Dois tipos de pedido: GPS que falhou na casa e, só em 05/11, visita anterior à Caça (marcada como Visita anterior, sem prova de local: a data e a observação são da pessoa). Quem está na casa e não consegue carimbar pelo GPS pede aqui. Confira o contexto (já avaliou? já carimbou nessa casa? quantos pedidos fez?) e decida. A casa nunca decide e o pedido não vale nada até você aprovar.">
+      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Três tipos de pedido: GPS que falhou na casa, visita anterior à Caça (só em 05/11) e Delivery (pedido recebido em casa, sem prova de local: a data, a referência e a observação são da pessoa). Delivery com código é confirmado pela CASA no painel dela e só aparece aqui como acompanhamento; delivery com imagem é decidido aqui, e a imagem fica em armazenamento privado. Quem está na casa e não consegue carimbar pelo GPS pede aqui. Confira o contexto (já avaliou? já carimbou nessa casa? quantos pedidos fez?) e decida. A casa nunca decide e o pedido não vale nada até você aprovar.">
         <Escolha rotulo="Mostrar" valor={estado} onMudar={setEstado} className="cp-filtro"
           opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
         {!itens.length ? <Vazio titulo="Nenhum pedido aqui">{estado === 'pendente' ? 'Ninguém está esperando uma decisão agora.' : 'Nada nesta situação.'}</Vazio> : (
@@ -53,6 +71,16 @@ export function Excecoes({ edicao, pode }) {
                 <td className="cp-nota-celula">{p.motivo === 'visita_anterior' ? <Selo tom="atencao">Visita anterior</Selo> : null} {rotuloMotivoPedido(p.motivo)}</td>
                 <td className="cp-nota-celula">{descricaoDoSinal(p)}</td>
                 <td className="cp-nota-celula">{p.nota || '—'}</td>
+                {comImagem && (
+                  <td className="cp-nota-celula">
+                    {p.imagem ? (
+                      <div className="cp-acoes">
+                        {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Ver a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => verImagem(p)}>Ver imagem</Botao>}
+                        {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Excluir a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => excluirImagem(p)}>Excluir</Botao>}
+                      </div>
+                    ) : p.imagem_removida ? 'Imagem excluída' : '—'}
+                  </td>
+                )}
                 <td className="cp-nota-celula">
                   <ul className="cp-detalhe">
                     <li>{p.avaliou ? 'Já avaliou o combo' : 'Ainda não avaliou'}</li>
@@ -62,7 +90,9 @@ export function Excecoes({ edicao, pode }) {
                 </td>
                 {contato && <td>{contatoDe(p) || '—'}</td>}
                 <td className="cp-nota-celula">
-                  <Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>
+                  {aguardandoACasa(p)
+                    ? <Selo tom="andamento">{p.codigo_expirado ? 'Código vencido' : 'Aguardando a casa'}</Selo>
+                    : <Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>}
                   {p.decidido_em && <span className="cp-sub"> {p.decidido_por || ''} · {horaNatal(p.decidido_em)}{p.decisao_nota ? ` · ${p.decisao_nota}` : ''}</span>}
                 </td>
                 {gerir && (

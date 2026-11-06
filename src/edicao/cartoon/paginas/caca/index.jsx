@@ -18,11 +18,12 @@ import GrupoDetalhe from '../../../caca/secoes/GrupoDetalhe.jsx'
 import Ranking from '../../../caca/secoes/Ranking.jsx'
 import Metas from '../../../caca/secoes/Metas.jsx'
 import Compartilhar from '../../../caca/secoes/Compartilhar.jsx'
+import { Delivery } from '../../../caca/delivery/Delivery.jsx'
 import Convite from '../../../caca/secoes/Convite.jsx'
 import { ManifestoDaCaca } from '../../../caca/pwa/ManifestoDaCaca.jsx'
 
 // Seções que só fazem sentido com mapa: sem ele, mostram a criação rápida no lugar do conteúdo.
-const PRECISA_DE_MAPA = ['grupos', 'grupo', 'metas', 'compartilhar']
+const PRECISA_DE_MAPA = ['grupos', 'grupo', 'metas', 'compartilhar', 'delivery']
 // Seções que funcionam sem esperar (nem depender de) a leitura do mapa: lidam sozinhas com `caca.estado`.
 const INDEPENDENTES = ['recuperar', 'ranking', 'convite']
 
@@ -35,6 +36,7 @@ function Conteudo ({ secao, caca, navigate, dados, grupoId, token }) {
     case 'grupo': return <GrupoDetalhe {...extra} grupoId={grupoId} />
     case 'metas': return <Metas {...extra} />
     case 'compartilhar': return <Compartilhar {...extra} />
+    case 'delivery': return <Delivery {...extra} />
     case 'convite':
       return token
         ? <Convite {...extra} token={token} />

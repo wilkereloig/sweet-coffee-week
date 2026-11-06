@@ -299,6 +299,8 @@ export const ROTULO_EVENTO = Object.freeze({
   sorteio_final: 'Ganhador sorteado', sorteio_final_realizado: 'Sorteio final realizado', config_gravar: 'Regra alterada',
   excecao_pedida: 'Pedido de presença', excecao_aprovada: 'Presença aprovada', excecao_negada: 'Presença negada',
   visita_anterior_pedida: 'Visita anterior pedida', visita_anterior_aprovada: 'Visita anterior aprovada', visita_anterior_negada: 'Visita anterior negada',
+  delivery_pedido: 'Delivery pedido', delivery_confirmado: 'Delivery confirmado pela casa', delivery_imagem_enviada: 'Delivery: imagem enviada',
+  delivery_aprovado: 'Delivery aprovado', delivery_negado: 'Delivery negado',
 })
 export const rotuloEvento = (a) => ROTULO_EVENTO[a] || String(a || '')
 const curto = (v) => { const s = typeof v === 'string' ? v : JSON.stringify(v); return s && s.length > 48 ? s.slice(0, 47) + '…' : String(s) }
@@ -321,6 +323,8 @@ export const ROTULO_ORIGEM = Object.freeze({
   unidade_sem_coordenada: 'Unidade sem ponto conferido',
   excecao_painel: 'Exceção feita pelo painel',
   visita_anterior: 'Visita anterior aprovada',
+  delivery_casa: 'Delivery confirmado pela casa',
+  delivery_organizacao: 'Delivery aprovado pela organização',
 })
 export const rotuloOrigem = (o) => ROTULO_ORIGEM[o] || String(o || '')
 
@@ -560,6 +564,9 @@ export const cacaApi = {
   // Pedidos de revisão de presença (GPS) e o resumo de carimbos sem GPS (15-caca-contrato-gps.md).
   excecoes: (edicao, estado, f) => rpc('caca_excecao_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null }, f),
   decidirExcecao: (id, decisao, nota, f) => rpc('caca_excecao_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),
+  // Imagem do pedido de delivery (bucket privado caca-delivery): link de 300 s e exclusão manual (sem prazo de retenção aprovado).
+  imagemDelivery: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: 'caca-delivery', path }),
+  removerImagemDelivery: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'remover', bucket: 'caca-delivery', path }),
   gpsResumo: (edicao, f) => rpc('caca_gps_resumo', { p_secret: lerSenha(), p_edicao: edicao }, f),
   /** SIMULAÇÃO. `dry_run` é fixo em true: a função só conta quem receberia. */
   simularPush: (tipo, f) => chamarFuncao('caca-push', { secret: lerSenha(), tipo, dry_run: true, titulo: 'Simulação', corpo: 'Simulação de alcance: nada é enviado.' }, f),

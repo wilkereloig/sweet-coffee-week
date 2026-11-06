@@ -5,6 +5,7 @@ import { normalizarCodigo, recadoDoVoucher, estadoDoBalcao } from '../../lib/vou
 import { voucherPendente, limparVoucherPendente } from '../../lib/voucherPendente'
 import { LerQrVoucher, leitorDeQrDisponivel, TEXTO_SEM_LEITOR } from './LerQrVoucher'
 import { AjudaCarimbo } from './AjudaCarimbo'
+import { CarimboDelivery } from './CarimboDelivery'
 import { Secao, Erro } from '../ui'
 import { Icone } from '../Icone'
 import '../../styles/vouchers-virtuais.css'
@@ -32,6 +33,7 @@ export function VouchersMarca({ className }) {
   const [digitando, setDigitando] = React.useState(() => !!voucherPendente())
   const [lendo, setLendo] = React.useState(false)
   const [ajuda, setAjuda] = React.useState(false)
+  const [delivery, setDelivery] = React.useState(false)
   const campo = React.useRef(null)
   const cartao = React.useRef(null)
 
@@ -114,6 +116,10 @@ export function VouchersMarca({ className }) {
             <Icone nome="informacao" tamanho={28} />
             <span>Ajudar com carimbo</span>
           </button>
+          <button type="button" className="bal-acao" onClick={() => setDelivery(true)}>
+            <Icone nome="pedido" tamanho={28} />
+            <span>Carimbo de delivery</span>
+          </button>
         </div>
 
         {estado.tipo === 'sem-vouchers' && <p className="ui-nota" role="status">Sua marca não tem vouchers nesta edição, então não há o que registrar aqui.</p>}
@@ -144,6 +150,7 @@ export function VouchersMarca({ className }) {
         )}
       </div>
       <AjudaCarimbo aberto={ajuda} onFechar={() => setAjuda(false)} />
+      <CarimboDelivery aberto={delivery} onFechar={() => setDelivery(false)} />
     </Secao>
   )
 }
