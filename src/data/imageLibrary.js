@@ -496,7 +496,9 @@ const ICONES_EDICAO = new Set(('inicio casas mapa rota avaliar premio no-local p
   + 'sem-lactose sem-acucar endereco horario aberto-agora conversar como-chegar quero-ir ja-fui progresso '
   + 'compartilhar vazio erro '
   // 06/11/2026, atalhos do mapa: troféu (recorte do troféu desenhado) e pódio — scripts/edicao/icones-atalhos.py
-  + 'trofeu podio').split(' '))
+  + 'trofeu podio '
+  // 06/11/2026, atalho do carimbo de delivery: sacola + selo de check (a moto de `delivery` lê como "pedir delivery")
+  + 'carimbo-delivery').split(' '))
 
 /** Ícone ilustrado da edição (192×192, exibir a 32, 48 ou 64 px), ou `null`. Nunca carrega função sozinho: leva texto ao lado. */
 export function iconeEdicao(nome) {

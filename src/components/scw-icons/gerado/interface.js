@@ -18,6 +18,7 @@ export default {
   "cadeado": {"t":"Cadeado — protegido","e":[["rect",{"x":"5","y":"10.5","width":"14","height":"10","rx":"2.5"}],["path",{"d":"M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"}],["circle",{"cx":"12","cy":"15.5","r":"1.4"},"solido"]]},
   "calendario": {"t":"Calendário — datas e período","e":[["rect",{"x":"3.5","y":"5","width":"17","height":"15.5","rx":"2.5"}],["path",{"d":"M3.5 10h17"}],["path",{"d":"M8 3v4M16 3v4"}]]},
   "camera": {"t":"Fotos — câmera","e":[["path",{"d":"M3.5 8.5a2 2 0 0 1 2-2h2.3l1.5-2.2h5.4l1.5 2.2h2.3a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"}],["circle",{"cx":"12","cy":"13","r":"3.6"}]]},
+  "carimbo-delivery": {"t":"Carimbo do delivery","e":[["path",{"d":"M5.5 7.5h13a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20V9a1.5 1.5 0 0 1 1.5-1.5Z"}],["path",{"d":"M8.5 7.5V6a3.5 3.5 0 0 1 7 0v1.5"}],["path",{"d":"M8.5 14.2l2.6 2.6 4.4-4.6"}]]},
   "carregando": {"t":"Carregando","e":[["path",{"d":"M12 3.5a8.5 8.5 0 1 1-8.5 8.5"}]]},
   "celular": {"t":"Celular","e":[["rect",{"x":"6.5","y":"2.5","width":"11","height":"19","rx":"2.5"}],["path",{"d":"M10.5 18h3"}]]},
   "chave": {"t":"Chave — acesso ao painel","e":[["circle",{"cx":"8","cy":"15.5","r":"4"}],["path",{"d":"M10.9 12.6 19.5 4"}],["path",{"d":"M15.5 8l2.5 2.5M18 5.5l2 2"}]]},

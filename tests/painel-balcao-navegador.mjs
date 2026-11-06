@@ -144,7 +144,7 @@ async function principal() {
       const { ctx, page, erros } = await abrir(nav, { vouchers: VOUCHERS }, [390, 844])
       await irPara(page, '#inicio')
       const t = await textoDe(page)
-      ok(/Escanear QR do voucher/.test(t) && /Digitar código do voucher/.test(t) && /Ajudar com carimbo/.test(t), 'três atalhos visíveis')
+      ok(/Escanear QR do voucher/.test(t) && /Digitar código do voucher/.test(t) && /Ajudar o cliente a carimbar/.test(t), 'atalhos visíveis')
       const pos = await page.evaluate(() => {
         const ids = ['.bal', '.im-identificacao, .gm-identificacao, [data-bloco="identificacao"]']
         const bal = document.querySelector('.bal'); const vista = document.querySelector('.pn-vista')
@@ -240,7 +240,7 @@ async function principal() {
       const t = await textoDe(page)
       ok(/não tem vouchers nesta edição/i.test(t), 'sem vouchers: diz o motivo')
       ok(await page.getByRole('button', { name: /Escanear QR do voucher/ }).isDisabled(), 'escanear fica desligado')
-      ok(!(await page.getByRole('button', { name: /Ajudar com carimbo/ }).isDisabled()), 'a ajuda com carimbo segue ligada')
+      ok(!(await page.getByRole('button', { name: /Ajudar o cliente a carimbar/ }).isDisabled()), 'a ajuda com carimbo segue ligada')
       await capturar(page, 'b6-sem-vouchers', 390)
       await ctx.close()
       const caida = await abrir(nav, {}, [390, 844])
@@ -251,12 +251,12 @@ async function principal() {
       await caida.ctx.close()
     }
 
-    console.log('B7 Ajudar com carimbo: orientação, sem poder de aprovar e sem chamada ao servidor')
+    console.log('B7 Ajudar o cliente a carimbar: orientação, sem poder de aprovar e sem chamada ao servidor')
     {
       const { ctx, page, b } = await abrir(nav, { vouchers: VOUCHERS }, [390, 844])
       await irPara(page, '#inicio')
       const antes = Object.keys(b.chamadas).length
-      await page.getByRole('button', { name: /Ajudar com carimbo/ }).click()
+      await page.getByRole('button', { name: /Ajudar o cliente a carimbar/ }).click()
       await dormir(600)
       const t = await textoDe(page)
       ok(/Estou na casa e o GPS não funciona/.test(t), 'cita o pedido de revisão existente')

@@ -1,4 +1,5 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
+Balcão da casa: os botões agora dizem o que fazem, e "Carimbo de delivery" virou "Confirmar carimbo de delivery", com ícone próprio.
 Se a tela travar, o painel agora avisa com um botão Recarregar e anota o que aconteceu (Conta › Verificar atualização › Copiar registro).
 Caça aos Carimbos › Avisos: agora dá para criar um aviso, revisar quantas pessoas recebem, enviar de propósito (central e celular) e cancelar antes do envio. Imprevisto confirmado vai só para quem tem a casa na rota.
 Balcão: no Início da marca, escanear ou digitar o voucher do cliente e ajudar com o carimbo ficam logo no topo; na Visão geral da equipe, atalhos para Vouchers e Pedidos de carimbo.

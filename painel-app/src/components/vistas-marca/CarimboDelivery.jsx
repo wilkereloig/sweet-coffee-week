@@ -42,7 +42,7 @@ export function CarimboDelivery({ aberto, onFechar }) {
   }
 
   return (
-    <Folha aberto={aberto} onFechar={onFechar} titulo="Carimbo de delivery" sub="Para o cliente que pediu por delivery e já recebeu o combo.">
+    <Folha aberto={aberto} onFechar={onFechar} titulo="Confirmar carimbo de delivery" sub="Para o cliente que pediu por delivery e já recebeu o combo.">
       <div className="bal-ajuda">
         {!pedido && (
           <form className="ui-form ui-form--linha-dupla" onSubmit={consultar}>

@@ -44,7 +44,7 @@ test('tela da casa: chama só consultar e confirmar, em duas etapas, sem guardar
   assert.doesNotMatch(f, /localStorage|sessionStorage|console\.|history\.|location\./)
   assert.match(f, /Nunca peça o link nem a chave do mapa/)
   const v = ler('painel-app/src/components/vistas-marca/VouchersMarca.jsx')
-  assert.match(v, /Carimbo de delivery/); assert.match(v, /<CarimboDelivery aberto=\{delivery\}/)
+  assert.match(v, /Confirmar carimbo de delivery/); assert.match(v, /<CarimboDelivery aberto=\{delivery\}/)
   assert.match(ler('painel-app/src/lib/sync/dominios.js'), /caca_delivery_confirmar: \['carimbos'\]/)
 })
 
@@ -84,5 +84,5 @@ test('imagem na organização: link por arquivo-url (300 s), exclusão manual co
 test('o texto da ajuda do balcão não promete mais que a casa nunca cria carimbo: a exceção do delivery está dita', () => {
   const a = ler('painel-app/src/components/vistas-marca/AjudaCarimbo.jsx')
   assert.match(a, /A casa não aprova carimbo presencial nem de outra casa/)
-  assert.match(a, /Carimbo de delivery/)
+  assert.match(a, /Confirmar carimbo de delivery/)
 })

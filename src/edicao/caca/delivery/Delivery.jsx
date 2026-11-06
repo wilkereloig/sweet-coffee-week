@@ -1,5 +1,5 @@
 /*
- * "Pedi por delivery": pedido de carimbo de quem recebeu o combo em casa, sem GPS. Dois caminhos, o primeiro é o principal:
+ * "Carimbo do meu delivery": pedido de carimbo de quem recebeu o combo em casa, sem GPS. Dois caminhos, o primeiro é o principal:
  *   1) CASA confirma: o pedido nasce com um código temporário (uso único) que a pessoa manda à casa; a casa confirma no painel dela.
  *   2) IMAGEM: print ou foto do pedido, que a ORGANIZAÇÃO analisa. A imagem fica em armazenamento privado.
  * Enviar não carimba nem conta nada. O estado é sempre o do servidor; o que a pessoa preencheu não se perde quando o envio falha.

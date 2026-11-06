@@ -8,7 +8,7 @@ carimbo só vira casa **validada** depois da avaliação do combo com o mesmo e-
 
 | Passo | Onde | O que acontece |
 |---|---|---|
-| 1 | Ficha da casa (só com delivery declarado "sim") · Central da Caça (atalho) | "Pedi por delivery" → `/cartoon/caca/delivery?casa=<slug>` |
+| 1 | Ficha da casa (só com delivery declarado "sim") · Central da Caça (atalho) | "Carimbo do meu delivery" (ficha: "Pedir carimbo do meu delivery") → `/cartoon/caca/delivery?casa=<slug>` |
 | 2 | Formulário | casa · unidade (se houver mais de uma com delivery) · data do pedido · referência (opcional) · observação |
 | 3a | **Confirmar com a casa** (principal) | `caca_delivery_pedir` já devolve um código temporário (6 caracteres, 24 h, uso único); a pessoa o manda à casa pelo canal do pedido |
 | 3b | Casa, balcão do painel | botão **Carimbo de delivery**: digita o código → vê o essencial → **Confirmar entrega** (`caca_delivery_consultar` / `_confirmar`) |

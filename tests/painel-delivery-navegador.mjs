@@ -125,9 +125,9 @@ async function principal() {
       b.rpcs.caca_delivery_confirmar = (c) => { visto.codigo = c.p_codigo; return { ok: true, estado: 'aprovado', carimbo_id: 'k1' } }
       await irPara(page, '#inicio')
       const botoes = await page.evaluate(() => [...document.querySelectorAll('.bal-acao')].map((e) => ({ t: e.innerText.trim(), h: Math.round(e.getBoundingClientRect().height) })))
-      ok(botoes.some((x) => /Carimbo de delivery/.test(x.t)), 'o balcão tem o botão "Carimbo de delivery"')
+      ok(botoes.some((x) => /Confirmar carimbo de delivery/.test(x.t)), 'o balcão tem o botão "Confirmar carimbo de delivery"')
       ok(botoes.every((x) => x.h >= 44), 'alvos de toque com 44px ou mais (' + botoes.map((x) => x.h).join(',') + ')')
-      await page.getByRole('button', { name: /Carimbo de delivery/ }).click()
+      await page.getByRole('button', { name: /Confirmar carimbo de delivery/ }).click()
       await dormir(500)
       const campo = page.getByLabel('Código que o cliente enviou')
       ok(await campo.count() === 1, 'abre o painel com o campo do código')

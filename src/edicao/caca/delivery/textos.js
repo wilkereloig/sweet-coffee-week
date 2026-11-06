@@ -3,11 +3,12 @@
  * quando a casa confirma (ou a organização aprova) e só vira casa validada depois da avaliação do combo com o mesmo e-mail do mapa.
  */
 export const DELIVERY = {
-  titulo: 'Pedi por delivery',
+  titulo: 'Carimbo do meu delivery',
   secao: 'Como pedir o carimbo',
   lead: 'Pediu o combo por delivery e já recebeu? Peça o seu carimbo sem precisar ir até a casa. Não usamos a sua localização.',
-  acaoFicha: 'Pedi por delivery',
-  acaoFichaDica: 'Peça o carimbo do combo que você recebeu em casa.',
+  acaoFicha: 'Pedir carimbo do meu delivery',
+  acaoFichaIcone: 'carimbo-delivery', // ícone ilustrado da edição (imageLibrary › iconeEdicao)
+  acaoFichaDica: 'Já recebeu o combo em casa? Peça o carimbo aqui, sem ir até a casa.',
   comoFunciona: [
     'Não usamos a sua localização: este pedido não liga o GPS.',
     'O caminho principal é a casa confirmar: você recebe um código temporário e manda para a casa pelo mesmo canal em que fez o pedido.',

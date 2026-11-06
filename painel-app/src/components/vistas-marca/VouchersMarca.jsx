@@ -105,20 +105,20 @@ export function VouchersMarca({ className }) {
       <div ref={cartao} className="bal">
         <div className="bal-acoes">
           <button type="button" className="bal-acao bal-acao--principal" onClick={escanear} disabled={desligado} aria-pressed={lendo}>
-            <Icone nome="camera" tamanho={28} />
-            <span>{lendo ? 'Parar de escanear' : 'Escanear QR do voucher'}</span>
+            <Icone nome="camera" tamanho={24} />
+            <span className="bal-acao__texto"><span>{lendo ? 'Parar de escanear' : 'Escanear QR do voucher'}</span><small>{lendo ? 'A câmera está aberta' : 'Aponte a câmera para o voucher do cliente'}</small></span>
           </button>
           <button type="button" className="bal-acao" onClick={digitar} disabled={desligado}>
-            <Icone nome="editar" tamanho={28} />
-            <span>Digitar código do voucher</span>
+            <Icone nome="editar" tamanho={24} />
+            <span className="bal-acao__texto"><span>Digitar código do voucher</span><small>Se o QR não abrir: SCW-XXXXX</small></span>
           </button>
           <button type="button" className="bal-acao bal-acao--ajuda" onClick={() => setAjuda(true)}>
-            <Icone nome="informacao" tamanho={28} />
-            <span>Ajudar com carimbo</span>
+            <Icone nome="informacao" tamanho={24} />
+            <span className="bal-acao__texto"><span>Ajudar o cliente a carimbar</span><small>Passo a passo se o QR ou o GPS falhar</small></span>
           </button>
           <button type="button" className="bal-acao" onClick={() => setDelivery(true)}>
-            <Icone nome="pedido" tamanho={28} />
-            <span>Carimbo de delivery</span>
+            <Icone nome="carimbo-delivery" tamanho={24} />
+            <span className="bal-acao__texto"><span>Confirmar carimbo de delivery</span><small>Cliente que recebeu em casa: digite o código que ele mandou</small></span>
           </button>
         </div>
 

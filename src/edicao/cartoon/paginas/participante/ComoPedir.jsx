@@ -114,7 +114,7 @@ export function ComoPedir ({ p }) {
       {/* Carimbo de delivery (Caça): só com delivery declarado "sim" por alguma unidade ("não informado" não é delivery). */}
       {M.estadoModo(p, 'delivery').estado === 'sim' && p.slug && (
         <div className="ct-delivery__carimbo">
-          <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`}>{TD.acaoFicha}</Botao>
+          <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`}><IconeCartoon nome={TD.acaoFichaIcone} tamanho={32} />{TD.acaoFicha}</Botao>
           <p className="ct-delivery__nota">{TD.acaoFichaDica}</p>
         </div>
       )}

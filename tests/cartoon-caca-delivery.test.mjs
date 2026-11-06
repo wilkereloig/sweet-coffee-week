@@ -150,7 +150,7 @@ test('nada de chave, código ou imagem em console, analytics, URL ou armazenamen
   }
 })
 
-test('a ficha só oferece "Pedi por delivery" com delivery declarado "sim"', () => {
+test('a ficha só oferece "Pedir carimbo do meu delivery" com delivery declarado "sim"', () => {
   const f = ler('src/edicao/cartoon/paginas/participante/ComoPedir.jsx')
   assert.match(f, /estadoModo\(p, 'delivery'\)\.estado === 'sim'[\s\S]{0,200}CACA_CAMINHOS\.delivery/)
 })

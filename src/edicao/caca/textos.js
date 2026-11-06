@@ -36,7 +36,7 @@ export const CACA = {
     grupo: 'Seu grupo',
     metas: 'Metas',
     compartilhar: 'Compartilhar meu progresso',
-    delivery: 'Pedi por delivery',
+    delivery: 'Carimbo do meu delivery',
     convite: 'Convite para um grupo',
   },
   leads: {
@@ -118,7 +118,7 @@ export const CACA = {
       { chave: 'rota', desenho: 'rota', rotulo: 'Minha rota' },
       { chave: 'metas', desenho: 'progresso', rotulo: 'Metas' },
       { chave: 'compartilhar', desenho: 'compartilhar', rotulo: 'Compartilhar' },
-      { chave: 'delivery', desenho: 'delivery', rotulo: 'Pedi por delivery' },
+      { chave: 'delivery', desenho: 'carimbo-delivery', rotulo: 'Carimbo do meu delivery' },
     ],
   },
   rodape: { regulamento: 'Regulamento' },

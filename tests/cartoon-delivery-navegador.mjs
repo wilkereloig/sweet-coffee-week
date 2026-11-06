@@ -207,12 +207,12 @@ try {
   for (const [p, deve] of [[comDelivery, true], [semDelivery, false]]) {
     const t = await abrir(nav, { w: 390, h: 844, toque: true, url: `/cartoon/participantes/${p.slug}?preview=1` })
     await t.page.waitForSelector('h1', { timeout: 30000 })
-    const n = await t.page.getByRole('link', { name: 'Pedi por delivery' }).count()
-    checar(deve ? n === 1 : n === 0, `${p.slug}: ${deve ? 'tem' : 'não tem'} o botão "Pedi por delivery"`)
+    const n = await t.page.getByRole('link', { name: 'Pedir carimbo do meu delivery' }).count()
+    checar(deve ? n === 1 : n === 0, `${p.slug}: ${deve ? 'tem' : 'não tem'} o botão "Pedir carimbo do meu delivery"`)
     if (deve && n === 1) {
-      const href = await t.page.getByRole('link', { name: 'Pedi por delivery' }).getAttribute('href')
+      const href = await t.page.getByRole('link', { name: 'Pedir carimbo do meu delivery' }).getAttribute('href')
       checar(href === `/cartoon/caca/delivery?casa=${encodeURIComponent(p.slug)}`, 'o botão leva à tela com a casa escolhida')
-      await t.page.getByRole('link', { name: 'Pedi por delivery' }).scrollIntoViewIfNeeded()
+      await t.page.getByRole('link', { name: 'Pedir carimbo do meu delivery' }).scrollIntoViewIfNeeded()
       await t.page.screenshot({ path: join(CAPTURAS, 'ficha-botao.png') })
     }
     await t.ctx.close()

@@ -64,17 +64,23 @@ button.im-linha{cursor:pointer}
 .bal{display:grid;gap:var(--e-3)}
 .bal-acoes{display:grid;grid-template-columns:1fr;gap:var(--e-3)}
 .bal-acao{
-  display:flex;align-items:center;justify-content:center;gap:var(--e-3);
+  display:flex;align-items:center;justify-content:flex-start;gap:var(--e-3);
   min-height:64px;padding:var(--e-3) var(--e-4);border:0;border-radius:var(--r-2);cursor:pointer;
   background:var(--sup-1);color:var(--scw-choco);box-shadow:var(--contorno);
-  font:700 16px/1.25 var(--f-ui);text-align:center;
+  font:700 16px/1.25 var(--f-ui);text-align:left;
 }
+.bal-acao .ui-icone{flex:none}
+/* Cada botão diz o que faz (06/11/2026): título + uma linha de apoio, em vez de só o nome curto. */
+.bal-acao__texto{display:grid;gap:2px;min-width:0}
+.bal-acao__texto small{font:400 13px/1.3 var(--f-texto);color:var(--scw-marrom)}
+.bal-acao--principal .bal-acao__texto small{color:var(--scw-choco)}
+.bal-acao[aria-pressed="true"] .bal-acao__texto small{color:var(--scw-creme)}
 .bal-acao--principal{background:var(--scw-amarelo);box-shadow:none}
 .bal-acao:hover:not(:disabled){box-shadow:var(--contorno),var(--sombra-2)}
 .bal-acao:focus-visible{outline:3px solid var(--scw-choco);outline-offset:2px}
 .bal-acao:disabled{opacity:.5;cursor:not-allowed}
 .bal-acao[aria-pressed="true"]{background:var(--scw-choco);color:var(--scw-creme)}
-@media (min-width:700px){ .bal-acoes{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))} }
+@media (min-width:700px){ .bal-acoes{grid-template-columns:repeat(2,minmax(0,1fr))} }
 .bal-pedido{display:grid;gap:6px;margin:0 0 var(--e-3)}
 .bal-pedido>div{display:flex;flex-wrap:wrap;gap:4px 10px;padding:8px 0;border-bottom:1px solid rgba(61,19,8,.14)}
 .bal-pedido dt{font-weight:700}
