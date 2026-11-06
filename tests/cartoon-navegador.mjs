@@ -689,8 +689,7 @@ try {
     await filtrar(c, 'Já fui')
     if ((await c.page.locator('.ct-mapa__item').count()) !== 2) falha('filtro "Já fui" (as duas unidades da casa)')
     // "Perto de mim" sem permissão: mensagem honesta, a lista segue.
-    await c.page.click('.ct-mapa__filtros-botao')
-    await c.page.click('button:has-text("Perto de mim")')
+    await c.page.click('.ct-mapa__perto-botao')
     await c.page.waitForSelector('text=Sem acesso à sua localização', { timeout: 12000 }).catch(() => falha('recusa da localização sem mensagem'))
     await c.ctx.close()
     // ?bairro= (contrato da Entrada): só as unidades daquele bairro, e o seletor mostra o bairro.
@@ -705,10 +704,8 @@ try {
     // Com a posição: ordena pela distância em linha reta.
     c = await contexto(nav, { opcoes: { permissions: ['geolocation'], geolocation: { latitude: -5.876, longitude: -35.178 } } })
     await ir(c.page, '/cartoon/mapa?vista=lista')
-    await c.page.click('.ct-mapa__filtros-botao')
-    await c.page.click('button:has-text("Perto de mim")')
+    await c.page.click('.ct-mapa__perto-botao')
     await c.page.waitForSelector('text=Ordenado pela distância em linha reta', { timeout: 12000 }).catch(() => falha('posição concedida sem ordenar'))
-    await c.page.keyboard.press('Escape')
     if (!(await c.page.locator('.ct-mapa__item').first().innerText()).includes('em linha reta')) falha('distância sem "em linha reta"')
     await c.ctx.close()
     if (falhas.length === antes) ok('Mapa: canal Rota, linha por unidade, "em conferência", aproximada na lista e no marcador, quero ir/já fui, ?bairro=, perto de mim (recusa e posição)')

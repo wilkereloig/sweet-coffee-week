@@ -35,7 +35,7 @@ import { useCaca } from '../../../caca/useCaca.js'
 import { CartaoEmail } from '../../../caca/CartaoEmail.jsx'
 import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
 import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
-import { contarFiltros, casasEEnderecos, enderecosDaCasa, podeLocalizar } from '../../../caca/mapa/tela.js'
+import { contarFiltros, casasEEnderecos, enderecosDaCasa, motivoSemLocalizacao, estadoDoErro } from '../../../caca/mapa/tela.js'
 import { useConquistas } from '../../../caca/mapa/useConquistas.js'
 import { ProgressoPessoal } from '../../../caca/mapa/Progresso.jsx'
 import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
@@ -64,6 +64,7 @@ import { LogoDoPin, logoDoPin } from './LogoDoPin.jsx'
 import { Mundo } from './Mundo.jsx'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { PainelRota } from './PainelRota.jsx'
+import { BotaoPerto, AvisoPerto } from './Perto.jsx'
 import { useTelaCheia } from './useTelaCheia.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
@@ -103,7 +104,12 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
   const [pedidoAtalho, setPedidoAtalho] = React.useState(null)
   const [posicao, setPosicao] = React.useState(null)
-  const [geo, setGeo] = React.useState(podeLocalizar() ? 'disponivel' : 'indisponivel')
+  // geo: disponivel · pedindo · ok · negada · demorou · indisponivel (erros do navegador) · inseguro · suporte (nem dá para tentar).
+  // `perto`: a pessoa tocou em "Perto de mim" — só então a lista ordena, o mapa real a marca e o aviso aparece. `foco.n` conta os toques que enquadram o mapa.
+  const [geo, setGeo] = React.useState(() => motivoSemLocalizacao() || 'disponivel')
+  const [perto, setPerto] = React.useState(false)
+  const [foco, setFoco] = React.useState(null)
+  const aguardaFoco = React.useRef(false)
   const [provedor, setProvedor] = React.useState(import.meta.env.VITE_GOOGLE_MAPS_KEY ? 'google' : 'maplibre')
   const usarReserva = React.useCallback(() => setProvedor('maplibre'), [])
   const MapaUnidades = provedor === 'google' ? MapaGoogle : MapaLibre
@@ -121,7 +127,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const estadoDe = (slug) => (casasMapa ? estadoDaCasa(casasMapa.get(slug)) : null)
   const revisitasDe = (slug) => (casasMapa ? revisitasDaCasa(casasMapa.get(slug)) : 0)
   const filtroEstado = casasMapa ? f.estado : ''
-  const linhas = filtrarPorEstado(M.unidadesDoMapa(lista, filtro, marcas, { periodo, posicao }), filtroEstado, casasMapa)
+  const linhas = filtrarPorEstado(M.unidadesDoMapa(lista, filtro, marcas, { periodo, posicao: perto ? posicao : null }), filtroEstado, casasMapa)
   const noMapa = linhas.filter((x) => x.u.coordenada)
   const todas = M.unidadesDoMapa(lista, {}, marcas, { periodo })
   const agencias = React.useMemo(() => agenciasSicredi(mundo.sicredi), [mundo])
@@ -210,21 +216,33 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
   const lerPosicao = React.useCallback((idadeMaxMs) => {
     navigator.geolocation.getCurrentPosition(
-      (p) => { setPosicao({ lat: p.coords.latitude, lng: p.coords.longitude }); setGeo('ok') },
-      () => setGeo((g) => (g === 'ok' ? g : 'negada')), // falha de uma releitura não apaga a posição que já temos
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: idadeMaxMs },
+      (p) => { setPosicao({ lat: p.coords.latitude, lng: p.coords.longitude, precisao: p.coords.accuracy }); setGeo('ok') },
+      (e) => setGeo((g) => (g === 'ok' ? g : estadoDoErro(e?.code))), // falha de uma releitura não apaga a posição que já temos; cada erro tem a sua mensagem
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: idadeMaxMs },
     )
   }, [])
+  // O botão da barra. O navegador só pergunta aqui; com a posição já lida, o toque só mostra de novo (e enquadra) sem perguntar nada.
   const localizar = () => {
+    setPerto(true)
+    aguardaFoco.current = true
+    if (geo === 'pedindo') return // leitura já em curso (a automática da abertura): só espera o resultado
+    if (geo === 'ok' && posicao) { setFoco((f) => ({ n: (f?.n || 0) + 1 })); aguardaFoco.current = false; lerPosicao(30000); return }
+    if (geo === 'inseguro' || geo === 'suporte') return
     setGeo('pedindo')
-    lerPosicao(300000)
+    lerPosicao(60000)
   }
+  const sairDePerto = () => { setPerto(false); aguardaFoco.current = false }
+  React.useEffect(() => {
+    if (!aguardaFoco.current || geo === 'pedindo') return
+    if (geo === 'ok' && posicao) setFoco((f) => ({ n: (f?.n || 0) + 1 }))
+    aguardaFoco.current = false
+  }, [geo, posicao])
   // O navegador só pergunta quando a pessoa usa "Perto de mim"; abrir ou tocar no mapa nunca pede a localização.
   // Permissão já concedida em outra visita: lê sem perguntar. E relê ao voltar para a aba e quando uma casa é validada,
   // para o "próximo passo" seguir a pessoa (a segunda mais perto, depois a terceira…). Sem leitura contínua: gasta bateria.
   const validadas = meu.mapa?.casas_validadas
   React.useEffect(() => {
-    if (!podeLocalizar()) return undefined
+    if (motivoSemLocalizacao()) return undefined
     let vivo = true
     if (geo === 'disponivel') {
       navigator.permissions?.query({ name: 'geolocation' }).then((r) => { if (vivo && r.state === 'granted') { setGeo('pedindo'); lerPosicao(300000) } }).catch(() => {})
@@ -276,6 +294,17 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
       onClick={() => (cheia ? setPedidoAtalho((p) => ({ chave: 'rota', n: (p?.n || 0) + 1 })) : setPainelAberto(true))}>
       <ScwIcon nome="trajeto" tamanho={20} /><span>{TC.minhaRota}</span>{rota.ids.length > 0 && <b className="ct-mapa__filtros-conta" aria-hidden="true">{rota.ids.length}</b>}
     </button>
+  )
+  // Perto de mim: as três unidades mais perto (já filtradas e ordenadas), as sem ponto, e se a pessoa está longe demais para "perto" fazer sentido.
+  const posicaoViva = perto ? posicao : null
+  const proximas = posicaoViva ? linhas.filter((x) => x.dist != null).slice(0, 3) : []
+  const semCoordenada = posicaoViva ? linhas.filter((x) => x.dist == null).length : 0
+  const longe = proximas.length > 0 && proximas[0].dist > 60
+  const focoDoMapa = foco && posicaoViva && proximas.length && !longe ? { n: foco.n, pontos: [posicaoViva, ...proximas.map((x) => x.u.coordenada)] } : null
+  const botaoPerto = <BotaoPerto geo={geo} ativo={perto && geo === 'ok'} aoTocar={localizar} />
+  const avisoPerto = (
+    <AvisoPerto geo={geo} posicao={posicaoViva} proximas={proximas} semCoordenada={semCoordenada} longe={longe} vista={vista} cheia={cheia}
+      podeReal={noMapa.length > 0} aoVista={setVista} aoTentar={localizar} aoSair={sairDePerto} aoEscolher={escolher} />
   )
   const rotaEl = (
     <PainelRota dados={dados} navigate={navigate} paradas={paradas} pendentes={faltam} compartilhada={vendoCompartilhada ? compartilhada : null}
@@ -340,7 +369,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
             {...(cheia ? { role: 'dialog', 'aria-modal': true, 'aria-label': TC.telaCheiaRegiao } : {})}>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
-              aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} />
+              aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} botaoPerto={cheia ? null : botaoPerto} />
 
             <div className="ct-mapa__resumo">
               <p className="ct-catalogo__conta" aria-live="polite">{resumo}</p>
@@ -348,6 +377,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                 ? <button type="button" className="ct-link" onClick={() => setF(VAZIO)}>{T.limpar}</button>
                 : nEnderecos > nCasas && <p className="ct-mapa__resumo-regra">{TC.casasEnderecosCurta}</p>}
             </div>
+
+            {perto && avisoPerto}
 
             <div ref={moldura} className="ct-mapa__moldura">
               {podeAmpliar && (
@@ -371,7 +402,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                     : (
                       <React.Suspense fallback={<p className="ct-nota" role="status">{T.carregando}</p>}>
                         <ErroDoMapa>
-                          <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={posicao} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
+                          <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={perto ? posicao : null} foco={focoDoMapa} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
                             pontos={[
                               ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, pin: pinDe(p, u) })),
                               ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src }),
@@ -443,7 +474,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                     <LegendaEstados comEstados={false} sicrediImagem={MARCAS_PARCEIROS.sicredi.src}>
                       <ul className="ct-legenda" aria-label="Legenda do mapa">
                         <li className="ct-legenda__nota">{T.legendaPins}</li>
-                        {Object.entries(T.legenda).filter(([k]) => k !== 'voce' || posicao).map(([k, texto]) => <li key={k}><span className={`ct-legenda__ponto ct-legenda__ponto--${k}`} aria-hidden="true" />{texto}</li>)}
+                        {Object.entries(T.legenda).filter(([k]) => k !== 'voce' || (perto && posicao)).map(([k, texto]) => <li key={k}><span className={`ct-legenda__ponto ct-legenda__ponto--${k}`} aria-hidden="true" />{texto}</li>)}
                       </ul>
                     </LegendaEstados>
                   )}
@@ -454,11 +485,11 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
             {cheia && (
               <Atalhos placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
-                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} pedido={pedidoAtalho} />
+                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} pedido={pedidoAtalho} extra={botaoPerto} />
             )}
             {cheia && cartao}
             <Folha variante="filtros" aberta={filtrosAbertos} titulo={TC.filtrosTitulo} rotuloFechar={TC.fecharFiltros} aoFechar={() => setFiltrosAbertos(false)}>
-              <CorpoDosFiltros f={f} muda={muda} opcoes={opcoes} bairroOpcao={bairroOpcao} temEstado={!!casasMapa} hoje={opcoes.hoje} geo={geo} localizar={localizar}
+              <CorpoDosFiltros f={f} muda={muda} opcoes={opcoes} bairroOpcao={bairroOpcao} temEstado={!!casasMapa} hoje={opcoes.hoje}
                 comBusca={cheia} aoBuscar={(v) => muda('q', v)} total={linhas.length} ativos={ativos} aoLimpar={() => setF(VAZIO)} aoAplicar={() => setFiltrosAbertos(false)} />
             </Folha>
           </div>

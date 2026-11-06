@@ -23,4 +23,11 @@ export function enderecosDaCasa (linhas = [], slug, idAtual) {
 }
 
 /** O interruptor "perto de mim" só existe com a permissão por perguntar: sem GPS no aparelho, o botão não aparece. */
-export const podeLocalizar = () => typeof navigator !== 'undefined' && 'geolocation' in navigator
+/** Por que a localização não vai funcionar neste aparelho: 'suporte' (sem API) · 'inseguro' (página sem https) · null (pode tentar). */
+export const motivoSemLocalizacao = () => {
+  if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return 'suporte'
+  return typeof isSecureContext === 'boolean' && !isSecureContext ? 'inseguro' : null
+}
+export const podeLocalizar = () => motivoSemLocalizacao() === null
+/** Erro do navegador (GeolocationPositionError.code) → estado da interface. */
+export const estadoDoErro = (code) => (code === 1 ? 'negada' : code === 3 ? 'demorou' : 'indisponivel')

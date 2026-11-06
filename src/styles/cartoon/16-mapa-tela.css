@@ -98,13 +98,14 @@
 .ct-mapa__rota-botao { flex: none; background: var(--ct-turquesa); color: var(--ct-chocolate); }
 .ct-mapa__rota-botao:hover { background: color-mix(in srgb, var(--ct-turquesa) 82%, var(--ct-branco)); }
 .ct-mapa__busca { grid-column: 1; }
-/* Celular e tablet (fora da tela cheia): vistas · busca · [Filtros | Minha rota]. A busca nunca divide a linha com os botões (apertava a 360 px). */
+/* Celular e tablet (fora da tela cheia): vistas · [busca | Perto de mim] · [Filtros | Minha rota], metades iguais. */
 @media (max-width: 899.98px) {
   .ct-mapa__explorar:not(.is-cheia) .ct-mapa__barra { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ct-mapa__explorar:not(.is-cheia) .ct-mapa__vistas, .ct-mapa__explorar:not(.is-cheia) .ct-mapa__busca { grid-column: 1 / -1; }
+  .ct-mapa__explorar:not(.is-cheia) .ct-mapa__vistas { grid-column: 1 / -1; }
+  .ct-mapa__explorar:not(.is-cheia) .ct-mapa__busca { grid-column: auto; }
   .ct-mapa__explorar:not(.is-cheia) .ct-mapa__filtros-botao, .ct-mapa__explorar:not(.is-cheia) .ct-mapa__rota-botao { grid-column: auto; justify-content: center; }
 }
-@media (min-width: 900px) { .ct-mapa__explorar:not(.is-cheia) .ct-mapa__rota-botao { display: none; } .ct-mapa__explorar:not(.is-cheia) .ct-mapa__barra { grid-template-columns: auto minmax(0, 1fr) auto; } }
+@media (min-width: 900px) { .ct-mapa__explorar:not(.is-cheia) .ct-mapa__rota-botao { display: none; } .ct-mapa__explorar:not(.is-cheia) .ct-mapa__barra { grid-template-columns: auto minmax(0, 1fr) auto auto; } }
 @media (min-width: 600px) {
   .ct-mapa__barra { grid-template-columns: auto minmax(0, 1fr) auto auto; }
   .ct-mapa__busca { grid-column: auto; }
@@ -112,6 +113,32 @@
 }
 @media (max-width: 599.98px) {
   .ct-mapa__so-largo { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* Perto de mim: botão escuro (o mais forte da barra, ao lado da busca); com o resultado na tela vira amarelo. Na tela cheia mora ao lado dos Atalhos. */
+.ct-mapa__perto-botao { flex: none; justify-content: center; background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-mapa__perto-botao:hover { background: color-mix(in srgb, var(--ct-chocolate) 88%, var(--ct-creme)); }
+.ct-mapa__perto-botao.is-ativo { background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: inset 0 0 0 1.5px var(--ct-chocolate), var(--ct-sombra-p); }
+.ct-mapa__perto-botao.is-buscando { animation: ct-perto-busca 1s ease-in-out infinite alternate; }
+@keyframes ct-perto-busca { from { opacity: 1; } to { opacity: .6; } }
+.ct-mapa__perto-aviso {
+  display: grid; gap: 6px; padding: 10px 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+}
+.ct-mapa__perto-aviso p, .ct-mapa__perto-aviso ol { margin: 0; }
+.ct-mapa__perto-lista { display: grid; gap: 0; padding-left: 22px; }
+.ct-mapa__perto-lista li { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; padding-left: 2px; }
+.ct-mapa__perto-lista .ct-link { display: inline-flex; align-items: center; text-align: left; }
+@media (min-width: 600px) {
+  .ct-mapa__perto-lista { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 16px; padding-left: 0; list-style: none; }
+  .ct-mapa__perto-lista li { display: grid; align-content: start; padding: 0; }
+}
+.ct-mapa__perto-lista .ct-link, .ct-mapa__perto-aviso .ct-botao, .ct-mapa__perto-sair { min-height: 44px; }
+.ct-mapa__perto-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ct-mapa__perto-acoes > p { flex-basis: 100%; }
+.ct-mapa__perto-sair { justify-self: start; }
+.is-cheia .ct-mapa__perto-aviso {
+  position: absolute; z-index: 44; top: calc(var(--ct-barra-h) + 66px); left: calc(10px + env(safe-area-inset-left)); right: calc(10px + env(safe-area-inset-right));
+  max-width: 440px; max-height: calc(var(--ct-vv-h, 100dvh) - var(--ct-barra-h) - 150px); overflow: auto; overscroll-behavior: contain;
 }
 
 /* Resumo: "26 casas · 41 endereços" (a Caça conta casas), com "Limpar filtros" só quando há filtro. */
@@ -313,6 +340,8 @@
   background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); font: 900 14px/1 var(--ct-font); cursor: pointer;
 }
 .ct-jogo__botao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
+.ct-jogo__linha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ct-jogo__linha .ct-mapa__perto-botao { min-height: 48px; padding: 0 14px; border-radius: 24px; font: 900 14px/1 var(--ct-font); }
 .ct-jogo__placar { display: inline-grid; place-items: center; min-width: 38px; height: 26px; padding: 0 8px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 900 13px/1 var(--ct-font); }
 .ct-jogo__lista {
   display: grid; gap: 2px; width: min(228px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))); max-height: calc(var(--ct-mapa-alto) - 84px); margin: 0; padding: 6px; overflow: auto;
@@ -334,6 +363,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ct-jogo__botao:active { translate: none; }
+  .ct-mapa__perto-botao.is-buscando { animation: none; }
   .ct-folha-m--casa .ct-mapa__cartao, .ct-folha-m.is-modal .ct-folha-m__corpo, .ct-folha-m.is-modal .ct-folha-m__veu, .ct-folha-m--filtros .ct-folha-m__veu, .ct-folha-m--jogo .ct-folha-m__veu { animation: none; }
   .ct-mapa__ampliar:active, .ct-mapa__sair:active { translate: none; }
   .ct-pin, .ct-sicredi-pin { transition: none; }

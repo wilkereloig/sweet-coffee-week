@@ -29,7 +29,7 @@ const nomeDoPonto = (p) => [p.titulo, p.aproximada && 'ponto aproximado', p.quer
 // `gestos`: 'cooperativo' (padrão: um dedo rola a página, dois movem o mapa) ou 'livre' (tela cheia: não há página para rolar,
 // um dedo move o mapa). O contêiner pode mudar de tamanho (tela cheia): o MapLibre acompanha sozinho (trackResize) e
 // mantém centro e zoom — o mapa não é recriado ao entrar e sair da tela cheia.
-export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce = null, gestos = 'cooperativo' }) {
+export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce = null, foco = null, gestos = 'cooperativo' }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const marcadores = React.useRef(new Map())
@@ -126,6 +126,15 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     else if (alvo.length === 1) m.jumpTo({ center: [alvo[0].lng, alvo[0].lat], zoom: 15 })
     reorganizar()
   }, [pontos.map((p) => p.id).join(), aoSelecionar, reorganizar])
+
+  // "Perto de mim": enquadra a pessoa e as casas mais perto dela. Roda a cada toque (foco.n) e quando o mapa passa a existir.
+  React.useEffect(() => {
+    const m = mapa.current
+    if (!foco?.pontos?.length || !m) return
+    const caixa = new maplibregl.LngLatBounds()
+    for (const q of foco.pontos) caixa.extend([q.lng, q.lat])
+    m.fitBounds(caixa, { padding: 72, maxZoom: 16, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 500 })
+  }, [foco?.n]) // eslint-disable-line react-hooks/exhaustive-deps -- só no toque
 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome. classList, não
   // className: o MapLibre põe as classes de posicionamento dele no mesmo elemento.

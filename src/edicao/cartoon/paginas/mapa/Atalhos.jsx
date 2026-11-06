@@ -19,7 +19,7 @@ import { useEscape } from './interacao.js'
 // [chave, ícone ilustrado da edição]: o ícone nunca está sozinho, o rótulo vai ao lado.
 export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['premios', 'premio'], ['ranking', 'premio'], ['grupos', 'conversar']]
 
-export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null }) {
+export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null, extra = null }) {
   const [lista, setLista] = React.useState(false)
   const [aberta, setAberta] = React.useState(null)
   const botao = React.useRef(null)
@@ -47,10 +47,13 @@ export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null }) 
   const titulo = aberta ? TC.atalhoTitulo[aberta] : ''
   return (
     <div ref={raiz} className="ct-jogo">
-      <button ref={botao} type="button" className="ct-jogo__botao" data-atalhos aria-expanded={lista} aria-controls={lista ? idLista : undefined}
-        aria-label={TC.atalhosNome(resumo)} onClick={() => setLista((v) => !v)}>
-        <ScwIcon nome="menu" tamanho={20} /><span>{TC.atalhos}</span>{placar && <b className="ct-jogo__placar" aria-hidden="true">{placar}</b>}
-      </button>
+      <div className="ct-jogo__linha">
+        <button ref={botao} type="button" className="ct-jogo__botao" data-atalhos aria-expanded={lista} aria-controls={lista ? idLista : undefined}
+          aria-label={TC.atalhosNome(resumo)} onClick={() => setLista((v) => !v)}>
+          <ScwIcon nome="menu" tamanho={20} /><span>{TC.atalhos}</span>{placar && <b className="ct-jogo__placar" aria-hidden="true">{placar}</b>}
+        </button>
+        {extra}
+      </div>
       {lista && (
         <ul id={idLista} className="ct-jogo__lista" aria-label={TC.atalhosLista}>
           {ATALHOS.map(([chave, icone]) => (

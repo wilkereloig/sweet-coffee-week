@@ -19,7 +19,7 @@ export const Busca = ({ q, aoBuscar }) => (
   </label>
 )
 
-export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoFiltros, cheia, aoFechar, filtrosAbertos, botaoRota = null }) {
+export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoFiltros, cheia, aoFechar, filtrosAbertos, botaoRota = null, botaoPerto = null }) {
   return (
     <div className="ct-mapa__barra">
       {cheia && (
@@ -35,6 +35,7 @@ export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoF
         ))}
       </div>
       {!cheia && <Busca q={q} aoBuscar={aoBuscar} />}
+      {botaoPerto}
       <button type="button" className={`ct-chip ct-mapa__filtros-botao${filtros > 0 ? ' is-ativo' : ''}`} onClick={aoFiltros}
         aria-haspopup="dialog" aria-expanded={filtrosAbertos} aria-label={filtros > 0 ? `${TC.filtros}, ${TC.filtrosAtivos(filtros)}` : TC.filtros}>
         <ScwIcon nome="configuracoes" tamanho={20} /><span>{TC.filtros}</span>
@@ -45,7 +46,7 @@ export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoF
   )
 }
 
-export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje, geo, localizar, comBusca, aoBuscar, total, ativos, aoLimpar, aoAplicar }) {
+export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje, comBusca, aoBuscar, total, ativos, aoLimpar, aoAplicar }) {
   return (
     <div className="ct-mapa__filtros">
       {comBusca && <Busca q={f.q} aoBuscar={aoBuscar} />}
@@ -81,14 +82,6 @@ export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje
             {ESTADOS_FILTRO.map((k) => <Chip key={k} ativo={f.estado === k} onClick={() => muda('estado', f.estado === k ? '' : k)}>{TC.filtroEstados[k]}</Chip>)}
           </div>
         </fieldset>
-      )}
-      {geo !== 'indisponivel' && (
-        <div className="ct-filtros__grupo">
-          <button type="button" className="ct-botao ct-botao--contorno ct-mapa__perto" onClick={localizar} disabled={geo === 'pedindo'}><ScwIcon nome="local" tamanho={20} />{T.pertoDeMim}</button>
-          {geo === 'pedindo' && <p className="ct-nota" role="status">{T.pedindo}</p>}
-          {geo === 'ok' && <p className="ct-nota" role="status">{T.ordenado}</p>}
-          {geo === 'negada' && <p className="ct-nota" role="status">{T.negada}</p>}
-        </div>
       )}
       <div className="ct-folha-m__rodape">
         {ativos > 0 && <button type="button" className="ct-link" onClick={aoLimpar}>{TC.filtrosLimpar}</button>}

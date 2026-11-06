@@ -68,7 +68,7 @@ function elementoDoPonto (p) {
 
 // `gestos`: 'cooperativo' (padrão: ctrl/dois dedos para mover, a página rola) ou 'livre' (tela cheia: um dedo move o mapa).
 // O contêiner pode mudar de tamanho (tela cheia): o mapa NÃO é recriado; o tamanho novo é avisado ao Google, com o centro mantido.
-export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null, aoFalhar = null, gestos = 'cooperativo' }) {
+export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = null, foco = null, aoFalhar = null, gestos = 'cooperativo' }) {
   const caixa = React.useRef(null)
   const mapa = React.useRef(null)
   const libs = React.useRef(null)
@@ -190,6 +190,16 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     else if (alvo.length === 1) { m.setCenter({ lat: alvo[0].lat, lng: alvo[0].lng }); m.setZoom(15) }
     reorganizar(true)
   }, [pronto, pontos.map((p) => p.id).join(), aoSelecionar, reorganizar])
+
+  // "Perto de mim": enquadra a pessoa e as casas mais perto dela. Roda a cada toque (foco.n) e quando o mapa passa a existir.
+  React.useEffect(() => {
+    const m = mapa.current
+    if (!foco?.pontos?.length || !pronto || !m) return
+    const caixa = new libs.current.LatLngBounds()
+    for (const q of foco.pontos) caixa.extend({ lat: q.lat, lng: q.lng })
+    m.fitBounds(caixa, 72)
+    window.google.maps.event.addListenerOnce(m, 'idle', () => { if ((m.getZoom() ?? 0) > 17) m.setZoom(17) })
+  }, [foco?.n, pronto]) // eslint-disable-line react-hooks/exhaustive-deps -- só no toque
 
   // Estado de cada marcador (aproximado, quero ir, já fui, selecionado): classe + nome.
   React.useEffect(() => {
