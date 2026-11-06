@@ -43,10 +43,16 @@ function gtag () {
   window.gtag(...arguments)
 }
 
+/* Páginas da edição (/cartoon/<página>) que contam como rota própria no relatório. Só o PRIMEIRO nível, e só estes nomes:
+   o que vem depois (casa, código de carimbo, token de voucher, convite) nunca sai do navegador. Sem isto toda a edição
+   era "/cartoon" e a navegação interna (Mapa → Caça → campanha) nem gerava page_view, porque a rota não mudava. */
+const PAGINAS_CARTOON = ['participantes', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'caca', 'regulamento', 'ter-com-quem-contar']
+
 /** Rota limpa a partir do hash ou do caminho. Pura, testada. */
 export function rotaLimpa (hash = '', pathname = '/') {
   const bruto = (hash.replace(/^#/, '') || pathname || '/').split(/[?#]/)[0]
-  const primeiro = bruto.split('/').filter(Boolean)[0] || ''
+  const [primeiro = '', segundo = ''] = bruto.split('/').filter(Boolean)
+  if (primeiro === 'cartoon' && PAGINAS_CARTOON.includes(segundo)) return `/cartoon/${segundo}`
   return ROTAS.includes(primeiro) ? `/${primeiro}` : '/'
 }
 
