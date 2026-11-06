@@ -13,10 +13,10 @@ test('empate: mesma posição vira "empatado em Nº", posição vem do servidor 
     { posicao: 1, apelido: 'Ana', casas: 5, extras: 3 },
     { posicao: 2, apelido: 'Bia', casas: 4, extras: 1 },
     { posicao: 2, apelido: 'Cadu', casas: 4, extras: 1 },
-    { posicao: 4, apelido: 'Duda', casas: 2, extras: 0 },
+    { posicao: 3, apelido: 'Duda', casas: 2, extras: 0 },
   ])
   assert.deepEqual(l.map((x) => x.empatada), [false, true, true, false])
-  assert.deepEqual(l.map((x) => x.posicao), [1, 2, 2, 4], 'a seguinte pula, como rank()')
+  assert.deepEqual(l.map((x) => x.posicao), [1, 2, 2, 3], 'posição densa: depois do empate vem o próximo número, sem pular')
   assert.equal(RANKING.empatadoEm(2), 'empatado em 2º')
 })
 

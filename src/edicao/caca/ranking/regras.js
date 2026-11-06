@@ -1,7 +1,8 @@
 /*
  * Ranking da Caça — regras puras de apresentação (tests/cartoon-caca-ranking.test.mjs).
  * A ORDEM e o desempate moram no banco (mais casas diferentes, depois mais carimbos extras; empate = mesma posição,
- * sem desempate por hora). Aqui só se decide como mostrar: empate na mesma posição, "você" na lista, plural.
+ * sem desempate por hora). A posição é DENSA (1, 1, 2, 3 — migration 20261232): depois de um empate vem o próximo número,
+ * nunca um salto. Aqui só se decide como mostrar: empate na mesma posição, "você" na lista, plural.
  */
 
 const inteiro = (n) => (Number.isFinite(Number(n)) ? Math.max(0, Math.trunc(Number(n))) : 0)
