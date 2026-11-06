@@ -45,10 +45,8 @@ const lerTudo = (page) => page.evaluate(() => {
     lateral: document.documentElement.scrollWidth - innerWidth, sy: scrollY,
   }
 })
-// folga de pin (camera.js): 32 px nos lados e 132 px em cima (no máximo 10% / 30% da janela); embaixo a arte sempre encosta
-const fl = (s) => Math.min(32, s.j.w * 0.1)
-const ft = (s) => Math.min(132, s.j.h * 0.3)
-const cobre = (s) => s.p.x <= s.j.x + fl(s) + 1 && s.p.y <= s.j.y + ft(s) + 1 && s.p.x + s.p.w >= s.j.x + s.j.w - fl(s) - 1 && s.p.y + s.p.h >= s.j.y + s.j.h - 1
+// a arte cobre a janela nos quatro lados, sem folga (camera.js)
+const cobre = (s) => s.p.x <= s.j.x + 1 && s.p.y <= s.j.y + 1 && s.p.x + s.p.w >= s.j.x + s.j.w - 1 && s.p.y + s.p.h >= s.j.y + s.j.h - 1
 const proporcao = (s) => Math.abs(s.p.w / s.p.h - 5882 / 4146) < 0.01
 const quase = (a, b, eps) => Math.abs(a - b) <= eps
 
@@ -153,11 +151,11 @@ async function celularEmPe (nav) {
   const j = s0.j; const meio = [j.x + j.w / 2, j.y + j.h * 0.55]
   for (let i = 0; i < 3; i++) await arrastarToque(c, [meio[0] + 150, meio[1]], [meio[0] - 150, meio[1]])
   let s = await lerTudo(c.page)
-  checar(cobre(s) && quase(s.p.x + s.p.w, s.j.x + s.j.w - fl(s), 1.5), `${nome}: chega à borda direita da arte e para nela, sem faixa (${Math.round(s.p.x + s.p.w - s.j.x - s.j.w)}px de folga)`)
+  checar(cobre(s) && quase(s.p.x + s.p.w, s.j.x + s.j.w, 1.5), `${nome}: chega à borda direita da arte e para nela, sem faixa (${Math.round(s.p.x + s.p.w - s.j.x - s.j.w)}px de folga)`)
   await foto(c, `${nome}-2-borda-direita`)
   for (let i = 0; i < 6; i++) await arrastarToque(c, [meio[0] - 150, meio[1]], [meio[0] + 150, meio[1]])
   s = await lerTudo(c.page)
-  checar(cobre(s) && quase(s.p.x, s.j.x + fl(s), 1.5), `${nome}: chega à borda esquerda da arte e para nela`)
+  checar(cobre(s) && quase(s.p.x, s.j.x, 1.5), `${nome}: chega à borda esquerda da arte e para nela`)
   await arrastarToque(c, [meio[0], meio[1] - 100], [meio[0], meio[1] + 400])
   s = await lerTudo(c.page)
   checar(cobre(s), `${nome}: arrastar na vertical não revela faixa`)
@@ -258,10 +256,10 @@ async function celularDeitado (nav) {
   await c.page.getByRole('button', { name: 'Aproximar', exact: true }).click(); await c.page.waitForTimeout(350)
   for (let i = 0; i < 8; i++) await arrastarToque(c, [j.x + 60, j.y + 60], [j.x + j.w - 60, j.y + j.h - 60], 6)
   s = await lerTudo(c.page)
-  checar(cobre(s) && quase(s.p.x, s.j.x + fl(s), 1.5) && quase(s.p.y, s.j.y + ft(s), 1.5), `${nome}: alcança o canto superior esquerdo da arte`)
+  checar(cobre(s) && quase(s.p.x, s.j.x, 1.5) && quase(s.p.y, s.j.y, 1.5), `${nome}: alcança o canto superior esquerdo da arte`)
   for (let i = 0; i < 8; i++) await arrastarToque(c, [j.x + j.w - 60, j.y + j.h - 60], [j.x + 60, j.y + 60], 6)
   s = await lerTudo(c.page)
-  checar(cobre(s) && quase(s.p.x + s.p.w, s.j.x + s.j.w - fl(s), 1.5) && quase(s.p.y + s.p.h, s.j.y + s.j.h, 1.5), `${nome}: alcança o canto inferior direito da arte`)
+  checar(cobre(s) && quase(s.p.x + s.p.w, s.j.x + s.j.w, 1.5) && quase(s.p.y + s.p.h, s.j.y + s.j.h, 1.5), `${nome}: alcança o canto inferior direito da arte`)
   await foto(c, `${nome}-1-zoom-no-canto`)
   checar(!c.erros.length, `${nome}: sem erro de console (${c.erros[0] || ''})`)
   await c.ctx.close()

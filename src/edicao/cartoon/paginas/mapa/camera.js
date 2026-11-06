@@ -6,7 +6,7 @@
  * `c = {z, x, y}`: `z` = zoom RELATIVO À ESCALA QUE COBRE a janela (z = 1 é o mínimo: a arte toca as quatro bordas, sem
  * faixa vazia, e o que sobra no outro eixo fica fora da tela); `x`,`y` = canto superior esquerdo do palco dentro da janela.
  * Como o palco sempre cobre a janela, x ∈ [j.w − palco.w, 0] e y ∈ [j.h − palco.h, 0]: dá para chegar a todas as bordas
- * e nunca para além delas.
+ * e nunca para além delas (sem folga: azul atrás da arte é defeito; pin sob um botão se resolve com zoom, não com faixa vazia).
  */
 export const ZOOM_MIN = 1
 export const ZOOM_MAX = 3 // 3× a escala de cobrir: a arte final tem 4096 px de largura e o palco não passa de ~4 mil px no desktop
@@ -23,18 +23,11 @@ export function tamanhoDoPalco (c, j, a) {
   return { w: a.w * s, h: a.h * s }
 }
 
-/** Folga além da borda da arte: um pin na borda tem o corpo acima/ao lado da ponta e os botões sobre o mapa (atalhos, zoom, barra)
- *  cobrem o canto de cima — com a folga dá para arrastar qualquer pin para fora de baixo deles. Nunca passa de uma fração da janela. */
-export const FOLGA_TOPO = 132
-export const FOLGA_LADO = 32
-
-/** Zoom e posição dentro dos limites: a arte cobre a janela, com uma folga de pin em volta (topo e lados). */
+/** Zoom e posição dentro dos limites: a arte SEMPRE cobre a janela (nenhuma borda entra na área visível), e dá para chegar a todas as bordas. */
 export function limitar (c, j, a) {
   const z = entre(c.z, ZOOM_MIN, ZOOM_MAX)
   const p = tamanhoDoPalco({ z }, j, a)
-  const t = Math.min(FOLGA_TOPO, j.h * 0.3)
-  const l = Math.min(FOLGA_LADO, j.w * 0.1)
-  return { z, x: entre(c.x, Math.min(0, j.w - p.w) - l, l), y: entre(c.y, Math.min(0, j.h - p.h), t) }
+  return { z, x: entre(c.x, j.w - p.w, 0), y: entre(c.y, j.h - p.h, 0) }
 }
 
 /** Câmera de abertura: zoom mínimo, arte centrada. */
