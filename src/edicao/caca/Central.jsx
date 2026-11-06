@@ -18,15 +18,19 @@ import { GuardarMapa } from './GuardarMapa.jsx'
 import { CartaoEmail } from './CartaoEmail.jsx'
 import { VisitaAnterior } from './visita/VisitaAnterior.jsx'
 import Notificacoes from './secoes/Notificacoes.jsx'
+import { SinoDeAvisos } from './notificacoes/SinoDeAvisos.jsx'
 import Instalar from './secoes/Instalar.jsx'
 
 const P = CACA.progresso
 
-function Progresso ({ caca }) {
+function Progresso ({ caca, dados, navigate }) {
   const { total, validadas, faltam, extras, posicao, comEmpate, pendentes, completo } = caca.resumo
   return (
     <section className="ct-central__progresso" aria-labelledby="caca-progresso">
-      <h2 id="caca-progresso" className="ct-central__apelido">{P.titulo(caca.mapa?.apelido)}</h2>
+      <div className="ct-central__cabeca">
+        <h2 id="caca-progresso" className="ct-central__apelido">{P.titulo(caca.mapa?.apelido)}</h2>
+        <SinoDeAvisos caca={caca} dados={dados} navigate={navigate} />
+      </div>
       <p className="ct-central__grande"><strong>{P.casas(validadas, total)}</strong> <span>{P.casasRotulo}</span></p>
       <progress className="ct-caca__barra" value={validadas} max={Math.max(total, 1)} aria-label={P.casas(validadas, total)} />
       <ul className="ct-central__numeros">
@@ -106,7 +110,7 @@ export function Central ({ caca, dados, navigate }) {
   return (
     <div className="ct-caca__central ct-central">
       <div className="ct-central__col">
-        <Progresso caca={caca} />
+        <Progresso caca={caca} dados={dados} navigate={navigate} />
         <ProximaAcao caca={caca} dados={dados} navigate={navigate} />
         {caca.recemCriado && <GuardarMapa chave={caca.chave} />}
         <CartaoEmail caca={caca} navigate={navigate} />
@@ -115,7 +119,7 @@ export function Central ({ caca, dados, navigate }) {
       <div className="ct-central__col">
         <Entradas navigate={navigate} />
         <div className="ct-central__extras">
-          <Notificacoes caca={caca} navigate={navigate} dados={dados} />
+          <Notificacoes caca={caca} />
           <Instalar caca={caca} navigate={navigate} dados={dados} />
         </div>
         <p className="ct-central__rodape">

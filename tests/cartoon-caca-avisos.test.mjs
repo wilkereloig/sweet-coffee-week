@@ -32,7 +32,8 @@ test('central: só avisos bem formados, mais novos primeiro, destino só dentro 
 test('central: destino só aceita caminho interno da Caça', () => {
   assert.equal(destinoSeguro('/cartoon/caca'), '/cartoon/caca')
   assert.equal(destinoSeguro('/cartoon/caca/metas'), '/cartoon/caca/metas')
-  for (const ruim of ['//evil.com', 'https://x.com', '/painel', '/cartoon/caca/../x?a=1', '/cartoon/cacaxxx', '', null, undefined, 3]) assert.equal(destinoSeguro(ruim), null, String(ruim))
+  assert.equal(destinoSeguro('/cartoon/mapa?painel=premios'), '/cartoon/mapa?painel=premios', 'única saída: o painel de Prêmios')
+  for (const ruim of ['/cartoon/mapa?painel=outro', '/cartoon/mapa', '//evil.com', 'https://x.com', '/painel', '/cartoon/caca/../x?a=1', '/cartoon/cacaxxx', '', null, undefined, 3]) assert.equal(destinoSeguro(ruim), null, String(ruim))
 })
 
 test('central: data no fuso de Natal; data torta vira vazio', () => {
@@ -72,14 +73,14 @@ async function descobrirChaveValida () {
 }
 
 test('preferências: as chaves do app são as do banco, todas com texto, e o padrão não liga divulgação', () => {
-  const sql = ler('supabase/migrations/20261230_caca_avisos.sql')
+  const sql = ler('supabase/migrations/20261232_caca_programacao.sql') // a definição vigente (substitui a de 20261230)
   const norm = sql.match(/unnest\(array\[([^\]]+)\]\) k/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
   assert.deepEqual([...CHAVES_PREFS].sort(), [...norm].sort(), 'CHAVES_PREFS = caca_push_prefs_norm')
   const padrao = JSON.parse(sql.match(/v_padrao constant jsonb := '(\{[^']+\})'/)[1])
   assert.deepEqual(padrao, { ...PREFS_PADRAO }, 'padrão do app = padrão do servidor')
   for (const k of CHAVES_PREFS) assert.ok(EXTRAS.push.categorias[k]?.rotulo && EXTRAS.push.categorias[k]?.texto, `texto de ${k}`)
   assert.equal(PREFS_PADRAO.edicao, false); assert.equal(PREFS_PADRAO.voucher, false)
-  const cats = sql.match(/categoria text not null check \(categoria in \(([^)]+)\)\)/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
+  const cats = sql.match(/add constraint caca_aviso_categoria_check\s+check \(categoria in \(([^)]+)\)\)/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
   assert.deepEqual([...cats].sort(), [...CHAVES_PREFS].sort(), 'toda categoria de aviso é uma preferência que a pessoa controla')
 })
 
@@ -143,7 +144,7 @@ test('agendador: job de 15 min; ligar grava o instante e só vale o que vem DEPO
 
 test('central no app: estados de carregando, falha e vazio; link do aviso usa aoIr (onClick sobrescreve a navegação)', () => {
   const jsx = semComentarios(ler('src/edicao/caca/notificacoes/CentroDeAvisos.jsx'))
-  for (const t of ['T.carregando', 'T.falha', 'T.tentar', 'T.semAvisos', 'T.marcarVistos']) assert.ok(jsx.includes(t), t)
+  for (const t of ['T.carregando', 'T.falha', 'T.tentar', 'T.semAvisos', 'T.marcarLida', 'T.marcarTodas']) assert.ok(jsx.includes(t), t)
   assert.match(jsx, /aoIr=\{/)
   assert.ok(!/<Link[^>]*onClick=/.test(jsx), 'Link com onClick perde a navegação do router')
   assert.match(jsx, /role="alert"/); assert.match(jsx, /role="status"/)
@@ -154,6 +155,7 @@ test('service worker: clique abre só caminho dentro da Caça e a carga não tem
   const sw = ler('public/caca-sw.js')
   assert.match(sw, /function destino\(url\)/)
   assert.match(sw, /ESCOPO \+ '\/'\) === 0 \? url : CENTRAL/)
+  assert.match(sw, /var PREMIOS = '\/cartoon\/mapa\?painel=premios'/, 'única saída permitida além do escopo')
   assert.ok(!/(apelido|email|whatsapp|chave)/i.test(sw.replace(/\/\*[\s\S]*?\*\//g, '')), 'o SW não lê nem mostra dado pessoal')
 })
 
@@ -164,4 +166,38 @@ test('atualizar o app não mexe na inscrição de push: só "desligar" (aparelho
   const manifesto = ler('src/edicao/caca/pwa/manifesto.js')
   assert.match(manifesto, /\/caca-sw\.js/); assert.match(manifesto, /scope/)
   assert.match(semComentarios(ler('src/edicao/caca/notificacoes/aparelho.js')), /unsubscribe\(\)/)
+})
+
+test('sino da central: contagem de não lidas, diálogo, marcar como lida e oferta de push sem insistência', () => {
+  const sino = semComentarios(ler('src/edicao/caca/notificacoes/SinoDeAvisos.jsx'))
+  assert.match(sino, /<dialog /); assert.match(sino, /showModal\(\)/)
+  assert.match(sino, /aria-haspopup="dialog"/); assert.match(sino, /rotuloNovos\(naoLidas\)/)
+  assert.match(sino, /gravarDispensa/, '"Agora não" fica lembrado')
+  assert.match(sino, /estado !== 'desligado'/, 'a oferta só aparece com permissão ainda não negada e sem assinatura')
+  const central = semComentarios(ler('src/edicao/caca/Central.jsx'))
+  assert.match(central, /<SinoDeAvisos /, 'o sino mora no painel da Caça')
+  assert.ok(!/<CentroDeAvisos/.test(ler('src/edicao/caca/secoes/Notificacoes.jsx')), 'a lista não aparece duas vezes')
+  // toda ação de aviso tem texto e todo destino do banco abre algo
+  for (const c of ['premio', 'voucher', 'meta', 'avaliacao_pendente', 'incentivo']) assert.ok(EXTRAS.avisos.acaoPorCategoria[c], c)
+})
+
+test('banco (20261232): programação lê as datas da edição, respeita janela e dedupe, e só a organização mexe', () => {
+  const sql = ler('supabase/migrations/20261232_caca_programacao.sql')
+  const gerar = sql.slice(sql.indexOf('function public.caca_programacao_gerar'), sql.indexOf('revoke all on function public.caca_programacao_gerar'))
+  assert.match(gerar, /'ligado'\)::boolean, false\) is not true then return/, 'nasce atrás do interruptor avisos_auto')
+  assert.match(gerar, /from public\.edicoes where codigo = v_ed/, 'datas oficiais da edição, não escritas aqui')
+  assert.match(gerar, /America\/Fortaleza/); assert.match(gerar, /fora_do_horario/); assert.match(gerar, /fora_do_festival/)
+  assert.match(gerar, /on conflict \(chave_dedupe\) do nothing/, 'reprocessar não duplica')
+  assert.match(gerar, /vigente_ate|v_ate/, 'a mensagem vence no fim do dia')
+  assert.match(gerar, /'ultimo'/); assert.match(gerar, /'penultimo'/); assert.match(gerar, /'voucher'/)
+  for (const f of ['caca_programacao_gerar(timestamptz)', 'caca_avisos_gerar_premios(timestamptz)', 'caca_avisos_ciclo()']) {
+    assert.ok(sql.includes(`revoke all on function public.${f} from public, anon, authenticated`), `${f} fechada`)
+    assert.ok(!sql.includes(`grant execute on function public.${f}`), `${f} não pode ter grant`)
+  }
+  const definir = sql.slice(sql.indexOf('function public.caca_programacao_definir'))
+  assert.match(definir.slice(0, definir.indexOf('end $$')), /public\.pode\(p_secret, 'producao\.gerir'\)/)
+  const entregas = sql.slice(sql.indexOf('function public.caca_aviso_entregas_pendentes'), sql.indexOf('function public.caca_avisos_para_processar'))
+  assert.match(entregas, /y\.categoria <> 'incentivo'/, 'incentivo não tira a vez de prêmio e pendência')
+  assert.match(entregas, /incentivo_intervalo_dias/)
+  assert.ok(!/service_role|VAPID|secret_key|password/i.test(sql.replace(/p_secret/g, '')), 'sem segredo na migration')
 })

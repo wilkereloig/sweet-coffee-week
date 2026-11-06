@@ -1392,6 +1392,82 @@ secao(10, 'avisos (sem suporte, bloqueada, iPhone) e instalação do app', async
   await c.ctx.close()
 })
 
+// ================================================================ 10b · sino de avisos (central dentro do app, com ou sem push)
+const AV = (n, extra) => ({ id: `0000000${n}-0000-4000-8000-00000000000${n}`, categoria: 'incentivo', urgente: false, titulo: `Aviso ${n}`, corpo: `Corpo do aviso ${n}`, destino: '/cartoon/caca/mapa', quando: `2026-11-06T13:0${n}:00Z`, visto: false, ...extra })
+secao(13, 'sino de avisos: contagem, lista, marcar como lida, ação por categoria e oferta de push sem insistência', async () => {
+  const lidos = new Set()
+  const avisosMock = () => ({ avisos: [
+    AV(1, { categoria: 'premio', titulo: 'Seleção para o voucher do dia', destino: '/cartoon/mapa?painel=premios' }),
+    AV(2),
+    AV(3, { visto: true }),
+  ].map((a) => ({ ...a, visto: a.visto || lidos.has(a.id) })), novos: 2 })
+  const mocks = {
+    mapa_ler_v2: MAPA_PROGRESSO, mapa_confirmar_email_status: { confirmado: true, valido: true }, caca_avisos_ler: avisosMock,
+    caca_avisos_visto: (corpo) => { for (const id of corpo.p_ids || []) lidos.add(id); return { ok: true, marcados: (corpo.p_ids || []).length } },
+  }
+  for (const [w, h] of [[360, 800], [1440, 900]]) {
+    lidos.clear()
+    const c = await contexto(nav, { w, h, chave: CHAVE_FAKE, mocks })
+    await ir(c.page, '/cartoon/caca')
+    const sino = c.page.getByRole('button', { name: 'Avisos: 2 não lidos' })
+    await sino.waitFor({ timeout: 10000 }).catch(() => falha(`sino ${w}px: sem a contagem de não lidos no nome acessível`))
+    checar(/^2$/.test((await sino.innerText().catch(() => '')).trim()), `sino ${w}px: mostra a contagem (2)`)
+    await sino.click()
+    const dialogo = c.page.getByRole('dialog', { name: 'Seus avisos' })
+    await dialogo.waitFor({ timeout: 5000 }).catch(() => falha(`sino ${w}px: o diálogo não abriu`))
+    const t = await dialogo.innerText().catch(() => '')
+    checar(/Seleção para o voucher do dia/.test(t) && /Corpo do aviso 2/.test(t) && /Aviso 3/.test(t), `sino ${w}px: lista os avisos com título e conteúdo`)
+    checar(/6 de nov|6 nov/.test(t.replace(/\./g, '')) || /\d{2}:\d{2}/.test(t), `sino ${w}px: mostra data e hora de cada aviso`)
+    checar(await dialogo.getByRole('link', { name: 'Ver prêmios' }).count() === 1, `sino ${w}px: aviso de prêmio leva a Ver prêmios`)
+    checar(await dialogo.getByRole('link', { name: 'Ver o mapa' }).count() >= 1, `sino ${w}px: incentivo leva ao mapa`)
+    await foto(c.page, `13-sino-${w}`)
+    const lida = dialogo.getByRole('button', { name: 'Marcar como lida' }).first()
+    await lida.click()
+    await c.page.getByRole('button', { name: 'Avisos: 1 não lido' }).waitFor({ timeout: 5000 }).catch(() => falha(`sino ${w}px: a contagem não baixou ao marcar como lida`))
+    await dialogo.getByRole('button', { name: 'Fechar os avisos' }).click()
+    checar(await c.page.getByRole('dialog').count() === 0, `sino ${w}px: fechar fecha o diálogo`)
+    await c.page.keyboard.press('Tab')
+    // oferta de push: contextual e dispensável; "Agora não" é lembrado
+    await c.page.getByRole('button', { name: /Avisos: 1 não lido/ }).click()
+    const oferta = c.page.getByText('Receber também no celular?')
+    await oferta.first().waitFor({ timeout: 4000 }).catch(() => null) // a leitura do aparelho é assíncrona
+    if (await oferta.count()) {
+      await c.page.getByRole('button', { name: 'Agora não' }).first().click()
+      checar(await c.page.getByText('Receber também no celular?').count() === 0, `sino ${w}px: "Agora não" some a oferta`)
+    } else aviso(`sino ${w}px: este navegador não oferece push (oferta não apareceu) — comportamento esperado se não houver suporte`)
+    await c.page.keyboard.press('Escape')
+    const largura = await c.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    checar(largura <= 1, `sino ${w}px: sem rolagem lateral`)
+    await semErros(c, `sino-${w}`)
+    await c.ctx.close()
+  }
+  // oferta de push com suporte simulado e permissão ainda não pedida: aparece no sino, "Agora não" é lembrado
+  const c3 = await contexto(nav, { chave: CHAVE_FAKE, mocks, init: () => {
+    class N { static get permission () { return 'default' } static requestPermission () { return Promise.resolve('default') } }
+    window.Notification = N
+    Object.defineProperty(window, 'PushManager', { value: function () {}, configurable: true })
+  } })
+  await ir(c3.page, '/cartoon/caca')
+  await c3.page.getByRole('button', { name: /^Avisos/ }).click()
+  await c3.page.getByText('Receber também no celular?').waitFor({ timeout: 8000 }).catch(() => falha('sino: a oferta de push não apareceu com permissão ainda não pedida'))
+  checar(await c3.page.getByRole('button', { name: 'Ativar neste aparelho' }).count() === 1, 'sino: a oferta tem o botão de ativar (a permissão só é pedida no clique)')
+  await foto(c3.page, '13-sino-oferta-push')
+  await c3.page.getByRole('button', { name: 'Agora não' }).first().click()
+  await c3.page.reload({ waitUntil: 'networkidle' })
+  await c3.page.getByRole('button', { name: /^Avisos/ }).click()
+  await c3.page.getByRole('dialog', { name: 'Seus avisos' }).waitFor({ timeout: 5000 })
+  await esperar(800)
+  checar(await c3.page.getByText('Receber também no celular?').count() === 0, 'sino: "Agora não" é lembrado depois de recarregar (sem insistência)')
+  await c3.ctx.close()
+  // central funciona com a rede dos avisos caída
+  const c2 = await contexto(nav, { chave: CHAVE_FAKE, mocks: { ...mocks, caca_avisos_ler: 'rede' } })
+  await ir(c2.page, '/cartoon/caca')
+  await c2.page.getByRole('button', { name: 'Avisos' }).click()
+  await c2.page.getByText(/Não deu para carregar os avisos/).waitFor({ timeout: 8000 }).catch(() => falha('sino: sem aviso honesto quando a lista cai'))
+  checar(await c2.page.getByText(/Mapa de/).first().count() === 1, 'sino: a central segue de pé com a lista de avisos caída')
+  await c2.ctx.close()
+})
+
 // ================================================================ 11 · manifest e service worker
 secao(11, 'manifest e service worker só em /cartoon/caca', async () => {
   const c = await contexto(nav, { chave: CHAVE_FAKE, mocks: { mapa_ler_v2: MAPA_PROGRESSO, mapa_confirmar_email_status: { confirmado: true, valido: true } } })

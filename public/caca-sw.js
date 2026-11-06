@@ -13,6 +13,7 @@
  */
 var ESCOPO = '/cartoon/caca';
 var CENTRAL = '/cartoon/caca';
+var PREMIOS = '/cartoon/mapa?painel=premios';
 var ICONE = '/images/caca/app-icone-192-v2.png';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
@@ -23,6 +24,7 @@ self.addEventListener('fetch', function () {});
 
 /* Só caminho interno dentro do escopo da Caça; qualquer outra coisa vira a central. */
 function destino(url) {
+  if (url === PREMIOS) return url; // única saída da Caça: o painel de Prêmios do mapa (igual à constraint do banco)
   if (typeof url !== 'string' || url.charAt(0) !== '/' || url.charAt(1) === '/') return CENTRAL;
   var limpo = url.split(/[?#]/)[0].replace(/\/+$/, '');
   return limpo === ESCOPO || limpo.indexOf(ESCOPO + '/') === 0 ? url : CENTRAL;

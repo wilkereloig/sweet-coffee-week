@@ -48,6 +48,20 @@ export const EXTRAS = {
     marcarVistos: 'Marcar todos como vistos',
     novosN: (n) => (n === 1 ? '1 aviso novo' : `${n} avisos novos`),
     semAvisos: 'Nenhum aviso por enquanto. Quando houver algo útil, aparece aqui, mesmo sem notificação no celular.',
+    acaoPorCategoria: { premio: 'Ver prêmios', voucher: 'Ver prêmios', meta: 'Ver minhas metas', avaliacao_pendente: 'Avaliar o combo', incentivo: 'Ver o mapa' },
+    marcarLida: 'Marcar como lida',
+    marcarTodas: 'Marcar todas como lidas',
+  },
+
+  sino: {
+    rotulo: 'Avisos',
+    rotuloNovos: (n) => (n === 1 ? 'Avisos: 1 não lido' : `Avisos: ${n} não lidos`),
+    titulo: 'Seus avisos',
+    fechar: 'Fechar os avisos',
+    ofertaTitulo: 'Receber também no celular?',
+    ofertaTexto: 'É opcional. Depois você escolhe quais avisos receber (lembretes, prêmios, metas), e eles continuam aparecendo aqui de qualquer jeito.',
+    ofertaAtivar: 'Ativar neste aparelho',
+    ofertaAgoraNao: 'Agora não',
   },
 
   push: {
@@ -62,6 +76,8 @@ export const EXTRAS = {
       edicao: { rotulo: 'Novidades da edição', texto: 'Divulgação da Cartoon. Vem desligado: só chega se você escolher.' },
       voucher: { rotulo: 'Voucher do dia', texto: 'Quando houver voucher em disputa no dia. Nunca anuncia resultado antes da apuração. Vem desligado.' },
       imprevisto: { rotulo: 'Imprevistos em casas da sua rota', texto: 'Só quando a organização confirmar que uma casa do seu grupo não abre. Raro.' },
+      incentivo: { rotulo: 'Lembretes da Caça', texto: 'Um empurrãozinho para experimentar um combo e avançar no mapa. No celular, no máximo um a cada dois dias (nos dois últimos dias do festival podem vir em dias seguidos).' },
+      premio: { rotulo: 'Prêmios e prazos', texto: 'Quando você for selecionado para um voucher ou prêmio e o prazo para confirmar.' },
     },
     honestidade: 'Os avisos são enviados pela organização quando há o que dizer: não chegam na hora de cada carimbo ou de cada meta, e podem atrasar ou não chegar, dependendo do aparelho e do navegador. Você pode desligar quando quiser.',
     ligar: 'Ativar avisos neste aparelho',

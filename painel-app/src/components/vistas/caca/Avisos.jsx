@@ -173,6 +173,8 @@ export function Avisos({ edicao, pode }) {
 
       <Automaticos pode={pode} />
 
+      <Programacao pode={pode} />
+
       <Simulacao pode={pode} />
     </div>
   )
@@ -203,6 +205,51 @@ function Automaticos({ pode }) {
       <div className="ui-linha-acoes">
         <Botao variante={ligado ? 'secundario' : undefined} disabled={!!ocupado} aria-busy={ocupado === 'auto' || undefined} onClick={trocar}>{ligado ? 'Desligar avisos automáticos' : 'Ligar avisos automáticos…'}</Botao>
       </div>
+    </Secao>
+  )
+}
+
+const ROTULO_TIPO_PROGRAMACAO = { incentivo: 'Incentivo', voucher: 'Dia de voucher', penultimo: 'Penúltimo dia', ultimo: 'Último dia' }
+
+/**
+ * Programação diária do festival: uma mensagem por pessoa por dia, nas datas da edição (prorrogou o festival, o calendário acompanha).
+ * Entra na central de todos; no celular só para quem ligou a categoria, com horário e limite. Depende do interruptor "Avisos automáticos".
+ */
+function Programacao({ pode }) {
+  const est = useLeitura(() => cacaApi.programacaoEstado(), ['carimbos'], { chave: 'caca-programacao' })
+  const [ocupado, executar] = useExecutar()
+  if (!pode('dado.ler') || !est.dados) return null
+  const d = est.dados
+  const cfg = d.config || {}
+  const ligada = cfg.ligada !== false
+  const ciclo = d.ultimo_ciclo
+  const erros = ciclo && ciclo.erros ? Object.keys(ciclo.erros) : []
+  async function mudar(parcial) {
+    const r = await executar('prog', () => cacaApi.programacaoDefinir(parcial))
+    if (r) await est.recarregar()
+  }
+  return (
+    <Secao titulo="Programação do festival" nota="Uma mensagem por dia para cada pessoa, nas datas oficiais da edição. Nunca vira push todo dia: o celular recebe no máximo um lembrete a cada dois dias (nos dois últimos dias do festival pode ser em dias seguidos), depois de prêmio e pendência, e só entre 8h e 21h. A mensagem vence no fim do dia.">
+      <p className="ui-nota" role="status">
+        <Selo tom={d.avisos_auto && ligada ? 'ok' : 'atencao'}>{d.avisos_auto ? (ligada ? 'Ativa' : 'Programação desligada') : 'Parada: avisos automáticos desligados'}</Selo>{' '}
+        {d.agendado ? 'O agendador roda a cada 15 minutos.' : 'O agendador não está ativo.'}
+        {ciclo && ciclo.em ? ` Último ciclo: ${horaNatal(ciclo.em)}${erros.length ? ` · com erro em: ${erros.join(', ')}` : ' · sem erro'}.` : ''}
+      </p>
+      {pode('producao.gerir') && (
+        <div className="ui-linha-acoes">
+          <label className="og-campo"><span>Hora em que a mensagem do dia nasce (Fortaleza)</span>
+            <select value={cfg.hora ?? 10} disabled={!!ocupado} onChange={(e) => mudar({ hora: Number(e.target.value) })}>
+              {Array.from({ length: 13 }, (_, i) => i + 8).map((h) => <option key={h} value={h}>{String(h).padStart(2, '0')}h</option>)}
+            </select></label>
+          <Botao variante={ligada ? 'secundario' : undefined} disabled={!!ocupado} aria-busy={ocupado === 'prog' || undefined} onClick={() => mudar({ ligada: !ligada })}>{ligada ? 'Desligar a programação' : 'Ligar a programação'}</Botao>
+        </div>
+      )}
+      <ul className="cp-fatos">
+        {(d.calendario || []).map((c) => (
+          <li key={c.dia}><span>{String(c.dia).slice(8, 10)}/{String(c.dia).slice(5, 7)} · {String(c.hora).padStart(2, '0')}h · {ROTULO_TIPO_PROGRAMACAO[c.tipo] || c.tipo}</span>
+            <strong>{c.titulo}</strong> {c.gerado ? `— enviada para ${c.pessoas} ${Number(c.pessoas) === 1 ? 'pessoa' : 'pessoas'}` : '— ainda não gerada'}</li>
+        ))}
+      </ul>
     </Secao>
   )
 }

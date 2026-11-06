@@ -4,7 +4,7 @@
  */
 
 /** Padrão do servidor na primeira assinatura (contrato metas-push §4): divulgação da edição só por escolha. */
-export const PREFS_PADRAO = Object.freeze({ avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true })
+export const PREFS_PADRAO = Object.freeze({ avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true, incentivo: true, premio: true })
 export const CHAVES_PREFS = Object.keys(PREFS_PADRAO)
 
 /** Só as quatro chaves booleanas conhecidas; o resto é ignorado (o servidor faz o mesmo). */
@@ -46,8 +46,12 @@ export function organizarAvisos (lista) {
     .slice(0, 60)
 }
 
-/** Caminho interno dentro de /cartoon/caca; qualquer outra coisa vira null (sem botão de abrir). */
+/** Única saída da Caça permitida (o painel de Prêmios do mapa); espelha a constraint do banco e o service worker. */
+export const DESTINO_PREMIOS = '/cartoon/mapa?painel=premios'
+
+/** Caminho interno dentro de /cartoon/caca (ou o painel de Prêmios); qualquer outra coisa vira null (sem botão de abrir). */
 export function destinoSeguro (url) {
+  if (url === DESTINO_PREMIOS) return url
   if (typeof url !== 'string' || !/^\/(?!\/)[A-Za-z0-9/_-]*$/.test(url)) return null
   return url === '/cartoon/caca' || url.startsWith('/cartoon/caca/') ? url : null
 }

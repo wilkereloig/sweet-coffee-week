@@ -130,7 +130,7 @@ test('central: o carimbo pendente é o próximo passo (uma ação), não se repe
   const central = fonte('src/edicao/caca/Central.jsx')
   assert.match(central, /nome === 'a casa' \? 'casa'/, 'sem a lista da edição: "da casa"')
   assert.doesNotMatch(central, /useState/, 'o estado do aviso mora no hook e nas linhas, não na Central')
-  assert.match(fonte('src/edicao/caca/notificacoes/CentroDeAvisos.jsx'), /filter\(\(a\) => a\.tipo === 'meta'\)/, 'a avaliação pendente não se repete nos avisos')
+  assert.match(fonte('src/edicao/caca/notificacoes/SinoDeAvisos.jsx'), /filter\(\(a\) => a\.tipo === 'meta'\)/, 'a avaliação pendente não se repete nos avisos')
 })
 
 test('central: avisos são linhas pequenas e dispensáveis; e-mail pendente volta a cada visita (a confirmação só existe aqui)', () => {

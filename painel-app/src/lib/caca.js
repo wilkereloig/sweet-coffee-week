@@ -586,6 +586,10 @@ export const cacaApi = {
   avisosAutoEstado: (f) => rpc('caca_avisos_auto_estado', { p_secret: lerSenha() }, f),
   /** Liga/desliga. Ligar grava o instante: só vale o que acontecer DEPOIS (nada do histórico). */
   avisosAutoDefinir: (ligado, f) => rpc('caca_avisos_auto_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
+  /** Programação diária do festival (migration 20261232): calendário, limites, último ciclo do agendador. */
+  programacaoEstado: (f) => rpc('caca_programacao_estado', { p_secret: lerSenha() }, f),
+  /** Ajusta a programação: { ligada, hora (8 a 20, Fortaleza), janela_horas (1 a 8) }. Datas do festival vêm da edição, não daqui. */
+  programacaoDefinir: (cfg, f) => rpc('caca_programacao_definir', { p_secret: lerSenha(), p_cfg: cfg }, f),
   /** Quantas entregas esperam push (não envia nada). */
   pushDoAvisoSimular: (id, f) => chamarFuncao('caca-push', { secret: lerSenha(), aviso_id: id, dry_run: true }, f),
   /** AÇÃO REAL: processa um lote de até 200 aparelhos de um aviso JÁ enviado; repetir enquanto `restam > 0`. */
