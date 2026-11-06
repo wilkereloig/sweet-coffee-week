@@ -390,7 +390,10 @@
 }
 
 /* ------------------------------------------------------------- ATALHOS DO JOGO (Atalhos.jsx; só na tela cheia) */
-.ct-jogo { position: absolute; z-index: 45; /* acima do cartão da casa (40): a lista dos atalhos nunca fica por baixo dele */  top: calc(var(--ct-barra-h) + 10px); left: calc(10px + env(safe-area-inset-left)); display: grid; gap: 8px; justify-items: start; }
+/* 07/11 (2): a camada cobre o palco inteiro, sem pegar toque (cada peça devolve o seu): o menu fica em cima à esquerda e os três atalhos fixos
+   no canto de baixo à direita. Sem z-index próprio: cada peça tem o seu (a lista do menu sempre acima do cartão da casa, 40). */
+.ct-jogo { position: absolute; inset: 0; pointer-events: none; }
+.ct-jogo > * { pointer-events: auto; }
 /* Revisão de 07/11: os controles do mapa viram UMA coluna estreita de círculos só com ícone, colada na borda esquerda (antes eram pílulas com texto,
    duas fileiras largas, que cobriam as casas). Atalhos (com o placar como selo) · Perto de mim · os três atalhos fixos. O nome de cada um continua no
    aria-label e no title; a lista dos atalhos abre ao lado da coluna. */
@@ -400,12 +403,13 @@
 }
 .ct-jogo__botao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
 .ct-jogo__botao > span:not(.ct-jogo__placar), .ct-jogo__linha .ct-mapa__perto-botao > span, .ct-jogo__fixo > span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.ct-jogo__linha { display: grid; gap: 8px; justify-items: start; }
+.ct-jogo__linha { position: absolute; z-index: 45; top: calc(var(--ct-barra-h) + 10px); left: calc(10px + env(safe-area-inset-left)); display: grid; gap: 8px; justify-items: start; }
 .ct-jogo__linha .ct-mapa__perto-botao { display: inline-grid; place-items: center; width: 48px; min-height: 48px; height: 48px; padding: 0; border-radius: 50%; }
 /* O placar ("2/26") vira um selo no canto do botão: o número continua à vista, sem gastar largura. */
 .ct-jogo__placar { position: absolute; top: -7px; left: 30px; display: inline-grid; place-items: center; min-width: 30px; height: 20px; padding: 0 5px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 900 11px/1 var(--ct-font); }
-/* Atalhos FIXOS: três círculos pequenos logo abaixo, na mesma coluna. */
-.ct-jogo__fixos { display: grid; gap: 8px; }
+/* Atalhos FIXOS: três círculos em coluna no canto de baixo à direita (acima do aviso de cookies; com o painel "Perto de mim" aberto sobem acima dele). */
+.ct-jogo__fixos { position: absolute; z-index: 35; right: calc(10px + env(safe-area-inset-right)); bottom: calc(44px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); display: grid; gap: 8px; }
+.is-cheia:has(.ct-perto) .ct-jogo__fixos { bottom: calc(196px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); }
 .ct-jogo__fixo {
   display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: var(--ct-traco); border-radius: 50%;
   background: var(--ct-creme); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); cursor: pointer;
@@ -429,7 +433,7 @@
 }
 .ct-jogo__pronto:disabled { opacity: .5; box-shadow: none; cursor: default; }
 .ct-jogo__lista {
-  position: absolute; top: 0; left: 58px; z-index: 1;
+  position: absolute; z-index: 46; top: calc(var(--ct-barra-h) + 10px); left: calc(68px + env(safe-area-inset-left));
   display: grid; gap: 2px; width: min(228px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))); max-height: calc(var(--ct-mapa-alto) - 144px); margin: 0; padding: 6px; overflow: auto;
   border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); list-style: none; animation: ct-folha-surge 160ms ease-out both;
 }
@@ -442,9 +446,8 @@
 @media (max-height: 520px) and (orientation: landscape) {
   .ct-jogo__lista { display: flex; flex-wrap: nowrap; width: auto; max-width: calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)); max-height: none; overflow-x: auto; }
   /* Deitado a coluna vira fileira (a altura não comporta cinco círculos em pé) e a lista abre embaixo dela. */
-  .ct-jogo { display: flex; align-items: flex-start; gap: 8px; }
-  .ct-jogo__linha, .ct-jogo__fixos { display: flex; gap: 8px; }
-  .ct-jogo__lista { top: 56px; left: 0; }
+  .ct-jogo__linha { display: flex; gap: 8px; }
+  .ct-jogo__lista { top: calc(var(--ct-barra-h) + 66px); left: calc(10px + env(safe-area-inset-left)); }
   .ct-jogo__item { flex-direction: column; justify-content: center; gap: 2px; min-width: 76px; min-height: 64px; padding: 4px 6px; font-size: 13px; text-align: center; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
