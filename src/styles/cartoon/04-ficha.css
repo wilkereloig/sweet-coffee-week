@@ -7,9 +7,17 @@
 
 /* 1 · Topo (canal Elenco + cenário): logo desenhada no quadro, nome em letreiro display, selos de atendimento. */
 .ct-ficha__cabeca { display: grid; justify-items: start; gap: 22px; width: 100%; }
-.ct-ficha__logo { --ct-desenho: clamp(112px, 34vw, 150px); rotate: -2deg; }
+/* Revisão de 06/11 (cabeçalho): o cartão da logo perdeu as fitas (elas ficam só na foto do combo), cresceu e deixou de
+   girar; o NOME e o bloco COMBO (inspiração · nome do combo · preço) são dois grupos separados, alinhados à mesma grade. */
+.ct-ficha__logo { --ct-desenho: clamp(112px, 34vw, 150px); }
 .ct-ficha__titulo { display: grid; justify-items: start; gap: 12px; min-width: 0; }
 .ct-ficha__titulo .ct-rotulo, .ct-ficha__titulo .ct-letreiro, .ct-ficha__titulo .ct-ficha__tema, .ct-ficha__combo { margin: 0; }
+/* O tamanho da letra do nome segue a PALAVRA MAIS LONGA (--ct-palavra, calculada em Topo.jsx): palavra não quebra no meio,
+   então com nome curto a letra cresce e com "Confeitaria" ou "Restaurante" ela encolhe até caber — nunca vaza da coluna. */
+.ct-ficha__nome { --ct-nome-teto: 14cqi; width: 100%; min-width: 0; }
+.ct-ficha__nome .ct-letreiro--display .ct-letreiro__linha { font-size: clamp(20px, min(var(--ct-nome-teto), calc(100cqi / (var(--ct-palavra, 7) * .62))), 96px); }
+.ct-ficha__info { display: grid; justify-items: start; gap: 12px; min-width: 0; }
+.ct-ficha__oferta { display: grid; gap: 12px; justify-items: start; min-width: 0; }
 /* O nome do combo vem antes do preço (revisão de 04/11): quem chega pelo QR confere o que vem e quanto custa sem rolar. */
 .ct-ficha__combo { max-width: 24ch; font: 900 clamp(20px, 2.1vw, 26px)/1.15 var(--ct-font); text-wrap: balance; }
 .ct-ficha__titulo .ct-letreiro { max-width: 16ch; }
@@ -34,6 +42,10 @@
 .ct-ficha__cabeca { grid-template-areas: 'logo' 'titulo' 'foto' 'acoes'; }
 .ct-ficha__logo { grid-area: logo; }
 .ct-ficha__titulo { grid-area: titulo; }
+/* Fitas só na foto do combo, menores que o padrão do quadro: seguram o canto sem cobrir a imagem (o recuo do quadro é 13px). */
+.ct-ficha__foto.ct-quadro--fita::before, .ct-ficha__foto.ct-quadro--fita::after { top: -9px; width: 46px; height: 16px; }
+.ct-ficha__foto.ct-quadro--fita::before { left: -13px; }
+.ct-ficha__foto.ct-quadro--fita::after { right: -13px; }
 .ct-ficha__vitrine { grid-area: foto; position: relative; isolation: isolate; display: block; width: 100%; max-width: 460px; color: inherit; text-decoration: none; }
 /* Explosão de gibi atrás do quadro da foto (Confirmados): sai pelas bordas do quadro. */
 .ct-ficha__explosao { inset: -12% -14%; width: auto; --ct-cor-explosao: var(--ct-amarelo); --ct-cor-ponto: rgba(58, 21, 15, .14); }
@@ -46,14 +58,24 @@
 /* Celular (04/11): quem chega pelo QR do prisma confere primeiro a casa — logo pequena e nome em cima, a foto do
    combo logo abaixo, ainda na primeira tela. O objeto A do kit ficaria atrás da foto: sai no celular. */
 @media (max-width: 900px) {
-  .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'logo titulo' 'foto foto' 'acoes acoes'; align-items: center; gap: 18px 14px; }
-  .ct-ficha__logo { --ct-desenho: 72px; }
+  /* Linha 1: logo (cartão de ~130 px) ao lado do nome; linha 2: inspiração + combo à esquerda e preço à direita, em toda a largura. */
+  .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'logo nome' 'info info' 'foto foto' 'acoes acoes'; align-items: center; gap: 16px; }
+  .ct-ficha__logo { --ct-desenho: clamp(96px, 30vw, 124px); }
+  .ct-ficha__titulo { display: contents; }
+  .ct-ficha__nome { grid-area: nome; --ct-nome-teto: 18cqi; }
+  .ct-ficha__nome .ct-letreiro--display .ct-letreiro__linha { max-width: none; }
+  .ct-ficha__info { grid-area: info; gap: 6px; }
+  .ct-ficha__oferta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 18px; width: 100%; }
+  .ct-ficha__oferta .ct-ficha__combo { flex: 1 1 130px; }
+  .ct-ficha__oferta .ct-ficha__preco { flex: none; margin: 0 4px 0 0; }
+  .ct-ficha__oferta .ct-preco__valor { font-size: 36px; }
+  .ct-ficha__oferta .ct-preco__combo { font-size: 22px; }
   .ct-ficha__vitrine { justify-self: stretch; max-width: none; }
   /* Com o nome e o preço em cima, a explosão atrás da foto subia sobre o preço: ela fica rente ao quadro em cima,
      a foto ganha respiro e o bloco do nome fica na frente. */
   .ct-ficha__vitrine { margin-top: 14px; }
   .ct-ficha__explosao { inset: -4% -10% -10%; }
-  .ct-ficha__titulo { position: relative; z-index: 2; }
+  .ct-ficha__nome, .ct-ficha__info { position: relative; z-index: 2; }
   .ct-ficha__topo .ct-cenario__objeto--a { display: none; }
 }
 @media (min-width: 901px) {

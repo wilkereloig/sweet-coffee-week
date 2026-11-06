@@ -17,7 +17,7 @@ import React from 'react'
 import { imagemPublica } from '../../dados/publico.js'
 import { Quadro } from './pecas.jsx'
 
-export function LogoDesenhada ({ casa, alt = casa?.nome || '', className = '' }) {
+export function LogoDesenhada ({ casa, alt = casa?.nome || '', className = '', fita = true }) {
   const par = casa?.logo_desenhada
   const oficial = imagemPublica(casa?.logo)
   const [falhou, setFalhou] = React.useState(false)
@@ -74,5 +74,5 @@ export function LogoDesenhada ({ casa, alt = casa?.nome || '', className = '' })
       ? <span className="ct-desenho ct-desenho--inicial" role="img" aria-label={alt}>{inicial}</span>
       : <span className="ct-desenho ct-desenho--inicial" aria-hidden="true">{inicial}</span>
   }
-  return <Quadro className={`ct-desenho-quadro ${className}`.trim()}>{desenho}</Quadro>
+  return <Quadro fita={fita} className={`ct-desenho-quadro ${className}`.trim()}>{desenho}</Quadro>
 }

@@ -28,6 +28,7 @@ export function Topo ({ p, encerrada, rota, navigate }) {
   const foto = p.combo?.fotos?.principal
   const preco = !encerrada ? p.combo?.preco : null
   const nomeCombo = p.combo?.nome ? M.caixaLegivel(p.combo.nome) : ''
+  const maiorPalavra = Math.max(5, ...String(p.casa.nome || '').split(/\s+/).map((w) => [...w].length))
   const selos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim')
   // Atalho de cada modo: no local e para viagem levam ao endereço e ao horário; delivery ao link de pedido, se for
   // inequívoco, ou a "Como pedir" (escolher a unidade, ou ver o que a casa informou).
@@ -42,12 +43,21 @@ export function Topo ({ p, encerrada, rota, navigate }) {
     <TopoCanal canal="elenco" className="ct-casa ct-ficha__topo ct-reticula" aria-labelledby="casa-nome">
       <CenarioTema slug={p.slug} semKit="natal" faixa={false} />
       <div className="ct-ficha__cabeca">
-        <LogoDesenhada casa={p.casa} className="ct-ficha__logo" />
+        <LogoDesenhada casa={p.casa} className="ct-ficha__logo" fita={false} />
         <div className="ct-ficha__titulo">
-          <Letreiro nivel={1} id="casa-nome" tamanho="display" texto={p.casa.nome} />
-          {p.casa.tema && <p className="ct-ficha__tema">{T.tema(p.casa.tema)}</p>}
-          {nomeCombo && <p className="ct-ficha__combo">{nomeCombo}</p>}
-          {preco && <Preco rotulo={T.precoRotulo} valor={M.formatarPreco(preco)} className="ct-ficha__preco" />}
+          {/* --ct-palavra: a palavra mais longa do nome manda no tamanho da letra, então nome curto ou longo nunca vaza da coluna. */}
+          <div className="ct-ficha__nome" style={{ '--ct-palavra': maiorPalavra }}>
+            <Letreiro nivel={1} id="casa-nome" tamanho="display" texto={p.casa.nome} />
+          </div>
+          <div className="ct-ficha__info">
+            {p.casa.tema && <p className="ct-ficha__tema">{T.tema(p.casa.tema)}</p>}
+            {(nomeCombo || preco) && (
+              <div className="ct-ficha__oferta">
+                {nomeCombo && <p className="ct-ficha__combo">{nomeCombo}</p>}
+                {preco && <Preco rotulo={T.precoRotulo} valor={M.formatarPreco(preco)} className="ct-ficha__preco" />}
+              </div>
+            )}
+          </div>
         </div>
         {foto && (
           <Ancora para="combo" className="ct-ficha__vitrine" aria-label={T.verCombo}>
