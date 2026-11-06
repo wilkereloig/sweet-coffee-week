@@ -139,7 +139,7 @@ test('central: avisos são linhas pequenas e dispensáveis; e-mail pendente volt
   assert.doesNotMatch(email, /localStorage/)
   assert.match(CACA.email.ajuda, /prêmio/)
   assert.match(CACA.email.maisDeUmMapa, /só o confirmado aparece no ranking e nos grupos/)
-  assert.match(EXTRAS.push.lead, /organização/)
+  assert.match(EXTRAS.push.honestidade, /organização/) // o lead novo (430669b6) não cita mais a organização; a honestidade segue dizendo quem envia
   assert.doesNotMatch(EXTRAS.push.lead, /em "Avisos"/, 'a central não tem mais um bloco chamado "Avisos"')
   assert.match(EXTRAS.push.estados['nao-suportado'], /aparece aqui na central/)
 })

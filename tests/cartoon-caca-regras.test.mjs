@@ -173,6 +173,6 @@ test('textos: "Já fui" é lembrete pessoal (não valida), metas em definição 
   assert.doesNotMatch(ROTA.progressoRotulo, /^visitadas$/)
   const { EXTRAS } = await import('../src/edicao/caca/textos-extras.js')
   assert.doesNotMatch(EXTRAS.push.lead, /tudo o que importa também aparece/)
-  assert.match(EXTRAS.push.lead, /organização/)
+  assert.match(EXTRAS.push.honestidade, /organização/) // o lead novo (430669b6) não cita mais a organização; a honestidade segue dizendo quem envia
   assert.match(CACA.carimbo.privacidade, /quando ela já tem o ponto conferido/)
 })
