@@ -50,6 +50,18 @@
   background: var(--ct-creme); font: 800 12px/1.4 var(--ct-font); text-transform: uppercase; letter-spacing: .04em; vertical-align: 1px;
 }
 .ct-caca-avisos__selo--urgente { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-caca-avisos__item { padding: 0; overflow: hidden; border: 2px solid var(--ct-chocolate); border-radius: 16px; background: #fff9e9; box-shadow: 3px 3px 0 var(--ct-chocolate); opacity: 1 !important; }
+.ct-caca-avisos__item.is-novo { border-width: 2px; background: #fff3c4; }
+.ct-caca-avisos__resumo { display: grid; gap: 8px; padding: 15px; cursor: pointer; list-style: none; }
+.ct-caca-avisos__resumo::-webkit-details-marker { display: none; }
+.ct-caca-avisos__etiqueta { justify-self: start; padding: 3px 9px; border: 1.5px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-amarelo); font: 800 11px/1.3 var(--ct-font); text-transform: uppercase; letter-spacing: .05em; }
+.ct-caca-avisos__titulo { font: 800 20px/1.15 var(--ct-font); }
+.ct-caca-avisos__previa { font: 600 15px/1.4 var(--ct-font); }
+.ct-caca-avisos__rodape { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ct-caca-avisos__expandir { font: 800 14px/1.3 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; }
+.ct-caca-avisos__item details[open] .ct-caca-avisos__previa { display: none; }
+.ct-caca-avisos__conteudo { display: grid; gap: 12px; padding: 14px 15px 16px; border-top: 2px dashed var(--ct-chocolate); }
+.ct-caca-avisos__conteudo .ct-caca-avisos__corpo { font: 600 16px/1.5 var(--ct-font); }
 .ct-caca-push__escolha { display: grid; gap: 4px; margin: 12px 0 0; padding: 0; border: 0; }
 .ct-caca-push__escolha legend { padding: 0; margin-bottom: 4px; }
 .ct-caca-push__opcao { align-items: flex-start; padding: 6px 0; }

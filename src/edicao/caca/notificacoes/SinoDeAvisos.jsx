@@ -10,7 +10,7 @@ import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
 import { EXTRAS } from '../textos-extras.js'
 import { usarMetas } from '../metas/usarMetas.js'
 import { calcularAvisos, lerVistas } from '../metas/logica.js'
-import { classificarErroPush, estadoDoPush } from './logica.js'
+import { classificarErroPush, estadoDoPush, TODAS_PREFS } from './logica.js'
 import { lerAparelho, ativarNesteAparelho } from './aparelho.js'
 import { usarAvisos } from './usarAvisos.js'
 import { CentroDeAvisos } from './CentroDeAvisos.jsx'
@@ -42,7 +42,7 @@ function OfertaPush ({ caca }) {
     try {
       let resposta = null
       await ativarNesteAparelho(async ({ endpoint, p256dh, auth }) => {
-        const r = await caca.api.pushRegistrar(caca.chave, { endpoint, keys: { p256dh, auth } }, null)
+        const r = await caca.api.pushRegistrar(caca.chave, { endpoint, keys: { p256dh, auth } }, TODAS_PREFS)
         if (!r.ok) throw Object.assign(new Error(r.motivo), { motivo: r.motivo })
         resposta = r
       })

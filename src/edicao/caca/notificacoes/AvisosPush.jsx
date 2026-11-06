@@ -6,8 +6,8 @@
  */
 import React from 'react'
 import { EXTRAS, mensagemDoMotivoExtras } from '../textos-extras.js'
-import { CHAVES_PREFS, PREFS_PADRAO, normalizarPrefs, estadoDoPush, classificarErroPush } from './logica.js'
-import { lerAparelho, ativarNesteAparelho, desativarNesteAparelho, esquecerAssinaturaLocal } from './aparelho.js'
+import { PREFS_PADRAO, TODAS_PREFS, normalizarPrefs, estadoDoPush, classificarErroPush } from './logica.js'
+import { lerAparelho, ativarNesteAparelho, desativarNesteAparelho, esquecerAssinaturaLocal, endpointDesteAparelho } from './aparelho.js'
 
 const T = EXTRAS.push
 
@@ -16,7 +16,6 @@ export function AvisosPush ({ caca }) {
   const [prefs, setPrefs] = React.useState(PREFS_PADRAO)
   const [dispositivos, setDispositivos] = React.useState(0)
   const [ocupado, setOcupado] = React.useState('') // '' · 'ligando' · 'desligando' · 'prefs'
-  const tocadas = React.useRef({}) // só o que a pessoa mexeu vai no "Ativar": o resto o servidor herda dos outros aparelhos
   const [msg, setMsg] = React.useState({ tipo: '', texto: '' }) // tipo: 'ok' | 'erro'
   const { chave, api } = caca
 
@@ -26,7 +25,8 @@ export function AvisosPush ({ caca }) {
       if (!vivo) return
       setAparelho(a)
       if (estadoDoPush(a) !== 'ligado') return
-      const r = await api.pushPrefs(chave, {}) // merge vazio = só lê as preferências e quantos aparelhos recebem
+      const endpoint = await endpointDesteAparelho()
+      const r = await api.pushVerificar(chave, endpoint)
       if (!vivo) return
       if (r.ok) { setPrefs(normalizarPrefs(r.prefs)); setDispositivos(Number(r.dispositivos) || 1) }
       // O navegador tem assinatura, o banco não (mapa recuperado com outra chave): falta registrar de novo, não "está ligado".
@@ -51,7 +51,7 @@ export function AvisosPush ({ caca }) {
     let resposta = null
     try {
       await ativarNesteAparelho(async ({ endpoint, p256dh, auth }) => {
-        const r = await api.pushRegistrar(chave, { endpoint, keys: { p256dh, auth } }, Object.keys(tocadas.current).length ? tocadas.current : null)
+        const r = await api.pushRegistrar(chave, { endpoint, keys: { p256dh, auth } }, TODAS_PREFS)
         if (!r.ok) throw Object.assign(new Error(r.motivo), { motivo: r.motivo })
         resposta = r
       })
@@ -79,14 +79,18 @@ export function AvisosPush ({ caca }) {
     } catch { falar('erro', T.falhaDesligar) } finally { setOcupado('') }
   }
 
-  const mudar = async (k, valor) => {
-    const antes = prefs
-    setPrefs({ ...prefs, [k]: valor })
-    if (!ligado) { tocadas.current = { ...tocadas.current, [k]: valor }; return } // antes de ativar a escolha fica só na tela e vai junto com o "Ativar"
+  const ativarTodas = async () => {
     setOcupado('prefs'); setMsg({ tipo: '', texto: '' })
-    const r = await api.pushPrefs(chave, { [k]: valor })
+    const r = await api.pushPrefs(chave, TODAS_PREFS)
+    if (r.ok) { setPrefs(normalizarPrefs(r.prefs)); falar('ok', T.salvo) } else falar('erro', T.falhaPreferencia)
     setOcupado('')
-    if (r.ok) { setPrefs(normalizarPrefs(r.prefs)); setDispositivos(Number(r.dispositivos) || dispositivos); falar('ok', T.salvo) } else { setPrefs(antes); falar('erro', r.motivo === 'sem_assinatura' ? mensagemDoMotivoExtras('sem_assinatura') : T.falhaPreferencia) }
+  }
+  const testar = async () => {
+    setOcupado('teste'); setMsg({ tipo: '', texto: '' })
+    const endpoint = await endpointDesteAparelho()
+    const r = await api.pushTeste(chave, endpoint)
+    falar(r.ok ? 'ok' : 'erro', r.ok ? T.testeEnviado : r.motivo === 'limitado' ? T.testeLimitado : T.testeFalhou)
+    setOcupado('')
   }
 
   const semOpcao = estado === 'nao-suportado' || estado === 'ios-instalar' || estado === 'bloqueada'
@@ -116,20 +120,13 @@ export function AvisosPush ({ caca }) {
           <span className={`ct-central__selo${ligado ? ' is-ligado' : ''}`}>{ligado ? T.situacao.ligado : T.situacao.desligado}</span>
         </summary>
         <p className="ct-nota">{T.lead}</p>
-        <fieldset className="ct-caca-push__escolha">
-          <legend className="ct-rotulo">{T.escolha}</legend>
-          {CHAVES_PREFS.map((k) => (
-            <label key={k} className="ct-check ct-caca-push__opcao">
-              <input type="checkbox" checked={prefs[k]} disabled={ocupado !== ''} onChange={(e) => mudar(k, e.target.checked)} />
-              <span><strong>{T.categorias[k].rotulo}</strong><span className="ct-caca-push__ajuda">{T.categorias[k].texto}</span></span>
-            </label>
-          ))}
-        </fieldset>
+        {ligado && !Object.values(prefs).every(Boolean) && <button type="button" className="ct-botao ct-central__mini" disabled={ocupado !== ''} onClick={ativarTodas}>{T.ativarTodas}</button>}
         <p className="ct-nota">{T.honestidade}</p>
         <div className="ct-central__linha-acoes">
           {ligado
             ? (
               <>
+                <button type="button" className="ct-botao ct-central__mini" disabled={ocupado !== ''} onClick={testar}>{ocupado === 'teste' ? T.testando : T.testar}</button>
                 <button type="button" className="ct-botao ct-botao--contorno ct-central__mini" disabled={ocupado !== ''} onClick={() => desligar(false)}>{ocupado === 'desligando' ? T.desligando : T.desligar}</button>
                 <button type="button" className="ct-botao ct-botao--contorno ct-central__mini" disabled={ocupado !== ''} onClick={() => desligar(true)}>{T.desligarTodos}</button>
               </>

@@ -4,7 +4,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { organizarAvisos, destinoSeguro, quandoCurto, CHAVES_PREFS, PREFS_PADRAO } from '../src/edicao/caca/notificacoes/logica.js'
+import { organizarAvisos, destinoSeguro, quandoCurto, CHAVES_PREFS, PREFS_PADRAO, TODAS_PREFS } from '../src/edicao/caca/notificacoes/logica.js'
 import { criarApi } from '../src/edicao/caca/api.js'
 import { EXTRAS } from '../src/edicao/caca/textos-extras.js'
 
@@ -13,6 +13,19 @@ const ler = (rel) => fs.readFileSync(path.join(raiz, rel), 'utf8')
 const semComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
 const CHAVE = 'a'.repeat(32) // formato aceito por chaveValida? (conferido abaixo)
 const UUID = '11111111-1111-4111-8111-111111111111'
+
+test('ativação completa e teste só para o aparelho informado', async () => {
+  assert.deepEqual(Object.keys(TODAS_PREFS), CHAVES_PREFS)
+  assert.ok(Object.values(TODAS_PREFS).every(Boolean))
+  const chave = await descobrirChaveValida()
+  const chamadas = []
+  const api = criarApi({ urlBase: 'https://example.invalid', buscar: async (url, options) => { chamadas.push({ url, ...options }); return { json: async () => ({ ok: true }) } } })
+  assert.equal((await api.pushTeste(chave, null)).ok, false)
+  assert.equal(chamadas.length, 0)
+  assert.equal((await api.pushTeste(chave, 'https://push.example/teste')).ok, true)
+  assert.equal(chamadas.length, 1)
+  assert.deepEqual(JSON.parse(chamadas[0].body), { teste: true, chave, endpoint: 'https://push.example/teste' })
+})
 
 test('central: só avisos bem formados, mais novos primeiro, destino só dentro da Caça', () => {
   const lista = organizarAvisos([

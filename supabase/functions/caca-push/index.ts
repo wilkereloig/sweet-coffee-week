@@ -70,8 +70,8 @@ function juntar(...partes: Uint8Array[]): Uint8Array {
 }
 
 async function hmac(chave: Uint8Array, dados: Uint8Array): Promise<Uint8Array> {
-  const k = await crypto.subtle.importKey('raw', chave, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-  return new Uint8Array(await crypto.subtle.sign('HMAC', k, dados))
+  const k = await crypto.subtle.importKey('raw', new Uint8Array(chave), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  return new Uint8Array(await crypto.subtle.sign('HMAC', k, new Uint8Array(dados)))
 }
 
 // HKDF de uma volta só: é o que o RFC 8291 usa, com saída sempre ≤ 32 bytes.
@@ -121,7 +121,7 @@ async function cifrar(carga: string, p256dh: string, authChave: string): Promise
   const efemero = await crypto.subtle.generateKey(
     { name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']) as CryptoKeyPair
   const asPublica = new Uint8Array(await crypto.subtle.exportKey('raw', efemero.publicKey))
-  const chaveUa = await crypto.subtle.importKey('raw', uaPublica, { name: 'ECDH', namedCurve: 'P-256' }, false, [])
+  const chaveUa = await crypto.subtle.importKey('raw', new Uint8Array(uaPublica), { name: 'ECDH', namedCurve: 'P-256' }, false, [])
   const compartilhado = new Uint8Array(
     await crypto.subtle.deriveBits({ name: 'ECDH', public: chaveUa }, efemero.privateKey, 256))
 
@@ -137,7 +137,7 @@ async function cifrar(carga: string, p256dh: string, authChave: string): Promise
   // navegador descarta a mensagem sem dizer por quê.
   const claro = juntar(texto.encode(carga), new Uint8Array([2]))
   const cifrado = new Uint8Array(await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: nonce, tagLength: 128 }, chaveAes, claro))
+    { name: 'AES-GCM', iv: nonce, tagLength: 128 }, chaveAes, new Uint8Array(claro)))
 
   // Cabeçalho do corpo: salt(16) | tamanho de registro(4) | tamanho da chave(1) | chave(65)
   const rs = new Uint8Array(4)
@@ -159,7 +159,7 @@ async function enviarUm(a: any, carga: string, vapid: { publica: Uint8Array, pri
         'Content-Type': 'application/octet-stream',
         'Authorization': await assinaturaVapid(a.endpoint, vapid.publica, vapid.privadaD, vapid.sub),
       },
-      body: corpoCifrado,
+      body: new Uint8Array(corpoCifrado),
       // Um serviço de push pendurado não pode travar o laço inteiro.
       signal: AbortSignal.timeout(10000),
     })
@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
 
   let payload: {
     secret?: string; tipo?: string; dry_run?: boolean; titulo?: string; corpo?: string; url?: string; mapa_ids?: string[]
-    aviso_id?: string; ciclo?: boolean
+    aviso_id?: string; ciclo?: boolean; teste?: boolean; chave?: string; endpoint?: string
     apos?: { criado_em: string; id: string } | null
   }
   try { payload = await req.json() } catch { return json({ erro: 'invalid_json' }, 400) }
@@ -238,6 +238,20 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
+
+  // O teste só pode alcançar o endpoint já vinculado à chave deste mapa. O banco limita a frequência.
+  if (payload.teste === true) {
+    if (typeof payload.chave !== 'string' || typeof payload.endpoint !== 'string' || payload.chave.length > 256 || payload.endpoint.length > 2048) return json({ ok: false, motivo: 'pedido_invalido' }, 400)
+    const vapid = lerVapid()
+    if (!vapid) return json({ ok: false, motivo: 'indisponivel' }, 503)
+    const { data, error } = await admin.rpc('caca_push_preparar_teste', { p_chave: payload.chave, p_endpoint: payload.endpoint })
+    if (error) return json({ ok: false, motivo: 'indisponivel' }, 503)
+    if (!data?.ok) return json({ ok: false, motivo: data?.motivo || 'sem_assinatura' }, 400)
+    const carga = JSON.stringify({ titulo: 'Tudo pronto para a Caça!', corpo: 'Este é o teste dos seus avisos. Fique de olho nas novidades e oportunidades de prêmios.', url: '/cartoon/caca', tag: 'scw-caca-teste', tipo: 'caca' })
+    const resultado = await enviarUm(data.aparelho, carga, vapid)
+    if (resultado !== 'ok') return json({ ok: false, motivo: 'falha_envio' }, 503)
+    return json({ ok: true })
+  }
 
   // ── Modo CICLO (agendador do banco, a cada 15 min): sem credencial e SEM escolha. Só processa avisos que o banco diz que têm
   // entrega pendente (caca_avisos_para_processar); título, destino e destinatários vêm todos do banco, como no `reenviar` do enviar-push.

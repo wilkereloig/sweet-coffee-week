@@ -295,6 +295,15 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
     /** `caca_push_prefs` (chaves booleanas: avaliacao_pendente, meta, grupo, edicao): `{ ok:true, prefs, dispositivos }` · sem_assinatura. */
     pushPrefs: (chave, prefs) => comChave(chave, () => rpcOk('caca_push_prefs', { p_chave: chave, p_prefs: prefs })),
 
+    pushVerificar: (chave, endpoint) => comChave(chave, () => rpcOk('caca_push_verificar_aparelho', { p_chave: chave, p_endpoint: endpoint })),
+    pushTeste: (chave, endpoint) => comChave(chave, async () => {
+      if (!endpoint) return sem('sem_assinatura')
+      try {
+        const r = await buscar(`${urlBase}/functions/v1/caca-push`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teste: true, chave, endpoint }) })
+        return comOk(await r.json())
+      } catch { return sem('rede') }
+    }),
+
     /** `caca_push_remover` (`endpoint` null = todos os aparelhos do mapa): `{ ok:true, removidos }`. */
     pushRemover: (chave, endpoint = null) => comChave(chave, () => rpcOk('caca_push_remover', { p_chave: chave, p_endpoint: endpoint })),
   }

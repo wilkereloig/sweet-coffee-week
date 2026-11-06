@@ -113,6 +113,7 @@ export function Avisos({ edicao, pode }) {
               <>
                 <label className="og-campo"><span>Título</span>
                   <input type="text" maxLength={AVISO_LIMITES.titulo} value={form.titulo} onChange={(e) => mudar('titulo', e.target.value)} /></label>
+                <p className="ui-nota">Destaque no título o benefício real para a pessoa, como uma chance de ganhar vouchers. Evite prometer prêmio ou quantidade sem confirmação.</p>
                 <label className="og-campo"><span>Texto ({form.corpo.length}/{AVISO_LIMITES.corpo})</span>
                   <textarea rows={3} maxLength={AVISO_LIMITES.corpo} value={form.corpo} onChange={(e) => mudar('corpo', e.target.value)} /></label>
                 <label className="og-campo"><span>Público</span>

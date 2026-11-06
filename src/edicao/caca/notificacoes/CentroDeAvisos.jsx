@@ -51,13 +51,14 @@ export function CentroDeAvisos ({ lista, metasNovas = [], navigate, aoNavegar })
           <ul className="ct-caca-avisos__lista">
             {lista.avisos.map((a) => (
               <li key={a.id} className={`ct-caca-avisos__item${a.visto ? '' : ' is-novo'}${a.urgente ? ' is-urgente' : ''}`}>
-                <p className="ct-caca-avisos__titulo">
-                  {!a.visto && <span className="ct-caca-avisos__selo">{T.novo}</span>}
-                  {a.urgente && <span className="ct-caca-avisos__selo ct-caca-avisos__selo--urgente">{T.urgente}</span>}
-                  {a.titulo}
-                </p>
-                <p className="ct-caca-avisos__corpo">{a.corpo}</p>
-                <p className="ct-caca-avisos__quando">{quandoCurto(a.quando)}</p>
+                <details onToggle={(e) => { if (e.currentTarget.open && !a.visto) lista.marcarVistos([a.id]) }}>
+                <summary className="ct-caca-avisos__resumo">
+                  <span className="ct-caca-avisos__etiqueta">{!a.visto ? T.novo : 'Aviso da Caça'}{a.urgente ? ` · ${T.urgente}` : ''}</span>
+                  <strong className="ct-caca-avisos__titulo">{a.titulo}</strong>
+                  <span className="ct-caca-avisos__previa">{a.corpo.length > 105 ? `${a.corpo.slice(0, 105).trimEnd()}…` : a.corpo}</span>
+                  <span className="ct-caca-avisos__rodape"><time className="ct-caca-avisos__quando">{quandoCurto(a.quando)}</time><span className="ct-caca-avisos__expandir">Ler aviso <span aria-hidden="true">↗</span></span></span>
+                </summary>
+                <div className="ct-caca-avisos__conteudo"><p className="ct-caca-avisos__corpo">{a.corpo}</p>
                 {(a.destino && a.destino !== RUA.central) || !a.visto
                   ? (
                     <div className="ct-central__linha-acoes">
@@ -68,6 +69,7 @@ export function CentroDeAvisos ({ lista, metasNovas = [], navigate, aoNavegar })
                     </div>
                     )
                   : null}
+                </div></details>
               </li>
             ))}
           </ul>

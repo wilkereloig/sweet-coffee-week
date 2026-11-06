@@ -19,6 +19,9 @@ export async function lerAparelho () {
 
 /** Pede permissão (chamar só de um clique), assina e entrega `{ endpoint, p256dh, auth }` a `registrar`. Lança 'bloqueado' | 'sem_resposta' | o erro do banco. */
 export const ativarNesteAparelho = (registrar) => ligarAvisos(registrar)
+export async function endpointDesteAparelho () {
+  return (await assinaturaDoAparelho())?.endpoint || null
+}
 
 /** Banco primeiro (`remover(endpoint)`), depois o navegador. */
 export const desativarNesteAparelho = (remover) => desligarAvisos(remover)
