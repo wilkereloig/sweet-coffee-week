@@ -23,7 +23,7 @@ export const PREMIOS = {
     resultado: 'A organização já confirmou o voucher deste dia. Quem ganhou recebe o aviso pelo contato do mapa.',
   },
   comoConcorre: (corte) => `Conta quem tem mais casas diferentes validadas até ${corte ? `as ${corte}` : 'o fim'} do dia (horário de Natal).`,
-  fimDoDia: (corte) => `Ao fim do dia, quem tiver mais casas diferentes validadas${corte ? ` até as ${corte}` : ''} (horário de Natal) concorre ao voucher. Em caso de empate, desempatam os carimbos extras e, se ainda empatar, há sorteio entre as pessoas empatadas.`,
+  fimDoDia: (corte) => `Quem tiver mais casas diferentes validadas${corte ? ` até as ${corte}` : ' até o corte'} (horário de Natal) concorre ao voucher do dia, e o sorteio é à noite. Em caso de empate, desempatam os carimbos extras e, se ainda empatar, há sorteio entre as pessoas empatadas.`,
   hoje: 'É hoje: a disputa está aberta e você ainda pode acumular carimbos até o corte.',
   comecaEm: (d) => `Os carimbos passam a valer em ${d.longa}.`,
   periodo: (i, f) => `A Caça aos Carimbos acontece de ${i.longa} a ${f.longa}.`,
@@ -41,7 +41,7 @@ export const PREMIOS = {
     'Empate: os carimbos extras de revisitas desempatam. Se ainda empatar, há sorteio entre as pessoas empatadas.',
     'Cada pessoa ganha no máximo um voucher por dia, e continua na Caça e no prêmio final.',
     'Uma casa só conta na apuração quando o carimbo está validado pela avaliação. Carimbo pendente ainda não conta.',
-    'A apuração e a confirmação acontecem depois que o dia encerra.',
+    `A apuração fecha${corte ? ` às ${corte}` : ' no horário de corte'} e o sorteio acontece à noite do mesmo dia.`,
     validade ? `Os vouchers desta ação valem até ${validade.longa}.` : 'A validade dos vouchers está no regulamento.',
   ],
   // Prêmio final

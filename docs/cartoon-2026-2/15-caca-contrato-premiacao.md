@@ -21,7 +21,7 @@ Nenhuma dessas funções é pública: o site do visitante e o app da Caça **nã
 
 - **Pessoa** = e-mail normalizado. `email` nos retornos é essa chave.
 - **Foto do dia** (`caca_apuracao_dia`): ranking de `caca_ranking_v2` com corte, gravado uma vez por dia e **imutável**. Anular carimbo depois não muda a foto. `hash` = sha256 de `edição|dia|corte|ranking`.
-- **Corte**: hora local de Natal em `fuso` + `corte_hora_local` (padrão 23:59). O minuto inteiro conta (23:59:59 entra, 00:00:00 não). `corte` no retorno é o limite exclusivo (dia seguinte 00:00 local).
+- **Corte**: hora local de Natal em `fuso` + `corte_hora_local` (**17:00 desde 06/11/2026**, migration `20270106_caca_corte_17h.sql`; antes 23:59). O minuto inteiro conta (17:00:59 entra, 17:01:00 não). `corte` no retorno é o limite exclusivo (17:01 local do dia). O sorteio acontece à noite do mesmo dia.
 - **Estados do prêmio**: `selecionado` → `confirmado` → `entregue`; `expirado`, `substituido`, `cancelado`. Só `confirmado` e `entregue` tiram a pessoa das apurações seguintes; `selecionado` pendente a tira **temporariamente**; `expirado` volta a concorrer em outros dias.
 - **E-mail confirmado** (`mapas_lover.email_confirmado_em` no **mapa principal** da pessoa; perfil e contato do prêmio vêm desse mesmo mapa — migration 20261210): o prêmio nasce `confirmado`, sem prazo. Senão nasce `selecionado` com `prazo_ate`.
 - **Prazo**: 1ª chamada = `prazo_confirmacao_proximo_dia_hora` (12h) do dia seguinte, em Natal. Chamadas seguintes (substituição) = agora + `prazo_segunda_chamada_min` (120 min, **proposta**). Nada expira sozinho: `vencido: true` no JSON só **sinaliza**; a organização aciona `expirar`/`substituir`.
@@ -50,7 +50,7 @@ Retorna `{ "<chave>": { valor, proposta: bool, nota: text|null, atualizado_em, a
 | `caca_inicio` | `"YYYY-MM-DD"`, não depois de `caca_fim` | `"2026-11-05"` (1º dia da Caça; a aba Prêmios usa para dizer "em breve" × "em andamento") |
 | `caca_fim` | `"YYYY-MM-DD"`, não antes de `caca_inicio` | `"2026-11-15"` (a Caça encerra no corte deste dia) |
 | `voucher_dias` | array de datas `"YYYY-MM-DD"` (1 a 31) | 7 a 11/11/2026 |
-| `corte_hora_local` | `"HH:MM"` | `"23:59"` |
+| `corte_hora_local` | `"HH:MM"` | `"17:00"` |
 | `fuso` | nome IANA | `"America/Fortaleza"` |
 | `peso_base` | inteiro 1..10000 | 100 |
 | `ganhadores_final` | inteiro 1..20 | 3 |

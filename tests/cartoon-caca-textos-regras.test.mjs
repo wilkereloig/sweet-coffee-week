@@ -45,7 +45,7 @@ test('regulamento bate com os valores de partida do banco (vouchers, corte, peso
   assert.match(sql, /'ganhadores_final', '3'/)
   assert.match(sql, /'prazo_confirmacao_proximo_dia_hora', '12'/)
   assert.match(sql, /'voucher_validade_ate', '"2026-11-15"'/)
-  assert.match(regulamento, /7, 8, 9, 10 e 11 de novembro, às 23h59/)
+  assert.match(regulamento, /7, 8, 9, 10 e 11 de novembro, às 17h00/)
   assert.match(regulamento, /meio-dia do dia seguinte/)
   assert.match(regulamento, /até 15\/11/)
   assert.match(regulamento, /São 3 ganhadores/)

@@ -45,7 +45,7 @@ export const REGULAMENTO = {
       'A organização pode anular carimbos suspeitos; carimbo anulado sai da conta.',
     ]],
     ['Vouchers digitais, um por dia', [
-      'Nos dias 7, 8, 9, 10 e 11 de novembro, às 23h59 (horário de Natal), a organização confere quem tem mais casas diferentes validadas, contando o que foi carimbado e avaliado até aquele horário. Em empate, vale quem tem mais carimbos extras; persistindo, sorteio entre os empatados. Essa pessoa ganha um voucher digital.',
+      'Nos dias 7, 8, 9, 10 e 11 de novembro, às 17h00 (horário de Natal), a organização confere quem tem mais casas diferentes validadas, contando o que foi carimbado e avaliado até aquele horário. Em empate, vale quem tem mais carimbos extras; persistindo, sorteio entre os empatados, realizado à noite do mesmo dia. Essa pessoa ganha um voucher digital.',
       'Carimbo ou avaliação feitos depois do horário de corte só contam nas apurações seguintes.',
       'Cada pessoa ganha no máximo um voucher: quem já ganhou não entra nas apurações seguintes, e o voucher do dia vai para quem vem a seguir na ordem acima.',
       'O e-mail do mapa precisa estar confirmado. Quem for selecionado e ainda não confirmou tem até o meio-dia do dia seguinte (horário de Natal) para confirmar; passado o prazo, a organização chama a próxima pessoa. Por isso, confirme o e-mail assim que criar o mapa. Quem perdeu o prazo de um dia ainda pode concorrer nos outros.',

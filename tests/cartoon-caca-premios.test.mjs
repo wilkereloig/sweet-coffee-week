@@ -94,7 +94,7 @@ test('período da Caça (início e fim vêm do servidor): antes · aberta · enc
   assert.match(P.regras('23h59', null, { inicio: i, fim: f })[0], /de 5 de novembro a 15 de novembro/)
   assert.equal(P.regras('23h59', null, null).length, P.regras('23h59', null, { inicio: i, fim: f }).length - 1, 'sem período, a regra do período não aparece')
   const fim = P.fimDoDia('23h59')
-  assert.match(fim, /Ao fim do dia/); assert.match(fim, /mais casas diferentes validadas até as 23h59/); assert.match(fim, /sorteio entre as pessoas empatadas/)
+  assert.match(fim, /o sorteio é à noite/); assert.match(fim, /mais casas diferentes validadas até as 23h59/); assert.match(fim, /sorteio entre as pessoas empatadas/)
   assert.doesNotMatch(P.fimDoDia(null), /undefined|null/, 'sem corte do servidor, nenhum horário é inventado')
 })
 
@@ -129,7 +129,7 @@ test('as regras do texto casam com o regulamento aprovado', () => {
   assert.match(regras, /no máximo um voucher por dia/)
   assert.match(regras, /continua na Caça e no prêmio final/)
   assert.match(regras, /só conta na apuração quando o carimbo está validado/)
-  assert.match(regras, /depois que o dia encerra/)
+  assert.match(regras, /A apuração fecha às 23h59 e o sorteio acontece à noite do mesmo dia/)
   assert.match(regras, /valem até 15 de novembro/)
   assert.match(P.finalTexto(3), /press kit oficial da edição e uma surpresa/)
   assert.match(P.finalExtras, /não uma chance garantida/); assert.doesNotMatch(P.finalExtras, /%/)
