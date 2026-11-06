@@ -40,15 +40,17 @@ function Estado ({ estado }) {
 /** Dia ainda sem encerrar: a disputa está aberta (o servidor chama de 'proximo' o dia que ainda não chegou). */
 const aberto = (estado) => estado === 'proximo' || estado === 'em_disputa'
 
-function Voucher ({ foco, corte }) {
+function Voucher ({ foco, corte, periodo }) {
   return (
     <section className="ct-premios__destaque" aria-labelledby="premio-voucher">
       <p className="ct-rotulo">{P.proximoRotulo[foco.estado]}</p>
       <h3 id="premio-voucher" className="ct-sub">{P.diaTitulo(foco.data)}</h3>
-      <p className="ct-premios__linha"><strong>{P.umVoucher}</strong><Estado estado={foco.estado} /></p>
-      <p className="ct-nota">{P.estadoDica[foco.estado]}</p>
+      <p className="ct-premios__linha"><strong>{P.umVoucher}</strong><Estado estado={foco.exibe} /></p>
+      <p className="ct-nota">{foco.estado === 'em_disputa' ? P.hoje : P.estadoDica[foco.exibe]}</p>
+      {foco.exibe === 'em_breve' && periodo && <p className="ct-nota">{P.comecaEm(periodo.inicio)}</p>}
       {aberto(foco.estado) && <p className="ct-nota">{P.fimDoDia(corte)}</p>}
       {foco.estado === 'em_apuracao' && <p className="ct-nota">{P.comoConcorre(corte)}</p>}
+      {periodo?.estado === 'encerrada' && <p className="ct-nota">{P.encerrada(periodo.fim)}</p>}
     </section>
   )
 }
@@ -62,7 +64,7 @@ function Dias ({ dados }) {
           <li key={d.iso} className={`ct-premios__dia${d === dados.foco ? ' is-foco' : ''}`}>
             <span className="ct-premios__data"><b>{d.data.curta}</b><span>{d.data.semana}</span></span>
             <span>{P.umVoucherCurto}</span>
-            <Estado estado={d.estado} />
+            <Estado estado={d.exibe} />
           </li>
         ))}
       </ol>
@@ -74,7 +76,7 @@ function Regras ({ dados }) {
   return (
     <details className="ct-premios__regras">
       <summary>{P.regrasTitulo}</summary>
-      <ul>{P.regras(dados.corte, dados.validade).map((t) => <li key={t}>{t}</li>)}</ul>
+      <ul>{P.regras(dados.corte, dados.validade, dados.periodo).map((t) => <li key={t}>{t}</li>)}</ul>
     </details>
   )
 }
@@ -113,7 +115,7 @@ export function PainelPremios ({ caca, totalDaEdicao = 0, navigate }) {
         {estado === 'pronto' && dado && (dado.foco
           ? (
             <>
-              <Voucher foco={dado.foco} corte={dado.corte} />
+              <Voucher foco={dado.foco} corte={dado.corte} periodo={dado.periodo} />
               {dado.apurando.map((d) => <p key={d.iso} className="ct-nota ct-premios__apurando">{P.apurando(d.data)}</p>)}
               <p className="ct-nota">{P.vouchersResumo(dado.dias.length)}</p>
               {dado.dias.length > 1 && <Dias dados={dado} />}

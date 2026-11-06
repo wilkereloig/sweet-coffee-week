@@ -4,7 +4,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { descreverData, horaDoCorte, organizarPremios, situacaoDoJogador } from '../src/edicao/caca/premios/logica.js'
+import { descreverData, horaDoCorte, organizarPremios, organizarPeriodo, estadoExibido, situacaoDoJogador } from '../src/edicao/caca/premios/logica.js'
 import { PREMIOS as P } from '../src/edicao/caca/premios/textos.js'
 import { criarApi } from '../src/edicao/caca/api.js'
 
@@ -61,25 +61,52 @@ test('dados ausentes ou tortos: estado honesto, nunca exceção nem prêmio inve
 })
 
 test('estados nunca afirmam entrega ou vencedor; só "resultado confirmado" fala em confirmação', () => {
-  assert.deepEqual(Object.keys(P.estado), ['proximo', 'em_disputa', 'em_apuracao', 'resultado'])
+  assert.deepEqual(Object.keys(P.estado), ['em_breve', 'andamento', 'agendado', 'em_apuracao', 'resultado'])
   for (const t of [...Object.values(P.estado), ...Object.values(P.estadoDica)]) assert.doesNotMatch(t, /entregue|vencedor|ganhou o voucher|parabéns/i)
   assert.match(P.estadoDica.em_apuracao, /ainda não há confirmação/)
   assert.match(P.estado.resultado, /confirmado/)
 })
 
-test('a disputa já está aberta: dia que ainda não chegou diz "em andamento", nunca "em breve" nem "ainda não começou"', () => {
-  assert.equal(P.estado.proximo, 'Disputa em andamento')
-  assert.equal(P.estado.em_disputa, 'Disputa em andamento')
-  for (const k of ['proximo', 'em_disputa']) {
-    assert.doesNotMatch(`${P.estado[k]} ${P.estadoDica[k]}`, /em breve|ainda não começou|não começou/i, k)
-    assert.match(P.estadoDica[k], /acumular carimbos/, `${k}: a pessoa já pode acumular carimbos`)
-  }
-  const f = P.fimDoDia('23h59')
-  assert.match(f, /Ao fim do dia/); assert.match(f, /mais casas diferentes validadas até as 23h59/); assert.match(f, /sorteio entre as pessoas empatadas/)
+test('período da Caça (início e fim vêm do servidor): antes · aberta · encerrada, e a tela só afirma o que sabe', () => {
+  const per = (estado) => ({ inicio: '2026-11-05', fim: '2026-11-15', estado })
+  assert.deepEqual(organizarPeriodo(per('aberta')), { inicio: descreverData('2026-11-05'), fim: descreverData('2026-11-15'), estado: 'aberta' })
+  for (const ruim of [null, undefined, {}, per('talvez'), { inicio: 'x', fim: '2026-11-15', estado: 'aberta' }, { inicio: '2026-11-05', estado: 'aberta' }]) assert.equal(organizarPeriodo(ruim), null, JSON.stringify(ruim))
+  const dias = ['proximo', 'proximo', 'proximo', 'proximo', 'proximo']
+  // Caça aberta (hoje 6/11): o dia 7 ainda não chegou, mas os carimbos já contam → em andamento, nunca "em breve".
+  const aberta = organizarPremios(resposta(dias, { periodo: per('aberta') }))
+  assert.equal(aberta.periodo.estado, 'aberta'); assert.ok(aberta.dias.every((d) => d.exibe === 'andamento'))
+  assert.equal(aberta.foco.iso, '2026-11-07')
+  // Antes do início: aí sim "em breve".
+  assert.ok(organizarPremios(resposta(dias, { periodo: per('antes') })).dias.every((d) => d.exibe === 'em_breve'))
+  // Sem informação do período (resposta antiga ou torta): nada é afirmado.
+  assert.ok(organizarPremios(resposta(dias)).dias.every((d) => d.exibe === 'agendado'))
+  // O dia de hoje é sempre em andamento; apuração e resultado não mudam com o período.
+  assert.equal(estadoExibido('em_disputa', null), 'andamento')
+  for (const e of ['em_apuracao', 'resultado']) for (const pe of [null, per('antes'), per('aberta'), per('encerrada')]) assert.equal(estadoExibido(e, pe && organizarPeriodo(pe)), e)
+  assert.equal(estadoExibido('proximo', organizarPeriodo(per('encerrada'))), 'agendado')
+  // Textos.
+  assert.equal(P.estado.andamento, 'Disputa em andamento'); assert.equal(P.estado.em_breve, 'Em breve')
+  assert.doesNotMatch(`${P.estado.andamento} ${P.estadoDica.andamento} ${P.hoje}`, /em breve|não começou/i)
+  assert.match(P.estadoDica.andamento, /acumular carimbos/); assert.match(P.hoje, /acumular carimbos/)
+  assert.match(P.estadoDica.em_breve, /ainda não começou/)
+  const i = descreverData('2026-11-05'); const f = descreverData('2026-11-15')
+  assert.match(P.comecaEm(i), /5 de novembro/); assert.match(P.encerrada(f), /15 de novembro/)
+  assert.match(P.regras('23h59', null, { inicio: i, fim: f })[0], /de 5 de novembro a 15 de novembro/)
+  assert.equal(P.regras('23h59', null, null).length, P.regras('23h59', null, { inicio: i, fim: f }).length - 1, 'sem período, a regra do período não aparece')
+  const fim = P.fimDoDia('23h59')
+  assert.match(fim, /Ao fim do dia/); assert.match(fim, /mais casas diferentes validadas até as 23h59/); assert.match(fim, /sorteio entre as pessoas empatadas/)
   assert.doesNotMatch(P.fimDoDia(null), /undefined|null/, 'sem corte do servidor, nenhum horário é inventado')
-  // O servidor segue chamando de 'proximo' o dia que ainda não chegou: a tela traduz, a lógica não muda (foco = o dia em disputa, senão o próximo).
-  const antes = organizarPremios(resposta(['proximo', 'proximo', 'proximo', 'proximo', 'proximo']))
-  assert.equal(antes.foco.iso, '2026-11-07'); assert.equal(antes.foco.estado, 'proximo')
+})
+
+test('migration do período: semeia 5 e 15/11, valida início <= fim e a leitura pública devolve o estado pelo relógio do servidor', () => {
+  const sql = fs.readFileSync(new URL('../supabase/migrations/20261233_caca_periodo.sql', import.meta.url), 'utf8')
+  assert.match(sql, /'caca_inicio', '"2026-11-05"'/); assert.match(sql, /'caca_fim', '"2026-11-15"'/)
+  assert.match(sql, /on conflict \(chave\) do nothing/, 'só semeia: nunca sobrescreve o que a organização editou')
+  assert.match(sql, /when 'caca_inicio' then[\s\S]*> \(public\.caca_pcfg\('caca_fim'\)/); assert.match(sql, /when 'caca_fim' then[\s\S]*< \(public\.caca_pcfg\('caca_inicio'\)/)
+  for (const e of ['antes', 'aberta', 'encerrada']) assert.ok(sql.includes(`'${e}'`), e)
+  assert.match(sql, /grant execute on function public\.caca_premios_publico\(text\) to anon, authenticated/)
+  assert.doesNotMatch(sql, /caca_premio[^;]*(delete|update)/i, 'não mexe em prêmio, carimbo nem apuração')
+  assert.ok(fs.existsSync(new URL('../supabase/reverter/20261233_caca_periodo.sql', import.meta.url)), 'tem reverter')
 })
 
 test('pessoa sem mapa, com mapa vazio, com carimbo pendente, com casas validadas e completa', () => {

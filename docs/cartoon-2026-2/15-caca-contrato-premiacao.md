@@ -43,10 +43,12 @@ Nenhuma dessas funções é pública: o site do visitante e o app da Caça **nã
 
 ## `caca_config_ler(p_secret text) → jsonb`
 
-Retorna `{ "<chave>": { valor, proposta: bool, nota: text|null, atualizado_em, atualizado_por } , ... }` com as 10 chaves:
+Retorna `{ "<chave>": { valor, proposta: bool, nota: text|null, atualizado_em, atualizado_por } , ... }` com as 12 chaves (as duas últimas do quadro, `caca_inicio` e `caca_fim`, vieram na migration 20261233):
 
 | chave | valor (JSON) | padrão |
 |---|---|---|
+| `caca_inicio` | `"YYYY-MM-DD"`, não depois de `caca_fim` | `"2026-11-05"` (1º dia da Caça; a aba Prêmios usa para dizer "em breve" × "em andamento") |
+| `caca_fim` | `"YYYY-MM-DD"`, não antes de `caca_inicio` | `"2026-11-15"` (a Caça encerra no corte deste dia) |
 | `voucher_dias` | array de datas `"YYYY-MM-DD"` (1 a 31) | 7 a 11/11/2026 |
 | `corte_hora_local` | `"HH:MM"` | `"23:59"` |
 | `fuso` | nome IANA | `"America/Fortaleza"` |

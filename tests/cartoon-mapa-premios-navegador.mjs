@@ -30,8 +30,9 @@ const matar = () => { if (servidor?.pid) { try { process.platform === 'win32' ? 
 
 const CHAVE = 'E'.repeat(32)
 const DIAS = ['2026-11-07', '2026-11-08', '2026-11-09', '2026-11-10', '2026-11-11']
-const PREMIOS = (estados) => ({
-  agora: '2026-11-08T15:00:00Z', fuso: 'America/Fortaleza', corte_hora_local: '23:59', voucher_validade_ate: '2026-11-15', ganhadores_final: 3,
+const PERIODO = (estado) => ({ inicio: '2026-11-05', fim: '2026-11-15', estado })
+const PREMIOS = (estados, periodo = 'aberta') => ({
+  agora: '2026-11-08T15:00:00Z', periodo: periodo ? PERIODO(periodo) : undefined, fuso: 'America/Fortaleza', corte_hora_local: '23:59', voucher_validade_ate: '2026-11-15', ganhadores_final: 3,
   dias: DIAS.map((dia, i) => ({ dia, corte: `${dia}T23:59:00-03:00`, estado: estados[i] })),
 })
 const DURANTE = PREMIOS(['resultado', 'em_disputa', 'proximo', 'proximo', 'proximo'])
@@ -121,13 +122,15 @@ try {
   }
 
   console.log('\nantes e depois dos dias (estado vem do servidor)')
-  for (const [rot, estados, foco, esperado] of [
+  for (const [rot, estados, foco, esperado, periodo] of [
     ['antes de tudo', ['proximo', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Sábado, 7 de novembro/i, /Disputa em andamento[\s\S]*você já pode acumular carimbos[\s\S]*Ao fim do dia[\s\S]*sorteio entre as pessoas empatadas/],
+    ['Caça ainda não aberta', ['proximo', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Sábado, 7 de novembro/i, /Em breve[\s\S]*A disputa deste dia ainda não começou[\s\S]*Os carimbos passam a valer em 5 de novembro/, 'antes'],
     ['dia encerrado, sem confirmação', ['em_apuracao', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Domingo, 8 de novembro/i, /O dia 7\/11 encerrou e está em apuração\. Ainda não há resultado confirmado/],
     ['tudo confirmado', ['resultado', 'resultado', 'resultado', 'resultado', 'resultado'], /Último resultado[\s\S]*Quarta, 11 de novembro/i, /Resultado confirmado/],
   ]) {
-    const c = await abrir(nav, { w: 1440, h: 900, premios: PREMIOS(estados), url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 1440, h: 900, premios: PREMIOS(estados, periodo), url: '/cartoon/mapa?preview=1&painel=premios' })
     await c.page.locator('.ct-premios__destaque').waitFor({ timeout: 15000 })
+    await c.page.screenshot({ path: join(CAPTURAS, `dias-${rot.replace(/[^a-z0-9]+/gi, '-')}.png`) })
     const t = await texto(c.page)
     checar(foco.test(t), `${rot}: o voucher em foco é o certo`)
     checar(esperado.test(t), `${rot}: estado ${esperado}`)

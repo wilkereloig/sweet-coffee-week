@@ -480,7 +480,7 @@
   display: inline-block; padding: 3px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-branco); color: var(--ct-chocolate);
   font: 800 13px/1.2 var(--ct-font); white-space: nowrap;
 }
-.ct-premios__estado.is-em_disputa, .ct-premios__estado.is-proximo { background: var(--ct-creme); }
+.ct-premios__estado.is-andamento { background: var(--ct-creme); }
 .ct-premios__estado.is-em_apuracao { border-style: dashed; }
 .ct-premios__estado.is-resultado { background: var(--ct-chocolate); color: var(--ct-creme); }
 .ct-premios__lista { display: grid; gap: 6px; padding: 0; list-style: none; }

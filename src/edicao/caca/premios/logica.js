@@ -9,6 +9,7 @@ import { progressoPessoal } from '../mapa/estados.js'
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const SEMANA = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 export const ESTADOS_DO_DIA = ['proximo', 'em_disputa', 'em_apuracao', 'resultado']
+export const ESTADOS_DO_PERIODO = ['antes', 'aberta', 'encerrada']
 const DATA = /^(\d{4})-(\d{2})-(\d{2})$/
 
 const inteiro = (n) => (Number.isFinite(Number(n)) ? Math.max(0, Math.trunc(Number(n))) : 0)
@@ -28,6 +29,25 @@ export function horaDoCorte (hhmm) {
   return m ? `${Number(m[1])}h${m[2]}` : null
 }
 
+/** `periodo` de `caca_premios_publico` → { inicio, fim (descreverData), estado: 'antes' | 'aberta' | 'encerrada' }. Sem datas válidas ou sem estado: null (a tela não afirma nada). */
+export function organizarPeriodo (p) {
+  const inicio = descreverData(p?.inicio); const fim = descreverData(p?.fim)
+  return inicio && fim && ESTADOS_PERIODO.has(p?.estado) ? { inicio, fim, estado: p.estado } : null
+}
+const ESTADOS_PERIODO = new Set(ESTADOS_DO_PERIODO)
+
+/**
+ * O que a tela diz de cada dia. O servidor chama de 'proximo' o dia que ainda não chegou, mas a disputa dele só "ainda não começou"
+ * quando a Caça não abriu: com a Caça aberta os carimbos validados já contam para o corte do dia ('andamento'). Sem informação do
+ * período (resposta antiga), nada é afirmado ('agendado'). O dia de hoje ('em_disputa') é sempre 'andamento'.
+ */
+export function estadoExibido (estado, periodo) {
+  if (estado === 'em_disputa') return 'andamento'
+  if (estado !== 'proximo') return estado
+  if (!periodo) return 'agendado'
+  return periodo.estado === 'antes' ? 'em_breve' : periodo.estado === 'aberta' ? 'andamento' : 'agendado'
+}
+
 /**
  * Resposta de `caca_premios_publico` → o que a tela usa. Defensiva: dia torto ou estado desconhecido some; lista vazia vira
  * "sem dias" (a tela mostra o estado honesto), nunca exceção. `foco` = o voucher mais relevante agora: o dia em disputa; senão o
@@ -35,14 +55,17 @@ export function horaDoCorte (hhmm) {
  */
 export function organizarPremios (dado) {
   const lista = Array.isArray(dado?.dias) ? dado.dias : []
+  const periodo = organizarPeriodo(dado?.periodo)
   const dias = lista
     .map((d) => ({ iso: String(d?.dia ?? ''), estado: d?.estado, data: descreverData(d?.dia) }))
     .filter((d) => d.data && ESTADOS_DO_DIA.includes(d.estado))
     .sort((a, b) => (a.iso < b.iso ? -1 : 1))
+    .map((d) => ({ ...d, exibe: estadoExibido(d.estado, periodo) }))
   const foco = dias.find((d) => d.estado === 'em_disputa') || dias.find((d) => d.estado === 'proximo')
     || dias.find((d) => d.estado === 'em_apuracao') || dias[dias.length - 1] || null
   const ganhadores = inteiro(dado?.ganhadores_final)
   return {
+    periodo,
     dias,
     foco,
     outros: dias.filter((d) => d !== foco),

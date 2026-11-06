@@ -113,6 +113,8 @@ export function lerRegras(config) {
     segundaChamadaMin: valorDe(config, 'prazo_segunda_chamada_min'),
     segundaChamadaProposta: !!(config && config.prazo_segunda_chamada_min && config.prazo_segunda_chamada_min.proposta),
     validadeAte: valorDe(config, 'voucher_validade_ate') || '',
+    cacaInicio: valorDe(config, 'caca_inicio') || '',
+    cacaFim: valorDe(config, 'caca_fim') || '',
     pesoBase: valorDe(config, 'peso_base'),
     ganhadoresFinal: valorDe(config, 'ganhadores_final'),
   }
@@ -182,6 +184,8 @@ export function filaDeSubstituicao(premios, apuracoes) {
 /** O regulamento público escreve estes valores como fixos (C10). Mudar aqui NÃO muda o texto: o aviso aparece na tela e na confirmação. */
 export const AVISO_REGULAMENTO = 'O regulamento publicado cita este valor como fixo. Se mudar aqui, o texto do regulamento fica desatualizado: altere o regulamento no mesmo dia e avise quem já o leu.'
 export const CAMPOS_CONFIG = Object.freeze([
+  { chave: 'caca_inicio', regulamento: AVISO_REGULAMENTO, rotulo: 'Primeiro dia da Caça', tipo: 'data', ajuda: 'Os carimbos validados contam desde este dia. Não pode ser depois do último dia.' },
+  { chave: 'caca_fim', regulamento: AVISO_REGULAMENTO, rotulo: 'Último dia da Caça', tipo: 'data', ajuda: 'A Caça encerra no corte deste dia. Para estender, mude aqui e atualize o regulamento no mesmo dia.' },
   { chave: 'voucher_dias', regulamento: AVISO_REGULAMENTO, rotulo: 'Dias dos vouchers', tipo: 'datas', ajuda: 'Um voucher por dia. Datas no formato AAAA-MM-DD, uma por linha (de 1 a 31).' },
   { chave: 'corte_hora_local', regulamento: AVISO_REGULAMENTO, rotulo: 'Hora do corte', tipo: 'hora', ajuda: 'Vale o minuto inteiro: 23:59 inclui quem validou às 23:59:59.' },
   { chave: 'fuso', rotulo: 'Fuso do corte', tipo: 'texto', ajuda: 'Nome do fuso, como America/Fortaleza.' },

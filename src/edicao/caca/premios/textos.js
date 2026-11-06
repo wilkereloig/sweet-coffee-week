@@ -12,16 +12,22 @@ export const PREMIOS = {
   diaTitulo: (d) => `${d.semana[0].toUpperCase()}${d.semana.slice(1)}, ${d.longa}`,
   umVoucher: '1 voucher em disputa',
   umVoucherCurto: '1 voucher',
-  // 'proximo' é só o dia que ainda não chegou: a disputa dele já está aberta (os carimbos validados desde o início do festival contam), por isso diz "em andamento", nunca "em breve".
-  estado: { proximo: 'Disputa em andamento', em_disputa: 'Disputa em andamento', em_apuracao: 'Em apuração', resultado: 'Resultado confirmado' },
+  // Estado EXIBIDO do dia (logica.js › estadoExibido): 'andamento' = Caça aberta (os carimbos validados já contam para o corte do dia);
+  // 'em_breve' = a Caça ainda não abriu; 'agendado' = sem informação do período (nada é afirmado).
+  estado: { em_breve: 'Em breve', andamento: 'Disputa em andamento', agendado: 'Dia de voucher', em_apuracao: 'Em apuração', resultado: 'Resultado confirmado' },
   estadoDica: {
-    proximo: 'A disputa já está aberta: você já pode acumular carimbos para este voucher.',
-    em_disputa: 'É hoje: a disputa está aberta e você ainda pode acumular carimbos até o corte.',
+    em_breve: 'A disputa deste dia ainda não começou.',
+    andamento: 'A disputa já está aberta: você já pode acumular carimbos para este voucher.',
+    agendado: 'Neste dia há 1 voucher em disputa. As regras estão logo abaixo.',
     em_apuracao: 'O dia encerrou. A organização apura e confirma o resultado; ainda não há confirmação.',
     resultado: 'A organização já confirmou o voucher deste dia. Quem ganhou recebe o aviso pelo contato do mapa.',
   },
   comoConcorre: (corte) => `Conta quem tem mais casas diferentes validadas até ${corte ? `as ${corte}` : 'o fim'} do dia (horário de Natal).`,
   fimDoDia: (corte) => `Ao fim do dia, quem tiver mais casas diferentes validadas${corte ? ` até as ${corte}` : ''} (horário de Natal) concorre ao voucher. Em caso de empate, desempatam os carimbos extras e, se ainda empatar, há sorteio entre as pessoas empatadas.`,
+  hoje: 'É hoje: a disputa está aberta e você ainda pode acumular carimbos até o corte.',
+  comecaEm: (d) => `Os carimbos passam a valer em ${d.longa}.`,
+  periodo: (i, f) => `A Caça aos Carimbos acontece de ${i.longa} a ${f.longa}.`,
+  encerrada: (f) => `A Caça aos Carimbos encerrou em ${f.longa}.`,
   apurando: (d) => `O dia ${d.curta} encerrou e está em apuração. Ainda não há resultado confirmado.`,
   verTodos: 'Ver todos os dias',
   todosTitulo: 'Todos os dias de voucher',
@@ -29,7 +35,8 @@ export const PREMIOS = {
   tentar: 'Tentar de novo',
   carregando: 'Carregando os prêmios…',
   regrasTitulo: 'Como o voucher do dia é decidido',
-  regras: (corte, validade) => [
+  regras: (corte, validade, periodo) => [
+    ...(periodo ? [`A Caça aos Carimbos acontece de ${periodo.inicio.longa} a ${periodo.fim.longa}.`] : []),
     `A classificação considera primeiro quem tem mais casas diferentes validadas até ${corte ? `as ${corte}` : 'o fim'} do dia.`,
     'Empate: os carimbos extras de revisitas desempatam. Se ainda empatar, há sorteio entre as pessoas empatadas.',
     'Cada pessoa ganha no máximo um voucher por dia, e continua na Caça e no prêmio final.',

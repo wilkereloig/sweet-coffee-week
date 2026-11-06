@@ -115,12 +115,12 @@ test('fila de substituição: tira quem já tem prêmio no dia e quem está bloq
 })
 
 // ── regras e prazos ──────────────────────────────────────────────────────────
-test('os campos da configuração são exatamente as 10 chaves do contrato', () => {
+test('os campos da configuração são exatamente as 12 chaves do contrato (10 + período da Caça)', () => {
   assert.deepEqual(C.CAMPOS_CONFIG.map((c) => c.chave).sort(), [
-    'corte_hora_local', 'email_confirmado_se_sem_coluna', 'fuso', 'ganhadores_final', 'intervalo_carimbo_h', 'peso_base',
+    'caca_fim', 'caca_inicio', 'corte_hora_local', 'email_confirmado_se_sem_coluna', 'fuso', 'ganhadores_final', 'intervalo_carimbo_h', 'peso_base',
     'prazo_confirmacao_proximo_dia_hora', 'prazo_segunda_chamada_min', 'voucher_dias', 'voucher_validade_ate',
   ])
-  const sql = ler('supabase/migrations/20261204_caca_premiacao.sql')
+  const sql = ler('supabase/migrations/20261204_caca_premiacao.sql') + ler('supabase/migrations/20261233_caca_periodo.sql')
   for (const c of C.CAMPOS_CONFIG) assert.ok(sql.includes(`'${c.chave}'`), 'o banco não conhece ' + c.chave)
 })
 
