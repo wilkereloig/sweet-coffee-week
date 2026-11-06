@@ -9,6 +9,7 @@ import { EXTRAS } from '../textos-extras.js'
 import { IMG_CACA } from '../imagens.js'
 import { usarMetas } from '../metas/usarMetas.js'
 import { novasConquistas, lerVistas, gravarVistas } from '../metas/logica.js'
+import { AvisoCampanha } from '../campanha/Campanha.jsx'
 
 const T = EXTRAS.metas
 
@@ -83,6 +84,7 @@ export default function Metas ({ caca, navigate }) {
         ? <p className="ct-nota">{T.semMetas}</p>
         : (<><Proxima metas={metas} /><ListaDeMarcos marcos={metas.marcos} /></>)}
       <p className="ct-nota">{T.nota}</p>
+      <AvisoCampanha navigate={navigate} />
       <div className="ct-acoes"><Link href={RUA.mapa} navigate={navigate} className="ct-botao ct-botao--contorno">{T.verMapa}</Link></div>
     </div>
   )

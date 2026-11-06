@@ -10,8 +10,9 @@ import { ICONE } from '../../cartoon/textos.js'
 import { MARCAS_PARCEIROS } from '../../../data/imageLibrary'
 import { linkComoChegarSicredi } from './sicredi.js'
 import { MAPA_CACA as T } from './textos.js'
+import { BlocoCampanha } from '../campanha/Campanha.jsx'
 
-export function CartaoSicredi ({ agencia, fechar }) {
+export function CartaoSicredi ({ agencia, fechar, navigate }) {
   if (!agencia) return null
   const link = linkComoChegarSicredi(agencia)
   return (
@@ -33,17 +34,19 @@ export function CartaoSicredi ({ agencia, fechar }) {
           <Botao href={link} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.comoChegar} tamanho={20} />{T.sicrediComoChegar}</Botao>
         </div>
       )}
+      <BlocoCampanha navigate={navigate} variante="mapa" />
     </article>
   )
 }
 
 /** Seção da vista em lista: as agências com nome, endereço, aviso e "Como chegar". Uma lista própria (não são casas). */
-export function ListaSicredi ({ agencias, selecionada, aoSelecionar }) {
+export function ListaSicredi ({ agencias, selecionada, aoSelecionar, navigate }) {
   if (!agencias.length) return null
   return (
     <section className="ct-caca-mapa__sicredi" aria-labelledby="sicredi-titulo">
       <h2 id="sicredi-titulo" className="ct-sub">{T.sicrediTitulo}</h2>
       <p className="ct-nota">{T.sicrediAviso}</p>
+      <BlocoCampanha navigate={navigate} variante="mapa" />
       <ul className="ct-caca-mapa__sicredi-lista">
         {agencias.map((a) => {
           const link = linkComoChegarSicredi(a)

@@ -33,7 +33,8 @@ test('central: destino só aceita caminho interno da Caça', () => {
   assert.equal(destinoSeguro('/cartoon/caca'), '/cartoon/caca')
   assert.equal(destinoSeguro('/cartoon/caca/metas'), '/cartoon/caca/metas')
   assert.equal(destinoSeguro('/cartoon/mapa?painel=premios'), '/cartoon/mapa?painel=premios', 'única saída: o painel de Prêmios')
-  for (const ruim of ['/cartoon/mapa?painel=outro', '/cartoon/mapa', '//evil.com', 'https://x.com', '/painel', '/cartoon/caca/../x?a=1', '/cartoon/cacaxxx', '', null, undefined, 3]) assert.equal(destinoSeguro(ruim), null, String(ruim))
+  assert.equal(destinoSeguro('/cartoon/ter-com-quem-contar'), '/cartoon/ter-com-quem-contar', 'segunda saída: a página da campanha Ter com quem contar')
+  for (const ruim of ['/cartoon/ter-com-quem-contar/x', '/cartoon/ter-com-quem-contar?a=1', '/cartoon/mapa?painel=outro', '/cartoon/mapa', '//evil.com', 'https://x.com', '/painel', '/cartoon/caca/../x?a=1', '/cartoon/cacaxxx', '', null, undefined, 3]) assert.equal(destinoSeguro(ruim), null, String(ruim))
 })
 
 test('central: data no fuso de Natal; data torta vira vazio', () => {
@@ -73,13 +74,15 @@ async function descobrirChaveValida () {
 }
 
 test('preferências: as chaves do app são as do banco, todas com texto, e o padrão não liga divulgação', () => {
-  const sql = ler('supabase/migrations/20261232_caca_programacao.sql') // a definição vigente (substitui a de 20261230)
+  const sql = ler('supabase/migrations/20261234_caca_campanha_sicredi.sql') // a definição vigente das categorias e do padrão (substitui a de 20261232)
   const norm = sql.match(/unnest\(array\[([^\]]+)\]\) k/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
   assert.deepEqual([...CHAVES_PREFS].sort(), [...norm].sort(), 'CHAVES_PREFS = caca_push_prefs_norm')
   const padrao = JSON.parse(sql.match(/v_padrao constant jsonb := '(\{[^']+\})'/)[1])
   assert.deepEqual(padrao, { ...PREFS_PADRAO }, 'padrão do app = padrão do servidor')
   for (const k of CHAVES_PREFS) assert.ok(EXTRAS.push.categorias[k]?.rotulo && EXTRAS.push.categorias[k]?.texto, `texto de ${k}`)
-  assert.equal(PREFS_PADRAO.edicao, false); assert.equal(PREFS_PADRAO.voucher, false)
+  assert.equal(PREFS_PADRAO.edicao, false); assert.equal(PREFS_PADRAO.voucher, false); assert.equal(PREFS_PADRAO.campanha, false, 'campanha vem desligada, como a divulgação da edição')
+  assert.equal(CHAVES_PREFS.length, 9)
+  assert.equal(EXTRAS.avisos.acaoPorCategoria.campanha, 'Ver a campanha')
   const cats = sql.match(/add constraint caca_aviso_categoria_check\s+check \(categoria in \(([^)]+)\)\)/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
   assert.deepEqual([...cats].sort(), [...CHAVES_PREFS].sort(), 'toda categoria de aviso é uma preferência que a pessoa controla')
 })
@@ -155,7 +158,9 @@ test('service worker: clique abre só caminho dentro da Caça e a carga não tem
   const sw = ler('public/caca-sw.js')
   assert.match(sw, /function destino\(url\)/)
   assert.match(sw, /ESCOPO \+ '\/'\) === 0 \? url : CENTRAL/)
-  assert.match(sw, /var PREMIOS = '\/cartoon\/mapa\?painel=premios'/, 'única saída permitida além do escopo')
+  assert.match(sw, /var PREMIOS = '\/cartoon\/mapa\?painel=premios'/, 'saída permitida além do escopo: painel de Prêmios')
+  assert.match(sw, /var CAMPANHA = '\/cartoon\/ter-com-quem-contar'/, 'saída permitida além do escopo: campanha da Sicredi')
+  assert.match(sw, /url === PREMIOS \|\| url === CAMPANHA/)
   assert.ok(!/(apelido|email|whatsapp|chave)/i.test(sw.replace(/\/\*[\s\S]*?\*\//g, '')), 'o SW não lê nem mostra dado pessoal')
 })
 

@@ -35,6 +35,8 @@ import { Carimbo } from './paginas/Carimbo.jsx'
 import { Caca } from './paginas/caca/index.jsx'
 import { VoucherVirtual } from './paginas/VoucherVirtual.jsx'
 import { Regulamento } from './paginas/Regulamento.jsx'
+import { TerComQuemContar } from './paginas/TerComQuemContar.jsx'
+import { LinkDaCampanha } from '../caca/campanha/Campanha.jsx'
 
 // Vitrine do sistema visual (docs/cartoon-2026-2/10 §10.12): só no DEV. Fora
 // dele o import nem existe no código, então a vitrine não entra no build.
@@ -110,7 +112,7 @@ const CENAS_DO_MAPA = ['mapa', 'carimbo', 'caca', 'regulamento']
 
 const TITULOS = {
   'mapa-em-breve': 'Mapa da Doçura', participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa da Doçura',
-  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', caca: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', inexistente: 'Página não encontrada',
+  avaliar: 'Sweet Awards', premiacao: 'Sweet Awards', sistema: 'Sistema visual', carimbo: 'Caça aos Carimbos', caca: 'Caça aos Carimbos', voucher: 'Voucher virtual', regulamento: 'Regulamento da Caça aos Carimbos', 'ter-com-quem-contar': 'Ter com quem contar', inexistente: 'Página não encontrada',
 }
 
 export function CartoonPage ({ path, navigate }) {
@@ -154,7 +156,7 @@ export function CartoonPage ({ path, navigate }) {
 
   // Páginas que dependem da lista da edição esperam por ela; o participante busca o seu.
   // A Caça só espera a lista na seção do mapa; a central e o resto usam a lista se já houver (nome da casa) e seguem sem ela.
-  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'mapa-em-breve', 'carimbo', 'voucher', 'regulamento'].includes(cena) && (cena !== 'caca' || secao === 'mapa')
+  const precisaLista = !['entrada', 'participante', 'sistema', 'inexistente', 'mapa-em-breve', 'carimbo', 'voucher', 'regulamento', 'ter-com-quem-contar'].includes(cena) && (cena !== 'caca' || secao === 'mapa')
   let conteudo
   if (precisaLista && ed.estado === 'carregando') conteudo = <Carregando texto="Carregando a edição…" />
   else if (precisaLista && ed.estado === 'falha') {
@@ -172,6 +174,7 @@ export function CartoonPage ({ path, navigate }) {
       case 'carimbo': conteudo = <Carimbo key={codigo} codigo={codigo} navigate={navigate} dados={dados} />; break
       case 'voucher': conteudo = <VoucherVirtual key={token} token={token} navigate={navigate} dados={dados} />; break
       case 'regulamento': conteudo = <Regulamento navigate={navigate} />; break
+      case 'ter-com-quem-contar': conteudo = <TerComQuemContar navigate={navigate} />; break
       case 'sistema': conteudo = <React.Suspense fallback={<Carregando texto="Carregando a vitrine…" />}><Sistema /></React.Suspense>; break
       case 'mapa-em-breve':
         conteudo = (
@@ -234,6 +237,7 @@ export function CartoonPage ({ path, navigate }) {
                 <li><Link href="/participar" navigate={navigate}>Participar</Link></li>
                 <li><Link href="/apoiar" navigate={navigate}>Apoiar</Link></li>
                 <li><Link href="/contato" navigate={navigate}>Contato</Link></li>
+                <LinkDaCampanha navigate={navigate} como="li" />
               </ul>
             </nav>
             <ul className="ct-rodape__links ct-rodape__legais" aria-label={RODAPE.legais}>

@@ -4,10 +4,10 @@
  */
 
 /** Padrão do servidor na primeira assinatura (contrato metas-push §4): divulgação da edição só por escolha. */
-export const PREFS_PADRAO = Object.freeze({ avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true, incentivo: true, premio: true })
+export const PREFS_PADRAO = Object.freeze({ avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true, incentivo: true, premio: true, campanha: false })
 export const CHAVES_PREFS = Object.keys(PREFS_PADRAO)
 
-/** Só as quatro chaves booleanas conhecidas; o resto é ignorado (o servidor faz o mesmo). */
+/** Só as chaves booleanas conhecidas (as de PREFS_PADRAO); o resto é ignorado (o servidor faz o mesmo). */
 export function normalizarPrefs (p) {
   const saida = { ...PREFS_PADRAO }
   for (const k of CHAVES_PREFS) if (typeof p?.[k] === 'boolean') saida[k] = p[k]
@@ -49,9 +49,12 @@ export function organizarAvisos (lista) {
 /** Única saída da Caça permitida (o painel de Prêmios do mapa); espelha a constraint do banco e o service worker. */
 export const DESTINO_PREMIOS = '/cartoon/mapa?painel=premios'
 
-/** Caminho interno dentro de /cartoon/caca (ou o painel de Prêmios); qualquer outra coisa vira null (sem botão de abrir). */
+/** Página da campanha Ter com quem contar (Sicredi): o destino do aviso da categoria `campanha` (migration 20261234). */
+export const DESTINO_CAMPANHA = '/cartoon/ter-com-quem-contar'
+
+/** Caminho interno dentro de /cartoon/caca, o painel de Prêmios ou a página da campanha; qualquer outra coisa vira null (sem botão de abrir). */
 export function destinoSeguro (url) {
-  if (url === DESTINO_PREMIOS) return url
+  if (url === DESTINO_PREMIOS || url === DESTINO_CAMPANHA) return url
   if (typeof url !== 'string' || !/^\/(?!\/)[A-Za-z0-9/_-]*$/.test(url)) return null
   return url === '/cartoon/caca' || url.startsWith('/cartoon/caca/') ? url : null
 }

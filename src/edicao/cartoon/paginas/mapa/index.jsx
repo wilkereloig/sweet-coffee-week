@@ -410,7 +410,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const cartao = (agenciaEscolhida || escolhida) && (
     <Folha variante="casa" aoFechar={fecharCasa}>
       {agenciaEscolhida
-        ? <CartaoSicredi agencia={agenciaEscolhida} fechar={fecharCasa} />
+        ? <CartaoSicredi agencia={agenciaEscolhida} fechar={fecharCasa} navigate={navigate} />
         : (
           <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
             parada={paradaDe.get(escolhida.u.id) || null} estado={estadoDe(escolhida.p.slug)} revisitas={revisitasDe(escolhida.p.slug)}
@@ -515,7 +515,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                       <button type="button" className="ct-botao" onClick={() => setF(VAZIO)}>{T.limpar}</button>
                     </div>
                   )}
-                  <ListaSicredi agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} />
+                  <ListaSicredi agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} navigate={navigate} />
                 </>
               )}
             </div>

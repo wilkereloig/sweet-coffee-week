@@ -17,7 +17,7 @@ const aDefinir = itens.filter((x) => x?.aDefinir).map((x) => x.aDefinir)
 /** Arquivos de texto que o público lê (ou que descrevem a regra no painel). Comentários de código não entram nas frases. */
 const TEXTOS = [
   'src/edicao/cartoon/regulamento.js', 'src/edicao/cartoon/textos.js', 'src/edicao/caca/textos.js', 'src/edicao/caca/textos-extras.js',
-  'src/edicao/caca/textos-gps.js', 'src/edicao/caca/grupos/textos.js', 'src/edicao/caca/ranking/textos.js', 'src/edicao/caca/mapa/textos.js',
+  'src/edicao/caca/textos-gps.js', 'src/edicao/caca/grupos/textos.js', 'src/edicao/caca/ranking/textos.js', 'src/edicao/caca/mapa/textos.js', 'src/edicao/caca/campanha/terComQuemContar.js',
   'src/data/conteudo/legal.js', 'painel-app/src/components/vistas/CarimbosMapa.jsx',
 ]
 

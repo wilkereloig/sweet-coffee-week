@@ -7,13 +7,16 @@
 import React from 'react'
 import { MARCAS_PARCEIROS as M } from '../../../data/imageLibrary'
 import { MARCAS as T } from '../../cartoon/textos.js'
+import { LinkDaCampanha } from '../../caca/campanha/Campanha.jsx'
 
-export function AssinaturaPatrocinio () {
+/** `navigate` (só na entrada): junta um link de texto para a campanha Ter com quem contar enquanto ela estiver no prazo. */
+export function AssinaturaPatrocinio ({ navigate }) {
   const s = M.sicredi
   return (
     <aside className="ct-assina-patrocinio" aria-label={T.patrocinio}>
       <p className="ct-assina-patrocinio__rotulo">{T.patrocinio}</p>
       <img src={s.src} alt={s.alt} width={s.largura} height={s.altura} decoding="async" />
+      {navigate && <LinkDaCampanha navigate={navigate} className="ct-assina-patrocinio__campanha" />}
     </aside>
   )
 }

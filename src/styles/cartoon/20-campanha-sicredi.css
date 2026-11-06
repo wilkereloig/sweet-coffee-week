@@ -1,0 +1,67 @@
+/* Camada Cartoon · Campanha "Ter com quem contar" (Sicredi): página /cartoon/ter-com-quem-contar e o cartão curto que aponta para ela
+   (agência no mapa, painel de Prêmios, Metas). Só tokens --ct-*. Entra por src/styles/scw-cartoon.css, depois do 19. */
+
+/* ------------------------------------------------------------- página */
+.ct-tcqc__topo { gap: 12px; }
+.ct-tcqc__topo .ct-h1 { margin-bottom: 4px; }
+.ct-tcqc__topo .ct-lead { margin-bottom: 4px; }
+.ct-tcqc__prazo {
+  margin: 4px 0 0; padding: 8px 16px; border: var(--ct-traco); border-radius: 999px; background: var(--ct-branco);
+  font: 800 16px/1.2 var(--ct-font);
+}
+.ct-tcqc__prazo.is-encerrada { background: var(--ct-creme); }
+/* Logo do Sicredi só sobre branco, sem sombra nem contorno (manual da marca), como em .ct-assina-patrocinio. */
+.ct-tcqc__selo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 8px; padding: 12px 18px; border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-edicao .ct-tcqc__selo-rotulo { margin: 0; font: 700 13px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
+.ct-edicao .ct-tcqc__selo img { display: block; width: auto; max-width: none; height: 34px; }
+
+.ct-tcqc__duas { display: grid; gap: 32px; align-items: start; }
+@media (min-width: 900px) { .ct-tcqc__duas { grid-template-columns: minmax(280px, 400px) minmax(0, 1fr); gap: 48px; } }
+
+/* Vídeo vertical (720×1280): largura de celular, centralizado no celular e à esquerda ao lado dos passos no desktop. */
+.ct-tcqc__video { display: grid; justify-items: center; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; }
+.ct-tcqc__video video {
+  display: block; width: 100%; height: auto; aspect-ratio: 9 / 16;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-chocolate); box-shadow: var(--ct-sombra); object-fit: contain;
+}
+.ct-tcqc__video figcaption { margin: 0; text-align: center; }
+
+.ct-tcqc__passos { display: grid; gap: 18px; margin: 8px 0 0; padding: 0; list-style: none; counter-reset: passo; }
+.ct-tcqc__passos li {
+  position: relative; display: grid; gap: 4px; padding: 16px 16px 16px 66px; counter-increment: passo;
+  border: var(--ct-traco); border-radius: 6px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+}
+.ct-tcqc__passos li::before {
+  content: counter(passo); position: absolute; left: 14px; top: 14px; display: grid; place-items: center; width: 38px; height: 38px;
+  border: var(--ct-traco); background: var(--ct-amarelo); box-shadow: 3px 3px 0 var(--ct-chocolate); rotate: -6deg;
+  font: 900 20px/1 var(--ct-font);
+}
+.ct-tcqc__passos li p { margin: 0; font: 500 var(--ct-fs-texto)/1.45 var(--ct-font); overflow-wrap: anywhere; }
+.ct-tcqc__passo-titulo { font: 900 clamp(18px, 1.6vw, 22px)/1.15 var(--ct-font); }
+
+.ct-tcqc__dados { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ct-tcqc__dados li {
+  display: grid; gap: 2px; justify-items: center; min-width: 150px; padding: 12px 18px; text-align: center;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p);
+}
+.ct-tcqc__dados b { font: 900 clamp(32px, 4vw, 44px)/1 var(--ct-font); }
+.ct-tcqc__dados span { max-width: 18ch; font: 700 14px/1.25 var(--ct-font); }
+
+.ct-tcqc__separada { max-width: 62ch; padding: 16px 18px; border: 3px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
+.ct-tcqc__separada .ct-sub { margin-bottom: 6px; }
+.ct-tcqc__separada p { margin: 0; font: 500 var(--ct-fs-texto)/1.5 var(--ct-font); }
+
+.ct-tcqc__perfis { padding-bottom: clamp(32px, 5vw, 64px); }
+/* "@sicrediriograndedonorte" em caixa-alta não cabe numa linha a 360px: o rótulo quebra em vez de sair da tela. */
+.ct-edicao .ct-tcqc__perfis .ct-botao { flex: 1 1 260px; max-width: 100%; height: auto; padding-block: 10px; text-align: center; overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------------- cartão curto (mapa, Prêmios, Metas) */
+.ct-campanha-bloco { display: grid; gap: 6px; justify-items: start; margin: 12px 0 0; padding: 12px 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-campanha-bloco__titulo { margin: 0; font: 800 16px/1.2 var(--ct-font); }
+.ct-campanha-bloco__texto, .ct-campanha-bloco__prazo { margin: 0; font: 500 14px/1.45 var(--ct-font); }
+.ct-campanha-bloco__prazo { font-weight: 800; }
+.ct-edicao .ct-campanha-bloco .ct-botao { min-height: 44px; margin-top: 4px; padding: 0 16px; font-size: 14px; }
+.ct-campanha-aviso { margin-top: 12px; }
+
+/* Link de texto ao lado do logo na assinatura do patrocínio (entrada). Alvo de toque de 44px. */
+.ct-edicao .ct-assina-patrocinio__campanha { display: inline-flex; align-items: center; min-height: 44px; font: 700 14px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; }

@@ -11,6 +11,7 @@ import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { PREMIOS as P } from '../../../caca/premios/textos.js'
 import { organizarPremios, situacaoDoJogador } from '../../../caca/premios/logica.js'
 import { usarMetas } from '../../../caca/metas/usarMetas.js'
+import { BlocoCampanha } from '../../../caca/campanha/Campanha.jsx'
 
 const REFRESCO_MS = 60000 // o estado do dia muda com o relógio do servidor: reler enquanto a aba está aberta
 
@@ -151,6 +152,8 @@ export function PainelPremios ({ caca, totalDaEdicao = 0, navigate }) {
         </section>
       )}
       {comMapa && <Metas caca={caca} />}
+
+      <BlocoCampanha navigate={navigate} variante="premios" />
 
       <section className="ct-premios__bloco" aria-labelledby="premio-conta">
         <h3 id="premio-conta" className="ct-sub">{P.diferencaTitulo}</h3>
