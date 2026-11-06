@@ -2102,3 +2102,24 @@ no Dropbox e o painel mostra um item "Fotos do combo" que abre o link. Migration
 sozinho. Só leitura (abrir a pasta, copiar o link, "Copiar todos" = `marca: link` por linha); publicar ou trocar o link continua em
 Por participante. Visível a toda a equipe da organização; a marca nunca vê os links das outras. ⚠️ Chave de rota nova `links`
 (`ABA_ARQUIVOS` em `lib/rota.js`; o contrato de rotas do teste `painel-app-nomes-publicacao` ganhou `links`).
+
+#### Balcão: vouchers e carimbos à mão — 05/11/2026 (pedido do Wilker)
+"Deixar visíveis na abertura do painel o que a equipe usa no atendimento." Só front: nenhuma migration, RPC ou permissão nova.
+Testes `tests/painel-app-balcao.test.mjs` e `node tests/painel-balcao-navegador.mjs` (de dentro de `tests/`; backend falso, 40 verificações, `CAPTURAS=` salva imagens).
+- **Marca:** `vistas-marca/VouchersMarca.jsx` virou o bloco **Balcão** (`balcao` em `ordemDoInicio`, logo abaixo da identificação em TODAS as fases;
+  o bloco `vouchers` antigo sumiu): três botões grandes (≥ 64 px) — **Escanear QR do voucher**, **Digitar código do voucher**, **Ajudar com carimbo**.
+  O que já existia ficou como estava: a baixa é `marca_usar_voucher`, só pelo botão "Registrar uso" (ler QR e digitar só PREENCHEM o campo); o servidor
+  confere marca, situação e permissão. Mudou: os atalhos aparecem antes da contagem carregar e com a leitura caída (`estadoDoBalcao` em `lib/vouchers.js`);
+  só ficam desligados quando se SABE que não há voucher (total 0 ou função ausente), com a frase dizendo o motivo. `recadoDoVoucher` (mesmo arquivo)
+  traduz usado, cancelado, não distribuído, não encontrado/de outra marca, fora da validade e **falha de rede** ("NÃO foi registrado").
+- **Câmera:** `LerQrVoucher.jsx` agora só desenha a câmera enquanto `ativo`; o botão mora no Balcão. A câmera só é pedida no toque. Sem `BarcodeDetector`
+  (iPhone) o botão continua e explica: abrir o QR do cliente com a câmera do celular (`?voucher=`) ou digitar. Permissão negada → mensagem + campo de digitação.
+- **Ajudar com carimbo** (`vistas-marca/AjudaCarimbo.jsx`): folha só de ORIENTAÇÃO, sem chamar o servidor. O cliente carimba sozinho; sem GPS usa
+  "Estou na casa e o GPS não funciona" (pedido de revisão de presença); a organização decide; a casa não aprova nem cria carimbo; ninguém pede a chave
+  pessoal do cliente. ⛔ Não dar à marca poder sobre carimbo sem regra de produto e autorização específicas.
+- **Organização:** `vistas/mesa/AtalhosBalcao.jsx` no topo da Visão geral (só com `dado.ler`): **Vouchers** → Contatos › Vouchers e **Pedidos de carimbo** →
+  Edição › Carimbos › Pedidos de presença (`#edicao/carimbos?sub=presenca`), com a contagem de pendentes lida da fila existente (`caca_excecao_listar`).
+  ⛔ A organização NÃO escaneia nem digita voucher: não há operação autorizada para esse papel (`marca_usar_voucher` exige a conta da marca) e criá-la
+  pede permissão nova no banco — decisão do Wilker, não atalho.
+- ⚠️ `tests/painel-marca-estados-navegador.mjs` S2 já falhava antes desta mudança ("Faltam 2" × "Faltam 3"): a fixture não tem `combo_descricao`, obrigatório
+  desde 02/11. E `test:organizacao` tem 2 falhas do site (`horário da loja` e `estadoAgora` em `src/edicao`), alheias ao painel.

@@ -415,15 +415,17 @@ export function resumoSolicitacoes(pedidos = [], agora = new Date()) {
 /* ── Ordem dos blocos conforme a fase da edição ──────────────────────────── */
 
 /**
- * Antes: preparação em primeiro lugar. Durante: as vendas do dia sobem para logo abaixo do destaque
+ * O balcão vem logo abaixo da identificação. Antes: preparação em primeiro lugar. Durante: as vendas do dia sobem para logo abaixo do destaque
  * (o destaque crítico continua em cima). Depois (e sem datas): a rotina diária desce.
  * Os blocos são desenhados com `key` — mudar a ordem MOVE, não remonta (o digitado nas vendas fica).
  */
 export function ordemDoInicio(momento) {
+  // O balcão (escanear/digitar voucher, ajuda com carimbo) fica logo abaixo da identificação em TODAS as fases:
+  // é o que a equipe usa com o cliente na frente (05/11/2026).
   const corpo = ['pendencias', 'acompanhamento', 'comunicacao']
-  if (momento === 'durante') return ['identificacao', 'agora', 'venda', 'vouchers', ...corpo, 'materiais']
-  if (momento === 'antes') return ['identificacao', 'agora', ...corpo, 'vouchers', 'materiais']
-  return ['identificacao', 'agora', ...corpo, 'venda', 'vouchers', 'materiais']
+  if (momento === 'durante') return ['identificacao', 'balcao', 'agora', 'venda', ...corpo, 'materiais']
+  if (momento === 'antes') return ['identificacao', 'balcao', 'agora', ...corpo, 'materiais']
+  return ['identificacao', 'balcao', 'agora', ...corpo, 'venda', 'materiais']
 }
 
 /** A venda do dia só sai da tela ANTES do festival (as datas desconhecidas não a escondem). */

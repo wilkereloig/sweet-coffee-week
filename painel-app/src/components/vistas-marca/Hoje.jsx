@@ -169,7 +169,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
           )}
         </>
       ) : null,
-      vouchers: <VouchersMarca />,
+      balcao: <VouchersMarca />,
       pendencias: grupos.length ? <Pendencias grupos={grupos} itens={itens} ir={ir} irPara={irPara} alemDoDestaque={!!plano.fora} /> : null,
       acompanhamento: <Acompanhamento progresso={textoProgresso(resumo)} linhas={linhasDeAcompanhamento({ resumo, dados: dadosMarca })} irPara={irPara} />,
       comunicacao: (

@@ -102,3 +102,38 @@ export function codigoDoQr(texto) {
   const c = normalizarCodigo(t)
   return /^SCW-[A-Z2-9]{5}$/.test(c) ? c : ''
 }
+
+/* ── Balcão da marca (05/11/2026) ─────────────────────────────────────────── */
+
+const RECADOS_VOUCHER = {
+  voucher_nao_encontrado: 'Código não encontrado para a sua marca. Confira as letras e números, ou veja se o voucher é de outra casa.',
+  voucher_ja_utilizado: 'Este voucher já foi usado.',
+  voucher_cancelado: 'Este voucher foi cancelado pela organização e não vale mais.',
+  voucher_nao_distribuido: 'Este voucher ainda não foi entregue a ninguém pela organização.',
+  voucher_fora_da_validade: 'Este voucher está fora da validade.',
+  sessao_expirada: 'Sua sessão terminou. Entre de novo no painel para registrar.',
+}
+const SEM_CONEXAO = /failed to fetch|networkerror|network request failed|load failed|timeout|offline/i
+
+/** Mensagem do servidor (ou da rede) → o que dizer ao balcão. Desconhecida = tentar de novo; nunca registra nada. */
+export function recadoDoVoucher(mensagem) {
+  const m = String(mensagem || '')
+  const chave = Object.keys(RECADOS_VOUCHER).find((k) => m.includes(k))
+  if (chave) return RECADOS_VOUCHER[chave]
+  if (SEM_CONEXAO.test(m)) return 'Sem conexão agora. O voucher NÃO foi registrado: confira o sinal e tente de novo.'
+  return 'Não deu para registrar agora. Tente de novo.'
+}
+
+/**
+ * O que o cartão do balcão mostra. Os atalhos (escanear, digitar, ajuda) existem em TODOS os estados; só ficam
+ * desligados quando se SABE que a marca não tem voucher (`marca_meus_vouchers` respondeu 0 ou a função não existe).
+ *   dados === undefined → ainda lendo · erro e sem dado → 'erro' (atalhos ligados: o servidor valida) ·
+ *   dados === null (função ausente) → 'indisponivel' · total 0 → 'sem-vouchers' · senão 'ok'.
+ */
+export function estadoDoBalcao(dados, erroLeitura) {
+  if (dados === undefined) return erroLeitura ? { tipo: 'erro', ativo: true } : { tipo: 'carregando', ativo: true }
+  if (dados === null) return { tipo: 'indisponivel', ativo: false }
+  const virt = dados.virtuais && Number(dados.virtuais.total) ? Number(dados.virtuais.total) : 0
+  if (!Number(dados.total) && !virt) return { tipo: 'sem-vouchers', ativo: false }
+  return { tipo: 'ok', ativo: true }
+}

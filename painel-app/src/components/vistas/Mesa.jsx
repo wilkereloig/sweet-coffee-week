@@ -12,6 +12,7 @@ import { urlLogo } from '../../lib/logos'
 import { ResumoRedes } from './Redes'
 import { totalAlertas } from '../../lib/redes'
 import { CartaoAcao } from './mesa/CartaoAcao'
+import { AtalhosBalcao } from './mesa/AtalhosBalcao'
 import { FolhaDecidirCombo } from './mesa/FolhaDecidirCombo'
 import { ResumoEdicao } from './mesa/ResumoEdicao'
 import { AtividadeRecente } from './mesa/AtividadeRecente'
@@ -163,6 +164,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
 
       {!erro && candidaturas && (
         <>
+          <AtalhosBalcao edicao={edCodigo} navegar={navegar} pode={pode} />
           <MacroSecao rotulo="Ações da equipe" titulo="O que precisa de decisão agora" id="visao-acoes"
             nota="Cada cartão abre a lista do que ele conta. Os mais urgentes vêm primeiro.">
             <div className="ui-pilha">

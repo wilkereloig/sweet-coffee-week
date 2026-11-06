@@ -125,7 +125,7 @@ test('pendência sem destino (item que ainda não existe) vira "Falar com a orga
 test('ordem por fase: identificação e destaque sempre primeiro; vendas logo abaixo do destaque só DURANTE', () => {
   for (const m of ['antes', 'durante', 'depois', 'indefinido']) {
     const o = ordemDoInicio(m)
-    assert.deepEqual(o.slice(0, 2), ['identificacao', 'agora'], m)
+    assert.deepEqual(o.slice(0, 3), ['identificacao', 'balcao', 'agora'], m) // balcão (voucher/carimbo) logo abaixo da identificação, 05/11/2026
     assert.equal(new Set(o).size, o.length, 'sem bloco repetido: ' + m)
     assert.ok(o.includes('pendencias') && o.includes('acompanhamento') && o.includes('comunicacao') && o.includes('materiais'), m)
     assert.ok(o.indexOf('comunicacao') > o.indexOf('acompanhamento') && o.indexOf('acompanhamento') > o.indexOf('pendencias'), 'ordem do corpo: ' + m)
