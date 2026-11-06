@@ -304,3 +304,18 @@ if (VERIFICAR && defasados.length) {
 console.log((VERIFICAR ? 'em dia' : 'gerado') + ' · ' + Object.keys(catalogo.interface).length + ' interface · ' +
   Object.keys(catalogo.expressiva).length + ' expressiva · ' + Object.keys(catalogo.marcas).length + ' marca · ' +
   Object.keys(ALIASES).length + ' aliases · ' + total + ' desenhos' + (avisos.length ? ' · ' + avisos.length + ' aviso(s)' : ''))
+
+// ── Exportação avulsa (`--exportar`): um .svg por ícone, pronto para abrir ─────
+// Em chocolate SCW, no tamanho nominal da família (interface 24 · expressiva 48 ·
+// marca 24), com o traço ótico já resolvido. Pasta: icones/exportados/<família>/.
+if (process.argv.includes('--exportar')) {
+  const NOMINAL = { interface: 24, expressiva: 48, marcas: 24 }
+  for (const familia of FAMILIAS) {
+    const pasta = join(FONTE, 'exportados', familia)
+    mkdirSync(pasta, { recursive: true })
+    for (const nome of Object.keys(catalogo[familia])) {
+      writeFileSync(join(pasta, nome + '.svg'), svgTexto(familia, nome, NOMINAL[familia], '#3D1308') + '\n')
+    }
+  }
+  console.log('exportado · icones/exportados/{interface,expressiva,marcas}')
+}

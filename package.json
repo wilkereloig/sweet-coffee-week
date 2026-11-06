@@ -38,6 +38,7 @@
     "test:qr": "node --test tests/qr-leituras.test.mjs",
     "test:privacidade": "node tests/privacidade-navegador.mjs",
     "icones": "node scripts/icones/gerar.mjs",
+    "icones:exportar": "node scripts/icones/gerar.mjs --exportar",
     "test:icones": "node --test tests/icones.test.mjs",
     "test:sweet-awards": "node --test tests/sweet-awards.test.mjs",
     "test:edicoes": "node --test tests/edicoes.test.mjs tests/edicoes-teclado.test.mjs",
