@@ -45,6 +45,13 @@
    Duas coisas pesam: o progresso e o próximo passo. O resto é atalho (peso menor) ou linha pequena e dispensável. */
 .ct-central { gap: 14px; }
 .ct-central__col { display: grid; gap: 14px; align-content: start; min-width: 0; }
+/* Celular (06/11, pedido do Wilker): "Para onde ir" é a navegação da Caça, então sobe para logo abaixo do progresso e do próximo passo,
+   em vez de ficar no fim da coluna 2. As colunas se dissolvem (display: contents) e só a ordem muda; o resto segue na ordem do documento. */
+@media (max-width: 899px) {
+  .ct-central__col { display: contents; }
+  .ct-central__col > :not(.ct-central__progresso, .ct-central__proxima, .ct-central__entradas) { order: 1; }
+  .ct-central__entradas { padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-amarelo); }
+}
 @media (min-width: 900px) {
   .ct-central { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 }
@@ -75,7 +82,20 @@
 .ct-central__como ul { margin: 0 0 10px; padding-left: 20px; font: 500 14px/1.5 var(--ct-font); }
 .ct-central__como li + li { margin-top: 4px; }
 
-/* Como carimbar: três passos numerados, à vista; fecha numa linha depois da primeira casa validada. */
+/* Gavetas da central ("Como carimbar", "Como conta?", opções): sempre fechadas, e a linha diz que abre — borda, fundo branco, seta em disco
+   chocolate. Aberta, a linha vira amarela. */
+.ct-central__como > summary, .ct-central__detalhes > summary, .ct-como-carimbar > summary {
+  padding: 0 8px 0 14px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco);
+}
+.ct-central__como > summary:hover, .ct-central__detalhes > summary:hover, .ct-como-carimbar > summary:hover,
+.ct-central__como[open] > summary, .ct-central__detalhes[open] > summary, .ct-como-carimbar[open] > summary { background: var(--ct-amarelo); }
+.ct-central__como > summary::after, .ct-central__detalhes > summary::after, .ct-como-carimbar > summary::after {
+  box-sizing: border-box; width: 28px; height: 28px; margin: 0 0 0 auto; border: 0; border-radius: 50%;
+  background: var(--ct-chocolate) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FDF0DE' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center / 18px no-repeat;
+  transform: none;
+}
+.ct-central__como[open] > summary::after, .ct-central__detalhes[open] > summary::after, .ct-como-carimbar[open] > summary::after { margin: 0 0 0 auto; transform: rotate(180deg); }
+.ct-como-carimbar[open] > summary { margin-bottom: 10px; }
 .ct-como-carimbar { padding: 0 2px; }
 .ct-como-carimbar__passos { display: grid; gap: 8px; margin: 0 0 8px; padding: 0; list-style: none; counter-reset: passo; }
 .ct-como-carimbar__passos li { display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 10px; counter-increment: passo; font: 500 14px/1.4 var(--ct-font); }
@@ -132,7 +152,7 @@
   font: 700 13px/1.3 var(--ct-font);
 }
 .ct-central__selo.is-ligado { background: var(--ct-turquesa); }
-.ct-central__detalhes > summary::after, .ct-como-carimbar > summary::after { margin-left: 4px; }
+.ct-central__detalhes > summary::after { margin-left: auto; }
 .ct-central__detalhes[open] > summary { margin-bottom: 4px; }
 /* GuardarMapa logo depois de criar o mapa: o mesmo componente da recuperação, aqui sem peso de card. */
 .ct-central .ct-carimbar__guardar {

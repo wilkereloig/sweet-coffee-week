@@ -37,7 +37,7 @@ function Progresso ({ caca }) {
       </ul>
       {!posicao && <p className="ct-nota">{P.semPosicao}</p>}
       {completo && <p className="ct-nota"><strong>{P.completo}</strong></p>}
-      <ComoCarimbar aberto={validadas === 0 && pendentes === 0} />
+      <ComoCarimbar />
       <details className="ct-central__como">
         <summary>{P.como.titulo}</summary>
         <ul>{P.como.itens.map((t) => <li key={t}>{t}</li>)}</ul>

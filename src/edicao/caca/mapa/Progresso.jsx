@@ -56,7 +56,7 @@ export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, geo, a
       {detalhe && <p className="ct-nota ct-mapa__progresso-detalhe">{detalhe}</p>}
       <ProximoPasso proximo={proximo} geo={geo} aoVerCasa={aoVerCasa} aoAvaliar={aoAvaliar} />
       {/* Aberto para quem ainda não validou nenhuma casa nem tem carimbo esperando; depois, uma linha que abre ao toque. */}
-      <ComoCarimbar aberto={p.feitas === 0 && !p.pendentes} />
+      <ComoCarimbar />
     </>,
   )
 }
