@@ -1,5 +1,8 @@
 /*
  * App instalável da Caça (spec 15 §14): manifest e service worker PRÓPRIOS, com id e escopo disjuntos do Painel SCW (/painel/).
+ * ESCOPO DO APP = toda a edição (`/cartoon`), não só `/cartoon/caca` (07/11/2026): o mapa e as casas são parte da Caça, e navegar para uma
+ * página FORA do escopo faz o iPhone abrir o navegador interno (barras do sistema por cima) — a tela "diminuía" ao entrar no mapa. O id segue
+ * `/cartoon/caca` (instalações antigas continuam sendo o mesmo app). O service worker segue só em `/cartoon/caca` (push e instalabilidade).
  * O manifest global do site (public/manifest.webmanifest) é CÓPIA do da Caça (teste trava): o iPhone lê o manifest uma vez por
  * carregamento e ignora a troca feita depois, então só o padrão certo instala a Caça. Nas páginas /cartoon/caca* o <link rel=manifest> é trocado em tempo de
  * execução e restaurado ao sair. Nada aqui lê chave pessoal, token ou código de recuperação.
@@ -12,7 +15,8 @@ const ESCOPO = `${EDICAO.caminho}/caca`
 export const CACA_PWA = {
   manifesto: '/caca/manifest.webmanifest',
   sw: '/caca-sw.js',
-  escopo: ESCOPO,
+  escopo: ESCOPO, // da Caça (service worker, páginas que trocam o manifest)
+  escopoApp: EDICAO.caminho, // do app instalado (manifest): a edição inteira
   inicio: `${ESCOPO}?origem=app`,
   /** Nome do app, com espaços: é o `name` do manifest. */
   nome: 'Caça aos Tesouros SCW',

@@ -73,6 +73,7 @@ export const MAPA_CACA = {
   proximaMarca: 'Próxima',
   proximaRotulo: 'Sua próxima casa',
   // Mundo
+  infoMapa: 'Sobre este mapa',
   avisoIlustrado: 'Mapa ilustrativo: não mostra posições reais. Para chegar, use "Como chegar" ou o Mapa real.',
   avisoTrilha: 'A linha pontilhada liga as paradas na ordem que você escolheu. Não é o caminho de carro.',
   previa: 'Prévia com a arte provisória: só aparece no ambiente de desenvolvimento.',

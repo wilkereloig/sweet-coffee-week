@@ -23,7 +23,7 @@ import { QUANTOS, TEXTO_FIXOS as TX, lerFixos, guardarFixos, alternarEscolha } f
 
 // [chave, ícone ilustrado da edição]: o ícone nunca está sozinho, o rótulo vai ao lado.
 const CHAVES = ['progresso', 'casas', 'rota', 'premios', 'ranking', 'grupos']
-export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['premios', 'trofeu'], ['ranking', 'podio'], ['grupos', 'conversar']]
+export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['premios', 'vouchers'], ['ranking', 'ranking'], ['grupos', 'conversar']]
 
 export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null, extra = null }) {
   const [lista, setLista] = React.useState(false)

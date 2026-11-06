@@ -359,3 +359,40 @@ test('casasPorMomento: horário que passa muda o resultado; sem horário nenhum 
   const sem = M.casasPorMomento([{ slug: 'y', casa: { nome: 'y' }, unidades: [{ id: 'y1' }] }], NOVE_NOV(15), periodo)
   assert.deepEqual([sem.comHorario, sem.abertas.length, sem.abremHoje.length], [false, 0, 0])
 })
+
+test('o nome da unidade não repete o da casa (Mr. Cupcake · Mr. Cupcake - Garden)', () => {
+  const mr = { casa: { nome: 'Mr. Cupcake Confeitaria' } }
+  assert.equal(M.tituloDaUnidade(mr, { nome: 'Mr. Cupcake - Garden - Candelária' }), 'Mr. Cupcake Confeitaria · Garden - Candelária')
+  assert.equal(M.tituloDaUnidade(mr, { nome: 'Mr. Cupcake - Satélite - Shopping Del Mar' }), 'Mr. Cupcake Confeitaria · Satélite - Shopping Del Mar')
+  assert.equal(M.nomeDaUnidade(mr, { nome: 'Mr. Cupcake Confeitaria - Garden' }), 'Garden')
+  assert.equal(M.tituloDaUnidade(mr, { nome: 'Mr. Cupcake Confeitaria' }), 'Mr. Cupcake Confeitaria', 'só o nome da casa: não repete')
+  assert.equal(M.tituloDaUnidade({ casa: { nome: 'Caroli Douces' } }, { nome: 'Caroli - Lagoa Seca' }), 'Caroli Douces · Lagoa Seca')
+  assert.equal(M.tituloDaUnidade({ casa: { nome: 'Mangai' } }, { nome: 'Midway Mall' }), 'Mangai · Midway Mall', 'nome sem relação com a casa fica como veio')
+  assert.equal(M.nomeDaUnidade({ casa: { nome: 'Mangai' } }, {}), '')
+})
+
+test('"só delivery" exige delivery sim e consumo no local e retirada declarados não; nao_informado não conta', () => {
+  const u = (modos) => ({ combo: { modos } })
+  assert.equal(M.soDelivery(u({ local: 'nao', delivery: 'sim', retirada: 'nao' })), true)
+  assert.equal(M.soDelivery(u({ local: 'sim', delivery: 'sim', retirada: 'nao' })), false)
+  assert.equal(M.soDelivery(u({ local: 'nao', delivery: 'sim', retirada: 'sim' })), false)
+  assert.equal(M.soDelivery(u({ local: 'nao_informado', delivery: 'sim', retirada: 'nao' })), false, 'sem resposta não vira "só delivery"')
+  assert.equal(M.soDelivery(u({ delivery: 'sim' })), false)
+  assert.equal(M.soDelivery(u({ local: 'nao', delivery: 'nao', retirada: 'nao' })), false)
+  assert.equal(M.soDelivery({}), false)
+})
+
+test('casa só delivery não entra em "mais perto de você" nem na sugestão de visita', async () => {
+  const { casasMaisPerto } = await import('../src/edicao/caca/mapa/casasPerto.js')
+  const { sugerirProximaCasa } = await import('../src/edicao/caca/mapa/proximidade.js')
+  const coordenada = { lat: -5.8, lng: -35.2 }
+  const unid = (id, modos) => ({ id, nome: '', coordenada, endereco: { bairro: 'Tirol' }, combo: { modos } })
+  const casa = (slug, modos) => ({ slug, casa: { nome: slug }, combo: { nome: 'Combo' }, unidades: [unid(`u-${slug}`, modos)] })
+  const aqui = casa('aqui', { local: 'sim', delivery: 'nao', retirada: 'nao' })
+  const entrega = casa('entrega', { local: 'nao', delivery: 'sim', retirada: 'nao' })
+  const linhas = [aqui, entrega].map((p) => ({ p, u: p.unidades[0], dist: p === aqui ? 2 : 0.5 }))
+  assert.deepEqual(casasMaisPerto(linhas).itens.map((x) => x.p.slug), ['aqui'], 'a mais perto é só delivery e fica de fora')
+  const s = sugerirProximaCasa({ posicao: { lat: -5.8, lng: -35.2, precisao: 20 }, lista: [entrega, aqui], estadoDe: () => null })
+  assert.equal(s.slug, 'aqui', 'a sugestão também pula a casa só delivery')
+})
+

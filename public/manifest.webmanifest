@@ -6,7 +6,7 @@
   "lang": "pt-BR",
   "dir": "ltr",
   "start_url": "/cartoon/caca?origem=app",
-  "scope": "/cartoon/caca",
+  "scope": "/cartoon",
   "display": "standalone",
   "background_color": "#FDF0DE",
   "theme_color": "#3A150F",

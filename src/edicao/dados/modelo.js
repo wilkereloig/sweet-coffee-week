@@ -373,7 +373,34 @@ export function filtrar (lista = [], f = {}, agora = new Date()) {
 }
 
 /** "Casa · Unidade" para listas fora da ficha; unidade com o mesmo nome da casa não repete o nome. */
-export const tituloDaUnidade = (p, u) => (u?.nome && normalizar(u.nome) !== normalizar(p.casa.nome) ? `${p.casa.nome} · ${u.nome}` : p.casa.nome)
+/**
+ * O nome da unidade SEM repetir o da casa (07/11/2026): "Mr. Cupcake - Garden - Candelária" da casa "Mr. Cupcake Confeitaria" vira
+ * "Garden - Candelária" (o título fica "Mr. Cupcake Confeitaria · Garden - Candelária", não "… · Mr. Cupcake - Garden …").
+ * Tira as PALAVRAS que abrem a unidade e já abrem o nome da casa (comparação sem acento nem caixa) e o separador que sobra.
+ * Nome igual ao da casa (ou só o que a casa já diz) devolve ''. Só exibição: o dado não muda.
+ */
+export function nomeDaUnidade (p, u) {
+  const nome = String(u?.nome ?? '').trim()
+  const casa = String(p?.casa?.nome ?? '').trim()
+  if (!nome || !casa) return nome
+  const cw = casa.split(/\s+/)
+  const uw = nome.split(/\s+/)
+  let i = 0
+  while (i < cw.length && i < uw.length && normalizar(cw[i]) === normalizar(uw[i])) i++
+  if (i === 0) return nome
+  return uw.slice(i).join(' ').replace(/^[\s\-–—·:,|]+/, '').trim()
+}
+export const tituloDaUnidade = (p, u) => {
+  const n = nomeDaUnidade(p, u)
+  return n ? `${p.casa.nome} · ${n}` : p.casa.nome
+}
+
+/**
+ * A unidade atende SÓ por delivery: delivery "sim" e consumo no local e retirada declarados "não". Quem não respondeu
+ * (nao_informado) não conta: dizer "só delivery" sem a casa ter dito é inventar. O cartão do mapa usa isto para não mandar a pessoa
+ * até lá (sem "Como chegar" nem "Carimbar aqui").
+ */
+export const soDelivery = (u) => u?.combo?.modos?.delivery === 'sim' && u.combo.modos.local === 'nao' && u.combo.modos.retirada === 'nao'
 
 /** Distância em linha reta (km) entre dois { lat, lng } — o que o Mapa mostra, dito assim. */
 export function km (a, b) {

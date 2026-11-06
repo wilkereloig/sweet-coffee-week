@@ -249,6 +249,10 @@ export const MAPA = {
   comoPedir: 'Como pedir',
   dica: 'Escolha uma casa na lista ou toque num pin para ver endereço, horário de hoje e como chegar.',
   cartaoTitulo: 'Casa escolhida',
+  // Casa que atende só por delivery (cartão do pin): diz isso com todas as letras e troca "Como chegar" por "Pedir por delivery".
+  soDelivery: 'Só delivery',
+  soDeliveryNota: 'Esta casa atende só por delivery: não dá para visitar. Receba o combo em casa e peça o carimbo depois.',
+  pedirDelivery: 'Pedir por delivery',
   fechar: 'Fechar',
   hojeNoFestival: 'Hoje no festival',
   legenda: { conferida: 'Localização conferida', aproximada: 'Ponto aproximado, em conferência', quero: 'Quero ir', foi: 'Já fui', voce: 'Você' },

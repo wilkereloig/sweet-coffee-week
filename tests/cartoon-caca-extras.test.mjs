@@ -213,7 +213,7 @@ test('compartilhar: os arquivos não tocam em chave pessoal, link de recuperaç�
 test('manifest da Caça: válido, disjunto do painel e com ícones que existem', () => {
   const m = JSON.parse(ler('public/caca/manifest.webmanifest'))
   const painel = JSON.parse(ler('public/painel/app.webmanifest'))
-  assert.equal(m.id, '/cartoon/caca'); assert.equal(m.scope, CACA_PWA.escopo)
+  assert.equal(m.id, '/cartoon/caca'); assert.equal(m.scope, CACA_PWA.escopoApp); assert.equal(m.scope, '/cartoon', 'o mapa e as casas ficam DENTRO do app')
   assert.equal(m.start_url, CACA_PWA.inicio); assert.match(m.start_url, /^\/cartoon\/caca\?origem=app$/)
   assert.ok(m.start_url.startsWith(m.scope), 'start_url dentro do escopo')
   assert.equal(m.display, 'standalone'); assert.equal(m.lang, 'pt-BR')

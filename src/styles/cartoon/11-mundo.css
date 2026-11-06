@@ -180,6 +180,7 @@
 .ct-mundo__zoom-botao:disabled { opacity: .45; cursor: default; pointer-events: none; }
 .ct-mundo__janela { order: 1; }
 .ct-mundo__aviso { order: 2; margin: 0; padding: 0 2px; font: 700 13px/1.35 var(--ct-font); }
+.ct-mundo__info { display: none; } /* só na tela cheia (16-mapa-tela.css): fora dela o aviso é a legenda abaixo do mapa */
 .ct-mundo__credito { order: 3; margin: 0; font: 500 12px/1.4 var(--ct-font); }
 .ct-mapa__previa { margin: 0; padding: 8px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); }
 

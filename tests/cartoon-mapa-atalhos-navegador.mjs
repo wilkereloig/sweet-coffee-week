@@ -109,9 +109,10 @@ try {
     checar(g.lateral <= 1, `${onde}: sem rolagem lateral`)
     const srcs = await p.locator('.ct-jogo__fixo img').evaluateAll((is) => is.map((i) => i.getAttribute('src')))
     checar(new Set(srcs).size === 3 && srcs.every((s) => /\/icones\/.+\.webp$/.test(s)), `${onde}: ícones distintos (${srcs.map((s) => s.split('/').pop()).join(' · ')})`)
-    checar(srcs[1].endsWith('trofeu.webp') && srcs[2].endsWith('podio.webp'), `${onde}: Prêmios = troféu, Ranking = pódio`)
-    const rotulosVisiveis = await p.locator('.ct-jogo__fixo span').first().isVisible()
-    checar(rotulosVisiveis === (w >= 480), `${onde}: rótulo ${w >= 480 ? 'à vista' : 'só no nome acessível'} (aria-label sempre)`)
+    checar(srcs[1].endsWith('vouchers.webp') && srcs[2].endsWith('ranking.webp'), `${onde}: Prêmios = vouchers, Ranking = pódio com coroa`)
+    // Desde 07/11 os controles do mapa são círculos só com ícone: o rótulo existe (1 px, para o leitor de tela) e nunca ocupa espaço.
+    const larguraDoRotulo = await p.locator('.ct-jogo__fixo span').first().evaluate((e) => e.getBoundingClientRect().width)
+    checar(larguraDoRotulo <= 2, `${onde}: rótulo só no nome acessível (aria-label sempre)`)
     await p.screenshot({ path: join(CAPTURAS, `fixos-${w}x${h}.png`) })
 
     // 2 · cada fixo abre a função existente, sem mexer no mapa, e devolve o foco

@@ -63,11 +63,11 @@ test('alternarEscolha: marca, desmarca e trava no quarto', () => {
 test('Prêmios e Ranking têm ícones DIFERENTES, da edição, e os arquivos existem (192×192, fundo transparente)', () => {
   const at = ler('src/edicao/cartoon/paginas/mapa/Atalhos.jsx')
   const pares = Object.fromEntries([...at.matchAll(/\['(\w+)', '([\w-]+)'\]/g)].map((m) => [m[1], m[2]]))
-  assert.equal(pares.premios, 'trofeu')
-  assert.equal(pares.ranking, 'podio')
+  assert.equal(pares.premios, 'vouchers')
+  assert.equal(pares.ranking, 'ranking')
   assert.notEqual(pares.premios, pares.ranking)
   assert.equal(new Set(Object.values(pares)).size, Object.values(pares).length, 'nenhum ícone repetido entre os seis atalhos')
-  for (const nome of ['trofeu', 'podio']) {
+  for (const nome of ['vouchers', 'ranking']) {
     const i = iconeEdicao(nome)
     assert.ok(i, `iconeEdicao('${nome}')`)
     assert.ok(existsSync(new URL(`../public${i.src}`, import.meta.url)), `arquivo ${i.src}`)
@@ -86,14 +86,15 @@ test('o botão fixo chama a MESMA função da lista, tem nome acessível e não 
   assert.match(ler('src/edicao/cartoon/paginas/mapa/atalhosFixos.js'), /try \{ return globalThis\.localStorage/, 'acesso ao armazenamento protegido')
 })
 
-test('estilo: alvo ≥ 44 px, canto esquerdo (longe do zoom), rótulo só a partir de 480 px, sem cor fora do sistema', () => {
+test('estilo: alvo ≥ 44 px, coluna estreita à esquerda (longe do zoom), só ícone (nome no aria-label), sem cor fora do sistema', () => {
   const css = ler('src/styles/cartoon/16-mapa-tela.css')
-  assert.match(css, /\.ct-jogo__fixo \{[^}]*min-width: 48px; min-height: 48px/)
+  assert.match(css, /\.ct-jogo__fixo \{[^}]*width: 44px; height: 44px/, 'círculo de 44 px')
   assert.match(css, /\.ct-jogo__opcao \{[^}]*min-height: 48px/)
   assert.match(css, /\.ct-jogo__opcao input \{[^}]*width: 24px; height: 24px/)
-  assert.match(css, /\.ct-jogo__fixos \{ display: flex; gap: 8px; \}/)
-  assert.match(css, /@media \(min-width: 480px\) \{ \.ct-jogo__fixo \{[^}]*\} \.ct-jogo__fixo span \{ display: inline; \} \}/)
-  const bloco = css.slice(css.indexOf('/* Atalhos FIXOS'), css.indexOf('.ct-jogo__lista {'))
-  assert.doesNotMatch(bloco, /#[0-9a-fA-F]{3,8}\b/, 'cores só por token --ct-*')
+  assert.match(css, /\.ct-jogo__fixos \{ display: grid; gap: 8px; \}/, 'os três ficam em coluna')
+  assert.match(css, /\.ct-jogo__fixo > span \{ position: absolute; width: 1px; height: 1px/, 'o rótulo só para o leitor de tela')
+  const bloco = css.slice(css.indexOf('/* Revisão de 07/11: os controles do mapa'), css.indexOf('.ct-jogo__lista {'))
+  assert.ok(bloco.length > 200, 'bloco dos controles encontrado')
+  assert.doesNotMatch(bloco, /#[0-9a-fA-F]{3,8}/, 'cores só por token --ct-*')
   assert.match(css, /\.ct-jogo__botao:active, \.ct-jogo__fixo:active \{ translate: none/, 'movimento reduzido cobre o botão fixo')
 })

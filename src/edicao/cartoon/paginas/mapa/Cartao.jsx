@@ -22,6 +22,8 @@ import { MAPA as T, ATENDIMENTO, ICONE } from '../../textos.js'
 import { LogoDoPin } from './LogoDoPin.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { ESTADO_TEXTO, MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
+import { CACA_CAMINHOS } from '../../../caca/textos.js'
+import { DELIVERY as TD } from '../../../caca/delivery/textos.js'
 
 export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher }) {
   const [mais, setMais] = React.useState(false)
@@ -45,6 +47,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   const c = u.coordenada
   const notaLugar = !c ? T.semCoordenada : c.conferir ? (c.precisao === 'rua' ? T.aproximadaRua : T.aproximada) : ''
   const pendente = estado === 'pendente'
+  const deliveryApenas = M.soDelivery(u)
   const passoJaFui = rota?.foi?.(p) && estado !== 'conquistada' ? TC.jaFuiPasso[estado || 'semMapa'] : ''
   // "Aberto agora" é decisão de ir e fica à vista; os outros horários ("abre hoje às 11h") esperam em "Mais".
   const aberto = est?.estado === 'aberto'
@@ -53,9 +56,14 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
       {aberto ? <IconeCartoon nome="aberto-agora" tamanho={32} /> : <ScwIcon nome={ICONE.horario} tamanho={20} />}{agora}
     </p>
   )
-  const comoChegarBotao = comoChegar && (
+  const comoChegarBotao = comoChegar && !deliveryApenas && (
     <Botao tipo={pendente ? 'secundario' : 'primario'} href={comoChegar} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.comoChegar} tamanho={20} />{T.comoChegar}</Botao>
   )
+  // Casa só delivery: a ação principal é pedir (link do canal; sem link, a ficha mostra como pedir) e o carimbo é o do delivery.
+  const linkDelivery = M.canaisSeguros(u)[0]?.link
+  const pedirBotao = deliveryApenas && (linkDelivery
+    ? <Botao href={linkDelivery} target="_blank" rel="noopener noreferrer"><IconeCartoon nome="delivery" tamanho={32} />{T.pedirDelivery}</Botao>
+    : <Botao href={`${EDICAO.caminho}/participantes/${p.slug}`} navigate={navigate}><IconeCartoon nome="delivery" tamanho={32} />{T.comoPedir}</Botao>)
   return (
     <article className="ct-mapa__cartao" aria-labelledby="mapa-cartao-nome" tabIndex={-1}>
       <div className="ct-mapa__cartao-cabeca">
@@ -64,34 +72,40 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         <div className="ct-mapa__cartao-id">
           {proxima && <p className="ct-rotulo">{TC.proximaRotulo}</p>}
           <h2 id="mapa-cartao-nome" className="ct-mapa__cartao-nome">{titulo}</h2>
-          {estado && <SeloEstado estado={estado} revisitas={revisitas} tamanho={24} longo />}
+          {deliveryApenas && <span className="ct-mapa__so-delivery"><IconeCartoon nome="delivery" tamanho={32} />{T.soDelivery}</span>}
+          {estado && !(deliveryApenas && estado === 'nao-visitada') && <SeloEstado estado={estado} revisitas={revisitas} tamanho={24} longo />}
         </div>
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label={T.fechar}><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
       {aberto && agoraNo}
-      {M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
+      {deliveryApenas
+        ? <p className="ct-nota ct-mapa__so-delivery-nota">{T.soDeliveryNota}</p>
+        : M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
       {/* Casa com mais de um endereço: os outros ficam à vista (não escondidos em "Mais"), um toque troca de endereço. */}
       {irmas.length > 0 && (
         <div className="ct-mapa__irmas">
           <Rotulo>{TC.outrosEnderecos(irmas.length)}</Rotulo>
           <ul tabIndex={0} aria-label={TC.outrosEnderecos(irmas.length)}>
             {irmas.map(({ u: o, p: op }) => (
-              <li key={o.id}><button type="button" className="ct-mapa__irma" onClick={() => aoEscolher?.(o.id)}><strong>{M.tituloDaUnidade(op, o)}</strong><span>{M.enderecoEmLinha(o.endereco)}</span></button></li>
+              <li key={o.id}><button type="button" className="ct-mapa__irma" onClick={() => aoEscolher?.(o.id)}><strong>{M.nomeDaUnidade(op, o) || M.tituloDaUnidade(op, o)}</strong><span>{M.enderecoEmLinha(o.endereco)}</span></button></li>
             ))}
           </ul>
         </div>
       )}
       {/* Ações em duas fileiras: a principal ocupa a linha; embaixo, quatro controles do mesmo tamanho (dois botões, "Quero ir" só com o coração, "Mais"). */}
       <div className="ct-acoes ct-mapa__cartao-acoes">
-        {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : comoChegarBotao}
-        {/* Atalho do carimbo: a mesma página do QR do display; ela pede a localização e só carimba com você na casa. */}
-        <Botao tipo="secundario" href={`${EDICAO.caminho}/carimbo/${p.slug}`} navigate={navigate}>{TC.carimbarAqui}</Botao>
+        {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : (pedirBotao || comoChegarBotao)}
+        {/* Atalho do carimbo: a mesma página do QR do display (pede a localização e só carimba com você na casa); casa só delivery usa o carimbo do delivery. */}
+        {deliveryApenas
+          ? <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`} navigate={navigate}>{TD.titulo}</Botao>
+          : <Botao tipo="secundario" href={`${EDICAO.caminho}/carimbo/${p.slug}`} navigate={navigate}>{TC.carimbarAqui}</Botao>}
         <Botao tipo="secundario" href={`${EDICAO.caminho}/combos/${p.slug}`} navigate={navigate}>{TC.verCombo}</Botao>
         <QueroIr u={u} nome={titulo} />
         <button type="button" className="ct-chip ct-mapa__mais-botao" aria-expanded={mais} aria-controls={idMais} aria-label={mais ? TC.menosDetalhes : TC.maisDetalhes} onClick={() => setMais((v) => !v)}>{mais ? TC.menosCurto : TC.maisCurto}</button>
       </div>
       <div id={idMais} className="ct-mapa__mais" hidden={!mais}>
         {!aberto && agoraNo}
+        {deliveryApenas && M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
         {estado && <p className="ct-nota">{ESTADO_TEXTO[estado].explica}</p>}
         {notaLugar && <p className={`ct-mapa__local${c ? ' ct-mapa__local--aprox' : ''}`}>{notaLugar}</p>}
         {dist != null && <p className="ct-mapa__cartao-linha ct-nota"><ScwIcon nome={ICONE.comoChegar} tamanho={20} /><span>{T.distancia(dist, !!u.coordenada?.conferir)}</span></p>}

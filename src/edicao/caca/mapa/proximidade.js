@@ -20,7 +20,7 @@
  *   9. Posição com margem de erro acima de 1,5 km: a sugestão sai SEM distância (não se inventa precisão).
  *  10. A casa mais perto a mais de 60 km: 'longe' (a pessoa não está na cidade; "perto" não faria sentido).
  */
-import { km as kmEntre, estadoAgora, hojeEmNatal } from '../../dados/modelo.js'
+import { km as kmEntre, estadoAgora, hojeEmNatal, nomeDaUnidade, soDelivery } from '../../dados/modelo.js'
 
 export const PRECISAO_MAXIMA_M = 1500
 export const LIMITE_LONGE_KM = 60
@@ -66,6 +66,7 @@ export function sugerirProximaCasa ({ lista = [], posicao = null, estadoDe = nul
     if (estado && estado !== 'nao-visitada') { jaFeitas++; continue }
     let melhor = null
     for (const u of p.unidades) {
+      if (soDelivery(u)) continue // só delivery: não há para onde ir, então não é sugestão de visita
       const c = u.coordenada
       if (!c || numero(c.lat) === null || numero(c.lng) === null) continue
       const disponibilidade = estadoAgora(u, agora, periodo)
@@ -103,7 +104,7 @@ export function sugerirProximaCasa ({ lista = [], posicao = null, estadoDe = nul
     slug: p.slug,
     unidadeId: u.id,
     casa: p.casa?.nome || '',
-    unidade: u.nome && u.nome !== p.casa?.nome ? u.nome : '',
+    unidade: nomeDaUnidade(p, u),
     bairro: u.endereco?.bairro || '',
     comboNome: p.combo?.nome || '',
     foto: p.combo?.fotos?.principal || null,

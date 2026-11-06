@@ -43,6 +43,7 @@ import { ZOOM_MAX, ZOOM_MIN, ZOOM_PASSO, centrarEm, entreCameras, inicial, limit
 
 const PASSO_TECLA = 80
 const ZOOM_AGRUPA = 1.6 // abaixo deste zoom (desenho todo à vista) grupo de pins grande demais vira selo; daqui para cima todo pin é afastado
+const TEMPO_AVISO = 6000 // ms que o aviso do mapa ilustrado fica à vista depois de tocar no ícone de informação
 const ESPERA_AFASTAR = 160 // ms depois do último movimento da câmera: só recalcula quando o zoom assenta
 const PLANO_VAZIO = { desloc: new Map(), grupos: [] }
 const emPx = (v) => `${v.toFixed(1)}px`
@@ -301,9 +302,22 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
     else if (e.key === '0') { e.preventDefault(); restaurar() }
   }
 
+  // O aviso pode virar um ícone de informação (quem decide é o CSS: onde ele é legenda o parágrafo segue à vista e o botão fica escondido):
+  // tocar mostra o texto por alguns segundos e ele some sozinho; tocar de novo fecha antes.
+  const [avisoAberto, setAvisoAberto] = React.useState(false)
+  React.useEffect(() => {
+    if (!avisoAberto) return undefined
+    const t = setTimeout(() => setAvisoAberto(false), TEMPO_AVISO)
+    return () => clearTimeout(t)
+  }, [avisoAberto])
+  const idAviso = `${ajudaId}-aviso`
+
   return (
     <div className="ct-mundo">
-      <p className="ct-nota ct-mundo__aviso" role="note">{TC.avisoIlustrado}{trilha ? ` ${TC.avisoTrilha}` : ''}</p>
+      <p id={idAviso} className={`ct-nota ct-mundo__aviso${avisoAberto ? ' is-aberto' : ''}`} role="note">{TC.avisoIlustrado}{trilha ? ` ${TC.avisoTrilha}` : ''}</p>
+      <button type="button" className="ct-mundo__info" aria-label={TC.infoMapa} aria-expanded={avisoAberto} aria-controls={idAviso} onClick={() => setAvisoAberto((v) => !v)}>
+        <ScwIcon nome="informacao" tamanho={20} />
+      </button>
       <div ref={janela} className={`ct-mundo__janela${vista.zoom ? ' is-zoom' : ''}`} role="region" aria-label={TC.regiao} aria-describedby={ajudaId} tabIndex={0}
         onPointerDown={aoApertar} onPointerMove={aoMover} onPointerUp={aoSoltar} onPointerCancel={aoSoltar} onClickCapture={aoClicarCapturando} onKeyDown={aoTeclar}>
         <div ref={palco} className="ct-mundo__palco" style={{ '--proporcao': largura / altura, aspectRatio: `${largura} / ${altura}`, ...(mundo.base.placeholder ? { backgroundImage: `url(${mundo.base.placeholder})` } : null) }}>

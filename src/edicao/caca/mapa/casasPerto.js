@@ -6,6 +6,8 @@
  * Regras: uma unidade por casa (a mais perto), da menor para a maior distância, no máximo `n`; sem raio de corte; unidade sem
  * coordenada não entra (nem inventa distância); menos de `n` resultados = os que houver.
  */
+import { nomeDaUnidade, soDelivery } from '../../dados/modelo.js'
+
 export const QUANTAS_PERTO = 5
 export const LIMITE_LONGE_KM = 60
 
@@ -26,6 +28,7 @@ export function casasMaisPerto (linhas = [], n = QUANTAS_PERTO) {
   const melhor = new Map()
   for (const x of linhas) {
     if (!temDist(x)) continue
+    if (soDelivery(x.u)) continue // casa só delivery não é lugar para ir: não entra em "mais perto de você"
     const atual = melhor.get(x.p.slug)
     if (!atual || x.dist < atual.dist) melhor.set(x.p.slug, x)
   }
@@ -34,7 +37,7 @@ export function casasMaisPerto (linhas = [], n = QUANTAS_PERTO) {
     .slice(0, n)
     .map((x, i) => ({
       rank: i + 1, p: x.p, u: x.u, dist: x.dist, aproximada: !!x.u.coordenada?.conferir,
-      unidade: (x.p.unidades || []).length > 1 ? (x.u.nome || x.u.endereco?.bairro || '') : '',
+      unidade: (x.p.unidades || []).length > 1 ? (nomeDaUnidade(x.p, x.u) || x.u.endereco?.bairro || '') : '',
     }))
   const comCasa = new Set(linhas.filter(temDist).map((x) => x.p.slug))
   const semCoordenada = new Set(linhas.filter((x) => !temDist(x) && !comCasa.has(x.p.slug)).map((x) => x.p.slug)).size

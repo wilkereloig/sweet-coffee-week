@@ -113,7 +113,7 @@ export const CACA = {
     titulo: 'Para onde ir',
     itens: [
       { chave: 'mapa', desenho: 'mapa', rotulo: 'Mapa' },
-      { chave: 'ranking', desenho: 'premio', rotulo: 'Ranking' },
+      { chave: 'ranking', desenho: 'ranking', rotulo: 'Ranking' },
       { chave: 'grupos', desenho: 'conversar', rotulo: 'Grupos' },
       { chave: 'rota', desenho: 'rota', rotulo: 'Minha rota' },
       { chave: 'metas', desenho: 'progresso', rotulo: 'Metas' },

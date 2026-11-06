@@ -495,8 +495,8 @@ const ELEMENTOS_EDICAO = '/images/marcas-edicoes/2026.2/elementos'
 const ICONES_EDICAO = new Set(('inicio casas mapa rota avaliar premio no-local para-viagem delivery vegano sem-gluten '
   + 'sem-lactose sem-acucar endereco horario aberto-agora conversar como-chegar quero-ir ja-fui progresso '
   + 'compartilhar vazio erro '
-  // 06/11/2026, atalhos do mapa: troféu (recorte do troféu desenhado) e pódio — scripts/edicao/icones-atalhos.py
-  + 'trofeu podio '
+  // 06-07/11/2026, atalhos do mapa: vouchers (Prêmios) e pódio com coroa (Ranking), ilustrados — scripts/edicao/icones-atalhos.py
+  + 'vouchers ranking '
   // 06/11/2026, atalho do carimbo de delivery: sacola + selo de check (a moto de `delivery` lê como "pedir delivery")
   + 'carimbo-delivery').split(' '))
 
