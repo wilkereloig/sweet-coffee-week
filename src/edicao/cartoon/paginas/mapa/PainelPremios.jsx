@@ -9,30 +9,10 @@ import { Carregando } from '../../../componentes/base.jsx'
 import { Botao } from '../../../componentes/sistema/pecas.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { PREMIOS as P } from '../../../caca/premios/textos.js'
-import { organizarPremios, situacaoDoJogador } from '../../../caca/premios/logica.js'
+import { situacaoDoJogador } from '../../../caca/premios/logica.js'
+import { usarPremios } from '../../../caca/premios/usarPremios.js'
 import { usarMetas } from '../../../caca/metas/usarMetas.js'
 import { BlocoCampanha } from '../../../caca/campanha/Campanha.jsx'
-
-const REFRESCO_MS = 60000 // o estado do dia muda com o relógio do servidor: reler enquanto a aba está aberta
-
-/** Lê `caca_premios_publico`. estado: 'carregando' | 'pronto' | 'falha'. */
-function usarPremios (api) {
-  const [estado, setEstado] = React.useState('carregando')
-  const [dado, setDado] = React.useState(null)
-  const [rodada, setRodada] = React.useState(0)
-  React.useEffect(() => {
-    let vivo = true
-    const ler = () => api.premiosLer().then((r) => {
-      if (!vivo) return
-      if (r.ok) { setDado(organizarPremios(r.premios)); setEstado('pronto') } else setEstado((e) => (e === 'pronto' ? e : 'falha'))
-    })
-    ler()
-    const id = setInterval(ler, REFRESCO_MS)
-    return () => { vivo = false; clearInterval(id) }
-  }, [api, rodada])
-  const tentar = React.useCallback(() => { setEstado('carregando'); setRodada((n) => n + 1) }, [])
-  return { estado, dado, tentar }
-}
 
 function Estado ({ estado }) {
   return <span className={`ct-premios__estado is-${estado}`}>{P.estado[estado]}</span>

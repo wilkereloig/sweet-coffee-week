@@ -1,0 +1,7 @@
+/* Camada Cartoon · Pop-up "O que você disputa" (mapa). Reaproveita .ct-premios (blocos de prêmio) e .ct-campanha-bloco (Sicredi);
+   aqui só o que é do pop-up. Só tokens --ct-*. Entra por src/styles/scw-cartoon.css, depois do 20. */
+.ct-disputa { padding-bottom: 20px; }
+.ct-disputa__atencao { display: grid; gap: 6px; padding: 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-disputa .ct-campanha-bloco { margin-top: 0; }
+.ct-disputa__acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.ct-disputa__acoes .ct-link { display: inline-flex; align-items: center; min-height: 44px; }

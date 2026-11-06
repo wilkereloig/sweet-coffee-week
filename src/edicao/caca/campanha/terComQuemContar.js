@@ -111,6 +111,8 @@ export const TEXTOS_CAMPANHA = Object.freeze({
     mapa: 'Campanha do Sicredi no Instagram: conte em vídeo uma história de quem esteve ao seu lado. Não conta carimbo.',
     premiosTitulo: `Também valendo: ${CAMPANHA.nome}`,
     premios: `Campanha do Sicredi no Instagram: ${CAMPANHA.historias} histórias escolhidas, um par de vouchers para cada pessoa. É separada da Caça: não conta carimbo, meta nem ranking.`,
+    // Pop-up "O que você disputa" (mapa): a promoção dita por inteiro, com os 2 vouchers à vista.
+    disputa: `Conte em vídeo, no Instagram, uma história de alguém com quem você pôde contar. A equipe do festival escolhe ${CAMPANHA.historias} histórias, e cada pessoa escolhida ganha ${CAMPANHA.vouchersPorPessoa} vouchers (um par) para um combo do festival. É separada da Caça: não conta carimbo, meta nem ranking.`,
     metas: 'Fora da Caça, o Sicredi tem a campanha Ter com quem contar no Instagram. Ela não conta carimbo nem meta.',
     rodape: CAMPANHA.nome,
   },

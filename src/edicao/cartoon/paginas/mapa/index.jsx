@@ -58,6 +58,7 @@ import { AlbumCarimbos } from '../AlbumCarimbos.jsx'
 import { Cartao } from './Cartao.jsx'
 import { Atalhos } from './Atalhos.jsx'
 import { PainelPremios } from './PainelPremios.jsx'
+import { PopupDisputa } from '../../../caca/disputa/PopupDisputa.jsx'
 import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
 import { Folha } from './Folha.jsx'
 import { LogoDoPin, logoDoPin } from './LogoDoPin.jsx'
@@ -108,6 +109,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Celular: o painel da rota é uma folha aberta por botão; um link com ?painel= ou ?u= já a abre.
   const [painelAberto, setPainelAberto] = React.useState(() => abrirRota || PAINEIS.includes(pedido.get('painel')) || compartilhada.length > 0)
   const [filtrosAbertos, setFiltrosAbertos] = React.useState(false)
+  // Link com intenção (casa, rota, painel): o pop-up "O que você disputa" não interrompe quem já sabe aonde vai.
+  const [veioComIntencao] = React.useState(() => abrirRota || PAINEIS.includes(pedido.get('painel')) || !!pedido.get('unidade') || compartilhada.length > 0)
   const [pedidoAtalho, setPedidoAtalho] = React.useState(null)
   const [posicao, setPosicao] = React.useState(null)
   // geo: disponivel · pedindo · ok · negada · demorou · indisponivel (erros do navegador) · inseguro · suporte (nem dá para tentar).
@@ -576,6 +579,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
           </div>
         </div>
       </section>
+      <PopupDisputa caca={meu} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length} navigate={navigate} bloqueado={cheia || veioComIntencao} />
     </>
   )
 }

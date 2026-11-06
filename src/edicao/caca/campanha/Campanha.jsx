@@ -22,7 +22,7 @@ export function useCampanha () {
 export function BlocoCampanha ({ navigate, variante = 'mapa', className = '' }) {
   const e = useCampanha()
   if (!e.aberta) return null
-  const titulo = variante === 'premios' ? T.bloco.premiosTitulo : T.bloco.titulo
+  const titulo = variante === 'premios' || variante === 'disputa' ? T.bloco.premiosTitulo : T.bloco.titulo
   return (
     <section className={`ct-campanha-bloco ${className}`.trim()} aria-label={T.bloco.titulo}>
       <h3 className="ct-campanha-bloco__titulo">{titulo}</h3>
