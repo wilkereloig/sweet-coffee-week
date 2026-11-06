@@ -266,13 +266,6 @@
 .ct-unidade__horario > .ct-unidade__linha { margin: 0; }
 .ct-unidade__obs { font-size: 15px; }
 .ct-unidade__frases { margin: 0; padding-left: 18px; }
-/* O horário em frases, em destaque: é o que a pessoa procura primeiro; os dias um a um ficam logo abaixo ("Ver todos os dias"). */
-.ct-unidade__frases--destaque { display: grid; gap: 2px; padding: 0; list-style: none; font: 800 clamp(17px, 1.6vw, 20px)/1.35 var(--ct-font); }
-.ct-dias-detalhe summary { display: flex; align-items: center; gap: 8px; min-height: 44px; font: 800 15px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.ct-dias-detalhe summary::-webkit-details-marker { display: none; }
-.ct-dias-detalhe summary::after { content: '+'; font: 900 20px/1 var(--ct-font); text-decoration: none; }
-.ct-dias-detalhe[open] > summary::after { content: '−'; }
-.ct-dias-detalhe .ct-dias { margin-top: 6px; }
 .ct-unidade .ct-acoes { margin-top: 6px; }
 /* Celular: as ações da unidade (como chegar, WhatsApp, mapa) em coluna com a mesma largura, sem a escada torta. */
 @media (max-width: 599.98px) { .ct-unidade .ct-acoes { display: grid; } .ct-edicao .ct-unidade .ct-acoes .ct-botao { width: 100%; } }

@@ -1,9 +1,8 @@
 /*
  * 4 · Onde encontrar: um cartão por unidade, com tudo o que é DELA — nome e situação de hoje no cabeçalho; endereço,
  * ações e o que ela atende à esquerda; o horário no festival à direita (no desktop). Linhas de informação com ícone de contorno.
- * Revisão de 04/11 (ficha): o horário abre em frases ("Todos os dias, das 12h às 21h") e a grade de 5 a 15/11 vira
- * "Ver todos os dias do festival" — fechada quando as frases já dizem tudo (todos os dias iguais, ou por semana),
- * aberta quando o horário muda dia a dia —; a situação de hoje sobe para o topo do cartão, em pílula.
+ * Revisão de 07/11 (pedido do Wilker): o horário é SÓ os bloquinhos dos dias do festival (5 a 15/11), sempre à vista, com o de hoje
+ * marcado — sem a lista escrita acima nem o "Ver todos os dias". A situação de hoje fica no topo do cartão, em pílula.
  * Com várias unidades que atendem de jeitos diferentes, cada cartão diz o que a sua atende.
  */
 import React from 'react'
@@ -27,28 +26,18 @@ function Dias ({ linhas, periodo, instante }) {
   if (!linhas?.length) return null
   const datas = periodo ? H.datasDoFestival(String(periodo.inicio || '').slice(0, 10), String(periodo.fim || '').slice(0, 10)) : []
   const dias = H.diasDeLinhas(linhas, datas)
-  const frases = M.horarioNoFestival(linhas, periodo)
-  if (!dias.some((d) => d.periodos?.length)) return <ul className="ct-unidade__frases">{frases.map((h) => <li key={h}>{h}</li>)}</ul>
+  if (!dias.some((d) => d.periodos?.length)) return <ul className="ct-unidade__frases">{M.horarioNoFestival(linhas, periodo).map((h) => <li key={h}>{h}</li>)}</ul>
   const hoje = M.hojeEmNatal(instante)
-  const modo = H.modoDeDias(dias)
+  // Um padrão só (07/11, pedido do Wilker): os dias do festival sempre em bloquinhos, iguais ou não; sem a lista escrita acima nem "Ver todos os dias".
   return (
-    <>
-      <ul className="ct-unidade__frases ct-unidade__frases--destaque">{frases.map((h) => <li key={h}>{h}</li>)}</ul>
-      {/* Todos os dias iguais: a frase já é a programação inteira, a grade repetiria onze vezes o mesmo horário. */}
-      {modo !== 'todos' && (
-        <details className="ct-dias-detalhe" open={modo === 'dias'}>
-          <summary>{T.verDias}</summary>
-          <ul className="ct-dias">
-            {dias.map((d) => (
-              <li key={d.data} className={`ct-dia${d.data === hoje ? ' is-hoje' : ''}${d.periodos?.length ? '' : ' is-fechado'}`}>
-                <span className="ct-dia__nome">{H.rotuloDia(d.data)}{d.data === hoje && <span className="ct-dia__hoje">{T.hoje}</span>}</span>
-                <span className="ct-dia__horas">{d.periodos?.length ? H.periodosTexto(d.periodos) : T.naoAbre}</span>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-    </>
+    <ul className="ct-dias">
+      {dias.map((d) => (
+        <li key={d.data} className={`ct-dia${d.data === hoje ? ' is-hoje' : ''}${d.periodos?.length ? '' : ' is-fechado'}`}>
+          <span className="ct-dia__nome">{H.rotuloDia(d.data)}{d.data === hoje && <span className="ct-dia__hoje">{T.hoje}</span>}</span>
+          <span className="ct-dia__horas">{d.periodos?.length ? H.periodosTexto(d.periodos) : T.naoAbre}</span>
+        </li>
+      ))}
+    </ul>
   )
 }
 

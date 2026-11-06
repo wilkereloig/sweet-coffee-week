@@ -163,7 +163,6 @@ export const PARTICIPANTE = {
   pedirDelivery: 'Pedir por delivery',
   unidadesComModos: 'Atende',
   sobreACasa: 'Sobre a casa',
-  verDias: 'Ver todos os dias do festival',
   abreEmNovaAba: '(abre em nova aba)',
   canais: { aplicativo: 'Aplicativo', whatsapp: 'WhatsApp', site: 'Site' },
   taxa: 'Taxa',

@@ -287,15 +287,9 @@ try {
     // Observação que não diz nada ("Nada") não vira aviso; a de verdade fica.
     const obs = await c.page.locator('.ct-unidade__obs').allInnerTexts()
     if (obs.some((t) => /^nada$/i.test(t.trim())) || !obs.includes('Estacionamento no subsolo.')) falha(`observações das unidades: ${JSON.stringify(obs)}`)
-    // Horário: frases em destaque; dias iguais não repetem a grade, dias diferentes ficam em "Ver todos os dias", fechado.
-    if ((await c.page.locator('.ct-dias-detalhe').count()) !== 1) falha('só a unidade com horário por semana deveria ter "Ver todos os dias"')
-    else {
-      const det = c.page.locator('.ct-dias-detalhe')
-      if (await det.evaluate((e) => e.open)) falha('"Ver todos os dias" abriu sozinho com o horário agrupado por semana')
-      await det.locator('summary').click()
-      if ((await det.locator('.ct-dia').count()) !== 11) falha('"Ver todos os dias" não lista os 11 dias do festival')
-    }
-    if (!(await c.page.locator('.ct-unidade').nth(0).innerText()).includes('Todos os dias')) falha('1ª unidade sem a frase "Todos os dias"')
+    // Horário: um padrão só — os 11 dias do festival em bloquinhos, sempre à vista; sem a lista escrita nem "Ver todos os dias".
+    if ((await c.page.locator('.ct-dias-detalhe, .ct-unidade__frases--destaque').count()) !== 0) falha('o horário voltou a ter a lista escrita ou o "Ver todos os dias"')
+    if ((await c.page.locator('.ct-unidade').nth(0).locator('.ct-dia').count()) !== 11) falha('a 1ª unidade não mostra os 11 dias do festival em bloquinhos')
     // Apresentação da casa: fora do topo, na seção "Sobre a casa"; o nome do combo, no topo.
     if (await c.page.locator('.ct-ficha__topo').getByText('Texto de apresentação').count()) falha('a apresentação voltou para o topo')
     if (!(await c.page.locator('#sobre').innerText()).includes('Texto de apresentação')) falha('sem a seção "Sobre a casa"')
