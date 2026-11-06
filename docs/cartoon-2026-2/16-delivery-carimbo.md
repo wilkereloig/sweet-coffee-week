@@ -42,13 +42,12 @@ assinada de 300 s da `arquivo-url`, e só de caminho gravado num pedido. Nada em
 ## Aplicado em 06/11/2026 (projeto Supabase único do SCW, que é o de produção)
 
 - Migrations `caca_delivery` e `caca_delivery_alertas` (o arquivo `supabase/migrations/20261231_caca_delivery.sql` é a soma das duas). Reversão: `supabase/reverter/20261231_caca_delivery.sql`.
-- Edge function **`caca-delivery`** publicada (versão 1). **`arquivo-url` alterada no repositório, ainda NÃO publicada** (ver abaixo).
+- Edge function **`caca-delivery`** publicada (versão 1). **`arquivo-url` publicada em 06/11 (versão 15; comentários do arquivo no repositório são mais longos que os da versão no ar)**; fumaça: 401 sem credencial, `subir` e `remover` fora do bucket recusados.
 - Teste no banco com dados criados e desfeitos na mesma transação (nenhum carimbo, pedido, mapa ou arquivo real ficou): mais de 40 verificações, todas como esperado.
 
 ## Pendências e decisões
 
 - **Retenção da imagem: sem prazo aprovado.** Nada é apagado sozinho; a organização exclui manualmente (botão **Excluir** na fila). Uploads abandonados (reservados e nunca anexados) ficam órfãos até haver prazo. **Não publicar a função ao público enquanto o prazo de retenção não for decidido** (privacidade).
-- `arquivo-url` precisa ser publicada para a organização ver/excluir a imagem (hoje só `caca-delivery` está no ar).
 - Concorrência por duas sessões reais simultâneas não foi simulada no banco (a trava é `for update` + índice único; a leitura do código cobre o desenho, o teste cobre o resultado sequencial).
 - Câmera: o seletor nativo do aparelho abre a câmera; negada, a pessoa escolhe da galeria (nenhuma permissão é pedida pelo site).
 - Nada disto está no ar para o público: o front está em `dev/site-completo`; a Vercel publica só no push para `master`.
