@@ -67,7 +67,7 @@ import { PainelRota } from './PainelRota.jsx'
 import { BotaoPerto, PainelPerto } from './Perto.jsx'
 import { casasMaisPerto } from '../../../caca/mapa/casasPerto.js'
 import { useCelular } from './interacao.js'
-import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, adiarConvite, casasDispensadas, dispensarCasa } from '../../../caca/mapa/proximidade.js'
+import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, adiarConvite, casasDispensadas, dispensarCasa, localizacaoConcedida, lembrarLocalizacao } from '../../../caca/mapa/proximidade.js'
 import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/mapa/Proximidade.jsx'
 import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
 import { useTelaCheia } from './useTelaCheia.js'
@@ -118,6 +118,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Sugestão de casa perto (docs/cartoon-2026-2/16): escolhas da pessoa guardadas só neste aparelho (nunca coordenadas).
   const [sugestoes, setSugestoes] = React.useState(() => sugestoesLigadas())
   const [conviteFechado, setConviteFechado] = React.useState(() => conviteAdiado())
+  const [jaConcedeu] = React.useState(() => localizacaoConcedida()) // liberou em outra visita: o convite não volta e a posição é lida sozinha
   const [dispensadas, setDispensadas] = React.useState(() => casasDispensadas())
   const permissao = usePermissaoLocalizacao()
   const [provedor, setProvedor] = React.useState(import.meta.env.VITE_GOOGLE_MAPS_KEY ? 'google' : 'maplibre')
@@ -237,8 +238,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
   const lerPosicao = React.useCallback((idadeMaxMs) => {
     navigator.geolocation.getCurrentPosition(
-      (p) => { setPosicao({ lat: p.coords.latitude, lng: p.coords.longitude, precisao: p.coords.accuracy }); setGeo('ok') },
-      (e) => setGeo((g) => (g === 'ok' ? g : estadoDoErro(e?.code))), // falha de uma releitura não apaga a posição que já temos; cada erro tem a sua mensagem
+      (p) => { lembrarLocalizacao(true); setPosicao({ lat: p.coords.latitude, lng: p.coords.longitude, precisao: p.coords.accuracy }); setGeo('ok') },
+      (e) => { if (e?.code === 1) lembrarLocalizacao(false); setGeo((g) => (g === 'ok' ? g : estadoDoErro(e?.code))) }, // negou: esquece a lembrança; falha de uma releitura não apaga a posição que já temos; cada erro tem a sua mensagem
       { enableHighAccuracy: false, timeout: 15000, maximumAge: idadeMaxMs },
     )
   }, [])
@@ -281,7 +282,11 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     if (motivoSemLocalizacao() || !sugestoes) return undefined // sugestões desligadas: nada lê a posição sozinho, só o botão "Perto de mim"
     let vivo = true
     if (geo === 'disponivel') {
-      navigator.permissions?.query({ name: 'geolocation' }).then((r) => { if (vivo && r.state === 'granted') { setGeo('pedindo'); lerPosicao(300000) } }).catch(() => {})
+      const iniciar = () => { if (vivo) { setGeo('pedindo'); lerPosicao(300000) } }
+      // Liberada agora (granted) OU já liberada em outra visita e não negada desde então: lê sem convite. Sem Permissions API, vale a lembrança.
+      const consulta = navigator.permissions?.query({ name: 'geolocation' })
+      if (consulta) consulta.then((r) => { if (r.state === 'granted' || (jaConcedeu && r.state !== 'denied')) iniciar() }).catch(() => { if (jaConcedeu) iniciar() })
+      else if (jaConcedeu) iniciar()
     }
     return () => { vivo = false }
   }, [sugestoes]) // eslint-disable-line react-hooks/exhaustive-deps -- na abertura e quando a pessoa religa as sugestões
@@ -349,7 +354,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   )
   // Convite de localização e sugestão de casa perto (docs/cartoon-2026-2/16): o navegador só pergunta no toque do convite, o convite só aparece
   // no mapa (nunca na tela cheia), uma vez a cada 7 dias; a sugestão ajuda a escolher e nunca marca visita, carimbo ou avaliação.
-  const mostrarConvite = !cheia && sugestoes && !conviteFechado && !perto && geo === 'disponivel' && (permissao === 'prompt' || permissao === 'desconhecido')
+  const mostrarConvite = !cheia && sugestoes && !conviteFechado && !jaConcedeu && !perto && geo === 'disponivel' && (permissao === 'prompt' || permissao === 'desconhecido')
   const adiarConviteAgora = () => { adiarConvite(); setConviteFechado(true) }
   const desligarSugestoes = () => setSugestoes(ligarSugestoes(false))
   const dispensarSugestao = (slug) => setDispensadas(dispensarCasa(slug))

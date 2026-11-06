@@ -120,6 +120,7 @@ export function sugerirProximaCasa ({ lista = [], posicao = null, estadoDe = nul
 const CHAVE_PREFERENCIA = 'scw_perto_sugestoes'
 const CHAVE_CONVITE = 'scw_perto_convite'
 const CHAVE_DISPENSAS = 'scw_perto_dispensas'
+const CHAVE_CONCEDIDA = 'scw_perto_concedida'
 export const DIAS_DO_CONVITE_ADIADO = 7
 
 const abrir = (fn, padrao) => { try { return fn() } catch { return padrao } }
@@ -132,6 +133,19 @@ export function sugestoesLigadas (armazem = guardado()) {
 export function ligarSugestoes (ligadas, armazem = guardado()) {
   abrir(() => armazem?.setItem(CHAVE_PREFERENCIA, ligadas ? 'ligada' : 'desligada'))
   return ligadas
+}
+
+/**
+ * A pessoa já deixou a localização ser lida neste aparelho (07/11/2026). Guarda só a DATA da concessão, nunca coordenadas.
+ * Vale mais que o estado da Permissions API: o Safari do iPhone costuma responder "prompt" mesmo depois de liberada, e sem esta
+ * lembrança o convite voltava a cada visita. Recusa (código 1 do navegador) apaga a lembrança e o convite volta a poder aparecer.
+ */
+export function localizacaoConcedida (armazem = guardado()) {
+  return !!abrir(() => armazem?.getItem(CHAVE_CONCEDIDA), null)
+}
+export function lembrarLocalizacao (concedida, armazem = guardado(), agora = new Date()) {
+  abrir(() => (concedida ? armazem?.setItem(CHAVE_CONCEDIDA, agora.toISOString()) : armazem?.removeItem(CHAVE_CONCEDIDA)))
+  return concedida
 }
 
 /** O convite de localização foi adiado ("agora não") há menos de 7 dias? Guarda só a data da escolha. */

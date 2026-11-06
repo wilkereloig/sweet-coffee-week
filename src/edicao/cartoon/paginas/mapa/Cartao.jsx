@@ -60,18 +60,15 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
     <article className="ct-mapa__cartao" aria-labelledby="mapa-cartao-nome" tabIndex={-1}>
       <div className="ct-mapa__cartao-cabeca">
         <LogoDoPin p={p} tamanho={36} estado={estado} />
-        <div>
-          <p className="ct-rotulo">{proxima ? TC.proximaRotulo : T.cartaoTitulo}</p>
+        {/* Nome e estado na Caça juntos (forma + texto): o "Casa escolhida" de antes só gastava uma linha; fica o rótulo do próximo passo. */}
+        <div className="ct-mapa__cartao-id">
+          {proxima && <p className="ct-rotulo">{TC.proximaRotulo}</p>}
           <h2 id="mapa-cartao-nome" className="ct-mapa__cartao-nome">{titulo}</h2>
+          {estado && <SeloEstado estado={estado} revisitas={revisitas} tamanho={24} longo />}
         </div>
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label={T.fechar}><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
-      {(estado || aberto) && (
-        <div className="ct-mapa__cartao-resumo">
-          {estado && <SeloEstado estado={estado} revisitas={revisitas} tamanho={28} longo />}
-          {aberto && agoraNo}
-        </div>
-      )}
+      {aberto && agoraNo}
       {M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
       {/* Casa com mais de um endereço: os outros ficam à vista (não escondidos em "Mais"), um toque troca de endereço. */}
       {irmas.length > 0 && (
@@ -84,6 +81,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
           </ul>
         </div>
       )}
+      {/* Ações em duas fileiras: a principal ocupa a linha; embaixo, quatro controles do mesmo tamanho (dois botões, "Quero ir" só com o coração, "Mais"). */}
       <div className="ct-acoes ct-mapa__cartao-acoes">
         {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : comoChegarBotao}
         {/* Atalho do carimbo: a mesma página do QR do display; ela pede a localização e só carimba com você na casa. */}

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import {
-  sugerirProximaCasa, posicaoValida, sugestoesLigadas, ligarSugestoes, conviteAdiado, adiarConvite, casasDispensadas, dispensarCasa,
+  sugerirProximaCasa, posicaoValida, sugestoesLigadas, ligarSugestoes, conviteAdiado, adiarConvite, casasDispensadas, dispensarCasa, localizacaoConcedida, lembrarLocalizacao,
   PRECISAO_MAXIMA_M, LIMITE_LONGE_KM,
 } from '../src/edicao/caca/mapa/proximidade.js'
 
@@ -154,7 +154,7 @@ test('a sugestão não carimba, não avalia e não mexe nos dados: só devolve u
 })
 
 // ------------------------------------------------------------------ preferências e memória no aparelho
-const armazem = () => { const d = new Map(); return { d, getItem: (k) => (d.has(k) ? d.get(k) : null), setItem: (k, v) => { d.set(k, String(v)) } } }
+const armazem = () => { const d = new Map(); return { d, getItem: (k) => (d.has(k) ? d.get(k) : null), setItem: (k, v) => { d.set(k, String(v)) }, removeItem: (k) => { d.delete(k) } } }
 const quebrado = { getItem () { throw new Error('bloqueado') }, setItem () { throw new Error('bloqueado') } }
 
 test('preferência de sugestões: ligada por padrão, a pessoa desliga e religa', () => {
@@ -204,4 +204,25 @@ test('privacidade: nenhuma coordenada é guardada e o módulo não envia nada (s
   const fonte = readFileSync(fileURLToPath(new URL('../src/edicao/caca/mapa/proximidade.js', import.meta.url)), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
   assert.doesNotMatch(fonte, /\b(fetch|XMLHttpRequest|sendBeacon|gtag|dataLayer|console\.|navigator\.geolocation|watchPosition|localStorage\.setItem\(\s*['"][^'"]*(lat|lng|pos))/)
+})
+
+test('a localização liberada fica lembrada neste aparelho; recusar esquece; armazenamento quebrado não derruba', () => {
+  const a = armazem()
+  assert.equal(localizacaoConcedida(a), false, 'sem lembrança no começo')
+  lembrarLocalizacao(true, a, AGORA)
+  assert.equal(localizacaoConcedida(a), true)
+  assert.equal(a.d.get('scw_perto_concedida'), AGORA.toISOString(), 'guarda só a data da concessão, nunca coordenadas')
+  lembrarLocalizacao(false, a)
+  assert.equal(localizacaoConcedida(a), false, 'negada: a lembrança some')
+  const quebrado = { getItem () { throw new Error('bloqueado') }, setItem () { throw new Error('bloqueado') }, removeItem () { throw new Error('bloqueado') } }
+  assert.equal(localizacaoConcedida(quebrado), false)
+  assert.doesNotThrow(() => lembrarLocalizacao(true, quebrado))
+})
+
+test('o mapa lê a posição sozinho quando já foi liberada e não mostra o convite de novo', () => {
+  const m = readFileSync(fileURLToPath(new URL('../src/edicao/cartoon/paginas/mapa/index.jsx', import.meta.url)), 'utf8')
+  assert.match(m, /lembrarLocalizacao\(true\)/, 'leitura que funciona grava a lembrança')
+  assert.match(m, /e\?\.code === 1\) lembrarLocalizacao\(false\)/, 'recusa apaga a lembrança')
+  assert.match(m, /jaConcedeu && r\.state !== 'denied'/, 'lembrança vale mesmo quando o Safari responde "prompt"')
+  assert.match(m, /const mostrarConvite = [^\n]*!jaConcedeu/, 'o convite não volta depois de liberado')
 })

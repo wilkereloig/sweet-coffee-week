@@ -56,6 +56,14 @@ Código: `src/edicao/caca/mapa/proximidade.js` (regra e memória no aparelho), `
   envia pela central de avisos (não dependem de posição) seguem como estão.
 - **Não testado em aparelho real** (iPhone e Android): os testes usam Chromium com localização simulada.
 
+## Localização lembrada entre visitas (07/11/2026)
+
+- Depois da primeira leitura bem-sucedida o aparelho guarda só a **data da concessão** (`scw_perto_concedida`, nunca coordenadas). Nas visitas seguintes o mapa lê a posição sozinho e **não mostra o convite de novo**.
+- Vale mais que a Permissions API: o Safari do iPhone costuma responder "prompt" mesmo com a localização liberada. Se a API disser `denied`, a lembrança não é usada.
+- Recusa (código 1) apaga a lembrança e o convite volta a poder aparecer. "Desligar sugestões" continua parando qualquer leitura automática.
+- ⚠️ Se o iPhone voltar a mostrar a pergunta DO SISTEMA, isso é do navegador (principalmente no navegador interno aberto por outro app, que não guarda a permissão); o site não consegue impedir. Ajuste: Ajustes › Safari › Localização › sweetcoffeeweek.com.br = Permitir, ou instalar a Caça como app.
+- A conta da Caça (`scw:edicao:<código>:mapa`) segue em `localStorage`; o app agora pede `navigator.storage.persist()` para o navegador não apagá-la por falta de espaço. O Safari apaga armazenamento de site sem uso por ~7 dias fora do app instalado: o caminho de volta é o link pessoal/"Recuperar meu mapa".
+
 ## O que não foi tocado
 
 Regras de carimbo, validação por avaliação, premiação, rota da pessoa, banco, edge functions e flags de publicação.

@@ -72,6 +72,8 @@ export function useCaca ({ api = apiPadrao, comEmail = true } = {}) {
     return () => { vivo = false }
   }, [estado, chave, leitura, api, comEmail])
 
+  // Pede ao navegador para NÃO apagar o mapa deste aparelho quando faltar espaço (Chrome/Android concedem a sites usados; o Safari decide sozinho).
+  React.useEffect(() => { if (chave) { try { navigator.storage?.persist?.()?.catch?.(() => {}) } catch { /* sem a API */ } } }, [chave])
   const atualizar = React.useCallback(() => setLeitura((n) => n + 1), [])
   const entrar = React.useCallback((nova, { criado = false } = {}) => {
     if (!C.chaveValida(nova)) return false

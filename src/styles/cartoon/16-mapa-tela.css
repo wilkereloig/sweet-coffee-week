@@ -235,23 +235,30 @@
 }
 .ct-folha-m__aplicar { margin-left: auto; }
 
-/* Cartão da casa: compacto (a ação principal e as secundárias que mais se usa) + "Mais" com o resto. */
-.ct-mapa__cartao { gap: 8px; padding: 12px 14px; }
+/* Cartão da casa: compacto (a ação principal e as secundárias que mais se usa) + "Mais" com o resto.
+   Revisão de 07/11: cabeçalho enxuto (logo · nome + estado · fechar) e as ações em duas fileiras alinhadas à mesma grade. */
+.ct-mapa__cartao { gap: 8px; padding: 10px 12px 12px; }
 .ct-mapa__cartao:focus { outline: none; }
 .ct-mapa__cartao:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; border-radius: var(--ct-raio); }
-.ct-mapa__cartao-cabeca { gap: 10px; align-items: start; }
+.ct-mapa__cartao-cabeca { gap: 10px; align-items: center; }
 .ct-edicao .ct-mapa__cartao-cabeca .ct-mapa__logo { max-width: 68px; }
+.ct-mapa__cartao-id { display: grid; gap: 3px; justify-items: start; min-width: 0; }
 .ct-mapa__cartao-cabeca .ct-rotulo { font-size: 11px; }
-.ct-mapa__cartao-nome { font-size: clamp(17px, 4.6vw, 22px); line-height: 1.12; }
+.ct-mapa__cartao-nome { font-size: clamp(17px, 4.6vw, 21px); line-height: 1.12; text-wrap: balance; }
+.ct-mapa__cartao-id .ct-selo-estado { font-size: 13px; }
+.ct-mapa__cartao .ct-mapa__fechar { width: 40px; height: 40px; margin: -2px -2px 0 0; align-self: start; }
 .ct-mapa__cartao-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
 .ct-mapa__cartao-resumo p { margin: 0; }
-.ct-mapa__cartao-linha { align-items: flex-start; font-size: 14px; line-height: 1.35; }
+.ct-mapa__cartao-linha { align-items: flex-start; font-size: 13.5px; line-height: 1.35; }
 .ct-mapa__cartao-linha > .scw-icone, .ct-mapa__cartao-linha > svg { flex: none; }
-.ct-mapa__cartao-acoes { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 2px 0 0; }
-.ct-edicao .ct-mapa__cartao-acoes .ct-botao { min-height: 44px; padding: 0 11px; font-size: 13px; letter-spacing: .03em; box-shadow: 3px 3px 0 var(--ct-chocolate); }
-.ct-edicao .ct-mapa__cartao-acoes > .ct-botao:first-child { flex: 1 1 100%; min-height: 48px; font-size: 15px; box-shadow: 4px 4px 0 var(--ct-chocolate); }
-.ct-mapa__cartao-acoes > .ct-chip { flex: none; padding-inline: 12px; }
-.ct-mapa__cartao-acoes > .ct-chip--icone { padding-left: 6px; padding-right: 10px; }
+.ct-mapa__cartao-acoes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px auto; gap: 8px; margin: 2px 0 0; }
+.ct-edicao .ct-mapa__cartao-acoes .ct-botao { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 6px; font-size: 12.5px; line-height: 1.1; letter-spacing: .02em; text-align: center; box-shadow: 3px 3px 0 var(--ct-chocolate); }
+.ct-edicao .ct-mapa__cartao-acoes > .ct-botao:first-child { grid-column: 1 / -1; min-height: 46px; font-size: 15px; box-shadow: 4px 4px 0 var(--ct-chocolate); }
+.ct-mapa__cartao-acoes > .ct-chip { padding-inline: 12px; justify-content: center; }
+/* "Quero ir" vira só o coração (o nome fica para o leitor de tela): a fileira de baixo tem quatro controles do mesmo tamanho. */
+.ct-mapa__cartao-acoes > .ct-chip.ct-marca { width: 44px; padding: 0; }
+.ct-mapa__cartao-acoes > .ct-chip.ct-marca > span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ct-mapa__cartao-acoes > .ct-chip.ct-marca .ct-icone { width: 28px; height: 28px; }
 .ct-mapa__mais { display: grid; gap: 8px; padding-top: 10px; border-top: 2px dashed var(--ct-chocolate); }
 .ct-mapa__mais[hidden] { display: none; }
 .ct-mapa__mais p { margin: 0; }
