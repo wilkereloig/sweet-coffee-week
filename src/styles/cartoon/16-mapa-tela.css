@@ -135,8 +135,10 @@
 .ct-perto__fechar { display: grid; place-items: center; flex: none; min-width: 44px; min-height: 44px; margin: -10px 0; border: 0; border-radius: 50%; background: none; color: var(--ct-chocolate); cursor: pointer; }
 .ct-perto__fechar:hover { background: color-mix(in srgb, var(--ct-chocolate) 10%, transparent); }
 .ct-perto__trilho {
-  display: flex; gap: 8px; margin: 0; padding: 2px 8px 4px 0; list-style: none; overflow-x: auto; overscroll-behavior-x: contain; touch-action: pan-x;
-  scroll-snap-type: x proximity; scroll-padding-inline: 2px; scrollbar-width: thin;
+  /* A bolinha do número (.ct-perto__ordem) sai 8 px acima e 7 px à esquerda do cartão, e overflow-x: auto recorta tudo que passa da caixa:
+     o padding de cima e da esquerda é o espaço dela (revisão de 07/11: o número aparecia cortado). */
+  display: flex; gap: 8px; margin: 0; padding: 10px 8px 4px 9px; list-style: none; overflow-x: auto; overscroll-behavior-x: contain; touch-action: pan-x;
+  scroll-snap-type: x proximity; scroll-padding-inline: 9px; scrollbar-width: thin;
 }
 .ct-perto__trilho li { flex: none; scroll-snap-align: start; }
 @media (pointer: coarse) { .ct-perto__trilho { scrollbar-width: none; } } /* no toque a barra só gasta altura: o corte do próximo cartão já mostra que há mais */
