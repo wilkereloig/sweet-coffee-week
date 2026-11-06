@@ -69,6 +69,19 @@ export function atualizarPin (caixa, pin) {
   caixa.append(novo)
 }
 
+/** Ícone do catálogo de cada marcação da rota no ombro do pin: quero ir = trajeto (o mesmo do botão "Minha rota"), já fui = feito. */
+const ICONE_ROTA = { quero: 'trajeto', foi: 'feito' }
+
+/** O selo "quero ir / já fui" do pin: disco com o ÍCONE da marcação (não mais uma bola lisa). `tipo`: 'quero' | 'foi' | null (sem selo). */
+export function marcarRota (caixa, tipo) {
+  let selo = caixa.querySelector('.ct-pin__rota')
+  if (!tipo) { selo?.remove(); return }
+  if (selo?.dataset.tipo === tipo) return
+  if (!selo) { selo = document.createElement('span'); selo.className = 'ct-pin__rota'; selo.setAttribute('aria-hidden', 'true'); caixa.append(selo) }
+  selo.dataset.tipo = tipo
+  selo.replaceChildren(iconeDom(ICONE_ROTA[tipo], 16))
+}
+
 /** O ponto do horário (aberto · abre em breve · fechado) na base do disco; sem nível (horário desconhecido), não existe. */
 function atualizarAbertura (caixa, nivel) {
   let ponto = caixa.querySelector('.ct-mundo__abertura')

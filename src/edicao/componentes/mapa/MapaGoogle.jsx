@@ -9,7 +9,7 @@
  * (AdvancedMarkerElement) com um <button> nomeado dentro: a seleção sincroniza com a lista, como no outro mapa.
  */
 import React from 'react'
-import { pinDaCasa, pinSicredi, atualizarPin, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
+import { pinDaCasa, pinSicredi, atualizarPin, marcarRota, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
 import { partesDoNome } from './indicadores.js'
 import { planejarNoMapa } from './afastar.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
@@ -215,7 +215,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
         mk.setAttribute('aria-label', TC.sicrediNomeMarcador(p.titulo, !!p.aproximada))
         continue
       }
-      if (p.pin) atualizarPin(el.firstElementChild, p.pin) // carimbo novo: a logo passa de P&B a colorida sem refazer o marcador
+      if (p.pin) { atualizarPin(el.firstElementChild, p.pin); marcarRota(el.firstElementChild, p.foi ? 'foi' : p.quero ? 'quero' : null) } // carimbo novo: a logo passa de P&B a colorida sem refazer o marcador
       el.classList.toggle('ct-marcador--aprox', !!p.aproximada)
       el.classList.toggle('ct-marcador--quero', !!p.quero)
       el.classList.toggle('ct-marcador--foi', !!p.foi)

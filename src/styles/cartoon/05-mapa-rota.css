@@ -121,12 +121,14 @@
   content: ''; position: absolute; z-index: -1; left: 50%; bottom: -7px; width: 38px; height: 14px; translate: -50% 0;
   border: 2.5px dashed var(--ct-chocolate); border-radius: 50%; background: rgba(253, 240, 222, .75);
 }
-/* Quero ir / Já fui: selo redondo no ombro do pin, nas cores das marcações da rota. */
-.ct-marcador--quero .ct-pin::before, .ct-marcador--foi .ct-pin::before {
-  content: ''; position: absolute; z-index: 2; top: -7px; left: -9px; width: 24px; height: 24px;
-  border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-vermelho);
+/* Quero ir / Já fui: selo redondo no ombro do pin, nas cores das marcações da rota, com o ÍCONE da marcação (pin.js › marcarRota):
+   quero ir = trajeto (o mesmo do botão "Minha rota"), já fui = feito. Não é mais uma bola lisa. */
+.ct-pin__rota {
+  position: absolute; z-index: 2; top: -9px; left: -11px; display: grid; place-items: center; width: 28px; height: 28px;
+  border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-vermelho); color: var(--ct-branco); pointer-events: none;
 }
-.ct-marcador--foi .ct-pin::before { background: var(--ct-turquesa); }
+.ct-pin__rota[data-tipo='foi'] { background: var(--ct-turquesa); color: var(--ct-chocolate); }
+.ct-pin__rota .scw-icone { width: 16px; height: 16px; }
 /* Pins que se cobrem (afastar.js + pin.js): no mapa real o pin vai para o lado por --dx/--dy (só a tela; a coordenada é a mesma). O fio, o selo
    de grupo e o `is-agrupado` são peças dos DOIS mapas e moram em 11-mundo.css. O selo mora num marcador ancorado embaixo: sobe meia altura. */
 .ct-marcador, .ct-sicredi-marcador { translate: var(--dx, 0px) var(--dy, 0px); }
