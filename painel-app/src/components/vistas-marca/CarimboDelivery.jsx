@@ -8,7 +8,7 @@ import { codigoDeliveryCompleto, formatarCodigoDelivery, linhasDoPedido, normali
  * A casa digita, confere o essencial e confirma que entregou. Só vale para a própria casa; nunca mexe em voucher nem em presença.
  * O código e os dados do cliente não vão para log nem para o endereço da página.
  */
-export function CarimboDelivery({ aberto, onFechar }) {
+export function CarimboDelivery({ aberto, onFechar, codigoInicial = '' }) {
   const [texto, setTexto] = React.useState('')
   const [pedido, setPedido] = React.useState(null)
   const [fase, setFase] = React.useState('') // '' | 'consultando' | 'confirmando'
@@ -17,6 +17,7 @@ export function CarimboDelivery({ aberto, onFechar }) {
   const codigo = normalizarCodigoDelivery(texto)
 
   React.useEffect(() => { if (!aberto) { setTexto(''); setPedido(null); setAviso(null); setFase('') } }, [aberto])
+  React.useEffect(() => { if (aberto && codigoInicial) setTexto(codigoInicial) }, [aberto, codigoInicial])
   React.useEffect(() => { if (aberto && campo.current) campo.current.focus() }, [aberto])
 
   async function chamar(fn) {

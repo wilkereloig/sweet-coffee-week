@@ -11,8 +11,8 @@ export const DELIVERY = {
   acaoFichaDica: 'Já recebeu o combo em casa? Peça o carimbo aqui, sem ir até a casa.',
   comoFunciona: [
     'Não usamos a sua localização: este pedido não liga o GPS.',
-    'O caminho principal é a casa confirmar: você recebe um código temporário e manda para a casa pelo mesmo canal em que fez o pedido.',
-    'Se não conseguir, envie uma imagem do pedido (print ou foto) para a organização analisar.',
+    'Envie um print do pedido, uma foto do cupom fiscal ou uma foto sua com o combo recebido. A organização vai analisar.',
+    'Se preferir, peça à casa para confirmar: envie seu código pelo canal em que fez o pedido para a equipe comparar.',
     'Enviar não é carimbar: nada conta até a casa confirmar ou a organização aprovar. A casa só vale depois que você avaliar o combo com o mesmo e-mail do mapa.',
   ],
   // Formulário
@@ -31,13 +31,13 @@ export const DELIVERY = {
   semCasas: 'Nenhuma casa declarou delivery para o combo por enquanto.',
   escolha: 'Como você quer pedir o carimbo?',
   viaCasa: 'Confirmar com a casa',
-  viaCasaAjuda: 'Recomendado. Gera um código para a casa confirmar.',
+  viaCasaAjuda: 'Alternativa: a casa compara o código e confirma a entrega.',
   viaImagem: 'Enviar imagem para análise',
-  viaImagemAjuda: 'A organização analisa um print ou uma foto do pedido.',
+  viaImagemAjuda: 'Recomendado. A organização analisa a foto ou o print enviado.',
   enviando: 'Enviando…',
   // Pedido criado
   codigoTitulo: 'Seu código para a casa',
-  codigoComo: (casa) => `Mande este código para ${casa} pelo canal em que você fez o pedido. A casa digita no painel dela e confirma que entregou.`,
+  codigoComo: (casa) => `Seu pedido aparece no painel de ${casa}. Envie este código pelo canal em que fez o pedido para a equipe comparar e confirmar a entrega.`,
   codigoValidade: (q) => `Vale por mais ${q}, uma única vez.`,
   copiar: 'Copiar código',
   copiado: 'Código copiado.',
@@ -48,7 +48,7 @@ export const DELIVERY = {
   novoCodigoRestam: (n) => (n === 1 ? 'Resta 1 código novo neste pedido.' : `Restam ${n} códigos novos neste pedido.`),
   // Imagem
   imagemTitulo: 'Imagem do pedido',
-  imagemOrienta: 'Envie um print da confirmação do pedido ou uma foto. Antes de enviar, esconda o que não precisa aparecer: endereço de entrega, telefone e dados de pagamento. Uma imagem por pedido.',
+  imagemOrienta: 'Envie um print do pedido, uma foto do cupom fiscal ou uma foto sua com o combo. O pedido só vai para análise depois que você enviar a imagem. Esconda endereço de entrega, telefone e dados de pagamento. Uma imagem por pedido.',
   imagemGaleria: 'Escolher da galeria',
   imagemCamera: 'Tirar foto',
   imagemPronta: 'Imagem pronta para enviar.',
@@ -62,6 +62,7 @@ export const DELIVERY = {
   seusPedidos: 'Seus pedidos de delivery',
   dataDoPedido: (d) => `Pedido de ${d}`,
   estado: {
+    imagemPendente: 'Falta enviar a imagem',
     codigo: 'Aguardando a casa',
     expirado: 'Código vencido',
     analise: 'Em análise',
@@ -70,7 +71,8 @@ export const DELIVERY = {
     negado: 'Não aprovado',
   },
   estadoTexto: {
-    codigo: 'Mande o código para a casa. Ainda não conta nada.',
+    imagemPendente: 'Escolha a imagem e toque em enviar para a organização analisar.',
+    codigo: 'Envie o código à casa para ela comparar e confirmar. Ainda não conta nada.',
     expirado: 'O código venceu. Gere um novo ou envie uma imagem para análise.',
     analise: 'A organização está analisando a imagem. Ainda não conta nada.',
     aprovadoAvaliar: 'O carimbo está no seu mapa. A casa só vale depois que você avaliar o combo com o mesmo e-mail do mapa.',

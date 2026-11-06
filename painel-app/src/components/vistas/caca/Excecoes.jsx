@@ -91,7 +91,7 @@ export function Excecoes({ edicao, pode }) {
                 {contato && <td>{contatoDe(p) || '—'}</td>}
                 <td className="cp-nota-celula">
                   {aguardandoACasa(p)
-                    ? <Selo tom="andamento">{p.codigo_expirado ? 'Código vencido' : 'Aguardando a casa'}</Selo>
+                    ? <Selo tom="andamento">{p.via_pretendida === 'imagem' ? 'Aguardando imagem' : p.codigo_expirado ? 'Código vencido' : 'Aguardando a casa'}</Selo>
                     : <Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>}
                   {p.decidido_em && <span className="cp-sub"> {p.decidido_por || ''} · {horaNatal(p.decidido_em)}{p.decisao_nota ? ` · ${p.decisao_nota}` : ''}</span>}
                 </td>

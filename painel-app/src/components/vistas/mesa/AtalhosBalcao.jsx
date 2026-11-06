@@ -23,7 +23,7 @@ function PedidosDeCarimbo({ edicao, navegar }) {
         {n !== null && <span className="ui-modulo__num">{n}</span>}
         <span className="ms-acao__frase" role="status">{frase}</span>
       </span>
-      <span className="ms-acao__detalhe">GPS que falhou na casa e visitas anteriores à Caça. Quem decide é a organização.</span>
+      <span className="ms-acao__detalhe">Delivery com imagem, GPS que falhou e visitas anteriores. Pedidos por código aguardam a casa.</span>
     </Modulo>
   )
 }

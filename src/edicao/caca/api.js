@@ -176,10 +176,10 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
      * `{ ok:true, id, estado:'pendente', via:'casa', codigo, expira_em, slug }` · motivos: email_nao_confirmado · qr_invalido · casa_sem_combo · encerrada · nao_aberta ·
      * data_invalida · data_futura · sem_delivery · unidade_obrigatoria · unidade_invalida · ja_pedido · limite_pedidos · muitos_pendentes · fila_cheia · mapa_desconhecido.
      */
-    deliveryPedir: (chave, { slug, unidade = null, data, ref = '', nota = '' }) => comChave(chave, () => {
+    deliveryPedir: (chave, { slug, unidade = null, data, ref = '', nota = '', via = 'casa' }) => comChave(chave, () => {
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(slug || ''))) return Promise.resolve(sem('qr_invalido'))
       if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data || ''))) return Promise.resolve(sem('data_invalida'))
-      return rpcOk('caca_delivery_pedir', {
+      return rpcOk(via === 'imagem' ? 'caca_delivery_pedir_imagem' : 'caca_delivery_pedir', {
         p_chave: chave, p_slug: slug, p_unidade: unidade ? String(unidade).slice(0, 64) : null, p_data: data,
         p_ref: String(ref || '').trim().slice(0, 40) || null, p_nota: String(nota || '').trim().slice(0, 200) || null,
       })

@@ -72,11 +72,11 @@ function PainelImagem ({ chave, pedido, api, aoEnviar }) {
 function Pedido ({ pedido, mapa, dados, chave, api, navigate, aberto, aoAtualizar }) {
   const estado = estadoDoDelivery(pedido, mapa)
   const casa = nomeDaCasa(dados, pedido.slug)
-  const [imagem, setImagem] = React.useState(!!aberto)
+  const [imagem, setImagem] = React.useState(!!aberto || estado === 'imagemPendente')
   const [msg, setMsg] = React.useState('')
   const [ocupado, setOcupado] = React.useState(false)
   const [erro, setErro] = React.useState('')
-  const podeImagem = estado === 'codigo' || estado === 'expirado'
+  const podeImagem = estado === 'codigo' || estado === 'expirado' || estado === 'imagemPendente'
   const validade = estado === 'codigo' ? validadeDoCodigo(pedido.expira_em) : ''
 
   async function copiar () {
@@ -151,13 +151,13 @@ function Formulario ({ chave, casas, inicial, api, aoCriar }) {
     if (!casa) { setErro(T.recusa.qr_invalido); return }
     if (varias && !unidade) { setErro(T.recusa.unidade_obrigatoria); return }
     setErro(''); setEnviando(via)
-    const r = await api.deliveryPedir(chave, { slug, unidade: varias ? unidade : casa.unidades[0]?.id, data, ref, nota })
+    const r = await api.deliveryPedir(chave, { slug, unidade: varias ? unidade : casa.unidades[0]?.id, data, ref, nota, via })
     setEnviando('')
     if (r.ok === true && r.id) { setRef(''); setNota(''); aoCriar(r.id, via) } else setErro(recusa(r.motivo))
   }
 
   return (
-    <form className="ct-form ct-dlv__form" onSubmit={(e) => { e.preventDefault(); enviar('casa') }} noValidate aria-labelledby="dlv-form-titulo">
+    <form className="ct-form ct-dlv__form" onSubmit={(e) => { e.preventDefault(); enviar('imagem') }} noValidate aria-labelledby="dlv-form-titulo">
       <p id="dlv-form-titulo" className="ct-sub">{T.formTitulo}</p>
       <label className="ct-campo"><span>{T.casa}</span>
         <select value={slug} onChange={(e) => { setSlug(e.target.value); setUnidade('') }} required>
@@ -189,12 +189,12 @@ function Formulario ({ chave, casas, inicial, api, aoCriar }) {
       <p className="ct-rotulo">{T.escolha}</p>
       <div className="ct-dlv__vias">
         <div className="ct-dlv__via">
-          <button type="submit" className="ct-botao" disabled={!!enviando}>{enviando === 'casa' ? T.enviando : T.viaCasa}</button>
-          <small className="ct-dlv__ajuda">{T.viaCasaAjuda}</small>
+          <button type="submit" className="ct-botao" disabled={!!enviando}>{enviando === 'imagem' ? T.enviando : T.viaImagem}</button>
+          <small className="ct-dlv__ajuda">{T.viaImagemAjuda}</small>
         </div>
         <div className="ct-dlv__via">
-          <button type="button" className="ct-botao ct-botao--contorno" onClick={() => enviar('imagem')} disabled={!!enviando}>{enviando === 'imagem' ? T.enviando : T.viaImagem}</button>
-          <small className="ct-dlv__ajuda">{T.viaImagemAjuda}</small>
+          <button type="button" className="ct-botao ct-botao--contorno" onClick={() => enviar('casa')} disabled={!!enviando}>{enviando === 'casa' ? T.enviando : T.viaCasa}</button>
+          <small className="ct-dlv__ajuda">{T.viaCasaAjuda}</small>
         </div>
       </div>
     </form>

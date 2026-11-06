@@ -1,5 +1,6 @@
 import React from 'react'
-import { api, seFaltar } from '../../lib/marcaApi'
+import { api, seFaltar, emVerComo } from '../../lib/marcaApi'
+import { formatarCodigoDelivery } from '../../lib/deliveryCasa'
 import { dataHoraExtensa } from '../../lib/central'
 import { normalizarCodigo, recadoDoVoucher, estadoDoBalcao } from '../../lib/vouchers'
 import { voucherPendente, limparVoucherPendente } from '../../lib/voucherPendente'
@@ -34,10 +35,27 @@ export function VouchersMarca({ className }) {
   const [lendo, setLendo] = React.useState(false)
   const [ajuda, setAjuda] = React.useState(false)
   const [delivery, setDelivery] = React.useState(false)
+  const [codigoDelivery, setCodigoDelivery] = React.useState('')
+  const [pendentesDelivery, setPendentesDelivery] = React.useState([])
+  const [erroDelivery, setErroDelivery] = React.useState(false)
   const campo = React.useRef(null)
   const cartao = React.useRef(null)
 
   const guarda = useGuarda()
+  const guardaDelivery = useGuarda()
+  const carregarDelivery = React.useCallback(async () => {
+    if (emVerComo()) return
+    const vale = guardaDelivery()
+    try {
+      const r = await api('rpc/caca_delivery_pendentes_marca', { metodo: 'POST', corpo: {} })
+      if (!r || r.ok !== true) throw new Error('leitura')
+      if (vale()) { setPendentesDelivery(r.pedidos || []); setErroDelivery(false) }
+    } catch (e) {
+      if (vale()) setErroDelivery(true)
+    }
+  }, [guardaDelivery])
+  React.useEffect(() => { carregarDelivery() }, [carregarDelivery])
+  useSincronizar(['carimbos'], carregarDelivery)
   const temDados = React.useRef(false)
 
   // Releitura silenciosa (sinal de vouchers): a que falha mantém o cartão que já estava na tela e rejeita
@@ -116,11 +134,26 @@ export function VouchersMarca({ className }) {
             <Icone nome="informacao" tamanho={24} />
             <span className="bal-acao__texto"><span>Ajudar o cliente a carimbar</span><small>Passo a passo se o QR ou o GPS falhar</small></span>
           </button>
-          <button type="button" className="bal-acao" onClick={() => setDelivery(true)}>
+          <button type="button" className="bal-acao" onClick={() => { setCodigoDelivery(''); setDelivery(true) }}>
             <Icone nome="carimbo-delivery" tamanho={24} />
             <span className="bal-acao__texto"><span>Confirmar carimbo de delivery</span><small>Cliente que recebeu em casa: digite o código que ele mandou</small></span>
           </button>
         </div>
+
+        {erroDelivery && <p className="ui-nota">Não foi possível carregar os pedidos de delivery. <button type="button" onClick={carregarDelivery}>Tentar novamente</button></p>}
+        {pendentesDelivery.length > 0 && (
+          <div className="bal-pendentes">
+            <h3>Pedidos de carimbo por delivery ({pendentesDelivery.length})</h3>
+            <p>Confira o pedido e compare o código com o enviado pelo cliente. Confirme apenas entregas realizadas.</p>
+            <ul className="ui-lista-simples">{pendentesDelivery.map((p) => (
+              <li key={p.id}>
+                <b>{p.apelido || 'Cliente'} · {formatarCodigoDelivery(p.codigo)}</b>
+                <span>{[p.unidade, p.pedido_data && p.pedido_data.split('-').reverse().join('/'), p.pedido_ref && 'Ref. ' + p.pedido_ref].filter(Boolean).join(' · ')}</span>
+                <button type="button" className="og-btn og-btn--mini" onClick={() => { setCodigoDelivery(p.codigo); setDelivery(true) }}>Conferir pedido</button>
+              </li>
+            ))}</ul>
+          </div>
+        )}
 
         {estado.tipo === 'sem-vouchers' && <p className="ui-nota" role="status">Sua marca não tem vouchers nesta edição, então não há o que registrar aqui.</p>}
         {estado.tipo === 'indisponivel' && <p className="ui-nota" role="status">Os vouchers ainda não estão ativos para a sua marca nesta edição.</p>}
@@ -150,7 +183,7 @@ export function VouchersMarca({ className }) {
         )}
       </div>
       <AjudaCarimbo aberto={ajuda} onFechar={() => setAjuda(false)} />
-      <CarimboDelivery aberto={delivery} onFechar={() => setDelivery(false)} />
+      <CarimboDelivery aberto={delivery} codigoInicial={codigoDelivery} onFechar={() => setDelivery(false)} />
     </Secao>
   )
 }

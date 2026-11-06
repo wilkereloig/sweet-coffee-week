@@ -22,6 +22,7 @@ export function estadoDoDelivery (pedido, mapa) {
     return casa?.estado === 'validada' ? 'aprovadoValido' : 'aprovadoAvaliar'
   }
   if (pedido?.via === 'imagem' || pedido?.tem_imagem) return 'analise'
+  if (pedido?.via_pretendida === 'imagem') return 'imagemPendente'
   return pedido?.expirado === true || !pedido?.codigo ? 'expirado' : 'codigo'
 }
 

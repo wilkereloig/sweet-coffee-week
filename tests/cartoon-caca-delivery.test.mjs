@@ -29,6 +29,7 @@ test('estados: código aguarda a casa; vencido pede novo; imagem fica em anális
   assert.equal(estadoDoDelivery({ estado: 'pendente', via: 'casa', expirado: true }, mapa), 'expirado')
   assert.equal(estadoDoDelivery({ estado: 'pendente', via: 'casa' }, mapa), 'expirado', 'sem código no retorno = não mostra como válido')
   assert.equal(estadoDoDelivery({ estado: 'pendente', via: 'imagem', tem_imagem: true }, mapa), 'analise')
+  assert.equal(estadoDoDelivery({ estado: 'pendente', via: 'casa', via_pretendida: 'imagem', codigo: 'ABC123' }, mapa), 'imagemPendente', 'retomar envio interrompido não pede código à casa')
   assert.equal(estadoDoDelivery({ slug: 'a', estado: 'aprovado' }, mapa), 'aprovadoAvaliar')
   assert.equal(estadoDoDelivery({ slug: 'b', estado: 'aprovado' }, mapa), 'aprovadoValido')
   assert.equal(estadoDoDelivery({ slug: 'a', estado: 'negado' }, mapa), 'negado')
@@ -101,6 +102,12 @@ function montar (respostas = {}, fetchResp = {}) {
   const buscar = async (url, opc) => { buscas.push([url, opc]); const f = fetchResp[url.includes('caca-delivery') ? 'edge' : 'put']; if (f instanceof Error) throw f; return f }
   return { chamadas, buscas, api: criarApi({ chamar, buscar, edicao: '2026.2', urlBase: 'https://x.supabase.co' }) }
 }
+test('via imagem usa a operação própria; a alternativa continua usando a operação da casa', async () => {
+  const { api, chamadas } = montar({ caca_delivery_pedir_imagem: { ok: true, id: ID }, caca_delivery_pedir: { ok: true, id: ID } })
+  await api.deliveryPedir(CHAVE, { slug: 'casa', data: '2026-11-05', via: 'imagem' })
+  await api.deliveryPedir(CHAVE, { slug: 'casa', data: '2026-11-05', via: 'casa' })
+  assert.deepEqual(chamadas.map((c) => c[0]), ['caca_delivery_pedir_imagem', 'caca_delivery_pedir'])
+})
 const resp = (corpo, ok = true) => ({ ok, json: async () => corpo })
 
 test('API: pedir manda só chave, casa, unidade, data, referência e nota; valida antes de sair', async () => {

@@ -19,6 +19,8 @@ import { AtividadeRecente } from './mesa/AtividadeRecente'
 import { useSincronizar, useGuarda } from '../../lib/sync/react'
 import { DOMINIOS_VISTAS } from '../../lib/syncFichas'
 import { ORIGEM_PUBLICA } from '../../lib/origem'
+import { useLeitura } from '../../lib/leituraVivaReact'
+import { cacaApi } from '../../lib/caca'
 import '../../styles/mesa-org.css'
 
 /*
@@ -129,6 +131,10 @@ export function Mesa({ abrirLink, navegar, pode }) {
   const etapa = colunas.find((c) => c.chave === etapaSel) || colunas.find((c) => c.itens.length) || colunas[0]
 
   const edCodigo = extra.edicao ? extra.edicao.codigo : undefined
+  const pedidosCarimbo = useLeitura(() => cacaApi.excecoes(edCodigo), ['carimbos'], { chave: 'mesa-carimbos-' + edCodigo, opcional: true, ativo: !!edCodigo && !!pode && pode('dado.ler') })
+  const deliveryImagem = Number(pedidosCarimbo.dados?.pendentes_delivery) || 0
+  const deliveryCasa = Number(pedidosCarimbo.dados?.aguardando_casa) || 0
+  const deliverySemImagem = Number(pedidosCarimbo.dados?.aguardando_imagem) || 0
   const hoje = chaveDia(new Date())
 
   // 1 · Ações da equipe. Sem `pode` (a vista foi montada sem permissões) ninguém age: nada que exija ação aparece.
@@ -169,7 +175,8 @@ export function Mesa({ abrirLink, navegar, pode }) {
             nota="Cada cartão abre a lista do que ele conta. Os mais urgentes vêm primeiro.">
             <div className="ui-pilha">
               {avisosDeLeitura.acoes && <Erro texto={avisosDeLeitura.acoes} onTentar={tentarDeNovo} />}
-              {nContagens === 0 && (
+              {pedidosCarimbo.erro && <Erro texto="Não foi possível conferir os pedidos de carimbo." onTentar={pedidosCarimbo.recarregar} />}
+              {nContagens === 0 && !deliveryImagem && !deliveryCasa && !deliverySemImagem && !(edCodigo && pode && pode('dado.ler') && !pedidosCarimbo.dados) && (
                 // "Nada precisa da equipe" só depois de LER tudo: antes das leituras (ou com alguma caída) não se sabe — dizer que está em dia seria mentira.
                 !extra.lidas ? <p className="ui-nota">Conferindo o que está pendente…</p>
                 : extra.falhas.length ? <p className="ui-nota">Não consegui ler tudo, então não dá para dizer que está em dia.</p>
@@ -177,6 +184,12 @@ export function Mesa({ abrirLink, navegar, pode }) {
                 : null // prazo vencendo: o cartão da agenda (o primeiro, abaixo) já diz o que fazer — "nada precisa" ao lado dele seria falso
               )}
               <GradeModulos>
+                {(deliveryImagem > 0 || deliveryCasa > 0 || deliverySemImagem > 0) && (
+                  <Modulo icone="pendencia" titulo="Pedidos de carimbo por delivery" rotuloIr="Abrir pedidos de carimbo"
+                    onClick={() => navegar({ vista: 'edicao', aba: 'carimbos', filtros: { sub: 'presenca' } })}>
+                    <span className="ms-acao__detalhe">{deliveryImagem} com imagem para analisar · {deliverySemImagem} aguardando imagem · {deliveryCasa} aguardando a casa.</span>
+                  </Modulo>
+                )}
                 {cartoes.map((c) => (c.tipo === 'agenda' ? (
                   <Modulo key="agenda" icone="calendario" titulo="Prazos e agenda" sub="Prazos da edição e sessões de fotos dos próximos dias"
                     status={agenda.urgente ? <Selo tom="atencao">{agenda.urgenteTexto}</Selo> : null}>

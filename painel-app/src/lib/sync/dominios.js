@@ -56,7 +56,7 @@ export function limparDominios(lista) {
 export const RPC_LEITURA = new Set([
   'admin_ping', 'buscar_marcas_acervo', 'editorial_combos', 'editorial_ficha', 'editorial_participantes',
   'equipe_diretorio', 'meu_perfil', 'minhas_permissoes',
-  'marca_carimbos_hoje', 'marca_meus_vouchers', 'marca_minha_historia', 'marca_minha_logo',
+  'marca_carimbos_hoje', 'marca_meus_vouchers', 'marca_minha_historia', 'marca_minha_logo', 'caca_delivery_pendentes_marca',
   'marca_minha_publicacao', 'marca_previa_publica',
   // org_preenchimento(s) leem (e, na primeira vez, criam o link: o banco avisa por
   // gatilho). Se avisassem daqui, a tela que as chama recarregaria para sempre.
