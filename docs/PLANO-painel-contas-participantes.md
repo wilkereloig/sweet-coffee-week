@@ -579,7 +579,7 @@ parado há mais de X dias.
    (HaveIBeenPwned) e sem backup automático — o `db dump` do item 3 passa a ser manual e
    obrigatório antes de cada migration, e o projeto precisa de uso regular para não pausar.
 3. Fazer um `db dump` e guardar fora do Supabase. ⚠️ **Parcial em 23/08/2026.**
-   `../backups-supabase/scw-2026-08-22-parcial/` tem as quatro tabelas da Fase 1,
+   `../sweet-coffee-week-dados/backups-supabase/scw-2026-08-22-parcial/` tem as quatro tabelas da Fase 1,
    `quero_participar`, as configurações e as contas do Auth — tudo que a Fase 1 criou.
    **Continuam sem cópia:** `votos` (2.702) e `feedback_geral` (1.582), 2,2 MB que só
    saem com a `service_role`, e o esquema (ver item 4). Fecha com

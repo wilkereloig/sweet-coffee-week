@@ -9,7 +9,7 @@
 // SUPABASE_URL tem padrão embutido; só se sobrescreve para apontar outro projeto.
 //
 // A chave NUNCA entra em arquivo do repositório: só variável de ambiente.
-// Saída padrão: ../backups-supabase/scw-<AAAA-MM-DD-HHMM>/ — fora do repositório.
+// Saída padrão: ../sweet-coffee-week-dados/backups-supabase/scw-<AAAA-MM-DD-HHMM>/ — fora do repositório.
 
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -24,7 +24,7 @@ if (!CHAVE) {
 }
 
 const carimbo = new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '')
-const destino = resolve(process.argv[2] ?? `../backups-supabase/scw-${carimbo}`)
+const destino = resolve(process.argv[2] ?? `../sweet-coffee-week-dados/backups-supabase/scw-${carimbo}`)
 const cabecalho = { apikey: CHAVE, Authorization: `Bearer ${CHAVE}` }
 const PAGINA = 1000
 

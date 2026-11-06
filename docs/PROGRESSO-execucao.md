@@ -6,7 +6,7 @@ Início: 25/08/2026. Atualizado a cada fase concluída.
 
 ## Fase 1 · Backup — ✅ FEITO em 25/08 (depois de duas falhas)
 
-✅ **Backup íntegro em `../backups-supabase/scw-2026-08-25-0323/`** — 18 tabelas,
+✅ **Backup íntegro em `../sweet-coffee-week-dados/backups-supabase/scw-2026-08-25-0323/`** — 18 tabelas,
 4.289 linhas, todos os JSON válidos, contagens do disco batendo com o manifesto.
 `votos` 2.702 e `feedback_geral` 1.582, que faltavam no parcial de 22/08.
 
@@ -50,7 +50,7 @@ nasceu.
 
 ✅ **`.gitignore` fechado para dump.** O item 1 manda conferir antes de gerar, e
 não havia regra nenhuma. `scripts/backup-supabase.mjs` grava em
-`../backups-supabase/` (fora do repositório) por padrão, mas aceita caminho por
+`../sweet-coffee-week-dados/backups-supabase/` (fora do repositório) por padrão, mas aceita caminho por
 argumento — um caminho passado à mão cairia dentro do repositório e um dump com
 nome, e-mail e telefone de gente real entraria no git. Regras acrescentadas:
 `backups-supabase/`, `*.dump`, `*.sql.gz`, `db-dump*.sql`, `dump-*.json`.

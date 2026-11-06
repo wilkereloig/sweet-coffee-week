@@ -12,7 +12,7 @@ Regras:
 - linha totalmente vazia é descartada; a posição (número da linha) é preservada.
 
 ⚠️ O JSON contém dado pessoal (telefone, e-mail, CNPJ, endereço): gravar FORA do
-repositório (que é público) — ex.: ELOI SITES/scw-dados-importacao/.
+repositório (que é público) — ex.: eloi-workspace/clientes/sweet-coffee-week-dados/dados-importacao/.
 """
 import datetime
 import hashlib

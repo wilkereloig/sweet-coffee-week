@@ -16,11 +16,11 @@ entregou, o que ficou pendente e por quê. Complementa
 | Distância | `dev` 13 commits à frente de `master` no início; `master` sem nada que `dev` não tenha |
 | Banco | Supabase `dgfmoibynftadsyjcclg` — **o mesmo para produção e desenvolvimento** |
 | Ponto de rollback do código | tag `base-2026-09-28-pre-evolucao` (= `d5824b8`) |
-| Backup de dados | `ELOI SITES/scw-backups/backup-dados-public-2026-09-28.json` (todas as tabelas `public`, contagens conferidas; sha256 `9d2d96a5…`) |
-| Retrato do esquema | `ELOI SITES/scw-backups/esquema-public-2026-09-28.json` + `esquema-funcoes-2026-09-28.sql` (83 funções, 26 gatilhos, 24 políticas, grants) |
-| Planilha original | Google Drive "SCW 2026.2 - NOVEMBRO- Informações GERAIS" (dono: F2); cópia intacta em `ELOI SITES/scw-dados-importacao/` (sha256 `cd719de8…`) |
+| Backup de dados | `eloi-workspace/clientes/sweet-coffee-week-dados/backups/backup-dados-public-2026-09-28.json` (todas as tabelas `public`, contagens conferidas; sha256 `9d2d96a5…`) |
+| Retrato do esquema | `eloi-workspace/clientes/sweet-coffee-week-dados/backups/esquema-public-2026-09-28.json` + `esquema-funcoes-2026-09-28.sql` (83 funções, 26 gatilhos, 24 políticas, grants) |
+| Planilha original | Google Drive "SCW 2026.2 - NOVEMBRO- Informações GERAIS" (dono: F2); cópia intacta em `eloi-workspace/clientes/sweet-coffee-week-dados/dados-importacao/` (sha256 `cd719de8…`) |
 
-⚠️ **Os backups e a planilha ficam FORA do repositório de propósito: o repositório é público** (`wilkereloig/sweet-coffee-week`) e os arquivos têm dado pessoal (telefone, e-mail, CNPJ, endereço de influenciador). A pasta `ELOI SITES/` não é versionada.
+⚠️ **Os backups e a planilha ficam FORA do repositório de propósito: o repositório é público** (`wilkereloig/sweet-coffee-week`) e os arquivos têm dado pessoal (telefone, e-mail, CNPJ, endereço de influenciador). A pasta `eloi-workspace/` não é versionada.
 
 Estado do banco no início: 0 marcas, 0 participações, 3 candidaturas, 1 conta nominal da organização, 2.702 votos e 1.582 feedbacks históricos (intocados).
 
@@ -183,7 +183,7 @@ PWA e push da revisão de 28/09. Novo: `pg_cron` com `lembrar_vendas` (de hora e
 - Código: `git checkout base-2026-09-28-pre-evolucao` (ou reverter os commits de 29/09).
 - Importação: `select public.importacao_reverter_interna('b66a8b1e-144b-4152-9b05-c3bd7bc048c5')` — recusa se alguma marca do lote já tiver conta.
 - Esquema: tudo aditivo; remover = `drop` das tabelas novas (lista na Fase 1) e das colunas novas. Lembretes: `select cron.unschedule('scw-lembrar-vendas'); select cron.unschedule('scw-lembrar-prazos');`.
-- Dados anteriores: `scw-backups/backup-dados-public-2026-09-28.json`.
+- Dados anteriores: `sweet-coffee-week-dados/backups/backup-dados-public-2026-09-28.json`.
 
 ## LGPD — mapa de dados (fatos, não política jurídica)
 
@@ -206,4 +206,4 @@ Correção: pelo painel (campo a campo, com histórico). Exclusão/anonimizaçã
 4. **Chave de serviço / VAPID**: trocar no painel do Supabase (VAPID: as duas metades juntas, ver memória `chaves-vapid-scw`).
 5. **Consultar o que houve**: Equipe → Histórico (filtros por pessoa, ação, período, marca) ou `get_atividade`.
 6. **Parar automações**: `cron.unschedule` dos dois lembretes; desligar o gatilho `disparar_push` se o push for o problema.
-7. **Restaurar**: plano free não tem backup automático — usar o JSON de `scw-backups` e reverter lotes de importação pela função própria.
+7. **Restaurar**: plano free não tem backup automático — usar o JSON de `sweet-coffee-week-dados/backups` e reverter lotes de importação pela função própria.

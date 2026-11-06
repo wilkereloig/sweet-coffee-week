@@ -2,7 +2,7 @@
 
 **Data da compactação:** 20/08/2026
 **Chat original:** ~45 trocas, duas fases (integração do formulário estático → painel interno + publicação)
-**Repositório:** `ELOI SITES/site-sweet-coffee-week-home-v2` · branch `dev/site-completo`
+**Repositório:** `eloi-workspace/clientes/sweet-coffee-week` · branch `dev/site-completo`
 
 ---
 
