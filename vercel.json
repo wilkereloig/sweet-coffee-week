@@ -71,6 +71,13 @@
       ]
     },
     {
+      "source": "/versao.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    },
+    {
       "source": "/painel/versao.json",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0" },

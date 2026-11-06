@@ -10,6 +10,7 @@ import { SUPABASE_URL } from '../../lib/supabaseConfig.js'
 import { chamar as chamarRpc, chaveValida } from '../rota/carimbo.js'
 import { EDICAO } from '../config.js'
 import { tokenValido, grupoIdValido } from './regras.js'
+import { comEnvio } from './pwa/pendencias.js'
 
 const MOTIVO = /^[a-z][a-z0-9_]{1,59}$/
 const FINALIDADES = ['confirmar', 'recuperar']
@@ -27,7 +28,7 @@ function comOk (r) {
   return { ...(obj ? r : {}), ok: false, motivo: typeof r?.motivo === 'string' && MOTIVO.test(r.motivo) ? r.motivo : 'resposta_invalida' }
 }
 
-export function criarApi ({ chamar = chamarRpc, buscar = (...a) => globalThis.fetch(...a), edicao = EDICAO.codigo, urlBase = SUPABASE_URL } = {}) {
+export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() => globalThis.fetch(...a)), edicao = EDICAO.codigo, urlBase = SUPABASE_URL } = {}) {
   /** RPC cujo retorno já é `{ ok, ... }`. */
   async function rpcOk (nome, corpo) {
     try { return comOk(await chamar(nome, corpo)) } catch (e) { return sem(motivoDoErro(e)) }

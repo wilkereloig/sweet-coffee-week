@@ -5,6 +5,7 @@
 import React from 'react'
 import { trocarHead, registrarSw } from './manifesto.js'
 import { escutarInstalacao } from './instalacao.js'
+import { AtualizacaoDaCaca } from './AtualizacaoDaCaca.jsx'
 
 export function ManifestoDaCaca () {
   React.useEffect(() => {
@@ -13,5 +14,6 @@ export function ManifestoDaCaca () {
     registrarSw()
     return () => { restaurar(); desligar() }
   }, [])
-  return null
+  // Atualização do app instalado: confere a versão publicada e troca num momento seguro (só mostra algo quando a pessoa precisa saber).
+  return <AtualizacaoDaCaca />
 }

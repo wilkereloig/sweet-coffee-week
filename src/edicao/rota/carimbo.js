@@ -7,6 +7,7 @@
  * se lê, se mostra e se explica a recusa. Funções puras testadas em tests/cartoon-carimbo.test.mjs.
  */
 import { SUPABASE_URL, SUPABASE_KEY } from '../../lib/supabaseConfig.js'
+import { comEnvio } from '../caca/pwa/pendencias.js'
 
 export const chaveMapa = (codigo) => `scw:edicao:${codigo}:mapa`
 const FORMATO_CHAVE = /^[A-Za-z0-9_-]{32}$/
@@ -116,26 +117,30 @@ export function estadoAlbum (participantes = [], mapa = null) {
 }
 
 /** Chamada anônima ao banco. Erro do PostgREST (exceção da função) vira `Error(<mensagem>)`, ex.: 'email_invalido'. */
-export async function chamar (funcao, corpo, { buscar = globalThis.fetch } = {}) {
-  const r = await buscar(`${SUPABASE_URL}/rest/v1/rpc/${funcao}`, {
-    method: 'POST',
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(corpo),
+export function chamar (funcao, corpo, { buscar = globalThis.fetch } = {}) {
+  // `comEnvio`: enquanto a chamada não volta, o app da Caça não troca de versão (carimbo, avaliação e criação do mapa não se perdem).
+  return comEnvio(async () => {
+    const r = await buscar(`${SUPABASE_URL}/rest/v1/rpc/${funcao}`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(corpo),
+    })
+    const dados = await r.json().catch(() => null)
+    if (!r.ok) throw new Error(dados?.message || `rpc_${r.status}`)
+    return dados
   })
-  const dados = await r.json().catch(() => null)
-  if (!r.ok) throw new Error(dados?.message || `rpc_${r.status}`)
-  return dados
 }
 
 /** Posição do celular: { lat, lng, precisao } ou o motivo ('negada' · 'indisponivel' · 'demorou'). */
 export function pedirPosicao ({ geo = globalThis.navigator?.geolocation, espera = 15000 } = {}) {
-  return new Promise((resolve) => {
+  // O pedido de localização faz parte de um carimbo em andamento: o app não troca de versão enquanto ele não termina.
+  return comEnvio(() => new Promise((resolve) => {
     if (!geo) return resolve({ erro: 'indisponivel' })
     geo.getCurrentPosition(
       (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, precisao: p.coords.accuracy }),
       (e) => resolve({ erro: e?.code === 1 ? 'negada' : e?.code === 3 ? 'demorou' : 'indisponivel' }),
       { enableHighAccuracy: true, timeout: espera, maximumAge: 0 })
-  })
+  }))
 }
 
 /**

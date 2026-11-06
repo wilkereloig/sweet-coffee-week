@@ -126,17 +126,7 @@ function versaoDoPainel() {
       const html = fs.readFileSync(arqHtml, 'utf8')
       const entrada = Object.values(bundle).find((c) => c.type === 'chunk' && c.isEntry && /painel-app[\\/]index\.html$/.test(c.facadeModuleId || ''))
       if (!entrada) throw new Error('versao-do-painel: não achei a entrada do painel no bundle')
-      const usados = new Set()
-      const pilha = [entrada.fileName]
-      while (pilha.length) {
-        const f = pilha.pop()
-        if (usados.has(f)) continue
-        usados.add(f)
-        const c = bundle[f]
-        if (!c || c.type !== 'chunk') continue
-        const meta = c.viteMetadata || { importedCss: new Set(), importedAssets: new Set() }
-        pilha.push(...c.imports, ...c.dynamicImports, ...meta.importedCss, ...meta.importedAssets)
-      }
+      const usados = arquivosDoGrafo(bundle, entrada.fileName)
       const h = crypto.createHash('sha256').update(html)
       for (const f of [...usados].sort()) h.update('\n' + f)
       for (const f of ['painel/sw.js', 'painel/app.webmanifest']) {
@@ -163,6 +153,58 @@ function versaoDoPainel() {
 }
 
 /*
+ * Identidade da publicação do SITE (06/11/2026, app instalado da Caça aos Carimbos). Mesma ideia do painel: id = sha256 do HTML
+ * final de `index.html` + os arquivos que a entrada carrega (chunks, inclusive os sob demanda, e CSS) + o service worker e os manifestos
+ * da Caça. Grava `versao.json` na raiz (o que o site publicado consulta) e a MESMA id numa <meta name="scw-versao"> do HTML (o que a aba
+ * aberta é). O app da Caça compara as duas ao abrir e ao voltar do segundo plano (src/edicao/caca/pwa/atualizacao.js). Sem commit,
+ * e-mail, chave ou dado de pessoa no arquivo: só id, ambiente, data e os 7 primeiros caracteres do commit.
+ */
+function versaoDoSite() {
+  return {
+    name: 'versao-do-site',
+    apply: 'build',
+    writeBundle(opts, bundle) {
+      const out = opts.dir
+      const arqHtml = path.join(out, 'index.html')
+      if (!fs.existsSync(arqHtml)) return
+      const html = fs.readFileSync(arqHtml, 'utf8')
+      const entrada = Object.values(bundle).find((c) => c.type === 'chunk' && c.isEntry && c.name === 'main')
+      if (!entrada) throw new Error('versao-do-site: não achei a entrada do site no bundle')
+      const h = crypto.createHash('sha256').update(html)
+      for (const f of [...arquivosDoGrafo(bundle, entrada.fileName)].sort()) h.update('\n' + f)
+      for (const f of ['caca-sw.js', 'caca/manifest.webmanifest', 'manifest.webmanifest']) {
+        const p = path.join(out, f)
+        if (fs.existsSync(p)) h.update(fs.readFileSync(p))
+      }
+      const id = h.digest('hex').slice(0, 16)
+      const ambiente = process.env.VERCEL_ENV || 'local'
+      const versao = {
+        app: 'site-scw', id, publicado_em: new Date().toISOString(), ambiente,
+        commit: (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || null,
+      }
+      fs.writeFileSync(path.join(out, 'versao.json'), JSON.stringify(versao) + '\n')
+      fs.writeFileSync(arqHtml, html.replace('</head>', '  <meta name="scw-versao" content="' + id + '" data-ambiente="' + ambiente + '" />\n  </head>'))
+    },
+  }
+}
+
+/** Todos os arquivos que uma entrada do bundle carrega: ela, o que importa (estático e sob demanda), CSS e assets. */
+function arquivosDoGrafo(bundle, arquivoDaEntrada) {
+  const usados = new Set()
+  const pilha = [arquivoDaEntrada]
+  while (pilha.length) {
+    const f = pilha.pop()
+    if (usados.has(f)) continue
+    usados.add(f)
+    const c = bundle[f]
+    if (!c || c.type !== 'chunk') continue
+    const meta = c.viteMetadata || { importedCss: new Set(), importedAssets: new Set() }
+    pilha.push(...c.imports, ...c.dynamicImports, ...meta.importedCss, ...meta.importedAssets)
+  }
+  return usados
+}
+
+/*
  * O retrato local da Cartoon (E3, docs/cartoon-2026-2/10 §10.9) deixa imagens em public/retrato-local/,
  * fora do git (repositório público). O Vite copia public/ inteiro para o build; esta etapa tira a
  * pasta do resultado, para o dado local nunca viajar numa publicação feita a partir desta máquina.
@@ -178,7 +220,7 @@ function semRetratoLocal() {
 }
 
 export default defineConfig({
-  plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev(), versaoDoPainel(), semRetratoLocal()],
+  plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev(), versaoDoPainel(), versaoDoSite(), semRetratoLocal()],
   build: {
     rollupOptions: {
       input: {

@@ -118,14 +118,9 @@ export function criarMonitor({ atual, ambiente = null, ler = () => lerVersaoPubl
 
 /* ── Atualizar agora ──────────────────────────────────────────────────────── */
 
-const ENTRADAS = /<(?:script|link)\b[^>]*\b(?:src|href)="(\/assets\/[^"]+\.(?:js|css))"/g
-/** Os arquivos que o HTML novo carrega na abertura (entrada, CSS, pré-carregados). */
-export function recursosDoHtml(html) {
-  const s = new Set()
-  for (const m of String(html || '').matchAll(ENTRADAS)) s.add(m[1])
-  return [...s]
-}
-export const idDoHtml = (html) => ((/<meta name="scw-versao" content="([0-9a-f]{12,64})"/.exec(String(html || '')) || [])[1] || null)
+// Leitura do HTML publicado: regra única do site e do painel (src/lib/versaoBuild.js).
+import { recursosDoHtml, idDoHtml } from '../../../src/lib/versaoBuild.js'
+export { recursosDoHtml, idDoHtml }
 
 const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms))
 function comPrazo(p, ms, erro) { return Promise.race([p, esperar(ms).then(() => { throw new Error(erro) })]) }

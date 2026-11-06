@@ -118,6 +118,13 @@ export const CACA = {
   },
   rodape: { regulamento: 'Regulamento' },
 
+  // Atualização do app instalado (pwa/atualizacao.js). Só três situações pedem aviso: nunca se diz "atualizado" sem a versão nova ter chegado.
+  atualizacao: {
+    aguardando: 'Há uma versão nova da Caça. Termine o que está fazendo: eu atualizo em seguida, e o seu mapa e os seus carimbos continuam aqui.',
+    offline: 'Sem conexão. Quando a internet voltar, a Caça confere se há uma versão mais nova.',
+    falhou: 'Não consegui carregar a versão nova agora. Feche o app e abra de novo com internet; o seu mapa e os seus carimbos continuam aqui.',
+  },
+
   criar: {
     titulo: 'Comece seu mapa',
     nota: 'Sem senha e sem cadastro longo. Crie antes de visitar as casas: leva meio minuto.',
