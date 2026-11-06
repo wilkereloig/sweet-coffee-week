@@ -4,6 +4,7 @@ import {
 } from '../lib/versao'
 import { pendencias, ouvirPendencias, liberarSaida } from '../lib/pendencias'
 import { confirmar } from './Confirmar'
+import { lerRegistro, limparRegistro } from '../lib/vigia'
 
 /*
  * Faixa de estado do app: sem conexão, e atualização disponível (18/10/2026).
@@ -273,6 +274,26 @@ export function VerificarAtualizacao() {
           </div>
         )}
       {texto && <p className="ui-nota" role="status">{texto}</p>}
+      <RegistroDoVigia />
+    </div>
+  )
+}
+
+/** Travamentos que o vigia (lib/vigia.js) anotou neste aparelho; "Copiar registro" para mandar à equipe técnica. */
+function RegistroDoVigia() {
+  const [linhas, setLinhas] = React.useState(() => lerRegistro())
+  const [copiado, setCopiado] = React.useState(false)
+  if (!linhas.length) return null
+  const texto = linhas.map((l) => JSON.stringify(l)).join('\n')
+  return (
+    <div className="ui-verificar-versao">
+      <p className="ui-nota">Este aparelho anotou {linhas.length} {linhas.length === 1 ? 'travamento' : 'travamentos'}. Se o painel travar de novo, copie o registro e envie.</p>
+      <div className="ui-linha-acoes">
+        <button type="button" className="og-btn og-btn--vazado og-btn--mini"
+          onClick={() => { (navigator.clipboard ? navigator.clipboard.writeText(texto) : Promise.reject()).then(() => setCopiado(true)).catch(() => setCopiado(false)) }}>Copiar registro</button>
+        <button type="button" className="og-btn og-btn--vazado og-btn--mini" onClick={() => { limparRegistro(); setLinhas([]) }}>Limpar</button>
+      </div>
+      {copiado && <p className="ui-nota" role="status">Registro copiado.</p>}
     </div>
   )
 }
