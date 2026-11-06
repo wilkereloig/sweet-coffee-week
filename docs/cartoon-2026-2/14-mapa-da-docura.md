@@ -404,6 +404,14 @@ Mesmo conteúdo, mesmos dados e estados, outra organização (`paginas/mapa/*`, 
   **Decisão:** fora da tela cheia o botão NÃO aparece — a página já tem barra, faixa de progresso, "Minha rota" e abas, e um
   segundo menu competiria com o botão "Tela cheia" do mesmo canto; na tela cheia o painel lateral sai da árvore, para não
   repetir ids atrás do véu.
+  **Atalhos fixos (06/11/2026; `atalhosFixos.js`):** três dos seis (a lista tem **Progresso · Casas · Rota · Prêmios · Ranking ·
+  Grupos**) ficam sempre à mão em botões compactos logo abaixo do "Atalhos" (esquerda, longe do zoom e da localização; 48 px,
+  rótulo à vista a partir de 480 px, abaixo só o ícone com `aria-label`). Padrão **Progresso · Prêmios · Ranking**. No menu,
+  "Escolher atalhos fixos" abre três marcações de seis (com três, as outras travam; só vale com três; "Pronto" fecha) e a
+  escolha fica só no aparelho (`localStorage` `scw_atalhos_fixos`; bloqueado, vazio ou inválido → o padrão). O botão fixo e o item
+  da lista chamam o MESMO `abrir(chave)`; o foco volta ao botão que abriu. Ícones novos no traço da edição
+  (`scripts/edicao/icones-atalhos.py`): **trofeu** (recorte do troféu desenhado) para Prêmios e **podio** para Ranking.
+  Testes: `cartoon-mapa-atalhos-fixos.test.mjs` e `cartoon-mapa-atalhos-navegador.mjs`.
 - **Legenda recolhível** ("Como ler os pins"); mapa real com pins que encolhem de longe (a caixa de toque segue de 44 px).
 - **Testes:** `tests/cartoon-caca-mapa.test.mjs` (contagens, textos, contrato da tela cheia) e as seções 5 e 12 de
   `tests/cartoon-caca-navegador.mjs` (folhas, tela cheia repetida em 360/390/768/1440/844×390, mapa real em tela cheia).

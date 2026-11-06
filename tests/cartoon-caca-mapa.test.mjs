@@ -396,7 +396,7 @@ test('atalhos do jogo: seis itens na ordem pedida, cada um com ícone ilustrado 
 test('atalhos: uma folha por vez (variante "jogo"), lista recolhe ao abrir, Escape em pilha e foco devolvido ao botão', () => {
   const at = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Atalhos.jsx', import.meta.url), 'utf8')
   assert.match(at, /const \[aberta, setAberta\] = React\.useState\(null\)/, 'uma folha por vez')
-  assert.match(at, /const abrir = \(chave\) => \{ setLista\(false\); setAberta\(chave\) \}/, 'abrir a folha recolhe a lista')
+  assert.match(at, /const abrir = \(chave, de = null\) => \{ origem\.current = de; setLista\(false\); setEscolhendo\(null\); setAberta\(chave\) \}/, 'abrir a folha recolhe a lista')
   assert.match(at, /useEscape\(lista, fecharLista\)/, 'a lista entra na pilha de Escape')
   assert.match(at, /<Folha variante="jogo"/)
   assert.match(at, /aria-label=\{TC\.atalhosNome\(resumo\)\}/, 'o botão tem nome')

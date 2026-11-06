@@ -494,7 +494,9 @@ const ELEMENTOS_EDICAO = '/images/marcas-edicoes/2026.2/elementos'
 /* Lista fechada, na ordem da folha de ícones (6 colunas × 4 linhas). */
 const ICONES_EDICAO = new Set(('inicio casas mapa rota avaliar premio no-local para-viagem delivery vegano sem-gluten '
   + 'sem-lactose sem-acucar endereco horario aberto-agora conversar como-chegar quero-ir ja-fui progresso '
-  + 'compartilhar vazio erro').split(' '))
+  + 'compartilhar vazio erro '
+  // 06/11/2026, atalhos do mapa: troféu (recorte do troféu desenhado) e pódio — scripts/edicao/icones-atalhos.py
+  + 'trofeu podio').split(' '))
 
 /** Ícone ilustrado da edição (192×192, exibir a 32, 48 ou 64 px), ou `null`. Nunca carrega função sozinho: leva texto ao lado. */
 export function iconeEdicao(nome) {

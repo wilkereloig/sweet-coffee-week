@@ -124,7 +124,7 @@ test('migration pública: só config e estado do dia, nada de pessoa; grant só 
 })
 
 test('o atalho Prêmios existe nos atalhos e no painel do mapa normal, com texto', () => {
-  assert.match(ler('src/edicao/cartoon/paginas/mapa/Atalhos.jsx'), /\['premios', 'premio'\]/)
+  assert.match(ler('src/edicao/cartoon/paginas/mapa/Atalhos.jsx'), /\['premios', 'trofeu'\]/)
   const idx = ler('src/edicao/cartoon/paginas/mapa/index.jsx')
   assert.match(idx, /PAINEIS = \['rota', 'album', 'premios'\]/)
   assert.match(idx, /case 'premios': return premiosEl/)
