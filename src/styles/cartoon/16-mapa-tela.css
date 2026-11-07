@@ -505,6 +505,15 @@
 /* Estado vazio dentro do painel (lista sem paradas, sem visitadas): sem o respiro de página inteira. */
 .ct-rota__secao .ct-estado { padding-block: 4px 8px; }
 .ct-painel-rota { display: grid; gap: 22px; } /* respiro entre "Quero ir", "Já fui" e "Rota do grupo": cada seção é um bloco à parte */
+.ct-mapa__avisos-desktop { display: none; }
+@media (min-width: 900px) {
+  .ct-mapa__avisos-desktop { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-bottom: 10px; font: 800 14px/1.2 var(--ct-font); }
+  .ct-mapa__avisos-desktop .ct-botao { min-height: 44px; }
+}
+.ct-painel-rota .ct-rota__secao { display: grid; gap: 12px; padding: 18px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-painel-rota .ct-rota__secao .ct-letreiro { margin: 0; }
+.ct-painel-rota .ct-estado--vazio { gap: 10px; padding: 0; }
+.ct-painel-rota .ct-estado--vazio p, .ct-painel-rota .ct-ni, .ct-painel-rota .ct-nota { margin: 0; }
 /* Ajuda recolhida: a diferença fica a um toque, sem ocupar a coluna o tempo todo. */
 .ct-rota__ajuda { padding: 0 2px; border-bottom: 2px dashed color-mix(in srgb, var(--ct-chocolate) 35%, transparent); }
 .ct-rota__ajuda[open] { padding-bottom: 8px; }

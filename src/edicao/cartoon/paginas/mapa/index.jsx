@@ -32,6 +32,7 @@ import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao, lerUnidadeCarimbo } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
+import { SinoDeAvisos } from '../../../caca/notificacoes/SinoDeAvisos.jsx'
 import { CartaoEmail } from '../../../caca/CartaoEmail.jsx'
 import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
 import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
@@ -428,13 +429,16 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   return (
     <>
       {avisos}
-      {topo(T.lead)}
+      <h1 id="mapa-titulo" className="ct-sr">{T.titulo}</h1>
       <AssinaturaPatrocinio />
       <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
             {...(cheia ? { role: 'dialog', 'aria-modal': true, 'aria-label': TC.telaCheiaRegiao } : {})}>
+            <div className="ct-mapa__avisos-desktop">
+              {meu.mapa ? <><span>Seus avisos</span><SinoDeAvisos caca={meu} dados={dados} navigate={navigate} /></> : <Botao tipo="secundario" href={`${EDICAO.caminho}/caca`} navigate={navigate}>Criar mapa para receber avisos</Botao>}
+            </div>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} botaoPerto={cheia ? null : botaoPerto} />
 
