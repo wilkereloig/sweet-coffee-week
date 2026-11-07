@@ -58,8 +58,8 @@ begin
 
   v_titulo := case when new.tipo = 'voucher_dia' then 'Você ganhou um voucher!' else 'Seu prêmio foi confirmado!' end;
   v_corpo := case when new.tipo = 'voucher_dia'
-    then 'A organização confirmou seu voucher do dia ' || to_char(new.dia, 'DD/MM') || '. Veja os detalhes e acompanhe as orientações em Prêmios.'
-    else 'A organização confirmou seu prêmio final. Veja os detalhes e acompanhe as orientações em Prêmios.' end;
+    then 'Seu voucher do dia ' || to_char(new.dia, 'DD/MM') || ' está confirmado. Veja os detalhes e acompanhe as orientações em Prêmios.'
+    else 'Seu prêmio final está confirmado. Veja os detalhes e acompanhe as orientações em Prêmios.' end;
 
   insert into public.caca_aviso (edicao_codigo, categoria, titulo, corpo, destino, publico, estado, origem, chave_dedupe,
                                  criado_por, enviado_em, enviado_por, alvos)

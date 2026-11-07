@@ -103,7 +103,7 @@ function MeusVouchers ({ caca, navigate }) {
               <Botao href={TC.caminhos.central} navigate={navigate}>Ir para confirmar meu e-mail</Botao>
             </>
           )}
-          {premio.estado === 'confirmado' && <p>A organização confirmou seu prêmio. Acompanhe os avisos do mapa para saber como receber o voucher.</p>}
+          {premio.estado === 'confirmado' && <p>Seu prêmio está confirmado. Acompanhe os avisos do mapa para saber como receber o voucher.</p>}
           {premio.estado === 'entregue' && <p>A organização marcou este voucher como entregue.</p>}
           {premio.validade && <p className="ct-nota">Válido até {premio.validade.longa}.</p>}
         </article>
