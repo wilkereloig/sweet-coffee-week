@@ -178,10 +178,10 @@ begin
                 join public.participantes marca on marca.id = pa.participante_id
                where cp.edicao_codigo = p.edicao_codigo and cp.estado = 'disponivel')
         else '[]'::jsonb end
-    )) order by p.criado_em desc), '[]'::jsonb)
+    )) order by p.criado_em desc)
       from public.caca_premio p
      where p.edicao_codigo = m.edicao_codigo and p.mapa_id = m.id
-       and p.estado in ('selecionado', 'confirmado', 'entregue')));
+       and p.estado in ('selecionado', 'confirmado', 'entregue')), '[]'::jsonb));
 end $$;
 revoke all on function public.caca_meus_premios(text) from public, anon, authenticated;
 grant execute on function public.caca_meus_premios(text) to anon, authenticated;
