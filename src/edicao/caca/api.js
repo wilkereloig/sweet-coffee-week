@@ -246,6 +246,11 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       return r.ok && Array.isArray(r.dado?.premios) ? { ok: true, premios: r.dado.premios } : r.ok ? sem('resposta_invalida') : r
     }),
 
+    /** Atribui ao prêmio um dos vouchers digitais ainda disponíveis no conjunto reservado pela organização. */
+    meusPremiosEscolherVoucher: (chave, premio, opcao) => comChave(chave, () => rpcOk('caca_meus_premios_escolher_voucher', {
+      p_chave: chave, p_premio: premio, p_opcao: opcao,
+    })),
+
     /** `caca_premios_publico` (migration 20261223): `{ ok:true, premios:{ periodo{inicio,fim,estado: antes|aberta|encerrada}, dias[{dia,corte,estado}], corte_hora_local, voucher_validade_ate, ganhadores_final } }`. Público, sem chave; nunca traz nome nem posição de ninguém. */
     premiosLer: async () => {
       const r = await rpcDado('caca_premios_publico', { p_edicao: edicao })

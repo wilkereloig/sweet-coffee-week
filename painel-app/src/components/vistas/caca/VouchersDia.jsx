@@ -1,6 +1,7 @@
 import React from 'react'
 import { Botao, Carregando, Erro, Secao, Selo, Vazio } from '../../ui'
 import { confirmar } from '../../Confirmar'
+import { useLeitura } from '../../../lib/leituraVivaReact'
 import {
   cacaApi, contarPorEstado, ORDEM_ESTADOS, rotuloEstado, situacaoDoDia, lerRegras, diaBr, horaNatal, textoLiberaEm, marcarEmpates, filaDeSubstituicao,
   acoesPossiveis, ACOES,
@@ -21,6 +22,7 @@ export function VouchersDia({ edicao, pode, dados }) {
   const contato = pode('relatorio.ler')
   const [ocupado, executar] = useExecutar()
   const [aviso, setAviso] = React.useState('')
+  const pool = useLeitura(() => cacaApi.voucherPool(edicao), ['carimbos'], { chave: 'caca-voucher-pool-' + edicao })
   const acoes = useAcoesDePremio({ premios: p.dados?.premios || [], apuracoes: p.dados?.apuracoes || [], config: c.dados, recarregar: p.recarregar })
 
   if (p.bloqueada) return <Erro texto={p.erro} onTentar={p.recarregar} />
@@ -45,11 +47,35 @@ export function VouchersDia({ edicao, pode, dados }) {
         : `Dia ${diaBr(dia)} apurado. Selecionado: ${r.premio?.apelido}.`)
   }
 
+  async function prepararPool() {
+    const ok = await confirmar('Reservar 1 voucher digital de cada casa combinada: Vivianne Castro Doces, Sabor de Pão, O Maestro Café, Mr. Cupcake Confeitaria e Padoca do Bosque. A pessoa sorteada escolherá 1 opção; cada QR só poderá ser atribuído uma vez.', { titulo: 'Preparar os cinco vouchers?', acao: 'Reservar' })
+    if (!ok) return
+    const r = await executar('voucher-pool', () => cacaApi.prepararVoucherPool(edicao))
+    if (!r) return
+    await pool.recarregar()
+    setAviso('Os cinco vouchers digitais estão reservados para as próximas pessoas sorteadas.')
+  }
+
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
       <AvisoOk texto={acoes.aviso} onFechar={acoes.limparAviso} />
       <AvisoSemGps edicao={edicao} />
+      <Secao titulo="Opções de voucher para os ganhadores" nota="Cada pessoa sorteada escolhe um combo entre as casas. A escolha vincula um QR único ao mapa dela; os outros vouchers seguem disponíveis para os próximos resultados.">
+        {pool.bloqueada ? <Erro texto={pool.erro} onTentar={pool.recarregar} /> : !pool.dados ? <Carregando /> : (pool.dados.opcoes || []).length === 0 ? (
+          <div className="ui-pilha">
+            <p className="ui-nota">Separe um voucher digital de cada casa antes da primeira apuração.</p>
+            {podeGerir && <Botao disabled={!!ocupado} aria-busy={ocupado === 'voucher-pool' || undefined} onClick={prepararPool}>Reservar os cinco vouchers</Botao>}
+          </div>
+        ) : (
+          <div className="ui-pilha">
+            <ul className="cp-pool-voucher">
+              {pool.dados.opcoes.map((opcao) => <li key={opcao.id}><strong>{opcao.marca}</strong><Selo tom={opcao.estado === 'disponivel' ? 'andamento' : opcao.estado === 'usado' ? 'ok' : 'neutro'}>{opcao.estado === 'disponivel' ? 'Disponível' : opcao.estado === 'escolhido' ? 'Escolhido por um ganhador' : opcao.estado === 'usado' ? 'Validado na casa' : 'Cancelado'}</Selo></li>)}
+            </ul>
+            <p className="ui-nota">{pool.dados.opcoes.filter((x) => x.estado === 'disponivel').length} opção(ões) ainda podem ser escolhidas.</p>
+          </div>
+        )}
+      </Secao>
       <ul className="ui-numeros ui-numeros--compacto">
         {ORDEM_ESTADOS.map((e) => <li key={e} className="ui-numero"><span className="ui-numero__n">{n[e]}</span><span className="ui-numero__rotulo">{rotuloEstado(e).toLowerCase()}</span></li>)}
         {n.vencidos > 0 && <li className="ui-numero cp-vencido-caixa"><span className="ui-numero__n">{n.vencidos}</span><span className="ui-numero__rotulo">com prazo vencido</span></li>}

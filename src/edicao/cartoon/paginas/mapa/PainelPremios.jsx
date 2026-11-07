@@ -5,7 +5,7 @@
  * Nunca afirma que alguém ganhou: o estado "Resultado confirmado" só aparece quando o servidor diz que a organização confirmou.
  */
 import React from 'react'
-import { Carregando } from '../../../componentes/base.jsx'
+import { Carregando, Link } from '../../../componentes/base.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao } from '../../../componentes/sistema/pecas.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
@@ -84,7 +84,7 @@ function Metas ({ caca }) {
 }
 
 function MeusVouchers ({ caca, navigate }) {
-  const { estado, premios, tentar } = usarMeusPremios(caca)
+  const { estado, premios, tentar, escolher, ocupado, erroEscolha } = usarMeusPremios(caca)
   if (estado === 'sem-mapa' || (estado === 'pronto' && premios.length === 0)) return null
   if (estado === 'carregando') return <p className="ct-nota" role="status">Conferindo se há um voucher para este mapa…</p>
   if (estado === 'falha') return <div className="ct-estado" role="alert"><p>Não foi possível carregar seus vouchers agora.</p><button type="button" className="ct-botao" onClick={tentar}>Tentar de novo</button></div>
@@ -92,19 +92,32 @@ function MeusVouchers ({ caca, navigate }) {
   return (
     <section className="ct-premios__bloco ct-premios__pessoal" aria-labelledby="premios-pessoais" role="status">
       <p className="ct-rotulo">Aviso para este mapa</p>
-      <h3 id="premios-pessoais" className="ct-sub">Seu voucher</h3>
+      <h3 id="premios-pessoais" className="ct-sub">Seus prêmios</h3>
+      <p>{premios.length} {premios.length === 1 ? 'prêmio registrado' : 'prêmios registrados'} no seu mapa.</p>
+      {erroEscolha && <p className="ct-nota" role="alert">{erroEscolha}</p>}
       {premios.map((premio) => (
         <article key={premio.id} className={`ct-premios__ganho is-${premio.estado}`}>
-          <div className="ct-premios__ganho-cabeca"><IconeCartoon nome="vouchers" tamanho={52} /><h4>{premio.estado === 'selecionado' ? 'Você foi selecionado para o voucher!' : premio.estado === 'entregue' ? 'Seu voucher foi entregue' : 'Você ganhou um voucher!'}</h4></div>
-          <p>Voucher do dia {premio.dia.curta}.</p>
-          {premio.estado === 'selecionado' && (
+          <div className="ct-premios__ganho-cabeca"><IconeCartoon nome="vouchers" tamanho={52} /><h4>{premio.tipo === 'final' ? 'Seu prêmio final' : premio.estado === 'selecionado' ? 'Você ganhou o direito de escolher um voucher!' : premio.estado === 'entregue' ? 'Seu voucher foi validado' : 'Você ganhou um voucher!'}</h4></div>
+          {premio.dia && <p>Resultado do dia {premio.dia.curta}.</p>}
+          {premio.estado === 'selecionado' && !premio.emailConfirmado && (
             <>
-              <p>Confirme o e-mail cadastrado no mapa{premio.prazo ? ` até ${premio.prazo}` : ''} para a organização concluir a validação.</p>
+              <p>Confirme o e-mail cadastrado no mapa{premio.prazo ? ` até ${premio.prazo}` : ''}. Depois, você poderá escolher um dos vouchers disponíveis.</p>
               <Botao href={TC.caminhos.central} navigate={navigate}>Ir para confirmar meu e-mail</Botao>
             </>
           )}
-          {premio.estado === 'confirmado' && <p>Seu prêmio está confirmado. Acompanhe os avisos do mapa para saber como receber o voucher.</p>}
-          {premio.estado === 'entregue' && <p>A organização marcou este voucher como entregue.</p>}
+          {premio.tipo === 'voucher_dia' && premio.estado === 'confirmado' && !premio.voucher && (
+            <>
+              <p>Escolha um combo entre as casas disponíveis. A escolha fica reservada para você.</p>
+              {premio.opcoes.map((opcao) => <button key={opcao.id} type="button" className="ct-botao ct-botao--acao" disabled={!!ocupado} aria-busy={ocupado === premio.id || undefined} onClick={() => escolher(premio.id, opcao.id)}>Escolher voucher de {opcao.marca}</button>)}
+              {!premio.opcoes.length && <p className="ct-nota">As opções de voucher ainda não estão disponíveis. Volte a esta aba em instantes.</p>}
+            </>
+          )}
+          {premio.voucher && <>
+            <p>Seu combo será na <strong>{premio.voucher.marca}</strong>.</p>
+            <Link href={`/cartoon/voucher/${premio.voucher.token}`} navigate={navigate} className="ct-botao ct-botao--acao">Abrir voucher digital e mostrar QR</Link>
+          </>}
+          {premio.tipo === 'final' && !premio.voucher && <p>Seu prêmio está registrado. A organização vai orientar a entrega pelos avisos do mapa.</p>}
+          {premio.estado === 'entregue' && !premio.voucher && <p>A organização marcou este prêmio como entregue.</p>}
           {premio.validade && <p className="ct-nota">Válido até {premio.validade.longa}.</p>}
         </article>
       ))}

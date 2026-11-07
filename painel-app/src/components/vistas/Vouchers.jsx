@@ -174,27 +174,30 @@ export function Vouchers({ pode, rota, navegar }) {
               </button>
               {aberta === m.participacao_id && (
                 <div className="ui-pilha ui-expandido">
-                  <ul className="og-lista">{m.vouchers.map((v) => (
+                  <ul className="og-lista">{m.vouchers.map((v) => {
+                    const reservadoCaca = v.responsavel_rotulo === 'Caça aos Carimbos'
+                    return (
                     <li key={v.id}>
                       <div className="og-item og-item--info">
                         <span className="og-item__cor" data-chave="arquivo" aria-hidden="true" />
                         <p className="og-item__nome">{v.codigo}</p>
-                        <p className="og-item__meta">{v.contato ? <button type="button" className="og-link" onClick={() => navegar({ filtros: { item: v.contato_id } })}>{v.contato}</button> : 'sem destino'}{[v.enviado_em && ' · enviado ' + dataCurta(v.enviado_em), v.utilizado_em && ' · usado ' + dataHoraCurta(v.utilizado_em), v.responsavel_rotulo && ' · por ' + v.responsavel_rotulo].filter(Boolean).join('')}</p>
+                        <p className="og-item__meta">{reservadoCaca ? 'Reservado para escolha dos ganhadores da Caça aos Carimbos' : v.contato ? <button type="button" className="og-link" onClick={() => navegar({ filtros: { item: v.contato_id } })}>{v.contato}</button> : 'sem destino'}{[v.enviado_em && ' · enviado ' + dataCurta(v.enviado_em), v.utilizado_em && ' · usado ' + dataHoraCurta(v.utilizado_em), v.responsavel_rotulo && !reservadoCaca && ' · por ' + v.responsavel_rotulo].filter(Boolean).join('')}</p>
                         <span className="og-item__dir">
-                          <Selo dominio="voucher" valor={v.status} />
-                          {virtual && v.link_token && ['destinado', 'enviado'].includes(v.status) && (
+                          {reservadoCaca ? <Selo tom="andamento">Reserva da Caça</Selo> : <Selo dominio="voucher" valor={v.status} />}
+                          {!reservadoCaca && virtual && v.link_token && ['destinado', 'enviado'].includes(v.status) && (
                             <>
                               <Botao soIcone icone="copiar" variante="secundario" aria-label={'Copiar o link do voucher ' + v.codigo} onClick={() => copiar(linkDe(v.link_token), 'Link do voucher ' + v.codigo + ' copiado.')}>Copiar link</Botao>
                               <Botao variante="secundario" onClick={() => copiar(mensagemVoucherVirtual({ marca: m.marca, link: linkDe(v.link_token), nome: v.contato }), 'Mensagem do voucher ' + v.codigo + ' copiada.')}>Copiar mensagem</Botao>
                             </>
                           )}
-                          {podeMudar && v.status === 'destinado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'enviado')}>Enviado</button>}
-                          {podeMudar && ['destinado', 'enviado'].includes(v.status) && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'disponivel')}>Liberar</button>}
-                          {podeMudar && v.status !== 'utilizado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'cancelado')}>Cancelar</button>}
+                          {!reservadoCaca && podeMudar && v.status === 'destinado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'enviado')}>Enviado</button>}
+                          {!reservadoCaca && podeMudar && ['destinado', 'enviado'].includes(v.status) && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'disponivel')}>Liberar</button>}
+                          {!reservadoCaca && podeMudar && v.status !== 'utilizado' && <button className="og-btn og-btn--mini og-btn--vazado" type="button" onClick={() => mudar(v, 'cancelado')}>Cancelar</button>}
                         </span>
                       </div>
                     </li>
-                  ))}</ul>
+                    )
+                  })}</ul>
                   {podeMudar && m.disponiveis > 0 && (
                     <form className="ui-form ui-form--linha-dupla" onSubmit={(e) => { e.preventDefault(); destinar(m.participacao_id) }}>
                       <label className="og-campo"><span>Para quem</span>

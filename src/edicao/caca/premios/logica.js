@@ -80,16 +80,20 @@ export function organizarPremios (dado) {
 export function organizarMeusPremios (lista) {
   if (!Array.isArray(lista)) return []
   return lista
-    .filter((p) => p && typeof p.id === 'string' && ESTADOS_PREMIO_PESSOAL.has(p.estado) && descreverData(p.dia))
+    .filter((p) => p && typeof p.id === 'string' && ESTADOS_PREMIO_PESSOAL.has(p.estado))
     .map((p) => ({
       id: p.id,
+      tipo: p.tipo === 'final' ? 'final' : 'voucher_dia',
       iso: p.dia,
       dia: descreverData(p.dia),
       estado: p.estado,
       prazo: dataHoraNatal(p.prazo_ate),
       validade: descreverData(p.valido_ate),
+      emailConfirmado: p.email_confirmado === true,
+      voucher: p.voucher && typeof p.voucher.token === 'string' ? { marca: String(p.voucher.marca || ''), token: p.voucher.token, estado: p.voucher.estado } : null,
+      opcoes: Array.isArray(p.opcoes) ? p.opcoes.filter((o) => o && typeof o.id === 'string' && typeof o.marca === 'string') : [],
     }))
-    .sort((a, b) => b.iso.localeCompare(a.iso))
+    .sort((a, b) => String(b.iso || '').localeCompare(String(a.iso || '')))
 }
 
 const ESTADOS_PREMIO_PESSOAL = new Set(['selecionado', 'confirmado', 'entregue'])
