@@ -271,13 +271,13 @@ test('service worker: espera sem skipWaiting na instalação, ativa por mensagem
   }
 })
 
-test('publicação: versão e HTML sem cache; assets com hash imutáveis; escopo do app intacto', () => {
+test('publicação: versão e HTML sem cache; erros de assets não recebem cache imutável; escopo intacto', () => {
   const v = JSON.parse(ler('vercel.json'))
   const h = (src) => ((v.headers.find((x) => x.source === src) || {}).headers || []).map((x) => x.key + ': ' + x.value).join('; ')
   assert.match(h('/painel/versao.json'), /no-store/)
   assert.match(h('/painel/'), /no-cache/)
   assert.match(h('/painel/sw.js'), /no-store/)
-  assert.match(h('/assets/(.*)'), /immutable/)
+  assert.doesNotMatch(h('/assets/(.*)'), /immutable|max-age=31536000/)
   const man = JSON.parse(ler('public/painel/app.webmanifest'))
   assert.equal(man.scope, '/painel/')
   assert.equal(man.start_url.startsWith('/painel/'), true)

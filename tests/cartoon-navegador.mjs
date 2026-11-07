@@ -97,8 +97,10 @@ async function contexto (nav, { w = 1440, h = 900, edicao = DEMO_EDICAO, envio =
 const ir = (page, p) => page.goto(`${BASE}${p}${p.includes('?') ? '&' : '?'}preview=1`, { waitUntil: 'networkidle' })
 const h1 = async (page) => (await page.locator('h1').first().textContent())?.trim()
 
-const preview = spawn('npm', ['run', 'preview', '--', '--port', String(PORT), '--strictPort'], {
-  cwd: join(__dirname, '..'), shell: true, stdio: ['ignore', 'pipe', 'pipe'],
+const previewArgs = [join(__dirname, '../node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort']
+if (process.env.SCW_TEST_OUT_DIR) previewArgs.push('--outDir', process.env.SCW_TEST_OUT_DIR)
+const preview = spawn(process.execPath, previewArgs, {
+  cwd: join(__dirname, '..'), stdio: ['ignore', 'pipe', 'pipe'],
 })
 let nav
 try {
