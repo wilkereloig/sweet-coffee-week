@@ -44,7 +44,6 @@ import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { CasasEmLista } from '../../../caca/mapa/CasasEmLista.jsx'
 import { CartaoSicredi, ListaSicredi } from '../../../caca/mapa/Sicredi.jsx'
-import { AssinaturaPatrocinio } from '../../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Cobertura } from '../../../caca/mapa/Cobertura.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Avisos, Carregando } from '../../../componentes/base.jsx'
@@ -430,7 +429,6 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     <>
       {avisos}
       <h1 id="mapa-titulo" className="ct-sr">{T.titulo}</h1>
-      <AssinaturaPatrocinio />
       <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
