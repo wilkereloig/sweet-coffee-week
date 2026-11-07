@@ -504,7 +504,7 @@ const MENSAGENS = [
   ['hash_invalido', 'O código da semente precisa ter 64 caracteres (0-9 e a-f).'],
   ['edicao_desconhecida', 'O servidor não conhece essa edição.'],
   ['premio_nao_encontrado', 'Esse prêmio não existe mais. Atualize a lista.'],
-  ['vouchers_premio_indisponiveis', 'Não há voucher digital disponível para um próximo ganhador. Confira o conjunto de cinco casas.'],
+  ['vouchers_premio_indisponiveis', 'Não dá para apurar: ainda não há voucher reservado para o próximo ganhador. Na seção “Opções de voucher para os ganhadores”, reserve um voucher digital de cada uma das cinco casas e tente novamente.'],
   ['sem_voucher_digital_disponivel', 'Uma das casas ainda não tem voucher digital disponível. Gere os vouchers virtuais e tente preparar o conjunto novamente.'],
   ['participante_voucher_ausente', 'Não encontrei uma das cinco casas desta edição. Confira os participantes do conjunto de vouchers.'],
   ['pool_voucher_incompleto', 'O conjunto de vouchers ficou incompleto. Atualize a tela e fale com a organização.'],
