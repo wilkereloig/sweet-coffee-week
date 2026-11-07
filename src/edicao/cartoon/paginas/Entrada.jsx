@@ -186,7 +186,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           <Olhinhos expressao="encantado" lado="direita" olhar={{ x: -0.6, y: 0.2 }} tamanho={150} className="ct-estreia__olhos" />
         </div>
       </TopoCanal>
-      <AssinaturaPatrocinio navigate={navigate} />
+      <AssinaturaPatrocinio navigate={navigate} destaque />
 
       <section className="ct-bloco ct-entrada__elenco ct-reticula" aria-labelledby="ct-elenco">
         <Letreiro id="ct-elenco" texto={T.elencoTitulo} />
