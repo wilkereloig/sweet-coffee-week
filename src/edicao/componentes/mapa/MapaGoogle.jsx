@@ -58,7 +58,7 @@ function elementoDoPonto (p) {
   const el = document.createElement('span')
   if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
     el.className = 'ct-sicredi-marcador'
-    el.append(pinSicredi(p.pin))
+    el.append(pinSicredi(p.pin, p.promocao))
     return el
   }
   el.className = `ct-marcador${p.pin ? ' ct-marcador--pin' : ''}`
@@ -184,7 +184,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     for (const p of pontos) fios.current.set(p.id, new AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: fioDoPin(), zIndex: 1 }))
     for (const p of pontos) {
       const pos = { lat: p.lat, lng: p.lng }
-      marcadores.current.set(p.id, marcadorClicavel(AdvancedMarkerElement, { map: m, position: pos, content: elementoDoPonto(p), title: p.titulo, zIndex: 10 }, umaVez(() => aoSelecionar(p.id))))
+      marcadores.current.set(p.id, marcadorClicavel(AdvancedMarkerElement, { map: m, position: pos, content: elementoDoPonto(p), title: [p.titulo, p.promocao].filter(Boolean).join(' · '), zIndex: p.promocao ? 12 : 10 }, umaVez(() => aoSelecionar(p.id))))
     }
     for (const p of alvo) limites.extend({ lat: p.lat, lng: p.lng })
     if (alvo.length > 1) m.fitBounds(limites, 48)

@@ -98,9 +98,15 @@ function atualizarAbertura (caixa, nivel) {
  * pin), de outra forma que o pin das casas (cabeça redonda com a logo colorida). Não é casa e não conta carimbo: isso vai no nome
  * acessível do marcador e no cartão da agência. `pin`: { src } — o arquivo oficial da marca entra de fora.
  */
-export function pinSicredi (pin) {
+export function pinSicredi (pin, promocao = '') {
   const caixa = document.createElement('span')
-  caixa.className = 'ct-sicredi-pin'
+  caixa.className = `ct-sicredi-pin${promocao ? ' has-promocao' : ''}`
+  if (promocao) {
+    const selo = document.createElement('span')
+    selo.className = 'ct-sicredi-pin__promocao'
+    selo.textContent = promocao
+    caixa.append(selo)
+  }
   const placa = document.createElement('span')
   placa.className = 'ct-sicredi-pin__placa'
   caixa.append(alvoDeToque())
