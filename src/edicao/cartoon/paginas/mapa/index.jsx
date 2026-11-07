@@ -429,7 +429,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     <>
       {avisos}
       <h1 id="mapa-titulo" className="ct-sr">{T.titulo}</h1>
-      <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
+      <section className="ct-bloco ct-mapa" aria-label="Explorar casas no mapa">
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
