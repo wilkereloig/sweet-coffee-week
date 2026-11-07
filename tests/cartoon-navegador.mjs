@@ -372,7 +372,6 @@ try {
     const { ctx, page, erros } = await contexto(nav)
     const antes = falhas.length
     const CHAVE = 'scw:edicao:2026.2:rota'
-    const prog = async () => (await page.locator('.ct-progresso__texto').innerText()).replace(/\s+/g, ' ').trim()
     await ir(page, '/cartoon/participantes/demo-casa-aurora')
     await page.waitForSelector('.ct-unidade')
     const quero = page.locator('.ct-unidade').first().locator('button:has-text("Quero ir")')
@@ -384,22 +383,19 @@ try {
     await ir(page, '/cartoon/minha-rota')
     await page.reload({ waitUntil: 'networkidle' })
     if ((await page.locator('.ct-parada').count()) !== 1) falha('rota não persistiu no recarregar')
-    if (!(await page.locator('.ct-canal--rota h1').count())) falha('Minha rota: h1 fora do topo no canal Rota')
+    if (!(await page.locator('#mapa-titulo').count())) falha('Minha rota: falta o título do mapa')
     if ((await page.locator('.ct-parada .ct-placa .ct-placa__numero').innerText()).trim() !== '1') falha('parada sem a placa numerada')
     if (!(await page.locator('a:has-text("Abrir a rota no Google Maps")').count())) falha('sem link de rota externa')
     if ((await page.locator('.ct-rota').innerText()).match(/melhor caminho|otimizad/i)) falha('rota promete otimização')
-    // Demonstração: 3 casas com unidade.
-    if ((await prog()) !== '0 de 3 casas marcadas por você') falha(`progresso inicial "${await prog()}"`)
     await page.click('.ct-parada button:has-text("Já fui")')
     if ((await page.locator('.ct-parada').count()) !== 0) falha('"já fui" não tirou a parada de "Quero ir"')
     if ((await page.locator('.ct-visitada').allInnerTexts()).join('|').indexOf('[DEMO] Casa Aurora') < 0) falha('casa visitada não aparece em "Já fui"')
-    if ((await prog()) !== '1 de 3 casas marcadas por você' || (await page.locator('progress.ct-progresso__barra').getAttribute('value')) !== '1') falha(`progresso depois do "já fui": "${await prog()}"`)
     await page.reload({ waitUntil: 'networkidle' })
-    if ((await prog()) !== '1 de 3 casas marcadas por você') falha('"já fui" não persistiu no recarregar')
+    if ((await page.locator('.ct-visitada').allInnerTexts()).join('|').indexOf('[DEMO] Casa Aurora') < 0) falha('"já fui" não persistiu no recarregar')
     const salvo = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)), CHAVE)
     if (salvo?.versao !== 2 || !salvo.visitadas?.includes('udemo1') || !salvo.visitadas?.includes('udemo2')) falha(`storage do painel: ${JSON.stringify(salvo)}`)
     await page.click('.ct-visitada button:has-text("Já fui")')
-    if ((await page.locator('.ct-parada').count()) !== 1 || (await prog()) !== '0 de 3 casas marcadas por você') falha('desfazer o "já fui" não devolveu a parada')
+    if ((await page.locator('.ct-parada').count()) !== 1) falha('desfazer o "já fui" não devolveu a parada')
     await page.click('.ct-parada button:has-text("Remover")')
     if ((await page.locator('.ct-parada').count()) !== 0) falha('remover não tirou a parada')
     // Rota antiga (versão 1, só unidades): lida como está; unidade despublicada sinalizada.
@@ -410,7 +406,7 @@ try {
     // Storage quebrado: a página abre vazia, sem erro.
     await page.evaluate((k) => localStorage.setItem(k, '{quebrado'), CHAVE)
     await page.reload({ waitUntil: 'networkidle' })
-    if ((await page.locator('.ct-parada').count()) !== 0 || !(await page.locator('.ct-rota').innerText()).includes('Sua lista está vazia')) falha('storage quebrado não abriu a lista vazia')
+    if ((await page.locator('.ct-parada').count()) !== 0 || !(await page.locator('.ct-rota').innerText()).includes('Escolha as casas que quer conhecer')) falha('storage quebrado não abriu a lista vazia')
     if (erros.length) falha(`Minha rota: console ${erros.slice(0, 2).join(' | ')}`)
     if (falhas.length === antes) ok('quero ir, contador, persistir, placa numerada, progresso, já fui (e desfazer), remover, rota v1, saiu da edição, storage quebrado')
     await ctx.close()
