@@ -10,7 +10,8 @@ import { ICONE } from '../../cartoon/textos.js'
 import { MARCAS_PARCEIROS } from '../../../data/imageLibrary'
 import { linkComoChegarSicredi } from './sicredi.js'
 import { MAPA_CACA as T } from './textos.js'
-import { BlocoCampanha } from '../campanha/Campanha.jsx'
+import { BlocoCampanha, useCampanha } from '../campanha/Campanha.jsx'
+import { CAMPANHA } from '../campanha/terComQuemContar.js'
 
 export function CartaoSicredi ({ agencia, fechar, navigate }) {
   if (!agencia) return null
@@ -35,7 +36,23 @@ export function CartaoSicredi ({ agencia, fechar, navigate }) {
         </div>
       )}
       <BlocoCampanha navigate={navigate} variante="mapa" />
+      <ChamadaCarimboSicredi navigate={navigate} />
     </article>
+  )
+}
+
+function ChamadaCarimboSicredi ({ navigate }) {
+  const campanha = useCampanha()
+  if (!campanha.aberta) return null
+  return (
+    <aside className="ct-caca-mapa__carimbo-sicredi" aria-label="Carimbo Sicredi">
+      <span className="ct-caca-mapa__carimbo-icone"><ScwIcon nome="mecanica/voucher" tamanho={30} /></span>
+      <div>
+        <strong>Carimbo Sicredi</strong>
+        <p>Envie o print do vídeo publicado. Com a aprovação da organização, ele soma pontos no ranking e nos sorteios.</p>
+      </div>
+      <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>Pedir carimbo Sicredi</Botao>
+    </aside>
   )
 }
 
@@ -47,6 +64,7 @@ export function ListaSicredi ({ agencias, selecionada, aoSelecionar, navigate })
       <h2 id="sicredi-titulo" className="ct-sub">{T.sicrediTitulo}</h2>
       <p className="ct-nota">{T.sicrediAviso}</p>
       <BlocoCampanha navigate={navigate} variante="mapa" />
+      <ChamadaCarimboSicredi navigate={navigate} />
       <ul className="ct-caca-mapa__sicredi-lista">
         {agencias.map((a) => {
           const link = linkComoChegarSicredi(a)

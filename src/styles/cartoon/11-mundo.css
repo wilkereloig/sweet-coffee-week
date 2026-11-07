@@ -289,6 +289,15 @@
 .ct-caca-mapa__sicredi-logo { display: block; width: 80px; height: auto; }
 .ct-caca-mapa__sicredi-cartao { border-style: dashed; }
 .ct-caca-mapa__sicredi-aviso { margin: 0; }
+.ct-caca-mapa__carimbo-sicredi {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 8px 12px;
+  margin-top: 12px; padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: 12px;
+  background: #63c733; box-shadow: 3px 3px 0 var(--ct-chocolate);
+}
+.ct-caca-mapa__carimbo-icone { display: grid; place-items: center; width: 48px; height: 48px; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); }
+.ct-caca-mapa__carimbo-sicredi strong { font: 900 16px/1.15 var(--ct-font); }
+.ct-edicao .ct-caca-mapa__carimbo-sicredi p { margin: 4px 0 0; font: 600 13px/1.35 var(--ct-font); }
+.ct-caca-mapa__carimbo-sicredi .ct-botao { grid-column: 1 / -1; justify-self: start; min-height: 42px; padding-inline: 14px; }
 .ct-caca-mapa__rapida-item--sicredi { background: var(--ct-branco); }
 
 .ct-sicredi-marcador { display: block; padding: 0; border: 0; background: none; cursor: pointer; transform-origin: 50% 100%; transition: scale 180ms var(--ct-mo-quique); }

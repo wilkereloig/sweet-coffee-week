@@ -42,7 +42,7 @@ begin
     return jsonb_build_object('ok', false, 'motivo', 'mapa_nao_principal');
   end if;
   if m.edicao_codigo <> '2026.2' then return jsonb_build_object('ok', false, 'motivo', 'edicao_invalida'); end if;
-  if timezone('America/Fortaleza', now())::date > date '2026-11-11' then
+  if timezone('America/Fortaleza', now())::date > date '2026-11-13' then
     return jsonb_build_object('ok', false, 'motivo', 'campanha_encerrada');
   end if;
 

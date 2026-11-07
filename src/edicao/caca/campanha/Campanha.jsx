@@ -1,7 +1,7 @@
 /*
  * Entradas da campanha "Ter com quem contar" espalhadas pelo site (cartão da agência Sicredi, painel de Prêmios, tela de Metas,
- * rodapé, assinatura do patrocínio). Só aponta para /cartoon/ter-com-quem-contar: não conta carimbo, meta nem ranking, e some
- * quando o prazo (11/11, fuso de Fortaleza) passa. A regra de data e os textos moram em terComQuemContar.js.
+ * rodapé, assinatura do patrocínio). A participação na campanha é que pode gerar o carimbo Sicredi, após aprovação do print.
+ * O cartão some quando o prazo (13/11, fuso de Fortaleza) passa. A regra de data e os textos moram em terComQuemContar.js.
  */
 import React from 'react'
 import { Link } from '../../componentes/base.jsx'
@@ -18,7 +18,7 @@ export function useCampanha () {
 
 /**
  * Cartão curto com título, 1–2 linhas, prazo e botão para a página. `variante` escolhe o texto: mapa (agência) · premios · metas.
- * Depois de 11/11 não renderiza nada.
+ * Depois de 13/11 não renderiza nada.
  */
 export function BlocoCampanha ({ navigate, variante = 'mapa', className = '' }) {
   const e = useCampanha()

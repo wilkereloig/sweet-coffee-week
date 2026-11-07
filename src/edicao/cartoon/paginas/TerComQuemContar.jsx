@@ -1,7 +1,7 @@
 /*
  * Campanha "Ter com quem contar" (Sicredi) — /cartoon/ter-com-quem-contar. Fora do menu e da barra de abas: chega pelo cartão da
  * agência no mapa, pelo painel de Prêmios, pelo rodapé e pelo aviso. Regra de prazo e textos em caca/campanha/terComQuemContar.js.
- * Depois de 11/11 (Fortaleza) a página continua abrindo, sem chamada para participar.
+ * Depois de 13/11 (Fortaleza) a página continua abrindo, sem chamada para participar.
  */
 import React from 'react'
 import { useCaca } from '../../caca/useCaca.js'
