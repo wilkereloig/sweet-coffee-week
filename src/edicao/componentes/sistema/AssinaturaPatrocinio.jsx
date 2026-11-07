@@ -33,15 +33,20 @@ export function AssinaturaPatrocinio ({ navigate, destaque = false }) {
         <div className="ct-assina-patrocinio__promocao" aria-label={TC.rotulo}>
           <div className="ct-assina-patrocinio__chamada">
             <p className="ct-assina-patrocinio__selo">{TC.rotulo}</p>
-            <h2 className="ct-assina-patrocinio__titulo">{CAMPANHA.historias} pares de vouchers para {CAMPANHA.historias} histórias</h2>
-            <p className="ct-assina-patrocinio__nome">{TC.titulo}</p>
-            <p className="ct-assina-patrocinio__texto">{TC.bloco.disputa}</p>
+            <h2 className="ct-assina-patrocinio__titulo">Sua história pode ganhar um par de vouchers!</h2>
+            <p className="ct-assina-patrocinio__nome">{CAMPANHA.historias} histórias serão escolhidas na campanha {TC.titulo}.</p>
             <p className="ct-assina-patrocinio__prazo">{prazoCurto(campanha)}</p>
+            <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>Como participar</Botao>
           </div>
-          <div className="ct-assina-patrocinio__premios"><IconeCartoon nome="vouchers" tamanho={64} /><ul className="ct-assina-patrocinio__numeros" aria-label="O que você pode ganhar">
-            {TC.dados.map((d) => <li key={d.rotulo}><b>{d.numero}</b><span>{d.rotulo}</span></li>)}
-          </ul></div>
-          <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>{TC.bloco.ver}</Botao>
+          <div className="ct-assina-patrocinio__passos">
+            <IconeCartoon nome="vouchers" tamanho={64} />
+            <p className="ct-assina-patrocinio__passos-titulo">Para participar</p>
+            <ol>
+              <li>Grave um vídeo contando com quem você pôde contar.</li>
+              <li>Publique no feed do Instagram até {CAMPANHA.fimCurto}.</li>
+            </ol>
+            <p className="ct-assina-patrocinio__nota">Confira as regras completas no botão.</p>
+          </div>
         </div>
       )}
     </section>
