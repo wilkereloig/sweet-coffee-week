@@ -50,7 +50,11 @@ export async function ligarAvisos(registrar) {
   if (permissao !== 'granted') throw new Error(permissao === 'denied' ? 'bloqueado' : 'sem_resposta')
   const reg = await registroPronto()
   // `userVisibleOnly: true` é obrigatório: não existe push silencioso na web.
-  const nova = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytesDaChave(VAPID_PUBLICA) })
+  // Reaproveita uma inscrição que o navegador já tenha criado. Isso cobre a
+  // saída do app entre a permissão e o registro no servidor, e evita tentar
+  // abrir uma segunda inscrição no mesmo service worker.
+  const existente = await reg.pushManager.getSubscription()
+  const nova = existente || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytesDaChave(VAPID_PUBLICA) })
   const bruto = nova.toJSON()
   // Só diz "ligado" depois que o banco confirmar: assinatura que existe no
   // navegador e não no banco é aparelho que jura que está ligado e não recebe.
@@ -59,7 +63,9 @@ export async function ligarAvisos(registrar) {
   try {
     await registrar({ endpoint: bruto.endpoint, p256dh: bruto.keys.p256dh, auth: bruto.keys.auth, userAgent: navigator.userAgent.slice(0, 300) })
   } catch (e) {
-    await nova.unsubscribe().catch(() => {})
+    // Uma inscrição antiga pode já estar registrada no mapa; só desfazemos
+    // a nova se o servidor recusou o primeiro registro.
+    if (!existente) await nova.unsubscribe().catch(() => {})
     throw e
   }
 }
