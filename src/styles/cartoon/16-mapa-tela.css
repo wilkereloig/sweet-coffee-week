@@ -76,9 +76,11 @@
 }
 @media (max-height: 520px) and (orientation: landscape) { .ct-mapa__explorar { --ct-mapa-alto: max(280px, 72svh); } }
 @media (min-width: 900px) {
-  .ct-mapa__corpo { grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 20px; }
+  .ct-mapa__corpo { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .ct-mapa__explorar { --ct-mapa-alto: clamp(440px, calc(100svh - 250px), 760px); }
-  .ct-mapa__lateral { position: sticky; top: 92px; display: grid; gap: 12px; max-height: calc(100svh - 108px); overflow: auto; overscroll-behavior: contain; }
+  .ct-mapa__lateral { display: grid; gap: 16px; min-width: 0; }
+  .ct-mapa__lateral > .ct-folha-m--casa { position: fixed; z-index: 40; right: max(16px, var(--ct-trilho)); top: calc(var(--ct-topo-barra) + 12px); width: min(380px, 38vw); }
+  .ct-mapa__lateral > .ct-folha-m--casa .ct-mapa__cartao { max-height: calc(100svh - var(--ct-topo-barra) - 28px); overflow: auto; overscroll-behavior: contain; }
 }
 
 /* Barra: vistas · busca · Filtros. Celular: vistas numa linha (colunas iguais), busca + Filtros na de baixo. */
@@ -505,6 +507,10 @@
 /* Estado vazio dentro do painel (lista sem paradas, sem visitadas): sem o respiro de página inteira. */
 .ct-rota__secao .ct-estado { padding-block: 4px 8px; }
 .ct-painel-rota { display: grid; gap: 22px; } /* respiro entre "Quero ir", "Já fui" e "Rota do grupo": cada seção é um bloco à parte */
+@media (min-width: 1100px) {
+  .ct-painel-rota { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+  .ct-painel-rota > .ct-rota__ajuda, .ct-painel-rota > .ct-aviso { grid-column: 1 / -1; }
+}
 .ct-mapa__avisos-desktop { display: none; }
 @media (min-width: 900px) {
   .ct-mapa__avisos-desktop { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-bottom: 10px; font: 800 14px/1.2 var(--ct-font); }
