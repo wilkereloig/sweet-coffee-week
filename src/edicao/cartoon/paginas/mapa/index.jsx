@@ -35,7 +35,7 @@ import { useCaca } from '../../../caca/useCaca.js'
 import { CartaoEmail } from '../../../caca/CartaoEmail.jsx'
 import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
 import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
-import { CAMPANHA, estadoDaCampanha } from '../../../caca/campanha/terComQuemContar.js'
+import { estadoDaCampanha } from '../../../caca/campanha/terComQuemContar.js'
 import { contarFiltros, casasEEnderecos, enderecosDaCasa, motivoSemLocalizacao, estadoDoErro } from '../../../caca/mapa/tela.js'
 import { useConquistas } from '../../../caca/mapa/useConquistas.js'
 import { ProgressoPessoal } from '../../../caca/mapa/Progresso.jsx'
@@ -476,7 +476,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                               ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, perto: destaquePorUnidade.get(u.id), pin: pinDe(p, u) })),
                               ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src }).map((p) => ({
                                 ...p,
-                                promocao: estadoDaCampanha().aberta ? `${CAMPANHA.historias} histórias ganham um par de vouchers` : '',
+                                promocao: estadoDaCampanha().aberta ? 'Alerta de voucher' : '',
                               })),
                             ]} />
                         </ErroDoMapa>

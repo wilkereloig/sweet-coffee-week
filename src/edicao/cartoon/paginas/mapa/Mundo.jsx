@@ -37,7 +37,7 @@ import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { useCampanha } from '../../../caca/campanha/Campanha.jsx'
-import { CAMPANHA } from '../../../caca/campanha/terComQuemContar.js'
+import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../../../caca/mapa/imagens.js'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { afastarPins, LIMITE_GRUPO } from '../../../componentes/mapa/afastar.js'
@@ -59,7 +59,7 @@ const limite = (v, m) => Math.min(m, Math.max(-m, v))
 
 export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSelecionar, recentes = new Set(), rodaAproxima = false, destaque = null, sobre = null }) {
   const campanha = useCampanha()
-  const chamadaSicredi = `${CAMPANHA.historias} histórias ganham um par de vouchers`
+  const chamadaSicredi = 'Alerta de voucher'
   const janela = React.useRef(null)
   const palco = React.useRef(null)
   const camera = React.useRef(null) // {z, x, y} (camera.js): fica em ref, o desenho é aplicado direto no palco (60 fps sem re-render)
@@ -351,7 +351,7 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={`${TC.sicrediNoMundo(a.nome, a.endereco)}${campanha.aberta ? `. ${chamadaSicredi}` : ''}`}
               className={`ct-mundo__sicredi${campanha.aberta ? ' tem-promocao' : ''}${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
               <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={mundo.sicrediLogo} alt="" draggable={false} /></span>
-              {campanha.aberta && <span className="ct-mundo__sicredi-promocao" aria-hidden="true">{chamadaSicredi}</span>}
+              {campanha.aberta && <span className="ct-mundo__sicredi-promocao" aria-hidden="true"><IconeCartoon nome="vouchers" tamanho={32} /></span>}
             </button>
           ))}
           {grupos.map((c) => {

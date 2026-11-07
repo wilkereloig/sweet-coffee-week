@@ -1,6 +1,7 @@
 import { IMAGENS_ESTADO } from '../../caca/mapa/imagens.js'
 import { hierarquiaDoPin, ICONE_NIVEL } from './indicadores.js'
 import { iconeDom } from './iconeDom.js'
+import { iconeEdicao } from '../../../data/imageLibrary.js'
 
 /*
  * O pin da casa no mapa real (Google Maps e MapLibre): O MESMO desenho do mapa ilustrado (Mundo.jsx) — disco com a logo,
@@ -104,7 +105,9 @@ export function pinSicredi (pin, promocao = '') {
   if (promocao) {
     const selo = document.createElement('span')
     selo.className = 'ct-sicredi-pin__promocao'
-    selo.textContent = promocao
+    const voucher = document.createElement('img')
+    Object.assign(voucher, { src: iconeEdicao('vouchers').src, alt: '', width: 32, height: 32 })
+    selo.append(voucher)
     caixa.append(selo)
   }
   const placa = document.createElement('span')
