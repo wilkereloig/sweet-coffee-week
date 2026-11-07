@@ -68,6 +68,13 @@
 .ct-campanha-bloco__texto, .ct-campanha-bloco__prazo { margin: 0; font: 500 14px/1.45 var(--ct-font); }
 .ct-campanha-bloco__prazo { font-weight: 800; }
 .ct-edicao .ct-campanha-bloco .ct-botao { min-height: 44px; margin-top: 4px; padding: 0 16px; font-size: 14px; }
+.ct-campanha-bloco--mapa { gap: 10px; margin-top: 18px; padding: 16px; border: 2px solid var(--ct-chocolate); background: var(--ct-amarelo); box-shadow: 3px 3px 0 var(--ct-chocolate); }
+.ct-campanha-bloco__selo { display: flex; align-items: center; gap: 10px; font: 900 11px/1.2 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
+.ct-edicao .ct-campanha-bloco__selo img { width: 48px; height: 48px; max-width: none; object-fit: contain; }
+.ct-edicao .ct-campanha-bloco--mapa .ct-campanha-bloco__titulo { max-width: 19ch; margin: 0; font: 900 clamp(20px, 3vw, 24px)/1.12 var(--ct-font); text-wrap: balance; }
+.ct-edicao .ct-campanha-bloco--mapa .ct-campanha-bloco__texto { margin: 0; font: 600 14px/1.4 var(--ct-font); }
+.ct-edicao .ct-campanha-bloco--mapa .ct-campanha-bloco__prazo { margin: 0; padding: 5px 9px; border-radius: 999px; background: var(--ct-branco); font: 800 13px/1.2 var(--ct-font); }
+.ct-edicao .ct-campanha-bloco--mapa .ct-botao { background: var(--ct-chocolate); color: var(--ct-branco); }
 .ct-campanha-aviso { margin-top: 12px; }
 
 /* Link de texto ao lado do logo na assinatura do patrocínio (entrada). Alvo de toque de 44px. */

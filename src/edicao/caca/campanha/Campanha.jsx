@@ -6,6 +6,7 @@
 import React from 'react'
 import { Link } from '../../componentes/base.jsx'
 import { Botao } from '../../componentes/sistema/pecas.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { useAgora } from '../../cartoon/useAgora.js'
 import { CAMPANHA, TEXTOS_CAMPANHA as T, estadoDaCampanha, prazoCurto } from './terComQuemContar.js'
 
@@ -22,13 +23,15 @@ export function useCampanha () {
 export function BlocoCampanha ({ navigate, variante = 'mapa', className = '' }) {
   const e = useCampanha()
   if (!e.aberta) return null
-  const titulo = variante === 'premios' || variante === 'disputa' ? T.bloco.premiosTitulo : T.bloco.titulo
+  const mapa = variante === 'mapa'
+  const titulo = mapa ? 'Sua história pode ganhar um par de vouchers!' : variante === 'premios' || variante === 'disputa' ? T.bloco.premiosTitulo : T.bloco.titulo
   return (
-    <section className={`ct-campanha-bloco ${className}`.trim()} aria-label={T.bloco.titulo}>
+    <section className={`ct-campanha-bloco${mapa ? ' ct-campanha-bloco--mapa' : ''} ${className}`.trim()} aria-label={T.bloco.titulo}>
+      {mapa && <><div className="ct-campanha-bloco__selo"><IconeCartoon nome="vouchers" tamanho={48} /><span>Campanha do Sicredi</span></div></>}
       <h3 className="ct-campanha-bloco__titulo">{titulo}</h3>
-      <p className="ct-campanha-bloco__texto">{T.bloco[variante]}</p>
+      <p className="ct-campanha-bloco__texto">{mapa ? `Conte em vídeo uma história de quem esteve ao seu lado. ${CAMPANHA.historias} histórias serão escolhidas.` : T.bloco[variante]}</p>
       <p className="ct-campanha-bloco__prazo">{prazoCurto(e)}</p>
-      <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>{T.bloco.ver}</Botao>
+      <Botao tipo={mapa ? 'primario' : 'secundario'} href={CAMPANHA.caminho} navigate={navigate}>{mapa ? 'Quero participar' : T.bloco.ver}</Botao>
     </section>
   )
 }
