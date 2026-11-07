@@ -223,6 +223,13 @@ export default defineConfig({
   plugins: [react(), visualOverridesDevApi(), paginasEstaticasDev(), versaoDoPainel(), versaoDoSite(), semRetratoLocal()],
   build: {
     rollupOptions: {
+      // Novo prefixo evita reutilizar respostas 404 imutáveis gravadas antes da correção do cache.
+      // Mantém /assets/ para o service worker e o verificador de versão do painel.
+      output: {
+        entryFileNames: 'assets/v2-[name]-[hash].js',
+        chunkFileNames: 'assets/v2-[name]-[hash].js',
+        assetFileNames: 'assets/v2-[name]-[hash][extname]',
+      },
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         painel: fileURLToPath(new URL('./painel-app/index.html', import.meta.url)),
