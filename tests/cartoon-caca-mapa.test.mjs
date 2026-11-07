@@ -272,11 +272,12 @@ test('textos: cada estado diz o que é, sem "voto/votação", sem "Sweet" sozinh
   assert.match(T.proximo.completo, /uma surpresa/)
 })
 
-test('textos do Sicredi: "Patrocinador", "o Sicredi", e que não conta como casa nem carimbo', () => {
+test('textos do Sicredi: agência não é casa; carimbo especial exige print aprovado', () => {
   assert.equal(T.sicrediRotulo, 'Patrocinador')
   assert.match(T.sicrediAviso, /^O Sicredi é o patrocinador/)
-  assert.match(T.sicrediAviso, /não contam como casa nem como carimbo/)
-  assert.match(T.sicrediNoMundo('Sicredi Natal', 'Rua A'), /Não conta como casa nem como carimbo/)
+  assert.match(T.sicrediAviso, /print do vídeo publicado/)
+  assert.match(T.sicrediNoMundo('Sicredi Natal', 'Rua A'), /agência não conta como casa/)
+  assert.match(T.sicrediNoMundo('Sicredi Natal', 'Rua A'), /aprovação do print/)
   assert.match(T.sicrediNomeMarcador('Sicredi Natal', true), /patrocinador, ponto aproximado, não conta como casa/)
   assert.doesNotMatch(JSON.stringify(T), /Patrocínio/)
 })

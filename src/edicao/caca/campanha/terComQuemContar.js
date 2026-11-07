@@ -2,8 +2,8 @@
  * Campanha "Ter com quem contar" (Sicredi, patrocinadora da Cartoon) — fatos, prazo e textos. Funções puras (tests/cartoon-sicredi-campanha.test.mjs).
  *
  * Só o que foi informado pela organização: sem data de resultado, sem validade de voucher, sem regulamento extra.
- * A campanha acontece no Instagram e é SEPARADA da Caça aos Carimbos: não conta carimbo, meta nem ranking, e o Sicredi
- * nunca é casa. A escolha é de uma equipe de jornalistas; o festival nunca é chamado de "Sweet" sozinho.
+ * A promoção de vouchers é independente da Caça. A organização pode aprovar o print da publicação e conceder o carimbo especial Sicredi;
+ * ele soma pontos no ranking e nos sorteios, sem contar como casa visitada. A escolha dos vouchers é de uma equipe de jornalistas.
  */
 import { EDICAO } from '../../config.js'
 
@@ -96,7 +96,7 @@ export const TEXTOS_CAMPANHA = Object.freeze({
   ],
 
   separadaTitulo: 'Separada da Caça aos Carimbos',
-  separadaTexto: 'A campanha acontece no Instagram. Ela não conta carimbo, meta nem ranking, e o Sicredi não é uma das casas do mapa.',
+  separadaTexto: 'A promoção de vouchers é independente da Caça. Mas, se você enviar o print do vídeo publicado e a organização aprovar, ganha um carimbo especial Sicredi. Ele soma pontos no ranking e nos sorteios, sem contar como casa visitada.',
   separadaAcao: 'Conhecer a Caça aos Carimbos',
 
   perfisTitulo: 'Perfis no Instagram',
@@ -108,12 +108,12 @@ export const TEXTOS_CAMPANHA = Object.freeze({
   bloco: {
     titulo: CAMPANHA.nome,
     ver: 'Ver a campanha',
-    mapa: 'Campanha do Sicredi no Instagram: conte em vídeo uma história de quem esteve ao seu lado. Não conta carimbo.',
+    mapa: 'Conte sua história na campanha do Sicredi. Envie o print da publicação e, após aprovação, ganhe um carimbo especial.',
     premiosTitulo: `Também valendo: ${CAMPANHA.nome}`,
-    premios: `Campanha do Sicredi no Instagram: ${CAMPANHA.historias} histórias escolhidas, um par de vouchers para cada pessoa. É separada da Caça: não conta carimbo, meta nem ranking.`,
+    premios: `Campanha do Sicredi no Instagram: ${CAMPANHA.historias} histórias escolhidas, um par de vouchers para cada pessoa. Quem enviar o print e tiver a participação aprovada também ganha um carimbo especial Sicredi para ranking e sorteios.`,
     // Pop-up "O que você disputa" (mapa): a promoção dita por inteiro, com os 2 vouchers à vista.
-    disputa: `Conte em vídeo, no Instagram, uma história de alguém com quem você pôde contar. A equipe do festival escolhe ${CAMPANHA.historias} histórias, e cada pessoa escolhida ganha ${CAMPANHA.vouchersPorPessoa} vouchers (um par) para um combo do festival. É separada da Caça: não conta carimbo, meta nem ranking.`,
-    metas: 'Fora da Caça, o Sicredi tem a campanha Ter com quem contar no Instagram. Ela não conta carimbo nem meta.',
+    disputa: `Conte em vídeo, no Instagram, uma história de alguém com quem você pôde contar. A equipe do festival escolhe ${CAMPANHA.historias} histórias, e cada pessoa escolhida ganha ${CAMPANHA.vouchersPorPessoa} vouchers (um par) para um combo do festival. Envie o print da publicação para pedir o carimbo especial Sicredi; após aprovação, ele soma pontos no ranking e nos sorteios, sem contar como casa visitada.`,
+    metas: 'Na campanha Ter com quem contar, envie o print do vídeo publicado para pedir o carimbo especial Sicredi. A organização analisa e, se aprovar, ele conta no ranking e nos sorteios, mas não como casa visitada.',
     rodape: CAMPANHA.nome,
   },
 })

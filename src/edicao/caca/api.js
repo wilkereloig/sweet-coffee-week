@@ -226,6 +226,26 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       } catch { return sem('rede') }
     }),
 
+    /* ---- promoção do Sicredi: print privado, revisão da organização e carimbo especial ---- */
+
+    sicrediCampanhaMeus: (chave) => comChave(chave, () => rpcOk('caca_sicredi_campanha_meus', { p_chave: chave })),
+    sicrediCampanhaPedir: (chave) => comChave(chave, () => rpcOk('caca_sicredi_campanha_pedir', { p_chave: chave })),
+    /** Assina o upload no servidor, envia o print ao bucket privado e só então coloca o pedido na fila da organização. */
+    sicrediCampanhaEnviarImagem: (chave, id, { blob, ext, tipo }) => comChave(chave, async () => {
+      if (!FORMATO_UUID.test(String(id || '')) || !blob) return sem('pedido_nao_encontrado')
+      try {
+        const r = await buscar(`${urlBase}/functions/v1/caca-delivery`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ acao: 'subir', tipo: 'sicredi_campanha', chave, pedido: id, ext }),
+        })
+        const d = await r.json().catch(() => null)
+        if (d?.ok !== true || typeof d.url !== 'string') return sem(typeof d?.motivo === 'string' && MOTIVO.test(d.motivo) ? d.motivo : 'rede')
+        const up = await buscar(d.url, { method: 'PUT', body: blob, headers: { 'Content-Type': tipo } })
+        if (!up.ok) return sem('upload_falhou')
+        return await rpcOk('caca_sicredi_campanha_anexar', { p_chave: chave, p_id: id, p_path: d.path })
+      } catch { return sem('rede') }
+    }),
+
     /* ---- ranking geral e metas ---- */
 
     /** `caca_ranking_publico`: `{ ok:true, ranking:[{posicao, apelido, casas, extras}] }`, só quem optou por aparecer, até `limite` (1 a 50). Pública, sem chave. */

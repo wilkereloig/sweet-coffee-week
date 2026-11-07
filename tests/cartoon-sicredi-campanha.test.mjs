@@ -75,15 +75,16 @@ test('textos: só os fatos informados (nada de data de resultado, validade de vo
   assert.equal(T.passos.length, 3)
 })
 
-test('textos: a campanha é no Instagram e separada da Caça (não conta carimbo, meta nem ranking)', () => {
+test('textos: campanha de vouchers separada; print aprovado dá carimbo Sicredi de ranking', () => {
   assert.match(T.separadaTexto, /Instagram/)
-  assert.match(T.separadaTexto, /não conta carimbo, meta nem ranking/)
-  assert.match(T.bloco.mapa, /Não conta carimbo/)
-  assert.match(T.bloco.premios, /separada da Caça/)
-  assert.match(T.bloco.premios, /não conta carimbo, meta nem ranking/)
+  assert.match(T.separadaTexto, /print/i)
+  assert.match(T.separadaTexto, /carimbo especial Sicredi/)
+  assert.match(T.bloco.mapa, /print/i)
+  assert.match(T.bloco.premios, /carimbo especial Sicredi/)
+  assert.match(T.bloco.premios, /ranking e nos sorteios/)
   assert.match(T.bloco.premios, /10 histórias/); assert.match(T.bloco.premios, /um par de vouchers/)
   assert.match(T.bloco.premiosTitulo, /^Também valendo: Ter com quem contar$/)
-  assert.match(T.bloco.metas, /não conta carimbo nem meta/i)
+  assert.match(T.bloco.metas, /organização analisa/i)
 })
 
 test('perfis: links certos, em outra aba e sem referrer', () => {
@@ -139,16 +140,18 @@ test('entradas: cartão da agência, lista, painel de Prêmios, Metas, rodapé e
   assert.match(campanha, /if \(!e\.aberta\) return null/, 'some depois de 11/11')
 })
 
-test('a Sicredi nunca vira casa nem carimbo: a campanha não toca no jogo', () => {
+test('a agência não vira casa; campanha concede carimbo especial após aprovação', () => {
   assert.ok(AGENCIAS_SICREDI.length >= 1 && AGENCIAS_SICREDI.every((a) => ehSicredi(a.id)), 'agências seguem fora da lista de casas')
-  for (const f of FONTES) {
+  for (const f of FONTES.slice(0, 2)) {
     const imports = semComentarios(ler(f)).split('\n').filter((l) => /^\s*import /.test(l)).join('\n')
     assert.doesNotMatch(imports, /useCaca|usarMetas|usarPremios|caca\/api|carimbo|mapa\/estados|ranking|premios\/logica/i, `${f}: não importa carimbo, meta, prêmio nem ranking`)
   }
-  // Os dois cartões da Sicredi continuam dizendo, em texto, que o patrocinador não conta.
+  // Agências não contam como casa; a campanha pode conceder um carimbo especial.
   const sicredi = ler('src/edicao/caca/mapa/Sicredi.jsx')
   assert.match(sicredi, /sicrediAviso/); assert.match(sicredi, /sicrediNaoConta/)
-  assert.match(ler('src/edicao/caca/mapa/textos.js'), /sicrediNaoConta: 'Não conta como casa nem como carimbo'/)
+  assert.match(ler('src/edicao/caca/mapa/textos.js'), /sicrediNaoConta: 'Agência não conta como casa/)
+  const pagina = ler('src/edicao/cartoon/paginas/TerComQuemContar.jsx')
+  assert.match(pagina, /useCaca/); assert.match(pagina, /sicrediCampanhaEnviarImagem/)
 })
 
 test('avisos: categoria "campanha" desligada por padrão, com destino permitido e o mesmo destino/prazo do banco', () => {

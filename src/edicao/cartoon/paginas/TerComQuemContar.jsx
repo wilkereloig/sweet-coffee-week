@@ -4,14 +4,73 @@
  * Depois de 11/11 (Fortaleza) a página continua abrindo, sem chamada para participar.
  */
 import React from 'react'
+import { useCaca } from '../../caca/useCaca.js'
+import { prepararImagem } from '../../caca/delivery/imagem.js'
 import { MARCAS_PARCEIROS } from '../../../data/imageLibrary'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
+import { Link } from '../../componentes/base.jsx'
 import { Botao, Rotulo } from '../../componentes/sistema/pecas.jsx'
 import { CAMPANHA, TEXTOS_CAMPANHA as T, estadoDaCampanha } from '../../caca/campanha/terComQuemContar.js'
 import { CACA_CAMINHOS } from '../../caca/textos.js'
 import { useAgora } from '../useAgora.js'
 
 const EXTERNO = { target: '_blank', rel: 'noopener noreferrer' }
+
+function EnvioCarimboSicredi ({ aberta, navigate }) {
+  const caca = useCaca({ comEmail: false })
+  const [pedidos, setPedidos] = React.useState([])
+  const [erro, setErro] = React.useState('')
+  const [ocupado, setOcupado] = React.useState(false)
+  const [rascunho, setRascunho] = React.useState(null)
+  React.useEffect(() => {
+    let vivo = true
+    if (caca.estado === 'pronto' && caca.chave) caca.api.sicrediCampanhaMeus(caca.chave).then((r) => { if (vivo && r.ok) setPedidos(r.pedidos || []) })
+    return () => { vivo = false }
+  }, [caca.estado, caca.chave, caca.api])
+  const atual = pedidos.find((p) => p.estado === 'pendente' || p.estado === 'aprovado' || p.estado === 'rascunho')
+  async function iniciar () {
+    setErro(''); setOcupado(true)
+    const r = await caca.api.sicrediCampanhaPedir(caca.chave)
+    setOcupado(false)
+    if (!r.ok) { setErro(r.motivo === 'campanha_encerrada' ? 'O prazo para enviar a comprovação terminou.' : 'Não deu para iniciar o envio. Tente novamente.'); return }
+    setRascunho(r.id); setPedidos((p) => [{ id: r.id, estado: 'rascunho' }, ...p.filter((x) => x.estado !== 'negado')])
+  }
+  async function enviar (arquivo) {
+    setErro(''); setOcupado(true)
+    const img = await prepararImagem(arquivo)
+    if (!img.ok) { setOcupado(false); setErro('Escolha um print em JPG, PNG ou WebP, com boa leitura.'); return }
+    const r = await caca.api.sicrediCampanhaEnviarImagem(caca.chave, rascunho || atual?.id, img)
+    setOcupado(false)
+    if (!r.ok) { setErro('O envio não foi concluído. Confira sua conexão e tente novamente.'); return }
+    setRascunho(null)
+    const l = await caca.api.sicrediCampanhaMeus(caca.chave)
+    if (l.ok) setPedidos(l.pedidos || [])
+  }
+  return (
+    <section className="ct-bloco ct-tcqc__carimbo" aria-labelledby="tcqc-carimbo">
+      <div><Rotulo>Carimbo especial</Rotulo><h2 id="tcqc-carimbo" className="ct-h2">Ganhe o carimbo Sicredi</h2>
+        <p>Publique o vídeo da campanha no seu Instagram e envie um print da publicação. A organização confere sua participação.</p>
+        <p className="ct-nota">Com a aprovação, você ganha um carimbo Sicredi que soma pontos no ranking e nos sorteios. Ele não conta como casa visitada.</p>
+      </div>
+      {caca.estado === 'sem-mapa' && <p>Para enviar o print, primeiro <Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-link">crie seu mapa da Caça aos Carimbos</Link>.</p>}
+      {caca.estado === 'carregando' && <p role="status">Carregando seu mapa…</p>}
+      {caca.estado === 'falha' && <p role="status">Não foi possível carregar seu mapa agora. Atualize a página e tente de novo.</p>}
+      {caca.estado === 'pronto' && (atual?.estado === 'aprovado'
+        ? <p className="ct-tcqc__carimbo-status" role="status">Carimbo Sicredi aprovado! Ele já conta no seu ranking e nos sorteios.</p>
+        : atual?.estado === 'pendente'
+          ? <p className="ct-tcqc__carimbo-status" role="status">Print recebido. A organização vai analisar seu pedido.</p>
+          : atual?.estado === 'rascunho' || rascunho
+            ? <label className="ct-tcqc__upload">{ocupado ? 'Enviando seu print…' : 'Escolher print da publicação'}
+                <input type="file" accept="image/jpeg,image/png,image/webp" disabled={ocupado} onChange={(ev) => { const f = ev.target.files?.[0]; if (f) enviar(f); ev.target.value = '' }} />
+              </label>
+            : aberta
+              ? <button className="ct-botao" type="button" disabled={ocupado} onClick={iniciar}>{ocupado ? 'Preparando…' : 'Enviar print da publicação'}</button>
+              : <p>O prazo para participar da promoção terminou.</p>)}
+      {erro && <p className="ct-tcqc__carimbo-erro" role="alert">{erro}</p>}
+      {pedidos.some((p) => p.estado === 'negado') && !atual && aberta && <p>Seu envio anterior não foi aprovado. Você pode tentar novamente com outro print.</p>}
+    </section>
+  )
+}
 
 function IlustracaoPasso ({ indice }) {
   return (
@@ -65,6 +124,8 @@ export function TerComQuemContar ({ navigate }) {
           )
           : <p className="ct-lead">{T.encerradaNota}</p>}
       </div>
+
+      <EnvioCarimboSicredi aberta={e.aberta} navigate={navigate} />
 
       <section className="ct-bloco ct-tcqc__escolha" aria-labelledby="tcqc-escolha">
         <h2 id="tcqc-escolha" className="ct-h2">{T.escolhaTitulo}</h2>

@@ -6,7 +6,7 @@ export const RANKING = {
     titulo: 'Como o ranking funciona',
     itens: [
       'Vence quem conheceu mais casas diferentes.',
-      'Se o número de casas for igual, os carimbos extras (voltar a uma casa que você já validou) desempatam.',
+      'Se o número de casas for igual, os carimbos extras desempatam. Eles incluem revisitas validadas e o carimbo especial Sicredi aprovado pela organização.',
       'Continuou igual? Vocês ficam empatados, na mesma posição. Não desempatamos por horário.',
     ],
     privacidade: 'Apelido e progresso aparecem só para quem autorizou. Posições sem identificação são mantidas no ranking.',

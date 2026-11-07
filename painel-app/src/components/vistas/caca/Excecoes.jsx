@@ -14,12 +14,13 @@ import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
  * as 12 h e a janela); negar exige o motivo. A casa não participa e o banco guarda quem decidiu.
  */
 export function Excecoes({ edicao, pode }) {
+  const gerir = pode('producao.gerir')
+  const contato = pode('relatorio.ler')
   const lista = useLeitura(() => cacaApi.excecoes(edicao), ['carimbos'], { chave: 'excecoes-' + edicao })
+  const sicredi = useLeitura(() => cacaApi.sicrediCampanha(edicao), ['carimbos'], { chave: 'sicredi-campanha-' + edicao, ativo: gerir, opcional: !gerir })
   const [ocupado, executar] = useExecutar()
   const [aviso, setAviso] = React.useState('')
   const [estado, setEstado] = React.useState('pendente')
-  const gerir = pode('producao.gerir')
-  const contato = pode('relatorio.ler')
 
   // Imagem do pedido de delivery (bucket privado): link de 300 s, aberto numa aba nova; excluir é manual e não desfaz o carimbo.
   async function verImagem(p) {
@@ -28,6 +29,27 @@ export function Excecoes({ edicao, pode }) {
       const r = await executar('img-' + p.id, () => cacaApi.imagemDelivery(p.imagem))
       if (r && r.url && aba) { aba.opener = null; aba.location.href = r.url } else if (aba) aba.close()
     } catch (e) { if (aba) aba.close() }
+  }
+  async function verPrintSicredi(p) {
+    const aba = window.open('about:blank', '_blank')
+    try {
+      const r = await executar('sicredi-img-' + p.id, () => cacaApi.imagemSicrediCampanha(p.imagem))
+      if (r && r.url && aba) { aba.opener = null; aba.location.href = r.url } else if (aba) aba.close()
+    } catch { if (aba) aba.close() }
+  }
+  async function decidirSicredi(p, decisao) {
+    const aprova = decisao === 'aprovar'
+    const nota = await pedirTexto(aprova
+      ? `Confirme que o print de ${p.apelido} mostra a publicação do vídeo da campanha Sicredi.`
+      : `Informe por que o comprovante de ${p.apelido} não foi aceito.`,
+    { rotulo: aprova ? 'Observação (opcional)' : 'Motivo (obrigatório)' },
+    { titulo: aprova ? 'Aprovar o carimbo Sicredi?' : 'Negar o comprovante?', acao: aprova ? 'Aprovar e conceder carimbo' : 'Negar', perigo: !aprova })
+    if (nota === null) return
+    if (!aprova && !nota.trim()) { await avisar('Escreva o motivo para a pessoa.'); return }
+    const r = await executar('sicredi-' + p.id, () => cacaApi.decidirSicrediCampanha(p.id, decisao, nota.trim()))
+    if (r === undefined) return
+    await sicredi.recarregar()
+    setAviso(aprova ? `Carimbo Sicredi aprovado para ${p.apelido}; já soma no ranking e nos sorteios.` : `Comprovante de ${p.apelido} negado.`)
   }
   async function excluirImagem(p) {
     const ok = await confirmar('A imagem é apagada do armazenamento privado e não volta. A decisão e o carimbo, se houver, continuam. Ainda não há prazo de retenção aprovado: use isto quando a imagem não for mais necessária.', { titulo: 'Excluir a imagem deste pedido?', acao: 'Excluir imagem', perigo: true })
@@ -58,6 +80,23 @@ export function Excecoes({ edicao, pode }) {
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
+      {gerir && (
+        <Secao titulo="Comprovantes da campanha Sicredi" nota="Confira se o print comprova que o vídeo da campanha foi publicado. Ao aprovar, a pessoa recebe um carimbo especial que vale no ranking e nos sorteios, sem contar como casa visitada.">
+          {sicredi.bloqueada ? <Erro texto={sicredi.erro} onTentar={sicredi.recarregar} /> : !sicredi.dados ? <Carregando /> : !sicredi.dados.itens?.length
+            ? <Vazio titulo="Nenhum comprovante da campanha">Quando alguém enviar um print, ele aparecerá para análise aqui.</Vazio>
+            : <Tabela rotulo="Comprovantes da campanha Sicredi" colunas={['Participante', 'Enviado', 'Comprovante', 'Situação', ...(gerir ? ['Ação'] : [])]}>
+              {sicredi.dados.itens.map((p) => <tr key={p.id}>
+                <th scope="row">{p.apelido}</th><td>{horaNatal(p.enviado_em || p.criado_em)}</td>
+                <td>{p.imagem && <Botao variante="secundario" disabled={!!ocupado} onClick={() => verPrintSicredi(p)}>Ver print</Botao>}</td>
+                <td><Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>{p.decisao_nota && <span className="cp-sub"> {p.decisao_nota}</span>}</td>
+                <td>{p.estado === 'pendente' ? <div className="cp-acoes">
+                  <Botao disabled={!!ocupado} onClick={() => decidirSicredi(p, 'aprovar')}>Aprovar e carimbar</Botao>
+                  <Botao variante="secundario" disabled={!!ocupado} onClick={() => decidirSicredi(p, 'negar')}>Negar</Botao>
+                </div> : p.decidido_por ? `${p.decidido_por} · ${horaNatal(p.decidido_em)}` : '—'}</td>
+              </tr>)}
+            </Tabela>}
+        </Secao>
+      )}
       <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores à Caça e delivery. Na visita anterior, a pessoa informa a data e pode explicar o horário aproximado e os detalhes do que viveu, enviar uma foto, ou fazer os dois. Confira o relato e a foto (quando houver), junto ao contexto do mapa, antes de decidir. Delivery com código é confirmado pela casa; delivery com foto é decidido aqui. A casa nunca decide e nenhum pedido conta antes da aprovação.">
         <Escolha rotulo="Mostrar" valor={estado} onMudar={setEstado} className="cp-filtro"
           opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />

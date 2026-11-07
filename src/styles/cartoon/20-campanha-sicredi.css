@@ -16,6 +16,15 @@
 .ct-edicao .ct-tcqc__selo img { display: block; width: auto; max-width: none; height: 34px; }
 
 .ct-tcqc__duas { display: grid; gap: 32px; align-items: start; }
+.ct-tcqc__carimbo { display: grid; gap: 12px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: #63c733; box-shadow: var(--ct-sombra-p); }
+.ct-tcqc__carimbo > div { max-width: 68ch; }
+.ct-edicao .ct-tcqc__carimbo p { margin: 8px 0 0; font: 600 var(--ct-fs-texto)/1.45 var(--ct-font); }
+.ct-tcqc__carimbo .ct-nota { font-size: 14px; }
+.ct-edicao .ct-tcqc__carimbo-status { padding: 12px 16px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); font-weight: 800; }
+.ct-central__sicredi { font-weight: 800; }
+.ct-edicao .ct-tcqc__carimbo-erro { color: #741e19; font-weight: 800; }
+.ct-tcqc__upload { display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border: var(--ct-traco); border-radius: 999px; background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); font: 900 15px/1.2 var(--ct-font); cursor: pointer; }
+.ct-tcqc__upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
 @media (min-width: 900px) { .ct-tcqc__duas { grid-template-columns: minmax(240px, 330px) minmax(0, 1fr); gap: clamp(36px, 5vw, 72px); } }
 
 /* Vídeo vertical (720×1280): largura de celular, centralizado no celular e à esquerda ao lado dos passos no desktop. */

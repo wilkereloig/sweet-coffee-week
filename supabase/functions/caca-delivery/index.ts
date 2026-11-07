@@ -1,6 +1,6 @@
 // =============================================================================
 // Edge Function: caca-delivery
-// Assina o envio de provas por imagem para pedidos de delivery e visita anterior.
+// Assina o envio de provas por imagem para delivery, visita anterior e campanha Sicredi.
 //
 // O bucket `caca-delivery` é PRIVADO e sem policy: só service_role escreve. O visitante não tem login; o que o autoriza é a chave do
 // mapa dele, conferida pelo banco em `caca_delivery_imagem_reservar` (dono do pedido, pedido pendente, sem imagem anterior, até 5
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
   const chave = String(p.chave || '')
   const pedido = String(p.pedido || '')
   const ext = String(p.ext || '').toLowerCase()
-  const tipo = p.tipo === 'visita_anterior' ? 'visita_anterior' : 'delivery'
+  const tipo = p.tipo === 'visita_anterior' || p.tipo === 'sicredi_campanha' ? p.tipo : 'delivery'
   if (p.acao !== 'subir' || chave.length < 16 || chave.length > 128 || !UUID.test(pedido) || !['jpg', 'png', 'webp'].includes(ext)) {
     return json({ ok: false, motivo: 'pedido_invalido' }, 400)
   }
@@ -49,7 +49,11 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
 
-  const funcao = tipo === 'visita_anterior' ? 'caca_visita_anterior_imagem_reservar' : 'caca_delivery_imagem_reservar'
+  const funcao = tipo === 'visita_anterior'
+    ? 'caca_visita_anterior_imagem_reservar'
+    : tipo === 'sicredi_campanha'
+      ? 'caca_sicredi_campanha_imagem_reservar'
+      : 'caca_delivery_imagem_reservar'
   const { data, error } = await admin.rpc(funcao, { p_chave: chave, p_id: pedido, p_ext: ext })
   if (error) return json({ ok: false, motivo: 'falha_temporaria' }, 503)
   if (!data || data.ok !== true || typeof data.path !== 'string') {

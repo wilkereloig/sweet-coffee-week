@@ -578,6 +578,9 @@ export const cacaApi = {
   // Pedidos de revisão de presença (GPS) e o resumo de carimbos sem GPS (15-caca-contrato-gps.md).
   excecoes: (edicao, estado, f) => rpc('caca_excecao_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null }, f),
   decidirExcecao: (id, decisao, nota, f) => rpc('caca_excecao_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),
+  sicrediCampanha: (edicao, estado, f) => rpc('caca_sicredi_campanha_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null }, f),
+  decidirSicrediCampanha: (id, decisao, nota, f) => rpc('caca_sicredi_campanha_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),
+  imagemSicrediCampanha: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: 'caca-delivery', path }),
   // Imagem do pedido de delivery (bucket privado caca-delivery): link de 300 s e exclusão manual (sem prazo de retenção aprovado).
   imagemDelivery: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: 'caca-delivery', path }),
   removerImagemDelivery: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'remover', bucket: 'caca-delivery', path }),
