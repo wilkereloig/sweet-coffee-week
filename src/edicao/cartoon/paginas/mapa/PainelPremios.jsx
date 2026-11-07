@@ -6,11 +6,13 @@
  */
 import React from 'react'
 import { Carregando } from '../../../componentes/base.jsx'
+import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao } from '../../../componentes/sistema/pecas.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { PREMIOS as P } from '../../../caca/premios/textos.js'
 import { situacaoDoJogador } from '../../../caca/premios/logica.js'
 import { usarPremios } from '../../../caca/premios/usarPremios.js'
+import { usarMeusPremios } from '../../../caca/premios/usarMeusPremios.js'
 import { usarMetas } from '../../../caca/metas/usarMetas.js'
 import { BlocoCampanha } from '../../../caca/campanha/Campanha.jsx'
 
@@ -81,6 +83,35 @@ function Metas ({ caca }) {
   )
 }
 
+function MeusVouchers ({ caca, navigate }) {
+  const { estado, premios, tentar } = usarMeusPremios(caca)
+  if (estado === 'sem-mapa' || (estado === 'pronto' && premios.length === 0)) return null
+  if (estado === 'carregando') return <p className="ct-nota" role="status">Conferindo se há um voucher para este mapa…</p>
+  if (estado === 'falha') return <div className="ct-estado" role="alert"><p>Não foi possível carregar seus vouchers agora.</p><button type="button" className="ct-botao" onClick={tentar}>Tentar de novo</button></div>
+
+  return (
+    <section className="ct-premios__bloco ct-premios__pessoal" aria-labelledby="premios-pessoais" role="status">
+      <p className="ct-rotulo">Aviso para este mapa</p>
+      <h3 id="premios-pessoais" className="ct-sub">Seu voucher</h3>
+      {premios.map((premio) => (
+        <article key={premio.id} className={`ct-premios__ganho is-${premio.estado}`}>
+          <div className="ct-premios__ganho-cabeca"><IconeCartoon nome="vouchers" tamanho={52} /><h4>{premio.estado === 'selecionado' ? 'Você foi selecionado para o voucher!' : premio.estado === 'entregue' ? 'Seu voucher foi entregue' : 'Você ganhou um voucher!'}</h4></div>
+          <p>Voucher do dia {premio.dia.curta}.</p>
+          {premio.estado === 'selecionado' && (
+            <>
+              <p>Confirme o e-mail cadastrado no mapa{premio.prazo ? ` até ${premio.prazo}` : ''} para a organização concluir a validação.</p>
+              <Botao href={TC.caminhos.central} navigate={navigate}>Ir para confirmar meu e-mail</Botao>
+            </>
+          )}
+          {premio.estado === 'confirmado' && <p>A organização confirmou seu prêmio. Acompanhe os avisos do mapa para saber como receber o voucher.</p>}
+          {premio.estado === 'entregue' && <p>A organização marcou este voucher como entregue.</p>}
+          {premio.validade && <p className="ct-nota">Válido até {premio.validade.longa}.</p>}
+        </article>
+      ))}
+    </section>
+  )
+}
+
 export function PainelPremios ({ caca, totalDaEdicao = 0, navigate }) {
   const { estado, dado, tentar } = usarPremios(caca.api)
   const eu = situacaoDoJogador(caca.estado === 'pronto' ? caca.mapa : null, totalDaEdicao)
@@ -88,6 +119,7 @@ export function PainelPremios ({ caca, totalDaEdicao = 0, navigate }) {
   return (
     <div className="ct-premios">
       <p className="ct-nota">{P.intro}</p>
+      <MeusVouchers caca={caca} navigate={navigate} />
 
       <section className="ct-premios__bloco" aria-labelledby="premio-vouchers">
         <h3 id="premio-vouchers" className="ct-sub">{P.vouchersTitulo}</h3>

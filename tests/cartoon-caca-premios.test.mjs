@@ -4,7 +4,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { descreverData, horaDoCorte, organizarPremios, organizarPeriodo, estadoExibido, situacaoDoJogador } from '../src/edicao/caca/premios/logica.js'
+import { descreverData, horaDoCorte, organizarPremios, organizarMeusPremios, organizarPeriodo, estadoExibido, situacaoDoJogador } from '../src/edicao/caca/premios/logica.js'
 import { PREMIOS as P } from '../src/edicao/caca/premios/textos.js'
 import { criarApi } from '../src/edicao/caca/api.js'
 
@@ -65,6 +65,21 @@ test('estados nunca afirmam entrega ou vencedor; só "resultado confirmado" fala
   for (const t of [...Object.values(P.estado), ...Object.values(P.estadoDica)]) assert.doesNotMatch(t, /entregue|vencedor|ganhou o voucher|parabéns/i)
   assert.match(P.estadoDica.em_apuracao, /ainda não há confirmação/)
   assert.match(P.estado.resultado, /confirmado/)
+})
+
+test('prêmios pessoais: mostra apenas estados ativos, valida dados e ordena os dias mais recentes primeiro', () => {
+  const lista = organizarMeusPremios([
+    { id: 'antigo', dia: '2026-11-06', estado: 'entregue', valido_ate: '2026-11-15' },
+    { id: 'pendente', dia: '2026-11-07', estado: 'selecionado', prazo_ate: '2026-11-08T03:00:00Z' },
+    { id: 'confirmado', dia: '2026-11-08', estado: 'confirmado' },
+    { id: 'cancelado', dia: '2026-11-09', estado: 'cancelado' },
+    { id: 'data-ruim', dia: 'ontem', estado: 'confirmado' },
+    null,
+  ])
+  assert.deepEqual(lista.map((p) => p.id), ['confirmado', 'pendente', 'antigo'])
+  assert.equal(lista[1].prazo, '8 de novembro às 00:00')
+  assert.equal(lista[2].validade.longa, '15 de novembro')
+  assert.deepEqual(organizarMeusPremios(null), [])
 })
 
 test('período da Caça (início e fim vêm do servidor): antes · aberta · encerrada, e a tela só afirma o que sabe', () => {
@@ -154,6 +169,31 @@ test('api: premiosLer chama a RPC pública da edição, sem chave, e devolve só
   assert.equal(r.ok, true); assert.equal(r.premios.dias.length, 5)
   const falha = await criarApi({ chamar: async () => { throw new Error('rede') } }).premiosLer()
   assert.equal(falha.ok, false)
+})
+
+test('api: meusPremios exige a chave pessoal e chama RPC privada do próprio mapa', async () => {
+  const chamadas = []
+  const api = criarApi({ chamar: async (nome, corpo) => { chamadas.push([nome, corpo]); return { premios: [{ id: 'p1', dia: '2026-11-07', estado: 'confirmado' }] } } })
+  const r = await api.meusPremios('a'.repeat(32))
+  assert.deepEqual(chamadas, [['caca_meus_premios', { p_chave: 'a'.repeat(32) }]])
+  assert.equal(r.ok, true); assert.equal(r.premios[0].id, 'p1')
+  chamadas.length = 0
+  const semChave = await api.meusPremios('')
+  assert.equal(semChave.ok, false); assert.deepEqual(chamadas, [])
+})
+
+test('migration dos prêmios pessoais: a RPC limita pelo mapa da chave e o aviso nasce ao confirmar', () => {
+  const sql = ler('supabase/migrations/20270108_caca_premios_pessoais.sql')
+  const corpo = semComentarios(sql)
+  assert.match(corpo, /where chave_hash = public\.mapa_hash\(p_chave\)/)
+  assert.match(corpo, /m\.id is distinct from public\.caca_mapa_principal\(m\.edicao_codigo, m\.email_norm\)/)
+  assert.match(corpo, /p\.mapa_id = m\.id/)
+  assert.match(corpo, /p\.estado in \('selecionado', 'confirmado', 'entregue'\)/)
+  assert.match(corpo, /grant execute on function public\.caca_meus_premios\(text\) to anon, authenticated/)
+  assert.match(corpo, /'Você ganhou um voucher!'/)
+  assert.match(corpo, /'premio:' \|\| new\.id \|\| ':confirmado'/)
+  assert.match(corpo, /after insert or update of estado on public\.caca_premio/)
+  assert.ok(fs.existsSync(new URL('../supabase/reverter/20270108_caca_premios_pessoais.sql', import.meta.url)))
 })
 
 test('migration pública: só config e estado do dia, nada de pessoa; grant só para leitura', () => {

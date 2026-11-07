@@ -482,6 +482,11 @@
 .ct-premios__destaque {
   display: grid; gap: 6px; padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p);
 }
+.ct-premios__pessoal { padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-premios__ganho { display: grid; gap: 8px; padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: 14px; background: var(--ct-branco); }
+.ct-premios__ganho-cabeca { display: flex; align-items: center; gap: 10px; }
+.ct-premios__ganho h4 { margin: 0; font: 900 1.15em/1.2 var(--ct-font); }
+.ct-premios__ganho .ct-botao { justify-self: start; }
 .ct-premios__final { padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-premios__linha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
 .ct-premios__ok { padding: 8px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-creme); font-weight: 800; }

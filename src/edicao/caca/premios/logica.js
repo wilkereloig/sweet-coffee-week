@@ -76,6 +76,31 @@ export function organizarPremios (dado) {
   }
 }
 
+/** Dados privados da RPC caca_meus_premios: normaliza apenas vouchers ativos do próprio mapa. */
+export function organizarMeusPremios (lista) {
+  if (!Array.isArray(lista)) return []
+  return lista
+    .filter((p) => p && typeof p.id === 'string' && ESTADOS_PREMIO_PESSOAL.has(p.estado) && descreverData(p.dia))
+    .map((p) => ({
+      id: p.id,
+      iso: p.dia,
+      dia: descreverData(p.dia),
+      estado: p.estado,
+      prazo: dataHoraNatal(p.prazo_ate),
+      validade: descreverData(p.valido_ate),
+    }))
+    .sort((a, b) => b.iso.localeCompare(a.iso))
+}
+
+const ESTADOS_PREMIO_PESSOAL = new Set(['selecionado', 'confirmado', 'entregue'])
+const dataHoraNatal = (iso) => {
+  if (typeof iso !== 'string' || !iso) return null
+  const data = new Date(iso)
+  return Number.isNaN(data.getTime()) ? null : new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Fortaleza', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+  }).format(data)
+}
+
 /**
  * Onde a pessoa está: sem mapa, mapa vazio, só carimbo pendente, com casas validadas ou completo.
  * `pendentes` (aguardando avaliação) NÃO contam casa; `extras` NÃO contam casa; "Já fui" é anotação e nem entra aqui.
