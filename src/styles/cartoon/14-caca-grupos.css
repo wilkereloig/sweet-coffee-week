@@ -15,6 +15,9 @@
   padding: 10px 16px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco);
 }
 .ct-rank__linha--eu { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-rank__linha--oculta { border-style: dashed; background: var(--ct-creme); }
+.ct-rank__linha--oculta .ct-rank__nome { color: var(--ct-chocolate); font-style: italic; }
+.ct-rank__linha--oculta .ct-rank__prog { font-size: 12px; font-weight: 500; }
 .ct-rank__pos { font: 900 24px/1 var(--ct-font); }
 .ct-rank__nome { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; overflow-wrap: anywhere; font: 500 16px/1.3 var(--ct-font); }
 .ct-rank__nome strong { font: 800 17px/1.3 var(--ct-font); }

@@ -10,6 +10,30 @@ import { ListaRanking } from '../ranking/ListaRanking.jsx'
 import { RANKING as T } from '../ranking/textos.js'
 import { LIMITE_INICIAL, prepararLinhas, indiceDaPessoa, minhaPosicao, proximoLimite, podeVerMais, textoCasas, textoExtras } from '../ranking/regras.js'
 
+// A RPC omite apelidos que não autorizaram a exibição pública, mas preserva
+// suas posições para o ranking não promover outras pessoas. Mantemos os lugares
+// sem linha como marcadores anônimos; não copiamos progresso nem qualquer dado.
+function incluirLugaresAnonimos (linhas) {
+  const validas = prepararLinhas(linhas)
+  const porPosicao = new Map()
+  let maior = 0
+  for (const linha of validas) {
+    if (!linha.posicao) continue
+    maior = Math.max(maior, linha.posicao)
+    porPosicao.set(linha.posicao, [...(porPosicao.get(linha.posicao) || []), linha])
+  }
+  if (!maior) return validas
+
+  const completas = []
+  for (let posicao = 1; posicao <= maior; posicao += 1) {
+    const grupo = porPosicao.get(posicao)
+    if (grupo) completas.push(...grupo)
+    else completas.push({ posicao, apelido: '', casas: 0, extras: 0, oculto: true })
+  }
+  completas.push(...validas.filter((linha) => !linha.posicao))
+  return completas
+}
+
 function ComoFunciona () {
   // As regras ficam atrás de um "Como funciona?": a lista vem primeiro. A nota de privacidade fica à vista.
   return (
@@ -50,7 +74,7 @@ function MinhaPosicao ({ caca, navigate }) {
 export default function Ranking ({ caca, navigate }) {
   const { api } = caca
   const [limite, setLimite] = React.useState(LIMITE_INICIAL)
-  const [carga, setCarga] = React.useState({ fase: 'carregando', linhas: [] })
+  const [carga, setCarga] = React.useState({ fase: 'carregando', linhas: [], totalPublicas: 0 })
   const [tentativa, setTentativa] = React.useState(0)
   const [buscando, setBuscando] = React.useState(true)
 
@@ -60,13 +84,13 @@ export default function Ranking ({ caca, navigate }) {
     api.ranking(limite).then((r) => {
       if (!vivo) return
       setBuscando(false)
-      if (r.ok) setCarga({ fase: 'pronto', linhas: prepararLinhas(r.ranking) })
-      else setCarga((c) => (c.linhas.length ? c : { fase: 'falha', linhas: [] })) // "ver mais" que falha não apaga o que já está na tela
+      if (r.ok) setCarga({ fase: 'pronto', linhas: incluirLugaresAnonimos(r.ranking), totalPublicas: r.ranking.length })
+      else setCarga((c) => (c.linhas.length ? c : { fase: 'falha', linhas: [], totalPublicas: 0 })) // "ver mais" que falha não apaga o que já está na tela
     })
     return () => { vivo = false }
   }, [api, limite, tentativa])
 
-  const { fase, linhas } = carga
+  const { fase, linhas, totalPublicas } = carga
   const eu = indiceDaPessoa(linhas, caca.estado === 'pronto' ? caca.mapa : null)
 
   return (
@@ -76,12 +100,12 @@ export default function Ranking ({ caca, navigate }) {
       <section aria-labelledby="rank-lista" aria-busy={fase === 'carregando'}>
         <h2 id="rank-lista" className="ct-sub">{T.lista.titulo}</h2>
         {fase === 'carregando' && <Carregando texto={T.carregando} />}
-        {fase === 'falha' && <Falha titulo={T.falha.titulo} texto={T.falha.texto} tentar={() => { setCarga({ fase: 'carregando', linhas: [] }); setTentativa((n) => n + 1) }} />}
+        {fase === 'falha' && <Falha titulo={T.falha.titulo} texto={T.falha.texto} tentar={() => { setCarga({ fase: 'carregando', linhas: [], totalPublicas: 0 }); setTentativa((n) => n + 1) }} />}
         {fase === 'pronto' && linhas.length === 0 && (
           <div className="ct-estado--vazio"><p className="ct-sub">{T.vazio.titulo}</p><p className="ct-nota">{T.vazio.texto}</p></div>
         )}
         {fase === 'pronto' && linhas.length > 0 && <ListaRanking linhas={linhas} rotulo={T.lista.titulo} indiceEu={eu} />}
-        {fase === 'pronto' && podeVerMais(linhas.length, limite) && (
+        {fase === 'pronto' && podeVerMais(totalPublicas, limite) && (
           <div className="ct-acoes"><button type="button" className="ct-botao ct-botao--contorno" disabled={buscando} onClick={() => setLimite(proximoLimite)}>{buscando ? T.carregandoMais : T.verMais}</button></div>
         )}
       </section>
