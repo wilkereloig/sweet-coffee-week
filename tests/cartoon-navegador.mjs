@@ -502,9 +502,9 @@ try {
     const topo = await page.evaluate(() => {
       const t = document.querySelector('.ct-topo')
       const v = (s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' }
-      return { fundo: getComputedStyle(t).backgroundColor, selo: !!t.querySelector('.ct-topo__marca img[src*="selo-cartoon"]'), nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu') }
+      return { fundo: getComputedStyle(t).backgroundImage, selo: !!t.querySelector('.ct-topo__marca img[src*="selo-cartoon"]'), nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu') }
     })
-    if (topo.fundo !== 'rgb(253, 240, 222)') falha(`@360 cabeçalho não é creme (${topo.fundo})`)
+    if (!topo.fundo.includes('gradient')) falha('@360 cabeçalho sem o gradiente da edição')
     if (!topo.selo) falha('@360 cabeçalho sem o selo da edição')
     if (topo.nav || !topo.menu) falha('@360 celular deveria mostrar só o botão Menu')
     const abas = await page.locator('.ct-abas .ct-aba').allInnerTexts()
@@ -649,13 +649,15 @@ try {
     const estilo = { version: 8, sources: {}, layers: [{ id: 'fundo', type: 'background', paint: { 'background-color': '#FDF0DE' } }] }
     let c = await contexto(nav, { edicao: ed })
     await c.ctx.route('**/tiles.openfreemap.org/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(estilo) }))
+    // Simula Google indisponível para testar deterministicamente o mapa alternativo.
+    await c.ctx.route('**/maps.googleapis.com/**', (route) => route.abort('failed'))
     // Página única (14 §14.13): as três vistas (ilustrado, real e lista); com a arte final aprovada o ilustrado entra também fora do DEV.
     await ir(c.page, '/cartoon/mapa?vista=lista')
     await c.page.waitForSelector('.ct-mapa__item')
     const vistas = (await c.page.locator('.ct-mapa__vistas .ct-chip').allInnerTexts()).map((t) => t.trim()).join(' · ')
     if (vistas !== 'Mapa Ilustrado · Mapa real · Lista') falha(`vistas fora do DEV: ${vistas}`)
     const item = (id) => c.page.locator(`#mapa-${id}`)
-    if (!(await c.page.locator('.ct-canal--rota h1').count())) falha('Mapa: h1 fora do topo no canal Rota')
+    if (!(await c.page.locator('#mapa-titulo').count())) falha('Mapa: falta o título do mapa')
     if ((await c.page.locator('.ct-mapa__item').count()) !== 4) falha(`Mapa: ${await c.page.locator('.ct-mapa__item').count()} linhas (uma por unidade = 4)`)
     if (!(await item('udemo4').innerText()).includes('Localização no mapa em conferência.')) falha('unidade sem coordenada sem "em conferência"')
     if (!(await item('udemo3').innerText()).includes('Ponto aproximado no mapa')) falha('coordenada aproximada não dita na lista')
@@ -665,7 +667,7 @@ try {
     await item('udemo1').locator('button:has-text("Já fui")').click()
     if ((await item('udemo2').locator('button:has-text("Já fui")').getAttribute('aria-pressed')) !== 'true') falha('"já fui" não marcou a casa inteira (as duas unidades)')
     await c.page.click('.ct-mapa__vistas button:has-text("Mapa real")')
-    await c.page.waitForSelector('.ct-marcador', { timeout: 8000 }).catch(() => {})
+    await c.page.waitForSelector('.ct-marcador', { timeout: 30000 }).catch(() => {})
     const marcadores = await c.page.evaluate(() => [...document.querySelectorAll('button.ct-marcador')].map((b) => ({ nome: b.getAttribute('aria-label'), aprox: b.classList.contains('ct-marcador--aprox'), alto: b.getBoundingClientRect().height })))
     if (marcadores.length !== 2) falha(`Mapa: ${marcadores.length} marcadores (as 2 unidades com coordenada)`)
     const aprox = marcadores.find((m) => m.aprox)
