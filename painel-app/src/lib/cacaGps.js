@@ -16,7 +16,7 @@ export const MOTIVO_PEDIDO = Object.freeze({
   sem_localizacao: 'Sem localização (negada, indisponível ou demorou)',
   imprecisa: 'GPS impreciso (margem acima de 300 m)',
   longe: 'Longe do ponto da casa',
-  visita_anterior: 'Visita anterior à Caça (pedido de 05/11)',
+  visita_anterior: 'Visita anterior à Caça',
   delivery: 'Delivery (pedido recebido em casa)',
 })
 export const rotuloMotivoPedido = (m) => MOTIVO_PEDIDO[m] || String(m || '')
@@ -30,7 +30,7 @@ export function descricaoDoSinal(p) {
     const d = p.pedido_data ? String(p.pedido_data).split('-').reverse().join('/') : 'sem data'
     return `pedido de ${d}${p.pedido_ref ? ` (ref. ${p.pedido_ref})` : ''}, informado pela pessoa (sem prova de local)`
   }
-  if (p?.motivo === 'visita_anterior') return p.visita_data ? `visita em ${String(p.visita_data).split('-').reverse().join('/')}, informada pela pessoa (sem prova de local)` : 'visita anterior, sem data'
+  if (p?.motivo === 'visita_anterior') return p.visita_data ? `visita em ${String(p.visita_data).split('-').reverse().join('/')}, data informada pela pessoa` : 'visita anterior, sem data'
   const d = Number.isFinite(p?.distancia_m) ? `a ${p.distancia_m} m do ponto conferido` : 'sem posição enviada'
   const m = Number.isFinite(p?.precisao_m) ? `, margem de ±${p.precisao_m} m` : ''
   return d + m

@@ -54,11 +54,11 @@ export function Excecoes({ edicao, pode }) {
   if (!lista.dados) return <Carregando />
   const itens = filtrarPedidos(lista.dados.itens, estado)
   const comImagem = itens.some((x) => x.imagem || x.imagem_removida)
-  const colunas = ['Apelido', 'Quando', 'Casa', 'Motivo', 'O celular informou', 'Nota da pessoa', ...(comImagem ? ['Imagem'] : []), 'Contexto', ...(contato ? ['Contato'] : []), 'Situação', ...(gerir ? ['Ação'] : [])]
+  const colunas = ['Apelido', 'Quando', 'Casa', 'Motivo', 'O celular informou', 'Relato da pessoa', ...(comImagem ? ['Foto / evidência'] : []), 'Contexto', ...(contato ? ['Contato'] : []), 'Situação', ...(gerir ? ['Ação'] : [])]
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
-      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Três tipos de pedido: GPS que falhou na casa, visita anterior à Caça (só em 05/11) e Delivery (pedido recebido em casa, sem prova de local: a data, a referência e a observação são da pessoa). Delivery com código é confirmado pela CASA no painel dela e só aparece aqui como acompanhamento; delivery com imagem é decidido aqui, e a imagem fica em armazenamento privado. Quem está na casa e não consegue carimbar pelo GPS pede aqui. Confira o contexto (já avaliou? já carimbou nessa casa? quantos pedidos fez?) e decida. A casa nunca decide e o pedido não vale nada até você aprovar.">
+      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores à Caça e delivery. Na visita anterior, a pessoa informa a data e pode explicar o horário aproximado e os detalhes do que viveu, enviar uma foto, ou fazer os dois. Confira o relato e a foto (quando houver), junto ao contexto do mapa, antes de decidir. Delivery com código é confirmado pela casa; delivery com foto é decidido aqui. A casa nunca decide e nenhum pedido conta antes da aprovação.">
         <Escolha rotulo="Mostrar" valor={estado} onMudar={setEstado} className="cp-filtro"
           opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
         {!itens.length ? <Vazio titulo="Nenhum pedido aqui">{estado === 'pendente' ? 'Ninguém está esperando uma decisão agora.' : 'Nada nesta situação.'}</Vazio> : (
@@ -70,7 +70,11 @@ export function Excecoes({ edicao, pode }) {
                 <td className="cp-nota-celula">{p.casa}{p.nome_unidade ? ` · ${p.nome_unidade}` : ''}{p.unidades_na_casa > 1 && p.motivo === 'visita_anterior' ? ' (a casa tem mais de um endereço)' : ''}</td>
                 <td className="cp-nota-celula">{p.motivo === 'visita_anterior' ? <Selo tom="atencao">Visita anterior</Selo> : null} {rotuloMotivoPedido(p.motivo)}</td>
                 <td className="cp-nota-celula">{descricaoDoSinal(p)}</td>
-                <td className="cp-nota-celula">{p.nota || '—'}</td>
+                <td className="cp-nota-celula">{p.motivo === 'visita_anterior' && !String(p.nota || '').trim() && !p.imagem
+                  ? 'Aguardando relato ou foto'
+                  : p.motivo === 'visita_anterior' && p.nota === 'Foto como prova'
+                    ? p.imagem ? 'Foto enviada como prova' : 'Foto indicada, aguardando envio'
+                  : p.nota || '—'}</td>
                 {comImagem && (
                   <td className="cp-nota-celula">
                     {p.imagem ? (
@@ -97,7 +101,9 @@ export function Excecoes({ edicao, pode }) {
                 </td>
                 {gerir && (
                   <td>
-                    {podeDecidir(p) ? (
+                    {p.motivo === 'visita_anterior' && !String(p.nota || '').trim() && !p.imagem ? <Selo tom="andamento">Aguardando relato ou foto</Selo>
+                      : p.motivo === 'visita_anterior' && p.nota === 'Foto como prova' && !p.imagem ? <Selo tom="andamento">Aguardando foto da pessoa</Selo>
+                        : podeDecidir(p) ? (
                       <div className="cp-acoes">
                         <Botao disabled={!!ocupado} aria-label={`Aprovar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'aprovar')}>Aprovar</Botao>
                         <Botao variante="secundario" disabled={!!ocupado} aria-label={`Negar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'negar')}>Negar</Botao>

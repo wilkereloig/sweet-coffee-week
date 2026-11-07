@@ -169,6 +169,22 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       })
     }),
 
+    /** Anexa uma foto opcional como prova ao pedido de visita anterior já criado. */
+    visitaAnteriorEnviarImagem: (chave, id, { blob, ext, tipo }) => comChave(chave, async () => {
+      if (!FORMATO_UUID.test(String(id || '')) || !blob) return sem('pedido_nao_encontrado')
+      try {
+        const r = await buscar(`${urlBase}/functions/v1/caca-delivery`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ acao: 'subir', tipo: 'visita_anterior', chave, pedido: id, ext }),
+        })
+        const d = await r.json().catch(() => null)
+        if (d?.ok !== true || typeof d.url !== 'string') return sem(typeof d?.motivo === 'string' && MOTIVO.test(d.motivo) ? d.motivo : 'rede')
+        const up = await buscar(d.url, { method: 'PUT', body: blob, headers: { 'Content-Type': tipo } })
+        if (!up.ok) return sem('upload_falhou')
+        return await rpcOk('caca_visita_anterior_anexar', { p_chave: chave, p_id: id, p_path: d.path })
+      } catch { return sem('rede') }
+    }),
+
     /* ---- carimbo de delivery (migration 20261231): confirmação pela casa (código) ou imagem para a organização ---- */
 
     /**
