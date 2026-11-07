@@ -9,6 +9,8 @@ import { EDICAO } from '../../config.js'
 import { prepararAvaliacao } from '../../rota/carimbo.js'
 import { api as apiPadrao } from '../api.js'
 import { nomeDaCasa } from '../regras.js'
+import { CACA_CAMINHOS as RUA } from '../textos.js'
+import { Link } from '../../componentes/base.jsx'
 import { VISITA as T } from './textos.js'
 import { casasDisponiveis, dataCurta, dataEmNatal, descreverPrazo, estadoDoPedido, pedidosDeVisita } from './logica.js'
 
@@ -142,7 +144,7 @@ function Formulario ({ chave, dados, casas, aoEnviar, aoFechar, api }) {
   )
 }
 
-export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
+export function VisitaAnterior ({ caca, dados, navigate, mostrarEncerrada = false, ocultarConviteSemMapa = false, api = apiPadrao }) {
   const prazo = usarPrazo(api)
   const [pedidos, setPedidos] = React.useState(null)
   const [aberto, setAberto] = React.useState(false)
@@ -159,10 +161,15 @@ export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
   if (prazo === null || prazo === 'falha') return null // sem resposta do servidor não prometemos nada
   const aberta = prazo.aberto === true
   const quando = descreverPrazo(prazo.ate)
-  if (!comMapa) return aberta ? <section className="ct-visita ct-visita--convite" aria-label={T.titulo}><p className="ct-nota">{T.semMapa(quando)}</p></section> : null
+  if (!comMapa) return aberta && !ocultarConviteSemMapa ? (
+    <section className="ct-visita ct-visita--convite" aria-label={T.titulo}>
+      <p className="ct-nota">{T.semMapa(quando)}</p>
+      <Link href={RUA.central} navigate={navigate} className="ct-botao ct-botao--contorno">Criar ou abrir meu mapa</Link>
+    </section>
+  ) : !aberta && mostrarEncerrada ? <section className="ct-visita ct-visita--convite" aria-label={T.titulo}><p className="ct-nota">{T.prazoEncerrado(quando)}</p></section> : null
 
   const lista = pedidos || []
-  if (!aberta && lista.length === 0) return null
+  if (!aberta && lista.length === 0) return mostrarEncerrada ? <section className="ct-visita ct-visita--convite" aria-label={T.titulo}><p className="ct-nota">{T.prazoEncerrado(quando)}</p></section> : null
   const casas = casasDisponiveis(dados, caca.mapa, lista)
   return (
     <section className="ct-visita" aria-labelledby="visita-titulo">

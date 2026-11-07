@@ -25,6 +25,7 @@ import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatroc
 import { Botao, Passos, Gibi, Preco } from '../../componentes/sistema/pecas.jsx'
 import { ENTRADA as T, CATALOGO, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
 import { useAgora } from '../useAgora.js'
+import { CACA_CAMINHOS } from '../../caca/textos.js'
 
 const C = EDICAO.caminho
 const NA_VITRINE = 8
@@ -176,6 +177,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           <div className="ct-acoes ct-estreia__acoes">
             <Botao tipo="acao" href={`${C}/${comCombos ? 'combos' : 'participantes'}`} navigate={navigate}>{comCombos ? T.acaoCombos : T.acaoParticipantes}</Botao>
             {!encerrada && MAPA_NO_AR && <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}>{T.acaoMapa}</Botao>}
+            {MAPA_NO_AR && <Botao tipo="secundario" href={CACA_CAMINHOS.visitaAnterior} navigate={navigate}>Pedir carimbo de visita</Botao>}
             <Gibi chave="luva-aponta" className="ct-estreia__luva" />
           </div>
         </div>

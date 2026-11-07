@@ -11,7 +11,7 @@ export const tokenValido = (t) => typeof t === 'string' && FORMATO_TOKEN.test(t)
 export const grupoIdValido = (id) => typeof id === 'string' && FORMATO_UUID.test(id)
 
 /** Seções da Caça (segundo segmento do caminho `/cartoon/caca/<seção>`). `grupo` e `convite` levam um terceiro segmento. */
-export const SECOES_SIMPLES = ['recuperar', 'mapa', 'ranking', 'grupos', 'metas', 'compartilhar', 'delivery']
+export const SECOES_SIMPLES = ['recuperar', 'mapa', 'ranking', 'grupos', 'metas', 'compartilhar', 'delivery', 'visita-anterior']
 
 const num = (n) => (Number.isFinite(Number(n)) ? Math.max(0, Math.trunc(Number(n))) : 0)
 

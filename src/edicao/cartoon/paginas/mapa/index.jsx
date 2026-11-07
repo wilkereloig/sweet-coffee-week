@@ -32,6 +32,8 @@ import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao, lerUnidadeCarimbo } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
+import { VisitaAnterior } from '../../../caca/visita/VisitaAnterior.jsx'
+import { CACA_CAMINHOS as CACA_RUA } from '../../../caca/textos.js'
 import { SinoDeAvisos } from '../../../caca/notificacoes/SinoDeAvisos.jsx'
 import { CartaoEmail } from '../../../caca/CartaoEmail.jsx'
 import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
@@ -405,6 +407,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
       case 'rota': return rotaEl
       case 'premios': return premiosEl
       case 'ranking': return <React.Suspense fallback={<Carregando texto={TC.atalhoCarregando} />}><Ranking caca={meu} navigate={navigate} dados={dados} /></React.Suspense>
+      case 'visitaAnterior': return <VisitaAnterior caca={meu} dados={dados} navigate={navigate} mostrarEncerrada />
       default: // grupos: precisam de mapa (a Central faz o mesmo convite)
         return meu.estado === 'sem-mapa'
           ? convite(TC.atalhoGruposSemMapa)
@@ -532,6 +535,10 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             {/* O mapa vem primeiro: convite para criar o mapa, "Como carimbar", progresso e e-mail ficam ABAIXO dele (Wilker, 05/11/2026). Na tela cheia somem; os atalhos cobrem. */}
             <div className="ct-mapa__abaixo">
               {vista !== 'lista' && cartaoSugestao()}
+              <section className="ct-visita ct-visita--convite" aria-label="Pedido de carimbo de uma visita">
+                <p className="ct-nota">Foi a uma casa e não conseguiu carimbar? Peça à organização que confira a sua visita.</p>
+                <Botao tipo="secundario" href={CACA_RUA.visitaAnterior} navigate={navigate}>Solicitar carimbo</Botao>
+              </section>
               <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
                 proximo={proximoMostrado} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
               <CartaoEmail caca={meu} navigate={navigate} />

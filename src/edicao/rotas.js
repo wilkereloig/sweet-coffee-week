@@ -14,7 +14,7 @@ export const CENAS = ['entrada', 'participantes', 'participante', 'combos', 'map
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 /**
- * Caça aos Carimbos: `/cartoon/caca[/<seção>]`. Seções simples: recuperar · mapa · ranking · grupos · metas · compartilhar;
+ * Caça aos Carimbos: `/cartoon/caca[/<seção>]`. Seções simples: recuperar · mapa · ranking · grupos · metas · compartilhar · visita-anterior;
  * `grupo/<uuid>` e `convite/<token>` levam o terceiro segmento (formato validado). Token de convite é CASE-SENSITIVE
  * (base64url) e só existe no caminho; convite com formato ruim abre a página, que explica (`token: null`).
  */

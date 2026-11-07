@@ -147,7 +147,7 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       return r.ok ? { ok: true, pedidos: Array.isArray(r.pedidos) ? r.pedidos : [] } : r
     }),
 
-    /* ---- carimbo de visita anterior (migration 20261226): pedidos só em 05/11/2026, até 23h59:59 de Natal ---- */
+    /* ---- carimbo de visita anterior (migration 20261226): pedidos até o fechamento da avaliação, pelo relógio do servidor ---- */
 
     /** `caca_visita_anterior_prazo` (pública): `{ ok:true, prazo:{ aberto, ate, fuso, agora } }`. O relógio é o do servidor. */
     async visitaAnteriorPrazo () {

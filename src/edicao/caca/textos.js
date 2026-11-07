@@ -20,6 +20,7 @@ export const CACA_CAMINHOS = {
   metas: `${C}/metas`,
   compartilhar: `${C}/compartilhar`,
   delivery: `${C}/delivery`,
+  visitaAnterior: `${C}/visita-anterior`,
   rota: `${EDICAO.caminho}/mapa?painel=rota`, // a rota é o painel do Mapa da Doçura
   casas: `${EDICAO.caminho}/participantes`,
   regulamento: `${EDICAO.caminho}/regulamento`,
@@ -37,6 +38,7 @@ export const CACA = {
     metas: 'Metas',
     compartilhar: 'Compartilhar meu progresso',
     delivery: 'Carimbo do meu delivery',
+    'visita-anterior': 'Pedir carimbo de visita',
     convite: 'Convite para um grupo',
   },
   leads: {
@@ -48,6 +50,7 @@ export const CACA = {
     metas: 'Marcos de comemoração pelas casas que você validou.',
     compartilhar: 'Mostre seu progresso nos Stories, sem dados pessoais.',
     delivery: 'Recebeu o combo em casa? Peça o carimbo sem sair de onde está.',
+    'visita-anterior': 'Foi a uma casa e não conseguiu carimbar? Peça que a organização confira a sua visita.',
     convite: 'Alguém chamou você para jogar junto.',
   },
   precisaDeMapa: {
@@ -56,6 +59,7 @@ export const CACA = {
     metas: 'Crie seu mapa para acompanhar suas metas.',
     compartilhar: 'Crie seu mapa para ter um progresso para compartilhar.',
     delivery: 'Crie seu mapa para pedir o carimbo de um delivery.',
+    'visita-anterior': 'Crie ou abra o seu mapa para pedir que a organização confira uma visita.',
   },
   carregando: 'Abrindo a sua Caça…',
   falha: { titulo: 'Não conseguimos abrir seu mapa agora', texto: 'Seus carimbos estão guardados. Confira a conexão e tente de novo.' },
@@ -119,6 +123,7 @@ export const CACA = {
       { chave: 'metas', desenho: 'progresso', rotulo: 'Metas' },
       { chave: 'compartilhar', desenho: 'compartilhar', rotulo: 'Compartilhar' },
       { chave: 'delivery', desenho: 'carimbo-delivery', rotulo: 'Carimbo do meu delivery' },
+      { chave: 'visitaAnterior', desenho: 'ja-fui', rotulo: 'Pedir carimbo de uma visita' },
     ],
   },
   rodape: { regulamento: 'Regulamento' },
