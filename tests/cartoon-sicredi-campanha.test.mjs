@@ -106,7 +106,7 @@ test('página: um <h1>, vídeo vertical sem autoplay com poster, selo da Sicredi
   assert.equal(CAMPANHA.video.largura / CAMPANHA.video.altura, 9 / 16)
   const css = ler('src/styles/cartoon/20-campanha-sicredi.css')
   assert.doesNotMatch(css, /!important/)
-  assert.match(css, /\.ct-tcqc__video \{[^}]*max-width: 400px/)
+  assert.match(css, /\.ct-tcqc__video \{[^}]*max-width: 330px/)
   assert.match(ler('src/styles/scw-cartoon.css'), /@import '\.\/cartoon\/20-campanha-sicredi\.css'/)
 })
 
