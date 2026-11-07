@@ -26,7 +26,7 @@ export function CartaoSicredi ({ agencia, fechar, navigate }) {
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label="Fechar"><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
       <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{agencia.endereco || T.sicrediSemEndereco}</span></p>
-      <p className={`ct-mapa__local${agencia.precisao === 'confirmada' ? '' : ' ct-mapa__local--aprox'}`}>{T.sicrediPonto[agencia.precisao]}</p>
+      {agencia.precisao !== 'confirmada' && <p className="ct-mapa__local ct-mapa__local--aprox">{T.sicrediPonto[agencia.precisao]}</p>}
       {agencia.numeroEmConferencia && <p className="ct-nota">{T.sicrediNumero}</p>}
       <p className="ct-nota ct-caca-mapa__sicredi-aviso">{T.sicrediAviso}</p>
       {link && (
