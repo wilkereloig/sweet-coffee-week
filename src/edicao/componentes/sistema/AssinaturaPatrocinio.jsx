@@ -7,16 +7,34 @@
 import React from 'react'
 import { MARCAS_PARCEIROS as M } from '../../../data/imageLibrary'
 import { MARCAS as T } from '../../cartoon/textos.js'
-import { LinkDaCampanha } from '../../caca/campanha/Campanha.jsx'
+import { Botao } from './pecas.jsx'
+import { useCampanha } from '../../caca/campanha/Campanha.jsx'
+import { CAMPANHA, TEXTOS_CAMPANHA as TC, prazoCurto } from '../../caca/campanha/terComQuemContar.js'
 
-/** `navigate` (só na entrada): junta um link de texto para a campanha Ter com quem contar enquanto ela estiver no prazo. */
+/** A assinatura apresenta o patrocínio e, enquanto estiver aberta, a campanha do Sicredi. */
 export function AssinaturaPatrocinio ({ navigate }) {
   const s = M.sicredi
+  const campanha = useCampanha()
   return (
-    <aside className="ct-assina-patrocinio" aria-label={T.patrocinio}>
-      <p className="ct-assina-patrocinio__rotulo">{T.patrocinio}</p>
-      <img src={s.src} alt={s.alt} width={s.largura} height={s.altura} decoding="async" />
-      {navigate && <LinkDaCampanha navigate={navigate} className="ct-assina-patrocinio__campanha" />}
-    </aside>
+    <section className="ct-assina-patrocinio" aria-label={T.patrocinio}>
+      <div className="ct-assina-patrocinio__marca">
+        <p className="ct-assina-patrocinio__rotulo">{T.patrocinio}</p>
+        <img src={s.src} alt={s.alt} width={s.largura} height={s.altura} decoding="async" />
+      </div>
+      {campanha.aberta && (
+        <div className="ct-assina-patrocinio__promocao" aria-label={TC.rotulo}>
+          <div className="ct-assina-patrocinio__chamada">
+            <p className="ct-assina-patrocinio__selo">{TC.rotulo}</p>
+            <h2 className="ct-assina-patrocinio__titulo">{TC.titulo}</h2>
+            <p className="ct-assina-patrocinio__texto">{TC.bloco.disputa}</p>
+            <p className="ct-assina-patrocinio__prazo">{prazoCurto(campanha)}</p>
+          </div>
+          <ul className="ct-assina-patrocinio__numeros" aria-label="O que você pode ganhar">
+            {TC.dados.map((d) => <li key={d.rotulo}><b>{d.numero}</b><span>{d.rotulo}</span></li>)}
+          </ul>
+          <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>{TC.bloco.ver}</Botao>
+        </div>
+      )}
+    </section>
   )
 }

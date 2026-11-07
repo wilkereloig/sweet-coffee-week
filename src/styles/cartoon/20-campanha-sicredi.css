@@ -65,3 +65,35 @@
 
 /* Link de texto ao lado do logo na assinatura do patrocínio (entrada). Alvo de toque de 44px. */
 .ct-edicao .ct-assina-patrocinio__campanha { display: inline-flex; align-items: center; min-height: 44px; font: 700 14px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Assinatura ampliada: deixa o patrocínio visível e explica a campanha enquanto ela está aberta. */
+.ct-assina-patrocinio {
+  display: grid; grid-template-columns: minmax(160px, .55fr) minmax(0, 1.45fr); align-items: stretch; gap: 20px;
+  padding: 20px var(--ct-trilho); border-top: var(--ct-traco); border-bottom: var(--ct-traco); text-align: left;
+}
+.ct-assina-patrocinio__marca { display: flex; flex-wrap: wrap; align-content: center; justify-content: center; align-items: center; gap: 10px 16px; padding: 12px; background: var(--ct-branco); }
+.ct-assina-patrocinio__promocao {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(230px, .85fr); align-items: center; gap: 12px 22px;
+  padding: 18px 20px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme);
+}
+.ct-assina-patrocinio__chamada { display: grid; gap: 5px; }
+.ct-edicao .ct-assina-patrocinio__selo { margin: 0; font: 800 12px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
+.ct-edicao .ct-assina-patrocinio__titulo { margin: 0; font: 900 clamp(19px, 2vw, 26px)/1.1 var(--ct-font); text-wrap: balance; }
+.ct-assina-patrocinio__texto, .ct-assina-patrocinio__prazo { margin: 0; font: 500 14px/1.45 var(--ct-font); }
+.ct-assina-patrocinio__prazo { margin-top: 2px; font-weight: 800; }
+.ct-assina-patrocinio__numeros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ct-assina-patrocinio__numeros li { display: grid; align-content: center; justify-items: center; gap: 4px; min-height: 86px; padding: 8px; border: 2px solid var(--ct-chocolate); border-radius: 6px; background: var(--ct-amarelo); text-align: center; }
+.ct-assina-patrocinio__numeros b { font: 900 clamp(25px, 3vw, 34px)/1 var(--ct-font); font-variant-numeric: tabular-nums; }
+.ct-assina-patrocinio__numeros span { font: 700 11px/1.2 var(--ct-font); text-wrap: balance; }
+.ct-edicao .ct-assina-patrocinio__promocao .ct-botao { grid-column: 2; justify-self: start; min-height: 44px; }
+@media (max-width: 760px) {
+  .ct-assina-patrocinio { grid-template-columns: 1fr; gap: 12px; padding-block: 16px; }
+  .ct-assina-patrocinio__marca { min-height: 62px; }
+  .ct-assina-patrocinio__promocao { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px; }
+  .ct-edicao .ct-assina-patrocinio__promocao .ct-botao { grid-column: 1; }
+}
+@media (max-width: 380px) {
+  .ct-assina-patrocinio__numeros { gap: 5px; }
+  .ct-assina-patrocinio__numeros li { min-height: 78px; padding: 6px 4px; }
+  .ct-assina-patrocinio__numeros span { font-size: 10px; }
+}
