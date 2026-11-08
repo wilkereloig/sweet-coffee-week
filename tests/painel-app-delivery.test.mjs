@@ -53,17 +53,20 @@ test('"ver como participante" nunca grava: as RPCs de delivery da casa não est�
   assert.doesNotMatch(m, /caca_delivery_confirmar|caca_delivery_consultar/)
 })
 
-test('fila da organização: delivery tem motivo próprio, delivery com código é da casa, e só imagem se decide', () => {
+test('fila da organização: delivery com código é da casa; pedido para organização pode não ter imagem', () => {
   assert.ok(MOTIVO_PEDIDO.delivery); assert.match(rotuloMotivoPedido('delivery'), /Delivery/)
   const comCodigo = { estado: 'pendente', motivo: 'delivery', via: 'casa', aguardando_casa: true }
   const comImagem = { estado: 'pendente', motivo: 'delivery', via: 'imagem' }
   assert.equal(aguardandoACasa(comCodigo), true); assert.equal(aguardandoACasa(comImagem), false)
   assert.equal(podeDecidir(comCodigo), false, 'organização não decide delivery que espera a casa')
+  const semImagem = { ...comCodigo, via_pretendida: 'imagem' }
+  assert.equal(podeDecidir(semImagem), true, 'organização pode decidir sem imagem')
+  assert.equal(aguardandoACasa(semImagem), false)
   assert.equal(podeDecidir(comImagem), true)
   assert.equal(podeDecidir({ estado: 'pendente', motivo: 'longe' }), true, 'os outros pedidos seguem iguais')
   assert.equal(podeDecidir({ estado: 'aprovado', motivo: 'delivery', via: 'imagem' }), false)
   assert.match(descricaoDoSinal({ motivo: 'delivery', pedido_data: '2026-11-05', pedido_ref: 'X1' }), /pedido de 05\/11\/2026 \(ref\. X1\).*sem prova de local/)
-  assert.match(textoDaDecisao({ motivo: 'delivery', apelido: 'Ana', casa: 'Alfa' }, 'aprovar'), /n[ãa]o s[ãa]o prova perfeita/i)
+  assert.match(textoDaDecisao({ motivo: 'delivery', apelido: 'Ana', casa: 'Alfa' }, 'aprovar'), /imagem é opcional/i)
   assert.match(textoDaDecisao({ motivo: 'delivery', apelido: 'Ana', casa: 'Alfa' }, 'aprovar'), /n[ãa]o muda voucher/i)
 })
 

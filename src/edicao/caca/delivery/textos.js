@@ -11,7 +11,7 @@ export const DELIVERY = {
   acaoFichaDica: 'Já recebeu o combo em casa? Peça o carimbo aqui, sem ir até a casa.',
   comoFunciona: [
     'Não usamos a sua localização: este pedido não liga o GPS.',
-    'Envie um print do pedido, uma foto do cupom fiscal ou uma foto sua com o combo recebido. A organização vai analisar.',
+    'Se quiser, envie um print do pedido, uma foto do cupom fiscal ou uma foto sua com o combo recebido. A organização vai analisar.',
     'Se preferir, peça à casa para confirmar: envie seu código pelo canal em que fez o pedido para a equipe comparar.',
     'Enviar não é carimbar: nada conta até a casa confirmar ou a organização aprovar. A casa só vale depois que você avaliar o combo com o mesmo e-mail do mapa.',
   ],
@@ -32,8 +32,8 @@ export const DELIVERY = {
   escolha: 'Como você quer pedir o carimbo?',
   viaCasa: 'Confirmar com a casa',
   viaCasaAjuda: 'Alternativa: a casa compara o código e confirma a entrega.',
-  viaImagem: 'Enviar imagem para análise',
-  viaImagemAjuda: 'Recomendado. A organização analisa a foto ou o print enviado.',
+  viaImagem: 'Pedir análise da organização',
+  viaImagemAjuda: 'Você pode acrescentar uma foto ou um print, mas a imagem não é obrigatória.',
   enviando: 'Enviando…',
   // Pedido criado
   codigoTitulo: 'Seu código para a casa',
@@ -48,7 +48,7 @@ export const DELIVERY = {
   novoCodigoRestam: (n) => (n === 1 ? 'Resta 1 código novo neste pedido.' : `Restam ${n} códigos novos neste pedido.`),
   // Imagem
   imagemTitulo: 'Imagem do pedido',
-  imagemOrienta: 'Envie um print do pedido, uma foto do cupom fiscal ou uma foto sua com o combo. O pedido só vai para análise depois que você enviar a imagem. Esconda endereço de entrega, telefone e dados de pagamento. Uma imagem por pedido.',
+  imagemOrienta: 'Se quiser, envie um print do pedido, uma foto do cupom fiscal ou uma foto sua com o combo. A imagem é opcional. Esconda endereço de entrega, telefone e dados de pagamento. Uma imagem por pedido.',
   imagemGaleria: 'Escolher da galeria',
   imagemCamera: 'Tirar foto',
   imagemPronta: 'Imagem pronta para enviar.',
@@ -62,7 +62,7 @@ export const DELIVERY = {
   seusPedidos: 'Seus pedidos de delivery',
   dataDoPedido: (d) => `Pedido de ${d}`,
   estado: {
-    imagemPendente: 'Falta enviar a imagem',
+    imagemPendente: 'Aguardando análise',
     codigo: 'Aguardando a casa',
     expirado: 'Código vencido',
     analise: 'Em análise',
@@ -71,7 +71,7 @@ export const DELIVERY = {
     negado: 'Não aprovado',
   },
   estadoTexto: {
-    imagemPendente: 'Escolha a imagem e toque em enviar para a organização analisar.',
+    imagemPendente: 'Seu pedido está aguardando análise. Você pode acrescentar uma imagem, se quiser.',
     codigo: 'Envie o código à casa para ela comparar e confirmar. Ainda não conta nada.',
     expirado: 'O código venceu. Gere um novo ou envie uma imagem para análise.',
     analise: 'A organização está analisando a imagem. Ainda não conta nada.',

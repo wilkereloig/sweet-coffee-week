@@ -202,7 +202,7 @@ export function Mesa({ abrirLink, navegar, pode }) {
                 {(deliveryImagem > 0 || deliveryCasa > 0 || deliverySemImagem > 0) && (
                   <Modulo icone="pendencia" titulo="Pedidos de carimbo por delivery" rotuloIr="Abrir pedidos de carimbo"
                     onClick={() => navegar({ vista: 'edicao', aba: 'carimbos', filtros: { sub: 'presenca' } })}>
-                    <span className="ms-acao__detalhe">{deliveryImagem} com imagem para analisar · {deliverySemImagem} aguardando imagem · {deliveryCasa} aguardando a casa.</span>
+                    <span className="ms-acao__detalhe">{deliveryImagem} para analisar ({deliverySemImagem} sem imagem) · {deliveryCasa} aguardando a casa.</span>
                   </Modulo>
                 )}
                 {cartoes.map((c) => (c.tipo === 'agenda' ? (

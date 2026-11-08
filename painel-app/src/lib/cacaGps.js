@@ -37,17 +37,17 @@ export function descricaoDoSinal(p) {
 }
 
 /** Só pedido pendente tem ação. */
-export const podeDecidir = (p) => !!p && p.estado === 'pendente' && !p.aguardando_casa
+export const podeDecidir = (p) => !!p && p.estado === 'pendente' && (!p.aguardando_casa || (p.motivo === 'delivery' && p.via_pretendida === 'imagem'))
 
 /** Delivery com código: quem confirma é a CASA, não a organização. */
-export const aguardandoACasa = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa'
+export const aguardandoACasa = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa' && p.via_pretendida !== 'imagem'
 
 /** Texto da confirmação antes de decidir (a decisão não se desfaz por aqui). */
 export function textoDaDecisao(p, decisao) {
   const quem = `${p.apelido} em ${p.casa}`
   if (p.motivo === 'delivery') {
     return decisao === 'aprovar'
-      ? `Aprovar cria agora um carimbo de ${quem}, marcado como delivery aprovado pela organização. Ele conta a partir de agora (não muda voucher já apurado) e só vira casa validada depois que a pessoa avaliar o combo com o e-mail do mapa. Print e foto não são prova perfeita: confira a imagem, a data e a referência.`
+      ? `Aprovar cria agora um carimbo de ${quem}, marcado como delivery aprovado pela organização. Ele conta a partir de agora (não muda voucher já apurado) e só vira casa validada depois que a pessoa avaliar o combo com o e-mail do mapa. Confira o relato, a data e a referência; a imagem é opcional.`
       : `Negar registra o motivo; a pessoa vê só que o pedido não foi aprovado (${quem}). Nada é carimbado.`
   }
   if (p.motivo === 'visita_anterior') {
