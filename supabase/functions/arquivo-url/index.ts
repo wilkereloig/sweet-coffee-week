@@ -208,10 +208,10 @@ Deno.serve(async (req) => {
     if (!ar) return json({ erro: 'nao_autorizado' }, 401)
   }
 
-  // Imagem de delivery: o caminho precisa estar gravado num pedido. Sem isso um caminho "válido" mas solto (upload abandonado) não abre.
+  // A prova precisa estar gravada num pedido de delivery ou visita anterior; uploads abandonados não abrem.
   if (bucket === 'caca-delivery') {
     const { data: pedido, error: pedErr } = await admin.from('caca_carimbo_excecao').select('id, participacao_id')
-      .eq('imagem_path', path).eq('motivo', 'delivery').is('imagem_removida_em', null).limit(1).maybeSingle()
+      .eq('imagem_path', path).in('motivo', ['delivery', 'visita_anterior']).is('imagem_removida_em', null).limit(1).maybeSingle()
     if (pedErr) return json({ erro: 'db_error', detalhe: pedErr.message }, 500)
     if (!pedido) {
       const { data: sicredi, error: sicErr } = await admin.from('caca_sicredi_campanha_pedido').select('id')

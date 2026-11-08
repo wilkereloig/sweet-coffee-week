@@ -220,6 +220,6 @@ test('edge function arquivo-url: bucket caca-delivery só lê e remove (producao
   assert.match(f, /'caca-delivery'\]/)
   assert.match(f, /bucket === 'caca-delivery' && \(acao === 'subir'/)
   assert.match(f, /bucket === 'caca-delivery' \? \['producao\.gerir'\]/)
-  assert.match(f, /imagem_path', path\)\.eq\('motivo', 'delivery'\)/)
+  assert.match(f, /imagem_path', path\)\.in\('motivo', \['delivery', 'visita_anterior'\]\)/)
   assert.match(f, /acao === 'remover' && bucket !== 'caca-delivery'/)
 })
