@@ -103,6 +103,28 @@
 .ct-edicao .ct-assina-patrocinio__selo { margin: 0; font: 800 12px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
 .ct-edicao .ct-assina-patrocinio__titulo { max-width: 19ch; margin: 0; font: 900 clamp(27px, 3.2vw, 42px)/1.08 var(--ct-font); text-wrap: balance; }
 .ct-edicao .ct-assina-patrocinio__nome { max-width: 38ch; margin: 0; font: 600 16px/1.45 var(--ct-font); }
+.ct-assina-patrocinio__beneficio {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: start; gap: 11px; width: 100%; max-width: 440px;
+  padding: 12px; border: 2px solid #63c733; border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, #63c733 13%, var(--ct-branco)), var(--ct-branco) 72%);
+  box-shadow: 3px 3px 0 color-mix(in srgb, #63c733 56%, var(--ct-chocolate));
+}
+.ct-assina-patrocinio__beneficio-simbolo {
+  position: relative; display: grid; place-items: center; width: 48px; height: 48px; margin-top: 2px;
+  border: 2px dashed var(--ct-chocolate); border-radius: 50%; background: #63c733; color: var(--ct-chocolate);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--ct-branco) 55%, transparent);
+}
+.ct-assina-patrocinio__beneficio-simbolo > span { font: 900 25px/.9 var(--ct-font); }
+.ct-assina-patrocinio__beneficio-simbolo i { position: absolute; top: -5px; right: -4px; color: var(--ct-amarelo); font: 900 17px/1 var(--ct-font); text-shadow: 1px 1px 0 var(--ct-chocolate); }
+.ct-edicao .ct-assina-patrocinio__beneficio-rotulo { margin: 0 0 3px; color: #276b22; font: 900 10px/1.1 var(--ct-font); letter-spacing: .1em; }
+.ct-edicao .ct-assina-patrocinio__beneficio h3 { margin: 0; font: 900 16px/1.15 var(--ct-font); }
+.ct-edicao .ct-assina-patrocinio__beneficio-conteudo > p:not(.ct-assina-patrocinio__beneficio-rotulo, .ct-assina-patrocinio__beneficio-valor, .ct-assina-patrocinio__beneficio-nota) { margin: 5px 0 0; font: 600 12px/1.35 var(--ct-font); }
+.ct-edicao .ct-assina-patrocinio__beneficio-valor {
+  display: flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; margin: 7px 0 0; padding: 5px 8px;
+  border-radius: 999px; background: var(--ct-amarelo); font: 900 11px/1.2 var(--ct-font);
+}
+.ct-edicao .ct-assina-patrocinio__beneficio-valor span { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; border-radius: 50%; background: #63c733; font: 900 11px/1 var(--ct-font); }
+.ct-edicao .ct-assina-patrocinio__beneficio-nota { margin: 5px 0 0; font: 600 11px/1.3 var(--ct-font); }
 .ct-assina-patrocinio__prazo { margin: 0; padding: 6px 12px; border-radius: 999px; background: var(--ct-amarelo); font: 800 14px/1.3 var(--ct-font); }
 .ct-assina-patrocinio__video { display: grid; justify-items: center; gap: 8px; width: 100%; max-width: 190px; margin: 0 auto; }
 .ct-assina-patrocinio__video video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: contain; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-chocolate); }
@@ -118,4 +140,10 @@
   .ct-assina-patrocinio--destaque { grid-template-columns: 1fr; gap: 12px; padding-block: 16px; }
   .ct-assina-patrocinio__promocao { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px; }
   .ct-assina-patrocinio__passos { padding: 16px; }
+}
+@media (max-width: 500px) {
+  .ct-assina-patrocinio__beneficio { grid-template-columns: 42px minmax(0, 1fr); gap: 9px; padding: 10px; }
+  .ct-assina-patrocinio__beneficio-simbolo { width: 42px; height: 42px; }
+  .ct-assina-patrocinio__beneficio-simbolo > span { font-size: 22px; }
+  .ct-edicao .ct-assina-patrocinio__beneficio-valor { border-radius: 12px; }
 }

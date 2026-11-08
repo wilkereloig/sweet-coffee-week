@@ -35,6 +35,16 @@ export function AssinaturaPatrocinio ({ navigate, destaque = false }) {
             <p className="ct-assina-patrocinio__selo">{TC.rotulo}</p>
             <h2 className="ct-assina-patrocinio__titulo">Sua história pode ganhar um par de vouchers!</h2>
             <p className="ct-assina-patrocinio__nome">{CAMPANHA.historias} histórias serão escolhidas na campanha {TC.titulo}.</p>
+            <aside className="ct-assina-patrocinio__beneficio" aria-labelledby="sicredi-carimbo-titulo">
+              <span className="ct-assina-patrocinio__beneficio-simbolo" aria-hidden="true"><span>S</span><i>✦</i></span>
+              <div className="ct-assina-patrocinio__beneficio-conteudo">
+                <p className="ct-assina-patrocinio__beneficio-rotulo">GANHE TAMBÉM</p>
+                <h3 id="sicredi-carimbo-titulo">Carimbo Sicredi no seu mapa</h3>
+                <p>Envie o print da publicação. Com a aprovação da organização, o carimbo entra no seu mapa.</p>
+                <p className="ct-assina-patrocinio__beneficio-valor"><span aria-hidden="true">✓</span> Vale para o ranking e o sorteio final</p>
+                <p className="ct-assina-patrocinio__beneficio-nota">É um carimbo especial, separado das visitas às casas.</p>
+              </div>
+            </aside>
             <p className="ct-assina-patrocinio__prazo">{prazoCurto(campanha)}</p>
             <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>Como participar</Botao>
           </div>
