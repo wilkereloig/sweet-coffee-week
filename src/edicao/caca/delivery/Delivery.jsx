@@ -78,6 +78,10 @@ function Pedido ({ pedido, mapa, dados, chave, api, navigate, aberto, aoAtualiza
   const [erro, setErro] = React.useState('')
   const podeImagem = estado === 'codigo' || estado === 'expirado' || estado === 'imagemPendente'
   const validade = estado === 'codigo' ? validadeDoCodigo(pedido.expira_em) : ''
+  const areaPedido = React.useRef(null)
+  React.useEffect(() => {
+    if (aberto) areaPedido.current?.scrollIntoView({ block: 'start' })
+  }, [aberto])
 
   async function copiar () {
     try { await navigator.clipboard.writeText(codigoLegivel(pedido.codigo)); setMsg(T.copiado) } catch { setMsg(T.copiarFalhou) }
@@ -94,8 +98,9 @@ function Pedido ({ pedido, mapa, dados, chave, api, navigate, aberto, aoAtualiza
   }
 
   return (
-    <li className={`ct-dlv__pedido is-${estado}`}>
+    <li ref={areaPedido} className={`ct-dlv__pedido is-${estado}`}>
       <p className="ct-dlv__linha"><strong>{casa}</strong><span className={`ct-dlv__estado is-${estado}`}>{T.estado[estado]}</span></p>
+      {aberto && podeImagem && <p className="ct-aviso" role="status"><strong>Falta enviar a imagem.</strong> Escolha a foto ou o print abaixo e toque em enviar para a organização analisar.</p>}
       {pedido.pedido_data && <p className="ct-nota">{T.dataDoPedido(dataCurta(pedido.pedido_data))}{pedido.pedido_ref ? ` · ${pedido.pedido_ref}` : ''}</p>}
       {estado === 'codigo' && pedido.via === 'casa' && <p className="ct-dlv__aviso-imagem" role="status"><strong>Envie uma foto ou print para a organização.</strong> Este pedido foi feito antes da opção de comprovar o delivery com imagem. A organização poderá analisar seu comprovante por aqui.</p>}
       <p className="ct-nota">{T.estadoTexto[estado]}</p>

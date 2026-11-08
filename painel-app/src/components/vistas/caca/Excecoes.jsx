@@ -98,6 +98,7 @@ export function Excecoes({ edicao, pode }) {
         </Secao>
       )}
       <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores à Caça e delivery. Na visita anterior, a pessoa informa a data e pode explicar o horário aproximado e os detalhes do que viveu, enviar uma foto, ou fazer os dois. Confira o relato e a foto (quando houver), junto ao contexto do mapa, antes de decidir. Delivery com código é confirmado pela casa; delivery com foto é decidido aqui. A casa nunca decide e nenhum pedido conta antes da aprovação.">
+        <p className="ui-nota">Nos pedidos de delivery marcados como “Aguardando imagem”, a pessoa ainda precisa enviar o comprovante. Depois do envio, a aprovação aparece na coluna Ação. No celular, deslize a tabela para o lado para ver todas as colunas.</p>
         <Escolha rotulo="Mostrar" valor={estado} onMudar={setEstado} className="cp-filtro"
           opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
         {!itens.length ? <Vazio titulo="Nenhum pedido aqui">{estado === 'pendente' ? 'Ninguém está esperando uma decisão agora.' : 'Nada nesta situação.'}</Vazio> : (
