@@ -2,6 +2,11 @@
 -- O participante envia um print da publicação; só a organização transforma o pedido em carimbo.
 -- O registro não referencia mapa por FK para que apagar/recuperar um mapa não apague o histórico da pessoa.
 
+-- A campanha foi prorrogada até 13/11. Preserva as demais opções e não sobrescreve um prazo configurado posteriormente.
+update public.caca_config
+   set valor = jsonb_set(valor, '{fim}', '"2026-11-13"'::jsonb)
+ where chave = 'campanha_sicredi' and valor ->> 'fim' = '2026-11-11';
+
 create table if not exists public.caca_sicredi_campanha_pedido (
   id uuid primary key default gen_random_uuid(),
   edicao_codigo text not null references public.edicoes(codigo) on update cascade,
@@ -170,6 +175,9 @@ begin
   v_nota := public.caca_texto_limpo(p_nota, 200);
   select * into e from public.caca_sicredi_campanha_pedido where id = p_id for update;
   if e.id is null then raise exception 'pedido_nao_encontrado'; end if;
+  if (v_dec = 'aprovar' and e.estado = 'aprovado') or (v_dec = 'negar' and e.estado = 'negado') then
+    return jsonb_build_object('ok', true, 'estado', e.estado, 'existente', true);
+  end if;
   if e.estado <> 'pendente' then raise exception 'transicao_invalida'; end if;
   if v_dec = 'aprovar' and e.imagem_path is null then raise exception 'sem_imagem'; end if;
   if v_dec = 'negar' and v_nota is null then raise exception 'nota_obrigatoria'; end if;

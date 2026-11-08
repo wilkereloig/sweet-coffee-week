@@ -22,11 +22,19 @@ function EnvioCarimboSicredi ({ aberta, navigate }) {
   const [erro, setErro] = React.useState('')
   const [ocupado, setOcupado] = React.useState(false)
   const [rascunho, setRascunho] = React.useState(null)
+  const [consulta, setConsulta] = React.useState('carregando')
+  const [tentativa, setTentativa] = React.useState(0)
   React.useEffect(() => {
     let vivo = true
-    if (caca.estado === 'pronto' && caca.chave) caca.api.sicrediCampanhaMeus(caca.chave).then((r) => { if (vivo && r.ok) setPedidos(r.pedidos || []) })
+    if (caca.estado === 'pronto' && caca.chave) {
+      setConsulta('carregando')
+      caca.api.sicrediCampanhaMeus(caca.chave).then((r) => {
+        if (!vivo) return
+        if (r.ok) { setPedidos(r.pedidos || []); setConsulta('pronta') } else setConsulta('falha')
+      }).catch(() => { if (vivo) setConsulta('falha') })
+    }
     return () => { vivo = false }
-  }, [caca.estado, caca.chave, caca.api])
+  }, [caca.estado, caca.chave, caca.api, tentativa])
   const atual = pedidos.find((p) => p.estado === 'pendente' || p.estado === 'aprovado' || p.estado === 'rascunho')
   async function iniciar () {
     setErro(''); setOcupado(true)
@@ -45,6 +53,7 @@ function EnvioCarimboSicredi ({ aberta, navigate }) {
     setRascunho(null)
     const l = await caca.api.sicrediCampanhaMeus(caca.chave)
     if (l.ok) setPedidos(l.pedidos || [])
+    else setConsulta('falha')
   }
   return (
     <section className="ct-bloco ct-tcqc__carimbo" aria-labelledby="tcqc-carimbo">
@@ -55,7 +64,9 @@ function EnvioCarimboSicredi ({ aberta, navigate }) {
       {caca.estado === 'sem-mapa' && <p>Para enviar o print, primeiro <Link href={CACA_CAMINHOS.central} navigate={navigate} className="ct-link">crie seu mapa da Caça aos Carimbos</Link>.</p>}
       {caca.estado === 'carregando' && <p role="status">Carregando seu mapa…</p>}
       {caca.estado === 'falha' && <p role="status">Não foi possível carregar seu mapa agora. Atualize a página e tente de novo.</p>}
-      {caca.estado === 'pronto' && (atual?.estado === 'aprovado'
+      {caca.estado === 'pronto' && consulta === 'carregando' && <p role="status">Consultando seu pedido…</p>}
+      {caca.estado === 'pronto' && consulta === 'falha' && <div role="alert"><p>Não foi possível consultar seu pedido. Tente novamente.</p><button type="button" className="ct-botao" onClick={() => setTentativa((n) => n + 1)}>Tentar novamente</button></div>}
+      {caca.estado === 'pronto' && consulta === 'pronta' && (atual?.estado === 'aprovado'
         ? <p className="ct-tcqc__carimbo-status" role="status">Carimbo Sicredi aprovado! Ele já conta no seu ranking e nos sorteios.</p>
         : atual?.estado === 'pendente'
           ? <p className="ct-tcqc__carimbo-status" role="status">Print recebido. A organização vai analisar seu pedido.</p>
