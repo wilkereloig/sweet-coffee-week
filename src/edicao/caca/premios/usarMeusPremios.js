@@ -10,6 +10,7 @@ export function usarMeusPremios (caca) {
   const [rodada, setRodada] = React.useState(0)
   const [ocupado, setOcupado] = React.useState(null)
   const [erroEscolha, setErroEscolha] = React.useState('')
+  const [erroRecebimento, setErroRecebimento] = React.useState('')
 
   React.useEffect(() => {
     if (!caca.chave) { setEstado('sem-mapa'); setPremios([]); return undefined }
@@ -51,5 +52,26 @@ export function usarMeusPremios (caca) {
       return false
     } finally { setOcupado(null) }
   }, [caca.api, caca.chave, ocupado])
-  return { estado, premios, tentar, escolher, ocupado, erroEscolha }
+  const confirmarRecebimento = React.useCallback(async (premio) => {
+    if (!caca.chave || ocupado) return false
+    setOcupado(premio)
+    setErroRecebimento('')
+    try {
+      const r = await caca.api.meusPremiosConfirmarRecebimento(caca.chave, premio)
+      if (!r.ok) {
+        const mensagens = {
+          voucher_nao_escolhido: 'Escolha primeiro uma das casas para receber seu voucher.',
+          premio_nao_confirmado: 'Este voucher ainda não está liberado para confirmação.',
+        }
+        setErroRecebimento(mensagens[r.motivo] || 'Não foi possível confirmar o recebimento agora. Tente de novo.')
+        return false
+      }
+      setRodada((n) => n + 1)
+      return true
+    } catch {
+      setErroRecebimento('Sem conexão. Seu recebimento não foi confirmado; tente de novo.')
+      return false
+    } finally { setOcupado(null) }
+  }, [caca.api, caca.chave, ocupado])
+  return { estado, premios, tentar, escolher, confirmarRecebimento, ocupado, erroEscolha, erroRecebimento }
 }

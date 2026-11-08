@@ -271,6 +271,11 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       p_chave: chave, p_premio: premio, p_opcao: opcao,
     })),
 
+    /** O ganhador confirma que recebeu o voucher escolhido; a confirmação fica registrada no prêmio. */
+    meusPremiosConfirmarRecebimento: (chave, premio) => comChave(chave, () => rpcOk('caca_meus_premios_confirmar_recebimento', {
+      p_chave: chave, p_premio: premio,
+    })),
+
     /** `caca_premios_publico` (migration 20261223): `{ ok:true, premios:{ periodo{inicio,fim,estado: antes|aberta|encerrada}, dias[{dia,corte,estado}], corte_hora_local, voucher_validade_ate, ganhadores_final } }`. Público, sem chave; nunca traz nome nem posição de ninguém. */
     premiosLer: async () => {
       const r = await rpcDado('caca_premios_publico', { p_edicao: edicao })

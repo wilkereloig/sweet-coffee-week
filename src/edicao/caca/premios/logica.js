@@ -90,7 +90,11 @@ export function organizarMeusPremios (lista) {
       prazo: dataHoraNatal(p.prazo_ate),
       validade: descreverData(p.valido_ate),
       emailConfirmado: p.email_confirmado === true,
-      voucher: p.voucher && typeof p.voucher.token === 'string' ? { marca: String(p.voucher.marca || ''), token: p.voucher.token, estado: p.voucher.estado } : null,
+      recebidoEm: dataHoraNatal(p.recebido_em),
+      voucher: p.voucher && typeof p.voucher.token === 'string' ? {
+        marca: String(p.voucher.marca || ''), token: p.voucher.token, estado: p.voucher.estado,
+        utilizadoEm: dataHoraNatal(p.voucher.utilizado_em),
+      } : null,
       opcoes: Array.isArray(p.opcoes) ? p.opcoes.filter((o) => o && typeof o.id === 'string' && typeof o.marca === 'string') : [],
     }))
     .sort((a, b) => String(b.iso || '').localeCompare(String(a.iso || '')))
