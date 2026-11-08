@@ -6,6 +6,7 @@
  * `CACA_SECOES` ou em arquivo próprio em src/edicao/caca/, sem mexer no que já existe aqui.
  */
 import { EDICAO } from '../config.js'
+import { CAMPANHA } from './campanha/terComQuemContar.js'
 
 const C = `${EDICAO.caminho}/caca`
 
@@ -21,6 +22,7 @@ export const CACA_CAMINHOS = {
   compartilhar: `${C}/compartilhar`,
   delivery: `${C}/delivery`,
   visitaAnterior: `${C}/visita-anterior`,
+  sicredi: `${CAMPANHA.caminho}?carimbo=1`,
   rota: `${EDICAO.caminho}/mapa?painel=rota`, // a rota é o painel do Mapa da Doçura
   casas: `${EDICAO.caminho}/participantes`,
   regulamento: `${EDICAO.caminho}/regulamento`,
@@ -124,6 +126,7 @@ export const CACA = {
       { chave: 'compartilhar', desenho: 'compartilhar', rotulo: 'Compartilhar' },
       { chave: 'delivery', desenho: 'carimbo-delivery', rotulo: 'Carimbo do meu delivery' },
       { chave: 'visitaAnterior', desenho: 'ja-fui', rotulo: 'Pedir carimbo de uma visita' },
+      { chave: 'sicredi', desenho: 'ja-fui', rotulo: 'Pedir carimbo Sicredi' },
     ],
   },
   rodape: { regulamento: 'Regulamento' },

@@ -86,6 +86,7 @@ function IlustracaoPasso ({ indice }) {
 export function TerComQuemContar ({ navigate }) {
   const e = estadoDaCampanha(useAgora(60000))
   const sicredi = MARCAS_PARCEIROS.sicredi
+  const diretoAoCarimbo = new URLSearchParams(window.location.search).get('carimbo') === '1'
   return (
     <div className="ct-tcqc">
       <TopoCanal canal="estreia" className="ct-tcqc__topo" aria-labelledby="tcqc-titulo">
@@ -98,6 +99,8 @@ export function TerComQuemContar ({ navigate }) {
           <img src={sicredi.src} alt={sicredi.alt} width={sicredi.largura} height={sicredi.altura} decoding="async" />
         </div>
       </TopoCanal>
+
+      {diretoAoCarimbo && <EnvioCarimboSicredi aberta={e.aberta} navigate={navigate} />}
 
       <div className="ct-bloco ct-tcqc__duas">
         <figure className="ct-tcqc__video">
@@ -125,7 +128,7 @@ export function TerComQuemContar ({ navigate }) {
           : <p className="ct-lead">{T.encerradaNota}</p>}
       </div>
 
-      <EnvioCarimboSicredi aberta={e.aberta} navigate={navigate} />
+      {!diretoAoCarimbo && <EnvioCarimboSicredi aberta={e.aberta} navigate={navigate} />}
 
       <section className="ct-bloco ct-tcqc__escolha" aria-labelledby="tcqc-escolha">
         <h2 id="tcqc-escolha" className="ct-h2">{T.escolhaTitulo}</h2>
