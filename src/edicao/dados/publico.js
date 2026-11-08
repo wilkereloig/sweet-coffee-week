@@ -113,6 +113,12 @@ export async function carregarParticipante (codigo, slug, opcoes = {}) {
   return participanteComArte(await buscarParticipante(codigo, slug, opcoes))
 }
 
+/** Estado operacional do combo: leitura curta, sem cache da publicação (o aviso pode mudar durante o dia). */
+export async function carregarCombosEsgotados (codigo, { sinal } = {}) {
+  if (!codigo || demoLigado()) return []
+  return rpc('combos_esgotados_publico', { p_edicao: codigo }, sinal)
+}
+
 async function buscarParticipante (codigo, slug, { sinal } = {}) {
   if (demoLigado()) {
     const { DEMO_EDICAO } = await import('./demo/cartoon.js')

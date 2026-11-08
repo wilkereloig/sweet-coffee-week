@@ -92,6 +92,9 @@
   transform-origin: 50% 50%; filter: drop-shadow(1px 2px 0 color-mix(in srgb, var(--ct-chocolate) 35%, transparent));
 }
 .ct-mundo__estado img, .ct-mundo__revisita img { display: block; width: 100%; height: auto; }
+/* Aviso operacional de estoque: persistente até meia-noite, forma e texto além da cor. */
+.ct-mundo__esgotado{position:absolute;z-index:3;top:-8px;left:50%;translate:-50% 0;display:grid;place-items:center;box-sizing:border-box;min-width:20px;height:20px;padding:0 5px;border:2px solid var(--ct-chocolate);border-radius:999px;background:#d93636;color:#fff;font:900 13px/1 var(--ct-font);box-shadow:0 1px 0 var(--ct-chocolate);pointer-events:none;user-select:none}
+.ct-mundo__casa.is-esgotado .ct-mundo__disco,.ct-pin.is-esgotado .ct-mundo__disco{outline:2px solid #d93636;outline-offset:3px}
 /* Revisita: contador "+N" no aro inferior direito, só a partir do zoom (a janela ganha .is-zoom); sem zoom o número vai no nome acessível. */
 .ct-mundo__revisita {
   display: none; --b: calc(var(--d) * .44);

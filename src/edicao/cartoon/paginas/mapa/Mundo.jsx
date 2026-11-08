@@ -362,14 +362,15 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             const estado = h.selo ? IMAGENS_ESTADO[h.selo] : null
             return (
               <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} data-abertura={h.nivel || undefined} style={{ ...pos(ponto), ...deslocamento(c.id) }} aria-pressed={marcada}
-                aria-label={TC.casaNoMundo({ ...c, enderecos: c.enderecos, abertura: h.rotulo })}
-                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}${h.mudou ? ' is-mudou' : ''}${destaque?.has(c.slug) ? ' is-perto' : ''}`}
+                aria-label={`${TC.casaNoMundo({ ...c, enderecos: c.enderecos, abertura: h.rotulo })}${c.esgotado ? '. Combos esgotados hoje' : ''}`}
+                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}${h.mudou ? ' is-mudou' : ''}${destaque?.has(c.slug) ? ' is-perto' : ''}${c.esgotado ? ' is-esgotado' : ''}`}
                 onClick={() => aoSelecionar(marcada ? '' : c.id)}>
                 <span className="ct-mundo__ponta" aria-hidden="true" />
                 <span className="ct-mundo__disco" aria-hidden="true">
                   {c.pin ? <img src={c.pin} alt="" loading="lazy" decoding="async" draggable={false} /> : <span className="ct-mundo__inicial">{c.inicial}</span>}
                 </span>
                 <span className="ct-mundo__num" aria-hidden="true">{c.numero}</span>
+                {c.esgotado && <span className="ct-mundo__esgotado" aria-hidden="true">!</span>}
                 {destaque?.has(c.slug) && <span className="ct-mundo__ordem" aria-hidden="true">{destaque.get(c.slug)}</span>}
                 {estado && (
                   <span className="ct-mundo__estado" aria-hidden="true">

@@ -86,6 +86,17 @@ button.im-linha{cursor:pointer}
 .bal-pedido dt{font-weight:700}
 .bal-pedido dd{margin:0}
 
+/* Disponibilidade do combo: ação diária no início da casa, separada do registro de vendas. */
+.mc-esgotado{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--e-2) var(--e-4);padding:var(--e-3);border:1px solid var(--scw-filete);border-radius:var(--r-2);background:var(--sup-1)}
+.mc-esgotado__texto{display:grid;gap:3px;min-width:0}
+.mc-esgotado__texto strong{font:700 15px/1.25 var(--f-ui)}
+.mc-esgotado__texto span,.mc-esgotado>small{font:400 13px/1.4 var(--f-texto);color:var(--scw-marrom);text-wrap:pretty}
+.mc-esgotado .acao{min-height:44px;white-space:normal}
+.mc-esgotado.is-esgotado{border-color:var(--scw-verde);background:color-mix(in srgb,var(--scw-verde) 9%,var(--sup-1))}
+.mc-esgotado__erro{grid-column:1/-1;margin:0;color:var(--scw-choco);font:700 13px/1.35 var(--f-texto)}
+.mc-esgotado>small{grid-column:1/-1}
+@media(max-width:600px){.mc-esgotado{grid-template-columns:1fr}.mc-esgotado .acao{justify-self:start}}
+
 /* Folha "Ajudar com carimbo". */
 .bal-ajuda{display:grid;gap:var(--e-4);font:400 16px/1.5 var(--f-texto)}
 .bal-ajuda p{margin:0}

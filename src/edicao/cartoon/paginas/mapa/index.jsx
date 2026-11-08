@@ -76,6 +76,7 @@ import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, ad
 import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/mapa/Proximidade.jsx'
 import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
 import { useTelaCheia } from './useTelaCheia.js'
+import { carregarCombosEsgotados } from '../../../dados/publico.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
 // ou não carregar —, o MapLibre (OpenFreeMap), que não pede chave. A página só conhece a interface comum.
@@ -138,6 +139,18 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
   const lista = dados?.participantes || []
   const periodo = dados?.edicao
+  const [esgotadosHoje, setEsgotadosHoje] = React.useState([])
+  React.useEffect(() => {
+    let ativo = true
+    const ler = () => carregarCombosEsgotados(periodo?.codigo).then((r) => { if (ativo) setEsgotadosHoje((r || []).map((x) => x.slug)) }).catch(() => {})
+    ler()
+    const intervalo = setInterval(ler, 45000)
+    const aoFocar = () => { if (document.visibilityState === 'visible') ler() }
+    document.addEventListener('visibilitychange', aoFocar)
+    window.addEventListener('focus', ler)
+    return () => { ativo = false; clearInterval(intervalo); document.removeEventListener('visibilitychange', aoFocar); window.removeEventListener('focus', ler) }
+  }, [periodo?.codigo])
+  const esgotadosSet = React.useMemo(() => new Set(esgotadosHoje), [esgotadosHoje])
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, periodo), [lista, periodo])
   const filtro = { ...f, aberto: f.aberto && opcoes.hoje } // fora do festival, ?aberto=1 antigo não esconde nada
   const marcas = { rota: rota.ids, foi: rota.foi }
@@ -199,14 +212,14 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Logo desenhada P&B sem carimbo, colorida com carimbo; casa sem desenho cai na oficial reduzida do Mundo e, sem ela, na inicial.
   const pinDe = (p, u) => ({
     logo: logoDoPin(p, estadoDe(p.slug)) || mundo.logo(p.slug), inicial: inicial(p), numero: mundo.unidades[u.id]?.numero ?? '', estado: estadoDe(p.slug),
-    revisitas: revisitasDe(p.slug), nivel: aberturas.nivelDaUnidade(u.id), mudou: aberturas.mudouUnidade(u.id),
+    revisitas: revisitasDe(p.slug), nivel: esgotadosSet.has(p.slug) ? null : aberturas.nivelDaUnidade(u.id), mudou: aberturas.mudouUnidade(u.id), esgotado: esgotadosSet.has(p.slug),
   })
   const visiveis = new Set(linhas.map((x) => x.u.id))
   const casasMundo = comMundo ? casasNoMundo(mundo.unidades, todas).map(({ u, p, x, y, numero }) => {
     return {
       id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), nomeCasa: p.casa?.nome || '', tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', pin: pinDe(p, u).logo, inicial: inicial(p),
-      apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug,
-      nivel: aberturas.nivelDaCasa(p.slug), mudou: aberturas.mudouCasa(p.slug),
+      apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug, esgotado: esgotadosSet.has(p.slug),
+      nivel: esgotadosSet.has(p.slug) ? null : aberturas.nivelDaCasa(p.slug), mudou: aberturas.mudouCasa(p.slug),
     }
   }) : []
   const trilha = comMundo ? tracado(pontosDaRota(faltam.filter((pa) => pa.ativa).map((pa) => pa.id), mundo.unidades), mundo.quadro) : ''
@@ -381,7 +394,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Lista de casas dos atalhos: as do desenho (na ordem do caminho) ou, sem o desenho, as unidades visíveis.
   const itensLista = comMundo
     ? agruparPorCasa(casasMundo).filter((c) => !c.apagada).map((c) => (c.enderecos > 1 ? { ...c, titulo: c.nomeCasa || c.titulo, bairro: TC.enderecosNaCasa(c.enderecos) } : c))
-    : linhas.map(({ u, p }) => ({ id: u.id, slug: p.slug, numero: mundo.unidades[u.id]?.numero ?? '', titulo: M.tituloDaUnidade(p, u), bairro: u.endereco?.bairro || '', estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), parada: paradaDe.get(u.id) || null, proxima: p.slug === proximaSlug }))
+    : linhas.map(({ u, p }) => ({ id: u.id, slug: p.slug, numero: mundo.unidades[u.id]?.numero ?? '', titulo: M.tituloDaUnidade(p, u), bairro: u.endereco?.bairro || '', estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), parada: paradaDe.get(u.id) || null, proxima: p.slug === proximaSlug, esgotado: esgotadosSet.has(p.slug) }))
   const progressoDoJogo = meu.estado === 'pronto' ? progressoPessoal(meu.mapa, lista.filter((p) => (p.unidades || []).length).length) : null
   // O que cada atalho da tela cheia mostra: os componentes que já existem, nada novo. Sem mapa criado, o convite curto da Central.
   const premiosEl = <PainelPremios caca={meu} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length} navigate={navigate} />
@@ -421,6 +434,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
         : (
           <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
             parada={paradaDe.get(escolhida.u.id) || null} estado={estadoDe(escolhida.p.slug)} revisitas={revisitasDe(escolhida.p.slug)}
+            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)}
             proxima={escolhida.p.slug === proximaSlug} aoAvaliar={avaliar}
             irmas={enderecosDaCasa(todas, escolhida.p.slug, escolhida.u.id)} aoEscolher={escolher} />
           )}
@@ -498,6 +512,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                     <ul className="ct-mapa__lista" aria-label={T.contagem(linhas.length)}>
                       {linhas.map(({ u, p, dist, foi }) => {
                         const titulo = M.tituloDaUnidade(p, u)
+                        const esgotado = esgotadosSet.has(p.slug)
                         const est = u.combo ? M.estadoAgora(u, undefined, dados?.edicao) : null
                         const agora = est ? M.textoEstado(est) : ''
                         const nota = notaDoLugar(u.coordenada)
@@ -508,8 +523,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                               <span className="ct-mapa__sel-texto">
                                 <strong>{titulo}</strong>
                                 <span>{M.enderecoEmLinha(u.endereco)}</span>
+                                {esgotado && <span className="ct-mapa__estado ct-mapa__estado--esgotado">Combos esgotados hoje</span>}
                                 {estadoDe(p.slug) && <SeloEstado estado={estadoDe(p.slug)} revisitas={revisitasDe(p.slug)} />}
-                                {agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
+                                {!esgotado && agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
                                 {!p.combo && <span className="ct-mapa__estado">{T.semComboAinda}</span>}
                                 {dist != null && <span className="ct-nota">{T.distancia(dist, !!u.coordenada?.conferir)}</span>}
                                 {nota && <span className={`ct-mapa__local${u.coordenada ? ' ct-mapa__local--aprox' : ''}`}>{nota}</span>}

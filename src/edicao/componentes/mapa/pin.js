@@ -55,6 +55,10 @@ export function atualizarPin (caixa, pin) {
   }
   num.textContent = pin.numero ?? ''
   num.hidden = pin.numero === '' || pin.numero == null
+  caixa.classList.toggle('is-esgotado', !!pin.esgotado)
+  let esgotado = caixa.querySelector('.ct-mundo__esgotado')
+  if (pin.esgotado && !esgotado) { esgotado = document.createElement('span'); esgotado.className = 'ct-mundo__esgotado'; esgotado.setAttribute('aria-hidden', 'true'); esgotado.textContent = '!'; caixa.append(esgotado) }
+  else if (!pin.esgotado) esgotado?.remove()
   const { ponto, mudou } = hierarquiaDoPin(pin) // o mapa real não desenha o "+N": o ponto do horário nunca perde o canto
   atualizarAbertura(caixa, ponto)
   caixa.classList.toggle('is-mudou', mudou)
