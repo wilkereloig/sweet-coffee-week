@@ -86,16 +86,45 @@ button.im-linha{cursor:pointer}
 .bal-pedido dt{font-weight:700}
 .bal-pedido dd{margin:0}
 
-/* Disponibilidade do combo: ação diária no início da casa, separada do registro de vendas. */
-.mc-esgotado{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--e-2) var(--e-4);padding:var(--e-3);border:1px solid var(--scw-filete);border-radius:var(--r-2);background:var(--sup-1)}
+/* Registro e disponibilidade: duas ações relacionadas, com hierarquia e estados próprios. */
+.pn-vista .mc-venda{display:grid;gap:16px;padding:20px 22px;border-radius:var(--r-3);box-shadow:var(--sombra-1)}
+.mc-venda__cabeca{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.mc-venda__identidade{font:700 11px/1.2 var(--f-ui);letter-spacing:.09em;color:color-mix(in srgb,var(--scw-creme) 72%,transparent)}
+.mc-venda__linha{display:flex;align-items:flex-end;gap:12px 14px}
+.mc-venda__rotulo{gap:7px}
+.pn-vista .mc-venda__campo{width:clamp(118px,13vw,148px);min-height:48px;padding:9px 13px;border-radius:14px;font-size:21px}
+.pn-vista .mc-venda__rotulo select.mc-venda__campo{font-size:16px}
+.pn-vista .mc-venda__rotulo select.mc-venda__campo option{background:var(--scw-choco);color:var(--scw-creme)}
+.mc-venda__linha .acao{min-height:48px;padding-inline:20px}
+.pn-vista .mc-venda__total{display:flex;flex-direction:row;align-items:center;gap:10px;margin-left:auto;padding:8px 12px;border:1px solid color-mix(in srgb,var(--scw-creme) 18%,transparent);border-radius:var(--r-2);background:color-mix(in srgb,var(--scw-creme) 7%,transparent)}
+.mc-venda__total b{font:900 27px/1 var(--f-titulo);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.mc-venda__total span{max-width:90px;font:700 11.5px/1.2 var(--f-ui);color:color-mix(in srgb,var(--scw-creme) 76%,transparent)}
+.mc-venda__dias{gap:7px;margin-top:2px}
+.mc-venda__dia{min-width:64px;padding:8px 11px}
+
+.mc-esgotado{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:12px 14px;padding:15px 18px;border:1px solid var(--scw-filete);border-radius:var(--r-2);background:var(--sup-1)}
+.mc-esgotado__marca{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--scw-verde) 14%,var(--sup-1));color:var(--scw-verde)}
+.mc-esgotado__marca span{width:10px;height:10px;border-radius:50%;background:currentColor}
 .mc-esgotado__texto{display:grid;gap:3px;min-width:0}
-.mc-esgotado__texto strong{font:700 15px/1.25 var(--f-ui)}
-.mc-esgotado__texto span,.mc-esgotado>small{font:400 13px/1.4 var(--f-texto);color:var(--scw-marrom);text-wrap:pretty}
-.mc-esgotado .acao{min-height:44px;white-space:normal}
-.mc-esgotado.is-esgotado{border-color:var(--scw-verde);background:color-mix(in srgb,var(--scw-verde) 9%,var(--sup-1))}
-.mc-esgotado__erro{grid-column:1/-1;margin:0;color:var(--scw-choco);font:700 13px/1.35 var(--f-texto)}
-.mc-esgotado>small{grid-column:1/-1}
-@media(max-width:600px){.mc-esgotado{grid-template-columns:1fr}.mc-esgotado .acao{justify-self:start}}
+.mc-esgotado__rotulo{font:700 10px/1.2 var(--f-ui);letter-spacing:.08em;color:var(--scw-marrom)}
+.mc-esgotado__texto strong{font:700 15px/1.25 var(--f-ui);text-wrap:balance}
+.mc-esgotado__texto span:last-child,.mc-esgotado>small{font:400 13px/1.4 var(--f-texto);color:var(--scw-marrom);text-wrap:pretty}
+.mc-esgotado .acao{min-height:44px;max-width:220px;white-space:normal}
+.mc-esgotado.is-esgotado{border-color:color-mix(in srgb,var(--scw-verde) 45%,var(--scw-filete));background:color-mix(in srgb,var(--scw-verde) 8%,var(--sup-1))}
+.mc-esgotado.is-esgotado .mc-esgotado__marca{background:var(--scw-verde);color:var(--scw-creme)}
+.mc-esgotado__erro{grid-column:2/-1;margin:0;padding:9px 11px;border-radius:var(--r-1);background:color-mix(in srgb,var(--scw-amarelo) 20%,var(--sup-1));color:var(--scw-choco);font:700 13px/1.35 var(--f-texto)}
+.mc-esgotado>small{grid-column:2/-1}
+@media(max-width:700px){
+  .pn-vista .mc-venda{gap:14px;padding:17px}
+  .mc-venda__linha{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:12px}
+  .pn-vista .mc-venda__campo{width:100%;min-width:0}
+  .mc-venda__linha .acao{grid-column:1/-1;width:100%}
+  .pn-vista .mc-venda__total{margin-left:0}
+  .mc-esgotado{grid-template-columns:30px minmax(0,1fr);gap:10px 12px;padding:14px}
+  .mc-esgotado__marca{width:28px;height:28px}
+  .mc-esgotado .acao{grid-column:2;justify-self:start;max-width:none}
+  .mc-esgotado__erro,.mc-esgotado>small{grid-column:2}
+}
 
 /* Folha "Ajudar com carimbo". */
 .bal-ajuda{display:grid;gap:var(--e-4);font:400 16px/1.5 var(--f-texto)}

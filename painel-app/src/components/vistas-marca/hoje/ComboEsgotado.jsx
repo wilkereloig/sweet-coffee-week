@@ -38,17 +38,19 @@ export function ComboEsgotado({ participacaoId, hoje }) {
 
   return (
     <div className={'mc-esgotado' + (estado ? ' is-esgotado' : '')} aria-live="polite">
+      <div className="mc-esgotado__marca" aria-hidden="true"><span /></div>
       <div className="mc-esgotado__texto">
-        <strong>{estado ? 'Combos esgotados hoje' : 'O combo esgotou hoje?'}</strong>
+        <span className="mc-esgotado__rotulo">DISPONIBILIDADE NO MAPA</span>
+        <strong>{estado ? 'Combos esgotados hoje' : 'Ainda tem combo disponível?'}</strong>
         <span>{estado
           ? 'A Organização foi avisada e o mapa informa que sua casa está sem combos.'
-          : 'Avise a Organização e atualize o mapa para quem está escolhendo onde ir.'}</span>
+          : 'Se acabar, avise a Organização para atualizar o mapa.'}</span>
       </div>
       <button type="button" className="acao acao--amarela" onClick={alternar} disabled={carregando || salvando}>
         {carregando ? 'Conferindo…' : salvando ? 'Atualizando…' : estado ? 'Temos combos novamente' : 'Avisar que esgotou'}
       </button>
       {erro && <p className="mc-esgotado__erro" role="alert">{erro}</p>}
-      <small>Vale para toda a casa até o fim do dia. Amanhã, o aviso sai automaticamente.</small>
+      <small>O aviso vale para toda a casa até o fim do dia e sai automaticamente amanhã.</small>
     </div>
   )
 }
