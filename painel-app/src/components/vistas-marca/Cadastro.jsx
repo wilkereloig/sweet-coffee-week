@@ -149,6 +149,7 @@ function pedidoItem(i) {
     caminho: 'participantes_itens?id=eq.' + i.id,
     corpo: {
       nome: (i.nome || '').trim(), descricao: (i.descricao || '').trim(),
+      ingredientes: (i.ingredientes || '').trim() || null,
       ...(i.posicao === 2 ? { tipo: i.tipo } : {}),
     },
   }
@@ -1303,6 +1304,9 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
                       <label><span>Descrição <em>(como conversa com o tema)</em> <EstadoCampo e={est('item-' + it.posicao + '-descricao')} /></span>
                         <textarea id={'campo-item-' + it.posicao + '-descricao'} maxLength={5000} value={it.descricao || ''} onChange={(e) => alterarItem(it.id, 'descricao', e.target.value)} />
                         <Correcao e={est('item-' + it.posicao + '-descricao')} />
+                      </label>
+                      <label><span>Ingredientes <em>(opcional — aparece no site)</em></span>
+                        <textarea id={'campo-item-' + it.posicao + '-ingredientes'} maxLength={1000} value={it.ingredientes || ''} onChange={(e) => alterarItem(it.id, 'ingredientes', e.target.value)} />
                       </label>
                     </div>
                   )
