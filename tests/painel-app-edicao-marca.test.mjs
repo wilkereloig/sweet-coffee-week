@@ -713,3 +713,28 @@ test('link de delivery inválido: a lista de canais fica de fora da gravação e
   assert.match(c, /if \(validarWhatsApp\(marca\.telefone\)\) delete camposMarca\.telefone/)
   assert.match(c, /omitidos\.add\('o WhatsApp do responsável'\)/)
 })
+
+test('faz_delivery ligado pela equipe: a marca vê taxa e regiões, e salvar não o apaga; responder "não" o desliga', () => {
+  const u = E.unidadeDeLinhas({ id: 'p1', faz_delivery: true, delivery_combo: 'nao', consumo_local: 'sim', retirada: 'sim' }, null)
+  assert.equal(u.faz_delivery, true)
+  assert.equal(E.corpoParticipacaoUnidade(u, 0).faz_delivery, true)
+  assert.equal(E.corpoParticipacaoUnidade({ ...u, faz_delivery: false, delivery_combo: 'sim' }, 0).faz_delivery, true)
+  assert.equal(E.corpoParticipacaoUnidade({ ...u, faz_delivery: false }, 0).faz_delivery, false)
+  const tela = ler('painel-app/src/components/vistas-marca/edicao/Atendimento.jsx')
+  assert.match(tela, /u\.delivery_combo === 'sim' \|\| u\.faz_delivery/)
+  assert.match(tela, /alterar\(k, 'faz_delivery', v === 'sim'\)/)
+})
+
+test('ficha da equipe: tudo o que o site mostra tem edição, gravando onde o site lê', () => {
+  const ficha = ler('painel-app/src/components/vistas/FichaCadastro.jsx')
+  for (const chave of ['apresentacao_publica', 'combo_descricao', 'combo_condicoes', 'whatsapp_publico', 'logradouro', 'delivery_taxa', 'delivery_regioes', 'observacao_combo', 'delivery_combo']) {
+    assert.ok(ficha.includes("chave: '" + chave + "'"), 'campo sem edição na ficha: ' + chave)
+  }
+  assert.match(ficha, /org_salvar_unidade_site/)
+  assert.match(ficha, /org_salvar_dados_publicos/)
+  assert.doesNotMatch(ficha, /chave: '(vegano|sem_gluten|sem_lactose|tem_substituicao|substituicao)'/, 'selos legados não chegam ao site')
+  assert.match(ler('painel-app/src/components/vistas/AlimentarEquipe.jsx'), /org_salvar_alimentar/)
+  const sql = ler('supabase/migrations/20270116_equipe_edita_o_que_o_site_mostra.sql')
+  assert.match(sql, /'apresentacao_publica'/)
+  assert.match(sql, /function public\.org_salvar_unidade_site/)
+})

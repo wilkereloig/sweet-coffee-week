@@ -1028,6 +1028,23 @@ leitura de `unidades`). O que passou a valer:
   seletor de edição com duas participações abertas, e o Início (`resumoMarca`) ainda não
   conta as pendências da camada de edição — só a barra do próprio cadastro.
 
+#### Tudo que o site mostra se edita no painel — 09/11/2026 (pedido do Wilker)
+Regra: **campo exibido na página pública do participante tem que ter input no painel (marca e/ou equipe) e gravar a coluna que
+`montar_publico_base` lê.** Auditoria achou e fechou (migration `20270116_equipe_edita_o_que_o_site_mostra.sql`, ✅ aplicada;
+teste `supabase/testes/equipe-edita-site.sql` → `TESTE_OK`; reversão em `supabase/reverter/`):
+- **Ingredientes** voltaram a ser editáveis (marca em Meu combo; equipe na ficha) — saíram do formulário em 19/10 e o site seguiu exibindo.
+- **Informações alimentares e trocas pela equipe** (`vistas/AlimentarEquipe.jsx`, o mesmo `<Alimentar>` da marca): `org_salvar_alimentar`
+  grava `declaracoes_alimentares` e `substituicoes`; lê por `get_alimentar_participacao`. ⛔ Os selos legados (`vegano`, `sem_gluten`,
+  `sem_lactose`, `tem_substituicao`, `substituicao` em `participantes_itens`) saíram da ficha: o site não os lê.
+- **Unidade pela equipe** (`org_salvar_unidade_site`): nome, endereço completo, WhatsApp da loja (preenchido = autorizado) e atendimento
+  (modos, delivery, taxa, regiões, observação, `faz_delivery`); o espelho `participacao_unidades.endereco/bairro` acompanha. A ficha
+  (`get_ficha_participacao`) traz a permanente em `unidade._un`. **Apresentação da casa** (`org_salvar_participante`) e **texto do combo**
+  (nome, descrição, condições, por `org_salvar_dados_publicos`) também têm campo na ficha.
+- **Marca:** taxa/regiões/canais de delivery aparecem também com `faz_delivery` (ligado pela equipe); responder o delivery do combo
+  "sim/não" liga/desliga `faz_delivery` junto (`Atendimento.jsx`).
+- ⚠️ Fora do painel ainda: `casa.logo_desenhada` (herdada da publicação anterior, vem de `scripts/edicao/logos-desenhadas.py`) e o foco da foto
+  (`foco_x/y`, sem uso no site).
+
 #### Ficha geral do participante — 15/10/2026 (pedido do Wilker)
 
 Clicar no participante abre a **Visão do participante**: tudo o que foi preenchido, numa
