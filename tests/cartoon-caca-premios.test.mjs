@@ -73,10 +73,11 @@ test('prêmios pessoais: mostra apenas estados ativos, valida dados e ordena os 
     { id: 'pendente', dia: '2026-11-07', estado: 'selecionado', prazo_ate: '2026-11-08T03:00:00Z' },
     { id: 'confirmado', dia: '2026-11-08', estado: 'confirmado' },
     { id: 'cancelado', dia: '2026-11-09', estado: 'cancelado' },
-    { id: 'data-ruim', dia: 'ontem', estado: 'confirmado' },
+    { id: 'final', tipo: 'final', dia: null, estado: 'confirmado' },
     null,
   ])
-  assert.deepEqual(lista.map((p) => p.id), ['confirmado', 'pendente', 'antigo'])
+  assert.deepEqual(lista.map((p) => p.id), ['confirmado', 'pendente', 'antigo', 'final'])
+  assert.equal(lista[3].tipo, 'final'); assert.equal(lista[3].dia, null)
   assert.equal(lista[1].prazo, '8 de novembro às 00:00')
   assert.equal(lista[2].validade.longa, '15 de novembro')
   assert.deepEqual(organizarMeusPremios(null), [])

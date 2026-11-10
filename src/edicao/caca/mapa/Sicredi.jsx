@@ -46,7 +46,7 @@ function ChamadaCarimboSicredi ({ navigate }) {
   if (!campanha.aberta) return null
   return (
     <aside className="ct-caca-mapa__carimbo-sicredi" aria-label="Carimbo Sicredi">
-      <span className="ct-caca-mapa__carimbo-icone"><ScwIcon nome="mecanica/voucher" tamanho={30} /></span>
+      <span className="ct-caca-mapa__carimbo-icone"><ScwIcon nome="mecanica/voucher" tamanho={24} /></span>
       <div>
         <strong>Carimbo Sicredi</strong>
         <p>Envie o print do vídeo publicado. Com a aprovação da organização, ele soma pontos no ranking e nos sorteios.</p>

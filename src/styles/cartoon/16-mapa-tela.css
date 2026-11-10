@@ -545,7 +545,14 @@
 
 /* ------------------------------------------------------------- FAIXA DO JOGO (FaixaJogo, Atalhos.jsx; só FORA da tela cheia) */
 /* Progresso · Prêmios · Ranking · Grupos (· Rota no computador) à vista entre a barra e o mapa: no celular, metades iguais; do tablet em diante, uma linha. */
-.ct-jogo-faixa { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+/* Celular: DUAS fileiras, nunca três (o mapa tem de começar na primeira dobra): Progresso | Prêmios em cima; Ranking | Grupos | Como carimbar? embaixo. */
+.ct-jogo-faixa { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.ct-jogo-faixa > .ct-jogo-faixa__botao { grid-column: span 2; padding-inline: 8px; }
+.ct-jogo-faixa > [data-faixa-jogo='progresso'], .ct-jogo-faixa > [data-faixa-jogo='premios'] { grid-column: span 3; }
+@media (max-width: 599.98px) {
+  .ct-jogo-faixa > .ct-guia__botao { font-size: 13px; line-height: 1.1; white-space: normal; text-align: center; }
+  .ct-jogo-faixa > .ct-guia__botao .ct-guia__interrogacao { display: none; }
+}
 .ct-jogo-faixa__botao { justify-content: center; gap: 6px; min-height: 44px; }
 .ct-jogo-faixa__botao img { flex: none; width: 24px; height: 24px; }
 .ct-jogo-faixa__botao[data-faixa-jogo='rota'] { display: none; }

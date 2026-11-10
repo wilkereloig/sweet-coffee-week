@@ -92,7 +92,7 @@ button.im-linha{cursor:pointer}
 .mc-venda__identidade{font:700 11px/1.2 var(--f-ui);letter-spacing:.09em;color:color-mix(in srgb,var(--scw-creme) 72%,transparent)}
 .mc-venda__linha{display:flex;align-items:flex-end;gap:12px 14px}
 .mc-venda__rotulo{gap:7px}
-.pn-vista .mc-venda__campo{width:clamp(118px,13vw,148px);min-height:48px;padding:9px 13px;border-radius:14px;font-size:21px}
+.pn-vista .mc-venda__campo{width:clamp(118px,13vw,148px);min-height:48px;padding:9px 13px;border-radius:var(--r-2);font-size:21px}
 .pn-vista .mc-venda__rotulo select.mc-venda__campo{font-size:16px}
 .pn-vista .mc-venda__rotulo select.mc-venda__campo option{background:var(--scw-choco);color:var(--scw-creme)}
 .mc-venda__linha .acao{min-height:48px;padding-inline:20px}

@@ -274,7 +274,7 @@ test('textos: cada estado diz o que é, sem "voto/votação", sem "Sweet" sozinh
 
 test('textos do Sicredi: agência não é casa; carimbo especial exige print aprovado', () => {
   assert.equal(T.sicrediRotulo, 'Patrocinador')
-  assert.match(T.sicrediAviso, /^O Sicredi é o patrocinador/)
+  assert.match(T.sicrediAviso, /^O Sicredi é patrocinador/)
   assert.match(T.sicrediAviso, /print do vídeo publicado/)
   assert.match(T.sicrediNoMundo('Sicredi Natal', 'Rua A'), /agência não conta como casa/)
   assert.match(T.sicrediNoMundo('Sicredi Natal', 'Rua A'), /aprovação do print/)
@@ -378,14 +378,14 @@ test('o Mundo não conhece a tela cheia: a interface dele segue só com os dados
 
 // ---- Atalhos do jogo na tela cheia (06/11/2026) ----
 
-test('atalhos do jogo: seis itens na ordem pedida, cada um com ícone ilustrado da edição, rótulo curto e título de folha', () => {
+test('atalhos do jogo: sete itens na ordem pedida, cada um com ícone ilustrado da edição, rótulo curto e título de folha', () => {
   const fonte = readFileSync(new URL('../src/edicao/cartoon/paginas/mapa/Atalhos.jsx', import.meta.url), 'utf8')
   const chaves = [...fonte.matchAll(/\['(\w+)', '([\w-]+)'\]/g)].map((m) => [m[1], m[2]])
-  assert.deepEqual(chaves.map((c) => c[0]), ['progresso', 'casas', 'rota', 'premios', 'ranking', 'grupos'])
+  assert.deepEqual(chaves.map((c) => c[0]), ['progresso', 'casas', 'rota', 'premios', 'ranking', 'grupos', 'visitaAnterior'])
   for (const [chave, icone] of chaves) {
     assert.ok(iconeEdicao(icone), `ícone da edição "${icone}" existe`)
     assert.ok(T.atalho[chave] && T.atalhoTitulo[chave], `rótulo e título de ${chave}`)
-    assert.ok(T.atalho[chave].length <= 10, `rótulo curto: ${T.atalho[chave]}`)
+    assert.ok(T.atalho[chave].length <= 13, `rótulo curto: ${T.atalho[chave]}`) // "Pedir carimbo" (13) é o mais longo
   }
   assert.equal(T.atalhoTitulo.progresso, 'Progresso e carimbos')
   assert.equal(T.atalhosNome(''), 'Atalhos do jogo')
