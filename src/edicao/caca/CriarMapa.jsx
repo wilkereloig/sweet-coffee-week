@@ -41,7 +41,7 @@ export function AbrirPeloLink ({ aoAbrir }) {
 export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota, botao = T.acao, comLink = true, api = apiPadrao }) {
   const [f, setF] = React.useState(() => {
     const p = C.lerPerfil(EDICAO.codigo)
-    return { apelido: p.nome.slice(0, 24), email: p.email, whatsapp: p.whatsapp, ranking: false, aceite: false }
+    return { apelido: p.nome.slice(0, 24), email: p.email, whatsapp: p.whatsapp, instagram: '', ranking: false, aceite: false }
   })
   const [erro, setErro] = React.useState('')
   const [jaTem, setJaTem] = React.useState(false) // o e-mail já tem mapa: não cria outro, leva à recuperação
@@ -57,6 +57,8 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
     if (!r.ok) { setErro(mensagemDoMotivo(r.motivo)); return }
     C.gravarChave(EDICAO.codigo, r.chave) // sem storage, o mapa segue nesta visita
     C.gravarPerfil(EDICAO.codigo, { nome: f.apelido, email: f.email, whatsapp: f.whatsapp })
+    // Instagram (10/11/2026) é opcional e entra à parte: se falhar ou vier fora do formato, o mapa já está criado e segue valendo.
+    if (f.instagram.trim()) await api.mapaInstagram?.(r.chave, f.instagram.trim())?.catch?.(() => {})
     aoAbrir(r.chave, true)
   }
 
@@ -94,6 +96,10 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
         </label>
         <label className="ct-campo"><span>{T.whatsapp}</span>
           <input type="tel" autoComplete="tel" inputMode="tel" value={f.whatsapp} maxLength={20} onChange={(e) => muda('whatsapp', e.target.value)} />
+        </label>
+        <label className="ct-campo"><span>{T.instagram}</span>
+          <input type="text" autoComplete="off" autoCapitalize="none" spellCheck={false} value={f.instagram} maxLength={60} placeholder="@seuperfil" onChange={(e) => muda('instagram', e.target.value)} />
+          <small>{T.instagramAjuda}</small>
         </label>
         <label className="ct-check"><input type="checkbox" checked={f.ranking} onChange={(e) => muda('ranking', e.target.checked)} /> {T.ranking}</label>
         <label className="ct-check">

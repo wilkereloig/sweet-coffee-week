@@ -19,7 +19,7 @@ import { AWARDS as T, PARTICIPANTE as TP, ICONE, TIPO_ORDEM } from '../../textos
 import { LogoDoPin } from '../mapa/LogoDoPin.jsx'
 import { Foto } from '../../../componentes/base.jsx'
 import * as M from '../../../dados/modelo.js'
-import { lerPerfil, gravarPerfil, mesmoEmail } from '../../../rota/carimbo.js'
+import { lerPerfil, gravarPerfil, mesmoEmail, chamar } from '../../../rota/carimbo.js'
 import { CacaAposAvaliar } from '../Carimbo.jsx'
 import { MAPA_NO_AR } from '../../contexto.js'
 
@@ -97,7 +97,7 @@ export function Formulario ({ dados, criterios, navigate }) {
     const varias = (casaPedida?.unidades || []).length > 1
     const pronta = !!casaPedida && (!varias || unidade)
     return { slug, unidade, nome: r.nome || perfil.nome, email: r.email || perfil.email, emailMapa: r.emailMapa || '',
-      notas: r.notas || {}, comentario: r.comentario || '', novidades: false, passo: pronta ? 2 : 1 }
+      notas: r.notas || {}, comentario: r.comentario || '', evento: r.evento || '', sugestao: r.sugestao || '', novidades: false, passo: pronta ? 2 : 1 }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps -- estado inicial, lido uma vez
   const [form, setForm] = React.useState(inicial)
   const [busca, setBusca] = React.useState('')
@@ -151,6 +151,10 @@ export function Formulario ({ dados, criterios, navigate }) {
       setEstado('erro')
       if (window.turnstile) try { window.turnstile.reset(); setVerificacao('carregando') } catch { /* sem widget */ }
       return
+    }
+    // Perguntas sobre o festival (10/11/2026): opcionais, completam a avaliação que acabou de ser gravada. Falha aqui não desfaz a avaliação.
+    if (form.evento.trim() || form.sugestao.trim()) {
+      try { await chamar('avaliacao_complementar', { p_edicao: EDICAO.codigo, p_slug: form.slug, p_email: form.email.trim(), p_evento: form.evento.trim() || null, p_sugestao: form.sugestao.trim() || null }) } catch { /* a avaliação já está salva */ }
     }
     try { sessionStorage.removeItem(RASCUNHO) } catch { /* sem storage */ }
     gravarPerfil(EDICAO.codigo, { nome: form.nome, email: form.email })
@@ -274,6 +278,12 @@ export function Formulario ({ dados, criterios, navigate }) {
           <CabecaPasso n={3} total={total} titulo={T.dadosTitulo} id="av-p3" focar={trocouPasso.current} />
           <label className="ct-campo"><span>{T.comentario}</span>
             <textarea value={form.comentario} maxLength={600} rows={3} onChange={(e) => muda('comentario', e.target.value)} />
+          </label>
+          <label className="ct-campo"><span>{T.comentarioEvento}</span>
+            <textarea value={form.evento} maxLength={600} rows={3} onChange={(e) => muda('evento', e.target.value)} />
+          </label>
+          <label className="ct-campo"><span>{T.sugestaoFestival}</span>
+            <textarea value={form.sugestao} maxLength={600} rows={3} onChange={(e) => muda('sugestao', e.target.value)} />
           </label>
           <label className="ct-campo"><span>{T.nome}</span>
             <input type="text" autoComplete="name" value={form.nome} maxLength={120} onChange={(e) => muda('nome', e.target.value)} required />

@@ -254,6 +254,12 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       return r.ok && Array.isArray(r.dado) ? { ok: true, ranking: r.dado } : r.ok ? sem('resposta_invalida') : r
     },
 
+    /** `mapa_definir_instagram`: guarda o Instagram (opcional) do mapa; o banco tira @ e endereço e recusa perfil fora do formato (`instagram_invalido`). */
+    mapaInstagram: (chave, instagram) => comChave(chave, async () => {
+      const r = await rpcDado('mapa_definir_instagram', { p_chave: chave, p_instagram: String(instagram || '') })
+      return r.ok && r.dado?.ok === true ? { ok: true, instagram: r.dado.instagram || '' } : r.ok ? sem(r.dado?.motivo || 'resposta_invalida') : r
+    }),
+
     /** `caca_ritmo_publico`: `{ ok:true, ritmo:[{apelido, casas_novas, extras_novos}], horas, atualizado_em }`. Indicador complementar (quem avançou na janela); não é a classificação. Pública, sem chave. */
     async ritmo () {
       const r = await rpcDado('caca_ritmo_publico', { p_edicao: edicao })
