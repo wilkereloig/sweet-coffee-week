@@ -431,7 +431,7 @@ referência como "§6.12" continua válida, só mora em outro arquivo.
 |---|---|---|
 | §6 Sistema visual · §10.1–10.7 armadilhas de CSS, cor e layout | `src/CLAUDE.md` | sozinho, ao mexer em `src/` |
 | §7 As páginas (Home, Edições, Awards, Participar, Apoiar, Contato, Em breve) | `src/pages/CLAUDE.md` | sozinho, ao mexer em `src/pages/` |
-| §10.4-b Páginas estáticas, painel, contas, push, Fases 5–16 | `painel-app/CLAUDE.md` | sozinho, ao mexer em `painel-app/` |
+| §10.4-b Páginas estáticas, painel, contas, push, Fases 5–18 e o painel da Cartoon | `painel-app/CLAUDE.md` (índice) → `docs/regras/10-4b-painel-01…04-*.md` | o índice carrega sozinho ao mexer em `painel-app/`; **abrir o arquivo da área** antes de mexer |
 | §4 Stack, Supabase, migrations, estrutura de pastas, demolição | `docs/regras/04-stack-e-estrutura.md` | **ler antes** de mexer em banco, Supabase, dependência ou estrutura |
 | §9 O dado do festival (números, Hall, marcas) | `docs/regras/09-dado-do-festival.md` | **ler antes** de exibir ou alterar dado |
 | §10.8–10.9 Testes e acervo | `docs/regras/10-testes-e-acervo.md` | **ler antes** de rodar/escrever teste ou usar acervo |
