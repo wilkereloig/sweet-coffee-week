@@ -82,7 +82,7 @@ Contrato: `15-caca-contrato-gps.md`; decisão: `15-caca-gps-excecao.md`; coorden
 Texto público conferido frase a frase contra as migrations 20261203 a 20261220 e os contratos `15-caca-contrato-*.md`.
 
 - `src/edicao/cartoon/regulamento.js`: casas diferentes e extras, avaliação para validar o 1º carimbo (ordem livre), 12 horas, QR + localização,
-  pedido de revisão de presença (decisão da organização), vouchers de 7 a 11/11 (corte 23h59 de Natal, desempate, 1 por pessoa, e-mail
+  pedido de revisão de presença (decisão da organização), vouchers de 7 a 11/11 (corte 17h00 de Natal desde a migration 20270106_caca_corte_17h, desempate, 1 por pessoa, e-mail
   confirmado, prazos), prêmio final (todas as casas, peso 100 + 1 por extra, 3 ganhadores, sorteio verificável), ranking, grupos e metas
   (sem prêmio), e-mail e recuperação, avisos e app (sem promessa de entrega), dados. Três lacunas ficam marcadas como `aDefinir`
   (idade mínima, data e forma de entrega do prêmio final, prazo de guarda). O total de casas não é escrito no texto (hoje 26 ou 27, conforme o combo da Caroli Douces).

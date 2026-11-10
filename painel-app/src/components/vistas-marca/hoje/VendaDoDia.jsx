@@ -70,6 +70,10 @@ export function VendaDoDia({ vendas, hoje, total, participacaoId, aoGravar, reca
     <>
       <AvisoMudancaExterna registro={venda} rotulos={{ quantidade: 'Combos vendidos' }} />
       <form className="mc-venda" onSubmit={(ev) => { ev.preventDefault(); gravar() }}>
+        <div className="mc-venda__cabeca">
+          <span className="mc-venda__identidade">REGISTRO DE VENDAS</span>
+          <span className="mc-venda__total"><b>{total}</b><span>combos na edição</span></span>
+        </div>
         <div className="mc-venda__linha">
           {dias.length > 1 && (
             <label className="mc-venda__rotulo">
@@ -86,7 +90,6 @@ export function VendaDoDia({ vendas, hoje, total, participacaoId, aoGravar, reca
             <input className="mc-venda__campo" type="number" inputMode="numeric" min="0" step="1" placeholder="0" value={venda.local.quantidade} onChange={(e) => venda.editar('quantidade', e.target.value)} />
           </label>
           <button className="acao acao--amarela" type="submit" disabled={salvando}>{linhaDoDia ? 'Atualizar' : 'Salvar'}</button>
-          <span className="mc-venda__total"><b>{total}</b><span>no total da edição</span></span>
         </div>
         {vendas.length > 0 && (
           <div className="mc-venda__dias" aria-label="Últimos dias lançados">

@@ -16,7 +16,7 @@ export const MOTIVO_PEDIDO = Object.freeze({
   sem_localizacao: 'Sem localização (negada, indisponível ou demorou)',
   imprecisa: 'GPS impreciso (margem acima de 300 m)',
   longe: 'Longe do ponto da casa',
-  visita_anterior: 'Visita anterior à Caça (pedido de 05/11)',
+  visita_anterior: 'Visita anterior à Caça',
   delivery: 'Delivery (pedido recebido em casa)',
 })
 export const rotuloMotivoPedido = (m) => MOTIVO_PEDIDO[m] || String(m || '')
@@ -30,24 +30,24 @@ export function descricaoDoSinal(p) {
     const d = p.pedido_data ? String(p.pedido_data).split('-').reverse().join('/') : 'sem data'
     return `pedido de ${d}${p.pedido_ref ? ` (ref. ${p.pedido_ref})` : ''}, informado pela pessoa (sem prova de local)`
   }
-  if (p?.motivo === 'visita_anterior') return p.visita_data ? `visita em ${String(p.visita_data).split('-').reverse().join('/')}, informada pela pessoa (sem prova de local)` : 'visita anterior, sem data'
+  if (p?.motivo === 'visita_anterior') return p.visita_data ? `visita em ${String(p.visita_data).split('-').reverse().join('/')}, data informada pela pessoa` : 'visita anterior, sem data'
   const d = Number.isFinite(p?.distancia_m) ? `a ${p.distancia_m} m do ponto conferido` : 'sem posição enviada'
   const m = Number.isFinite(p?.precisao_m) ? `, margem de ±${p.precisao_m} m` : ''
   return d + m
 }
 
 /** Só pedido pendente tem ação. */
-export const podeDecidir = (p) => !!p && p.estado === 'pendente' && !p.aguardando_casa
+export const podeDecidir = (p) => !!p && p.estado === 'pendente' && (!p.aguardando_casa || (p.motivo === 'delivery' && p.via_pretendida === 'imagem'))
 
 /** Delivery com código: quem confirma é a CASA, não a organização. */
-export const aguardandoACasa = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa'
+export const aguardandoACasa = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa' && p.via_pretendida !== 'imagem'
 
 /** Texto da confirmação antes de decidir (a decisão não se desfaz por aqui). */
 export function textoDaDecisao(p, decisao) {
   const quem = `${p.apelido} em ${p.casa}`
   if (p.motivo === 'delivery') {
     return decisao === 'aprovar'
-      ? `Aprovar cria agora um carimbo de ${quem}, marcado como delivery aprovado pela organização. Ele conta a partir de agora (não muda voucher já apurado) e só vira casa validada depois que a pessoa avaliar o combo com o e-mail do mapa. Print e foto não são prova perfeita: confira a imagem, a data e a referência.`
+      ? `Aprovar cria agora um carimbo de ${quem}, marcado como delivery aprovado pela organização. Ele conta a partir de agora (não muda voucher já apurado) e só vira casa validada depois que a pessoa avaliar o combo com o e-mail do mapa. Confira o relato, a data e a referência; a imagem é opcional.`
       : `Negar registra o motivo; a pessoa vê só que o pedido não foi aprovado (${quem}). Nada é carimbado.`
   }
   if (p.motivo === 'visita_anterior') {

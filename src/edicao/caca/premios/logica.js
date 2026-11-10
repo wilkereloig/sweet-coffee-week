@@ -76,6 +76,39 @@ export function organizarPremios (dado) {
   }
 }
 
+/** Dados privados da RPC caca_meus_premios: normaliza apenas vouchers ativos do próprio mapa. */
+export function organizarMeusPremios (lista) {
+  if (!Array.isArray(lista)) return []
+  return lista
+    .filter((p) => p && typeof p.id === 'string' && ESTADOS_PREMIO_PESSOAL.has(p.estado))
+    .map((p) => ({
+      id: p.id,
+      tipo: p.tipo === 'final' ? 'final' : 'voucher_dia',
+      iso: p.dia,
+      dia: descreverData(p.dia),
+      estado: p.estado,
+      prazo: dataHoraNatal(p.prazo_ate),
+      validade: descreverData(p.valido_ate),
+      emailConfirmado: p.email_confirmado === true,
+      recebidoEm: dataHoraNatal(p.recebido_em),
+      voucher: p.voucher && typeof p.voucher.token === 'string' ? {
+        marca: String(p.voucher.marca || ''), token: p.voucher.token, estado: p.voucher.estado,
+        utilizadoEm: dataHoraNatal(p.voucher.utilizado_em),
+      } : null,
+      opcoes: Array.isArray(p.opcoes) ? p.opcoes.filter((o) => o && typeof o.id === 'string' && typeof o.marca === 'string') : [],
+    }))
+    .sort((a, b) => String(b.iso || '').localeCompare(String(a.iso || '')))
+}
+
+const ESTADOS_PREMIO_PESSOAL = new Set(['selecionado', 'confirmado', 'entregue'])
+const dataHoraNatal = (iso) => {
+  if (typeof iso !== 'string' || !iso) return null
+  const data = new Date(iso)
+  return Number.isNaN(data.getTime()) ? null : new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Fortaleza', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+  }).format(data)
+}
+
 /**
  * Onde a pessoa está: sem mapa, mapa vazio, só carimbo pendente, com casas validadas ou completo.
  * `pendentes` (aguardando avaliação) NÃO contam casa; `extras` NÃO contam casa; "Já fui" é anotação e nem entra aqui.

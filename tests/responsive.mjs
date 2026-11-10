@@ -61,7 +61,8 @@ const BASE = `http://localhost:${PORT}`
    Foi essa a causa real das reprovas antigas de `.menu-toggle`: o teste
    achava `.brand` (a landing tem) e não achava o menu (a landing não tem).
    `tests/motion.mjs` já fazia certo desde sempre. */
-const HOME = `${BASE}/?preview=1`
+// Desde 04/11/2026 a "/" é a entrada da edição Cartoon (ENTRADA_PRINCIPAL); a Home institucional, que este teste mede, mora em /festival.
+const HOME = `${BASE}/festival?preview=1`
 
 // Viewports oficiais (CLAUDE.md §6.14). phone => isMobile + toque.
 const VIEWPORTS = [

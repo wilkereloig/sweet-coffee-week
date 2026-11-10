@@ -163,8 +163,8 @@ export const MAPA_CACA = {
   atalhosLista: 'Atalhos do jogo',
   atalhosNome: (resumo) => (resumo ? `Atalhos do jogo, ${resumo}` : 'Atalhos do jogo'),
   atalhosResumo: (feitas, total) => `${feitas} de ${total} ${total === 1 ? 'casa validada' : 'casas validadas'}`,
-  atalho: { progresso: 'Progresso', casas: 'Casas', rota: 'Rota', premios: 'Prêmios', ranking: 'Ranking', grupos: 'Grupos' },
-  atalhoTitulo: { progresso: 'Progresso e carimbos', casas: 'Casas', rota: 'Minha rota', premios: 'Prêmios', ranking: 'Ranking', grupos: 'Grupos' },
+  atalho: { progresso: 'Progresso', casas: 'Casas', rota: 'Rota', premios: 'Prêmios', ranking: 'Ranking', grupos: 'Grupos', visitaAnterior: 'Pedir carimbo' },
+  atalhoTitulo: { progresso: 'Progresso e carimbos', casas: 'Casas', rota: 'Minha rota', premios: 'Prêmios', ranking: 'Ranking', grupos: 'Grupos', visitaAnterior: 'Pedir carimbo de uma visita' },
   atalhoFechar: (titulo) => `Fechar: ${titulo}`,
   atalhoCarregando: 'Carregando…',
   atalhoGruposSemMapa: 'Crie seu mapa para jogar com amigos: o ranking dos grupos e a rota coletiva usam o seu progresso.',
@@ -187,8 +187,8 @@ export const MAPA_CACA = {
   // Sicredi
   sicrediRotulo: 'Patrocinador',
   sicrediTitulo: 'Agências do Sicredi',
-  sicrediAviso: 'O Sicredi é o patrocinador da Cartoon. As agências aparecem no mapa para você conhecer, mas não contam como casa nem como carimbo.',
-  sicrediNoMundo: (nome, endereco) => `${nome}, agência do patrocinador Sicredi${endereco ? `: ${endereco}` : ''}. Não conta como casa nem como carimbo`,
+  sicrediAviso: 'O Sicredi é patrocinador da Cartoon, não uma casa do mapa. Ao participar da campanha e enviar o print do vídeo publicado, você pode ganhar um carimbo Sicredi após aprovação da organização.',
+  sicrediNoMundo: (nome, endereco) => `${nome}, agência do patrocinador Sicredi${endereco ? `: ${endereco}` : ''}. A agência não conta como casa; o carimbo especial é concedido após aprovação do print da campanha`,
   sicrediPonto: { confirmada: 'Localização conferida', aproximada: 'Localização aproximada', 'nao-informada': 'Localização não informada' },
   sicrediNumero: 'O número do endereço está em conferência com a agência.',
   sicrediComoChegar: 'Como chegar',
@@ -198,5 +198,5 @@ export const MAPA_CACA = {
   grupoSeloCurto: (n) => String(n),
   sicrediLegenda: 'Agência do Sicredi (patrocinador, não conta como casa)',
   sicrediSemEndereco: 'Endereço não informado.',
-  sicrediNaoConta: 'Não conta como casa nem como carimbo',
+  sicrediNaoConta: 'Agência não conta como casa. O carimbo especial é concedido após aprovação do print da campanha.',
 }

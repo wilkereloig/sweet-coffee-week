@@ -76,9 +76,11 @@
 }
 @media (max-height: 520px) and (orientation: landscape) { .ct-mapa__explorar { --ct-mapa-alto: max(280px, 72svh); } }
 @media (min-width: 900px) {
-  .ct-mapa__corpo { grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 20px; }
+  .ct-mapa__corpo { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .ct-mapa__explorar { --ct-mapa-alto: clamp(440px, calc(100svh - 250px), 760px); }
-  .ct-mapa__lateral { position: sticky; top: 92px; display: grid; gap: 12px; max-height: calc(100svh - 108px); overflow: auto; overscroll-behavior: contain; }
+  .ct-mapa__lateral { display: grid; gap: 16px; min-width: 0; }
+  .ct-mapa__lateral > .ct-folha-m--casa { position: fixed; z-index: 40; right: max(16px, var(--ct-trilho)); top: calc(var(--ct-topo-barra) + 12px); width: min(380px, 38vw); }
+  .ct-mapa__lateral > .ct-folha-m--casa .ct-mapa__cartao { max-height: calc(100svh - var(--ct-topo-barra) - 28px); overflow: auto; overscroll-behavior: contain; }
 }
 
 /* Barra: vistas · busca · Filtros. Celular: vistas numa linha (colunas iguais), busca + Filtros na de baixo. */
@@ -207,6 +209,13 @@
 .ct-mapa__mapa { --esc: 1; }
 .ct-mapa__mapa--longe { --esc: .55; }
 .ct-sicredi-pin { position: relative; }
+.ct-sicredi-pin__promocao { position: absolute; z-index: 3; left: 50%; bottom: calc(100% + 8px); display: grid; place-items: center; padding: 3px; transform: translateX(-50%); border: 2px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-amarelo); box-shadow: 2px 3px 0 var(--ct-chocolate); }
+.ct-edicao .ct-sicredi-pin__promocao img { width: 32px; height: 32px; max-width: none; animation: ct-mundo-voucher-pisca 1.3s ease-in-out infinite; }
+.ct-sicredi-pin__promocao::after { content: ''; position: absolute; left: calc(50% - 6px); bottom: -7px; width: 10px; height: 10px; rotate: 45deg; border: solid var(--ct-chocolate); border-width: 0 2px 2px 0; background: var(--ct-amarelo); }
+.ct-sicredi-marcador--promocao .ct-sicredi-pin__placa { animation: ct-sicredi-pin-pulso 1.8s ease-in-out infinite; }
+@keyframes ct-sicredi-promocao { 0%, 100% { scale: 1; } 50% { scale: 1.045; } }
+@keyframes ct-sicredi-pin-pulso { 0%, 100% { box-shadow: 2px 3px 0 rgba(58, 21, 15, .35), 0 0 0 0 rgba(255, 190, 0, .75); } 50% { box-shadow: 2px 3px 0 rgba(58, 21, 15, .35), 0 0 0 7px rgba(255, 190, 0, .25); } }
+@media (prefers-reduced-motion: reduce) { .ct-sicredi-pin__promocao, .ct-sicredi-marcador--promocao .ct-sicredi-pin__placa, .ct-edicao .ct-sicredi-pin__promocao img { animation: none; } }
 .ct-alvo { position: absolute; left: 50%; bottom: 0; translate: -50% 0; width: max(100%, calc(44px / var(--esc, 1))); height: max(100%, calc(44px / var(--esc, 1))); }
 .ct-mapa__mapa .maplibregl-marker.ct-marcador--pin, .ct-mapa__mapa .maplibregl-marker.ct-sicredi-marcador { pointer-events: none; }
 .ct-mapa__mapa .maplibregl-marker .ct-pin, .ct-mapa__mapa .maplibregl-marker .ct-sicredi-pin { pointer-events: auto; }
@@ -473,6 +482,11 @@
 .ct-premios__destaque {
   display: grid; gap: 6px; padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p);
 }
+.ct-premios__pessoal { padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-premios__ganho { display: grid; gap: 8px; padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: 14px; background: var(--ct-branco); }
+.ct-premios__ganho-cabeca { display: flex; align-items: center; gap: 10px; }
+.ct-premios__ganho h4 { margin: 0; font: 900 1.15em/1.2 var(--ct-font); }
+.ct-premios__ganho .ct-botao { justify-self: start; }
 .ct-premios__final { padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-premios__linha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
 .ct-premios__ok { padding: 8px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-creme); font-weight: 800; }
@@ -497,7 +511,29 @@
 /* ------------------------------------------------------------- painel da rota: as três marcas (rota ≠ já fui ≠ carimbo) */
 /* Estado vazio dentro do painel (lista sem paradas, sem visitadas): sem o respiro de página inteira. */
 .ct-rota__secao .ct-estado { padding-block: 4px 8px; }
-.ct-painel-rota { display: grid; gap: 22px; } /* respiro entre "Quero ir", "Já fui" e "Rota do grupo": cada seção é um bloco à parte */
+.ct-painel-rota { display: grid; gap: 12px; }
+@media (min-width: 900px) {
+  .ct-mapa__abaixo, .ct-mapa__fora, .ct-mapa__lateral { width: min(100%, 1040px); margin-inline: auto; }
+  .ct-mapa__fora { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .ct-mapa__nota-casas { grid-column: 1 / -1; }
+  .ct-painel-rota { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+  .ct-painel-rota > .ct-rota__ajuda, .ct-painel-rota > .ct-aviso { grid-column: 1 / -1; }
+}
+.ct-mapa__avisos-desktop { display: none; }
+@media (min-width: 900px) {
+  .ct-mapa__avisos-desktop { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-bottom: 10px; font: 800 14px/1.2 var(--ct-font); }
+  .ct-mapa__avisos-desktop .ct-botao { min-height: 44px; }
+}
+.ct-painel-rota .ct-rota__secao { display: grid; align-content: start; gap: 8px; padding: 14px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-painel-rota .ct-rota__secao .ct-letreiro { margin: 0; }
+.ct-painel-rota .ct-rota__secao .ct-letreiro__linha { font-size: clamp(20px, 2vw, 25px); }
+.ct-painel-rota .ct-estado--vazio { grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 8px 10px; padding: 0; }
+.ct-edicao .ct-painel-rota .ct-estado--vazio > .ct-icone { width: 40px; height: 40px; grid-row: 1 / span 2; }
+.ct-painel-rota .ct-estado--vazio p { grid-column: 2; }
+.ct-painel-rota .ct-estado--vazio .ct-botao { grid-column: 2; }
+.ct-painel-rota .ct-rota__secao p { font-size: 14px; line-height: 1.4; }
+.ct-painel-rota .ct-rota__secao .ct-botao { min-height: 44px; }
+.ct-painel-rota .ct-estado--vazio p, .ct-painel-rota .ct-ni, .ct-painel-rota .ct-nota { margin: 0; }
 /* Ajuda recolhida: a diferença fica a um toque, sem ocupar a coluna o tempo todo. */
 .ct-rota__ajuda { padding: 0 2px; border-bottom: 2px dashed color-mix(in srgb, var(--ct-chocolate) 35%, transparent); }
 .ct-rota__ajuda[open] { padding-bottom: 8px; }
@@ -506,3 +542,19 @@
 
 /* O letreiro do Mapa da Doçura já está na barra do topo (marca da página): o título da faixa turquesa fica só para leitor de tela. */
 .ct-edicao:has(.ct-topo__marca--mapa) .ct-rota-topo--compacto #mapa-titulo { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ------------------------------------------------------------- FAIXA DO JOGO (FaixaJogo, Atalhos.jsx; só FORA da tela cheia) */
+/* Progresso · Prêmios · Ranking · Grupos (· Rota no computador) à vista entre a barra e o mapa: no celular, metades iguais; do tablet em diante, uma linha. */
+/* Celular: DUAS fileiras, nunca três (o mapa tem de começar na primeira dobra): Progresso | Prêmios em cima; Ranking | Grupos | Como carimbar? embaixo. */
+.ct-jogo-faixa { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.ct-jogo-faixa > .ct-jogo-faixa__botao { grid-column: span 2; padding-inline: 8px; }
+.ct-jogo-faixa > [data-faixa-jogo='progresso'], .ct-jogo-faixa > [data-faixa-jogo='premios'] { grid-column: span 3; }
+@media (max-width: 599.98px) {
+  .ct-jogo-faixa > .ct-guia__botao { font-size: 13px; line-height: 1.1; white-space: normal; text-align: center; }
+  .ct-jogo-faixa > .ct-guia__botao .ct-guia__interrogacao { display: none; }
+}
+.ct-jogo-faixa__botao { justify-content: center; gap: 6px; min-height: 44px; }
+.ct-jogo-faixa__botao img { flex: none; width: 24px; height: 24px; }
+.ct-jogo-faixa__botao[data-faixa-jogo='rota'] { display: none; }
+@media (min-width: 600px) { .ct-jogo-faixa { display: flex; flex-wrap: wrap; } }
+@media (min-width: 900px) { .ct-jogo-faixa__botao[data-faixa-jogo='rota'] { display: inline-flex; } }

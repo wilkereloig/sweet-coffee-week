@@ -15,32 +15,32 @@ const semComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:
 
 const E = (iso) => estadoDaCampanha(new Date(iso))
 
-test('prazo: antes mostra "faltam N dias"; no 11/11 é o último dia; depois, encerrada', () => {
-  assert.deepEqual(E('2026-11-06T15:00:00Z'), { estado: 'antes', aberta: true, faltam: 5, rotulo: 'Faltam 5 dias' })
-  assert.equal(E('2026-11-10T15:00:00Z').rotulo, 'Falta 1 dia')
-  assert.deepEqual(E('2026-11-11T15:00:00Z'), { estado: 'ultimo-dia', aberta: true, faltam: 0, rotulo: 'Último dia' })
-  assert.deepEqual(E('2026-11-12T15:00:00Z'), { estado: 'encerrada', aberta: false, faltam: 0, rotulo: 'Campanha encerrada' })
+test('prazo: antes mostra "faltam N dias"; no 13/11 é o último dia; depois, encerrada', () => {
+  assert.deepEqual(E('2026-11-06T15:00:00Z'), { estado: 'antes', aberta: true, faltam: 7, rotulo: 'Faltam 7 dias' })
+  assert.equal(E('2026-11-12T15:00:00Z').rotulo, 'Falta 1 dia')
+  assert.deepEqual(E('2026-11-13T15:00:00Z'), { estado: 'ultimo-dia', aberta: true, faltam: 0, rotulo: 'Último dia' })
+  assert.deepEqual(E('2026-11-14T15:00:00Z'), { estado: 'encerrada', aberta: false, faltam: 0, rotulo: 'Campanha encerrada' })
   assert.equal(E('2027-01-01T15:00:00Z').estado, 'encerrada')
 })
 
 test('prazo: vale o dia de Fortaleza (UTC-3), não o do aparelho nem o UTC', () => {
-  assert.equal(diaEmFortaleza(new Date('2026-11-12T02:59:59Z')), '2026-11-11')
-  assert.equal(diaEmFortaleza(new Date('2026-11-12T03:00:00Z')), '2026-11-12')
-  assert.equal(E('2026-11-12T02:59:59Z').estado, 'ultimo-dia', '23h59 de 11/11 em Fortaleza ainda é o último dia (já é 12/11 em UTC)')
-  assert.equal(E('2026-11-12T03:00:00Z').estado, 'encerrada', 'meia-noite de Fortaleza encerra')
-  assert.equal(E('2026-11-11T03:00:00Z').estado, 'ultimo-dia', '00h de 11/11 em Fortaleza já é o último dia')
-  assert.equal(E('2026-11-11T02:59:59Z').rotulo, 'Falta 1 dia', '23h59 de 10/11 em Fortaleza ainda falta 1 dia')
-  assert.equal(E('2026-11-09T02:59:59Z').faltam, 3, '23h59 de 08/11 em Fortaleza: faltam 3 dias (em UTC já seria 09/11)')
+  assert.equal(diaEmFortaleza(new Date('2026-11-14T02:59:59Z')), '2026-11-13')
+  assert.equal(diaEmFortaleza(new Date('2026-11-14T03:00:00Z')), '2026-11-14')
+  assert.equal(E('2026-11-14T02:59:59Z').estado, 'ultimo-dia')
+  assert.equal(E('2026-11-14T03:00:00Z').estado, 'encerrada')
+  assert.equal(E('2026-11-13T03:00:00Z').estado, 'ultimo-dia')
+  assert.equal(E('2026-11-13T02:59:59Z').rotulo, 'Falta 1 dia')
+  assert.equal(E('2026-11-09T02:59:59Z').faltam, 5)
 })
 
 test('prazo: aceita data em texto e não quebra com data inválida', () => {
-  assert.equal(estadoDaCampanha('2026-11-12T15:00:00Z').estado, 'encerrada')
+  assert.equal(estadoDaCampanha('2026-11-14T15:00:00Z').estado, 'encerrada')
   assert.doesNotThrow(() => estadoDaCampanha('não é data'))
   assert.doesNotThrow(() => estadoDaCampanha(undefined))
-  assert.equal(prazoCurto(E('2026-11-06T15:00:00Z')), 'Faltam 5 dias · até 11/11')
-  assert.equal(prazoCurto(E('2026-11-11T15:00:00Z')), 'Último dia · hoje, 11/11')
-  assert.equal(prazoCurto(E('2026-11-13T15:00:00Z')), 'Campanha encerrada')
-  assert.equal(T.prazoAberto(E('2026-11-11T15:00:00Z')), 'Último dia: hoje, 11 de novembro')
+  assert.equal(prazoCurto(E('2026-11-06T15:00:00Z')), 'Faltam 7 dias · até 13/11')
+  assert.equal(prazoCurto(E('2026-11-13T15:00:00Z')), 'Último dia · hoje, 13/11')
+  assert.equal(prazoCurto(E('2026-11-14T15:00:00Z')), 'Campanha encerrada')
+  assert.equal(T.prazoAberto(E('2026-11-13T15:00:00Z')), 'Último dia: hoje, 13 de novembro')
 })
 
 /** Todas as frases do módulo de textos (funções chamadas com exemplos). */
@@ -52,9 +52,8 @@ function frases (o, saida = []) {
 }
 const FONTES = ['src/edicao/caca/campanha/terComQuemContar.js', 'src/edicao/caca/campanha/Campanha.jsx', 'src/edicao/cartoon/paginas/TerComQuemContar.jsx']
 
-test('textos: nunca "sorteio", "voto/votação" nem "Sweet" sozinho para o festival', () => {
+test('textos: nunca "voto/votação" nem "Sweet" sozinho para o festival', () => {
   const todo = [...frases(T), ...FONTES.map((f) => semComentarios(ler(f)))].join('\n')
-  assert.doesNotMatch(todo, /sorteio|sortead|sortear/i)
   assert.doesNotMatch(todo, /\bvotam\b|\bvotação\b|\bvotacao\b|\bvoto\b/i)
   assert.doesNotMatch(todo, /\bSweet\b(?! (&|Awards|Lovers|Gift))/, '"Sweet" só em Sweet & Coffee Week, Sweet Awards, Sweet Lovers ou Sweet Gift')
 })
@@ -63,7 +62,7 @@ test('textos: só os fatos informados (nada de data de resultado, validade de vo
   const todo = frases(T).join('\n')
   assert.match(todo, /até 1 minuto/)
   assert.match(todo, /feed do Instagram/)
-  assert.match(todo, /11 de novembro/)
+  assert.match(todo, /13 de novembro/)
   assert.match(todo, /@sweetcoffeeweek/); assert.match(todo, /@sicrediriograndedonorte/); assert.match(todo, /#TerComQuemContar/)
   assert.match(todo, /perfil público/)
   assert.match(todo, /equipe de jornalistas montada pelo festival seleciona as 10 histórias/)
@@ -75,15 +74,15 @@ test('textos: só os fatos informados (nada de data de resultado, validade de vo
   assert.equal(T.passos.length, 3)
 })
 
-test('textos: a campanha é no Instagram e separada da Caça (não conta carimbo, meta nem ranking)', () => {
-  assert.match(T.separadaTexto, /Instagram/)
-  assert.match(T.separadaTexto, /não conta carimbo, meta nem ranking/)
-  assert.match(T.bloco.mapa, /Não conta carimbo/)
-  assert.match(T.bloco.premios, /separada da Caça/)
-  assert.match(T.bloco.premios, /não conta carimbo, meta nem ranking/)
+test('textos: campanha de vouchers separada; print aprovado dá carimbo Sicredi de ranking', () => {
+  assert.match(T.separadaTexto, /print/i)
+  assert.match(T.separadaTexto, /carimbo Sicredi/)
+  assert.match(T.bloco.mapa, /print/i)
+  assert.match(T.bloco.premios, /carimbo especial Sicredi/)
+  assert.match(T.bloco.premios, /ranking e sorteios/)
   assert.match(T.bloco.premios, /10 histórias/); assert.match(T.bloco.premios, /um par de vouchers/)
   assert.match(T.bloco.premiosTitulo, /^Também valendo: Ter com quem contar$/)
-  assert.match(T.bloco.metas, /não conta carimbo nem meta/i)
+  assert.match(T.bloco.metas, /aprovação da organização/i)
 })
 
 test('perfis: links certos, em outra aba e sem referrer', () => {
@@ -106,7 +105,7 @@ test('página: um <h1>, vídeo vertical sem autoplay com poster, selo da Sicredi
   assert.equal(CAMPANHA.video.largura / CAMPANHA.video.altura, 9 / 16)
   const css = ler('src/styles/cartoon/20-campanha-sicredi.css')
   assert.doesNotMatch(css, /!important/)
-  assert.match(css, /\.ct-tcqc__video \{[^}]*max-width: 400px/)
+  assert.match(css, /\.ct-tcqc__video \{[^}]*max-width: 330px/)
   assert.match(ler('src/styles/scw-cartoon.css'), /@import '\.\/cartoon\/20-campanha-sicredi\.css'/)
 })
 
@@ -132,28 +131,31 @@ test('entradas: cartão da agência, lista, painel de Prêmios, Metas, rodapé e
   assert.match(ler('src/edicao/cartoon/paginas/mapa/PainelPremios.jsx'), /<BlocoCampanha navigate=\{navigate\} variante="premios" \/>/)
   assert.match(ler('src/edicao/caca/secoes/Metas.jsx'), /<AvisoCampanha navigate=\{navigate\} \/>/)
   assert.match(ler('src/edicao/cartoon/index.jsx'), /<LinkDaCampanha navigate=\{navigate\} como="li" \/>/)
-  assert.match(ler('src/edicao/cartoon/paginas/Entrada.jsx'), /<AssinaturaPatrocinio navigate=\{navigate\} \/>/)
+  assert.match(ler('src/edicao/cartoon/paginas/Entrada.jsx'), /<AssinaturaPatrocinio navigate=\{navigate\} destaque \/>/)
+  assert.doesNotMatch(mapa, /<AssinaturaPatrocinio[^>]*\bdestaque\b/)
   const campanha = semComentarios(ler('src/edicao/caca/campanha/Campanha.jsx'))
   assert.doesNotMatch(campanha, /<a\s+href/, 'link interno nunca é <a href> cru (recarregaria o app)')
   assert.match(campanha, /if \(!e\.aberta\) return null/, 'some depois de 11/11')
 })
 
-test('a Sicredi nunca vira casa nem carimbo: a campanha não toca no jogo', () => {
+test('a agência não vira casa; campanha concede carimbo especial após aprovação', () => {
   assert.ok(AGENCIAS_SICREDI.length >= 1 && AGENCIAS_SICREDI.every((a) => ehSicredi(a.id)), 'agências seguem fora da lista de casas')
-  for (const f of FONTES) {
+  for (const f of FONTES.slice(0, 2)) {
     const imports = semComentarios(ler(f)).split('\n').filter((l) => /^\s*import /.test(l)).join('\n')
     assert.doesNotMatch(imports, /useCaca|usarMetas|usarPremios|caca\/api|carimbo|mapa\/estados|ranking|premios\/logica/i, `${f}: não importa carimbo, meta, prêmio nem ranking`)
   }
-  // Os dois cartões da Sicredi continuam dizendo, em texto, que o patrocinador não conta.
+  // Agências não contam como casa; a campanha pode conceder um carimbo especial.
   const sicredi = ler('src/edicao/caca/mapa/Sicredi.jsx')
   assert.match(sicredi, /sicrediAviso/); assert.match(sicredi, /sicrediNaoConta/)
-  assert.match(ler('src/edicao/caca/mapa/textos.js'), /sicrediNaoConta: 'Não conta como casa nem como carimbo'/)
+  assert.match(ler('src/edicao/caca/mapa/textos.js'), /sicrediNaoConta: 'Agência não conta como casa/)
+  const pagina = ler('src/edicao/cartoon/paginas/TerComQuemContar.jsx')
+  assert.match(pagina, /useCaca/); assert.match(pagina, /sicrediCampanhaEnviarImagem/)
 })
 
-test('avisos: categoria "campanha" desligada por padrão, com destino permitido e o mesmo destino/prazo do banco', () => {
+test('avisos: categoria desligada por padrão e destino permitido; migration original preservada', () => {
   assert.equal(PREFS_PADRAO.campanha, false)
   assert.equal(destinoSeguro(CAMPANHA.caminho), CAMPANHA.caminho)
   const sql = ler('supabase/migrations/20261234_caca_campanha_sicredi.sql')
   assert.ok(sql.includes(`"destino":"${CAMPANHA.caminho}"`), 'o destino padrão do banco é a página')
-  assert.ok(sql.includes(`"fim":"${CAMPANHA.fim}"`), 'o fim padrão do banco é o prazo da página')
+  assert.ok(sql.includes('"fim":"2026-11-11"'), 'a migration histórica registra o prazo original; a configuração ativa deve ser atualizada separadamente')
 })

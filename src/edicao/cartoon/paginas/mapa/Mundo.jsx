@@ -36,6 +36,8 @@
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
+import { useCampanha } from '../../../caca/campanha/Campanha.jsx'
+import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../../../caca/mapa/imagens.js'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { afastarPins, LIMITE_GRUPO } from '../../../componentes/mapa/afastar.js'
@@ -56,6 +58,8 @@ const reduzirMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').ma
 const limite = (v, m) => Math.min(m, Math.max(-m, v))
 
 export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSelecionar, recentes = new Set(), rodaAproxima = false, destaque = null, sobre = null }) {
+  const campanha = useCampanha()
+  const chamadaSicredi = 'Alerta de voucher'
   const janela = React.useRef(null)
   const palco = React.useRef(null)
   const camera = React.useRef(null) // {z, x, y} (camera.js): fica em ref, o desenho é aplicado direto no palco (60 fps sem re-render)
@@ -344,9 +348,10 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             ) : null
           })}
           {agencias.map((a) => (
-            <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={TC.sicrediNoMundo(a.nome, a.endereco)}
-              className={`ct-mundo__sicredi${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
+            <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={`${TC.sicrediNoMundo(a.nome, a.endereco)}${campanha.aberta ? `. ${chamadaSicredi}` : ''}`}
+              className={`ct-mundo__sicredi${campanha.aberta ? ' tem-promocao' : ''}${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
               <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={mundo.sicrediLogo} alt="" draggable={false} /></span>
+              {campanha.aberta && <span className="ct-mundo__sicredi-promocao" aria-hidden="true"><IconeCartoon nome="vouchers" tamanho={32} /></span>}
             </button>
           ))}
           {grupos.map((c) => {
@@ -357,14 +362,15 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             const estado = h.selo ? IMAGENS_ESTADO[h.selo] : null
             return (
               <button key={c.slug} type="button" data-casa={c.id} data-unidades={c.ids.join(' ')} data-estado={c.estado || undefined} data-abertura={h.nivel || undefined} style={{ ...pos(ponto), ...deslocamento(c.id) }} aria-pressed={marcada}
-                aria-label={TC.casaNoMundo({ ...c, enderecos: c.enderecos, abertura: h.rotulo })}
-                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}${h.mudou ? ' is-mudou' : ''}${destaque?.has(c.slug) ? ' is-perto' : ''}`}
+                aria-label={`${TC.casaNoMundo({ ...c, enderecos: c.enderecos, abertura: h.rotulo })}${c.esgotado ? '. Combos esgotados hoje' : ''}`}
+                className={`ct-mundo__casa${marcada ? ' is-sel' : ''}${agrupados.has(c.id) ? ' is-agrupado' : ''}${c.apagada ? ' is-apagada' : ''}${c.parada ? ' is-parada' : ''}${c.proxima ? ' is-proxima' : ''}${recentes.has(c.slug) ? ' is-recente' : ''}${h.mudou ? ' is-mudou' : ''}${destaque?.has(c.slug) ? ' is-perto' : ''}${c.esgotado ? ' is-esgotado' : ''}`}
                 onClick={() => aoSelecionar(marcada ? '' : c.id)}>
                 <span className="ct-mundo__ponta" aria-hidden="true" />
                 <span className="ct-mundo__disco" aria-hidden="true">
                   {c.pin ? <img src={c.pin} alt="" loading="lazy" decoding="async" draggable={false} /> : <span className="ct-mundo__inicial">{c.inicial}</span>}
                 </span>
                 <span className="ct-mundo__num" aria-hidden="true">{c.numero}</span>
+                {c.esgotado && <span className="ct-mundo__esgotado" aria-hidden="true">!</span>}
                 {destaque?.has(c.slug) && <span className="ct-mundo__ordem" aria-hidden="true">{destaque.get(c.slug)}</span>}
                 {estado && (
                   <span className="ct-mundo__estado" aria-hidden="true">

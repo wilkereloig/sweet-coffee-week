@@ -504,6 +504,14 @@ const MENSAGENS = [
   ['hash_invalido', 'O código da semente precisa ter 64 caracteres (0-9 e a-f).'],
   ['edicao_desconhecida', 'O servidor não conhece essa edição.'],
   ['premio_nao_encontrado', 'Esse prêmio não existe mais. Atualize a lista.'],
+  ['vouchers_premio_indisponiveis', 'Não dá para apurar: ainda não há voucher reservado para o próximo ganhador. Na seção “Opções de voucher para os ganhadores”, reserve um voucher digital de cada uma das cinco casas e tente novamente.'],
+  ['sem_voucher_digital_disponivel', 'Uma das casas ainda não tem voucher digital disponível. Gere os vouchers virtuais e tente preparar o conjunto novamente.'],
+  ['participante_voucher_ausente', 'Não encontrei uma das cinco casas desta edição. Confira os participantes do conjunto de vouchers.'],
+  ['pool_voucher_incompleto', 'O conjunto de vouchers ficou incompleto. Atualize a tela e fale com a organização.'],
+  ['voucher_opcao_indisponivel', 'Esse voucher acabou de ser escolhido. Atualize a lista e escolha outro disponível.'],
+  ['voucher_ja_escolhido', 'Este prêmio já tem um voucher escolhido. Atualize a tela para abrir o seu.'],
+  ['premio_nao_confirmado', 'Confirme seu e-mail para poder escolher um voucher.'],
+  ['voucher_reservado_caca', 'Este voucher está reservado para a Caça aos Carimbos e não pode ser destinado por outra tela.'],
   ['acao_invalida', 'Ação não reconhecida pelo servidor. Atualize a página e tente de novo.'],
   ['parametro_invalido', 'Algum dado do pedido está inválido. Atualize a tela e tente de novo.'],
   ['chave_desconhecida', 'O servidor não conhece essa regra. Atualize a página.'],
@@ -553,6 +561,8 @@ export const cacaApi = {
   config: (f) => rpc('caca_config_ler', { p_secret: lerSenha() }, f),
   gravarConfig: (chave, valor, f) => rpc('caca_config_gravar', { p_secret: lerSenha(), p_chave: chave, p_valor: valor }, f),
   premios: (edicao, f) => rpc('caca_premio_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),
+  voucherPool: (edicao, f) => rpc('caca_premio_voucher_pool_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),
+  prepararVoucherPool: (edicao, f) => rpc('caca_premio_voucher_pool_configurar', { p_secret: lerSenha(), p_edicao: edicao }, f),
   apurarDia: (edicao, dia, f) => rpc('caca_apurar_dia', { p_secret: lerSenha(), p_edicao: edicao, p_dia: dia }, f),
   acaoDoPremio: (premio, acao, nota, f) => rpc('caca_premio_acao', { p_secret: lerSenha(), p_premio: premio, p_acao: acao, p_nota: nota || null }, f),
   /** Compromisso da semente do sorteio real: { registrado, hash, registrado_em, avaliacao_fecha_em, fechada, sem_data_de_fechamento }. */
@@ -568,6 +578,9 @@ export const cacaApi = {
   // Pedidos de revisão de presença (GPS) e o resumo de carimbos sem GPS (15-caca-contrato-gps.md).
   excecoes: (edicao, estado, f) => rpc('caca_excecao_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null }, f),
   decidirExcecao: (id, decisao, nota, f) => rpc('caca_excecao_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),
+  sicrediCampanha: (edicao, estado, f) => rpc('caca_sicredi_campanha_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null }, f),
+  decidirSicrediCampanha: (id, decisao, nota, f) => rpc('caca_sicredi_campanha_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),
+  imagemSicrediCampanha: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: 'caca-delivery', path }),
   // Imagem do pedido de delivery (bucket privado caca-delivery): link de 300 s e exclusão manual (sem prazo de retenção aprovado).
   imagemDelivery: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'baixar', bucket: 'caca-delivery', path }),
   removerImagemDelivery: (path) => chamarFuncao('arquivo-url', { secret: lerSenha(), acao: 'remover', bucket: 'caca-delivery', path }),

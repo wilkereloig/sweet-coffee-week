@@ -2,8 +2,8 @@
  * Campanha "Ter com quem contar" (Sicredi, patrocinadora da Cartoon) — fatos, prazo e textos. Funções puras (tests/cartoon-sicredi-campanha.test.mjs).
  *
  * Só o que foi informado pela organização: sem data de resultado, sem validade de voucher, sem regulamento extra.
- * A campanha acontece no Instagram e é SEPARADA da Caça aos Carimbos: não conta carimbo, meta nem ranking, e o Sicredi
- * nunca é casa. A escolha é de uma equipe de jornalistas; o festival nunca é chamado de "Sweet" sozinho.
+ * A promoção de vouchers é independente da Caça. A organização pode aprovar o print da publicação e conceder o carimbo especial Sicredi;
+ * ele soma pontos no ranking e nos sorteios, sem contar como casa visitada. A escolha dos vouchers é de uma equipe de jornalistas.
  */
 import { EDICAO } from '../../config.js'
 
@@ -14,9 +14,9 @@ export const CAMPANHA = Object.freeze({
   hashtag: '#TerComQuemContar',
   caminho: `${EDICAO.caminho}/ter-com-quem-contar`,
   /** Último dia para publicar, no fuso de Fortaleza. */
-  fim: '2026-11-11',
-  fimCurto: '11/11',
-  fimLongo: '11 de novembro',
+  fim: '2026-11-13',
+  fimCurto: '13/11',
+  fimLongo: '13 de novembro',
   historias: 10,
   vouchersPorPessoa: 2,
   totalVouchers: 20,
@@ -43,7 +43,7 @@ const dias = (iso) => { const [a, m, d] = iso.split('-').map(Number); return Dat
 
 /**
  * Onde a campanha está, pela data de Fortaleza (não a do aparelho):
- *   antes (faltam N dias) · ultimo-dia (hoje é 11/11) · encerrada (a partir de 12/11, 00h de Fortaleza).
+ *   antes (faltam N dias) · ultimo-dia (hoje é 13/11) · encerrada (a partir de 14/11, 00h de Fortaleza).
  * `aberta` = ainda dá para participar. Data inválida usa o agora.
  */
 export function estadoDaCampanha (agora = new Date()) {
@@ -55,7 +55,7 @@ export function estadoDaCampanha (agora = new Date()) {
   return { estado: 'encerrada', aberta: false, faltam: 0, rotulo: 'Campanha encerrada' }
 }
 
-/** "Faltam 5 dias · até 11/11" · "Último dia · hoje, 11/11" · "Campanha encerrada". Para os cartões. */
+/** "Faltam N dias · até 13/11" · "Último dia · hoje, 13/11" · "Campanha encerrada". Para os cartões. */
 export function prazoCurto (e) {
   if (e.estado === 'antes') return `${e.rotulo} · até ${CAMPANHA.fimCurto}`
   if (e.estado === 'ultimo-dia') return `${e.rotulo} · hoje, ${CAMPANHA.fimCurto}`
@@ -96,7 +96,7 @@ export const TEXTOS_CAMPANHA = Object.freeze({
   ],
 
   separadaTitulo: 'Separada da Caça aos Carimbos',
-  separadaTexto: 'A campanha acontece no Instagram. Ela não conta carimbo, meta nem ranking, e o Sicredi não é uma das casas do mapa.',
+  separadaTexto: 'Publique seu vídeo até sexta-feira, 13/11, e envie um print da publicação. Depois da aprovação da organização, você ganha um carimbo Sicredi: ele soma pontos no ranking e nos sorteios, mas não conta como casa visitada. Separadamente, 10 histórias serão escolhidas e cada pessoa selecionada ganha um par de vouchers.',
   separadaAcao: 'Conhecer a Caça aos Carimbos',
 
   perfisTitulo: 'Perfis no Instagram',
@@ -108,12 +108,14 @@ export const TEXTOS_CAMPANHA = Object.freeze({
   bloco: {
     titulo: CAMPANHA.nome,
     ver: 'Ver a campanha',
-    mapa: 'Campanha do Sicredi no Instagram: conte em vídeo uma história de quem esteve ao seu lado. Não conta carimbo.',
+    mapa: 'Publique seu vídeo até 13/11. Envie o print e, após aprovação da organização, ganhe um carimbo Sicredi para o ranking e os sorteios.',
     premiosTitulo: `Também valendo: ${CAMPANHA.nome}`,
-    premios: `Campanha do Sicredi no Instagram: ${CAMPANHA.historias} histórias escolhidas, um par de vouchers para cada pessoa. É separada da Caça: não conta carimbo, meta nem ranking.`,
+    premios: `Campanha do Sicredi no Instagram: ${CAMPANHA.historias} histórias escolhidas, um par de vouchers para cada pessoa. Quem enviar o print e tiver a participação aprovada também ganha um carimbo especial Sicredi para ranking e sorteios.`,
     // Pop-up "O que você disputa" (mapa): a promoção dita por inteiro, com os 2 vouchers à vista.
-    disputa: `Conte em vídeo, no Instagram, uma história de alguém com quem você pôde contar. A equipe do festival escolhe ${CAMPANHA.historias} histórias, e cada pessoa escolhida ganha ${CAMPANHA.vouchersPorPessoa} vouchers (um par) para um combo do festival. É separada da Caça: não conta carimbo, meta nem ranking.`,
-    metas: 'Fora da Caça, o Sicredi tem a campanha Ter com quem contar no Instagram. Ela não conta carimbo nem meta.',
+    disputa: `Publique até sexta-feira, 13/11, um vídeo contando a história de alguém com quem você pôde contar. A equipe do festival escolhe ${CAMPANHA.historias} histórias; cada pessoa escolhida ganha ${CAMPANHA.vouchersPorPessoa} vouchers (um par) para um combo do festival. Envie o print da publicação: com a aprovação da organização, você também ganha um carimbo Sicredi que soma pontos no ranking e nos sorteios, sem contar como casa visitada.`,
+    metas: 'Publique o vídeo da campanha até 13/11 e envie o print. Com a aprovação da organização, você ganha um carimbo Sicredi que vale no ranking e nos sorteios, sem contar como casa visitada.',
+    avisoTitulo: '10 pares de vouchers: conte sua história',
+    avisoTexto: `Publique seu vídeo até sexta, 13/11. Dez histórias serão escolhidas; cada pessoa ganha um par de vouchers. Envie o print e, com aprovação, ganhe um carimbo Sicredi para o ranking e os sorteios.`,
     rodape: CAMPANHA.nome,
   },
 })

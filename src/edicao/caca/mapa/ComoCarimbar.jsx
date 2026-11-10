@@ -5,9 +5,13 @@
  */
 import React from 'react'
 import { CACA } from '../textos.js'
+import { FolhaGuia, marcarGuiaVisto } from '../guia/GuiaCarimbar.jsx'
+import { GUIA } from '../guia/textos.js'
 
-export function ComoCarimbar () {
+// `navigate` é opcional: sem ele, os links do guia trocam de página pelo navegador.
+export function ComoCarimbar ({ navigate = (h) => globalThis.location.assign(h) } = {}) {
   const T = CACA.comoCarimbar
+  const [guia, setGuia] = React.useState(false)
   return (
     <details className="ct-como-carimbar">
       <summary>{T.titulo}</summary>
@@ -17,6 +21,8 @@ export function ComoCarimbar () {
         ))}
       </ol>
       <p className="ct-nota">{T.nota}</p>
+      <p><button type="button" className="ct-link" data-como-carimbar onClick={() => { marcarGuiaVisto(); setGuia(true) }}>{GUIA.completo}</button></p>
+      <FolhaGuia aberta={guia} aoFechar={() => setGuia(false)} navigate={navigate} />
     </details>
   )
 }

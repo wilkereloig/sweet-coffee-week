@@ -27,7 +27,7 @@ import { ESTADO_TEXTO, MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { CACA_CAMINHOS } from '../../../caca/textos.js'
 import { DELIVERY as TD } from '../../../caca/delivery/textos.js'
 
-export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher }) {
+export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher, esgotadoHoje = false }) {
   const [mais, setMais] = React.useState(false)
   const relogio = useAgora(60000) // "Abre em 30 min" anda com o relógio sem recarregar
   const rota = useRota()
@@ -54,7 +54,9 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   const passoJaFui = rota?.foi?.(p) && estado !== 'conquistada' ? TC.jaFuiPasso[estado || 'semMapa'] : ''
   // "Aberto agora" e "Abre em 30 min" são decisão de ir e ficam à vista; os outros horários ("abre hoje às 11h") esperam em "Mais".
   const aberto = est?.estado === 'aberto' || nivelDaUnidade(u, relogio, periodo) === 'breve'
-  const agoraNo = agora && (
+  const agoraNo = esgotadoHoje
+    ? <p className="ct-agora ct-agora--esgotado ct-mapa__cartao-linha" role="status"><span aria-hidden="true">!</span>Combos esgotados hoje</p>
+    : agora && (
     <p className={`ct-agora ct-agora--${est.estado} ct-mapa__cartao-linha`}>
       {est.estado === 'aberto' ? <IconeCartoon nome="aberto-agora" tamanho={32} /> : <ScwIcon nome={ICONE.horario} tamanho={20} />}{agora}
     </p>
@@ -80,7 +82,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         </div>
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label={T.fechar}><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
-      {aberto && agoraNo}
+      {(esgotadoHoje || aberto) && agoraNo}
       {deliveryApenas
         ? <p className="ct-nota ct-mapa__so-delivery-nota">{T.soDeliveryNota}</p>
         : M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
@@ -107,7 +109,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         <button type="button" className="ct-chip ct-mapa__mais-botao" aria-expanded={mais} aria-controls={idMais} aria-label={mais ? TC.menosDetalhes : TC.maisDetalhes} onClick={() => setMais((v) => !v)}>{mais ? TC.menosCurto : TC.maisCurto}</button>
       </div>
       <div id={idMais} className="ct-mapa__mais" hidden={!mais}>
-        {!aberto && agoraNo}
+        {!esgotadoHoje && !aberto && agoraNo}
         {deliveryApenas && M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
         {estado && <p className="ct-nota">{ESTADO_TEXTO[estado].explica}</p>}
         {notaLugar && <p className={`ct-mapa__local${c ? ' ct-mapa__local--aprox' : ''}`}>{notaLugar}</p>}

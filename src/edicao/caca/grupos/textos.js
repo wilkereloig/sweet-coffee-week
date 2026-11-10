@@ -85,7 +85,7 @@ export const GRUPOS = {
   },
   amigos: {
     titulo: 'Ranking dos amigos',
-    explica: 'Mais casas diferentes primeiro; empatou, os carimbos extras desempatam. Se continuar igual, vocês dividem a posição.',
+    explica: 'Mais casas diferentes primeiro; empatou, os carimbos extras desempatam. Eles incluem revisitas validadas e o carimbo especial Sicredi aprovado pela organização. Se continuar igual, vocês dividem a posição.',
     remover: 'Remover',
     removerPergunta: (nome) => `Remover ${nome} do grupo? A pessoa perde o acesso na hora e não volta a este grupo, nem por link novo.`,
     removerConfirma: 'Sim, remover',

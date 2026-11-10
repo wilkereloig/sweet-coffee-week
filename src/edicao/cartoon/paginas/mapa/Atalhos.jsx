@@ -1,7 +1,7 @@
 /*
  * Atalhos do jogo (06/11/2026) — o mapa em tela cheia com cara de jogo de celular: UM botão compacto sobre o mapa (canto
  * oposto ao zoom, abaixo da barra, respeitando o entalhe) que mostra o placar ("2/26") e, ao toque, abre uma lista curta de
- * seis atalhos com ícone e rótulo: Progresso · Casas · Rota · Prêmios · Ranking · Grupos. Cada atalho abre UMA folha por vez (Folha,
+ * atalhos com ícone e rótulo: Progresso · Casas · Rota · Prêmios · Ranking · Grupos · Pedir carimbo. Cada atalho abre UMA folha por vez (Folha,
  * variante "jogo"); ao abrir a folha a lista recolhe sozinha. Nada de barra larga nem cartão permanente.
  *
  * Escape (pilha de interacao.js): folha → lista → tela cheia. Ao fechar a folha o foco volta ao botão dos atalhos; fechar a
@@ -9,7 +9,7 @@
  * Só entra na tela cheia: fora dela a página já tem barra, faixa de progresso, "Minha rota" e abas (docs 14 §14.13).
  * `placar`: "2/26" ou '' (sem mapa) · `resumo`: o mesmo por extenso, para o nome acessível do botão.
  *
- * Atalhos FIXOS (06/11/2026): três dos seis ficam sempre à mão, em botões compactos logo abaixo do "Atalhos" (esquerda, longe do zoom
+ * Atalhos FIXOS (06/11/2026): três dos sete ficam sempre à mão, em botões compactos logo abaixo do "Atalhos" (esquerda, longe do zoom
  * e da localização). Padrão Progresso · Prêmios · Ranking; a pessoa troca no menu ("Escolher atalhos fixos") e a escolha fica neste aparelho
  * (atalhosFixos.js). O botão fixo e o item da lista chamam o MESMO `abrir(chave)`: a folha, o conteúdo e o estado do mapa são os de sempre.
  */
@@ -19,11 +19,12 @@ import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Folha } from './Folha.jsx'
 import { useEscape } from './interacao.js'
+import { BotaoComoCarimbar } from '../../../caca/guia/GuiaCarimbar.jsx'
 import { QUANTOS, TEXTO_FIXOS as TX, lerFixos, guardarFixos, alternarEscolha } from './atalhosFixos.js'
 
 // [chave, ícone ilustrado da edição]: o ícone nunca está sozinho, o rótulo vai ao lado.
-const CHAVES = ['progresso', 'casas', 'rota', 'premios', 'ranking', 'grupos']
-export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['premios', 'vouchers'], ['ranking', 'ranking'], ['grupos', 'conversar']]
+const CHAVES = ['progresso', 'casas', 'rota', 'premios', 'ranking', 'grupos', 'visitaAnterior']
+export const ATALHOS = [['progresso', 'progresso'], ['casas', 'casas'], ['rota', 'rota'], ['premios', 'vouchers'], ['ranking', 'ranking'], ['grupos', 'conversar'], ['visitaAnterior', 'ja-fui']]
 
 export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null, extra = null }) {
   const [lista, setLista] = React.useState(false)
@@ -124,5 +125,38 @@ export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null, ex
         {aberta && conteudo(aberta, fecharFolha)}
       </Folha>
     </div>
+  )
+}
+
+/*
+ * Faixa do jogo (09/11/2026): FORA da tela cheia os atalhos ficam à vista, com ícone e nome, entre a barra e o mapa (no computador o progresso,
+ * os prêmios e o ranking só existiam rolando a página ou entrando na tela cheia). A mesma folha e o mesmo `conteudo(chave, fechar)` da tela cheia.
+ * "Rota" só aparece no computador (no celular a barra já tem "Minha rota") e não abre folha: leva ao painel da rota, que ali já está na página.
+ */
+export const NA_FAIXA = ['progresso', 'premios', 'ranking', 'grupos', 'rota']
+export function FaixaJogo ({ placar = '', resumo = '', conteudo, aoRota, navigate }) {
+  const [aberta, setAberta] = React.useState(null)
+  const origem = React.useRef(null)
+  const fechar = React.useCallback(() => {
+    setAberta(null)
+    const de = origem.current
+    requestAnimationFrame(() => { if (de?.isConnected) de.focus({ preventScroll: true }) })
+  }, [])
+  const titulo = aberta ? TC.atalhoTitulo[aberta] : ''
+  return (
+    <nav className="ct-jogo-faixa" aria-label={TC.atalhosLista}>
+      {NA_FAIXA.map((chave) => (
+        <button key={chave} type="button" className="ct-chip ct-jogo-faixa__botao" data-faixa-jogo={chave} aria-haspopup={chave === 'rota' ? undefined : 'dialog'}
+          aria-label={chave === 'progresso' && resumo ? `${TC.atalho[chave]}: ${resumo}` : undefined}
+          onClick={(e) => { if (chave === 'rota') return aoRota?.(); origem.current = e.currentTarget; setAberta(chave) }}>
+          <IconeCartoon nome={ATALHOS.find(([c]) => c === chave)[1]} tamanho={24} /><span>{TC.atalho[chave]}</span>
+          {chave === 'progresso' && placar && <b className="ct-mapa__filtros-conta" aria-hidden="true">{placar}</b>}
+        </button>
+      ))}
+      <BotaoComoCarimbar navigate={navigate} className="ct-chip ct-jogo-faixa__botao ct-guia__botao" />
+      <Folha variante="jogo" aberta={!!aberta} titulo={titulo} rotuloFechar={aberta ? TC.atalhoFechar(titulo) : 'Fechar'} aoFechar={fechar}>
+        {aberta && conteudo(aberta, fechar)}
+      </Folha>
+    </nav>
   )
 }

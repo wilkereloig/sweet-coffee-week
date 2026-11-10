@@ -6,6 +6,7 @@
  * `CACA_SECOES` ou em arquivo próprio em src/edicao/caca/, sem mexer no que já existe aqui.
  */
 import { EDICAO } from '../config.js'
+import { CAMPANHA } from './campanha/terComQuemContar.js'
 
 const C = `${EDICAO.caminho}/caca`
 
@@ -20,7 +21,10 @@ export const CACA_CAMINHOS = {
   metas: `${C}/metas`,
   compartilhar: `${C}/compartilhar`,
   delivery: `${C}/delivery`,
+  visitaAnterior: `${C}/visita-anterior`,
+  sicredi: `${CAMPANHA.caminho}?carimbo=1`,
   rota: `${EDICAO.caminho}/mapa?painel=rota`, // a rota é o painel do Mapa da Doçura
+  premios: `${EDICAO.caminho}/mapa?painel=premios`, // os prêmios também (aba do mesmo painel)
   casas: `${EDICAO.caminho}/participantes`,
   regulamento: `${EDICAO.caminho}/regulamento`,
 }
@@ -37,6 +41,7 @@ export const CACA = {
     metas: 'Metas',
     compartilhar: 'Compartilhar meu progresso',
     delivery: 'Carimbo do meu delivery',
+    'visita-anterior': 'Pedir carimbo de visita',
     convite: 'Convite para um grupo',
   },
   leads: {
@@ -48,6 +53,7 @@ export const CACA = {
     metas: 'Marcos de comemoração pelas casas que você validou.',
     compartilhar: 'Mostre seu progresso nos Stories, sem dados pessoais.',
     delivery: 'Recebeu o combo em casa? Peça o carimbo sem sair de onde está.',
+    'visita-anterior': 'Foi a uma casa e não conseguiu carimbar? Peça que a organização confira a sua visita.',
     convite: 'Alguém chamou você para jogar junto.',
   },
   precisaDeMapa: {
@@ -56,6 +62,7 @@ export const CACA = {
     metas: 'Crie seu mapa para acompanhar suas metas.',
     compartilhar: 'Crie seu mapa para ter um progresso para compartilhar.',
     delivery: 'Crie seu mapa para pedir o carimbo de um delivery.',
+    'visita-anterior': 'Crie ou abra o seu mapa para pedir que a organização confira uma visita.',
   },
   carregando: 'Abrindo a sua Caça…',
   falha: { titulo: 'Não conseguimos abrir seu mapa agora', texto: 'Seus carimbos estão guardados. Confira a conexão e tente de novo.' },
@@ -90,7 +97,7 @@ export const CACA = {
     titulo: 'Como carimbar',
     passos: [
       { titulo: 'Vá até a casa', texto: 'Peça o combo no balcão.' },
-      { titulo: 'Carimbe na casa', texto: 'Leia o QR do display de mesa com a câmera do celular e toque em "Carimbar aqui", com a localização ligada. Também dá para tocar em "Carimbar aqui" no cartão da casa, no mapa.' },
+      { titulo: 'Carimbe na casa', texto: 'Leia o QR do display de mesa com a câmera do celular: abre a página da casa. Toque em "Carimbar" e depois em "Carimbar aqui", com a localização ligada. Também dá para tocar em "Carimbar aqui" no cartão da casa, no mapa.' },
       { titulo: 'Avalie o combo da mesma casa', texto: 'Use o mesmo e-mail do mapa. O carimbo só vale depois da avaliação.' },
     ],
     nota: 'O celular confere que você está na casa. A posição não é guardada.',
@@ -113,12 +120,15 @@ export const CACA = {
     titulo: 'Para onde ir',
     itens: [
       { chave: 'mapa', desenho: 'mapa', rotulo: 'Mapa' },
+      { chave: 'premios', desenho: 'vouchers', rotulo: 'Prêmios' },
       { chave: 'ranking', desenho: 'ranking', rotulo: 'Ranking' },
       { chave: 'grupos', desenho: 'conversar', rotulo: 'Grupos' },
       { chave: 'rota', desenho: 'rota', rotulo: 'Minha rota' },
       { chave: 'metas', desenho: 'progresso', rotulo: 'Metas' },
       { chave: 'compartilhar', desenho: 'compartilhar', rotulo: 'Compartilhar' },
       { chave: 'delivery', desenho: 'carimbo-delivery', rotulo: 'Carimbo do meu delivery' },
+      { chave: 'visitaAnterior', desenho: 'ja-fui', rotulo: 'Pedir carimbo de uma visita' },
+      { chave: 'sicredi', desenho: 'ja-fui', rotulo: 'Pedir carimbo Sicredi' },
     ],
   },
   rodape: { regulamento: 'Regulamento' },
@@ -247,6 +257,10 @@ export const CACA = {
     pendenteAcao: 'Avaliar o combo e validar',
     validadas: (x, n) => `Você tem ${x} de ${n} ${n === 1 ? 'casa validada' : 'casas validadas'}.`,
     extra: 'Voltar a uma casa que você já validou rende um carimbo extra.',
+    registrado: (nome) => `Carimbo registrado na ${nome}.`,
+    pendenteConta: (x, n) => `Por enquanto você tem ${x} de ${n} ${n === 1 ? 'casa validada' : 'casas validadas'}; esta entra na conta quando você avaliar.`,
+    proximoTitulo: 'Próximo passo',
+    proximoMapa: 'Escolher a próxima casa no mapa',
     central: 'Abrir minha Caça',
     casas: 'Ver as casas',
     tentar: 'Tentar de novo',

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Botao, Carregando, Erro, Secao, Selo, Vazio } from '../../ui'
 import { confirmar } from '../../Confirmar'
+import { useLeitura } from '../../../lib/leituraVivaReact'
 import {
   cacaApi, contarPorEstado, ORDEM_ESTADOS, rotuloEstado, situacaoDoDia, lerRegras, diaBr, horaNatal, textoLiberaEm, marcarEmpates, filaDeSubstituicao,
   acoesPossiveis, ACOES,
@@ -21,6 +22,7 @@ export function VouchersDia({ edicao, pode, dados }) {
   const contato = pode('relatorio.ler')
   const [ocupado, executar] = useExecutar()
   const [aviso, setAviso] = React.useState('')
+  const pool = useLeitura(() => cacaApi.voucherPool(edicao), ['carimbos'], { chave: 'caca-voucher-pool-' + edicao })
   const acoes = useAcoesDePremio({ premios: p.dados?.premios || [], apuracoes: p.dados?.apuracoes || [], config: c.dados, recarregar: p.recarregar })
 
   if (p.bloqueada) return <Erro texto={p.erro} onTentar={p.recarregar} />
@@ -33,6 +35,7 @@ export function VouchersDia({ edicao, pode, dados }) {
   const vouchers = todos.filter((x) => x.tipo === 'voucher_dia')
   const n = contarPorEstado(vouchers)
   const fila = filaDeSubstituicao(todos, apuracoes)
+  const temVoucherDisponivel = (pool.dados?.opcoes || []).some((x) => x.estado === 'disponivel')
 
   async function apurar(dia) {
     const ok = await confirmar(`Apurar o dia ${diaBr(dia)}? A foto do ranking fica gravada e não muda mais, mesmo que um carimbo seja anulado depois. O primeiro elegível é selecionado e o prazo dele começa a contar.`, { titulo: 'Apurar o dia?', acao: 'Apurar' })
@@ -45,11 +48,35 @@ export function VouchersDia({ edicao, pode, dados }) {
         : `Dia ${diaBr(dia)} apurado. Selecionado: ${r.premio?.apelido}.`)
   }
 
+  async function prepararPool() {
+    const ok = await confirmar('Reservar 1 voucher digital de cada casa combinada: Vivianne Castro Doces, Sabor de Pão, O Maestro Café, Mr. Cupcake Confeitaria e Padoca do Bosque. A pessoa sorteada escolherá 1 opção; cada QR só poderá ser atribuído uma vez.', { titulo: 'Preparar os cinco vouchers?', acao: 'Reservar' })
+    if (!ok) return
+    const r = await executar('voucher-pool', () => cacaApi.prepararVoucherPool(edicao))
+    if (!r) return
+    await pool.recarregar()
+    setAviso('Os cinco vouchers digitais estão reservados para as próximas pessoas sorteadas.')
+  }
+
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
       <AvisoOk texto={acoes.aviso} onFechar={acoes.limparAviso} />
       <AvisoSemGps edicao={edicao} />
+      <Secao titulo="Opções de voucher para os ganhadores" nota="Antes da primeira apuração, reserve um voucher digital de cada casa. Cada ganhador escolhe uma opção; o QR fica vinculado ao mapa da pessoa.">
+        {pool.bloqueada ? <Erro texto={pool.erro} onTentar={pool.recarregar} /> : !pool.dados ? <Carregando /> : (pool.dados.opcoes || []).length === 0 ? (
+          <div className="ui-pilha">
+            <p className="ui-nota">Separe um voucher digital de cada casa antes da primeira apuração.</p>
+            {podeGerir && <Botao disabled={!!ocupado} aria-busy={ocupado === 'voucher-pool' || undefined} onClick={prepararPool}>Reservar os cinco vouchers</Botao>}
+          </div>
+        ) : (
+          <div className="ui-pilha">
+            <ul className="cp-pool-voucher">
+              {pool.dados.opcoes.map((opcao) => <li key={opcao.id}><strong>{opcao.marca}</strong><Selo tom={opcao.estado === 'disponivel' ? 'andamento' : opcao.estado === 'usado' ? 'ok' : 'neutro'}>{opcao.estado === 'disponivel' ? 'Disponível' : opcao.estado === 'escolhido' ? 'Escolhido por um ganhador' : opcao.estado === 'usado' ? 'Validado na casa' : 'Cancelado'}</Selo></li>)}
+            </ul>
+            <p className="ui-nota">{pool.dados.opcoes.filter((x) => x.estado === 'disponivel').length} opção(ões) ainda podem ser escolhidas.</p>
+          </div>
+        )}
+      </Secao>
       <ul className="ui-numeros ui-numeros--compacto">
         {ORDEM_ESTADOS.map((e) => <li key={e} className="ui-numero"><span className="ui-numero__n">{n[e]}</span><span className="ui-numero__rotulo">{rotuloEstado(e).toLowerCase()}</span></li>)}
         {n.vencidos > 0 && <li className="ui-numero cp-vencido-caixa"><span className="ui-numero__n">{n.vencidos}</span><span className="ui-numero__rotulo">com prazo vencido</span></li>}
@@ -60,7 +87,7 @@ export function VouchersDia({ edicao, pode, dados }) {
           <div className="ui-pilha">
             {regras.dias.map((dia) => (
               <DiaApuracao key={dia} dia={dia} ap={apuracoes.find((a) => a.dia === dia)} regras={regras} contato={contato} podeGerir={podeGerir}
-                situacao={situacaoDoDia(dia, { config: c.dados, apuracoes })} ocupado={ocupado} onApurar={() => apurar(dia)} />
+                situacao={situacaoDoDia(dia, { config: c.dados, apuracoes })} ocupado={ocupado} temVoucherDisponivel={temVoucherDisponivel} onApurar={() => apurar(dia)} />
             ))}
           </div>
         )}
@@ -102,7 +129,7 @@ export function VouchersDia({ edicao, pode, dados }) {
   )
 }
 
-function DiaApuracao({ dia, ap, situacao, regras, contato, podeGerir, ocupado, onApurar }) {
+function DiaApuracao({ dia, ap, situacao, regras, contato, podeGerir, ocupado, temVoucherDisponivel, onApurar }) {
   const s = situacao.situacao
   const ranking = marcarEmpates(ap?.ranking || [])
   return (
@@ -114,9 +141,10 @@ function DiaApuracao({ dia, ap, situacao, regras, contato, podeGerir, ocupado, o
         {s === 'aberto' && <Selo tom="neutro">Corte ainda não passou</Selo>}
         {s === 'sem_regra' && <Selo tom="neutro">Sem corte configurado</Selo>}
         {podeGerir && s !== 'apurado' && (
-          <Botao disabled={s !== 'pronto' || !!ocupado} aria-busy={ocupado === 'apurar' + dia || undefined} onClick={onApurar}>Apurar este dia</Botao>
+          <Botao disabled={s !== 'pronto' || !temVoucherDisponivel || !!ocupado} aria-busy={ocupado === 'apurar' + dia || undefined} onClick={onApurar}>Apurar este dia</Botao>
         )}
       </div>
+      {s === 'pronto' && !temVoucherDisponivel && <p className="ui-nota">Reserve primeiro um voucher de cada casa na seção acima; a apuração fica bloqueada até haver uma opção disponível.</p>}
       {s === 'aberto' && <p className="ui-nota">Dá para apurar a partir de {textoLiberaEm(situacao.liberaEm, regras.fuso || undefined)}. O servidor confere de novo: antes disso ele recusa.</p>}
       {s === 'sem_regra' && <p className="ui-nota">Configure o corte e o fuso em Regras e prazos. Sem eles a tela não afirma se o dia pode ser apurado; o servidor decide.</p>}
       {ap && (

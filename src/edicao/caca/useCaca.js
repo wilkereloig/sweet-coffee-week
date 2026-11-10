@@ -75,6 +75,19 @@ export function useCaca ({ api = apiPadrao, comEmail = true } = {}) {
   // Pede ao navegador para NÃO apagar o mapa deste aparelho quando faltar espaço (Chrome/Android concedem a sites usados; o Safari decide sozinho).
   React.useEffect(() => { if (chave) { try { navigator.storage?.persist?.()?.catch?.(() => {}) } catch { /* sem a API */ } } }, [chave])
   const atualizar = React.useCallback(() => setLeitura((n) => n + 1), [])
+  // Voltou à aba (carimbou ou avaliou em outra, ou o celular dormiu): relê o mapa, no máximo uma vez a cada 30 s. Sem relógio: só no retorno.
+  const ultimaVolta = React.useRef(0)
+  React.useEffect(() => {
+    if (!chave) return undefined
+    const voltou = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - ultimaVolta.current < 30_000) return
+      ultimaVolta.current = Date.now()
+      atualizar()
+    }
+    document.addEventListener('visibilitychange', voltou)
+    window.addEventListener('online', voltou)
+    return () => { document.removeEventListener('visibilitychange', voltou); window.removeEventListener('online', voltou) }
+  }, [chave, atualizar])
   const entrar = React.useCallback((nova, { criado = false } = {}) => {
     if (!C.chaveValida(nova)) return false
     C.gravarChave(EDICAO.codigo, nova)

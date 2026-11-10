@@ -132,6 +132,10 @@ export function Mesa({ abrirLink, navegar, pode }) {
 
   const edCodigo = extra.edicao ? extra.edicao.codigo : undefined
   const pedidosCarimbo = useLeitura(() => cacaApi.excecoes(edCodigo), ['carimbos'], { chave: 'mesa-carimbos-' + edCodigo, opcional: true, ativo: !!edCodigo && !!pode && pode('dado.ler') })
+  const combosEsgotados = useLeitura(() => rpc('get_combos_esgotados_hoje', { p_secret: lerSenha(), p_edicao: edCodigo }), ['avisos', 'participantes'], {
+    chave: 'mesa-combos-esgotados-' + edCodigo, ativo: !!edCodigo && !!pode && pode('dado.ler'),
+  })
+  const combosSemEstoque = combosEsgotados.dados || []
   const deliveryImagem = Number(pedidosCarimbo.dados?.pendentes_delivery) || 0
   const deliveryCasa = Number(pedidosCarimbo.dados?.aguardando_casa) || 0
   const deliverySemImagem = Number(pedidosCarimbo.dados?.aguardando_imagem) || 0
@@ -176,7 +180,8 @@ export function Mesa({ abrirLink, navegar, pode }) {
             <div className="ui-pilha">
               {avisosDeLeitura.acoes && <Erro texto={avisosDeLeitura.acoes} onTentar={tentarDeNovo} />}
               {pedidosCarimbo.erro && <Erro texto="Não foi possível conferir os pedidos de carimbo." onTentar={pedidosCarimbo.recarregar} />}
-              {nContagens === 0 && !deliveryImagem && !deliveryCasa && !deliverySemImagem && !(edCodigo && pode && pode('dado.ler') && !pedidosCarimbo.dados) && (
+              {combosEsgotados.erro && <Erro texto="Não foi possível conferir os avisos de combo esgotado." onTentar={combosEsgotados.recarregar} />}
+              {nContagens === 0 && !deliveryImagem && !deliveryCasa && !deliverySemImagem && !combosSemEstoque.length && !(edCodigo && pode && pode('dado.ler') && !pedidosCarimbo.dados) && (
                 // "Nada precisa da equipe" só depois de LER tudo: antes das leituras (ou com alguma caída) não se sabe — dizer que está em dia seria mentira.
                 !extra.lidas ? <p className="ui-nota">Conferindo o que está pendente…</p>
                 : extra.falhas.length ? <p className="ui-nota">Não consegui ler tudo, então não dá para dizer que está em dia.</p>
@@ -184,10 +189,20 @@ export function Mesa({ abrirLink, navegar, pode }) {
                 : null // prazo vencendo: o cartão da agenda (o primeiro, abaixo) já diz o que fazer — "nada precisa" ao lado dele seria falso
               )}
               <GradeModulos>
+                {combosSemEstoque.length > 0 && (
+                  <Modulo largo icone="pendencia" titulo="Combos esgotados hoje"
+                    sub="As casas avisaram pelo painel. O aviso sai do mapa na virada do dia.">
+                    <ul className="ui-lista-simples">
+                      {combosSemEstoque.map((x) => (
+                        <li key={x.participante_id}><b>{x.nome_marca}</b><span> · informado às {new Date(x.esgotado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span></li>
+                      ))}
+                    </ul>
+                  </Modulo>
+                )}
                 {(deliveryImagem > 0 || deliveryCasa > 0 || deliverySemImagem > 0) && (
                   <Modulo icone="pendencia" titulo="Pedidos de carimbo por delivery" rotuloIr="Abrir pedidos de carimbo"
                     onClick={() => navegar({ vista: 'edicao', aba: 'carimbos', filtros: { sub: 'presenca' } })}>
-                    <span className="ms-acao__detalhe">{deliveryImagem} com imagem para analisar · {deliverySemImagem} aguardando imagem · {deliveryCasa} aguardando a casa.</span>
+                    <span className="ms-acao__detalhe">{deliveryImagem} para analisar ({deliverySemImagem} sem imagem) · {deliveryCasa} aguardando a casa.</span>
                   </Modulo>
                 )}
                 {cartoes.map((c) => (c.tipo === 'agenda' ? (

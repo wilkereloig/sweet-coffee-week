@@ -208,13 +208,20 @@ Deno.serve(async (req) => {
     if (!ar) return json({ erro: 'nao_autorizado' }, 401)
   }
 
-  // Imagem de delivery: o caminho precisa estar gravado num pedido. Sem isso um caminho "válido" mas solto (upload abandonado) não abre.
+  // A prova precisa estar gravada num pedido de delivery ou visita anterior; uploads abandonados não abrem.
   if (bucket === 'caca-delivery') {
     const { data: pedido, error: pedErr } = await admin.from('caca_carimbo_excecao').select('id, participacao_id')
-      .eq('imagem_path', path).eq('motivo', 'delivery').is('imagem_removida_em', null).limit(1).maybeSingle()
+      .eq('imagem_path', path).in('motivo', ['delivery', 'visita_anterior']).is('imagem_removida_em', null).limit(1).maybeSingle()
     if (pedErr) return json({ erro: 'db_error', detalhe: pedErr.message }, 500)
-    if (!pedido) return json({ erro: 'nao_encontrado' }, 404)
-    if (acao === 'remover') {
+    if (!pedido) {
+      const { data: sicredi, error: sicErr } = await admin.from('caca_sicredi_campanha_pedido').select('id')
+        .eq('imagem_path', path).limit(1).maybeSingle()
+      if (sicErr) return json({ erro: 'db_error', detalhe: sicErr.message }, 500)
+      if (!sicredi) return json({ erro: 'nao_encontrado' }, 404)
+      // A prova da campanha fica ligada ao histórico da decisão; não há remoção manual para esta categoria.
+      if (acao === 'remover') return json({ erro: 'acao_invalida' }, 400)
+    }
+    if (pedido && acao === 'remover') {
       // Exclusão manual da organização (não há prazo de retenção aprovado). Apaga o objeto e marca o pedido; o carimbo e a decisão ficam.
       const { error: rmErr } = await admin.storage.from(bucket).remove([path])
       if (rmErr) return json({ erro: 'remocao_falhou', detalhe: rmErr.message }, 500)

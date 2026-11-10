@@ -29,7 +29,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = 5213
 const BASE = `http://localhost:${PORT}`
 const ROTAS = ['/festival', '/edicoes', '/sweet-awards', '/participar', '/apoiar', '/contato']
-const OUTRAS_PAGINAS = /\/assets\/(Home|Edicoes|HistoricoAwards|Apoiar|Contato|EmBreve|Aguarde)-[\w-]+\.js/
+// Os arquivos do build levam um prefixo de versão ("v2-Home-…") desde a correção de cache de assets (d4d961f1): opcional nas duas expressões.
+const OUTRAS_PAGINAS = /\/assets\/(?:v\d+-)?(Home|Edicoes|HistoricoAwards|Apoiar|Contato|EmBreve|Aguarde)-[\w-]+\.js/
 const falhas = []
 const falha = (msg) => { falhas.push(msg); console.log(`  ✗ ${msg}`) }
 const ok = (msg) => console.log(`  ✓ ${msg}`)
@@ -98,7 +99,7 @@ const PUBLICADAS = [
 ]
 async function gate(navegador) {
   console.log('\n1 · domínio publicado (sem ?preview=1)')
-  const CHUNK = /\/assets\/(Home|Edicoes|HistoricoAwards|Participar|Apoiar|Contato|EmBreve|Aguarde|Legal)-[\w-]+\.js/
+  const CHUNK = /\/assets\/(?:v\d+-)?(Home|Edicoes|HistoricoAwards|Participar|Apoiar|Contato|EmBreve|Aguarde|Legal)-[\w-]+\.js/
   for (const [caminho, rota, chunk] of PUBLICADAS) {
     const ctx = await navegador.newContext({ viewport: { width: 1440, height: 900 } })
     const page = await ctx.newPage()

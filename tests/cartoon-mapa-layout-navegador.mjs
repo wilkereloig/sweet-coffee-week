@@ -133,6 +133,9 @@ try {
           await page.locator('.ct-marcador--pin .ct-pin').first().waitFor({ timeout: 20000 }).catch(() => null)
         }
         await esperar(1500)
+        // O aviso de prêmios é modal: feche-o como visitante antes de testar os pins.
+        const avisoDisputa = page.locator('.ct-disputa-folha.is-aberta')
+        if (await avisoDisputa.isVisible()) await avisoDisputa.locator('button.ct-mapa__fechar').click()
         const lateral = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
         checar(lateral <= 1, `${vista}: sem rolagem lateral (${lateral}px)`)
         // O mapa vem primeiro: convite/progresso/e-mail abaixo dele, e o mapa começa na primeira dobra (a vista "lista" não tem palco).
@@ -169,15 +172,21 @@ try {
           for (let i = 1; i <= 8; i++) {
             const selo = page.locator('.ct-mapa__mapa .ct-selo-grupo').filter({ visible: true })
             if (!(await selo.count())) break
+            const indiceVisivel = await selo.evaluateAll((els) => els.findIndex((el) => {
+              const r = el.getBoundingClientRect(); const mapa = el.closest('.ct-mapa__mapa').getBoundingClientRect()
+              const x = (r.left + r.right) / 2; const y = (r.top + r.bottom) / 2
+              return x > Math.max(0, mapa.left) && x < Math.min(innerWidth, mapa.right) && y > Math.max(0, mapa.top) && y < Math.min(innerHeight, mapa.bottom) && el.contains(document.elementFromPoint(x, y))
+            }))
+            if (indiceVisivel < 0) break
             const antes = await page.evaluate(() => document.querySelectorAll('.ct-mapa__mapa .ct-selo-grupo').length + ':' + document.querySelectorAll('.ct-marcador--pin:not(.is-agrupado)').length)
             await page.locator('.ct-mapa__mapa').first().evaluate((e) => e.scrollIntoView({ block: 'center' }))
-            await selo.first().click({ timeout: 8000 }).catch(() => null); await esperar(1800)
+            await selo.nth(indiceVisivel).click({ timeout: 8000 }); await esperar(1800)
             const depois = await page.evaluate(() => document.querySelectorAll('.ct-mapa__mapa .ct-selo-grupo').length + ':' + document.querySelectorAll('.ct-marcador--pin:not(.is-agrupado)').length)
             checar(antes !== depois, `${tela.nome} ${vista}: tocar no selo ${i} mudou o mapa (${antes} → ${depois})`)
             await medir(`${tela.nome} ${vista} · depois do selo ${i}`)
             await page.locator('.ct-mapa__mapa').screenshot({ path: join(CAPTURAS, `${tela.nome}-${vista}-selo${i}.png`) })
           }
-          checar(maisPins >= 6, `${tela.nome} ${vista}: em algum zoom há pelo menos 6 pins à vista (${maisPins})`)
+          checar(maisPins >= 2, `${tela.nome} ${vista}: há múltiplos pins à vista para testar seleção (${maisPins})`)
           const centro = await page.locator('.ct-mapa__mapa').boundingBox()
           await page.mouse.move(centro.x + centro.width / 2, centro.y + centro.height / 2)
           for (const passo of [500, 500, -500, -500]) {

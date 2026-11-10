@@ -32,9 +32,13 @@ import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.
 import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao, lerUnidadeCarimbo } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
+import { VisitaAnterior } from '../../../caca/visita/VisitaAnterior.jsx'
+import { CACA_CAMINHOS as CACA_RUA } from '../../../caca/textos.js'
+import { SinoDeAvisos } from '../../../caca/notificacoes/SinoDeAvisos.jsx'
 import { CartaoEmail } from '../../../caca/CartaoEmail.jsx'
 import { casasDoMapa, estadoDaCasa, revisitasDaCasa, ordemDasCasas, proximoPasso, distanciasPorCasa, arteLiberada, filtrarPorEstado, progressoPessoal } from '../../../caca/mapa/estados.js'
 import { agenciasSicredi, pontosSicredi, agenciaCombina, ehSicredi } from '../../../caca/mapa/sicredi.js'
+import { estadoDaCampanha } from '../../../caca/campanha/terComQuemContar.js'
 import { contarFiltros, casasEEnderecos, enderecosDaCasa, motivoSemLocalizacao, estadoDoErro } from '../../../caca/mapa/tela.js'
 import { useConquistas } from '../../../caca/mapa/useConquistas.js'
 import { ProgressoPessoal } from '../../../caca/mapa/Progresso.jsx'
@@ -42,7 +46,6 @@ import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { CasasEmLista } from '../../../caca/mapa/CasasEmLista.jsx'
 import { CartaoSicredi, ListaSicredi } from '../../../caca/mapa/Sicredi.jsx'
-import { AssinaturaPatrocinio } from '../../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Cobertura } from '../../../caca/mapa/Cobertura.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Avisos, Carregando } from '../../../componentes/base.jsx'
@@ -56,7 +59,7 @@ import { QueroIr, JaFui } from '../../MarcasLover.jsx'
 import { MAPA as T, FASE_TEXTO } from '../../textos.js'
 import { AlbumCarimbos } from '../AlbumCarimbos.jsx'
 import { Cartao } from './Cartao.jsx'
-import { Atalhos } from './Atalhos.jsx'
+import { Atalhos, FaixaJogo } from './Atalhos.jsx'
 import { PainelPremios } from './PainelPremios.jsx'
 import { PopupDisputa } from '../../../caca/disputa/PopupDisputa.jsx'
 import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
@@ -73,6 +76,7 @@ import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, ad
 import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/mapa/Proximidade.jsx'
 import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
 import { useTelaCheia } from './useTelaCheia.js'
+import { carregarCombosEsgotados } from '../../../dados/publico.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
 // ou não carregar —, o MapLibre (OpenFreeMap), que não pede chave. A página só conhece a interface comum.
@@ -135,6 +139,18 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
   const lista = dados?.participantes || []
   const periodo = dados?.edicao
+  const [esgotadosHoje, setEsgotadosHoje] = React.useState([])
+  React.useEffect(() => {
+    let ativo = true
+    const ler = () => carregarCombosEsgotados(periodo?.codigo).then((r) => { if (ativo) setEsgotadosHoje((r || []).map((x) => x.slug)) }).catch(() => {})
+    ler()
+    const intervalo = setInterval(ler, 45000)
+    const aoFocar = () => { if (document.visibilityState === 'visible') ler() }
+    document.addEventListener('visibilitychange', aoFocar)
+    window.addEventListener('focus', ler)
+    return () => { ativo = false; clearInterval(intervalo); document.removeEventListener('visibilitychange', aoFocar); window.removeEventListener('focus', ler) }
+  }, [periodo?.codigo])
+  const esgotadosSet = React.useMemo(() => new Set(esgotadosHoje), [esgotadosHoje])
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, periodo), [lista, periodo])
   const filtro = { ...f, aberto: f.aberto && opcoes.hoje } // fora do festival, ?aberto=1 antigo não esconde nada
   const marcas = { rota: rota.ids, foi: rota.foi }
@@ -196,14 +212,14 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Logo desenhada P&B sem carimbo, colorida com carimbo; casa sem desenho cai na oficial reduzida do Mundo e, sem ela, na inicial.
   const pinDe = (p, u) => ({
     logo: logoDoPin(p, estadoDe(p.slug)) || mundo.logo(p.slug), inicial: inicial(p), numero: mundo.unidades[u.id]?.numero ?? '', estado: estadoDe(p.slug),
-    revisitas: revisitasDe(p.slug), nivel: aberturas.nivelDaUnidade(u.id), mudou: aberturas.mudouUnidade(u.id),
+    revisitas: revisitasDe(p.slug), nivel: esgotadosSet.has(p.slug) ? null : aberturas.nivelDaUnidade(u.id), mudou: aberturas.mudouUnidade(u.id), esgotado: esgotadosSet.has(p.slug),
   })
   const visiveis = new Set(linhas.map((x) => x.u.id))
   const casasMundo = comMundo ? casasNoMundo(mundo.unidades, todas).map(({ u, p, x, y, numero }) => {
     return {
       id: u.id, slug: p.slug, x, y, numero, titulo: M.tituloDaUnidade(p, u), nomeCasa: p.casa?.nome || '', tema: p.casa?.tema || '', bairro: u.endereco?.bairro || '', pin: pinDe(p, u).logo, inicial: inicial(p),
-      apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug,
-      nivel: aberturas.nivelDaCasa(p.slug), mudou: aberturas.mudouCasa(p.slug),
+      apagada: !visiveis.has(u.id), parada: paradaDe.get(u.id) || null, estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), proxima: p.slug === proximaSlug, esgotado: esgotadosSet.has(p.slug),
+      nivel: esgotadosSet.has(p.slug) ? null : aberturas.nivelDaCasa(p.slug), mudou: aberturas.mudouCasa(p.slug),
     }
   }) : []
   const trilha = comMundo ? tracado(pontosDaRota(faltam.filter((pa) => pa.ativa).map((pa) => pa.id), mundo.unidades), mundo.quadro) : ''
@@ -378,7 +394,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // Lista de casas dos atalhos: as do desenho (na ordem do caminho) ou, sem o desenho, as unidades visíveis.
   const itensLista = comMundo
     ? agruparPorCasa(casasMundo).filter((c) => !c.apagada).map((c) => (c.enderecos > 1 ? { ...c, titulo: c.nomeCasa || c.titulo, bairro: TC.enderecosNaCasa(c.enderecos) } : c))
-    : linhas.map(({ u, p }) => ({ id: u.id, slug: p.slug, numero: mundo.unidades[u.id]?.numero ?? '', titulo: M.tituloDaUnidade(p, u), bairro: u.endereco?.bairro || '', estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), parada: paradaDe.get(u.id) || null, proxima: p.slug === proximaSlug }))
+    : linhas.map(({ u, p }) => ({ id: u.id, slug: p.slug, numero: mundo.unidades[u.id]?.numero ?? '', titulo: M.tituloDaUnidade(p, u), bairro: u.endereco?.bairro || '', estado: estadoDe(p.slug), revisitas: revisitasDe(p.slug), parada: paradaDe.get(u.id) || null, proxima: p.slug === proximaSlug, esgotado: esgotadosSet.has(p.slug) }))
   const progressoDoJogo = meu.estado === 'pronto' ? progressoPessoal(meu.mapa, lista.filter((p) => (p.unidades || []).length).length) : null
   // O que cada atalho da tela cheia mostra: os componentes que já existem, nada novo. Sem mapa criado, o convite curto da Central.
   const premiosEl = <PainelPremios caca={meu} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length} navigate={navigate} />
@@ -404,6 +420,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
       case 'rota': return rotaEl
       case 'premios': return premiosEl
       case 'ranking': return <React.Suspense fallback={<Carregando texto={TC.atalhoCarregando} />}><Ranking caca={meu} navigate={navigate} dados={dados} /></React.Suspense>
+      case 'visitaAnterior': return <VisitaAnterior caca={meu} dados={dados} navigate={navigate} mostrarEncerrada />
       default: // grupos: precisam de mapa (a Central faz o mesmo convite)
         return meu.estado === 'sem-mapa'
           ? convite(TC.atalhoGruposSemMapa)
@@ -417,6 +434,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
         : (
           <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
             parada={paradaDe.get(escolhida.u.id) || null} estado={estadoDe(escolhida.p.slug)} revisitas={revisitasDe(escolhida.p.slug)}
+            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)}
             proxima={escolhida.p.slug === proximaSlug} aoAvaliar={avaliar}
             irmas={enderecosDaCasa(todas, escolhida.p.slug, escolhida.u.id)} aoEscolher={escolher} />
           )}
@@ -427,15 +445,22 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   return (
     <>
       {avisos}
-      {topo(T.lead)}
-      <AssinaturaPatrocinio />
-      <section className="ct-bloco ct-mapa" aria-label="Casas da Cartoon">
+      <h1 id="mapa-titulo" className="ct-sr">{T.titulo}</h1>
+      <section className="ct-bloco ct-mapa" aria-label="Explorar casas no mapa">
         <p className="ct-sr" role="status" aria-live="polite">{avisoConquista}</p>
         <div className="ct-mapa__corpo">
           <div ref={explorar} className={`ct-mapa__explorar${cheia ? ' is-cheia' : ''}`}
             {...(cheia ? { role: 'dialog', 'aria-modal': true, 'aria-label': TC.telaCheiaRegiao } : {})}>
+            <div className="ct-mapa__avisos-desktop">
+              {meu.mapa ? <><span>Seus avisos</span><SinoDeAvisos caca={meu} dados={dados} navigate={navigate} /></> : <Botao tipo="secundario" href={`${EDICAO.caminho}/caca`} navigate={navigate}>Criar mapa para receber avisos</Botao>}
+            </div>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} botaoPerto={cheia ? null : botaoPerto} />
+            {!cheia && (
+              <FaixaJogo placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
+                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} navigate={navigate}
+                aoRota={() => { setPainel('rota'); const alvo = document.querySelector('.ct-mapa__lateral'); alvo?.scrollIntoView({ block: 'start' }); alvo?.querySelector('button, a')?.focus({ preventScroll: true }) }} />
+            )}
 
             <div className="ct-mapa__resumo">
               <p className="ct-catalogo__conta" aria-live="polite">{resumo}</p>
@@ -473,7 +498,10 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                           <MapaUnidades key={provedor} selecionada={sel} aoSelecionar={escolher} voce={perto ? posicao : null} circulo={circuloPerto} foco={focoDoMapa} aoFalhar={provedor === 'google' ? usarReserva : undefined} gestos={cheia ? 'livre' : 'cooperativo'}
                             pontos={[
                               ...noMapa.map(({ u, p, quero, foi }) => ({ id: u.id, lat: u.coordenada.lat, lng: u.coordenada.lng, titulo: M.tituloDaUnidade(p, u), aproximada: !!u.coordenada.conferir, quero, foi, perto: destaquePorUnidade.get(u.id), pin: pinDe(p, u) })),
-                              ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src }),
+                              ...pontosSicredi(agenciasVisiveis, { src: MARCAS_PARCEIROS.sicredi.src }).map((p) => ({
+                                ...p,
+                                promocao: estadoDaCampanha().aberta ? 'Alerta de voucher' : '',
+                              })),
                             ]} />
                         </ErroDoMapa>
                       </React.Suspense>
@@ -489,6 +517,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                     <ul className="ct-mapa__lista" aria-label={T.contagem(linhas.length)}>
                       {linhas.map(({ u, p, dist, foi }) => {
                         const titulo = M.tituloDaUnidade(p, u)
+                        const esgotado = esgotadosSet.has(p.slug)
                         const est = u.combo ? M.estadoAgora(u, undefined, dados?.edicao) : null
                         const agora = est ? M.textoEstado(est) : ''
                         const nota = notaDoLugar(u.coordenada)
@@ -499,8 +528,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                               <span className="ct-mapa__sel-texto">
                                 <strong>{titulo}</strong>
                                 <span>{M.enderecoEmLinha(u.endereco)}</span>
+                                {esgotado && <span className="ct-mapa__estado ct-mapa__estado--esgotado">Combos esgotados hoje</span>}
                                 {estadoDe(p.slug) && <SeloEstado estado={estadoDe(p.slug)} revisitas={revisitasDe(p.slug)} />}
-                                {agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
+                                {!esgotado && agora && <span className={`ct-mapa__estado ct-mapa__estado--${est.estado}`}>{agora}</span>}
                                 {!p.combo && <span className="ct-mapa__estado">{T.semComboAinda}</span>}
                                 {dist != null && <span className="ct-nota">{T.distancia(dist, !!u.coordenada?.conferir)}</span>}
                                 {nota && <span className={`ct-mapa__local${u.coordenada ? ' ct-mapa__local--aprox' : ''}`}>{nota}</span>}
@@ -526,6 +556,10 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             {/* O mapa vem primeiro: convite para criar o mapa, "Como carimbar", progresso e e-mail ficam ABAIXO dele (Wilker, 05/11/2026). Na tela cheia somem; os atalhos cobrem. */}
             <div className="ct-mapa__abaixo">
               {vista !== 'lista' && cartaoSugestao()}
+              <section className="ct-visita ct-visita--convite" aria-label="Pedido de carimbo de uma visita">
+                <p className="ct-nota">Foi a uma casa e não conseguiu carimbar? Peça à organização que confira a sua visita.</p>
+                <Botao tipo="secundario" href={CACA_RUA.visitaAnterior} navigate={navigate}>Solicitar carimbo</Botao>
+              </section>
               <ProgressoPessoal estado={meu.estado} mapa={meu.mapa} totalDaEdicao={lista.filter((p) => (p.unidades || []).length).length}
                 proximo={proximoMostrado} geo={geo} aoVerCasa={verCasa} aoAvaliar={avaliarCasa} atualizar={meu.atualizar} navigate={navigate} />
               <CartaoEmail caca={meu} navigate={navigate} />

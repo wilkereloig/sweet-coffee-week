@@ -62,6 +62,8 @@
 .ct-caca-avisos__item details[open] .ct-caca-avisos__previa { display: none; }
 .ct-caca-avisos__conteudo { display: grid; gap: 12px; padding: 14px 15px 16px; border-top: 2px dashed var(--ct-chocolate); }
 .ct-caca-avisos__conteudo .ct-caca-avisos__corpo { font: 600 16px/1.5 var(--ct-font); }
+.ct-dlv__aviso-imagem { margin: 10px 0; padding: 12px 14px; border: 2px solid var(--ct-chocolate); border-radius: 14px; background: var(--ct-amarelo); box-shadow: 3px 3px 0 var(--ct-chocolate); font: 600 15px/1.45 var(--ct-font); }
+.ct-dlv__aviso-imagem strong { display: block; margin-bottom: 3px; font-weight: 900; }
 .ct-caca-push__escolha { display: grid; gap: 4px; margin: 12px 0 0; padding: 0; border: 0; }
 .ct-caca-push__escolha legend { padding: 0; margin-bottom: 4px; }
 .ct-caca-push__opcao { align-items: flex-start; padding: 6px 0; }

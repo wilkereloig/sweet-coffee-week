@@ -169,7 +169,8 @@ test('regulamento: sem pontos, sem "mais carimbos", com a regra do servidor e se
 test('textos: "Já fui" é lembrete pessoal (não valida), metas em definição e avisos sem promessa de disparo automático', async () => {
   const { ROTA } = await import('../src/edicao/cartoon/textos.js')
   assert.doesNotMatch(ROTA.jaFuiVazio, /conta no seu progresso/)
-  assert.match(ROTA.jaFuiVazio, /carimbo/)
+  assert.match(ROTA.jaFuiVazio, /carimb(?:o|e)/)
+  assert.match(ROTA.jaFuiVazio, /avalie/)
   assert.doesNotMatch(ROTA.progressoRotulo, /^visitadas$/)
   const { EXTRAS } = await import('../src/edicao/caca/textos-extras.js')
   assert.doesNotMatch(EXTRAS.push.lead, /tudo o que importa também aparece/)

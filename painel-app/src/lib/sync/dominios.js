@@ -224,6 +224,7 @@ export const RPC_ESCRITA = Object.freeze({
   caca_aviso_criar: ['carimbos'], caca_aviso_enviar: ['carimbos'], caca_aviso_cancelar: ['carimbos'], caca_avisos_auto_definir: ['carimbos'], caca_programacao_definir: ['carimbos'],
   caca_sorteio_comprometer: ['carimbos'], // grava o código da semente (aba Prêmio final, em Edição › Carimbos)
   marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
+  marca_combo_esgotado: ['participantes', 'avisos'], // informa disponibilidade e avisa a Organização
   marcar_senha_trocada: ['perfis'],
 })
 

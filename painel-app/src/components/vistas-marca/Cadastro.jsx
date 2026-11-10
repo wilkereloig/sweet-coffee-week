@@ -122,6 +122,8 @@ function corpoMarca(marca) {
     cnpj: marca.cnpj.trim(), razao_social: marca.razao_social.trim(),
     apresentacao_publica: ouNulo(marca.apresentacao_publica),
   }
+  // Número pela metade fica de fora (o campo mostra o erro): o gravado continua valendo.
+  if (validarWhatsApp(marca.telefone)) delete camposMarca.telefone
   return camposMarca
 }
 const paraStr = (n) => (n == null ? '' : String(n).replace('.', ','))
@@ -565,6 +567,7 @@ export function Cadastro({ alvo, consumirAlvo, irPara, blocos = [0, 1, 2, 3, 4],
        salvamento de uma escrever, com o valor velho que ela leu, o que a outra
        acabou de salvar. `[true]` = nada a confirmar (sem mudança). */
     if (mostra(0)) {
+      if (validarWhatsApp(marca.telefone)) omitidos.add('o WhatsApp do responsável')
       tarefas.push(patchMudancas('participantes?id=eq.' + participanteId, corpoMarca(marca), base.marca, bloq('marca'))
         .then((l) => { if (linha(l)) base.marca = corpoMarca(marcaDeLinha(linha(l))); return l }))
     }

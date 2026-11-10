@@ -19,12 +19,13 @@ import Ranking from '../../../caca/secoes/Ranking.jsx'
 import Metas from '../../../caca/secoes/Metas.jsx'
 import Compartilhar from '../../../caca/secoes/Compartilhar.jsx'
 import { Delivery } from '../../../caca/delivery/Delivery.jsx'
+import { VisitaAnterior } from '../../../caca/visita/VisitaAnterior.jsx'
 import Convite from '../../../caca/secoes/Convite.jsx'
 import { ManifestoDaCaca } from '../../../caca/pwa/ManifestoDaCaca.jsx'
 import { EntradaDaCaca } from '../../../caca/pwa/EntradaDaCaca.jsx'
 
 // Seções que só fazem sentido com mapa: sem ele, mostram a criação rápida no lugar do conteúdo.
-const PRECISA_DE_MAPA = ['grupos', 'grupo', 'metas', 'compartilhar', 'delivery']
+const PRECISA_DE_MAPA = ['grupos', 'grupo', 'metas', 'compartilhar', 'delivery', 'visita-anterior']
 // Seções que funcionam sem esperar (nem depender de) a leitura do mapa: lidam sozinhas com `caca.estado`.
 const INDEPENDENTES = ['recuperar', 'ranking', 'convite']
 
@@ -38,6 +39,7 @@ function Conteudo ({ secao, caca, navigate, dados, grupoId, token }) {
     case 'metas': return <Metas {...extra} />
     case 'compartilhar': return <Compartilhar {...extra} />
     case 'delivery': return <Delivery {...extra} />
+    case 'visita-anterior': return <VisitaAnterior {...extra} mostrarEncerrada ocultarConviteSemMapa />
     case 'convite':
       return token
         ? <Convite {...extra} token={token} />
@@ -65,6 +67,7 @@ function PaginaDaCaca ({ secao, navigate, dados, grupoId, token }) {
       <>
         <p className="ct-lead">{CACA.precisaDeMapa[secao]}</p>
         <CriarMapa navigate={navigate} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
+        {secao === 'visita-anterior' && <Conteudo secao={secao} caca={caca} navigate={navigate} dados={dados} grupoId={grupoId} token={token} />}
       </>
     )
   } else {

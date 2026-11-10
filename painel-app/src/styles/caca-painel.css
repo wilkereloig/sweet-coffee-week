@@ -3,6 +3,8 @@
 .cp-dia__cabeca { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-3); }
 .cp-dia__titulo { margin: 0; font: 700 16px/1.2 var(--f-ui); color: var(--scw-choco); }
 .cp-dia p { margin: 0; }
+.cp-pool-voucher { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: var(--e-2); margin: 0; padding: 0; list-style: none; }
+.cp-pool-voucher li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); padding: var(--e-2) var(--e-3); border: 1px solid var(--scw-linha); border-radius: var(--r-2); background: var(--sup-2); }
 
 .cp-estado { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .cp-vencido { font-weight: 700; color: var(--scw-choco); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }

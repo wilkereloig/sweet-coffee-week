@@ -206,7 +206,7 @@ export function CartoonPage ({ path, navigate }) {
           <Link href={EDICAO.caminho} navigate={navigate} className={`ct-topo__marca ct-topo__marca--${marca.grupo}`} aria-label={marca.grupo === 'edicao' ? `${EDICAO.nome}, início` : `${marca.nome}, início da edição ${EDICAO.tema}`}>
             <img src={marca.src} srcSet={marca.grupo === 'edicao' ? srcSet(marca.src) : undefined} sizes="96px" alt="" width={marca.largura} height={marca.altura} />
           </Link>
-          <nav className="ct-topo__nav" aria-label="Navegação da edição">
+          <nav className="ct-topo__nav" aria-label="Navegação da edição Cartoon">
             <ul>
               {PAGINAS.filter((n) => n.cena !== 'entrada').map((item) => <li key={item.cena}>{linkNav(item, undefined, item.rotulo)}</li>)}
               <li><Link href={INICIO_INSTITUCIONAL} navigate={navigate}>{RODAPE.sobre}</Link></li>

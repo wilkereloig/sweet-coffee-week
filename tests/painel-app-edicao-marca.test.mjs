@@ -697,3 +697,19 @@ test('troca renderizada: passos, "Mais detalhes" recolhido quando vazio e aberto
   assert.match(h, /<details class="em-troca__mais">/)
   assert.match(html(Alimentar, props([{ ...vazia, como_solicitar: 'Peça no caixa' }])), /<details class="em-troca__mais" open="">/)
 })
+
+test('link de delivery inválido: a lista de canais fica de fora da gravação e a tela diz o que não salvou', async () => {
+  const u = unidadeOk({ delivery_combo: 'sim', canais: { aplicativo: '@lojax', whatsapp: 'wa.me/5584999990000', site: '' } })
+  // Gravar a lista filtrada apagaria do banco o canal que já estava lá, com "Alterações salvas".
+  assert.ok(!('canais_delivery' in E.corpoParticipacaoUnidade(u, 0)))
+  assert.ok(!('canais_delivery' in E.corpoNovaParticipacaoUnidade(u, 0)))
+  assert.deepEqual(E.camposInvalidosDaUnidade(u), ['os links de delivery'])
+  const ok = unidadeOk({ canais: { aplicativo: '', whatsapp: 'wa.me/5584999990000', site: '' } })
+  assert.deepEqual(E.corpoParticipacaoUnidade(ok, 0).canais_delivery, [{ tipo: 'whatsapp', link: 'https://wa.me/5584999990000' }])
+  assert.deepEqual(E.camposInvalidosDaUnidade(ok), [])
+  // WhatsApp do responsável pela metade: mesma regra, no corpo da marca (Cadastro.jsx).
+  const { readFile } = await import('node:fs/promises')
+  const c = await readFile(new URL('../painel-app/src/components/vistas-marca/Cadastro.jsx', import.meta.url), 'utf8')
+  assert.match(c, /if \(validarWhatsApp\(marca\.telefone\)\) delete camposMarca\.telefone/)
+  assert.match(c, /omitidos\.add\('o WhatsApp do responsável'\)/)
+})

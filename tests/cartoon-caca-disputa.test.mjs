@@ -67,7 +67,7 @@ test('montarDisputa: junta voucher, campanha, prêmio final e o aviso de e-mail'
   assert.equal(semMapa.acao, 'criar-mapa')
   assert.equal(semMapa.emailPendente, false)
   assert.equal(semMapa.final.total, 38, 'sem mapa o pop-up ainda mostra o tamanho do prêmio final')
-  const encerrada = montarDisputa({ premios: null, campanha: camp('2026-11-12T15:00:00Z'), jogador: null, estado: 'sem-mapa', email: 'desconhecido', hojeIso: '2026-11-12' })
+  const encerrada = montarDisputa({ premios: null, campanha: camp('2026-11-14T15:00:00Z'), jogador: null, estado: 'sem-mapa', email: 'desconhecido', hojeIso: '2026-11-14' })
   assert.equal(encerrada.campanha, false)
   assert.equal(encerrada.voucher, null)
   assert.equal(encerrada.final, null)
@@ -100,8 +100,10 @@ test('textos: não promete sorteio do voucher do dia nem chama o festival de "Sw
   assert.doesNotMatch(tudo, /todo mundo (concorre|ganha)|todos ganham/i)
   assert.doesNotMatch(tudo, /\b(o|do|no|ao) Sweet\b/)
   assert.match(TEXTOS_CAMPANHA.bloco.disputa, /2 vouchers/, 'a promoção do Sicredi mostra os 2 vouchers')
-  assert.match(TEXTOS_CAMPANHA.bloco.disputa, /não conta carimbo/, 'e diz que é separada da Caça')
-  assert.doesNotMatch(TEXTOS_CAMPANHA.bloco.disputa, /sorteio/i, 'a escolha é de jornalistas, não sorteio')
+  assert.match(TEXTOS_CAMPANHA.bloco.disputa, /print da publicação[\s\S]*aprovação da organização/, 'o carimbo da campanha depende do print aprovado, nunca é automático')
+  // "sorteios" aparece só como os sorteios DA CAÇA em que o carimbo Sicredi pesa; as histórias da campanha são escolhidas, nunca sorteadas.
+  assert.match(TEXTOS_CAMPANHA.bloco.disputa, /escolhe \d+ histórias/, 'a campanha é por escolha')
+  assert.doesNotMatch(TEXTOS_CAMPANHA.bloco.disputa, /sortei[ao]\b|sorteio d[ae]s? (hist|v[íi]deo)/i, 'a escolha das histórias não é sorteio')
 })
 
 test('montagem: pop-up no mapa, fora da tela cheia e de link com intenção; CSS sem !important e dentro da camada', () => {

@@ -1,6 +1,6 @@
 /*
- * Atalhos FIXOS do mapa (06/11/2026): três dos seis atalhos do jogo ficam sempre à mão sobre o mapa, como botões compactos.
- * Padrão: Progresso · Prêmios · Ranking. A pessoa troca no menu "Atalhos" (escolha de três entre os seis) e a escolha fica só neste aparelho
+ * Atalhos FIXOS do mapa (06/11/2026): três dos atalhos do jogo ficam sempre à mão sobre o mapa, como botões compactos.
+ * Padrão: Progresso · Prêmios · Ranking. A pessoa troca no menu "Atalhos" (escolha de três entre os atalhos disponíveis) e a escolha fica só neste aparelho
  * (localStorage, chave abaixo): nenhum dado sai do navegador. Armazenamento indisponível ou valor estranho → o padrão, sem erro.
  * A lógica mora aqui (testável sem navegador); o desenho está em Atalhos.jsx e o estilo em 16-mapa-tela.css.
  */

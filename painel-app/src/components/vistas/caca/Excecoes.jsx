@@ -14,12 +14,13 @@ import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
  * as 12 h e a janela); negar exige o motivo. A casa não participa e o banco guarda quem decidiu.
  */
 export function Excecoes({ edicao, pode }) {
+  const gerir = pode('producao.gerir')
+  const contato = pode('relatorio.ler')
   const lista = useLeitura(() => cacaApi.excecoes(edicao), ['carimbos'], { chave: 'excecoes-' + edicao })
+  const sicredi = useLeitura(() => cacaApi.sicrediCampanha(edicao), ['carimbos'], { chave: 'sicredi-campanha-' + edicao, ativo: gerir, opcional: !gerir })
   const [ocupado, executar] = useExecutar()
   const [aviso, setAviso] = React.useState('')
   const [estado, setEstado] = React.useState('pendente')
-  const gerir = pode('producao.gerir')
-  const contato = pode('relatorio.ler')
 
   // Imagem do pedido de delivery (bucket privado): link de 300 s, aberto numa aba nova; excluir é manual e não desfaz o carimbo.
   async function verImagem(p) {
@@ -28,6 +29,27 @@ export function Excecoes({ edicao, pode }) {
       const r = await executar('img-' + p.id, () => cacaApi.imagemDelivery(p.imagem))
       if (r && r.url && aba) { aba.opener = null; aba.location.href = r.url } else if (aba) aba.close()
     } catch (e) { if (aba) aba.close() }
+  }
+  async function verPrintSicredi(p) {
+    const aba = window.open('about:blank', '_blank')
+    try {
+      const r = await executar('sicredi-img-' + p.id, () => cacaApi.imagemSicrediCampanha(p.imagem))
+      if (r && r.url && aba) { aba.opener = null; aba.location.href = r.url } else if (aba) aba.close()
+    } catch { if (aba) aba.close() }
+  }
+  async function decidirSicredi(p, decisao) {
+    const aprova = decisao === 'aprovar'
+    const nota = await pedirTexto(aprova
+      ? `Confirme que o print de ${p.apelido} mostra a publicação do vídeo da campanha Sicredi.`
+      : `Informe por que o comprovante de ${p.apelido} não foi aceito.`,
+    { rotulo: aprova ? 'Observação (opcional)' : 'Motivo (obrigatório)' },
+    { titulo: aprova ? 'Aprovar o carimbo Sicredi?' : 'Negar o comprovante?', acao: aprova ? 'Aprovar e conceder carimbo' : 'Negar', perigo: !aprova })
+    if (nota === null) return
+    if (!aprova && !nota.trim()) { await avisar('Escreva o motivo para a pessoa.'); return }
+    const r = await executar('sicredi-' + p.id, () => cacaApi.decidirSicrediCampanha(p.id, decisao, nota.trim()))
+    if (r === undefined) return
+    await sicredi.recarregar()
+    setAviso(aprova ? `Carimbo Sicredi aprovado para ${p.apelido}; já soma no ranking e nos sorteios.` : `Comprovante de ${p.apelido} negado.`)
   }
   async function excluirImagem(p) {
     const ok = await confirmar('A imagem é apagada do armazenamento privado e não volta. A decisão e o carimbo, se houver, continuam. Ainda não há prazo de retenção aprovado: use isto quando a imagem não for mais necessária.', { titulo: 'Excluir a imagem deste pedido?', acao: 'Excluir imagem', perigo: true })
@@ -54,11 +76,29 @@ export function Excecoes({ edicao, pode }) {
   if (!lista.dados) return <Carregando />
   const itens = filtrarPedidos(lista.dados.itens, estado)
   const comImagem = itens.some((x) => x.imagem || x.imagem_removida)
-  const colunas = ['Apelido', 'Quando', 'Casa', 'Motivo', 'O celular informou', 'Nota da pessoa', ...(comImagem ? ['Imagem'] : []), 'Contexto', ...(contato ? ['Contato'] : []), 'Situação', ...(gerir ? ['Ação'] : [])]
+  const colunas = ['Apelido', 'Quando', 'Casa', 'Motivo', 'O celular informou', 'Relato da pessoa', ...(comImagem ? ['Foto / evidência'] : []), 'Contexto', ...(contato ? ['Contato'] : []), 'Situação', ...(gerir ? ['Ação'] : [])]
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
-      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Três tipos de pedido: GPS que falhou na casa, visita anterior à Caça (só em 05/11) e Delivery (pedido recebido em casa, sem prova de local: a data, a referência e a observação são da pessoa). Delivery com código é confirmado pela CASA no painel dela e só aparece aqui como acompanhamento; delivery com imagem é decidido aqui, e a imagem fica em armazenamento privado. Quem está na casa e não consegue carimbar pelo GPS pede aqui. Confira o contexto (já avaliou? já carimbou nessa casa? quantos pedidos fez?) e decida. A casa nunca decide e o pedido não vale nada até você aprovar.">
+      {gerir && (
+        <Secao titulo="Comprovantes da campanha Sicredi" nota="Confira se o print comprova que o vídeo da campanha foi publicado. Ao aprovar, a pessoa recebe um carimbo especial que vale no ranking e nos sorteios, sem contar como casa visitada.">
+          {sicredi.bloqueada ? <Erro texto={sicredi.erro} onTentar={sicredi.recarregar} /> : !sicredi.dados ? <Carregando /> : !sicredi.dados.itens?.length
+            ? <Vazio titulo="Nenhum comprovante da campanha">Quando alguém enviar um print, ele aparecerá para análise aqui.</Vazio>
+            : <Tabela rotulo="Comprovantes da campanha Sicredi" colunas={['Participante', 'Enviado', 'Comprovante', 'Situação', ...(gerir ? ['Ação'] : [])]}>
+              {sicredi.dados.itens.map((p) => <tr key={p.id}>
+                <th scope="row">{p.apelido}</th><td>{horaNatal(p.enviado_em || p.criado_em)}</td>
+                <td>{p.imagem && <Botao variante="secundario" disabled={!!ocupado} onClick={() => verPrintSicredi(p)}>Ver print</Botao>}</td>
+                <td><Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>{p.decisao_nota && <span className="cp-sub"> {p.decisao_nota}</span>}</td>
+                <td>{p.estado === 'pendente' ? <div className="cp-acoes">
+                  <Botao disabled={!!ocupado} onClick={() => decidirSicredi(p, 'aprovar')}>Aprovar e carimbar</Botao>
+                  <Botao variante="secundario" disabled={!!ocupado} onClick={() => decidirSicredi(p, 'negar')}>Negar</Botao>
+                </div> : p.decidido_por ? `${p.decidido_por} · ${horaNatal(p.decidido_em)}` : '—'}</td>
+              </tr>)}
+            </Tabela>}
+        </Secao>
+      )}
+      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização pode ser decidido aqui; pedidos por código são confirmados pela casa.">
+        <p className="ui-nota">A imagem do delivery é opcional. No celular, deslize a tabela para o lado até a coluna Ação para aprovar ou negar.</p>
         <Escolha rotulo="Mostrar" valor={estado} onMudar={setEstado} className="cp-filtro"
           opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
         {!itens.length ? <Vazio titulo="Nenhum pedido aqui">{estado === 'pendente' ? 'Ninguém está esperando uma decisão agora.' : 'Nada nesta situação.'}</Vazio> : (
@@ -70,7 +110,11 @@ export function Excecoes({ edicao, pode }) {
                 <td className="cp-nota-celula">{p.casa}{p.nome_unidade ? ` · ${p.nome_unidade}` : ''}{p.unidades_na_casa > 1 && p.motivo === 'visita_anterior' ? ' (a casa tem mais de um endereço)' : ''}</td>
                 <td className="cp-nota-celula">{p.motivo === 'visita_anterior' ? <Selo tom="atencao">Visita anterior</Selo> : null} {rotuloMotivoPedido(p.motivo)}</td>
                 <td className="cp-nota-celula">{descricaoDoSinal(p)}</td>
-                <td className="cp-nota-celula">{p.nota || '—'}</td>
+                <td className="cp-nota-celula">{p.motivo === 'visita_anterior' && !String(p.nota || '').trim() && !p.imagem
+                  ? 'Aguardando relato ou foto'
+                  : p.motivo === 'visita_anterior' && p.nota === 'Foto como prova'
+                    ? p.imagem ? 'Foto enviada como prova' : 'Foto indicada, aguardando envio'
+                  : p.nota || '—'}</td>
                 {comImagem && (
                   <td className="cp-nota-celula">
                     {p.imagem ? (
@@ -97,7 +141,9 @@ export function Excecoes({ edicao, pode }) {
                 </td>
                 {gerir && (
                   <td>
-                    {podeDecidir(p) ? (
+                    {p.motivo === 'visita_anterior' && !String(p.nota || '').trim() && !p.imagem ? <Selo tom="andamento">Aguardando relato ou foto</Selo>
+                      : p.motivo === 'visita_anterior' && p.nota === 'Foto como prova' && !p.imagem ? <Selo tom="andamento">Aguardando foto da pessoa</Selo>
+                        : podeDecidir(p) ? (
                       <div className="cp-acoes">
                         <Botao disabled={!!ocupado} aria-label={`Aprovar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'aprovar')}>Aprovar</Botao>
                         <Botao variante="secundario" disabled={!!ocupado} aria-label={`Negar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'negar')}>Negar</Botao>

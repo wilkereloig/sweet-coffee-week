@@ -9,8 +9,11 @@ import { EDICAO } from '../../config.js'
 import { prepararAvaliacao } from '../../rota/carimbo.js'
 import { api as apiPadrao } from '../api.js'
 import { nomeDaCasa } from '../regras.js'
+import { CACA_CAMINHOS as RUA } from '../textos.js'
+import { Link } from '../../componentes/base.jsx'
 import { VISITA as T } from './textos.js'
 import { casasDisponiveis, dataCurta, dataEmNatal, descreverPrazo, estadoDoPedido, pedidosDeVisita } from './logica.js'
+import { prepararImagem } from '../delivery/imagem.js'
 
 /** prazo: null enquanto carrega · 'falha' se o servidor não respondeu · { aberto, ate }. */
 function usarPrazo (api) {
@@ -23,7 +26,44 @@ function usarPrazo (api) {
   return prazo
 }
 
-function Pedido ({ pedido, mapa, dados, navigate }) {
+function EnviarFotoPedido ({ pedido, chave, api, aoEnviar }) {
+  const [preparado, setPreparado] = React.useState(null)
+  const [nome, setNome] = React.useState('')
+  const [fase, setFase] = React.useState('')
+  const [erro, setErro] = React.useState('')
+  async function escolher (e) {
+    const arquivo = e.target.files?.[0]
+    e.target.value = ''
+    if (!arquivo) return
+    setErro(''); setFase('preparando')
+    const r = await prepararImagem(arquivo)
+    setFase('')
+    if (!r.ok) { setErro(T.recusa[r.motivo] || T.recusa.padrao); return }
+    setPreparado(r); setNome(arquivo.name)
+  }
+  async function enviar () {
+    if (!preparado || fase) return
+    setErro(''); setFase('enviando')
+    const r = await api.visitaAnteriorEnviarImagem(chave, pedido.id, preparado)
+    setFase('')
+    if (r.ok === true) aoEnviar()
+    else setErro(T.recusa[r.motivo] || T.recusa.padrao)
+  }
+  return (
+    <div className="ct-visita__prova">
+      <p className="ct-nota">{T.fotoPendente}</p>
+      <div className="ct-acoes">
+        <label className="ct-botao ct-botao--contorno">{T.fotoGaleria}<input type="file" accept="image/jpeg,image/png,image/webp" className="ct-sr" onChange={escolher} disabled={!!fase} /></label>
+        <label className="ct-botao ct-botao--contorno">{T.fotoCamera}<input type="file" accept="image/*" capture="environment" className="ct-sr" onChange={escolher} disabled={!!fase} /></label>
+      </div>
+      {fase === 'preparando' && <p className="ct-nota" role="status">{T.fotoPreparando}</p>}
+      {preparado && <><p className="ct-nota">{T.fotoPronta(nome)}</p><button type="button" className="ct-botao" onClick={enviar} disabled={!!fase}>{fase === 'enviando' ? T.fotoEnviando : T.fotoEnviar}</button></>}
+      {erro && <p className="ct-aviso" role="alert">{erro}</p>}
+    </div>
+  )
+}
+
+function Pedido ({ pedido, mapa, dados, navigate, chave, api, aoAtualizar }) {
   const estado = estadoDoPedido(pedido, mapa)
   const casa = nomeDaCasa(dados, pedido.slug)
   return (
@@ -31,6 +71,8 @@ function Pedido ({ pedido, mapa, dados, navigate }) {
       <p className="ct-visita__linha"><strong>{casa}</strong><span className={`ct-visita__estado is-${estado}`}>{T.estado[estado]}</span></p>
       {pedido.visita_data && <p className="ct-nota">{T.dataDaVisita(dataCurta(pedido.visita_data))}</p>}
       <p className="ct-nota">{T.estadoTexto[estado]}</p>
+      {pedido.tem_imagem && <p className="ct-nota" role="status">{pedido.imagem_removida ? T.fotoRemovida : T.fotoEnviada}</p>}
+      {estado === 'analise' && !pedido.tem_imagem && <EnviarFotoPedido pedido={pedido} chave={chave} api={api} aoEnviar={aoAtualizar} />}
       {estado === 'aprovadoAvaliar' && (
         <button type="button" className="ct-botao ct-botao--contorno" onClick={() => navigate(prepararAvaliacao({ caminho: EDICAO.caminho, codigo: EDICAO.codigo, slug: pedido.slug, mapa }))}>{T.avaliar}</button>
       )}
@@ -41,7 +83,7 @@ function Pedido ({ pedido, mapa, dados, navigate }) {
 
 const MAX_VISITAS = 6
 let proximoId = 0
-const novaVisita = (hoje) => ({ id: ++proximoId, slug: '', unidade: '', data: hoje, hora: '', nota: '' })
+const novaVisita = (hoje) => ({ id: ++proximoId, slug: '', unidade: '', data: hoje, hora: '', nota: '', foto: null, fotoNome: '', preparandoFoto: false })
 
 /** Horário aproximado vai na observação (o painel a mostra inteira): "Horário aproximado: 14:30. …", sempre dentro dos 200 caracteres. */
 export const notaComHorario = (hora, nota) => {
@@ -62,6 +104,17 @@ function Formulario ({ chave, dados, casas, aoEnviar, aoFechar, api }) {
   const casaDe = (slug) => casas.find((c) => c.slug === slug)
   const livres = (v) => casas.filter((c) => c.slug === v.slug || !escolhidas.has(c.slug))
 
+  async function escolherFoto (id, e) {
+    const arquivo = e.target.files?.[0]
+    e.target.value = ''
+    if (!arquivo) return
+    setErros((atual) => ({ ...atual, [id]: '' }))
+    setVisitas((vs) => vs.map((v) => (v.id === id ? { ...v, preparandoFoto: true } : v)))
+    const r = await prepararImagem(arquivo)
+    setVisitas((vs) => vs.map((v) => (v.id === id ? { ...v, preparandoFoto: false, ...(r.ok ? { foto: r, fotoNome: arquivo.name } : {}) } : v)))
+    if (!r.ok) setErros((atual) => ({ ...atual, [id]: T.recusa[r.motivo] || T.recusa.padrao }))
+  }
+
   async function enviar (e) {
     e.preventDefault()
     if (enviando) return
@@ -70,19 +123,27 @@ function Formulario ({ chave, dados, casas, aoEnviar, aoFechar, api }) {
       const c = casaDe(v.slug)
       if (!c) novos[v.id] = T.recusa.qr_invalido
       else if (c.unidades.length > 1 && !v.unidade) novos[v.id] = T.recusa.unidade_obrigatoria
+      else if (!String(v.nota || '').trim() && !v.hora && !v.foto) novos[v.id] = T.recusa.evidencia_obrigatoria
     }
     setErros(novos); setErro('')
     if (Object.keys(novos).length) return
     setEnviando(true)
-    const feitas = []; const restantes = []; const falhas = {}
+    const feitas = []; const restantes = []; const falhas = {}; const fotosFalhas = []
     for (const v of visitas) {
       const c = casaDe(v.slug)
-      const r = await api.visitaAnteriorPedir(chave, { slug: v.slug, unidade: c.unidades.length > 1 ? v.unidade : c.unidades[0]?.id, data: v.data, nota: notaComHorario(v.hora, v.nota) })
-      if (r.ok === true && r.estado === 'pendente') feitas.push(nomeDaCasa(dados, v.slug))
+      const relato = notaComHorario(v.hora, v.nota) || (v.foto ? 'Foto como prova' : '')
+      const r = await api.visitaAnteriorPedir(chave, { slug: v.slug, unidade: c.unidades.length > 1 ? v.unidade : c.unidades[0]?.id, data: v.data, nota: relato })
+      if (r.ok === true && r.estado === 'pendente') {
+        feitas.push(nomeDaCasa(dados, v.slug))
+        if (v.foto) {
+          const foto = await api.visitaAnteriorEnviarImagem(chave, r.id, v.foto)
+          if (foto.ok !== true) fotosFalhas.push(nomeDaCasa(dados, v.slug))
+        }
+      }
       else { restantes.push(v); falhas[v.id] = T.recusa[r.motivo] || T.recusa.padrao }
     }
     setEnviando(false)
-    if (feitas.length) aoEnviar(feitas, restantes.length === 0)
+    if (feitas.length) aoEnviar(feitas, restantes.length === 0, fotosFalhas)
     if (restantes.length) { setVisitas(restantes); setErros(falhas); setErro(feitas.length ? T.parcial(feitas.length, restantes.length) : '') }
   }
 
@@ -122,6 +183,15 @@ function Formulario ({ chave, dados, casas, aoEnviar, aoFechar, api }) {
             <label className="ct-campo"><span>{T.nota}</span>
               <textarea rows={2} maxLength={T.notaMax - 40} value={v.nota} onChange={(e) => muda(v.id, 'nota', e.target.value)} />
             </label>
+            <div className="ct-visita__foto">
+              <p className="ct-rotulo">{T.foto}</p>
+              <div className="ct-acoes">
+                <label className="ct-botao ct-botao--contorno">{T.fotoGaleria}<input type="file" accept="image/jpeg,image/png,image/webp" className="ct-sr" onChange={(e) => escolherFoto(v.id, e)} disabled={enviando || v.preparandoFoto} /></label>
+                <label className="ct-botao ct-botao--contorno">{T.fotoCamera}<input type="file" accept="image/*" capture="environment" className="ct-sr" onChange={(e) => escolherFoto(v.id, e)} disabled={enviando || v.preparandoFoto} /></label>
+              </div>
+              {v.preparandoFoto && <p className="ct-nota" role="status">{T.fotoPreparando}</p>}
+              {v.foto && <p className="ct-nota">{T.fotoPronta(v.fotoNome)}</p>}
+            </div>
             {erros[v.id] && <p className="ct-aviso" role="alert">{erros[v.id]}</p>}
             {visitas.length > 1 && <button type="button" className="ct-botao ct-botao--contorno ct-visita__remover" onClick={() => setVisitas((vs) => vs.filter((x) => x.id !== v.id))} disabled={enviando}>{T.remover}</button>}
           </fieldset>
@@ -135,18 +205,19 @@ function Formulario ({ chave, dados, casas, aoEnviar, aoFechar, api }) {
       <p className="ct-nota">{T.privacidade}</p>
       {erro && <p className="ct-aviso" role="alert">{erro}</p>}
       <div className="ct-acoes">
-        <button type="submit" className="ct-botao" disabled={enviando}>{enviando ? T.enviando : T.enviarN(visitas.length)}</button>
+        <button type="submit" className="ct-botao" disabled={enviando || visitas.some((v) => v.preparandoFoto)}>{enviando ? T.enviando : T.enviarN(visitas.length)}</button>
         <button type="button" className="ct-botao ct-botao--contorno" onClick={aoFechar} disabled={enviando}>{T.fechar}</button>
       </div>
     </form>
   )
 }
 
-export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
+export function VisitaAnterior ({ caca, dados, navigate, mostrarEncerrada = false, ocultarConviteSemMapa = false, api = apiPadrao }) {
   const prazo = usarPrazo(api)
   const [pedidos, setPedidos] = React.useState(null)
   const [aberto, setAberto] = React.useState(false)
   const [aviso, setAviso] = React.useState(null)
+  const [avisoFoto, setAvisoFoto] = React.useState(false)
   const [rodada, setRodada] = React.useState(0)
   const comMapa = caca.estado === 'pronto' && !!caca.mapa && !!caca.chave
   React.useEffect(() => {
@@ -159,10 +230,15 @@ export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
   if (prazo === null || prazo === 'falha') return null // sem resposta do servidor não prometemos nada
   const aberta = prazo.aberto === true
   const quando = descreverPrazo(prazo.ate)
-  if (!comMapa) return aberta ? <section className="ct-visita ct-visita--convite" aria-label={T.titulo}><p className="ct-nota">{T.semMapa(quando)}</p></section> : null
+  if (!comMapa) return aberta && !ocultarConviteSemMapa ? (
+    <section className="ct-visita ct-visita--convite" aria-label={T.titulo}>
+      <p className="ct-nota">{T.semMapa(quando)}</p>
+      <Link href={RUA.central} navigate={navigate} className="ct-botao ct-botao--contorno">Criar ou abrir meu mapa</Link>
+    </section>
+  ) : !aberta && mostrarEncerrada ? <section className="ct-visita ct-visita--convite" aria-label={T.titulo}><p className="ct-nota">{T.prazoEncerrado(quando)}</p></section> : null
 
   const lista = pedidos || []
-  if (!aberta && lista.length === 0) return null
+  if (!aberta && lista.length === 0) return mostrarEncerrada ? <section className="ct-visita ct-visita--convite" aria-label={T.titulo}><p className="ct-nota">{T.prazoEncerrado(quando)}</p></section> : null
   const casas = casasDisponiveis(dados, caca.mapa, lista)
   return (
     <section className="ct-visita" aria-labelledby="visita-titulo">
@@ -170,7 +246,7 @@ export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
       {aberta
         ? <><p className="ct-nota">{T.lead}</p><p className="ct-visita__prazo"><strong>{T.prazo(quando)}</strong></p></>
         : <p className="ct-nota" role="status">{T.prazoEncerrado(quando)}</p>}
-      {aviso && <div className="ct-visita__ok" role="status" tabIndex={-1}><p className="ct-sub">{T.enviadoTitulo}</p><p className="ct-nota">{T.enviadoTexto(aviso)}</p></div>}
+      {aviso && <div className="ct-visita__ok" role="status" tabIndex={-1}><p className="ct-sub">{T.enviadoTitulo}</p><p className="ct-nota">{T.enviadoTexto(aviso)}</p>{avisoFoto && <p className="ct-aviso">{T.fotoFalhou}</p>}</div>}
       {aberta && !aberto && (
         <>
           <ul className="ct-visita__regras">{T.comoFunciona.map((t) => <li key={t}>{t}</li>)}</ul>
@@ -181,12 +257,12 @@ export function VisitaAnterior ({ caca, dados, navigate, api = apiPadrao }) {
       )}
       {aberta && aberto && (
         <Formulario chave={caca.chave} dados={dados} casas={casas} api={api}
-          aoFechar={() => setAberto(false)} aoEnviar={(nomes, tudo) => { if (tudo) setAberto(false); setAviso(nomes); setRodada((n) => n + 1); caca.atualizar?.() }} />
+          aoFechar={() => setAberto(false)} aoEnviar={(nomes, tudo, fotosFalhas) => { if (tudo) setAberto(false); setAviso(nomes); setAvisoFoto(fotosFalhas.length > 0); setRodada((n) => n + 1); caca.atualizar?.() }} />
       )}
       {lista.length > 0 && (
         <div className="ct-visita__lista">
           <h3 className="ct-rotulo">{T.seusPedidos}</h3>
-          <ul>{lista.map((p) => <Pedido key={`${p.slug}-${p.criado_em}`} pedido={p} mapa={caca.mapa} dados={dados} navigate={navigate} />)}</ul>
+          <ul>{lista.map((p) => <Pedido key={`${p.slug}-${p.criado_em}`} pedido={p} mapa={caca.mapa} dados={dados} navigate={navigate} chave={caca.chave} api={api} aoAtualizar={() => { setRodada((n) => n + 1); caca.atualizar?.() }} />)}</ul>
         </div>
       )}
     </section>

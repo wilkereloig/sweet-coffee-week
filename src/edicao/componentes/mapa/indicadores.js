@@ -80,6 +80,7 @@ export function partesDoNome (pin) {
     h.selo && ESTADO_TEXTO[h.selo].rotulo.toLowerCase(),
     h.extras > 0 && (h.extras === 1 ? '1 revisita' : `${h.extras} revisitas`),
     h.rotulo,
+    pin.esgotado && 'combos esgotados hoje',
   ].filter(Boolean)
 }
 

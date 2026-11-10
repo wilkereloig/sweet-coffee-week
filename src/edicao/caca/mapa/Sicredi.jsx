@@ -10,7 +10,8 @@ import { ICONE } from '../../cartoon/textos.js'
 import { MARCAS_PARCEIROS } from '../../../data/imageLibrary'
 import { linkComoChegarSicredi } from './sicredi.js'
 import { MAPA_CACA as T } from './textos.js'
-import { BlocoCampanha } from '../campanha/Campanha.jsx'
+import { BlocoCampanha, useCampanha } from '../campanha/Campanha.jsx'
+import { CAMPANHA } from '../campanha/terComQuemContar.js'
 
 export function CartaoSicredi ({ agencia, fechar, navigate }) {
   if (!agencia) return null
@@ -26,7 +27,7 @@ export function CartaoSicredi ({ agencia, fechar, navigate }) {
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label="Fechar"><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
       <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{agencia.endereco || T.sicrediSemEndereco}</span></p>
-      <p className={`ct-mapa__local${agencia.precisao === 'confirmada' ? '' : ' ct-mapa__local--aprox'}`}>{T.sicrediPonto[agencia.precisao]}</p>
+      {agencia.precisao !== 'confirmada' && <p className="ct-mapa__local ct-mapa__local--aprox">{T.sicrediPonto[agencia.precisao]}</p>}
       {agencia.numeroEmConferencia && <p className="ct-nota">{T.sicrediNumero}</p>}
       <p className="ct-nota ct-caca-mapa__sicredi-aviso">{T.sicrediAviso}</p>
       {link && (
@@ -35,7 +36,23 @@ export function CartaoSicredi ({ agencia, fechar, navigate }) {
         </div>
       )}
       <BlocoCampanha navigate={navigate} variante="mapa" />
+      <ChamadaCarimboSicredi navigate={navigate} />
     </article>
+  )
+}
+
+function ChamadaCarimboSicredi ({ navigate }) {
+  const campanha = useCampanha()
+  if (!campanha.aberta) return null
+  return (
+    <aside className="ct-caca-mapa__carimbo-sicredi" aria-label="Carimbo Sicredi">
+      <span className="ct-caca-mapa__carimbo-icone"><ScwIcon nome="mecanica/voucher" tamanho={24} /></span>
+      <div>
+        <strong>Carimbo Sicredi</strong>
+        <p>Envie o print do vídeo publicado. Com a aprovação da organização, ele soma pontos no ranking e nos sorteios.</p>
+      </div>
+      <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>Pedir carimbo Sicredi</Botao>
+    </aside>
   )
 }
 
@@ -47,6 +64,7 @@ export function ListaSicredi ({ agencias, selecionada, aoSelecionar, navigate })
       <h2 id="sicredi-titulo" className="ct-sub">{T.sicrediTitulo}</h2>
       <p className="ct-nota">{T.sicrediAviso}</p>
       <BlocoCampanha navigate={navigate} variante="mapa" />
+      <ChamadaCarimboSicredi navigate={navigate} />
       <ul className="ct-caca-mapa__sicredi-lista">
         {agencias.map((a) => {
           const link = linkComoChegarSicredi(a)

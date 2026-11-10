@@ -3,8 +3,8 @@
 
 /* ------------------------------------------------------------- página */
 .ct-tcqc__topo { gap: 12px; }
-.ct-tcqc__topo .ct-h1 { margin-bottom: 4px; }
-.ct-tcqc__topo .ct-lead { margin-bottom: 4px; }
+.ct-tcqc__topo .ct-h1 { max-width: 17ch; margin-bottom: 4px; text-wrap: balance; }
+.ct-tcqc__topo .ct-lead { max-width: 55ch; margin-bottom: 4px; }
 .ct-tcqc__prazo {
   margin: 4px 0 0; padding: 8px 16px; border: var(--ct-traco); border-radius: 999px; background: var(--ct-branco);
   font: 800 16px/1.2 var(--ct-font);
@@ -16,36 +16,52 @@
 .ct-edicao .ct-tcqc__selo img { display: block; width: auto; max-width: none; height: 34px; }
 
 .ct-tcqc__duas { display: grid; gap: 32px; align-items: start; }
-@media (min-width: 900px) { .ct-tcqc__duas { grid-template-columns: minmax(280px, 400px) minmax(0, 1fr); gap: 48px; } }
+.ct-tcqc__carimbo { display: grid; gap: 12px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: #63c733; box-shadow: var(--ct-sombra-p); }
+.ct-tcqc__carimbo > div { max-width: 68ch; }
+.ct-edicao .ct-tcqc__carimbo p { margin: 8px 0 0; font: 600 var(--ct-fs-texto)/1.45 var(--ct-font); }
+.ct-tcqc__carimbo .ct-nota { font-size: 14px; }
+.ct-edicao .ct-tcqc__carimbo-status { padding: 12px 16px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); font-weight: 800; }
+.ct-central__sicredi { font-weight: 800; }
+.ct-edicao .ct-tcqc__carimbo-erro { color: #741e19; font-weight: 800; }
+.ct-tcqc__upload { display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border: var(--ct-traco); border-radius: 999px; background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); font: 900 15px/1.2 var(--ct-font); cursor: pointer; }
+.ct-tcqc__upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+@media (min-width: 900px) { .ct-tcqc__duas { grid-template-columns: minmax(240px, 330px) minmax(0, 1fr); gap: clamp(36px, 5vw, 72px); } }
 
 /* Vídeo vertical (720×1280): largura de celular, centralizado no celular e à esquerda ao lado dos passos no desktop. */
-.ct-tcqc__video { display: grid; justify-items: center; gap: 10px; width: 100%; max-width: 400px; margin: 0 auto; }
+.ct-tcqc__video { display: grid; justify-items: center; gap: 10px; width: 100%; max-width: 330px; margin: 0 auto; }
 .ct-tcqc__video video {
   display: block; width: 100%; height: auto; aspect-ratio: 9 / 16;
   border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-chocolate); box-shadow: var(--ct-sombra); object-fit: contain;
 }
 .ct-tcqc__video figcaption { margin: 0; text-align: center; }
 
-.ct-tcqc__passos { display: grid; gap: 18px; margin: 8px 0 0; padding: 0; list-style: none; counter-reset: passo; }
+.ct-tcqc__passos { display: grid; gap: 16px; margin: 16px 0 0; padding: 0; list-style: none; counter-reset: passo; }
 .ct-tcqc__passos li {
-  position: relative; display: grid; gap: 4px; padding: 16px 16px 16px 66px; counter-increment: passo;
-  border: var(--ct-traco); border-radius: 6px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+  position: relative; display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 20px; padding: 22px; counter-increment: passo;
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
 }
 .ct-tcqc__passos li::before {
-  content: counter(passo); position: absolute; left: 14px; top: 14px; display: grid; place-items: center; width: 38px; height: 38px;
-  border: var(--ct-traco); background: var(--ct-amarelo); box-shadow: 3px 3px 0 var(--ct-chocolate); rotate: -6deg;
-  font: 900 20px/1 var(--ct-font);
+  content: counter(passo, decimal-leading-zero); position: absolute; right: 14px; top: 10px;
+  font: 900 13px/1 var(--ct-font); opacity: .55;
 }
-.ct-tcqc__passos li p { margin: 0; font: 500 var(--ct-fs-texto)/1.45 var(--ct-font); overflow-wrap: anywhere; }
-.ct-tcqc__passo-titulo { font: 900 clamp(18px, 1.6vw, 22px)/1.15 var(--ct-font); }
+.ct-tcqc__ilustracao { width: 100%; max-width: 100px; height: auto; color: var(--ct-chocolate); }
+.ct-tcqc__passos li p { margin: 8px 0 0; font: 500 var(--ct-fs-texto)/1.45 var(--ct-font); overflow-wrap: anywhere; }
+.ct-tcqc__passo-titulo { display: block; padding-right: 16px; font: 900 clamp(18px, 1.6vw, 22px)/1.15 var(--ct-font); }
+@media (max-width: 600px) {
+  .ct-tcqc__passos li { grid-template-columns: 68px minmax(0, 1fr); gap: 14px; padding: 18px 14px; }
+  .ct-tcqc__ilustracao { max-width: 68px; }
+}
 
-.ct-tcqc__dados { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 0; padding: 0; list-style: none; }
+.ct-tcqc__escolha { padding-bottom: clamp(36px, 5vw, 64px); background: var(--ct-amarelo); border-block: var(--ct-traco); }
+.ct-tcqc__escolha .ct-lead { max-width: 60ch; }
+.ct-tcqc__dados { display: flex; flex-wrap: wrap; gap: 14px; margin: 22px 0 0; padding: 0 5px 5px 0; list-style: none; }
 .ct-tcqc__dados li {
   display: grid; gap: 2px; justify-items: center; min-width: 150px; padding: 12px 18px; text-align: center;
-  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p);
+  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
 }
 .ct-tcqc__dados b { font: 900 clamp(32px, 4vw, 44px)/1 var(--ct-font); }
 .ct-tcqc__dados span { max-width: 18ch; font: 700 14px/1.25 var(--ct-font); }
+@media (max-width: 500px) { .ct-tcqc__dados li { flex: 1 1 130px; min-width: 0; } }
 
 .ct-tcqc__separada { max-width: 62ch; padding: 16px 18px; border: 3px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-creme); }
 .ct-tcqc__separada .ct-sub { margin-bottom: 6px; }
@@ -61,7 +77,73 @@
 .ct-campanha-bloco__texto, .ct-campanha-bloco__prazo { margin: 0; font: 500 14px/1.45 var(--ct-font); }
 .ct-campanha-bloco__prazo { font-weight: 800; }
 .ct-edicao .ct-campanha-bloco .ct-botao { min-height: 44px; margin-top: 4px; padding: 0 16px; font-size: 14px; }
+.ct-campanha-bloco--mapa { gap: 10px; margin-top: 18px; padding: 16px; border: 2px solid var(--ct-chocolate); background: #63c733; box-shadow: 3px 3px 0 var(--ct-chocolate); }
+.ct-campanha-bloco__selo { display: flex; align-items: center; gap: 10px; font: 900 11px/1.2 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
+.ct-edicao .ct-campanha-bloco__selo img { width: 48px; height: 48px; max-width: none; object-fit: contain; }
+.ct-edicao .ct-campanha-bloco--mapa .ct-campanha-bloco__titulo { max-width: 19ch; margin: 0; font: 900 clamp(20px, 3vw, 24px)/1.12 var(--ct-font); text-wrap: balance; }
+.ct-edicao .ct-campanha-bloco--mapa .ct-campanha-bloco__texto { margin: 0; font: 600 14px/1.4 var(--ct-font); }
+.ct-edicao .ct-campanha-bloco--mapa .ct-campanha-bloco__prazo { margin: 0; padding: 5px 9px; border-radius: 999px; background: var(--ct-branco); font: 800 13px/1.2 var(--ct-font); }
+.ct-edicao .ct-campanha-bloco--mapa .ct-botao { background: var(--ct-chocolate); color: var(--ct-branco); }
 .ct-campanha-aviso { margin-top: 12px; }
 
 /* Link de texto ao lado do logo na assinatura do patrocínio (entrada). Alvo de toque de 44px. */
 .ct-edicao .ct-assina-patrocinio__campanha { display: inline-flex; align-items: center; min-height: 44px; font: 700 14px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Assinatura ampliada: deixa o patrocínio visível e explica a campanha enquanto ela está aberta. */
+.ct-assina-patrocinio--destaque {
+  display: grid; grid-template-columns: minmax(0, 1100px); justify-content: center; gap: 12px;
+  padding: 24px var(--ct-trilho) 32px; border-top: var(--ct-traco); border-bottom: var(--ct-traco); text-align: left;
+}
+.ct-assina-patrocinio__marca { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 4px 0; background: var(--ct-branco); }
+.ct-assina-patrocinio__promocao {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 190px) minmax(0, .85fr); align-items: center; gap: 24px;
+  padding: clamp(20px, 3vw, 36px); border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme);
+}
+.ct-assina-patrocinio__chamada { display: grid; align-content: center; justify-items: start; gap: 12px; }
+.ct-edicao .ct-assina-patrocinio__selo { margin: 0; font: 800 12px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
+.ct-edicao .ct-assina-patrocinio__titulo { max-width: 19ch; margin: 0; font: 900 clamp(27px, 3.2vw, 42px)/1.08 var(--ct-font); text-wrap: balance; }
+.ct-edicao .ct-assina-patrocinio__nome { max-width: 38ch; margin: 0; font: 600 16px/1.45 var(--ct-font); }
+.ct-assina-patrocinio__beneficio {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: start; gap: 11px; width: 100%; max-width: 440px;
+  padding: 12px; border: 2px solid #63c733; border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, #63c733 13%, var(--ct-branco)), var(--ct-branco) 72%);
+  box-shadow: 3px 3px 0 color-mix(in srgb, #63c733 56%, var(--ct-chocolate));
+}
+.ct-assina-patrocinio__beneficio-simbolo {
+  position: relative; display: grid; place-items: center; width: 48px; height: 48px; margin-top: 2px;
+  border: 2px dashed var(--ct-chocolate); border-radius: 50%; background: #63c733; color: var(--ct-chocolate);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--ct-branco) 55%, transparent);
+}
+.ct-assina-patrocinio__beneficio-simbolo > span { font: 900 25px/.9 var(--ct-font); }
+.ct-assina-patrocinio__beneficio-simbolo i { position: absolute; top: -5px; right: -4px; color: var(--ct-amarelo); font: 900 17px/1 var(--ct-font); text-shadow: 1px 1px 0 var(--ct-chocolate); }
+.ct-edicao .ct-assina-patrocinio__beneficio-rotulo { margin: 0 0 3px; color: #276b22; font: 900 10px/1.1 var(--ct-font); letter-spacing: .1em; }
+.ct-edicao .ct-assina-patrocinio__beneficio h3 { margin: 0; font: 900 16px/1.15 var(--ct-font); }
+.ct-edicao .ct-assina-patrocinio__beneficio-conteudo > p:not(.ct-assina-patrocinio__beneficio-rotulo, .ct-assina-patrocinio__beneficio-valor, .ct-assina-patrocinio__beneficio-nota) { margin: 5px 0 0; font: 600 12px/1.35 var(--ct-font); }
+.ct-edicao .ct-assina-patrocinio__beneficio-valor {
+  display: flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; margin: 7px 0 0; padding: 5px 8px;
+  border-radius: 999px; background: var(--ct-amarelo); font: 900 11px/1.2 var(--ct-font);
+}
+.ct-edicao .ct-assina-patrocinio__beneficio-valor span { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; border-radius: 50%; background: #63c733; font: 900 11px/1 var(--ct-font); }
+.ct-edicao .ct-assina-patrocinio__beneficio-nota { margin: 5px 0 0; font: 600 11px/1.3 var(--ct-font); }
+.ct-assina-patrocinio__prazo { margin: 0; padding: 6px 12px; border-radius: 999px; background: var(--ct-amarelo); font: 800 14px/1.3 var(--ct-font); }
+.ct-assina-patrocinio__video { display: grid; justify-items: center; gap: 8px; width: 100%; max-width: 190px; margin: 0 auto; }
+.ct-assina-patrocinio__video video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: contain; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-chocolate); }
+.ct-edicao .ct-assina-patrocinio__video figcaption { font: 700 12px/1.3 var(--ct-font); text-align: center; }
+.ct-assina-patrocinio__passos { position: relative; display: grid; align-content: center; gap: 10px; padding: 24px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
+.ct-edicao .ct-assina-patrocinio__passos img { width: 76px; height: 76px; object-fit: contain; }
+.ct-edicao .ct-assina-patrocinio__passos-titulo { margin: 0; font: 900 19px/1.2 var(--ct-font); }
+.ct-assina-patrocinio__passos ol { display: grid; gap: 8px; margin: 0; padding-left: 22px; font: 600 15px/1.4 var(--ct-font); }
+.ct-assina-patrocinio__passos li::marker { font-weight: 900; }
+.ct-edicao .ct-assina-patrocinio__nota { margin: 0; font: 500 13px/1.4 var(--ct-font); }
+.ct-edicao .ct-assina-patrocinio__promocao .ct-botao { justify-self: start; min-height: 44px; }
+@media (max-width: 850px) {
+  .ct-assina-patrocinio--destaque { grid-template-columns: 1fr; gap: 12px; padding-block: 16px; }
+  .ct-assina-patrocinio__promocao { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px; }
+  .ct-assina-patrocinio__passos { padding: 16px; }
+}
+@media (max-width: 500px) {
+  .ct-assina-patrocinio__beneficio { grid-template-columns: 42px minmax(0, 1fr); gap: 9px; padding: 10px; }
+  .ct-assina-patrocinio__beneficio-simbolo { width: 42px; height: 42px; }
+  .ct-assina-patrocinio__beneficio-simbolo > span { font-size: 22px; }
+  .ct-edicao .ct-assina-patrocinio__beneficio-valor { border-radius: 12px; }
+}

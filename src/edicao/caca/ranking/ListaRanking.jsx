@@ -14,16 +14,16 @@ export function ListaRanking ({ linhas, rotulo, indiceEu = -1, acao }) {
       {lista.map((l, i) => {
         const eu = l.eu === true || i === indiceEu
         return (
-          <li key={l.membro_id || `${l.posicao}-${l.apelido}-${i}`} className={`ct-rank__linha${eu ? ' ct-rank__linha--eu' : ''}`}>
+          <li key={l.membro_id || `${l.posicao}-${l.apelido}-${i}`} className={`ct-rank__linha${eu ? ' ct-rank__linha--eu' : ''}${l.oculto ? ' ct-rank__linha--oculta' : ''}`} aria-label={l.oculto ? `${rotuloPosicao(l.posicao)} lugar, ${RANKING.nomeOculto}` : undefined}>
             <span className="ct-rank__pos">{rotuloPosicao(l.posicao)}</span>
             <span className="ct-rank__nome">
-              <strong>{l.apelido}</strong>
+              <strong>{l.oculto ? RANKING.nomeOculto : l.apelido}</strong>
               {eu && <span className="ct-rank__marca">{RANKING.voce}</span>}
               {l.papel === 'dono' && <span className="ct-rank__marca ct-rank__marca--dono">{l.rotuloDono || 'criou o grupo'}</span>}
               {l.empatada && <span className="ct-rank__empate">{RANKING.empatadoEm(l.posicao)}</span>}
               {l.semPosicao && <span className="ct-rank__empate">{RANKING.semPosicao}</span>}
             </span>
-            <span className="ct-rank__prog">{textoCasas(l.casas)} · {textoExtras(l.extras)}</span>
+            <span className="ct-rank__prog">{l.oculto ? RANKING.dadosOcultos : `${textoCasas(l.casas)} · ${textoExtras(l.extras)}`}</span>
             {acao ? acao(l) : null}
           </li>
         )

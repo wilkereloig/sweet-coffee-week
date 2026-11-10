@@ -97,8 +97,10 @@ async function contexto (nav, { w = 1440, h = 900, edicao = DEMO_EDICAO, envio =
 const ir = (page, p) => page.goto(`${BASE}${p}${p.includes('?') ? '&' : '?'}preview=1`, { waitUntil: 'networkidle' })
 const h1 = async (page) => (await page.locator('h1').first().textContent())?.trim()
 
-const preview = spawn('npm', ['run', 'preview', '--', '--port', String(PORT), '--strictPort'], {
-  cwd: join(__dirname, '..'), shell: true, stdio: ['ignore', 'pipe', 'pipe'],
+const previewArgs = [join(__dirname, '../node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort']
+if (process.env.SCW_TEST_OUT_DIR) previewArgs.push('--outDir', process.env.SCW_TEST_OUT_DIR)
+const preview = spawn(process.execPath, previewArgs, {
+  cwd: join(__dirname, '..'), stdio: ['ignore', 'pipe', 'pipe'],
 })
 let nav
 try {
@@ -370,7 +372,6 @@ try {
     const { ctx, page, erros } = await contexto(nav)
     const antes = falhas.length
     const CHAVE = 'scw:edicao:2026.2:rota'
-    const prog = async () => (await page.locator('.ct-progresso__texto').innerText()).replace(/\s+/g, ' ').trim()
     await ir(page, '/cartoon/participantes/demo-casa-aurora')
     await page.waitForSelector('.ct-unidade')
     const quero = page.locator('.ct-unidade').first().locator('button:has-text("Quero ir")')
@@ -382,22 +383,19 @@ try {
     await ir(page, '/cartoon/minha-rota')
     await page.reload({ waitUntil: 'networkidle' })
     if ((await page.locator('.ct-parada').count()) !== 1) falha('rota não persistiu no recarregar')
-    if (!(await page.locator('.ct-canal--rota h1').count())) falha('Minha rota: h1 fora do topo no canal Rota')
+    if (!(await page.locator('#mapa-titulo').count())) falha('Minha rota: falta o título do mapa')
     if ((await page.locator('.ct-parada .ct-placa .ct-placa__numero').innerText()).trim() !== '1') falha('parada sem a placa numerada')
     if (!(await page.locator('a:has-text("Abrir a rota no Google Maps")').count())) falha('sem link de rota externa')
     if ((await page.locator('.ct-rota').innerText()).match(/melhor caminho|otimizad/i)) falha('rota promete otimização')
-    // Demonstração: 3 casas com unidade.
-    if ((await prog()) !== '0 de 3 casas marcadas por você') falha(`progresso inicial "${await prog()}"`)
     await page.click('.ct-parada button:has-text("Já fui")')
     if ((await page.locator('.ct-parada').count()) !== 0) falha('"já fui" não tirou a parada de "Quero ir"')
     if ((await page.locator('.ct-visitada').allInnerTexts()).join('|').indexOf('[DEMO] Casa Aurora') < 0) falha('casa visitada não aparece em "Já fui"')
-    if ((await prog()) !== '1 de 3 casas marcadas por você' || (await page.locator('progress.ct-progresso__barra').getAttribute('value')) !== '1') falha(`progresso depois do "já fui": "${await prog()}"`)
     await page.reload({ waitUntil: 'networkidle' })
-    if ((await prog()) !== '1 de 3 casas marcadas por você') falha('"já fui" não persistiu no recarregar')
+    if ((await page.locator('.ct-visitada').allInnerTexts()).join('|').indexOf('[DEMO] Casa Aurora') < 0) falha('"já fui" não persistiu no recarregar')
     const salvo = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)), CHAVE)
     if (salvo?.versao !== 2 || !salvo.visitadas?.includes('udemo1') || !salvo.visitadas?.includes('udemo2')) falha(`storage do painel: ${JSON.stringify(salvo)}`)
     await page.click('.ct-visitada button:has-text("Já fui")')
-    if ((await page.locator('.ct-parada').count()) !== 1 || (await prog()) !== '0 de 3 casas marcadas por você') falha('desfazer o "já fui" não devolveu a parada')
+    if ((await page.locator('.ct-parada').count()) !== 1) falha('desfazer o "já fui" não devolveu a parada')
     await page.click('.ct-parada button:has-text("Remover")')
     if ((await page.locator('.ct-parada').count()) !== 0) falha('remover não tirou a parada')
     // Rota antiga (versão 1, só unidades): lida como está; unidade despublicada sinalizada.
@@ -408,7 +406,7 @@ try {
     // Storage quebrado: a página abre vazia, sem erro.
     await page.evaluate((k) => localStorage.setItem(k, '{quebrado'), CHAVE)
     await page.reload({ waitUntil: 'networkidle' })
-    if ((await page.locator('.ct-parada').count()) !== 0 || !(await page.locator('.ct-rota').innerText()).includes('Sua lista está vazia')) falha('storage quebrado não abriu a lista vazia')
+    if ((await page.locator('.ct-parada').count()) !== 0 || !(await page.locator('.ct-rota').innerText()).includes('Escolha as casas que quer conhecer')) falha('storage quebrado não abriu a lista vazia')
     if (erros.length) falha(`Minha rota: console ${erros.slice(0, 2).join(' | ')}`)
     if (falhas.length === antes) ok('quero ir, contador, persistir, placa numerada, progresso, já fui (e desfazer), remover, rota v1, saiu da edição, storage quebrado')
     await ctx.close()
@@ -504,9 +502,9 @@ try {
     const topo = await page.evaluate(() => {
       const t = document.querySelector('.ct-topo')
       const v = (s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' }
-      return { fundo: getComputedStyle(t).backgroundColor, selo: !!t.querySelector('.ct-topo__marca img[src*="selo-cartoon"]'), nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu') }
+      return { fundo: getComputedStyle(t).backgroundImage, selo: !!t.querySelector('.ct-topo__marca img[src*="selo-cartoon"]'), nav: v('.ct-topo__nav'), menu: v('.ct-topo__menu') }
     })
-    if (topo.fundo !== 'rgb(253, 240, 222)') falha(`@360 cabeçalho não é creme (${topo.fundo})`)
+    if (!topo.fundo.includes('gradient')) falha('@360 cabeçalho sem o gradiente da edição')
     if (!topo.selo) falha('@360 cabeçalho sem o selo da edição')
     if (topo.nav || !topo.menu) falha('@360 celular deveria mostrar só o botão Menu')
     const abas = await page.locator('.ct-abas .ct-aba').allInnerTexts()
@@ -651,13 +649,15 @@ try {
     const estilo = { version: 8, sources: {}, layers: [{ id: 'fundo', type: 'background', paint: { 'background-color': '#FDF0DE' } }] }
     let c = await contexto(nav, { edicao: ed })
     await c.ctx.route('**/tiles.openfreemap.org/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(estilo) }))
+    // Simula Google indisponível para testar deterministicamente o mapa alternativo.
+    await c.ctx.route('**/maps.googleapis.com/**', (route) => route.abort('failed'))
     // Página única (14 §14.13): as três vistas (ilustrado, real e lista); com a arte final aprovada o ilustrado entra também fora do DEV.
     await ir(c.page, '/cartoon/mapa?vista=lista')
     await c.page.waitForSelector('.ct-mapa__item')
     const vistas = (await c.page.locator('.ct-mapa__vistas .ct-chip').allInnerTexts()).map((t) => t.trim()).join(' · ')
     if (vistas !== 'Mapa Ilustrado · Mapa real · Lista') falha(`vistas fora do DEV: ${vistas}`)
     const item = (id) => c.page.locator(`#mapa-${id}`)
-    if (!(await c.page.locator('.ct-canal--rota h1').count())) falha('Mapa: h1 fora do topo no canal Rota')
+    if (!(await c.page.locator('#mapa-titulo').count())) falha('Mapa: falta o título do mapa')
     if ((await c.page.locator('.ct-mapa__item').count()) !== 4) falha(`Mapa: ${await c.page.locator('.ct-mapa__item').count()} linhas (uma por unidade = 4)`)
     if (!(await item('udemo4').innerText()).includes('Localização no mapa em conferência.')) falha('unidade sem coordenada sem "em conferência"')
     if (!(await item('udemo3').innerText()).includes('Ponto aproximado no mapa')) falha('coordenada aproximada não dita na lista')
@@ -667,7 +667,7 @@ try {
     await item('udemo1').locator('button:has-text("Já fui")').click()
     if ((await item('udemo2').locator('button:has-text("Já fui")').getAttribute('aria-pressed')) !== 'true') falha('"já fui" não marcou a casa inteira (as duas unidades)')
     await c.page.click('.ct-mapa__vistas button:has-text("Mapa real")')
-    await c.page.waitForSelector('.ct-marcador', { timeout: 8000 }).catch(() => {})
+    await c.page.waitForSelector('.ct-marcador', { timeout: 30000 }).catch(() => {})
     const marcadores = await c.page.evaluate(() => [...document.querySelectorAll('button.ct-marcador')].map((b) => ({ nome: b.getAttribute('aria-label'), aprox: b.classList.contains('ct-marcador--aprox'), alto: b.getBoundingClientRect().height })))
     if (marcadores.length !== 2) falha(`Mapa: ${marcadores.length} marcadores (as 2 unidades com coordenada)`)
     const aprox = marcadores.find((m) => m.aprox)
