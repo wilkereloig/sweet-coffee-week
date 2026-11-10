@@ -16,7 +16,7 @@ export const GUIA = {
   passos: [
     { titulo: 'Crie o seu mapa', texto: 'Apelido e e-mail, sem senha. Ele fica guardado neste aparelho e junta os seus carimbos.' },
     { titulo: 'Vá a uma casa e peça o combo', texto: 'Escolha no Mapa da Doçura ou na lista de casas.' },
-    { titulo: 'Carimbe ainda na casa', texto: 'Aponte a câmera para o QR do display de mesa (ou abra a casa no mapa) e toque em "Carimbar aqui", com a localização do celular ligada. O celular confere que você está lá; a posição não é guardada.' },
+    { titulo: 'Carimbe ainda na casa', texto: 'Aponte a câmera para o QR do display de mesa: abre a página da casa. Toque em "Carimbar" e, na tela seguinte, em "Carimbar aqui", com a localização do celular ligada. Pelo mapa também dá: abra a casa e toque em "Carimbar aqui". O celular confere que você está lá; a posição não é guardada.' },
     { titulo: 'Avalie o combo daquela casa', texto: 'Use o mesmo e-mail do mapa. Na primeira vez em cada casa o carimbo fica pendente até a avaliação. Pode avaliar antes ou depois de carimbar.' },
     { titulo: 'Confira', texto: 'A tela mostra "Carimbado!" e a casa entra na sua conta de casas validadas, na sua Caça e no mapa.' },
   ],

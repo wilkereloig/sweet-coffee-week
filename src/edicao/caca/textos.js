@@ -96,7 +96,7 @@ export const CACA = {
     titulo: 'Como carimbar',
     passos: [
       { titulo: 'Vá até a casa', texto: 'Peça o combo no balcão.' },
-      { titulo: 'Carimbe na casa', texto: 'Leia o QR do display de mesa com a câmera do celular e toque em "Carimbar aqui", com a localização ligada. Também dá para tocar em "Carimbar aqui" no cartão da casa, no mapa.' },
+      { titulo: 'Carimbe na casa', texto: 'Leia o QR do display de mesa com a câmera do celular: abre a página da casa. Toque em "Carimbar" e depois em "Carimbar aqui", com a localização ligada. Também dá para tocar em "Carimbar aqui" no cartão da casa, no mapa.' },
       { titulo: 'Avalie o combo da mesma casa', texto: 'Use o mesmo e-mail do mapa. O carimbo só vale depois da avaliação.' },
     ],
     nota: 'O celular confere que você está na casa. A posição não é guardada.',
