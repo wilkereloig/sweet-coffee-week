@@ -111,6 +111,21 @@ export function veredito (itens = [], chave) {
   return ds.some(r.nao) ? 'nao' : 'nao_informado'
 }
 
+/**
+ * Combo com opção vegetariana (10/11/2026, pedido do Wilker): vale o DOCE e o SALGADO — a bebida não conta. Cada um tem que ser
+ * vegetariano declarado pela casa ou ter uma troca declarada vegetariana. Casa em que só um dos dois é vegetariano não entra.
+ * 'direto' = os dois já são vegetarianos · 'troca' = ao menos um só é vegetariano na troca · 'nao' = não (ou não informado).
+ */
+const DOCE_SALGADO = ['doce', 'salgado']
+const eVegetariano = (i) => declaracoes(i).vegetariano === 'sim'
+const temTrocaVegetariana = (i) => (i?.substituicoes || []).some(eVegetariano)
+export function opcaoVegetariana (itens = []) {
+  const base = (itens || []).filter((i) => DOCE_SALGADO.includes(i?.tipo))
+  if (!DOCE_SALGADO.every((t) => base.some((i) => i.tipo === t))) return 'nao'
+  if (!base.every((i) => eVegetariano(i) || temTrocaVegetariana(i))) return 'nao'
+  return base.every(eVegetariano) ? 'direto' : 'troca'
+}
+
 /** Como a unidade atende o combo num modo: 'sim' · 'nao' · 'nao_informado' (o que não veio). */
 const modoDe = (u, k) => (['sim', 'nao'].includes(u?.combo?.modos?.[k]) ? u.combo.modos[k] : 'nao_informado')
 
@@ -368,6 +383,7 @@ export function opcoesFiltro (lista = [], periodo = null, agora = new Date()) {
     modos: MODOS.filter(([k]) => modos.has(k)).map(([k]) => k),
     hoje: dentroDoFestival(periodo, agora),
     vegano: algum('vegano'),
+    vegetariano: lista.some((p) => opcaoVegetariana(p.combo?.itens) !== 'nao'),
     semAcucar: algum('acucar'),
     semGluten: algum('gluten'),
     semLactose: algum('lactose'),
@@ -388,6 +404,7 @@ export function filtrar (lista = [], f = {}, agora = new Date()) {
     // "Com combo hoje": abre hoje e ainda não fechou (agora ou mais tarde).
     if (f.hoje && !us.some((u) => ['aberto', 'abre_hoje'].includes(estadoAgora(u, agora).estado))) return false
     if (f.vegano && veredito(itens, 'vegano') !== 'sim') return false
+    if (f.vegetariano && opcaoVegetariana(itens) === 'nao') return false
     if (f.semAcucar && veredito(itens, 'acucar') !== 'sim') return false
     if (f.semGluten && !declaradoSem(itens, 'gluten')) return false
     if (f.semLactose && !declaradoSem(itens, 'lactose')) return false
@@ -459,7 +476,7 @@ export function filtrosDaBusca (search = '') {
   const sem = q.getAll('sem')
   return {
     q: q.get('q') || '', bairro: q.get('bairro') || '', modo: q.get('modo') || '',
-    aberto: q.get('aberto') === '1', hoje: q.get('hoje') === '1', vegano: q.get('vegano') === '1',
+    aberto: q.get('aberto') === '1', hoje: q.get('hoje') === '1', vegano: q.get('vegano') === '1', vegetariano: q.get('vegetariano') === '1',
     semAcucar: sem.includes('acucar'), semGluten: sem.includes('gluten'), semLactose: sem.includes('lactose'),
   }
 }
@@ -471,6 +488,7 @@ export function buscaDosFiltros (f = {}) {
   if (f.aberto) q.set('aberto', '1')
   if (f.hoje) q.set('hoje', '1')
   if (f.vegano) q.set('vegano', '1')
+  if (f.vegetariano) q.set('vegetariano', '1')
   if (f.semAcucar) q.append('sem', 'acucar')
   if (f.semGluten) q.append('sem', 'gluten')
   if (f.semLactose) q.append('sem', 'lactose')
