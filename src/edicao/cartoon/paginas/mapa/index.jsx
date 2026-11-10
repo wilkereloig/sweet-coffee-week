@@ -46,6 +46,8 @@ import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { CasasEmLista } from '../../../caca/mapa/CasasEmLista.jsx'
 import { CartaoSicredi, ListaSicredi } from '../../../caca/mapa/Sicredi.jsx'
+import { APOIOS, ehApoio, apoiosNoMundo } from '../../../caca/mapa/apoio.js'
+import { CartaoApoio } from '../../../caca/mapa/Apoio.jsx'
 import { Cobertura } from '../../../caca/mapa/Cobertura.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Avisos, Carregando } from '../../../componentes/base.jsx'
@@ -166,7 +168,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const agencias = React.useMemo(() => agenciasSicredi(mundo.sicredi), [mundo])
   const agenciasVisiveis = agencias.filter((a) => agenciaCombina(a, f.q))
   const agenciaEscolhida = ehSicredi(sel) ? agencias.find((a) => a.id === sel) || null : null
-  const escolhida = agenciaEscolhida ? null : linhas.find((x) => x.u.id === sel) || todas.find((x) => x.u.id === sel) || null
+  const apoioEscolhido = ehApoio(sel) ? APOIOS.find((a) => a.id === sel) || null : null // apoiador: um pin, cartão com todos os locais
+  const escolhida = agenciaEscolhida || apoioEscolhido ? null : linhas.find((x) => x.u.id === sel) || todas.find((x) => x.u.id === sel) || null
   // `ativos` inclui a busca (o "Limpar filtros" limpa tudo); o contador do botão só conta os filtros da folha.
   const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui, filtroEstado].filter(Boolean).length
   const nFiltros = contarFiltros({ ...f, estado: filtroEstado }, { aberto: filtro.aberto })
@@ -448,9 +451,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
           : <React.Suspense fallback={<Carregando texto={TC.atalhoCarregando} />}><Grupos caca={meu} navigate={navigate} dados={dados} /></React.Suspense>
     }
   }
-  const cartao = (agenciaEscolhida || escolhida) && (
+  const cartao = (agenciaEscolhida || apoioEscolhido || escolhida) && (
     <Folha variante="casa" aoFechar={fecharCasa}>
-      {agenciaEscolhida
+      {apoioEscolhido ? <CartaoApoio apoio={apoioEscolhido} fechar={fecharCasa} /> : agenciaEscolhida
         ? <CartaoSicredi agencia={agenciaEscolhida} fechar={fecharCasa} navigate={navigate} />
         : (
           <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
@@ -505,7 +508,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
               {vista === 'mundo' && (
                 <>
                   {!mundo.aprovada && <p className="ct-nota ct-mapa__previa" role="note">{TC.previa}</p>}
-                  <Mundo rodaAproxima={cheia} mundo={mundo} casas={casasMundo} agencias={agencias.filter((a) => a.x !== null && a.y !== null)} trilha={trilha}
+                  <Mundo rodaAproxima={cheia} mundo={mundo} casas={casasMundo} agencias={[...agencias.filter((a) => a.x !== null && a.y !== null), ...apoiosNoMundo(MARCAS_PARCEIROS)]} trilha={trilha}
                     selecionada={sel} aoSelecionar={escolher} recentes={recentes} destaque={perto ? destaquePorCasa : null} sobre={painelPerto || null} />
                 </>
               )}

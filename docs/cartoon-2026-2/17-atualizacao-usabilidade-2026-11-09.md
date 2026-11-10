@@ -105,3 +105,16 @@ do dia 9 ao 13, voucher físico retirado no Espaço Reduzido; pin do Senac só n
 **Erro meu nesta leva:** um `git add tests/` levou para a dev 832 arquivos soltos (capturas e rascunhos de teste de outras sessões).
 Foram retirados no commit seguinte e a `master` recebeu o conteúdo por commit único, sem eles; os arquivos seguem no disco. O
 histórico da `dev` ainda guarda esses arquivos (commits `8c3c96bc` e `081dc113`).
+
+## Pins de apoio no mapa ilustrado (10/11/2026, terceira leva)
+
+Pedido do Wilker: um pin por apoiador; ao tocar, o cartão lista todos os locais.
+
+- `src/edicao/caca/mapa/apoio.js` (dados e posição na arte) e `Apoio.jsx` (cartão). O pin reaproveita a placa do Sicredi no
+  `Mundo.jsx` (`a.apoio`, `a.logo`, `a.nomeAcessivel`).
+- Senac: cinco unidades de Natal, endereços de rn.senac.br/unidades. O pin único fica na posição da unidade Alecrim.
+- Espaço Reduzido: Av. Abel Cabral, 366, Nova Parnamirim (retirada do voucher físico).
+- Só no mapa ilustrado. No mapa real os pins entravam no afastamento e empurravam pin de casa para baixo do rodapé do
+  Google; `test:mapa-layout` reprovava. Fica para decidir se vale resolver.
+- `afastar.js`: o anel não sai mais sem arranjo (grupo grande de pins largos estourava o teto de raio e quebrava o mapa).
+- Pendente: não entram na vista "Lista"; posição na arte é calculada, o Wilker pode pedir outra.
