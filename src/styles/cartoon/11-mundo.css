@@ -311,9 +311,9 @@
 /* No mapa real: a etiqueta entra no próprio marcador, acima da placa (o marcador inteiro é o alvo do toque). */
 .ct-sicredi-pin--retirada { gap: 4px; }
 .ct-edicao .ct-sicredi-pin--largo .ct-sicredi-pin__placa img { max-width: 150px; height: 26px; margin: 6px 10px; }
-/* De longe o pin encolhe (16-mapa-tela.css, `scale: .55`), mas `scale` não muda a caixa: o marcador do Google seguia com 176 × 95 px
+/* De longe o pin encolhe (16-mapa-tela.css, `scale: .85`), mas `scale` não muda a caixa: o marcador do Google seguia com 176 × 95 px
    invisíveis por cima das casas vizinhas, pegando o toque delas. Na placa larga o encolhimento é de tamanho de verdade (`zoom`). */
-.ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin--largo { scale: 1; zoom: .55; }
+.ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin--largo { scale: 1; zoom: .85; }
 .ct-mapa__cartao-cabeca .ct-retirada { margin-bottom: 4px; }
 .ct-caca-mapa__sicredi-aviso { margin: 0; }
 .ct-caca-mapa__carimbo-sicredi {

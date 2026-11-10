@@ -104,7 +104,8 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
     const alvo = pontos.some((p) => !p.sicredi) ? pontos.filter((p) => !p.sicredi) : pontos
     // Os fios entram ANTES dos pins: no DOM, quem vem depois fica por cima, e o fio tem que passar por baixo de todos os pins.
     for (const p of pontos) fios.current.set(p.id, new maplibregl.Marker({ element: fioDoPin(), anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m))
-    for (const p of pontos) {
+    // Do norte para o sul: no DOM quem vem depois fica na frente, então o pin mais ao sul cobre no máximo a cauda do vizinho de cima (afastar.js › MIOLO).
+    for (const p of [...pontos].sort((a, b) => b.lat - a.lat || (a.id < b.id ? -1 : 1))) {
       const el = document.createElement('button')
       el.type = 'button'
       if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
@@ -124,8 +125,14 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
       marcadores.current.set(p.id, mk)
     }
     for (const p of alvo) limites.extend([p.lng, p.lat])
-    if (alvo.length > 1) m.fitBounds(limites, { padding: 48, maxZoom: 15, duration: 0 })
-    else if (alvo.length === 1) m.jumpTo({ center: [alvo[0].lng, alvo[0].lat], zoom: 15 })
+    if (alvo.length > 1) {
+      m.fitBounds(limites, { padding: 48, maxZoom: 15, duration: 0 })
+      // Mesmo zoom mínimo de abertura do Google (12 com tile 256 = 11 no MapLibre, tile 512), no miolo das casas (mediana).
+      if (m.getZoom() < 11) {
+        const mediana = (v) => { const o = [...v].sort((a, b) => a - b); return o[Math.floor(o.length / 2)] }
+        m.jumpTo({ center: [mediana(alvo.map((p) => p.lng)), mediana(alvo.map((p) => p.lat))], zoom: 11 })
+      }
+    } else if (alvo.length === 1) m.jumpTo({ center: [alvo[0].lng, alvo[0].lat], zoom: 15 })
     reorganizar()
   }, [pontos.map((p) => p.id).join(), aoSelecionar, reorganizar])
 

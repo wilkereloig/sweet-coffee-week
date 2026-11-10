@@ -13,6 +13,7 @@ Para refazer: gerar de novo pelos prompts abaixo e rodar `python scripts/edicao/
 
 Prompt comum: *mesmo estilo da folha de referência (contorno marrom #3A150F grosso, cor chapada saturada com sombra suave e um brilho branco, formas arredondadas, sem texto); um objeto centrado com ~12% de margem, fundo transparente, sem letras, números nem palavras.*
 - **vouchers**: dois vouchers sobrepostos e levemente abertos; o da frente rosa-vermelho (#E8195A) com estrela creme, entalhes semicirculares nas laterais e linha tracejada de destaque; o de trás amarelo (#FDB901) inclinado; um brilho pequeno.
+- **retirada** (10/11/2026, selo do ponto de retirada dos vouchers no mapa): bandeja redonda azul (#0184E4) de borda creme vista um pouco de cima; dentro dela dois vouchers em pé e abertos em leque (o da frente rosa-vermelho #E8195A com estrela creme e entalhes, o de trás amarelo #FDB901), um cupcake e uma xícara de café; uma seta curva amarela entrando na bandeja pelo alto à direita ("retire aqui"). Sem mãos, pessoas, rostos nem letras. Gerado em `medium`, US$ 0,023. O ícone desenhado por código antes dele foi reprovado.
 - **ranking**: pódio de três degraus visto de frente; o do meio amarelo (#FDB901) com uma coroa pequena acima, o da esquerda azul (#0184E4), o da direita rosa-vermelho (#E8195A, o mais baixo); em cada degrau um selo redondo branco com uma estrela no lugar do número.
 
 ## Controles do mapa em tela cheia (`16-mapa-tela.css`, `Atalhos.jsx`, `Mundo.jsx`)

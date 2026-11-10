@@ -208,11 +208,11 @@
 /* Mapa real, escala por zoom: de longe (cidade inteira) o DESENHO do pin encolhe (a caixa do botão, o alvo de toque, segue de 44 px);
    o escolhido e os de perto ficam cheios. */
 .ct-pin, .ct-sicredi-pin { transform-origin: 50% 100%; transition: scale 180ms var(--ct-mo-quique); }
-.ct-mapa__mapa--longe .ct-marcador--pin:not(.is-sel) .ct-pin, .ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin { scale: .55; }
+.ct-mapa__mapa--longe .ct-marcador--pin:not(.is-sel) .ct-pin, .ct-mapa__mapa--longe .ct-sicredi-marcador:not(.is-sel) .ct-sicredi-pin { scale: .85; }
 /* Área de toque: a caixa do marcador tem o tamanho do desenho SEM a escala e, de longe, passaria por cima do pin vizinho. Só o desenho e o alvo
    de 44 px dele (.ct-alvo, que acompanha a escala) recebem o toque. */
 .ct-mapa__mapa { --esc: 1; }
-.ct-mapa__mapa--longe { --esc: .55; }
+.ct-mapa__mapa--longe { --esc: .85; }
 .ct-sicredi-pin { position: relative; }
 .ct-sicredi-pin__promocao { position: absolute; z-index: 3; left: 50%; bottom: calc(100% + 8px); display: grid; place-items: center; padding: 3px; transform: translateX(-50%); border: 2px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-amarelo); box-shadow: 2px 3px 0 var(--ct-chocolate); }
 .ct-edicao .ct-sicredi-pin__promocao img { width: 32px; height: 32px; max-width: none; animation: ct-mundo-voucher-pisca 1.3s ease-in-out infinite; }

@@ -65,6 +65,8 @@ async function abrir (nav, { w, h, toque = false }) {
 }
 async function entrarNaTelaCheia (page) {
   await page.locator('.ct-mundo__palco').waitFor({ timeout: 30000 })
+  // Aviso "O que você disputa" (abre sozinho em perfil novo, conforme o horário da disputa do dia): fecha como a pessoa fecharia.
+  for (let i = 0; i < 3 && await page.locator('.ct-folha-m.is-modal.is-aberta').count(); i++) { await page.keyboard.press('Escape'); await page.waitForTimeout(300) }
   await page.locator('.ct-mapa__ampliar').first().click()
   await page.locator('[data-atalhos]').waitFor({ timeout: 10000 })
 }

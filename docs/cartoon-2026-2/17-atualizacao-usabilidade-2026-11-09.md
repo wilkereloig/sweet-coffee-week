@@ -127,3 +127,12 @@ Pedido do Wilker: um pin por apoiador; ao tocar, o cartão lista todos os locais
 - **Unidade nova sem lugar na arte** herda o ponto da casa (`rota/mundo.js › completarUnidades`).
 - **Coordenadas**: 11 unidades corrigidas no banco e no conteúdo publicado (`scripts/edicao/coordenadas-2026-11-10.sql`, aplicado com ok do Wilker); Sicredi Cidade Verde e São Gonçalo corrigidos em `sicredi.js`. Pendências: número do Sicredi Cidade Verde (1995 × 2349); Mariana's com duas unidades no mesmo endereço.
 - **Caça**: a seção usa a faixa toda do trilho; central em 55/45. **Camadas do mapa**: cartão da casa não fica mais sob os botões do jogo nem sobre busca/zoom.
+
+### Pins maiores e agrupamento por vizinhança (10/11/2026, ajuste pedido pelo Wilker)
+
+- De longe o pin fica a **85%** (era 55%). Pins podem se sobrepor em até 25% de cada lado (`afastar.js › MIOLO = 0,75`): o centro de cada um continua livre para o toque, e o mais ao sul fica na frente (cabeça e logo sempre à vista).
+- **Selo por vizinhança** (`vizinhancas`), não mais por corrente: antes, a abertura do mapa real virava um selo "40"; agora abre com 16 casas soltas e dois selos de 13, e a partir do zoom 14 todas as 42 aparecem (antes, só no 15). Corrente longa no afastamento é quebrada em vizinhanças menores.
+- Abertura com zoom mínimo 12 no miolo das casas (mediana): no celular não abre mais com a região inteira, quase toda em selo.
+- No Google, todo pin afastado move o MARCADOR (a área de toque é o marcador), com o fio no ponto verdadeiro.
+- Ícone `retirada` refeito como imagem gerada (bandeja com vouchers, cupcake e café, seta entrando); o desenho por código saiu.
+- `test:mapa-layout` passou para a porta 5214 (a 5213 é da prévia do HyperFrames, `PORTAS.md`).

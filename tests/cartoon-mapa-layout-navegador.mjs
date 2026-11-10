@@ -1,7 +1,7 @@
 /*
  * Layout do Mapa da Doçura (celular e desktop): sem rolagem lateral, nenhum controle atravessado, nenhum pin cobrindo outro,
  * cartão de "criar mapa" antes e depois do mapa, estados do jogo. Servidor do Caça simulado na rede do navegador; o banco não é tocado.
- *   MAPA_LAYOUT_CAPTURAS=<pasta> grava as capturas (padrão: pasta temporária) · MAPA_LAYOUT_REUSAR=1 reaproveita o servidor da 5213.
+ *   MAPA_LAYOUT_CAPTURAS=<pasta> grava as capturas (padrão: pasta temporária) · MAPA_LAYOUT_REUSAR=1 reaproveita o servidor da 5214 (MAPA_LAYOUT_PORTA troca a porta).
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import { mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 
-const PORT = 5213
+const PORT = Number(process.env.MAPA_LAYOUT_PORTA || 5214) // 5213 é da prévia do HyperFrames (PORTAS.md); 10/11/2026
 const BASE = `http://localhost:${PORT}`
 const CAPTURAS = process.env.MAPA_LAYOUT_CAPTURAS || join(tmpdir(), `mapa-layout-${Date.now().toString(36)}`)
 mkdirSync(CAPTURAS, { recursive: true })
@@ -48,7 +48,7 @@ const MEDIR = (vista) => {
   const fixo = (sel) => { const e = document.querySelector(sel); if (!e) return null; const cs = getComputedStyle(e); return cs.position === 'fixed' || cs.position === 'sticky' ? e.getBoundingClientRect() : null }
   const topo = fixo('.ct-topo'); const abas = fixo('.ct-abas')
   const faixa = { t: Math.max(caixaMapa.top, topo ? topo.bottom : 0), b: Math.min(caixaMapa.bottom, abas ? abas.top : innerHeight, innerHeight), l: Math.max(caixaMapa.left, 0), r: Math.min(caixaMapa.right, innerWidth) }
-  const controles = [...document.querySelectorAll('.ct-mundo__zoom, .ct-mapa__ampliar, .gm-control-active, .gm-bundled-control, .gm-fullscreen-control, .maplibregl-ctrl, .ct-jogo__botao, .ct-mapa__sair')].map((e) => e.getBoundingClientRect()).filter((r) => r.width)
+  const controles = [...document.querySelectorAll('.ct-mundo__zoom, .ct-mapa__ampliar, .gm-control-active, .gm-bundled-control, .gm-style-cc, .gm-fullscreen-control, .maplibregl-ctrl, .ct-jogo__botao, .ct-jogo__fixo, .ct-mapa__perto-botao, .ct-mapa__sair')].map((e) => e.getBoundingClientRect()).filter((r) => r.width)
   const sobControle = (x, y) => controles.some((r) => x > r.left - 2 && x < r.right + 2 && y > r.top - 2 && y < r.bottom + 2)
   const dentro = (r) => !sobControle((r.left + r.right) / 2, (r.top + r.bottom) / 2) && (r.left + r.right) / 2 > faixa.l + 4 && (r.left + r.right) / 2 < faixa.r - 4 && (r.top + r.bottom) / 2 > faixa.t + 4 && (r.top + r.bottom) / 2 < faixa.b - 4
   const visivel = (el) => { const cs = getComputedStyle(el); return cs.visibility !== 'hidden' && cs.display !== 'none' && !el.classList.contains('is-agrupado') }
@@ -65,8 +65,12 @@ const MEDIR = (vista) => {
       pins.push({ tipo, el, r, topo: { x: m.left + (tipo === 'sicredi' && vista === 'mundo' ? m.width * (Number(el.dataset.ancora || 50) / 100) : m.width / 2), y: m.bottom }, dx: parseFloat(el.style.getPropertyValue('--dx')) || 0, dy: parseFloat(el.style.getPropertyValue('--dy')) || 0 })
     }
   }
-  // sobreposição: caixas encolhidas 3 px (a cauda e o halo não contam)
-  const enc = (r) => ({ l: r.left + 3, r: r.right - 3, t: r.top + 3, b: r.bottom - 3 })
+  // sobreposição: caixas encolhidas 3 px (a cauda e o halo não contam). No mapa REAL, desde 10/11/2026, pins podem se sobrepor em até
+  // 25% de cada lado (afastar.js › MIOLO = 0,75): o que não pode encostar é o miolo de 75% — e o centro de cada pin continua livre (abaixo).
+  const enc = (r) => {
+    const mx = vista === 'real' ? Math.max(3, r.width * 0.125) : 3; const my = vista === 'real' ? Math.max(3, r.height * 0.125) : 3
+    return { l: r.left + mx, r: r.right - mx, t: r.top + my, b: r.bottom - my }
+  }
   const cobre = []
   pins.forEach((a, i) => pins.forEach((b, j) => {
     if (j <= i) return
