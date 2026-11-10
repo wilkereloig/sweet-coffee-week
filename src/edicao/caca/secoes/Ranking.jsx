@@ -8,6 +8,7 @@ import { Link, Carregando, Falha } from '../../componentes/base.jsx'
 import { CACA_CAMINHOS } from '../textos.js'
 import { ListaRanking } from '../ranking/ListaRanking.jsx'
 import { RANKING as T } from '../ranking/textos.js'
+import { usarAoVivo, quandoAtualizou } from '../ranking/aoVivo.js'
 import { LIMITE_INICIAL, prepararLinhas, indiceDaPessoa, minhaPosicao, proximoLimite, podeVerMais, textoCasas, textoExtras } from '../ranking/regras.js'
 
 // A RPC omite apelidos que não autorizaram a exibição pública, mas preserva
@@ -78,17 +79,28 @@ export default function Ranking ({ caca, navigate }) {
   const [tentativa, setTentativa] = React.useState(0)
   const [buscando, setBuscando] = React.useState(true)
 
+  const [ritmo, setRitmo] = React.useState(null) // { horas, ritmo[] }: indicador complementar; falhou ou veio vazio = não aparece
+  const [atualizado, setAtualizado] = React.useState(0) // instante da última resposta boa
+  const [velho, setVelho] = React.useState(false) // a última releitura falhou: o que está na tela é o ranking anterior
+  const [, setTique] = React.useState(0) // só para o "há N min" andar
+
   React.useEffect(() => {
     let vivo = true
     setBuscando(true)
     api.ranking(limite).then((r) => {
       if (!vivo) return
       setBuscando(false)
-      if (r.ok) setCarga({ fase: 'pronto', linhas: incluirLugaresAnonimos(r.ranking), totalPublicas: r.ranking.length })
-      else setCarga((c) => (c.linhas.length ? c : { fase: 'falha', linhas: [], totalPublicas: 0 })) // "ver mais" que falha não apaga o que já está na tela
+      setVelho(!r.ok)
+      if (r.ok) { setCarga({ fase: 'pronto', linhas: incluirLugaresAnonimos(r.ranking), totalPublicas: r.ranking.length }); setAtualizado(Date.now()) }
+      else setCarga((c) => (c.linhas.length ? c : { fase: 'falha', linhas: [], totalPublicas: 0 })) // releitura que falha não apaga o que já está na tela
     })
+    api.ritmo().then((r) => { if (vivo && r.ok) setRitmo(r) })
     return () => { vivo = false }
   }, [api, limite, tentativa])
+
+  // Durante o uso: relê o ranking e o mapa da pessoa (a posição dela) a cada minuto com a aba à vista, e ao voltar à aba ou à internet.
+  const reler = () => { setTentativa((n) => n + 1); caca.atualizar?.() }
+  usarAoVivo(() => { if (carga.fase === 'pronto') reler(); setTique((n) => n + 1) })
 
   const { fase, linhas, totalPublicas } = carga
   const eu = indiceDaPessoa(linhas, caca.estado === 'pronto' ? caca.mapa : null)
@@ -105,10 +117,28 @@ export default function Ranking ({ caca, navigate }) {
           <div className="ct-estado--vazio"><p className="ct-sub">{T.vazio.titulo}</p><p className="ct-nota">{T.vazio.texto}</p></div>
         )}
         {fase === 'pronto' && linhas.length > 0 && <ListaRanking linhas={linhas} rotulo={T.lista.titulo} indiceEu={eu} />}
+        {fase === 'pronto' && (
+          <p className="ct-nota ct-rank__ao-vivo">
+            <span role="status">{velho ? T.semRede : T.atualizado(quandoAtualizou(atualizado))}</span>{' '}
+            <button type="button" className="ct-link" data-rank-atualizar disabled={buscando} onClick={reler}>{buscando ? T.atualizando : T.atualizar}</button>
+          </p>
+        )}
         {fase === 'pronto' && podeVerMais(totalPublicas, limite) && (
           <div className="ct-acoes"><button type="button" className="ct-botao ct-botao--contorno" disabled={buscando} onClick={() => setLimite(proximoLimite)}>{buscando ? T.carregandoMais : T.verMais}</button></div>
         )}
       </section>
+
+      {ritmo?.ritmo?.length > 0 && (
+        <section className="ct-caca__bloco ct-rank__ritmo" aria-labelledby="rank-ritmo">
+          <h2 id="rank-ritmo" className="ct-sub">{T.ritmo.titulo(ritmo.horas)}</h2>
+          <ol className="ct-rank__ritmo-lista">
+            {ritmo.ritmo.map((p, i) => (
+              <li key={`${p.apelido}-${i}`}><strong>{p.apelido}</strong><span>{[p.casas_novas > 0 && T.ritmo.casas(p.casas_novas), p.extras_novos > 0 && T.ritmo.extras(p.extras_novos)].filter(Boolean).join(' · ')}</span></li>
+            ))}
+          </ol>
+          <p className="ct-nota">{T.ritmo.nota}</p>
+        </section>
+      )}
 
       <ComoFunciona />
     </div>
