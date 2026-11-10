@@ -19,6 +19,25 @@
 .cp-sub { font-weight: 400; color: var(--scw-marrom); font-size: 12.5px; }
 
 .cp-filtro { max-width: 22rem; }
+
+/* Pedidos de presença em cartões: a ação fica no topo, sem rolar para o lado. */
+.cp-ferramentas { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--e-2) var(--e-3); }
+.cp-ferramentas .cp-filtro { flex: 1 1 16rem; }
+.cp-rapidos { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp-rapido { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid var(--scw-linha); border-radius: 999px; background: var(--sup-2); color: var(--scw-choco); font: 700 14px/1 var(--f-ui); cursor: pointer; }
+.cp-rapido.is-ativo { background: var(--scw-choco); border-color: var(--scw-choco); color: var(--scw-creme); }
+.cp-rapido__n { font-weight: 400; opacity: .8; }
+.cp-cartoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: var(--e-3); margin: 0; padding: 0; list-style: none; }
+.cp-cartao { display: grid; align-content: start; gap: var(--e-2); padding: var(--e-3); border: 1px solid var(--scw-linha); border-radius: var(--r-2); background: var(--sup-2); min-width: 0; }
+.cp-cartao__topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); }
+.cp-cartao__quem { display: grid; gap: 2px; font: 700 16px/1.2 var(--f-ui); color: var(--scw-choco); }
+.cp-cartao__acao .cp-acoes { padding: 0; }
+.cp-cartao__casa { margin: 0; font: 400 14px/1.4 var(--f-texto); }
+.cp-cartao__dados { display: grid; gap: 6px; margin: 0; font: 400 13.5px/1.4 var(--f-texto); }
+.cp-cartao__dados > div { display: grid; grid-template-columns: 8.5rem 1fr; gap: 8px; }
+.cp-cartao__dados dt { color: var(--scw-marrom); }
+.cp-cartao__dados dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 420px) { .cp-cartao__dados > div { grid-template-columns: 1fr; gap: 0; } }
 .cp-aviso__fechar { min-height: 44px; padding: 0 8px; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
 
 .cp-proposta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
