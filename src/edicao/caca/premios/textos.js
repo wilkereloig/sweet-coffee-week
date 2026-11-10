@@ -47,6 +47,20 @@ export const PREMIOS = {
     validade ? `Os vouchers desta ação valem até ${validade.longa}.` : 'A validade dos vouchers está no regulamento.',
     ...(retirada ? [`${retirada.desde ? `A partir de ${retirada.desde.longa}, o` : 'O'} voucher é físico: quem ganha é avisado e retira no ${retirada.local}${retirada.endereco ? `, ${retirada.endereco}` : ''}.`] : []),
   ],
+  // Voucher físico do ganhador: onde retirar e a confirmação de que ele viu o aviso. Data e horário entram por parâmetro.
+  ganho: {
+    titulo: 'Você ganhou um voucher!',
+    dia: (d) => `Resultado do dia ${d}`,
+    retire: 'Retire seu voucher',
+    separado: 'Ele já está separado para você.',
+    validade: (v) => `Válido até ${v}`,
+    comoChegar: 'Como chegar',
+    confirmaTitulo: 'Avise a organização',
+    confirmaTexto: 'Toque no botão para dizer que você viu o aviso e sabe que ganhou. Assim a gente fica tranquilo.',
+    confirmar: 'Vi o aviso e confirmo que ganhei',
+    confirmando: 'Registrando…',
+    confirmado: (quando) => `Confirmado em ${quando}. A organização já sabe que você viu.`,
+  },
   // Prêmio final
   finalTitulo: 'Prêmio final',
   finalMeta: (total) => `Complete as ${total} casas`,

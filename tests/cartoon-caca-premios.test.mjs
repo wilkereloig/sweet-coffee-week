@@ -213,3 +213,14 @@ test('o atalho Prêmios existe nos atalhos e no painel do mapa normal, com texto
   assert.match(idx, /case 'premios': return premiosEl/)
   assert.match(ler('src/edicao/caca/mapa/textos.js'), /premios: 'Prêmios'/)
 })
+
+test('voucher físico: horário da retirada vem do dado e a pessoa confirma que viu (sem exigir voucher digital)', () => {
+  const [p] = organizarMeusPremios([{ id: 'a', tipo: 'voucher_dia', dia: '2026-11-08', estado: 'confirmado', email_confirmado: true,
+    retirada: { local: 'Espaço Reduzido', endereco: 'Av. Abel Cabral, 366', horario: 'Horário comercial' } }])
+  assert.equal(p.retirada.horario, 'Horário comercial')
+  assert.equal(p.recebidoEm, null)
+  const fonte = ler('src/edicao/cartoon/paginas/mapa/PainelPremios.jsx')
+  assert.match(fonte, /GanhoRetirada/)
+  assert.match(fonte, /confirmarRecebimento\(premio\.id\)/)
+  assert.match(ler('supabase/migrations/20270119_caca_ciencia_retirada.sql'), /\(p\.detalhe -> 'retirada'\) is null and not exists/)
+})
