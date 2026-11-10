@@ -46,6 +46,10 @@ export function aguardaEvidencia(p) {
   if (p.nota === 'Foto como prova' && !p.imagem) return 'Aguardando foto da pessoa'
   return null
 }
+/** Aprovar visita anterior SEM relato/foto é exceção: motivo escrito, gravado na decisão (o banco confere o prefixo e o tamanho). */
+export const PREFIXO_SEM_PROVA = 'Exceção sem prova: '
+export const MIN_MOTIVO_SEM_PROVA = 15
+export const notaSemProva = (motivo) => PREFIXO_SEM_PROVA + String(motivo || '').trim()
 /** Entra no "Aprovar todos": o mesmo pedido que mostraria o botão Aprovar na linha. */
 export const aprovavelEmLote = (p) => podeDecidir(p) && !aguardaEvidencia(p)
 
