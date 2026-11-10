@@ -220,3 +220,20 @@
 @media (max-width: 599.98px) {
   .ct-visita__quando { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ------------------------------------------------------------- GUIA "COMO CARIMBAR" (caca/guia/GuiaCarimbar.jsx) */
+.ct-guia { display: grid; gap: 12px; font: 600 15px/1.45 var(--ct-font); }
+.ct-guia__lead { margin: 0; font-weight: 800; }
+.ct-guia__passos { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: guia; }
+.ct-guia__passos li { counter-increment: guia; display: grid; grid-template-columns: 36px minmax(0, 1fr); column-gap: 10px; }
+.ct-guia__passos li::before {
+  content: counter(guia); grid-row: 1 / span 2; display: grid; place-items: center; width: 36px; height: 36px; border: var(--ct-traco); border-radius: 50%;
+  background: var(--ct-amarelo); color: var(--ct-chocolate); font: 900 16px/1 var(--ct-font);
+}
+.ct-guia__passos strong { font-weight: 900; }
+.ct-guia__duvida p { margin: 8px 4px 0; }
+.ct-guia__botao { justify-content: center; }
+.ct-guia__interrogacao { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); font: 900 14px/1 var(--ct-font); }
+.ct-guia__intro { display: grid; gap: 8px; padding: 14px 16px; border: var(--ct-traco); border-radius: 18px; background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); }
+.ct-guia__intro > * { margin: 0; }
+.ct-guia__intro .ct-botao--contorno { background: var(--ct-branco); }

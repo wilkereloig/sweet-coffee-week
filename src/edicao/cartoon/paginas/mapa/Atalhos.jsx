@@ -19,6 +19,7 @@ import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Folha } from './Folha.jsx'
 import { useEscape } from './interacao.js'
+import { BotaoComoCarimbar } from '../../../caca/guia/GuiaCarimbar.jsx'
 import { QUANTOS, TEXTO_FIXOS as TX, lerFixos, guardarFixos, alternarEscolha } from './atalhosFixos.js'
 
 // [chave, ícone ilustrado da edição]: o ícone nunca está sozinho, o rótulo vai ao lado.
@@ -133,7 +134,7 @@ export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null, ex
  * "Rota" só aparece no computador (no celular a barra já tem "Minha rota") e não abre folha: leva ao painel da rota, que ali já está na página.
  */
 export const NA_FAIXA = ['progresso', 'premios', 'ranking', 'grupos', 'rota']
-export function FaixaJogo ({ placar = '', resumo = '', conteudo, aoRota }) {
+export function FaixaJogo ({ placar = '', resumo = '', conteudo, aoRota, navigate }) {
   const [aberta, setAberta] = React.useState(null)
   const origem = React.useRef(null)
   const fechar = React.useCallback(() => {
@@ -152,6 +153,7 @@ export function FaixaJogo ({ placar = '', resumo = '', conteudo, aoRota }) {
           {chave === 'progresso' && placar && <b className="ct-mapa__filtros-conta" aria-hidden="true">{placar}</b>}
         </button>
       ))}
+      <BotaoComoCarimbar navigate={navigate} className="ct-chip ct-jogo-faixa__botao ct-guia__botao" />
       <Folha variante="jogo" aberta={!!aberta} titulo={titulo} rotuloFechar={aberta ? TC.atalhoFechar(titulo) : 'Fechar'} aoFechar={fechar}>
         {aberta && conteudo(aberta, fechar)}
       </Folha>

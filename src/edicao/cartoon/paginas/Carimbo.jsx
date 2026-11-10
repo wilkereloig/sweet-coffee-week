@@ -22,6 +22,7 @@ import { PedidoPresenca } from '../../caca/PedidoPresenca.jsx'
 import { CriarMapa } from '../../caca/CriarMapa.jsx'
 import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
 import { CartaoEmailDoAparelho } from '../../caca/CartaoEmail.jsx'
+import { BotaoComoCarimbar } from '../../caca/guia/GuiaCarimbar.jsx'
 
 const SLUG_CASA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const T = CACA.carimbo
@@ -192,7 +193,14 @@ export function Carimbo ({ codigo, navigate, dados }) {
             {r.avaliou && resumo?.total > 0 ? ` ${T.validadas(resumo.validadas, resumo.total)}` : ''}
           </p>
         </div>
+        <p className="ct-nota" role="status"><strong>{T.registrado(nome)}</strong>{!r.avaliou && resumo?.total > 0 ? ` ${T.pendenteConta(resumo.validadas, resumo.total)}` : ''}</p>
         {r.avaliou && !r.primeira && <p className="ct-nota">{T.extra}</p>}
+        {r.avaliou && (
+          <div className="ct-carimbar__avaliar">
+            <p className="ct-sub">{T.proximoTitulo}</p>
+            <div className="ct-acoes"><Link href={CACA_CAMINHOS.mapa} navigate={navigate} className="ct-botao">{T.proximoMapa}</Link></div>
+          </div>
+        )}
         {!r.avaliou && (
           <div className="ct-carimbar__avaliar">
             <p className="ct-sub">{T.pendenteSub}</p>
@@ -232,6 +240,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
             <div className="ct-acoes"><button type="button" className="ct-botao ct-botao--contorno" onClick={() => setEstado('pedido')}>{GPS.pedido.abrir}</button></div>
           </div>
         )}
+        <p><BotaoComoCarimbar navigate={navigate} /></p>
         {novo && <GuardarMapa chave={chave} />}
         {links}
       </section>
@@ -281,6 +290,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
         <p className="ct-nota ct-carimbar__buscando">{GPS.buscando(progresso.i, progresso.n)} {GPS.buscandoDica}</p>
       )}
       <p className="ct-sr" aria-live="polite">{estado === 'carimbando' ? (progresso ? GPS.buscando(progresso.i, progresso.n) : 'Conferindo o carimbo.') : ''}</p>
+      <p><BotaoComoCarimbar navigate={navigate} /></p>
       <p className="ct-nota"><Link className="ct-link-solto" href={CACA_CAMINHOS.regulamento} navigate={navigate}>Regulamento da Caça aos Carimbos</Link></p>
     </section>
   )

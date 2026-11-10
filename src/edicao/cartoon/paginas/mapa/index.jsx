@@ -458,7 +458,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} botaoPerto={cheia ? null : botaoPerto} />
             {!cheia && (
               <FaixaJogo placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
-                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho}
+                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} navigate={navigate}
                 aoRota={() => { setPainel('rota'); const alvo = document.querySelector('.ct-mapa__lateral'); alvo?.scrollIntoView({ block: 'start' }); alvo?.querySelector('button, a')?.focus({ preventScroll: true }) }} />
             )}
 

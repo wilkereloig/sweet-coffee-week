@@ -13,6 +13,7 @@ import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
 import { nomeDaCasa } from './regras.js'
 import { CACA, CACA_CAMINHOS as RUA } from './textos.js'
 import { ComoCarimbar } from './mapa/ComoCarimbar.jsx'
+import { PrimeiraVez, BotaoComoCarimbar } from './guia/GuiaCarimbar.jsx'
 import { CriarMapa } from './CriarMapa.jsx'
 import { GuardarMapa } from './GuardarMapa.jsx'
 import { CartaoEmail } from './CartaoEmail.jsx'
@@ -42,7 +43,7 @@ function Progresso ({ caca, dados, navigate }) {
       </ul>
       {!posicao && <p className="ct-nota">{P.semPosicao}</p>}
       {completo && <p className="ct-nota"><strong>{P.completo}</strong></p>}
-      <ComoCarimbar />
+      <ComoCarimbar navigate={navigate} />
       <details className="ct-central__como">
         <summary>{P.como.titulo}</summary>
         <ul>{P.como.itens.map((t) => <li key={t}>{t}</li>)}</ul>
@@ -102,7 +103,9 @@ export function Central ({ caca, dados, navigate }) {
     return (
       <>
         {caca.perdeu && <p className="ct-aviso" role="status">{CACA.chaveTrocada}</p>}
+        <PrimeiraVez navigate={navigate} />
         <CriarMapa navigate={navigate} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
+        <p><BotaoComoCarimbar navigate={navigate} /></p>
         <VisitaAnterior caca={caca} dados={dados} navigate={navigate} />
       </>
     )
@@ -111,6 +114,7 @@ export function Central ({ caca, dados, navigate }) {
   return (
     <div className="ct-caca__central ct-central">
       <div className="ct-central__col">
+        <PrimeiraVez navigate={navigate} />
         <Progresso caca={caca} dados={dados} navigate={navigate} />
         <ProximaAcao caca={caca} dados={dados} navigate={navigate} />
         {caca.recemCriado && <GuardarMapa chave={caca.chave} />}
@@ -118,6 +122,7 @@ export function Central ({ caca, dados, navigate }) {
         <VisitaAnterior caca={caca} dados={dados} navigate={navigate} />
       </div>
       <div className="ct-central__col">
+        <BotaoComoCarimbar navigate={navigate} />
         <Entradas navigate={navigate} />
         <div className="ct-central__extras">
           <Notificacoes caca={caca} />
