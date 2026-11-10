@@ -147,6 +147,8 @@ export const CACA = {
     email: 'E-mail',
     emailAjuda: 'É com ele que você avalia os combos. Confirme depois para poder receber voucher, se for selecionado.',
     whatsapp: 'WhatsApp (opcional, para avisar se você ganhar)',
+    instagram: 'Instagram (opcional)',
+    instagramAjuda: 'Só o nome do perfil, por exemplo @sweetcoffeeweek.',
     ranking: 'Quero aparecer no ranking',
     aceite: 'Li e aceito o',
     regulamento: 'regulamento',

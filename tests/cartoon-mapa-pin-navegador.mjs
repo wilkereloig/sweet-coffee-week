@@ -53,7 +53,7 @@ try {
   page.on('pageerror', (e) => erros.push(String(e)))
 
   // ---- ilustrado
-  await page.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'domcontentloaded' })
   await page.locator('.ct-mundo__casa').first().waitFor()
   await page.waitForFunction(() => document.querySelector('.ct-mundo__casa[data-estado="conquistada"]'), null, { timeout: 15000 }).catch(() => null)
   const lerMundo = () => page.evaluate(() => [...document.querySelectorAll('.ct-mundo__casa')].map((b) => ({
@@ -70,7 +70,7 @@ try {
   await page.screenshot({ path: join(CAPTURAS, 'ilustrado.png') })
 
   // ---- real
-  await page.goto(`${BASE}/cartoon/mapa?preview=1&vista=real`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1&vista=real`, { waitUntil: 'domcontentloaded' })
   // `attached`: de longe os pins colados viram selo (is-agrupado) e ficam invisíveis, mas continuam montados com o mesmo desenho
   await page.locator('.ct-marcador--pin .ct-pin').first().waitFor({ state: 'attached', timeout: 20000 })
   const real = await page.evaluate(() => [...document.querySelectorAll('.ct-marcador--pin .ct-pin')].map((p) => ({

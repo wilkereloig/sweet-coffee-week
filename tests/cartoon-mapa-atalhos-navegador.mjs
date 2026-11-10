@@ -59,14 +59,14 @@ async function abrir (nav, { w, h, toque = false }) {
   const page = await ctx.newPage()
   const erros = []
   page.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 200)))
-  await page.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
   await entrarNaTelaCheia(page)
   return { ctx, page, erros }
 }
 async function entrarNaTelaCheia (page) {
   await page.locator('.ct-mundo__palco').waitFor({ timeout: 30000 })
   await page.locator('.ct-mapa__ampliar').first().click()
-  await page.locator('.ct-jogo__botao').waitFor({ timeout: 10000 })
+  await page.locator('[data-atalhos]').waitFor({ timeout: 10000 })
 }
 const nomesFixos = (page) => page.locator('.ct-jogo__fixo').evaluateAll((bs) => bs.map((b) => b.getAttribute('aria-label')))
 const guardado = (page) => page.evaluate(() => { try { return localStorage.getItem('scw_atalhos_fixos') } catch { return 'indisponível' } })
@@ -77,7 +77,7 @@ async function geometria (page) {
   return page.evaluate(() => {
     const r = (e) => { const b = e.getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom, w: b.width, h: b.height } }
     const fixos = [...document.querySelectorAll('.ct-jogo__fixo')].map(r)
-    const outros = [['zoom', '.ct-mundo__zoom'], ['atalhos', '.ct-jogo__botao'], ['perto', '.ct-mapa__perto-botao'], ['sair', '.ct-mapa__sair'], ['filtros', '.ct-mapa__filtros-botao'], ['rota', '.ct-mapa__rota-botao']]
+    const outros = [['zoom', '.ct-mundo__zoom'], ['atalhos', '[data-atalhos]'], ['perto', '.ct-mapa__perto-botao'], ['sair', '.ct-mapa__sair'], ['filtros', '.ct-mapa__filtros-botao'], ['rota', '.ct-mapa__rota-botao']]
       .map(([n, q]) => [n, document.querySelector(q)]).filter(([, e]) => e && e.getBoundingClientRect().width).map(([n, e]) => [n, r(e)])
     const barra = r(document.querySelector('.ct-mapa__barra'))
     const bate = (a, b) => !(a.r <= b.l + 0.5 || a.l >= b.r - 0.5 || a.b <= b.t + 0.5 || a.t >= b.b - 0.5)
@@ -133,14 +133,14 @@ try {
     checar(await camera(p) === antes, `${onde}: zoom e posição do mapa preservados (${antes})`)
 
     // 3 · o menu continua com os seis, mais a escolha
-    await p.locator('.ct-jogo__botao').click()
+    await p.locator('[data-atalhos]').click()
     const itens = (await p.locator('.ct-jogo__lista [data-atalho]').allInnerTexts()).map((t) => t.trim())
-    checar(itens.join('|') === 'Progresso|Casas|Rota|Prêmios|Ranking|Grupos', `${onde}: o menu mantém os seis (${itens.join(' · ')})`)
+    checar(itens.join('|') === 'Progresso|Casas|Rota|Prêmios|Ranking|Grupos|Pedir carimbo', `${onde}: o menu mantém os sete (${itens.join(' · ')})`)
     await p.locator('[data-config-fixos]').click()
     const marcados = await p.locator('[data-fixo-opcao]').evaluateAll((is) => is.filter((i) => i.checked).map((i) => i.dataset.fixoOpcao))
     checar(marcados.join('|') === 'progresso|premios|ranking', `${onde}: a escolha mostra os três atuais`)
     const travadas = await p.locator('[data-fixo-opcao]:disabled').evaluateAll((is) => is.map((i) => i.dataset.fixoOpcao))
-    checar(travadas.join('|') === 'casas|rota|grupos', `${onde}: com três marcados, as outras travam (${travadas.join(', ')})`)
+    checar(travadas.join('|') === 'casas|rota|grupos|visitaAnterior', `${onde}: com três marcados, as outras travam (${travadas.join(', ')})`)
     await p.locator('[data-fixo-opcao="premios"]').uncheck()
     checar((await nomesFixos(p)).join('|') === 'Progresso|Prêmios|Ranking', `${onde}: com dois, a barra só muda ao completar três`)
     checar(/Escolha mais um atalho/.test(await p.locator('.ct-jogo__escolha-estado').innerText()), `${onde}: o estado diz quantos faltam`)
@@ -158,7 +158,7 @@ try {
     await p.locator('.ct-jogo__fixo[aria-label="Grupos"]').click()
     await p.getByRole('dialog', { name: 'Grupos', exact: true }).waitFor({ timeout: 8000 })
     await p.keyboard.press('Escape'); await esperar(300)
-    await p.locator('.ct-jogo__botao').click()
+    await p.locator('[data-atalhos]').click()
     await p.locator('[data-atalho="premios"]').click()
     await p.getByRole('dialog', { name: 'Prêmios', exact: true }).waitFor({ timeout: 8000 })
     checar(await p.evaluate(() => document.activeElement?.closest('.ct-folha-m--jogo') != null), `${onde}: Prêmios, mesmo fora dos fixos, abre pelo menu`)
@@ -188,10 +188,10 @@ try {
     await ctx.route('**/challenges.cloudflare.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }))
     const p = await ctx.newPage()
     const erros = []; p.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 160)))
-    await p.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
+    await p.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
     await entrarNaTelaCheia(p)
     checar((await nomesFixos(p)).join('|') === 'Progresso|Prêmios|Ranking', 'armazenamento bloqueado: padrão, sem quebrar')
-    await p.locator('.ct-jogo__botao').click(); await p.locator('[data-config-fixos]').click()
+    await p.locator('[data-atalhos]').click(); await p.locator('[data-config-fixos]').click()
     await p.locator('[data-fixo-opcao="premios"]').uncheck(); await p.locator('[data-fixo-opcao="casas"]').check()
     checar((await nomesFixos(p)).join('|') === 'Progresso|Ranking|Casas', 'sem armazenamento a escolha vale até recarregar')
     checar(erros.length === 0, `sem erro de página${erros[0] ? ` — ${erros[0]}` : ''}`)

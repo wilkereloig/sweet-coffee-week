@@ -38,14 +38,14 @@ export function VouchersDia({ edicao, pode, dados }) {
   const temVoucherDisponivel = (pool.dados?.opcoes || []).some((x) => x.estado === 'disponivel')
 
   async function apurar(dia) {
-    const ok = await confirmar(`Apurar o dia ${diaBr(dia)}? A foto do ranking fica gravada e não muda mais, mesmo que um carimbo seja anulado depois. O primeiro elegível é selecionado e o prazo dele começa a contar.`, { titulo: 'Apurar o dia?', acao: 'Apurar' })
+    const ok = await confirmar(`Apurar o dia ${diaBr(dia)}? A foto do ranking fica gravada e não muda mais, mesmo que um carimbo seja anulado depois. Os primeiros da ordem são selecionados, até completar os vouchers do dia, e o prazo de cada um começa a contar.`, { titulo: 'Apurar o dia?', acao: 'Apurar' })
     if (!ok) return
     const r = await executar('apurar' + dia, () => cacaApi.apurarDia(edicao, dia))
     if (!r) return
     await p.recarregar()
     setAviso(r.ja_apurado ? `O dia ${diaBr(dia)} já estava apurado: nada mudou.`
       : r.motivo === 'sem_elegivel' ? `Foto do dia ${diaBr(dia)} criada, mas ninguém tinha carimbo validado até o corte.`
-        : `Dia ${diaBr(dia)} apurado. Selecionado: ${r.premio?.apelido}.`)
+        : `Dia ${diaBr(dia)} apurado. ${(r.premios || []).length > 1 ? 'Selecionados' : 'Selecionado'}: ${(r.premios?.length ? r.premios : [r.premio]).map((x) => x?.apelido).filter(Boolean).join(' e ')}${r.quantidade ? ` (${(r.premios || []).length} de ${r.quantidade})` : ''}.`)
   }
 
   async function prepararPool() {
@@ -141,10 +141,14 @@ function DiaApuracao({ dia, ap, situacao, regras, contato, podeGerir, ocupado, t
         {s === 'aberto' && <Selo tom="neutro">Corte ainda não passou</Selo>}
         {s === 'sem_regra' && <Selo tom="neutro">Sem corte configurado</Selo>}
         {podeGerir && s !== 'apurado' && (
-          <Botao disabled={s !== 'pronto' || !temVoucherDisponivel || !!ocupado} aria-busy={ocupado === 'apurar' + dia || undefined} onClick={onApurar}>Apurar este dia</Botao>
+          <Botao disabled={s !== 'pronto' || !!ocupado} aria-busy={ocupado === 'apurar' + dia || undefined} onClick={onApurar}>Apurar este dia</Botao>
+        )}
+        {/* Dia com mais de um voucher (10/11/2026): apurar de novo só COMPLETA quem falta, na mesma foto; com o dia completo o servidor responde "nada mudou". */}
+        {podeGerir && s === 'apurado' && (
+          <Botao variante="secundario" disabled={!!ocupado} aria-busy={ocupado === 'apurar' + dia || undefined} onClick={onApurar}>Completar ganhadores do dia</Botao>
         )}
       </div>
-      {s === 'pronto' && !temVoucherDisponivel && <p className="ui-nota">Reserve primeiro um voucher de cada casa na seção acima; a apuração fica bloqueada até haver uma opção disponível.</p>}
+      {s === 'pronto' && <p className="ui-nota">De 9 a 13/11 o voucher é físico (retirada no Espaço Reduzido) e são 2 por dia: a reserva de vouchers digitais não é necessária.</p>}
       {s === 'aberto' && <p className="ui-nota">Dá para apurar a partir de {textoLiberaEm(situacao.liberaEm, regras.fuso || undefined)}. O servidor confere de novo: antes disso ele recusa.</p>}
       {s === 'sem_regra' && <p className="ui-nota">Configure o corte e o fuso em Regras e prazos. Sem eles a tela não afirma se o dia pode ser apurado; o servidor decide.</p>}
       {ap && (

@@ -113,7 +113,7 @@ try {
     await page.goto(`${BASE}/cartoon`, { waitUntil: 'networkidle' })
     if (await page.locator('.ct-edicao').count()) ok('rota pública: /cartoon abre sem preview')
     else falha('com CARTOON_PUBLICA ligada, /cartoon não abriu sem preview')
-    await page.goto(`${BASE}/cartoon/mapa`, { waitUntil: 'networkidle' })
+    await page.goto(`${BASE}/cartoon/mapa?tela=normal`, { waitUntil: 'networkidle' })
     const linkMapa = await page.locator('.ct-edicao nav a[href$="/mapa"]').count()
     if (!(await page.getByText('O mapa chega em breve').count()) && linkMapa) ok('com MAPA_PUBLICO ligado, o mapa está na navegação e abre sem preview')
     else falha('com MAPA_PUBLICO ligado, o mapa não abriu sem preview')
@@ -128,7 +128,7 @@ try {
       ['/cartoon/participantes/demo-casa-aurora', '[DEMO] Casa Aurora'],
       ['/cartoon/combos', 'Escolha seu combo'],
       ['/cartoon/combos/demo-casa-aurora', '[DEMO] Casa Aurora'],
-      ['/cartoon/mapa', 'Mapa da Doçura'],
+      ['/cartoon/mapa?tela=normal', 'Mapa da Doçura'],
       ['/cartoon/minha-rota', 'Mapa da Doçura'],
       ['/cartoon/avaliar', 'Sweet Awards'],
       ['/cartoon/premiacao', 'Sweet Awards'],
@@ -380,7 +380,7 @@ try {
     if ((await page.locator('.ct-topo__nav .ct-contador').textContent()) !== '1') falha('contador da rota não foi a 1')
     if ((await quero.getAttribute('aria-pressed')) !== 'true') falha('"Quero ir" não ficou marcado (aria-pressed)')
     if ((await quero.innerText()).trim() !== 'Quero ir') falha('"Quero ir" trocou de nome ao marcar (o estado é o aria-pressed)')
-    await ir(page, '/cartoon/minha-rota')
+    await ir(page, '/cartoon/mapa?tela=normal&painel=rota')
     await page.reload({ waitUntil: 'networkidle' })
     if ((await page.locator('.ct-parada').count()) !== 1) falha('rota não persistiu no recarregar')
     if (!(await page.locator('#mapa-titulo').count())) falha('Minha rota: falta o título do mapa')
@@ -457,7 +457,7 @@ try {
   console.log('\n9 · casca e larguras')
   for (const [w, h] of [[360, 800], [1440, 900]]) {
     const { ctx, page } = await contexto(nav, { w, h })
-    for (const p of ['/cartoon', '/cartoon/participantes', '/cartoon/participantes/demo-casa-aurora', '/cartoon/mapa', '/cartoon/minha-rota', '/cartoon/avaliar', '/cartoon/premiacao']) {
+    for (const p of ['/cartoon', '/cartoon/participantes', '/cartoon/participantes/demo-casa-aurora', '/cartoon/mapa?tela=normal', '/cartoon/minha-rota', '/cartoon/avaliar', '/cartoon/premiacao']) {
       await ir(page, p)
       await page.waitForTimeout(300)
       const m = await page.evaluate(() => ({
@@ -533,10 +533,10 @@ try {
     await page.mouse.click(180, 30)
     if (await aberto()) falha('clique no véu não fechou o menu')
     if (!(await focoNoBotao())) falha('véu: o foco não voltou ao botão Menu')
-    // 3 · Link: navega e fecha.
+    // 3 · Link: navega e fecha. (Casas, e não Mapa: desde 10/11/2026 o mapa abre em tela cheia e é ele quem recebe o foco.)
     await page.click('.ct-topo__menu')
-    await page.click('#ct-menu a:has-text("Mapa")')
-    await page.waitForFunction(() => location.pathname === '/cartoon/mapa')
+    await page.click('#ct-menu a:has-text("Casas")')
+    await page.waitForFunction(() => location.pathname === '/cartoon/participantes')
     if (await aberto()) falha('link da folha não fechou o menu')
     if (!(await focoNoBotao())) falha('link: o foco não voltou ao botão Menu')
     await ctx.close()
@@ -652,7 +652,7 @@ try {
     // Simula Google indisponível para testar deterministicamente o mapa alternativo.
     await c.ctx.route('**/maps.googleapis.com/**', (route) => route.abort('failed'))
     // Página única (14 §14.13): as três vistas (ilustrado, real e lista); com a arte final aprovada o ilustrado entra também fora do DEV.
-    await ir(c.page, '/cartoon/mapa?vista=lista')
+    await ir(c.page, '/cartoon/mapa?tela=normal&vista=lista')
     await c.page.waitForSelector('.ct-mapa__item')
     const vistas = (await c.page.locator('.ct-mapa__vistas .ct-chip').allInnerTexts()).map((t) => t.trim()).join(' · ')
     if (vistas !== 'Mapa Ilustrado · Mapa real · Lista') falha(`vistas fora do DEV: ${vistas}`)
@@ -688,7 +688,7 @@ try {
     await c.ctx.close()
     // ?bairro= (contrato da Entrada): só as unidades daquele bairro, e o seletor mostra o bairro.
     c = await contexto(nav)
-    await ir(c.page, '/cartoon/mapa?bairro=Tirol&vista=lista')
+    await ir(c.page, '/cartoon/mapa?tela=normal&bairro=Tirol&vista=lista')
     await c.page.waitForSelector('.ct-mapa__item')
     if (JSON.stringify(await c.page.locator('.ct-mapa__item').evaluateAll((l) => l.map((x) => x.id).sort())) !== '["mapa-udemo1","mapa-udemo4"]') falha('?bairro=Tirol não filtrou as unidades')
     await c.page.click('.ct-mapa__filtros-botao')
@@ -697,7 +697,7 @@ try {
     await c.ctx.close()
     // Com a posição: ordena pela distância em linha reta.
     c = await contexto(nav, { opcoes: { permissions: ['geolocation'], geolocation: { latitude: -5.876, longitude: -35.178 } } })
-    await ir(c.page, '/cartoon/mapa?vista=lista')
+    await ir(c.page, '/cartoon/mapa?tela=normal&vista=lista')
     await c.page.click('.ct-mapa__perto-botao')
     await c.page.waitForSelector('.ct-perto__cartao', { timeout: 12000 }).catch(() => falha('posição concedida sem o painel das casas mais perto'))
     if (!(await c.page.locator('.ct-mapa__item').first().innerText()).includes('em linha reta')) falha('distância sem "em linha reta"')

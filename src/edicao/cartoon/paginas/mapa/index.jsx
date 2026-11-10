@@ -60,6 +60,7 @@ import { MAPA as T, FASE_TEXTO } from '../../textos.js'
 import { AlbumCarimbos } from '../AlbumCarimbos.jsx'
 import { Cartao } from './Cartao.jsx'
 import { Atalhos, FaixaJogo } from './Atalhos.jsx'
+import { BotaoComoCarimbar } from '../../../caca/guia/GuiaCarimbar.jsx'
 import { PainelPremios } from './PainelPremios.jsx'
 import { PopupDisputa } from '../../../caca/disputa/PopupDisputa.jsx'
 import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
@@ -353,6 +354,26 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // A tela cheia só existe onde há mapa para ampliar: o ilustrado, ou o real já carregado. O botão segue montado dentro da tela
   // cheia (o CSS o esconde): o foco volta ao MESMO elemento que abriu.
   const podeAmpliar = vista === 'mundo' || (vista === 'real' && noMapa.length > 0)
+  /*
+   * Modo jogo (10/11/2026, pedido do Wilker): o mapa faz parte da Caça aos Carimbos. Abrir o mapa já entra na tela cheia, com os atalhos
+   * do jogo, e sair dela devolve a pessoa ao hub da Caça. Link com painel (?painel=rota|album|premios, /minha-rota) abre a folha
+   * correspondente por cima. `?tela=normal` mantém a página comum (a vista em lista, que não tem tela cheia, também fica nela).
+   */
+  const modoJogo = pedido.get('tela') !== 'normal'
+  const entrouNoJogo = React.useRef(false)
+  React.useEffect(() => {
+    if (!modoJogo || entrouNoJogo.current || !podeAmpliar) return
+    entrouNoJogo.current = true
+    abrirCheia()
+    const chave = { rota: 'rota', album: 'progresso', premios: 'premios' }[painel]
+    // um quadro depois: os Atalhos só existem com a tela cheia montada, e ignoram pedido que já estava lá na montagem
+    if (painelAberto && chave) requestAnimationFrame(() => setPedidoAtalho({ chave, n: 1 }))
+  }, [modoJogo, podeAmpliar]) // eslint-disable-line react-hooks/exhaustive-deps -- uma vez, quando houver mapa para ampliar
+  const estavaCheia = React.useRef(false)
+  React.useEffect(() => {
+    if (cheia) { estavaCheia.current = true; return }
+    if (estavaCheia.current && modoJogo) { estavaCheia.current = false; navigate(TC.caminhos.central) }
+  }, [cheia]) // eslint-disable-line react-hooks/exhaustive-deps -- só na saída da tela cheia
   // Normal: abre a folha da rota sobre a página. Tela cheia: a mesma rota, na folha dos atalhos, sobre o mapa. Nos dois casos o mapa não é tocado.
   const botaoRota = (
     <button type="button" className="ct-chip ct-mapa__rota-botao" aria-haspopup="dialog" aria-expanded={cheia ? false : painelAberto} aria-label={TC.minhaRotaConta(rota.ids.length)}
@@ -590,7 +611,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
 
             {cheia && (
               <Atalhos placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
-                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} pedido={pedidoAtalho} extra={botaoPerto} />
+                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} pedido={pedidoAtalho}
+                extra={<>{botaoPerto}<BotaoComoCarimbar navigate={navigate} className="ct-jogo__botao ct-guia__botao" /></>} />
             )}
             {cheia && cartao}
             <Folha variante="filtros" aberta={filtrosAbertos} titulo={TC.filtrosTitulo} rotuloFechar={TC.fecharFiltros} aoFechar={() => setFiltrosAbertos(false)}>

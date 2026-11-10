@@ -50,7 +50,7 @@ const json = (route, corpo) => route.fulfill({ status: 200, contentType: 'applic
 const rpc = (nome) => `**/rest/v1/rpc/${nome}*`
 const ehOpcoes = (route) => route.request().method() === 'OPTIONS'
 
-async function abrir (nav, { w, h, toque = false, meuMapa = null, premios = DURANTE, premiosFalha = false, url = '/cartoon/mapa?preview=1' }) {
+async function abrir (nav, { w, h, toque = false, meuMapa = null, premios = DURANTE, premiosFalha = false, url = '/cartoon/mapa?tela=normal&preview=1' }) {
   const ctx = await nav.newContext({ viewport: { width: w, height: h }, hasTouch: toque, isMobile: toque, deviceScaleFactor: toque ? 2 : 1 })
   await ctx.addInitScript(([k, c, comMapa]) => {
     try { localStorage.setItem('scw_privacidade', c); if (comMapa) localStorage.setItem('scw:edicao:2026.2:mapa', k) } catch { /* sem storage */ }
@@ -76,12 +76,12 @@ try {
 
   console.log('\nmapa normal · desktop 1440 · sem mapa (painel Prêmios por endereço)')
   {
-    const c = await abrir(nav, { w: 1440, h: 900, url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 1440, h: 900, url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.locator('.ct-premios').waitFor({ timeout: 15000 })
     await c.page.getByText('Em disputa agora').waitFor({ timeout: 10000 })
     const t = await texto(c.page)
     checar(/Em disputa agora/i.test(t) && /Domingo, 8 de novembro/.test(t), 'mostra primeiro o voucher relevante: o dia em disputa (8 de novembro)')
-    checar(/1 voucher em disputa/.test(t) && /5 dias, com 1 voucher em disputa por dia/.test(t), 'um voucher por dia, 5 dias (vindos do servidor)')
+    checar(/1 voucher em disputa/.test(t) && /5 dias com voucher em disputa/.test(t), 'um voucher por dia, 5 dias (vindos do servidor)')
     checar(/Complete as \d+ casas/.test(t) && /3 ganhadores previstos/.test(t) && /press kit oficial da edição e uma surpresa/.test(t), 'prêmio final: completar as casas, 3 ganhadores, press kit e surpresa')
     checar(/não uma chance garantida/.test(t) && !/%/.test(t), 'vantagem dos extras sem percentual nem promessa')
     checar(/Criar meu mapa/i.test(t), 'sem mapa: ação clara para criar o mapa, sem bloquear a consulta')
@@ -107,7 +107,7 @@ try {
   ]
   for (const [nome, m, esperado] of ESTADOS) {
     console.log(`\nmapa normal · celular 390 · ${nome}`)
-    const c = await abrir(nav, { w: 390, h: 844, toque: true, meuMapa: m, url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 390, h: 844, toque: true, meuMapa: m, url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.locator('.ct-premios').waitFor({ timeout: 15000 })
     await c.page.getByText(/Em disputa agora/).waitFor({ timeout: 10000 })
     if (/casas validadas/.test(nome)) await c.page.getByText('Metas comemorativas').waitFor({ timeout: 10000 })
@@ -123,12 +123,12 @@ try {
 
   console.log('\nantes e depois dos dias (estado vem do servidor)')
   for (const [rot, estados, foco, esperado, periodo] of [
-    ['antes de tudo', ['proximo', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Sábado, 7 de novembro/i, /Disputa em andamento[\s\S]*você já pode acumular carimbos[\s\S]*Ao fim do dia[\s\S]*sorteio entre as pessoas empatadas/],
+    ['antes de tudo', ['proximo', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Sábado, 7 de novembro/i, /Disputa em andamento[\s\S]*você já pode acumular carimbos[\s\S]*mais casas diferentes validadas[\s\S]*sorteio/],
     ['Caça ainda não aberta', ['proximo', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Sábado, 7 de novembro/i, /Em breve[\s\S]*A disputa deste dia ainda não começou[\s\S]*Os carimbos passam a valer em 5 de novembro/, 'antes'],
     ['dia encerrado, sem confirmação', ['em_apuracao', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Domingo, 8 de novembro/i, /O dia 7\/11 encerrou e está em apuração\. Ainda não há resultado confirmado/],
     ['tudo confirmado', ['resultado', 'resultado', 'resultado', 'resultado', 'resultado'], /Último resultado[\s\S]*Quarta, 11 de novembro/i, /Resultado confirmado/],
   ]) {
-    const c = await abrir(nav, { w: 1440, h: 900, premios: PREMIOS(estados, periodo), url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 1440, h: 900, premios: PREMIOS(estados, periodo), url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.locator('.ct-premios__destaque').waitFor({ timeout: 15000 })
     await c.page.screenshot({ path: join(CAPTURAS, `dias-${rot.replace(/[^a-z0-9]+/gi, '-')}.png`) })
     const t = await texto(c.page)
@@ -139,7 +139,7 @@ try {
 
   console.log('\nfalha / atraso dos dados de apuração')
   {
-    const c = await abrir(nav, { w: 1440, h: 900, premiosFalha: true, url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 1440, h: 900, premiosFalha: true, url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.getByText(/não estão disponíveis agora/).waitFor({ timeout: 15000 })
     const t = await texto(c.page)
     checar(/Tentar de novo/i.test(t), 'falha: estado honesto com "Tentar de novo"')
@@ -153,13 +153,13 @@ try {
   {
     const c = await abrir(nav, { w: 390, h: 844, toque: true, meuMapa: mapa(7, { extras: 3 }) })
     await c.page.locator('.ct-mapa__ampliar').first().click()
-    await c.page.locator('.ct-jogo__botao').waitFor({ timeout: 10000 })
+    await c.page.locator('[data-atalhos]').waitFor({ timeout: 10000 })
     // aproxima o mapa: o zoom tem que sobreviver a abrir e fechar a folha
     await c.page.getByRole('button', { name: /aproximar/i }).first().click(); await esperar(700)
     const z0 = await c.page.locator('.ct-mundo__palco').getAttribute('data-z')
-    await c.page.locator('.ct-jogo__botao').click()
+    await c.page.locator('[data-atalhos]').click()
     const itens = await c.page.locator('.ct-jogo__item').allInnerTexts()
-    checar(itens.map((s) => s.trim()).join('|') === 'Progresso|Casas|Rota|Prêmios|Ranking|Grupos|Escolher atalhos fixos', `atalhos: ${itens.map((s) => s.trim()).join(' · ')}`)
+    checar(itens.map((s) => s.trim()).join('|') === 'Progresso|Casas|Rota|Prêmios|Ranking|Grupos|Pedir carimbo|Escolher atalhos fixos', `atalhos: ${itens.map((s) => s.trim()).join(' · ')}`)
     await c.page.locator('[data-atalho="premios"]').click()
     await c.page.locator('.ct-premios').waitFor({ timeout: 10000 })
     await c.page.getByText(/Em disputa agora/).waitFor({ timeout: 10000 })
@@ -171,7 +171,7 @@ try {
     await c.page.keyboard.press('Escape'); await esperar(500)
     checar(await c.page.locator('.ct-premios').count() === 0, 'Esc fecha a folha')
     checar(await c.page.locator('.ct-mundo__palco').getAttribute('data-z') === z0, `zoom do mapa preservado (${z0})`)
-    checar(await c.page.locator('.ct-jogo__botao').isVisible(), 'continua na tela cheia, com o botão Atalhos')
+    checar(await c.page.locator('[data-atalhos]').isVisible(), 'continua na tela cheia, com o botão Atalhos')
     checar(c.erros.length === 0, `sem erro de página${c.erros[0] ? ` — ${c.erros[0]}` : ''}`)
     await c.ctx.close()
   }
@@ -180,7 +180,7 @@ try {
   {
     const c = await abrir(nav, { w: 1440, h: 900 })
     await c.page.locator('.ct-mapa__ampliar').first().click()
-    await c.page.locator('.ct-jogo__botao').click()
+    await c.page.locator('[data-atalhos]').click()
     await c.page.locator('[data-atalho="premios"]').click()
     await c.page.getByText(/Em disputa agora/).waitFor({ timeout: 10000 })
     checar(/Criar meu mapa/i.test(await texto(c.page)), 'desktop sem mapa: convite para criar o mapa')

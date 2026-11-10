@@ -7,9 +7,9 @@ export const DISPUTA = {
   titulo: 'O que você disputa',
   fechar: 'Fechar',
   voucherTitulo: {
-    hoje: 'Hoje: 1 voucher em disputa',
-    amanha: 'Amanhã: 1 voucher em disputa',
-    depois: (d) => `${d.semana[0].toUpperCase()}${d.semana.slice(1)}, ${d.curta}: 1 voucher em disputa`,
+    hoje: 'Hoje tem voucher em disputa',
+    amanha: 'Amanhã tem voucher em disputa',
+    depois: (d) => `${d.semana[0].toUpperCase()}${d.semana.slice(1)}, ${d.curta}: voucher em disputa`,
   },
   voucherChamada: {
     hoje: 'A disputa de hoje já está aberta: cada casa nova que você validar te põe na frente.',

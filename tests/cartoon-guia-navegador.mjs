@@ -55,7 +55,7 @@ try {
     await abreEFecha('hub')
 
     // Mapa: o atalho mora na faixa do jogo, fora da tela cheia.
-    await page.goto(`${BASE}/cartoon/mapa`, { waitUntil: 'domcontentloaded' }); await pronto()
+    await page.goto(`${BASE}/cartoon/mapa?tela=normal`, { waitUntil: 'domcontentloaded' }); await pronto()
     checar(await page.locator('.ct-jogo-faixa [data-como-carimbar]').isVisible(), `${nome} · mapa: "Como carimbar?" na faixa do jogo`)
     checar(await page.locator('[data-faixa-jogo="rota"]').isVisible() === (viewport.width >= 900), `${nome} · mapa: Rota na faixa só no computador`)
     await semRolagem('mapa')
@@ -65,6 +65,18 @@ try {
       checar(await page.getByRole('dialog').isVisible(), `${nome} · mapa: ${chave} abre sem tela cheia`)
       await page.keyboard.press('Escape')
     }
+
+    // Modo jogo (10/11/2026): abrir o mapa entra direto na tela cheia, com "Como carimbar?" à mão, e sair devolve ao hub da Caça.
+    await page.goto(`${BASE}/cartoon/mapa`, { waitUntil: 'domcontentloaded' })
+    const cheia = page.locator('.ct-mapa__explorar.is-cheia')
+    await cheia.waitFor({ timeout: 45000 }).catch(() => {})
+    checar(await cheia.count() === 1, `${nome} · jogo: o mapa abre em tela cheia`)
+    checar(await cheia.locator('.ct-jogo__linha [data-como-carimbar]').isVisible(), `${nome} · jogo: "Como carimbar?" na tela cheia`)
+    checar(await cheia.locator('[data-atalho-fixo]').count() === 3, `${nome} · jogo: três atalhos fixos`)
+    await semRolagem('jogo')
+    await cheia.locator('[data-fechar-cheia]').click()
+    await page.waitForURL(/\/cartoon\/caca$/, { timeout: 15000 }).catch(() => {})
+    checar(/\/cartoon\/caca$/.test(new URL(page.url()).pathname), `${nome} · jogo: sair volta ao hub da Caça (${new URL(page.url()).pathname})`)
 
     // Tela do carimbo (QR do display de uma casa): a ajuda está onde a pessoa tenta carimbar.
     const slug = await page.evaluate(async () => (await import('/src/edicao/dados/retrato/cartoon.local.json')).default?.participantes?.[0]?.slug).catch(() => null)

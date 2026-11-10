@@ -50,12 +50,12 @@ export const REGULAMENTO = {
       'Mapa completo é ter carimbo válido em todas as casas da Caça, em qualquer unidade de cada uma.',
       'A organização pode anular carimbos suspeitos; carimbo anulado sai da conta.',
     ]],
-    ['Vouchers digitais, um por dia', [
-      'Nos dias 7, 8, 9, 10 e 11 de novembro, às 17h00 (horário de Natal), a organização confere quem tem mais casas diferentes validadas, contando o que foi carimbado e avaliado até aquele horário. Em empate, vale quem tem mais carimbos extras; persistindo, sorteio entre os empatados, realizado à noite do mesmo dia. Essa pessoa ganha um voucher digital.',
+    ['Vouchers durante o festival', [
+      'Há voucher em disputa nos dias 7, 8, 9, 10, 11, 12 e 13 de novembro: 1 voucher por dia nos dias 7 e 8 e 2 vouchers por dia de 9 a 13. Às 17h00 (horário de Natal) de cada dia a organização confere quem tem mais casas diferentes validadas, contando o que foi carimbado e avaliado até aquele horário. Em empate, vale quem tem mais carimbos extras; persistindo, sorteio entre os empatados, realizado à noite do mesmo dia. Ganham os primeiros dessa ordem, até completar os vouchers do dia.',
       'Carimbo ou avaliação feitos depois do horário de corte só contam nas apurações seguintes.',
-      'Cada pessoa ganha no máximo um voucher: quem já ganhou não entra nas apurações seguintes, e o voucher do dia vai para quem vem a seguir na ordem acima.',
+      'Cada pessoa ganha no máximo um voucher: quem já ganhou não entra nas apurações seguintes, e o voucher vai para quem vem a seguir na ordem acima.',
       'O e-mail do mapa precisa estar confirmado. Quem for selecionado e ainda não confirmou tem até o meio-dia do dia seguinte (horário de Natal) para confirmar; passado o prazo, a organização chama a próxima pessoa. Por isso, confirme o e-mail assim que criar o mapa. Quem perdeu o prazo de um dia ainda pode concorrer nos outros.',
-      'A seleção é conferida pela organização antes de valer. A organização entrega o voucher pelo contato do mapa (WhatsApp, se você informou, ou e-mail) depois da apuração; ele vale até 15/11.',
+      'A seleção é conferida pela organização antes de valer, e quem ganha é avisado no app e pelo contato do mapa. Os vouchers dos dias 7 e 8 são digitais. De 9 a 13/11 o voucher é físico: a pessoa retira no Espaço Reduzido, Av. Abel Cabral, 366, Nova Parnamirim, Parnamirim/RN. Os vouchers valem até 15/11.',
     ]],
     ['Prêmio final', [
       'Concorre quem completar o mapa até o encerramento dos carimbos e das avaliações, no fim do festival (15/11).',

@@ -14,7 +14,7 @@ const [base = 'http://localhost:4181', saida = './capturas-topo', rotulo = 'depo
 fs.mkdirSync(saida, { recursive: true })
 
 const TELAS = [['cel', 390, 844], ['desk', 1440, 900]]
-const PAGINAS = [['entrada', '/cartoon'], ['participantes', '/cartoon/participantes'], ['mapa', '/cartoon/mapa'], ['caca', '/cartoon/caca'], ['avaliar', '/cartoon/avaliar']]
+const PAGINAS = [['entrada', '/cartoon'], ['participantes', '/cartoon/participantes'], ['mapa', '/cartoon/mapa?tela=normal'], ['caca', '/cartoon/caca'], ['avaliar', '/cartoon/avaliar']]
 
 const browser = await chromium.launch()
 const medidas = []

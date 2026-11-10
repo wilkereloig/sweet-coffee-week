@@ -28,7 +28,7 @@ function Voucher ({ foco, corte, periodo }) {
     <section className="ct-premios__destaque" aria-labelledby="premio-voucher">
       <p className="ct-rotulo">{P.proximoRotulo[foco.estado]}</p>
       <h3 id="premio-voucher" className="ct-sub">{P.diaTitulo(foco.data)}</h3>
-      <p className="ct-premios__linha"><strong>{P.umVoucher}</strong><Estado estado={foco.exibe} /></p>
+      <p className="ct-premios__linha"><strong>{P.qVouchers(foco.vouchers)}</strong><Estado estado={foco.exibe} /></p>
       <p className="ct-nota">{foco.estado === 'em_disputa' ? P.hoje : P.estadoDica[foco.exibe]}</p>
       {foco.exibe === 'em_breve' && periodo && <p className="ct-nota">{P.comecaEm(periodo.inicio)}</p>}
       {aberto(foco.estado) && <p className="ct-nota">{P.fimDoDia(corte)}</p>}
@@ -46,7 +46,7 @@ function Dias ({ dados }) {
         {dados.dias.map((d) => (
           <li key={d.iso} className={`ct-premios__dia${d === dados.foco ? ' is-foco' : ''}`}>
             <span className="ct-premios__data"><b>{d.data.curta}</b><span>{d.data.semana}</span></span>
-            <span>{P.umVoucherCurto}</span>
+            <span>{P.vouchersCurto(d.vouchers)}</span>
             <Estado estado={d.exibe} />
           </li>
         ))}
@@ -59,7 +59,7 @@ function Regras ({ dados }) {
   return (
     <details className="ct-premios__regras">
       <summary>{P.regrasTitulo}</summary>
-      <ul>{P.regras(dados.corte, dados.validade, dados.periodo).map((t) => <li key={t}>{t}</li>)}</ul>
+      <ul>{P.regras(dados.corte, dados.validade, dados.periodo, dados.retirada).map((t) => <li key={t}>{t}</li>)}</ul>
     </details>
   )
 }
@@ -98,15 +98,21 @@ function MeusVouchers ({ caca, navigate }) {
       {erroRecebimento && <p className="ct-nota" role="alert">{erroRecebimento}</p>}
       {premios.map((premio) => (
         <article key={premio.id} className={`ct-premios__ganho is-${premio.estado}`}>
-          <div className="ct-premios__ganho-cabeca"><IconeCartoon nome="vouchers" tamanho={52} /><h4>{premio.tipo === 'final' ? 'Seu prêmio final' : premio.estado === 'selecionado' ? 'Você ganhou o direito de escolher um voucher!' : premio.estado === 'entregue' ? 'Seu voucher foi validado' : 'Você ganhou um voucher!'}</h4></div>
+          <div className="ct-premios__ganho-cabeca"><IconeCartoon nome="vouchers" tamanho={52} /><h4>{premio.tipo === 'final' ? 'Seu prêmio final' : premio.retirada && premio.estado !== 'entregue' ? 'Você ganhou um voucher!' : premio.estado === 'selecionado' ? 'Você ganhou o direito de escolher um voucher!' : premio.estado === 'entregue' ? 'Seu voucher foi validado' : 'Você ganhou um voucher!'}</h4></div>
           {premio.dia && <p>Resultado do dia {premio.dia.curta}.</p>}
           {premio.estado === 'selecionado' && !premio.emailConfirmado && (
             <>
-              <p>Confirme o e-mail cadastrado no mapa{premio.prazo ? ` até ${premio.prazo}` : ''}. Depois, você poderá escolher um dos vouchers disponíveis.</p>
+              <p>Confirme o e-mail cadastrado no mapa{premio.prazo ? ` até ${premio.prazo}` : ''}. {premio.retirada ? `Depois, é só retirar o voucher no ${premio.retirada.local}.` : 'Depois, você poderá escolher um dos vouchers disponíveis.'}</p>
               <Botao href={TC.caminhos.central} navigate={navigate}>Ir para confirmar meu e-mail</Botao>
             </>
           )}
-          {premio.tipo === 'voucher_dia' && premio.estado === 'confirmado' && !premio.voucher && (
+          {premio.retirada && premio.estado !== 'entregue' && (premio.estado === 'confirmado' || premio.emailConfirmado) && (
+            <>
+              <p>O voucher é físico. Retire no <strong>{premio.retirada.local}</strong>{premio.retirada.endereco ? `, ${premio.retirada.endereco}` : ''}.</p>
+              <a className="ct-botao ct-botao--acao" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${premio.retirada.local} ${premio.retirada.endereco}`)}`}>Como chegar</a>
+            </>
+          )}
+          {premio.tipo === 'voucher_dia' && premio.estado === 'confirmado' && !premio.voucher && !premio.retirada && (
             <>
               <p>Escolha um combo entre as casas disponíveis. A escolha fica reservada para você.</p>
               {premio.opcoes.map((opcao) => <button key={opcao.id} type="button" className="ct-botao ct-botao--acao" disabled={!!ocupado} aria-busy={ocupado === premio.id || undefined} onClick={() => escolher(premio.id, opcao.id)}>Escolher voucher de {opcao.marca}</button>)}
