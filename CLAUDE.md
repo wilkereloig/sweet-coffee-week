@@ -425,12 +425,14 @@ conceitos longos ficam no acervo como subtítulo de campanha.
 
 Este arquivo carrega em toda conversa, então guarda só o que vale sempre. O resto
 foi movido **sem reescrita** em 03/10/2026, com a mesma numeração de seção — uma
-referência como "§6.12" continua válida, só mora em outro arquivo.
+referência como "§6.12" continua válida, só mora em outro arquivo. Em 10/11/2026 os
+três CLAUDE.md de subpasta viraram índices curtos pelo mesmo critério: o texto
+integral mora em `docs/regras/` e o índice diz qual arquivo abrir.
 
 | Seções | Arquivo | Carrega |
 |---|---|---|
 | §6 Sistema visual · §10.1–10.7 armadilhas de CSS, cor e layout | `src/CLAUDE.md` (índice) → `docs/regras/06a-…`, `06b-…`, `10-1-a-10-7-armadilhas-css.md` | o índice carrega sozinho ao mexer em `src/`; **abrir a seção** antes de mexer |
-| §7 As páginas (Home, Edições, Awards, Participar, Apoiar, Contato, Em breve) | `src/pages/CLAUDE.md` | sozinho, ao mexer em `src/pages/` |
+| §7 As páginas (Home, Edições, Awards, Participar, Apoiar, Contato, Em breve, Documentos legais) | `src/pages/CLAUDE.md` (índice + §7.8 Como manter) → `docs/regras/07-<n>-<página>.md` | o índice carrega sozinho ao mexer em `src/pages/`; **abrir o arquivo da página** antes de mexer |
 | §10.4-b Páginas estáticas, painel, contas, push, Fases 5–18 e o painel da Cartoon | `painel-app/CLAUDE.md` (índice) → `docs/regras/10-4b-painel-01…04-*.md` | o índice carrega sozinho ao mexer em `painel-app/`; **abrir o arquivo da área** antes de mexer |
 | §4 Stack, Supabase, migrations, estrutura de pastas, demolição | `docs/regras/04-stack-e-estrutura.md` | **ler antes** de mexer em banco, Supabase, dependência ou estrutura |
 | §9 O dado do festival (números, Hall, marcas) | `docs/regras/09-dado-do-festival.md` | **ler antes** de exibir ou alterar dado |
