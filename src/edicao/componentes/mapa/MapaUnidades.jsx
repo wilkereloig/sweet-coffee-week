@@ -109,7 +109,7 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
       el.type = 'button'
       if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
         el.className = 'ct-sicredi-marcador'
-        el.append(pinSicredi(p.pin, p.promocao))
+        el.append(pinSicredi(p.pin, p.promocao, { retirada: p.retirada }))
         el.addEventListener('click', () => aoSelecionar(p.id))
         marcadores.current.set(p.id, new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.lng, p.lat]).addTo(m))
         continue
@@ -148,7 +148,7 @@ export default function MapaUnidades ({ pontos, selecionada, aoSelecionar, voce 
         el.classList.toggle('ct-sicredi-marcador--aprox', !!p.aproximada)
         el.classList.toggle('ct-sicredi-marcador--promocao', !!p.promocao)
         el.classList.toggle('is-sel', p.id === selecionada)
-        el.setAttribute('aria-label', [TC.sicrediNomeMarcador(p.titulo, !!p.aproximada), p.promocao].filter(Boolean).join('. '))
+        el.setAttribute('aria-label', [p.nomeMarcador || TC.sicrediNomeMarcador(p.titulo, !!p.aproximada), p.promocao].filter(Boolean).join('. ')) // apoiador traz o próprio nome (apoio.js)
         el.setAttribute('aria-pressed', String(p.id === selecionada))
         continue
       }

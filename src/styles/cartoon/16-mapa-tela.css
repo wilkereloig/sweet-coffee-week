@@ -81,6 +81,11 @@
   .ct-mapa__lateral { display: grid; gap: 16px; min-width: 0; }
   .ct-mapa__lateral > .ct-folha-m--casa { position: fixed; z-index: 40; right: max(16px, var(--ct-trilho)); top: calc(var(--ct-topo-barra) + 12px); width: min(380px, 38vw); }
   .ct-mapa__lateral > .ct-folha-m--casa .ct-mapa__cartao { max-height: calc(100svh - var(--ct-topo-barra) - 28px); overflow: auto; overscroll-behavior: contain; }
+  /* Cartão aberto (fora da tela cheia): a página reserva a coluna dele à direita. Sem isso o cartão fixo ficava por cima da busca,
+     de "Perto de mim", dos Filtros, dos pins e do zoom do mapa (10/11/2026), e esses botões seguiam recebendo foco por baixo dele. */
+  .ct-bloco.ct-mapa:has(> .ct-mapa__corpo > .ct-mapa__lateral > .ct-folha-m--casa):not(:has(.is-cheia)) {
+    padding-right: calc(max(16px, var(--ct-trilho)) + min(380px, 38vw) + 24px);
+  }
 }
 
 /* Barra: vistas · busca · Filtros. Celular: vistas numa linha (colunas iguais), busca + Filtros na de baixo. */
@@ -395,8 +400,15 @@
 /* O cartão da casa na tela cheia: folha embaixo no celular; no desktop, um painel à esquerda sobre o mapa. */
 .is-cheia .ct-folha-m--casa { bottom: var(--scw-aviso-h, 0px); padding-bottom: calc(8px + env(safe-area-inset-bottom)); padding-inline: calc(8px + env(safe-area-inset-left)) calc(8px + env(safe-area-inset-right)); }
 @media (min-width: 900px) {
-  .is-cheia .ct-folha-m--casa { position: absolute; z-index: 6; left: 16px; right: auto; bottom: 16px; width: min(400px, 40%); padding: 0; pointer-events: none; }
+  /* À direita da coluna de botões do jogo (10 + 48 + 12 px): antes o cartão começava em 16 px e a coluna (z 45) ficava sobre a marca e o texto. */
+  .is-cheia .ct-folha-m--casa { position: absolute; z-index: 6; left: calc(70px + env(safe-area-inset-left)); right: auto; bottom: 16px; width: min(400px, 40%); padding: 0; pointer-events: none; }
   .is-cheia .ct-folha-m--casa .ct-mapa__cartao { pointer-events: auto; max-height: calc(var(--ct-mapa-alto) - 32px); overflow: auto; overscroll-behavior: contain; }
+}
+
+/* Celular e tablet na tela cheia: o cartão da casa é uma folha na largura toda, por cima dos atalhos fixos (canto de baixo) e do botão de
+   informação. Enquanto ele está aberto esses controles saem de cena (visibility tira também do Tab e do toque) e voltam ao fechar. */
+@media (max-width: 899.98px) {
+  .is-cheia:has(.ct-folha-m--casa) :is(.ct-jogo__fixos, .ct-mundo__info, .ct-mundo__aviso) { visibility: hidden; }
 }
 
 /* ------------------------------------------------------------- ATALHOS DO JOGO (Atalhos.jsx; só na tela cheia) */
@@ -404,6 +416,10 @@
    no canto de baixo à direita. Sem z-index próprio: cada peça tem o seu (a lista do menu sempre acima do cartão da casa, 40). */
 .ct-jogo { position: absolute; inset: 0; pointer-events: none; }
 .ct-jogo > * { pointer-events: auto; }
+/* A coluna e o grupo de fixos são só arrumação: o toque fica nos botões. Antes o espaço ENTRE os botões pegava o toque e o pin do mapa que
+   aparecesse ali (10/11: Casa Alice na tela cheia do celular) não podia ser escolhido. */
+.ct-jogo > .ct-jogo__linha, .ct-jogo > .ct-jogo__fixos { pointer-events: none; }
+.ct-jogo__linha > *, .ct-jogo__fixos > * { pointer-events: auto; }
 /* Revisão de 07/11: os controles do mapa viram UMA coluna estreita de círculos só com ícone, colada na borda esquerda (antes eram pílulas com texto,
    duas fileiras largas, que cobriam as casas). Atalhos (com o placar como selo) · Perto de mim · os três atalhos fixos. O nome de cada um continua no
    aria-label e no title; a lista dos atalhos abre ao lado da coluna. */

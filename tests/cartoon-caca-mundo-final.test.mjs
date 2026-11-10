@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import { mundoEdicao } from '../src/data/imageLibrary.js'
 import { agenciasSicredi, ehSicredi } from '../src/edicao/caca/mapa/sicredi.js'
+import { completarUnidades } from '../src/edicao/rota/mundo.js'
 
 const pub = fileURLToPath(new URL('../public/', import.meta.url))
 const caminho = (src) => join(pub, src.replace(/^\//, ''))
@@ -112,7 +113,9 @@ test('unidades apontam para a casa que existe e para o ponto da bandeira dela', 
   if (!existsSync(arquivo)) return
   const retrato = JSON.parse(readFileSync(arquivo, 'utf8'))
   const partes = retrato.participantes || retrato
-  assert.deepEqual(partes.flatMap((p) => (p.unidades || []).map((u) => u.id)).filter((id) => !m.unidades[id]), [], 'unidade sem lugar na arte')
+  // Unidade cadastrada depois da arte herda o ponto da casa (completarUnidades, 10/11/2026); só casa sem bandeira fica sem lugar.
+  const completo = completarUnidades(m, partes)
+  assert.deepEqual(partes.flatMap((p) => (p.unidades || []).map((u) => u.id)).filter((id) => !completo.unidades[id]), [], 'unidade sem lugar na arte')
   for (const p of partes) assert.ok(m.casas[p.slug], `${p.slug} sem bandeira na arte`)
 })
 

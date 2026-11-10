@@ -498,7 +498,9 @@ const ICONES_EDICAO = new Set(('inicio casas mapa rota avaliar premio no-local p
   // 06-07/11/2026, atalhos do mapa: vouchers (Prêmios) e pódio com coroa (Ranking), ilustrados — scripts/edicao/icones-atalhos.py
   + 'vouchers ranking '
   // 06/11/2026, atalho do carimbo de delivery: sacola + selo de check (a moto de `delivery` lê como "pedir delivery")
-  + 'carimbo-delivery').split(' '))
+  + 'carimbo-delivery '
+  // 10/11/2026, ponto de retirada dos vouchers (selo do pin do Espaço Reduzido): bilhete + seta + bandeja — scripts/edicao/icones-atalhos.py retirada
+  + 'retirada').split(' '))
 
 /** Ícone ilustrado da edição (192×192, exibir a 32, 48 ou 64 px), ou `null`. Nunca carrega função sozinho: leva texto ao lado. */
 export function iconeEdicao(nome) {

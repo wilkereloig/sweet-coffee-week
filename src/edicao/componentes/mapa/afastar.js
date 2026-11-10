@@ -31,6 +31,12 @@ export function projetar (lat, lng, zoom, tile = 256) {
   return { x: ((lng + 180) / 360) * s, y: (0.5 - Math.log((1 + sen) / (1 - sen)) / (4 * Math.PI)) * s }
 }
 
+/** O inverso de `projetar`: pixels de mundo no zoom dado → { lat, lng }. */
+export function desprojetar (x, y, zoom, tile = 256) {
+  const s = tile * 2 ** zoom
+  return { lat: (Math.atan(Math.sinh(Math.PI - (2 * Math.PI * y) / s)) * 180) / Math.PI, lng: (x / s) * 360 - 180 }
+}
+
 const caixa = (i, dx = 0, dy = 0) => {
   const esq = i.x + dx - (i.ax ?? 0.5) * i.w
   const base = i.y + dy
@@ -134,6 +140,10 @@ export function afastarPins (itens, { folga = FOLGA, limite = LIMITE_GRUPO } = {
 // 11-mundo.css (.ct-pin: --d 54px + cauda) e do Sicredi (.ct-sicredi-pin); tests/cartoon-afastar.test.mjs confere a ligação.
 export const CAIXA_CASA = { w: 62, h: 74 }
 export const CAIXA_SICREDI = { w: 112, h: 56 }
+// Apoiadores (caca/mapa/apoio.js): placa larga (.ct-sicredi-pin--largo) e, no ponto de retirada, o selo "Retirada de vouchers" acima dela.
+export const CAIXA_APOIO = { w: 176, h: 56 }
+export const CAIXA_RETIRADA = { w: 184, h: 98 }
+export const caixaDoPonto = (p) => (p.retirada ? CAIXA_RETIRADA : p.largo ? CAIXA_APOIO : p.sicredi ? CAIXA_SICREDI : CAIXA_CASA)
 export const LIMITE_GRUPO_PERTO = 12 // de perto (zoom ≥ zoomPerto) cabem mais pins no anel antes de virar selo
 export const ZOOM_SEM_SELO = 16 // daqui para cima nunca há selo: no mesmo endereço, todo pin é afastado
 export const ESCALA_LONGE = 0.55 // 16-mapa-tela.css: de longe o pin encolhe a esta fração, em volta da ponta
@@ -149,11 +159,47 @@ export function planejarNoMapa (pontos, { zoom, tile = 256, zoomPerto, seleciona
   const escala = longe ? ESCALA_LONGE : 1
   const itens = pontos.map((p) => {
     const { x, y } = projetar(p.lat, p.lng, zoom, tile)
-    const c = p.sicredi ? CAIXA_SICREDI : CAIXA_CASA
-    return { id: p.id, x, y, w: c.w * escala, h: c.h * escala }
+    const c = caixaDoPonto(p)
+    return { id: p.id, x, y, w: c.w * escala, h: c.h * escala, apoio: !!p.apoio }
   })
+  // Apoiadores (placa larga, às vezes com o selo de retirada) ficam FORA do agrupamento: entrando nele, a placa encostava em dois
+  // grupos de casas e os emendava num selo único da cidade inteira (10/11/2026: "45"), e o ponto de retirada sumia. Primeiro as
+  // casas e o Sicredi, como sempre; depois cada apoiador vai para o lugar livre mais perto do próprio ponto (com fio, se sair dele).
+  const casas = itens.filter((i) => !i.apoio)
   const limite = longe ? LIMITE_GRUPO : zoom < ZOOM_SEM_SELO ? LIMITE_GRUPO_PERTO : Infinity
-  const plano = afastarPins(itens, { limite })
-  if (selecionada && plano.grupos.some((g) => g.ids.includes(selecionada))) return afastarPins(itens, { limite: Infinity })
-  return plano
+  let plano = afastarPins(casas, { limite })
+  if (selecionada && plano.grupos.some((g) => g.ids.includes(selecionada))) plano = afastarPins(casas, { limite: Infinity })
+  return encaixarFixos(plano, casas, itens.filter((i) => i.apoio))
 }
+
+/**
+ * Põe cada pin de `fixos` (sem grupo, sempre à vista) no lugar livre mais perto do seu ponto, sem cobrir pin desenhado, selo de
+ * grupo nem outro fixo. Procura em espiral (anéis de 8 px, 16 direções); fica onde está se já não bate em nada. Estável (ordem do id).
+ */
+export function encaixarFixos (plano, casas, fixos) {
+  if (!fixos.length) return plano
+  const agrupados = new Set(plano.grupos.flatMap((g) => g.ids))
+  const obstaculos = [
+    ...casas.filter((i) => !agrupados.has(i.id)).map((i) => { const d = plano.desloc.get(i.id); return caixa(i, d?.dx || 0, d?.dy || 0) }),
+    ...plano.grupos.map((g) => ({ e: g.x - SELO / 2, d: g.x + SELO / 2, t: g.y - SELO / 2, b: g.y + SELO / 2 })),
+  ]
+  const desloc = new Map(plano.desloc)
+  for (const f of [...fixos].sort(porId)) {
+    let escolha = null
+    for (let raio = 0; raio <= 480 && !escolha; raio += 8) {
+      const passos = raio === 0 ? 1 : 16
+      for (let j = 0; j < passos && !escolha; j++) {
+        const a = -Math.PI / 2 + (Math.PI * 2 * j) / passos // começa por CIMA: o fio desce até o ponto
+        const dx = raio * Math.cos(a); const dy = raio * Math.sin(a)
+        const c = caixa(f, dx, dy)
+        if (!obstaculos.some((o) => batem(c, o)) && !contemAlgum(c, casas)) escolha = { dx, dy, c }
+      }
+    }
+    if (!escolha) escolha = { dx: 0, dy: 0, c: caixa(f) } // sem lugar livre num raio de 480 px: fica no ponto
+    if (escolha.dx || escolha.dy) desloc.set(f.id, { dx: escolha.dx, dy: escolha.dy })
+    obstaculos.push(escolha.c)
+  }
+  return { desloc, grupos: plano.grupos }
+}
+// O corpo do fixo também não pode cobrir o PONTO verdadeiro de uma casa (o fio dela terminaria escondido).
+const contemAlgum = (c, casas) => casas.some((i) => contem(c, i.x, i.y))

@@ -1,5 +1,12 @@
 /* Caça aos Carimbos — central, recuperação e blocos das seções (docs/cartoon-2026-2/15-caca-front.md). Só tokens da edição. */
-.ct-caca { max-width: 960px; }
+/* Container (10/11/2026): a seção ocupa a faixa toda do trilho, com as mesmas margens do cabeçalho. Antes ela tinha
+   max-width: 960px, e o padding do trilho ficava DENTRO desses 960 px: a central terminava perto do meio da tela (x=881 em 1574).
+   Cada bloco escolhe a própria largura dentro da faixa: a central usa tudo; blocos de entrada, ranking e recuperação até 1120 px;
+   texto e formulário curtos ficam mais estreitos. A folha (modal fixo) fica fora do limite. */
+.ct-caca > :not(.ct-folha-m) { max-width: 1120px; }
+.ct-caca > .ct-central { max-width: none; }
+.ct-caca > .ct-lead { max-width: 68ch; }
+.ct-caca > .ct-carimbar__form { max-width: 720px; }
 /* Cabeçalho compacto: sem rótulo repetindo o título, título menor que o do resto da edição e abertura curta. O que a pessoa veio fazer
    (progresso, próximo passo) tem de aparecer sem rolar. */
 .ct-bloco.ct-caca { padding-top: clamp(16px, 3vw, 40px); }
@@ -53,8 +60,14 @@
   .ct-central__entradas { padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-amarelo); }
 }
 @media (min-width: 900px) {
-  .ct-central { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  /* 55 % progresso e próxima ação, 45 % atalhos e opções; topo das duas colunas alinhado. */
+  .ct-central { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: clamp(24px, 2vw, 32px); align-items: start; }
+  /* Atalhos aproveitam a coluna larga: quantos couberem com pelo menos 140 px, rótulo em 14 px. */
+  .ct-central__entradas ul { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .ct-central__entrada { font-size: 14px; padding: 8px 6px; }
 }
+/* Medida de leitura dos parágrafos dentro dos cartões, mesmo com a coluna larga. */
+.ct-central .ct-nota, .ct-central__linha-texto, .ct-central__como ul { max-width: 62ch; }
 
 .ct-central__progresso {
   padding: 14px 16px 6px;
@@ -166,7 +179,7 @@
 
 /* Entrada da Caça: dois caminhos de peso igual no topo — criar o mapa ou recuperar o que já existe (05/11). Celular: um sobre o outro;
    a partir de 720 lado a lado, botões alinhados na base dos dois cartões. */
-.ct-caca__portas { display: grid; gap: 16px; max-width: 680px; margin: 8px 0 24px; }
+.ct-caca__portas { display: grid; gap: 16px; margin: 8px 0 24px; }
 .ct-caca__porta { display: flex; flex-direction: column; margin: 0; padding: 16px 20px 20px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-caca__porta .ct-sub { margin: 0; }
 .ct-caca__porta .ct-acoes { margin-top: auto; padding-top: 16px; }

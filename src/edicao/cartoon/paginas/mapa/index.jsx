@@ -29,7 +29,7 @@ import { EDICAO } from '../../../config.js'
 import * as M from '../../../dados/modelo.js'
 import { mundoEdicao, MARCAS_PARCEIROS } from '../../../../data/imageLibrary'
 import { resolverParadas, pendentes, idsDaBusca } from '../../../rota/minhaRota.js'
-import { casasNoMundo, pontosDaRota, tracado } from '../../../rota/mundo.js'
+import { casasNoMundo, pontosDaRota, tracado, completarUnidades } from '../../../rota/mundo.js'
 import { estadoAlbum, prepararAvaliacao, lerUnidadeCarimbo } from '../../../rota/carimbo.js'
 import { useCaca } from '../../../caca/useCaca.js'
 import { VisitaAnterior } from '../../../caca/visita/VisitaAnterior.jsx'
@@ -46,8 +46,8 @@ import { LegendaEstados } from '../../../caca/mapa/Legenda.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { CasasEmLista } from '../../../caca/mapa/CasasEmLista.jsx'
 import { CartaoSicredi, ListaSicredi } from '../../../caca/mapa/Sicredi.jsx'
-import { APOIOS, ehApoio, apoiosNoMundo } from '../../../caca/mapa/apoio.js'
-import { CartaoApoio } from '../../../caca/mapa/Apoio.jsx'
+import { APOIOS, apoioDoId, apoiosNoMundo, pontosApoio } from '../../../caca/mapa/apoio.js'
+import { CartaoApoio, ListaApoio } from '../../../caca/mapa/Apoio.jsx'
 import { Cobertura } from '../../../caca/mapa/Cobertura.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { Avisos, Carregando } from '../../../componentes/base.jsx'
@@ -100,9 +100,9 @@ const notaDoLugar = (c) => (!c ? T.semCoordenada : c.conferir ? (c.precisao === 
 export function Mapa ({ navigate, dados, abrirRota = false }) {
   const rota = useRota()
   const meu = useCaca()
-  const mundo = React.useMemo(() => mundoEdicao(), [])
+  const arte = React.useMemo(() => mundoEdicao(), [])
   // Arte provisória (não aprovada) só como prévia no DEV: no ar, o Mundo só entra com a arte aprovada pelo Wilker.
-  const comMundo = arteLiberada({ aprovada: mundo.aprovada, dev: !!import.meta.env.DEV })
+  const comMundo = arteLiberada({ aprovada: arte.aprovada, dev: !!import.meta.env.DEV })
   const vistas = comMundo ? VISTAS : VISTAS.slice(1)
   const pedido = React.useMemo(() => new URLSearchParams(location.search), [])
   const compartilhada = React.useMemo(() => idsDaBusca(location.search), [])
@@ -141,6 +141,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const celular = useCelular()
 
   const lista = dados?.participantes || []
+  const mundo = React.useMemo(() => completarUnidades(arte, lista), [arte, lista]) // unidade nova herda o lugar da casa na arte
   const periodo = dados?.edicao
   const [esgotadosHoje, setEsgotadosHoje] = React.useState([])
   React.useEffect(() => {
@@ -168,7 +169,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const agencias = React.useMemo(() => agenciasSicredi(mundo.sicredi), [mundo])
   const agenciasVisiveis = agencias.filter((a) => agenciaCombina(a, f.q))
   const agenciaEscolhida = ehSicredi(sel) ? agencias.find((a) => a.id === sel) || null : null
-  const apoioEscolhido = ehApoio(sel) ? APOIOS.find((a) => a.id === sel) || null : null // apoiador: um pin, cartão com todos os locais
+  const apoioEscolhido = apoioDoId(sel) // apoiador (pin do ilustrado ou de uma das unidades no real): o cartão traz todos os locais
+  const apoiosVisiveis = APOIOS.filter((a) => agenciaCombina({ nome: a.nome, endereco: a.locais.map((l) => `${l.nome} ${l.endereco}`).join(' ') }, f.q))
   const escolhida = agenciaEscolhida || apoioEscolhido ? null : linhas.find((x) => x.u.id === sel) || todas.find((x) => x.u.id === sel) || null
   // `ativos` inclui a busca (o "Limpar filtros" limpa tudo); o contador do botão só conta os filtros da folha.
   const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui, filtroEstado].filter(Boolean).length
@@ -508,7 +510,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
               {vista === 'mundo' && (
                 <>
                   {!mundo.aprovada && <p className="ct-nota ct-mapa__previa" role="note">{TC.previa}</p>}
-                  <Mundo rodaAproxima={cheia} mundo={mundo} casas={casasMundo} agencias={[...agencias.filter((a) => a.x !== null && a.y !== null), ...apoiosNoMundo(MARCAS_PARCEIROS)]} trilha={trilha}
+                  <Mundo rodaAproxima={cheia} mundo={mundo} casas={casasMundo} agencias={[...agencias.filter((a) => a.x !== null && a.y !== null), ...apoiosNoMundo(MARCAS_PARCEIROS, apoiosVisiveis)]} trilha={trilha}
                     selecionada={sel} aoSelecionar={escolher} recentes={recentes} destaque={perto ? destaquePorCasa : null} sobre={painelPerto || null} />
                 </>
               )}
@@ -526,6 +528,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                                 ...p,
                                 promocao: estadoDaCampanha().aberta ? 'Alerta de voucher' : '',
                               })),
+                              ...pontosApoio(MARCAS_PARCEIROS, apoiosVisiveis), // os mesmos apoiadores do ilustrado, um pin por unidade
                             ]} />
                         </ErroDoMapa>
                       </React.Suspense>
@@ -573,6 +576,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                     </div>
                   )}
                   <ListaSicredi agencias={agenciasVisiveis} selecionada={sel} aoSelecionar={escolher} navigate={navigate} />
+                  <ListaApoio apoios={apoiosVisiveis} selecionada={sel} aoSelecionar={escolher} />
                 </>
               )}
             </div>

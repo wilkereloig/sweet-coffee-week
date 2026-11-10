@@ -118,3 +118,12 @@ Pedido do Wilker: um pin por apoiador; ao tocar, o cartão lista todos os locais
   Google; `test:mapa-layout` reprovava. Fica para decidir se vale resolver.
 - `afastar.js`: o anel não sai mais sem arranjo (grupo grande de pins largos estourava o teto de raio e quebrava o mapa).
 - Pendente: não entram na vista "Lista"; posição na arte é calculada, o Wilker pode pedir outra.
+
+## Mapa unificado, ponto de retirada e coordenadas (10/11/2026, quarta leva)
+
+- **Cadastro único dos apoiadores** (`src/edicao/caca/mapa/apoio.js`): o mapa ilustrado, o mapa real e a lista leem a mesma marca, os mesmos locais, endereços e texto do cartão (`CartaoApoio`). Só a posição muda (x/y na arte, lat/lng no real). Senac: 1 pin no ilustrado, 1 por unidade no real (`apoio-senac@<unidade>`), todos abrem o mesmo cartão.
+- **Ponto de retirada** (`tipo: 'retirada'`): ícone `retirada` (bilhete + seta + bandeja, `scripts/edicao/icones-atalhos.py retirada`) e etiqueta "Retirada de vouchers" (`.ct-retirada`, `SeloRetirada.jsx` / `pin.js › seloRetirada`) visíveis com o cartão fechado; o cartão usa só "Ponto oficial de retirada dos vouchers.". Espaço Reduzido movido na arte para um ponto livre (0.87, 0.57).
+- **Mapa real**: apoiadores fora do agrupamento (`afastar.js › encaixarFixos`: vão para o lugar livre mais perto, com fio); no Google o marcador inteiro se move (a área de toque é o marcador). Placa larga encolhe de verdade de longe (`zoom`). A coluna de botões da tela cheia só pega toque nos botões.
+- **Unidade nova sem lugar na arte** herda o ponto da casa (`rota/mundo.js › completarUnidades`).
+- **Coordenadas**: 11 unidades corrigidas no banco e no conteúdo publicado (`scripts/edicao/coordenadas-2026-11-10.sql`, aplicado com ok do Wilker); Sicredi Cidade Verde e São Gonçalo corrigidos em `sicredi.js`. Pendências: número do Sicredi Cidade Verde (1995 × 2349); Mariana's com duas unidades no mesmo endereço.
+- **Caça**: a seção usa a faixa toda do trilho; central em 55/45. **Camadas do mapa**: cartão da casa não fica mais sob os botões do jogo nem sobre busca/zoom.

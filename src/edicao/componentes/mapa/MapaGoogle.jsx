@@ -11,7 +11,7 @@
 import React from 'react'
 import { pinDaCasa, pinSicredi, atualizarPin, marcarRota, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
 import { partesDoNome } from './indicadores.js'
-import { planejarNoMapa } from './afastar.js'
+import { planejarNoMapa, projetar, desprojetar } from './afastar.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
@@ -58,7 +58,7 @@ function elementoDoPonto (p) {
   const el = document.createElement('span')
   if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
     el.className = 'ct-sicredi-marcador'
-    el.append(pinSicredi(p.pin, p.promocao))
+    el.append(pinSicredi(p.pin, p.promocao, { retirada: p.retirada }))
     return el
   }
   el.className = `ct-marcador${p.pin ? ' ct-marcador--pin' : ''}`
@@ -96,6 +96,17 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     feito.current = chave
     const plano = planejarNoMapa(pts, { zoom, tile: 256, zoomPerto: ZOOM_PERTO, selecionada: selecionadaRef.current })
     aplicarAfastamento(plano, pts, { elemento: (id) => marcadores.current.get(id)?.content, fio: (id) => fios.current.get(id)?.content })
+    // Apoiador (placa larga): quem pega o toque no Google é o próprio marcador, que fica onde está a posição dele. Deslocado só no
+    // desenho, ele deixava 176 px invisíveis sobre as casas vizinhas; então o marcador INTEIRO vai para o lugar livre (o fio segue no ponto).
+    for (const p of pts) {
+      if (!p.apoio) continue
+      const mk = marcadores.current.get(p.id)
+      if (!mk) continue
+      const d = plano.desloc.get(p.id)
+      mk.content.style.setProperty('--dx', '0px'); mk.content.style.setProperty('--dy', '0px')
+      const o = projetar(p.lat, p.lng, zoom, 256)
+      mk.position = d ? desprojetar(o.x + d.dx, o.y + d.dy, zoom, 256) : { lat: p.lat, lng: p.lng }
+    }
     for (const s of selos.current) s.map = null
     selos.current = plano.grupos.map((g) => {
       const membros = pts.filter((p) => g.ids.includes(p.id))
@@ -212,7 +223,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       if (p.sicredi) {
         el.classList.toggle('ct-sicredi-marcador--aprox', !!p.aproximada)
         el.classList.toggle('is-sel', p.id === selecionada)
-        mk.setAttribute('aria-label', TC.sicrediNomeMarcador(p.titulo, !!p.aproximada))
+        mk.setAttribute('aria-label', p.nomeMarcador || TC.sicrediNomeMarcador(p.titulo, !!p.aproximada)) // apoiador traz o próprio nome (apoio.js)
         continue
       }
       if (p.pin) { atualizarPin(el.firstElementChild, p.pin); marcarRota(el.firstElementChild, p.foi ? 'foi' : p.quero ? 'quero' : null) } // carimbo novo: a logo passa de P&B a colorida sem refazer o marcador

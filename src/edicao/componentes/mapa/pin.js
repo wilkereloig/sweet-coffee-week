@@ -103,9 +103,26 @@ function atualizarAbertura (caixa, nivel) {
  * pin), de outra forma que o pin das casas (cabeça redonda com a logo colorida). Não é casa e não conta carimbo: isso vai no nome
  * acessível do marcador e no cartão da agência. `pin`: { src } — o arquivo oficial da marca entra de fora.
  */
-export function pinSicredi (pin, promocao = '') {
+/* Selo do ponto de retirada dos vouchers (apoiador `tipo: 'retirada'`, caca/mapa/apoio.js): ícone + rótulo, à vista sem abrir o cartão.
+   O mesmo desenho de SeloRetirada.jsx (mapa ilustrado e cartão), aqui em DOM porque o marcador do mapa real não é React. */
+export function seloRetirada () {
+  const selo = document.createElement('span')
+  selo.className = 'ct-retirada'
+  selo.setAttribute('aria-hidden', 'true') // o nome do marcador já diz "Retirada de vouchers"
+  const icone = document.createElement('img')
+  Object.assign(icone, { className: 'ct-icone', src: iconeEdicao('retirada').src, alt: '', width: 32, height: 32 })
+  const texto = document.createElement('span')
+  texto.className = 'ct-retirada__texto'
+  texto.textContent = 'Retirada de vouchers'
+  selo.append(icone, texto)
+  return selo
+}
+
+/* `pin.largo`: logo de apoiador (bem mais comprida que a do Sicredi). `opcoes.retirada`: ponto de retirada dos vouchers (selo acima da placa). */
+export function pinSicredi (pin, promocao = '', opcoes = {}) {
   const caixa = document.createElement('span')
-  caixa.className = `ct-sicredi-pin${promocao ? ' has-promocao' : ''}`
+  caixa.className = `ct-sicredi-pin${promocao ? ' has-promocao' : ''}${pin.largo ? ' ct-sicredi-pin--largo' : ''}${opcoes.retirada ? ' ct-sicredi-pin--retirada' : ''}`
+  if (opcoes.retirada) caixa.append(seloRetirada())
   if (promocao) {
     const selo = document.createElement('span')
     selo.className = 'ct-sicredi-pin__promocao'
