@@ -235,11 +235,12 @@ begin
     then raise exception 'e-mail confirmado deveria nascer confirmado: %', r -> 'novo_premio'; end if;
   select pessoa into v_y from public.caca_premio where id = prem3d;
 
-  -- 11. Índices únicos: 2 ativos da mesma pessoa, ou 2 ativos no mesmo dia, são impossíveis.
+  -- 11. Índice único: 2 vouchers ativos da mesma pessoa são impossíveis.
   perform pg_temp.espera(format($q$insert into public.caca_premio (edicao_codigo, tipo, dia, pessoa, estado) values (%L,'voucher_dia',%L::date,%L,'selecionado')$q$, ed, d2, v_y),
                          'duplicate key%caca_premio_voucher_pessoa_ativo%');
-  perform pg_temp.espera(format($q$insert into public.caca_premio (edicao_codigo, tipo, dia, pessoa, estado) values (%L,'voucher_dia',%L::date,%L,'selecionado')$q$, ed, d3, e5),
-                         'duplicate key%caca_premio_voucher_dia_ativo%');
+  -- 10/11/2026 (migration 20270117): o índice "um ativo por dia" saiu, porque o dia pode ter mais de um voucher (voucher_qtd_por_dia).
+  -- A trava do dia passou para caca_premio_dia_criar ('dia_completo'), conferida no ensaio descrito em
+  -- docs/cartoon-2026-2/17-atualizacao-usabilidade-2026-11-09.md. O índice por pessoa (acima) continua.
 
   -- 12. Entrega e transições proibidas.
   r := public.caca_premio_acao('x', prem3d, 'entregar');

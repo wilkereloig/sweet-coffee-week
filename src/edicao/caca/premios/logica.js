@@ -57,7 +57,7 @@ export function organizarPremios (dado) {
   const lista = Array.isArray(dado?.dias) ? dado.dias : []
   const periodo = organizarPeriodo(dado?.periodo)
   const dias = lista
-    .map((d) => ({ iso: String(d?.dia ?? ''), estado: d?.estado, data: descreverData(d?.dia) }))
+    .map((d) => ({ iso: String(d?.dia ?? ''), estado: d?.estado, data: descreverData(d?.dia), vouchers: inteiro(d?.vouchers) > 0 ? inteiro(d?.vouchers) : 1, fisico: d?.fisico === true }))
     .filter((d) => d.data && ESTADOS_DO_DIA.includes(d.estado))
     .sort((a, b) => (a.iso < b.iso ? -1 : 1))
     .map((d) => ({ ...d, exibe: estadoExibido(d.estado, periodo) }))
@@ -72,8 +72,15 @@ export function organizarPremios (dado) {
     apurando: dias.filter((d) => d.estado === 'em_apuracao' && d !== foco), // dia encerrado que a organização ainda não confirmou
     corte: horaDoCorte(dado?.corte_hora_local),
     validade: descreverData(dado?.voucher_validade_ate),
+    retirada: organizarRetirada(dado?.voucher_retirada), // voucher físico: onde retirar e desde quando (config do servidor)
     ganhadores: ganhadores > 0 ? ganhadores : null,
   }
+}
+
+/** Local de retirada do voucher físico (`voucher_retirada`): só com nome do local; endereço e data de início são opcionais. */
+export function organizarRetirada (r) {
+  if (!r || typeof r.local !== 'string' || !r.local.trim()) return null
+  return { local: r.local.trim(), endereco: typeof r.endereco === 'string' ? r.endereco.trim() : '', desde: descreverData(r.desde) }
 }
 
 /** Dados privados da RPC caca_meus_premios: normaliza apenas vouchers ativos do próprio mapa. */
@@ -88,6 +95,7 @@ export function organizarMeusPremios (lista) {
       dia: descreverData(p.dia),
       estado: p.estado,
       prazo: dataHoraNatal(p.prazo_ate),
+      retirada: organizarRetirada(p.retirada),
       validade: descreverData(p.valido_ate),
       emailConfirmado: p.email_confirmado === true,
       recebidoEm: dataHoraNatal(p.recebido_em),

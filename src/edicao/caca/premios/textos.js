@@ -7,20 +7,22 @@ export const PREMIOS = {
   intro: 'Valide casas diferentes para concorrer a vouchers durante o festival e ao prêmio final.',
   // Voucher do dia
   vouchersTitulo: 'Vouchers durante o festival',
-  vouchersResumo: (n) => (n === 1 ? '1 dia, com 1 voucher em disputa' : `${n} dias, com 1 voucher em disputa por dia`),
+  vouchersResumo: (n) => (n === 1 ? '1 dia com voucher em disputa' : `${n} dias com voucher em disputa`),
   proximoRotulo: { em_disputa: 'Em disputa agora', proximo: 'Próximo voucher', em_apuracao: 'Em apuração', resultado: 'Último resultado' },
   diaTitulo: (d) => `${d.semana[0].toUpperCase()}${d.semana.slice(1)}, ${d.longa}`,
-  umVoucher: '1 voucher em disputa',
-  umVoucherCurto: '1 voucher',
+  // A quantidade do dia vem do servidor (`vouchers`): 1 nos primeiros dias, 2 depois.
+  qVouchers: (n) => (n === 1 ? '1 voucher em disputa' : `${n} vouchers em disputa`),
+  vouchersCurto: (n) => (n === 1 ? '1 voucher' : `${n} vouchers`),
+  retirada: (r) => `Voucher físico: quem ganha retira no ${r.local}${r.endereco ? ` (${r.endereco})` : ''}.`,
   // Estado EXIBIDO do dia (logica.js › estadoExibido): 'andamento' = Caça aberta (os carimbos validados já contam para o corte do dia);
   // 'em_breve' = a Caça ainda não abriu; 'agendado' = sem informação do período (nada é afirmado).
   estado: { em_breve: 'Em breve', andamento: 'Disputa em andamento', agendado: 'Dia de voucher', em_apuracao: 'Em apuração', resultado: 'Resultado confirmado' },
   estadoDica: {
     em_breve: 'A disputa deste dia ainda não começou.',
     andamento: 'A disputa já está aberta: você já pode acumular carimbos para este voucher.',
-    agendado: 'Neste dia há 1 voucher em disputa. As regras estão logo abaixo.',
+    agendado: 'Neste dia há voucher em disputa. As regras estão logo abaixo.',
     em_apuracao: 'O dia encerrou. A organização apura e confirma o resultado; ainda não há confirmação.',
-    resultado: 'A organização já confirmou o voucher deste dia. Quem ganhou recebe o aviso pelo contato do mapa.',
+    resultado: 'A organização já confirmou o voucher deste dia. Quem ganhou recebe o aviso no app e pelo contato do mapa.',
   },
   comoConcorre: (corte) => `Conta quem tem mais casas diferentes validadas até ${corte ? `as ${corte}` : 'o fim'} do dia (horário de Natal).`,
   fimDoDia: (corte) => `Quem tiver mais casas diferentes validadas${corte ? ` até as ${corte}` : ' até o corte'} (horário de Natal) concorre ao voucher do dia, e o sorteio é à noite. Em caso de empate, desempatam os carimbos extras e, se ainda empatar, há sorteio entre as pessoas empatadas.`,
@@ -35,7 +37,7 @@ export const PREMIOS = {
   tentar: 'Tentar de novo',
   carregando: 'Carregando os prêmios…',
   regrasTitulo: 'Como o voucher do dia é decidido',
-  regras: (corte, validade, periodo) => [
+  regras: (corte, validade, periodo, retirada) => [
     ...(periodo ? [`A Caça aos Carimbos acontece de ${periodo.inicio.longa} a ${periodo.fim.longa}.`] : []),
     `A classificação considera primeiro quem tem mais casas diferentes validadas até ${corte ? `as ${corte}` : 'o fim'} do dia.`,
     'Empate: os carimbos extras de revisitas desempatam. Se ainda empatar, há sorteio entre as pessoas empatadas.',
@@ -43,6 +45,7 @@ export const PREMIOS = {
     'Uma casa só conta na apuração quando o carimbo está validado pela avaliação. Carimbo pendente ainda não conta.',
     `A apuração fecha${corte ? ` às ${corte}` : ' no horário de corte'} e o sorteio acontece à noite do mesmo dia.`,
     validade ? `Os vouchers desta ação valem até ${validade.longa}.` : 'A validade dos vouchers está no regulamento.',
+    ...(retirada ? [`${retirada.desde ? `A partir de ${retirada.desde.longa}, o` : 'O'} voucher é físico: quem ganha é avisado e retira no ${retirada.local}${retirada.endereco ? `, ${retirada.endereco}` : ''}.`] : []),
   ],
   // Prêmio final
   finalTitulo: 'Prêmio final',

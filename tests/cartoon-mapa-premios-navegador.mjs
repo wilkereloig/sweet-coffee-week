@@ -81,7 +81,7 @@ try {
     await c.page.getByText('Em disputa agora').waitFor({ timeout: 10000 })
     const t = await texto(c.page)
     checar(/Em disputa agora/i.test(t) && /Domingo, 8 de novembro/.test(t), 'mostra primeiro o voucher relevante: o dia em disputa (8 de novembro)')
-    checar(/1 voucher em disputa/.test(t) && /5 dias, com 1 voucher em disputa por dia/.test(t), 'um voucher por dia, 5 dias (vindos do servidor)')
+    checar(/1 voucher em disputa/.test(t) && /5 dias com voucher em disputa/.test(t), 'um voucher por dia, 5 dias (vindos do servidor)')
     checar(/Complete as \d+ casas/.test(t) && /3 ganhadores previstos/.test(t) && /press kit oficial da edição e uma surpresa/.test(t), 'prêmio final: completar as casas, 3 ganhadores, press kit e surpresa')
     checar(/não uma chance garantida/.test(t) && !/%/.test(t), 'vantagem dos extras sem percentual nem promessa')
     checar(/Criar meu mapa/i.test(t), 'sem mapa: ação clara para criar o mapa, sem bloquear a consulta')
