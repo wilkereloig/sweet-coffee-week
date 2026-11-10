@@ -29,8 +29,8 @@ import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM, ICONE } 
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
 // [chave do filtro, chave da restrição em M.RESTRICOES]
-const FILTROS_RESTRICAO = [['vegano', 'vegano'], ['semAcucar', 'acucar'], ['semGluten', 'gluten'], ['semLactose', 'lactose']]
-const VAZIO = { q: '', bairro: '', modo: '', aberto: false, hoje: false, vegano: false, semAcucar: false, semGluten: false, semLactose: false }
+const FILTROS_RESTRICAO = [['vegetariano', 'vegetariano'], ['vegano', 'vegano'], ['semAcucar', 'acucar'], ['semGluten', 'gluten'], ['semLactose', 'lactose']]
+const VAZIO = { q: '', bairro: '', modo: '', aberto: false, hoje: false, vegano: false, vegetariano: false, semAcucar: false, semGluten: false, semLactose: false }
 
 function guardarPosicao () {
   try { sessionStorage.setItem(CHAVE_POSICAO, JSON.stringify({ url: location.pathname + location.search, y: scrollY })) } catch { /* sem storage */ }
@@ -49,7 +49,9 @@ function restaurarPosicao () {
 function selosDaCasa (p) {
   const modos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim').map((k) => ATENDIMENTO[k])
   const restricoes = M.RESTRICOES.map((r) => r.chave).filter((k) => M.veredito(p.combo?.itens, k) === 'sim').map((k) => RESTRICAO[k])
-  return [...modos, ...restricoes]
+  const veg = M.opcaoVegetariana(p.combo?.itens)
+  const vegetariano = veg === 'nao' ? [] : [{ ...RESTRICAO.vegetariano, rotulo: veg === 'troca' ? RESTRICAO.vegetariano.rotuloTroca : RESTRICAO.vegetariano.rotulo }]
+  return [...modos, ...vegetariano, ...restricoes]
 }
 
 function Cartao ({ p, modo, navigate, encerrada }) {
@@ -118,7 +120,7 @@ export function Catalogo ({ modo, navigate, dados }) {
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, dados.edicao), [lista, dados.edicao])
   const agora = useAgora() // "Com combo hoje" acompanha o relógio: a lista aberta a noite toda não congela o horário
   const filtrados = React.useMemo(() => M.filtrar(lista, f, agora), [lista, f, agora])
-  const ativos = [f.bairro, f.modo, f.hoje, f.vegano, f.semAcucar, f.semGluten, f.semLactose].filter(Boolean).length
+  const ativos = [f.bairro, f.modo, f.hoje, f.vegano, f.vegetariano, f.semAcucar, f.semGluten, f.semLactose].filter(Boolean).length
   const restricoes = FILTROS_RESTRICAO.filter(([k]) => opcoes[k])
   const combos = modo === 'combos'
   // O preço é o da edição (o mesmo em todas as casas): no topo dos combos, o preço em letreiro "Combo R$ …".
@@ -211,7 +213,8 @@ export function Catalogo ({ modo, navigate, dados }) {
                     <Chip key={k} ativo={f[k]} icone={RESTRICAO[chave].icone} onClick={() => muda(k, !f[k])}>{RESTRICAO[chave].rotulo}</Chip>
                   ))}
                 </div>
-                <p className="ct-nota">{T.declarado}</p>
+                {restricoes.some(([k]) => k !== 'vegetariano') && <p className="ct-nota">{T.declarado}</p>}
+                {opcoes.vegetariano && <p className="ct-nota">{T.declaradoVegetariano}</p>}
               </fieldset>
             )}
           </div>
