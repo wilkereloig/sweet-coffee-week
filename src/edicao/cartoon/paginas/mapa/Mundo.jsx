@@ -348,10 +348,10 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
             ) : null
           })}
           {agencias.map((a) => (
-            <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={`${TC.sicrediNoMundo(a.nome, a.endereco)}${campanha.aberta ? `. ${chamadaSicredi}` : ''}`}
-              className={`ct-mundo__sicredi${campanha.aberta ? ' tem-promocao' : ''}${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
-              <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={mundo.sicrediLogo} alt="" draggable={false} /></span>
-              {campanha.aberta && <span className="ct-mundo__sicredi-promocao" aria-hidden="true"><IconeCartoon nome="vouchers" tamanho={32} /></span>}
+            <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={`${a.nomeAcessivel || TC.sicrediNoMundo(a.nome, a.endereco)}${campanha.aberta && !a.apoio ? `. ${chamadaSicredi}` : ''}`}
+              className={`ct-mundo__sicredi${a.apoio ? ' ct-mundo__sicredi--largo' : campanha.aberta ? ' tem-promocao' : ''}${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
+              <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={a.logo || mundo.sicrediLogo} alt="" draggable={false} /></span>
+              {campanha.aberta && !a.apoio && <span className="ct-mundo__sicredi-promocao" aria-hidden="true"><IconeCartoon nome="vouchers" tamanho={32} /></span>}
             </button>
           ))}
           {grupos.map((c) => {

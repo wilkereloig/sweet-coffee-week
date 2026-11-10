@@ -291,6 +291,12 @@
 .ct-caca-mapa__sicredi-selo { display: inline-block; padding: 0 8px; border: 2px solid var(--ct-chocolate); border-radius: 6px; background: var(--ct-branco); font: 800 12px/1.5 var(--ct-font); text-transform: uppercase; letter-spacing: .04em; }
 .ct-caca-mapa__sicredi-logo { display: block; width: 80px; height: auto; }
 .ct-caca-mapa__sicredi-cartao { border-style: dashed; }
+/* Apoiadores (Senac, Espaço Reduzido): logo comprida pede placa mais larga; o cartão lista todos os locais da marca. */
+.ct-mundo__sicredi--largo { width: max(44px, calc(var(--d) * 2.7)); }
+.ct-caca-mapa__apoio-logo { display: block; width: 120px; height: auto; }
+.ct-caca-mapa__apoio-locais { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.ct-caca-mapa__apoio-locais li { display: grid; justify-items: start; gap: 6px; padding-top: 12px; border-top: 2px dashed var(--ct-chocolate); }
+.ct-caca-mapa__apoio-locais strong { font: 800 16px/1.3 var(--ct-font); }
 .ct-caca-mapa__sicredi-aviso { margin: 0; }
 .ct-caca-mapa__carimbo-sicredi {
   display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 8px 12px;

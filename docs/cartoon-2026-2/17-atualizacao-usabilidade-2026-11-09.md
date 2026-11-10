@@ -78,3 +78,43 @@ classificação nem entra em prêmio; quem não avançou não aparece (ausência
 - **Defeitos reais corrigidos antes de publicar:** raio literal em `inicio-marca.css`, ícone `mecanica/voucher` em tamanho fora da
   escala (`Sicredi.jsx`), e a faixa do jogo empurrando o mapa para fora da primeira dobra no celular (agora duas fileiras).
 - **Seguem abertos:** pins de Senac e Espaço Reduzido (faltam unidades e endereços) e observar o uso real de "como carimbar".
+
+## Segunda leva de 10/11/2026 (publicada, master `688f39ec`)
+
+Pedido do Wilker por áudio. Decisões dele: ganham os 2 com mais casas no dia (sorteio só no empate), 1 voucher por pessoa, valendo
+do dia 9 ao 13, voucher físico retirado no Espaço Reduzido; pin do Senac só na Faculdade Senac RN.
+
+| Área | O que mudou |
+|---|---|
+| Vouchers | Migration `20270117` (aplicada): `voucher_qtd_por_dia` (1 em 7 e 8; 2 de 9 a 13), `voucher_retirada` (Espaço Reduzido, Av. Abel Cabral, 366, Nova Parnamirim), dias até 13/11. Sai o índice "um ativo por dia"; a trava é a contagem em `caca_premio_dia_criar` (`dia_completo`). `caca_apurar_dia` completa o dia e devolve `premios[]`. Voucher físico não exige a reserva digital, o aviso ao ganhador diz o local e a tela de Prêmios mostra "N vouchers em disputa" e o bloco de retirada. Painel: "Completar ganhadores do dia". Regulamento reescrito na seção de vouchers |
+| Ensaio | Apuração do dia 9 simulada numa transação desfeita: 2 ganhadores diferentes, terceiro recusado (`dia_completo`), retirada no detalhe, 2 avisos. Nada ficou gravado. A apuração real do dia 9 é feita pela organização no painel |
+| Mapa na Caça | Abrir o mapa entra direto na tela cheia; "Sair" volta ao hub da Caça. `?tela=normal` mantém a página comum (usada pelos testes de layout). "Como carimbar?" virou botão "?" na coluna da tela cheia. O pop-up "O que você disputa" passou para o hub. A linha de avisos do computador saiu da tela cheia (empurrava a barra e o botão dos atalhos cobria o "Sair") |
+| Cadastro da Caça | Campo Instagram opcional (`mapas_lover.instagram`, função `mapa_definir_instagram`, migration `20270118` aplicada) |
+| Avaliação | Duas perguntas novas, opcionais: "O que você está achando do festival?" e "Tem alguma sugestão para o festival?" (`avaliacoes.comentario_evento`, `sugestao_festival`, função `avaliacao_complementar`). A pergunta que já existia virou "Quer comentar algum detalhe deste combo?". A leitura da organização (`get_avaliacoes_dados`) traz os campos novos |
+
+**Não feito nesta leva**
+
+- **Pins de apoiadores.** Espaço Reduzido: endereço e ponto conferidos no Google Maps (-5.8742499, -35.2169532), mas o pin não foi
+  criado: o padrão do Sicredi mistura marcador, cartão de campanha e posição na arte ilustrada, e generalizar isso pede um trabalho
+  próprio (e a posição na arte é escolha do Wilker). Faculdade Senac RN: o Google Maps não tem a faculdade como lugar, só cinco
+  unidades do Senac (Zona Sul, Cidade Alta, Alecrim, Zona Norte, Barreira Roxa). Falta saber em qual delas fica.
+- **Tela do painel para ler as respostas novas da avaliação e o Instagram dos mapas.** Os dados são gravados e saem na leitura da
+  organização; não há coluna nova nas telas.
+- **"Confirmar que recebi"** não aparece no voucher físico: quem marca a entrega é a organização ("Entregar", no painel).
+
+**Erro meu nesta leva:** um `git add tests/` levou para a dev 832 arquivos soltos (capturas e rascunhos de teste de outras sessões).
+Foram retirados no commit seguinte e a `master` recebeu o conteúdo por commit único, sem eles; os arquivos seguem no disco. O
+histórico da `dev` ainda guarda esses arquivos (commits `8c3c96bc` e `081dc113`).
+
+## Pins de apoio no mapa ilustrado (10/11/2026, terceira leva)
+
+Pedido do Wilker: um pin por apoiador; ao tocar, o cartão lista todos os locais.
+
+- `src/edicao/caca/mapa/apoio.js` (dados e posição na arte) e `Apoio.jsx` (cartão). O pin reaproveita a placa do Sicredi no
+  `Mundo.jsx` (`a.apoio`, `a.logo`, `a.nomeAcessivel`).
+- Senac: cinco unidades de Natal, endereços de rn.senac.br/unidades. O pin único fica na posição da unidade Alecrim.
+- Espaço Reduzido: Av. Abel Cabral, 366, Nova Parnamirim (retirada do voucher físico).
+- Só no mapa ilustrado. No mapa real os pins entravam no afastamento e empurravam pin de casa para baixo do rodapé do
+  Google; `test:mapa-layout` reprovava. Fica para decidir se vale resolver.
+- `afastar.js`: o anel não sai mais sem arranjo (grupo grande de pins largos estourava o teto de raio e quebrava o mapa).
+- Pendente: não entram na vista "Lista"; posição na arte é calculada, o Wilker pode pedir outra.

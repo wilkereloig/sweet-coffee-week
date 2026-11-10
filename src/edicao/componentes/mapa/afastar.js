@@ -61,7 +61,7 @@ function anel (membros) {
   })
   const livres = (lugares) => lugares.every((p, i) => lugares.every((q, j) => j <= i || Math.abs(p.cx - q.cx) >= gabarito.w || Math.abs(p.cy - q.cy) >= gabarito.h))
   let escolha = null
-  for (let raio = Math.max(24, (w + ESPACO) / 2); raio < 600 && !escolha?.limpo; raio += 2) {
+  for (let raio = Math.max(24, (w + ESPACO) / 2); (raio < 600 || !escolha) && !escolha?.limpo; raio += 2) { // sem teto enquanto não houver NENHUM arranjo: grupo grande de pins largos precisa de raio maior, e sair sem escolha quebrava o mapa
     for (const inicio of inicios) {
       const lugares = lugaresDe(inicio, raio)
       if (!livres(lugares)) continue
