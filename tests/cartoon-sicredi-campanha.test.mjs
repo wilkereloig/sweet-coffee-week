@@ -135,7 +135,7 @@ test('entradas: cartão da agência, lista, painel de Prêmios, Metas, rodapé e
   assert.doesNotMatch(mapa, /<AssinaturaPatrocinio[^>]*\bdestaque\b/)
   const campanha = semComentarios(ler('src/edicao/caca/campanha/Campanha.jsx'))
   assert.doesNotMatch(campanha, /<a\s+href/, 'link interno nunca é <a href> cru (recarregaria o app)')
-  assert.match(campanha, /if \(!e\.aberta\) return null/, 'some depois de 11/11')
+  assert.match(campanha, /if \(!e\.aberta\) return null/, 'some depois de 13/11')
 })
 
 test('a agência não vira casa; campanha concede carimbo especial após aprovação', () => {

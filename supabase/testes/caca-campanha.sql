@@ -17,6 +17,7 @@ begin
   assert v_cnt = (r ->> 'pessoas')::int, 'cada mapa principal tem a sua entrega';
   select a.corpo into v_txt from caca_aviso a where a.chave_dedupe = 'camp:sicredi:2026-11-08';
   assert v_txt not ilike '%sorteio%' and v_txt like '%#TerComQuemContar%', 'texto: sem sorteio, com a hashtag';
+  assert v_txt like '%até 13/11%' and length(v_txt) <= 240, 'o prazo do texto vem de campanha_sicredi.fim (padrão 13/11)';
 
   r := caca_campanha_gerar('2026-11-08T13:20:00Z');
   assert (r ->> 'avisos')::int = 0, 'reprocessar não duplica';
@@ -26,12 +27,12 @@ begin
 
   assert caca_campanha_gerar('2026-11-08T18:00:00Z') ->> 'fora_do_horario' = 'true', '15h: não nasce atrasado';
   v_out := v_out || ' | fora_do_horario';
-  r := caca_campanha_gerar('2026-11-11T13:05:00Z');
+  r := caca_campanha_gerar('2026-11-13T13:05:00Z');
   assert (r ->> 'avisos')::int = 1, 'último dia gera';
-  select a.titulo into v_txt from caca_aviso a where a.chave_dedupe = 'camp:sicredi:2026-11-11';
+  select a.titulo into v_txt from caca_aviso a where a.chave_dedupe = 'camp:sicredi:2026-11-13';
   assert v_txt like 'Último dia%', 'último dia tem título próprio';
   v_out := v_out || ' | ultimo_dia';
-  assert caca_campanha_gerar('2026-11-12T13:05:00Z') ->> 'encerrada' = 'true', 'depois de 11/11 não nasce';
+  assert caca_campanha_gerar('2026-11-14T13:05:00Z') ->> 'encerrada' = 'true', 'depois de 13/11 não nasce';
   v_out := v_out || ' | encerrada';
 
   -- preferência: a chave existe e vem desligada; push só com a preferência ligada
