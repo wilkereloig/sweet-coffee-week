@@ -414,6 +414,8 @@
 .ct-jogo__botao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
 .ct-jogo__botao > span:not(.ct-jogo__placar), .ct-jogo__linha .ct-mapa__perto-botao > span, .ct-jogo__fixo > span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .ct-jogo__linha { position: absolute; z-index: 45; top: calc(var(--ct-barra-h) + 10px); left: calc(10px + env(safe-area-inset-left)); display: grid; gap: 8px; justify-items: start; }
+/* "Como carimbar?" na coluna da tela cheia: o círculo mostra só o "?" (o nome segue no botão, para leitor de tela). */
+.ct-jogo__linha .ct-jogo__botao > span.ct-guia__interrogacao { position: static; width: 26px; height: 26px; margin: 0; overflow: visible; clip: auto; background: var(--ct-creme); }
 .ct-jogo__linha .ct-mapa__perto-botao { display: inline-grid; place-items: center; width: 48px; min-height: 48px; height: 48px; padding: 0; border-radius: 50%; }
 /* O placar ("2/26") vira um selo no canto do botão: o número continua à vista, sem gastar largura. */
 .ct-jogo__placar { position: absolute; top: -7px; left: 30px; display: inline-grid; place-items: center; min-width: 30px; height: 20px; padding: 0 5px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 900 11px/1 var(--ct-font); }
@@ -524,6 +526,8 @@
   .ct-mapa__avisos-desktop { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-bottom: 10px; font: 800 14px/1.2 var(--ct-font); }
   .ct-mapa__avisos-desktop .ct-botao { min-height: 44px; }
 }
+/* Na tela cheia a linha dos avisos sai: ela empurrava a barra para baixo e o botão dos atalhos cobria o "Sair". Os avisos ficam no hub da Caça. */
+.is-cheia .ct-mapa__avisos-desktop { display: none; }
 .ct-painel-rota .ct-rota__secao { display: grid; align-content: start; gap: 8px; padding: 14px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
 .ct-painel-rota .ct-rota__secao .ct-letreiro { margin: 0; }
 .ct-painel-rota .ct-rota__secao .ct-letreiro__linha { font-size: clamp(20px, 2vw, 25px); }

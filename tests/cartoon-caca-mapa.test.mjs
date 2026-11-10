@@ -340,7 +340,7 @@ test('casas × endereços: a Caça conta casas; uma casa com vários endereços 
 
 test('textos da tela cheia e do painel: nomes claros, sem "votar", sem "Sweet" sozinho', () => {
   assert.equal(T.telaCheiaAbrir, 'Abrir mapa em tela cheia')
-  assert.equal(T.telaCheiaFechar, 'Fechar tela cheia')
+  assert.equal(T.telaCheiaFechar, 'Sair do mapa')
   assert.match(T.telaCheiaAbrir.toLowerCase(), new RegExp(T.telaCheiaAbrirCurto.toLowerCase()), 'o rótulo curto visível cabe no nome acessível (WCAG 2.5.3)')
   assert.equal(T.minhaRotaConta(0), 'Minha rota, sem paradas')
   assert.equal(T.minhaRotaConta(1), 'Minha rota, 1 parada')

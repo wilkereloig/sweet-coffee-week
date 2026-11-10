@@ -125,7 +125,7 @@ try {
       page.on('pageerror', (e) => erros.push(String(e)))
 
       for (const vista of ['mundo', 'real', 'lista']) {
-        await page.goto(`${BASE}/cartoon/mapa?preview=1&vista=${vista}`, { waitUntil: 'domcontentloaded' })
+        await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1&vista=${vista}`, { waitUntil: 'domcontentloaded' })
         await page.locator('.ct-mapa').first().waitFor()
         if (vista === 'mundo') await page.locator('.ct-mundo__casa').first().waitFor()
         if (vista === 'real') {

@@ -59,7 +59,7 @@ async function abrir (nav, { w, h, toque = false }) {
   const page = await ctx.newPage()
   const erros = []
   page.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 200)))
-  await page.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
   await entrarNaTelaCheia(page)
   return { ctx, page, erros }
 }
@@ -188,7 +188,7 @@ try {
     await ctx.route('**/challenges.cloudflare.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }))
     const p = await ctx.newPage()
     const erros = []; p.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 160)))
-    await p.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
+    await p.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
     await entrarNaTelaCheia(p)
     checar((await nomesFixos(p)).join('|') === 'Progresso|Prêmios|Ranking', 'armazenamento bloqueado: padrão, sem quebrar')
     await p.locator('.ct-jogo__botao').click(); await p.locator('[data-config-fixos]').click()

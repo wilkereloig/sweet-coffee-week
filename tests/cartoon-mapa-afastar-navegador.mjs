@@ -68,7 +68,7 @@ async function abrir (nav, { w, h, toque = false }) {
   const page = await ctx.newPage()
   const erros = []
   page.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 200)))
-  await page.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
   await page.locator('.ct-mundo__palco').waitFor({ timeout: 30000 })
   await page.locator('.ct-mundo__casa').first().waitFor({ state: 'attached', timeout: 30000 })
   await page.evaluate(() => document.querySelector('.ct-mapa__moldura').scrollIntoView({ block: 'start' }))

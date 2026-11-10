@@ -59,7 +59,7 @@ async function abrir (nav, { w, h, toque = false, hora = '13:30', vista = '', re
   const erros = []
   page.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 200)))
   await page.clock.install({ time: HORA(hora) }) // o relógio do navegador: andamos nele com fastForward
-  await page.goto(`${BASE}/cartoon/mapa?preview=1${vista ? `&vista=${vista}` : ''}`, { waitUntil: 'networkidle', timeout: 120000 })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1${vista ? `&vista=${vista}` : ''}`, { waitUntil: 'networkidle', timeout: 120000 })
   return { ctx, page, erros }
 }
 
@@ -174,7 +174,7 @@ try {
     await ctx.route('**/challenges.cloudflare.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }))
     const p = await ctx.newPage()
     await p.clock.install({ time: new Date('2026-11-01T12:00:00-03:00') })
-    await p.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
+    await p.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
     await p.locator('.ct-mundo__casa').first().waitFor({ timeout: 30000 })
     const fora = await lerMundo(p)
     checar(fora.every((x) => !x.tem && !x.abertura), `antes do festival: nenhum pin afirma aberto nem fechado (${fora.filter((x) => x.tem).length} com ponto)`)

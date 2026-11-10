@@ -64,7 +64,7 @@ async function abrir (nav, { viewport = { width: 390, height: 844 }, permissao =
   return { ctx, page, erros, pedidos }
 }
 const ir = async (page, vista = 'lista') => {
-  await page.goto(`${BASE}/cartoon/mapa?preview=1&demo=1&vista=${vista}`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1&demo=1&vista=${vista}`, { waitUntil: 'domcontentloaded' })
   await page.locator('.ct-mapa').first().waitFor()
   await esperar(900)
 }

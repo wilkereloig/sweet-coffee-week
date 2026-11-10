@@ -434,7 +434,7 @@ secao(2, 'recuperar e confirmar por e-mail (estados do envio)', async () => {
 
   // f3) a página do mapa (antes só a Central tinha o lembrete) e o convite acima do formulário
   c = await contexto(nav, { chave: alvo.chave, email: { ok: true } })
-  await ir(c.page, '/cartoon/mapa')
+  await ir(c.page, '/cartoon/mapa?tela=normal')
   await c.page.getByRole('button', { name: 'Confirmar e-mail' }).waitFor({ timeout: 10000 }).catch(() => falha('página do mapa: sem "Confirmar e-mail" para mapa com e-mail pendente'))
   await c.ctx.close()
   c = await contexto(nav, {})
@@ -1037,7 +1037,7 @@ async function mapaUnicoRota () {
         lateral: document.documentElement.scrollWidth - innerWidth,
       }
     })
-    checar(r.caminho === '/cartoon/mapa' && r.h1 === 'Mapa da Doçura' && r.h1n === 1, `@${w} Minha rota abre o Mapa da Doçura (${r.caminho}, h1 "${r.h1}")`)
+    checar(r.caminho === '/cartoon/mapa?tela=normal' && r.h1 === 'Mapa da Doçura' && r.h1n === 1, `@${w} Minha rota abre o Mapa da Doçura (${r.caminho}, h1 "${r.h1}")`)
     checar(r.mapa && !r.segundaPagina && r.visivel && r.lateral <= 1, `@${w} a rota é o painel da MESMA página, com o mapa ao lado e sem rolagem lateral`)
     checar(r.modal === (w < 900), `@${w} painel da rota: ${w < 900 ? 'folha modal no celular' : 'coluna fixa no desktop'}`)
     checar(r.marcas && r.grupo, `@${w} painel: rota planejada, "já fui" e carimbo explicados, e a rota do grupo identificada à parte`)
@@ -1068,13 +1068,13 @@ async function mapaUnicoRota () {
     await c.ctx.close()
   }
   // Rota compartilhada (?u=): continua valendo no endereço antigo e no novo; o painel diz que é de outra pessoa.
-  for (const base of ['/cartoon/minha-rota', '/cartoon/mapa']) {
+  for (const base of ['/cartoon/minha-rota', '/cartoon/mapa?tela=normal']) {
     const c = await contexto(nav, { w: 1440, h: 900, chave: CHAVE_FAKE, mocks: MOCKS_PROGRESSO })
     await ir(c.page, `${base}?u=udemo1,udemo2`)
     await c.page.locator('.ct-folha-m--painel').waitFor({ timeout: 10000 })
     await c.page.getByText('Esta é uma rota compartilhada com você.').waitFor({ timeout: 5000 })
     const u = await c.page.evaluate(() => ({ p: location.pathname, u: new URLSearchParams(location.search).get('u') }))
-    checar(u.p === '/cartoon/mapa' && u.u === 'udemo1,udemo2', `${base}?u=: rota compartilhada preservada no endereço do mapa (${u.p}?u=${u.u})`)
+    checar(u.p === '/cartoon/mapa?tela=normal' && u.u === 'udemo1,udemo2', `${base}?u=: rota compartilhada preservada no endereço do mapa (${u.p}?u=${u.u})`)
     await c.ctx.close()
   }
 }
@@ -1397,7 +1397,7 @@ const AV = (n, extra) => ({ id: `0000000${n}-0000-4000-8000-00000000000${n}`, ca
 secao(13, 'sino de avisos: contagem, lista, marcar como lida, ação por categoria e oferta de push sem insistência', async () => {
   const lidos = new Set()
   const avisosMock = () => ({ avisos: [
-    AV(1, { categoria: 'premio', titulo: 'Seleção para o voucher do dia', destino: '/cartoon/mapa?painel=premios' }),
+    AV(1, { categoria: 'premio', titulo: 'Seleção para o voucher do dia', destino: '/cartoon/mapa?tela=normal&painel=premios' }),
     AV(2),
     AV(3, { visto: true }),
   ].map((a) => ({ ...a, visto: a.visto || lidos.has(a.id) })), novos: 2 })

@@ -58,7 +58,7 @@ async function abrir (nav, { w, h, toque = false, reduzir = false }) {
   const erros = []
   page.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 200)))
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::ERR|tiles|favicon|403|400|404/.test(m.text())) erros.push(m.text().slice(0, 200)) })
-  await page.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 })
   await page.locator('.ct-mundo__palco').waitFor({ timeout: 30000 })
   await page.locator('.ct-mundo__casa:not(.is-agrupado)').first().waitFor({ timeout: 30000 })
   await page.evaluate(() => document.querySelector('.ct-mapa__moldura').scrollIntoView({ block: 'start' }))
@@ -376,7 +376,7 @@ try {
   {
     const quente = await nav.newContext({ viewport: { width: 390, height: 800 } })
     const pg = await quente.newPage()
-    await pg.goto(`${BASE}/cartoon/mapa?preview=1`, { waitUntil: 'networkidle', timeout: 120000 }).catch(() => null)
+    await pg.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1`, { waitUntil: 'networkidle', timeout: 120000 }).catch(() => null)
     await quente.close()
   }
   await celularEmPe(nav)

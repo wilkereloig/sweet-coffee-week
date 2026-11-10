@@ -105,8 +105,8 @@ export const MAPA_CACA = {
   fecharFiltros: 'Fechar os filtros',
   telaCheiaAbrir: 'Abrir mapa em tela cheia',
   telaCheiaAbrirCurto: 'Tela cheia',
-  telaCheiaFechar: 'Fechar tela cheia',
-  telaCheiaFecharCurto: 'Fechar',
+  telaCheiaFechar: 'Sair do mapa',
+  telaCheiaFecharCurto: 'Sair',
   telaCheiaRegiao: 'Mapa em tela cheia',
   minhaRota: 'Minha rota',
   // Perto de mim (06/11/2026): botão na barra; o resultado e os erros aparecem num aviso ao lado do mapa, com "tentar de novo".

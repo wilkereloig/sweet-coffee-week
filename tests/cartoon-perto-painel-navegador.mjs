@@ -54,7 +54,7 @@ async function abrir (nav, { w = 390, h = 844, mobile = true, permissao = 'grant
   const erros = []
   page.on('pageerror', (e) => erros.push(String(e.message || e).slice(0, 200)))
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::ERR|tiles|favicon|40\d/.test(m.text())) erros.push(m.text().slice(0, 200)) })
-  await page.goto(`${BASE}/cartoon/mapa?preview=1&vista=${vista}`, { waitUntil: 'networkidle' })
+  await page.goto(`${BASE}/cartoon/mapa?tela=normal&preview=1&vista=${vista}`, { waitUntil: 'networkidle' })
   const alvoMapa = { mundo: ['.ct-mundo__palco', '.ct-mundo__casa'], real: ['.ct-mapa__area', '.ct-marcador--pin'], lista: ['.ct-mapa__lista', '.ct-mapa__item'] }[vista]
   await page.locator(alvoMapa[0]).first().waitFor({ timeout: 40000 })
   await page.locator(alvoMapa[1]).first().waitFor({ state: 'attached', timeout: 40000 })

@@ -50,7 +50,7 @@ const json = (route, corpo) => route.fulfill({ status: 200, contentType: 'applic
 const rpc = (nome) => `**/rest/v1/rpc/${nome}*`
 const ehOpcoes = (route) => route.request().method() === 'OPTIONS'
 
-async function abrir (nav, { w, h, toque = false, meuMapa = null, premios = DURANTE, premiosFalha = false, url = '/cartoon/mapa?preview=1' }) {
+async function abrir (nav, { w, h, toque = false, meuMapa = null, premios = DURANTE, premiosFalha = false, url = '/cartoon/mapa?tela=normal&preview=1' }) {
   const ctx = await nav.newContext({ viewport: { width: w, height: h }, hasTouch: toque, isMobile: toque, deviceScaleFactor: toque ? 2 : 1 })
   await ctx.addInitScript(([k, c, comMapa]) => {
     try { localStorage.setItem('scw_privacidade', c); if (comMapa) localStorage.setItem('scw:edicao:2026.2:mapa', k) } catch { /* sem storage */ }
@@ -76,7 +76,7 @@ try {
 
   console.log('\nmapa normal · desktop 1440 · sem mapa (painel Prêmios por endereço)')
   {
-    const c = await abrir(nav, { w: 1440, h: 900, url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 1440, h: 900, url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.locator('.ct-premios').waitFor({ timeout: 15000 })
     await c.page.getByText('Em disputa agora').waitFor({ timeout: 10000 })
     const t = await texto(c.page)
@@ -107,7 +107,7 @@ try {
   ]
   for (const [nome, m, esperado] of ESTADOS) {
     console.log(`\nmapa normal · celular 390 · ${nome}`)
-    const c = await abrir(nav, { w: 390, h: 844, toque: true, meuMapa: m, url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 390, h: 844, toque: true, meuMapa: m, url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.locator('.ct-premios').waitFor({ timeout: 15000 })
     await c.page.getByText(/Em disputa agora/).waitFor({ timeout: 10000 })
     if (/casas validadas/.test(nome)) await c.page.getByText('Metas comemorativas').waitFor({ timeout: 10000 })
@@ -128,7 +128,7 @@ try {
     ['dia encerrado, sem confirmação', ['em_apuracao', 'proximo', 'proximo', 'proximo', 'proximo'], /Próximo voucher[\s\S]*Domingo, 8 de novembro/i, /O dia 7\/11 encerrou e está em apuração\. Ainda não há resultado confirmado/],
     ['tudo confirmado', ['resultado', 'resultado', 'resultado', 'resultado', 'resultado'], /Último resultado[\s\S]*Quarta, 11 de novembro/i, /Resultado confirmado/],
   ]) {
-    const c = await abrir(nav, { w: 1440, h: 900, premios: PREMIOS(estados, periodo), url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 1440, h: 900, premios: PREMIOS(estados, periodo), url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.locator('.ct-premios__destaque').waitFor({ timeout: 15000 })
     await c.page.screenshot({ path: join(CAPTURAS, `dias-${rot.replace(/[^a-z0-9]+/gi, '-')}.png`) })
     const t = await texto(c.page)
@@ -139,7 +139,7 @@ try {
 
   console.log('\nfalha / atraso dos dados de apuração')
   {
-    const c = await abrir(nav, { w: 1440, h: 900, premiosFalha: true, url: '/cartoon/mapa?preview=1&painel=premios' })
+    const c = await abrir(nav, { w: 1440, h: 900, premiosFalha: true, url: '/cartoon/mapa?tela=normal&preview=1&painel=premios' })
     await c.page.getByText(/não estão disponíveis agora/).waitFor({ timeout: 15000 })
     const t = await texto(c.page)
     checar(/Tentar de novo/i.test(t), 'falha: estado honesto com "Tentar de novo"')

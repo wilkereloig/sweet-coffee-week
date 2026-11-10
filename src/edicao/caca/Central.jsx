@@ -14,6 +14,7 @@ import { nomeDaCasa } from './regras.js'
 import { CACA, CACA_CAMINHOS as RUA } from './textos.js'
 import { ComoCarimbar } from './mapa/ComoCarimbar.jsx'
 import { PrimeiraVez, BotaoComoCarimbar } from './guia/GuiaCarimbar.jsx'
+import { PopupDisputa } from './disputa/PopupDisputa.jsx'
 import { CriarMapa } from './CriarMapa.jsx'
 import { GuardarMapa } from './GuardarMapa.jsx'
 import { CartaoEmail } from './CartaoEmail.jsx'
@@ -99,6 +100,8 @@ function Entradas ({ navigate }) {
 }
 
 export function Central ({ caca, dados, navigate }) {
+  // "O que você disputa" (voucher do dia, campanha, prêmio final): morava no mapa; com o mapa abrindo em tela cheia (10/11/2026) passa a aparecer aqui, no hub.
+  const disputa = <PopupDisputa caca={caca} totalDaEdicao={(dados?.participantes || []).filter((p) => (p.unidades || []).length).length} navigate={navigate} bloqueado={false} />
   if (caca.estado === 'sem-mapa') {
     return (
       <>
@@ -107,12 +110,14 @@ export function Central ({ caca, dados, navigate }) {
         <CriarMapa navigate={navigate} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
         <p><BotaoComoCarimbar navigate={navigate} /></p>
         <VisitaAnterior caca={caca} dados={dados} navigate={navigate} />
+        {disputa}
       </>
     )
   }
 
   return (
     <div className="ct-caca__central ct-central">
+      {disputa}
       <div className="ct-central__col">
         <PrimeiraVez navigate={navigate} />
         <Progresso caca={caca} dados={dados} navigate={navigate} />
