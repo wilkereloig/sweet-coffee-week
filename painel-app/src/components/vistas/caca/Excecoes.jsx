@@ -5,6 +5,7 @@ import { pedirTexto, avisar, confirmar } from '../../Confirmar'
 import { cacaApi, horaNatal } from '../../../lib/caca'
 import {
   FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao, aguardandoACasa,
+  aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido,
 } from '../../../lib/cacaGps'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
 
@@ -21,6 +22,8 @@ export function Excecoes({ edicao, pode }) {
   const [ocupado, executar] = useExecutar()
   const [aviso, setAviso] = React.useState('')
   const [estado, setEstado] = React.useState('pendente')
+  const [rapido, setRapido] = React.useState('todos')
+  const [lote, setLote] = React.useState(null)
 
   // Imagem do pedido de delivery (bucket privado): link de 300 s, aberto numa aba nova; excluir é manual e não desfaz o carimbo.
   async function verImagem(p) {
@@ -72,11 +75,32 @@ export function Excecoes({ edicao, pode }) {
     setAviso(aprova ? `Aprovado. O carimbo de ${p.apelido} em ${p.casa} foi criado.` : `Pedido de ${p.apelido} em ${p.casa} negado.`)
   }
 
+  // Aprova, um por um, todos os pedidos da lista na tela que mostrariam o botão Aprovar. Falha num não para os outros.
+  async function aprovarTodos(alvos, fora) {
+    const ok = await confirmar(
+      `Aprovar ${alvos.length} pedido${alvos.length === 1 ? '' : 's'} de uma vez? Cada um vira um carimbo, que vale no ranking e nos sorteios. A decisão não se desfaz por aqui.`
+      + (fora ? ` ${fora} pedido${fora === 1 ? '' : 's'} da lista ainda espera${fora === 1 ? '' : 'm'} relato, foto ou a casa e fica${fora === 1 ? '' : 'm'} de fora.` : ''),
+      { titulo: 'Aprovar todos?', acao: `Aprovar ${alvos.length}` })
+    if (!ok) return
+    const falhas = []
+    for (let i = 0; i < alvos.length; i++) {
+      const p = alvos[i]
+      setLote({ feito: i, total: alvos.length })
+      try { await cacaApi.decidirExcecao(p.id, 'aprovar', 'Aprovado em lote') } catch (e) { falhas.push(`${p.apelido} em ${p.casa}`) }
+    }
+    setLote(null)
+    await lista.recarregar()
+    const certos = alvos.length - falhas.length
+    setAviso(`${certos} pedido${certos === 1 ? '' : 's'} aprovado${certos === 1 ? '' : 's'}.` + (falhas.length ? ` Não aprovou: ${falhas.join(', ')}. Tente esses um a um.` : ''))
+  }
+
   if (lista.bloqueada) return <Erro texto={lista.erro} onTentar={lista.recarregar} />
   if (!lista.dados) return <Carregando />
-  const itens = filtrarPedidos(lista.dados.itens, estado)
-  const comImagem = itens.some((x) => x.imagem || x.imagem_removida)
-  const colunas = ['Apelido', 'Quando', 'Casa', 'Motivo', 'O celular informou', 'Relato da pessoa', ...(comImagem ? ['Foto / evidência'] : []), 'Contexto', ...(contato ? ['Contato'] : []), 'Situação', ...(gerir ? ['Ação'] : [])]
+  const porSituacao = filtrarPedidos(lista.dados.itens, estado)
+  const itens = filtrarRapido(porSituacao, rapido)
+  const alvosLote = gerir ? itens.filter(aprovavelEmLote) : []
+  const foraLote = itens.filter((p) => p.estado === 'pendente').length - alvosLote.length
+  const contarRapido = (k) => filtrarRapido(porSituacao, k).length
   return (
     <div className="ui-pilha">
       <AvisoOk texto={aviso} onFechar={() => setAviso('')} />
@@ -98,62 +122,72 @@ export function Excecoes({ edicao, pode }) {
         </Secao>
       )}
       <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização pode ser decidido aqui; pedidos por código são confirmados pela casa.">
-        <p className="ui-nota">A imagem do delivery é opcional. No celular, deslize a tabela para o lado até a coluna Ação para aprovar ou negar.</p>
-        <Escolha rotulo="Mostrar" valor={estado} onMudar={setEstado} className="cp-filtro"
-          opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
-        {!itens.length ? <Vazio titulo="Nenhum pedido aqui">{estado === 'pendente' ? 'Ninguém está esperando uma decisão agora.' : 'Nada nesta situação.'}</Vazio> : (
-          <Tabela rotulo="Pedidos de revisão de presença" colunas={colunas}>
-            {itens.map((p) => (
-              <tr key={p.id}>
-                <th scope="row">{p.apelido}</th>
-                <td>{horaNatal(p.criado_em)}</td>
-                <td className="cp-nota-celula">{p.casa}{p.nome_unidade ? ` · ${p.nome_unidade}` : ''}{p.unidades_na_casa > 1 && p.motivo === 'visita_anterior' ? ' (a casa tem mais de um endereço)' : ''}</td>
-                <td className="cp-nota-celula">{p.motivo === 'visita_anterior' ? <Selo tom="atencao">Visita anterior</Selo> : null} {rotuloMotivoPedido(p.motivo)}</td>
-                <td className="cp-nota-celula">{descricaoDoSinal(p)}</td>
-                <td className="cp-nota-celula">{p.motivo === 'visita_anterior' && !String(p.nota || '').trim() && !p.imagem
-                  ? 'Aguardando relato ou foto'
-                  : p.motivo === 'visita_anterior' && p.nota === 'Foto como prova'
-                    ? p.imagem ? 'Foto enviada como prova' : 'Foto indicada, aguardando envio'
-                  : p.nota || '—'}</td>
-                {comImagem && (
-                  <td className="cp-nota-celula">
-                    {p.imagem ? (
-                      <div className="cp-acoes">
-                        {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Ver a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => verImagem(p)}>Ver imagem</Botao>}
-                        {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Excluir a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => excluirImagem(p)}>Excluir</Botao>}
-                      </div>
-                    ) : p.imagem_removida ? 'Imagem excluída' : '—'}
-                  </td>
-                )}
-                <td className="cp-nota-celula">
-                  <ul className="cp-detalhe">
-                    <li>{p.avaliou ? 'Já avaliou o combo' : 'Ainda não avaliou'}</li>
-                    <li>{p.carimbos_na_casa} carimbo{p.carimbos_na_casa === 1 ? '' : 's'} nessa casa</li>
-                    <li>{p.pedidos_da_pessoa} pedido{p.pedidos_da_pessoa === 1 ? '' : 's'} no total</li>
-                  </ul>
-                </td>
-                {contato && <td>{contatoDe(p) || '—'}</td>}
-                <td className="cp-nota-celula">
-                  {aguardandoACasa(p)
-                    ? <Selo tom="andamento">{p.via_pretendida === 'imagem' ? 'Aguardando imagem' : p.codigo_expirado ? 'Código vencido' : 'Aguardando a casa'}</Selo>
-                    : <Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>}
-                  {p.decidido_em && <span className="cp-sub"> {p.decidido_por || ''} · {horaNatal(p.decidido_em)}{p.decisao_nota ? ` · ${p.decisao_nota}` : ''}</span>}
-                </td>
-                {gerir && (
-                  <td>
-                    {p.motivo === 'visita_anterior' && !String(p.nota || '').trim() && !p.imagem ? <Selo tom="andamento">Aguardando relato ou foto</Selo>
-                      : p.motivo === 'visita_anterior' && p.nota === 'Foto como prova' && !p.imagem ? <Selo tom="andamento">Aguardando foto da pessoa</Selo>
-                        : podeDecidir(p) ? (
-                      <div className="cp-acoes">
-                        <Botao disabled={!!ocupado} aria-label={`Aprovar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'aprovar')}>Aprovar</Botao>
-                        <Botao variante="secundario" disabled={!!ocupado} aria-label={`Negar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'negar')}>Negar</Botao>
-                      </div>
-                    ) : '—'}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </Tabela>
+        <div className="cp-ferramentas">
+          <Escolha rotulo="Situação" valor={estado} onMudar={setEstado} className="cp-filtro"
+            opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
+          {gerir && alvosLote.length > 0 && (
+            <Botao disabled={!!ocupado || !!lote} onClick={() => aprovarTodos(alvosLote, foraLote)}>
+              {lote ? `Aprovando ${lote.feito + 1} de ${lote.total}…` : `Aprovar todos (${alvosLote.length})`}
+            </Botao>
+          )}
+        </div>
+        <div className="cp-rapidos" role="group" aria-label="Filtrar pedidos">
+          {FILTROS_RAPIDOS.map(([k, r]) => (
+            <button key={k} type="button" className={'cp-rapido' + (rapido === k ? ' is-ativo' : '')} aria-pressed={rapido === k} onClick={() => setRapido(k)}>
+              {r} <span className="cp-rapido__n">{contarRapido(k)}</span>
+            </button>
+          ))}
+        </div>
+        {!itens.length ? <Vazio titulo="Nenhum pedido aqui">{estado === 'pendente' && rapido === 'todos' ? 'Ninguém está esperando uma decisão agora.' : 'Nada com este filtro.'}</Vazio> : (
+          <ul className="cp-cartoes" aria-label="Pedidos de revisão de presença">
+            {itens.map((p) => {
+              const espera = aguardaEvidencia(p)
+              const relato = p.motivo === 'visita_anterior' && p.nota === 'Foto como prova'
+                ? (p.imagem ? 'Foto enviada como prova' : 'Foto indicada, aguardando envio')
+                : (String(p.nota || '').trim() || (espera ? 'Ainda não enviou relato' : '—'))
+              return (
+                <li key={p.id} className="cp-cartao">
+                  <div className="cp-cartao__topo">
+                    <div className="cp-cartao__quem">
+                      <b>{p.apelido}</b>
+                      <span className="cp-sub">{horaNatal(p.criado_em)}</span>
+                    </div>
+                    <div className="cp-cartao__acao">
+                      {!gerir ? null
+                        : espera ? <Selo tom="andamento">{espera}</Selo>
+                          : podeDecidir(p) ? (
+                            <div className="cp-acoes">
+                              <Botao disabled={!!ocupado || !!lote} aria-label={`Aprovar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'aprovar')}>Aprovar</Botao>
+                              <Botao variante="secundario" disabled={!!ocupado || !!lote} aria-label={`Negar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'negar')}>Negar</Botao>
+                            </div>
+                          ) : aguardandoACasa(p)
+                            ? <Selo tom="andamento">{p.via_pretendida === 'imagem' ? 'Aguardando imagem' : p.codigo_expirado ? 'Código vencido' : 'Aguardando a casa'}</Selo>
+                            : <Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>}
+                    </div>
+                  </div>
+                  <p className="cp-cartao__casa">
+                    {p.motivo === 'visita_anterior' ? <Selo tom="atencao">Visita anterior</Selo> : <Selo tom="neutro">{rotuloMotivoPedido(p.motivo)}</Selo>}
+                    {' '}<b>{p.casa}</b>{p.nome_unidade ? ` · ${p.nome_unidade}` : ''}{p.unidades_na_casa > 1 && p.motivo === 'visita_anterior' ? ' (a casa tem mais de um endereço)' : ''}
+                  </p>
+                  <dl className="cp-cartao__dados">
+                    <div><dt>O celular informou</dt><dd>{descricaoDoSinal(p)}</dd></div>
+                    <div><dt>Relato</dt><dd>{relato}</dd></div>
+                    {(p.imagem || p.imagem_removida) && (
+                      <div><dt>Foto</dt><dd>{p.imagem ? (
+                        <span className="cp-acoes">
+                          {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Ver a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => verImagem(p)}>Ver imagem</Botao>}
+                          {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Excluir a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => excluirImagem(p)}>Excluir</Botao>}
+                        </span>
+                      ) : 'Imagem excluída'}</dd></div>
+                    )}
+                    <div><dt>Contexto</dt><dd>{p.avaliou ? 'Já avaliou o combo' : 'Ainda não avaliou'} · {p.carimbos_na_casa} carimbo{p.carimbos_na_casa === 1 ? '' : 's'} nessa casa · {p.pedidos_da_pessoa} pedido{p.pedidos_da_pessoa === 1 ? '' : 's'} no total</dd></div>
+                    {contato && <div><dt>Contato</dt><dd>{contatoDe(p) || '—'}</dd></div>}
+                    {p.decidido_em && <div><dt>Decisão</dt><dd>{rotuloPedido(p.estado)} · {p.decidido_por || ''} · {horaNatal(p.decidido_em)}{p.decisao_nota ? ` · ${p.decisao_nota}` : ''}</dd></div>}
+                  </dl>
+                </li>
+              )
+            })}
+          </ul>
         )}
       </Secao>
     </div>

@@ -39,6 +39,31 @@ export function descricaoDoSinal(p) {
 /** Só pedido pendente tem ação. */
 export const podeDecidir = (p) => !!p && p.estado === 'pendente' && (!p.aguardando_casa || (p.motivo === 'delivery' && p.via_pretendida === 'imagem'))
 
+/** Visita anterior que ainda espera relato ou a foto prometida: não se decide (nem em lote). */
+export function aguardaEvidencia(p) {
+  if (!p || p.motivo !== 'visita_anterior') return null
+  if (!String(p.nota || '').trim() && !p.imagem) return 'Aguardando relato ou foto'
+  if (p.nota === 'Foto como prova' && !p.imagem) return 'Aguardando foto da pessoa'
+  return null
+}
+/** Entra no "Aprovar todos": o mesmo pedido que mostraria o botão Aprovar na linha. */
+export const aprovavelEmLote = (p) => podeDecidir(p) && !aguardaEvidencia(p)
+
+/** Filtros rápidos por cima da situação. */
+export const FILTROS_RAPIDOS = Object.freeze([
+  ['todos', 'Todos'], ['foto', 'Com foto'], ['relato', 'Com relato'], ['sem', 'Sem evidência'], ['delivery', 'Delivery'], ['visita', 'Visita anterior'],
+])
+const temRelato = (p) => { const n = String(p?.nota || '').trim(); return !!n && n !== 'Foto como prova' }
+const PREDICADO_RAPIDO = {
+  todos: () => true,
+  foto: (p) => !!p.imagem,
+  relato: temRelato,
+  sem: (p) => !p.imagem && !temRelato(p),
+  delivery: (p) => p.motivo === 'delivery',
+  visita: (p) => p.motivo === 'visita_anterior',
+}
+export const filtrarRapido = (itens, chave) => (itens || []).filter(PREDICADO_RAPIDO[chave] || PREDICADO_RAPIDO.todos)
+
 /** Delivery com código: quem confirma é a CASA, não a organização. */
 export const aguardandoACasa = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa' && p.via_pretendida !== 'imagem'
 
