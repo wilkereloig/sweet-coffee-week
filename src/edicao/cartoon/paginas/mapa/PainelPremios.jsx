@@ -8,6 +8,7 @@ import React from 'react'
 import { Carregando, Link } from '../../../componentes/base.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao } from '../../../componentes/sistema/pecas.jsx'
+import { MARCAS_PARCEIROS } from '../../../../data/imageLibrary.js'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { PREMIOS as P } from '../../../caca/premios/textos.js'
 import { situacaoDoJogador } from '../../../caca/premios/logica.js'
@@ -83,6 +84,54 @@ function Metas ({ caca }) {
   )
 }
 
+/** Voucher físico já liberado (e-mail confirmado): a pessoa só precisa saber onde retirar e avisar que viu. */
+const retiradaLiberada = (premio) => premio.tipo !== 'final' && !!premio.retirada && premio.estado !== 'entregue'
+  && (premio.estado === 'confirmado' || premio.emailConfirmado)
+
+/** Cartão do ganhador de voucher físico: selo de prêmio, onde retirar (logo, endereço, horário, validade) e o aviso "vi". */
+function GanhoRetirada ({ premio, ocupado, onConfirmar }) {
+  const G = P.ganho
+  const r = premio.retirada
+  const logo = r.local === MARCAS_PARCEIROS.espacoReduzido.alt ? MARCAS_PARCEIROS.espacoReduzido : null
+  const ocupadoAqui = ocupado === premio.id
+  return (
+    <article className={`ct-premios__ganho ct-premios__ganho--retirada is-${premio.estado}`} aria-labelledby={`ganho-${premio.id}`}>
+      <div className="ct-ganho__topo">
+        <span className="ct-ganho__selo"><IconeCartoon nome="premio" tamanho={64} /></span>
+        <div>
+          {premio.dia && <p className="ct-ganho__dia">{G.dia(premio.dia.curta)}</p>}
+          <h4 id={`ganho-${premio.id}`}>{G.titulo}</h4>
+        </div>
+      </div>
+      <section className="ct-ganho__retirada" aria-label={G.retire}>
+        <p className="ct-rotulo">{G.retire}</p>
+        {logo && <img className="ct-ganho__logo" src={logo.src} width={logo.largura} height={logo.altura} alt={logo.alt} decoding="async" />}
+        <ul className="ct-ganho__fatos">
+          {!logo && <li><strong>{r.local}</strong></li>}
+          {r.endereco && <li><IconeCartoon nome="endereco" tamanho={32} /><span>{r.endereco}</span></li>}
+          {(r.horario || premio.validade) && (
+            <li><IconeCartoon nome="horario" tamanho={32} /><span>{[r.horario, premio.validade && G.validade(premio.validade.longa)].filter(Boolean).join(' · ')}</span></li>
+          )}
+        </ul>
+        <p>{G.separado}</p>
+        <a className="ct-botao" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${r.local} ${r.endereco}`)}`}>{G.comoChegar}</a>
+      </section>
+      <section className="ct-ganho__confirma" aria-label={G.confirmaTitulo}>
+        {premio.recebidoEm ? (
+          <p className="ct-premios__ok" role="status">{G.confirmado(premio.recebidoEm)}</p>
+        ) : (
+          <>
+            <p>{G.confirmaTexto}</p>
+            <button type="button" className="ct-botao ct-botao--acao" disabled={!!ocupado} aria-busy={ocupadoAqui || undefined} onClick={onConfirmar}>
+              {ocupadoAqui ? G.confirmando : G.confirmar}
+            </button>
+          </>
+        )}
+      </section>
+    </article>
+  )
+}
+
 function MeusVouchers ({ caca, navigate }) {
   const { estado, premios, tentar, escolher, confirmarRecebimento, ocupado, erroEscolha, erroRecebimento } = usarMeusPremios(caca)
   if (estado === 'sem-mapa' || (estado === 'pronto' && premios.length === 0)) return null
@@ -96,7 +145,9 @@ function MeusVouchers ({ caca, navigate }) {
       <p>{premios.length} {premios.length === 1 ? 'prêmio registrado' : 'prêmios registrados'} no seu mapa.</p>
       {erroEscolha && <p className="ct-nota" role="alert">{erroEscolha}</p>}
       {erroRecebimento && <p className="ct-nota" role="alert">{erroRecebimento}</p>}
-      {premios.map((premio) => (
+      {premios.map((premio) => (retiradaLiberada(premio) ? (
+        <GanhoRetirada key={premio.id} premio={premio} ocupado={ocupado} onConfirmar={() => confirmarRecebimento(premio.id)} />
+      ) : (
         <article key={premio.id} className={`ct-premios__ganho is-${premio.estado}`}>
           <div className="ct-premios__ganho-cabeca"><IconeCartoon nome="vouchers" tamanho={52} /><h4>{premio.tipo === 'final' ? 'Seu prêmio final' : premio.retirada && premio.estado !== 'entregue' ? 'Você ganhou um voucher!' : premio.estado === 'selecionado' ? 'Você ganhou o direito de escolher um voucher!' : premio.estado === 'entregue' ? 'Seu voucher foi validado' : 'Você ganhou um voucher!'}</h4></div>
           {premio.dia && <p>Resultado do dia {premio.dia.curta}.</p>}
@@ -104,12 +155,6 @@ function MeusVouchers ({ caca, navigate }) {
             <>
               <p>Confirme o e-mail cadastrado no mapa{premio.prazo ? ` até ${premio.prazo}` : ''}. {premio.retirada ? `Depois, é só retirar o voucher no ${premio.retirada.local}.` : 'Depois, você poderá escolher um dos vouchers disponíveis.'}</p>
               <Botao href={TC.caminhos.central} navigate={navigate}>Ir para confirmar meu e-mail</Botao>
-            </>
-          )}
-          {premio.retirada && premio.estado !== 'entregue' && (premio.estado === 'confirmado' || premio.emailConfirmado) && (
-            <>
-              <p>O voucher é físico. Retire no <strong>{premio.retirada.local}</strong>{premio.retirada.endereco ? `, ${premio.retirada.endereco}` : ''}.</p>
-              <a className="ct-botao ct-botao--acao" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${premio.retirada.local} ${premio.retirada.endereco}`)}`}>Como chegar</a>
             </>
           )}
           {premio.tipo === 'voucher_dia' && premio.estado === 'confirmado' && !premio.voucher && !premio.retirada && (
@@ -135,7 +180,7 @@ function MeusVouchers ({ caca, navigate }) {
           {premio.estado === 'entregue' && !premio.voucher && <p>A organização marcou este prêmio como entregue.</p>}
           {premio.validade && <p className="ct-nota">Válido até {premio.validade.longa}.</p>}
         </article>
-      ))}
+      )))}
     </section>
   )
 }

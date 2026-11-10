@@ -80,7 +80,10 @@ export function organizarPremios (dado) {
 /** Local de retirada do voucher físico (`voucher_retirada`): só com nome do local; endereço e data de início são opcionais. */
 export function organizarRetirada (r) {
   if (!r || typeof r.local !== 'string' || !r.local.trim()) return null
-  return { local: r.local.trim(), endereco: typeof r.endereco === 'string' ? r.endereco.trim() : '', desde: descreverData(r.desde) }
+  return {
+    local: r.local.trim(), endereco: typeof r.endereco === 'string' ? r.endereco.trim() : '', desde: descreverData(r.desde),
+    horario: typeof r.horario === 'string' ? r.horario.trim() : '', // ex.: "Horário comercial"; vazio = não se afirma horário
+  }
 }
 
 /** Dados privados da RPC caca_meus_premios: normaliza apenas vouchers ativos do próprio mapa. */

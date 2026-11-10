@@ -77,8 +77,9 @@ function Detalhe({ premio }) {
     if (d.segunda_chamada) partes.push('2ª chamada')
     partes.push(d.email_confirmado || premio.email_confirmado ? 'e-mail confirmado' : 'e-mail NÃO confirmado')
     if (d.valido_ate) partes.push(`vale até ${diaBr(d.valido_ate)}`)
-    if (premio.recebido_em) partes.push(`recebimento confirmado pelo ganhador em ${horaNatal(premio.recebido_em)}`)
-    else if (premio.estado === 'confirmado' || premio.estado === 'entregue') partes.push('aguardando confirmação de recebimento pelo ganhador')
+    const retirada = !!d.retirada // voucher físico: o ganhador confirma que VIU o aviso (a retirada é no local)
+    if (premio.recebido_em) partes.push(retirada ? `ganhador confirmou que viu o aviso em ${horaNatal(premio.recebido_em)}` : `recebimento confirmado pelo ganhador em ${horaNatal(premio.recebido_em)}`)
+    else if (premio.estado === 'confirmado' || premio.estado === 'entregue') partes.push(retirada ? 'aguardando o ganhador confirmar que viu o aviso' : 'aguardando confirmação de recebimento pelo ganhador')
     if (premio.voucher?.marca) partes.push(`voucher: ${premio.voucher.marca}`)
     if (premio.voucher?.utilizado_em) partes.push(`voucher validado na casa em ${horaNatal(premio.voucher.utilizado_em)}`)
   }

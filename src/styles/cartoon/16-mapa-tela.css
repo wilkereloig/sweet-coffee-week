@@ -505,6 +505,21 @@
 .ct-premios__ganho-cabeca { display: flex; align-items: center; gap: 10px; }
 .ct-premios__ganho h4 { margin: 0; font: 900 1.15em/1.2 var(--ct-font); }
 .ct-premios__ganho .ct-botao { justify-self: start; }
+/* Ganhador de voucher físico: selo de prêmio, onde retirar (logo do local) e o aviso "vi". */
+.ct-premios__ganho--retirada { gap: 14px; padding: 16px; }
+.ct-ganho__topo { display: flex; align-items: center; gap: 12px; }
+.ct-ganho__selo { flex: none; display: grid; place-items: center; width: 80px; height: 80px; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-ganho__dia { font: 800 .78em/1.2 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
+.ct-premios__ganho--retirada h4 { font-size: 1.4em; }
+.ct-ganho__retirada { display: grid; gap: 10px; padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-creme); }
+.ct-ganho__logo { display: block; width: 100%; max-width: 280px; height: auto; }
+.ct-ganho__fatos { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ct-ganho__fatos li { display: flex; align-items: center; gap: 10px; font: 700 .95em/1.3 var(--ct-font); }
+.ct-ganho__fatos .ct-icone { flex: none; }
+.ct-ganho__confirma { display: grid; gap: 10px; padding-top: 12px; border-top: 2px dashed color-mix(in srgb, var(--ct-chocolate) 35%, transparent); }
+.ct-ganho__confirma p { margin: 0; }
+.ct-ganho__confirma .ct-botao, .ct-ganho__retirada .ct-botao { justify-self: stretch; text-align: center; min-height: 48px; }
+.ct-ganho__retirada .ct-botao { justify-self: start; }
 .ct-premios__final { padding: 14px; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-premios__linha { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
 .ct-premios__ok { padding: 8px 10px; border: 2px solid var(--ct-chocolate); border-radius: 12px; background: var(--ct-creme); font-weight: 800; }
