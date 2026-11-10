@@ -39,12 +39,10 @@ export function descricaoDoSinal(p) {
 /** Só pedido pendente tem ação. */
 export const podeDecidir = (p) => !!p && p.estado === 'pendente' && (!p.aguardando_casa || (p.motivo === 'delivery' && p.via_pretendida === 'imagem'))
 
-/** Visita anterior que ainda espera relato ou a foto prometida: não se decide (nem em lote). */
+/** Visita anterior sem foto: a foto é obrigatória (desde 10/11/2026), então não se aprova (nem em lote) — só por exceção com motivo. */
 export function aguardaEvidencia(p) {
   if (!p || p.motivo !== 'visita_anterior') return null
-  if (!String(p.nota || '').trim() && !p.imagem) return 'Aguardando relato ou foto'
-  if (p.nota === 'Foto como prova' && !p.imagem) return 'Aguardando foto da pessoa'
-  return null
+  return p.imagem ? null : 'Aguardando foto da pessoa'
 }
 /** Aprovar visita anterior SEM relato/foto é exceção: motivo escrito, gravado na decisão (o banco confere o prefixo e o tamanho). */
 export const PREFIXO_SEM_PROVA = 'Exceção sem prova: '

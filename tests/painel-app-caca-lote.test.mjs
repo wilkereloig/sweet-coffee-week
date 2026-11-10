@@ -14,7 +14,8 @@ const aprovado = { id: 7, estado: 'aprovado', motivo: 'gps' }
 test('lote: só os decidíveis com evidência', () => {
   const todos = [gps, semNada, fotoPrometida, comFoto, casa, deliveryImg, aprovado]
   assert.deepEqual(todos.filter(aprovavelEmLote).map((p) => p.id), [1, 4, 6])
-  assert.equal(aguardaEvidencia(semNada), 'Aguardando relato ou foto')
+  assert.equal(aguardaEvidencia({ ...semNada, nota: 'Estive lá às 15h' }), 'Aguardando foto da pessoa', 'relato sem foto não basta')
+  assert.equal(aguardaEvidencia(semNada), 'Aguardando foto da pessoa')
   assert.equal(aguardaEvidencia(fotoPrometida), 'Aguardando foto da pessoa')
   assert.equal(aguardaEvidencia(gps), null)
 })

@@ -123,7 +123,7 @@ function Formulario ({ chave, dados, casas, aoEnviar, aoFechar, api }) {
       const c = casaDe(v.slug)
       if (!c) novos[v.id] = T.recusa.qr_invalido
       else if (c.unidades.length > 1 && !v.unidade) novos[v.id] = T.recusa.unidade_obrigatoria
-      else if (!String(v.nota || '').trim() && !v.hora && !v.foto) novos[v.id] = T.recusa.evidencia_obrigatoria
+      else if (!v.foto) novos[v.id] = T.recusa.evidencia_obrigatoria
     }
     setErros(novos); setErro('')
     if (Object.keys(novos).length) return
