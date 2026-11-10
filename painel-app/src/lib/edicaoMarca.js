@@ -84,6 +84,8 @@ export function unidadeDeLinhas(pu, un) {
     consumo_local: (pu && pu.consumo_local) || 'nao_informado',
     retirada: (pu && pu.retirada) || 'nao_informado',
     delivery_combo: (pu && pu.delivery_combo) || 'nao_informado',
+    // A equipe pode ligar "faz delivery" na ficha: o site mostra o delivery também nesse caso (montar_publico_base, 20270113).
+    faz_delivery: !!(pu && pu.faz_delivery),
     canais: canaisParaObjeto(pu && pu.canais_delivery),
     delivery_regioes: (pu && pu.delivery_regioes) || '',
     delivery_taxa: (pu && pu.delivery_taxa) || '',
@@ -160,8 +162,8 @@ function corpoParticipacaoUnidadeCheio(u, ordem) {
     ordem, participa: u.participa !== false,
     endereco: enderecoLegado(u), bairro: ouNulo(u.bairro),
     consumo_local: u.consumo_local, retirada: u.retirada, delivery_combo: u.delivery_combo,
-    // faz_delivery é legado: espelha o delivery DO COMBO para quem ainda o lê.
-    faz_delivery: u.delivery_combo === 'sim',
+    // faz_delivery acompanha a resposta da marca (Atendimento.jsx liga/desliga os dois juntos); a ficha da equipe pode ligá-lo sozinho.
+    faz_delivery: u.delivery_combo === 'sim' || !!u.faz_delivery,
     canais_delivery: canaisParaArray(u.canais),
     delivery_regioes: ouNulo(u.delivery_regioes), delivery_taxa: ouNulo(u.delivery_taxa),
     observacao_combo: ouNulo(u.observacao_combo),

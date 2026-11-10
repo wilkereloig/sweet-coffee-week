@@ -125,6 +125,9 @@ export const RPC_ESCRITA = Object.freeze({
   org_salvar_unidade: ['unidades', 'participantes'],
   // Horário no festival da unidade (23/10/2026): mesma tabela e mesmo gatilho de "alterado após aprovação" de org_salvar_unidade.
   org_salvar_horario_unidade: ['unidades', 'participantes'],
+  // Atendimento, WhatsApp e endereço completo da unidade; informações alimentares e trocas (09/11/2026): o que o site mostra.
+  org_salvar_unidade_site: ['unidades', 'participantes', 'cadastro', 'editorial'],
+  org_salvar_alimentar: ['cadastro', 'participantes', 'editorial'],
   org_remover_unidade: ['unidades', 'participantes'],
   org_arquivar_participante: ['participantes'],
   org_preenchimento_decidir: ['preenchimento', 'participantes', 'cadastro', 'unidades', 'editorial'],

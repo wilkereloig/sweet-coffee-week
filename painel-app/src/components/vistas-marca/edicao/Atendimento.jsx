@@ -36,11 +36,12 @@ export function Atendimento({ unidades, dias, est, alterar, alterarCanal, altera
                 {i === 0 && <p className="em-linha-estado"><EstadoCampo e={est('atendimento-modos')} /></p>}
                 {MODOS_SERVICO.map(([campo, rotulo, ajuda]) => (
                   <Escolhas key={campo} nome={campo + '-' + k} legenda={rotulo + '?'} ajuda={ajuda}
-                    opcoes={ESTADOS_TRES} valor={u[campo]} onMudar={(v) => alterar(k, campo, v)} />
+                    opcoes={ESTADOS_TRES} valor={u[campo]}
+                    onMudar={(v) => { alterar(k, campo, v); if (campo === 'delivery_combo') alterar(k, 'faz_delivery', v === 'sim') }} />
                 ))}
                 {i === 0 && <Correcao e={est('atendimento-modos')} />}
               </div>
-              {u.delivery_combo === 'sim' && (
+              {(u.delivery_combo === 'sim' || u.faz_delivery) && (
                 <div className="canais" id={'campo-' + idCampoUnidade('atendimento-canais', i)} tabIndex={-1}>
                   <b>Onde pedir o delivery do combo {i === 0 && <EstadoCampo e={est('atendimento-canais')} />}</b>
                   {CANAIS.map((c) => (

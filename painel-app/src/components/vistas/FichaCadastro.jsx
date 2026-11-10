@@ -7,6 +7,8 @@ import { tempoRelativo } from '../../lib/central'
 import { CANAIS, canaisParaObjeto, canaisParaArray, erroLinkCanal, precoNumero } from '../../lib/cadastro'
 import { CHAVE_SESSAO } from '../../../../src/lib/adminAccess'
 import { mascaraWhatsApp, validarWhatsApp } from '../../lib/participantes'
+import { whatsappDigitos, erroCep, erroUf, erroWhatsappUnidade } from '../../lib/edicaoMarca'
+import { AlimentarEquipe } from './AlimentarEquipe'
 import { CAMPOS_APONTAVEIS, blocoDoCampo } from '../../lib/guia'
 import { Carregando, Vazio, Erro, Selo, Modulo, MacroSecao, GradeModulos, Chips, Botao, BotaoIcone, traduzirErro } from '../ui'
 import { LogoEditor } from '../LogoEditor'
@@ -42,6 +44,9 @@ const RECADO = {
   nome_obrigatorio: 'O nome do estabelecimento não pode ficar vazio.',
   campo_invalido: 'Campo que o painel não sabe salvar — defeito do painel, não seu.',
   unidade_nao_encontrada: 'Esta unidade não existe mais (foi removida). Feche o editor e abra de novo.',
+  cep_invalido: 'O CEP precisa ter 8 dígitos.',
+  uf_invalida: 'Use a sigla do estado, com 2 letras (ex.: RN).',
+  whatsapp_invalido: 'O WhatsApp da loja está incompleto. Use DDD + número, ou deixe em branco.',
   canal_invalido: 'Um link de delivery não é endereço web (use https://…, ou algo como wa.me/…). Corrija antes de salvar: do jeito que está, ele seria apagado.',
 }
 const erroLegivel = (e) => {
@@ -227,6 +232,7 @@ const CAMPOS_MARCA = [
   { chave: 'email', rotulo: 'E-mail' },
   { chave: 'instagram', rotulo: 'Instagram' },
   { chave: 'site', rotulo: 'Site' },
+  { chave: 'apresentacao_publica', rotulo: 'Apresentação da casa (aparece no site)', tipo: 'area' },
   { chave: 'cnpj', rotulo: 'CNPJ' },
   { chave: 'razao_social', rotulo: 'Razão social' },
 ]
@@ -255,36 +261,68 @@ function camposItem(posicao) {
     { chave: 'nome', rotulo: 'Nome' },
     { chave: 'descricao', rotulo: 'Descrição', tipo: 'area' },
     { chave: 'ingredientes', rotulo: 'Ingredientes', tipo: 'area' },
-    { chave: 'vegano', rotulo: 'Vegano', tipo: 'check' },
-    { chave: 'sem_gluten', rotulo: 'Sem glúten', tipo: 'check' },
-    { chave: 'sem_lactose', rotulo: 'Sem lactose', tipo: 'check' },
-    { chave: 'tem_substituicao', rotulo: 'Existe substituição', tipo: 'sim_nao' },
-    { chave: 'substituicao', rotulo: 'Qual é a substituição', tipo: 'area' },
+    // Alergênicos, características e trocas moram em "Informações alimentares e trocas" (AlimentarEquipe): as colunas
+    // legadas (vegano, sem glúten, sem lactose, substituição em texto) não chegam ao site.
   ]
 }
+const CAMPOS_TEXTO_COMBO = [
+  { chave: 'combo_nome', rotulo: 'Nome do combo' },
+  { chave: 'combo_descricao', rotulo: 'Descrição do combo', tipo: 'area' },
+  { chave: 'combo_condicoes', rotulo: 'Condições', tipo: 'area' },
+]
+const ESTADOS_ATENDIMENTO = { sim: 'Sim', nao: 'Não', nao_informado: 'Ainda não sei' }
+// Tudo o que o site mostra da unidade (09/11/2026): endereço completo e nome (unidades), WhatsApp da loja e o atendimento do combo
+// (participacao_unidades). O horário no festival NÃO é campo deste formulário: tem o seletor próprio (HorarioDaUnidade) e a RPC própria.
 const CAMPOS_UNIDADE = [
-  { chave: 'endereco', rotulo: 'Endereço' },
+  { chave: 'nome_unidade', rotulo: 'Nome da unidade' },
+  { chave: 'logradouro', rotulo: 'Rua / avenida' },
+  { chave: 'numero', rotulo: 'Número (S/N se não houver)' },
+  { chave: 'complemento', rotulo: 'Complemento' },
   { chave: 'bairro', rotulo: 'Bairro' },
-  // O horário no festival NÃO é campo deste formulário: tem o seletor próprio (HorarioDaUnidade) e a RPC própria.
+  { chave: 'cidade', rotulo: 'Cidade' },
+  { chave: 'uf', rotulo: 'UF', dica: 'RN' },
+  { chave: 'cep', rotulo: 'CEP', dica: '59000-000' },
+  { chave: 'referencia', rotulo: 'Ponto de referência' },
+  { chave: 'whatsapp_publico', rotulo: 'WhatsApp da loja (aparece no site)', tipo: 'whatsapp' },
+  { chave: 'consumo_local', rotulo: 'Consumo no local', tipo: 'select', opcoes: ESTADOS_ATENDIMENTO },
+  { chave: 'retirada', rotulo: 'Retirada', tipo: 'select', opcoes: ESTADOS_ATENDIMENTO },
+  { chave: 'delivery_combo', rotulo: 'Delivery do combo', tipo: 'select', opcoes: ESTADOS_ATENDIMENTO },
+  { chave: 'observacao_combo', rotulo: 'O que muda no combo nesta unidade' },
   { chave: 'mesas', rotulo: 'Mesas' },
-  { chave: 'faz_delivery', rotulo: 'Faz delivery', tipo: 'check' },
+  { chave: 'faz_delivery', rotulo: 'Faz delivery (o site mostra o delivery mesmo com o combo “não”)', tipo: 'check' },
   { chave: 'so_delivery', rotulo: 'Só delivery (sem salão)', tipo: 'check' },
+  { chave: 'delivery_regioes', rotulo: 'Regiões atendidas no delivery' },
+  { chave: 'delivery_taxa', rotulo: 'Taxa de entrega' },
   ...CANAIS.map((c) => ({ chave: 'canal_' + c.tipo, rotulo: 'Delivery · ' + c.rotulo, dica: c.dica })),
 ]
+// `u` = a linha de participacao_unidades com a permanente em `_un` (get_ficha_participacao). Endereço antigo (sem `_un`) vale como rua/bairro.
 function unidadeParaValores(u) {
+  const un = u._un || {}
   const canais = canaisParaObjeto(u.canais_delivery)
-  const v = { ...u }
+  const v = {
+    ...u,
+    nome_unidade: un.nome_unidade, logradouro: un.logradouro ?? u.endereco, numero: un.numero, complemento: un.complemento,
+    bairro: un.bairro ?? u.bairro, cidade: un.cidade, uf: un.uf, cep: un.cep, referencia: un.referencia,
+    whatsapp_publico: un.whatsapp_publico ? mascaraWhatsApp(un.whatsapp_publico) : '',
+  }
   CANAIS.forEach((c) => { v['canal_' + c.tipo] = canais[c.tipo] })
   return v
 }
-function valoresParaUnidade(id, v) {
+function valoresParaUnidade(v) {
   const canais = {}
   CANAIS.forEach((c) => { canais[c.tipo] = v['canal_' + c.tipo] || '' })
   // canaisParaArray descarta o que não é link web: sem esta trava, um canal antigo ("@lojax") sumia e a tela dizia "Salvo".
   if (CANAIS.some((c) => erroLinkCanal(canais[c.tipo]))) throw new Error('canal_invalido')
+  if (erroCep(v.cep)) throw new Error('cep_invalido')
+  if (erroUf(v.uf)) throw new Error('uf_invalida')
+  if (erroWhatsappUnidade(v.whatsapp_publico)) throw new Error('whatsapp_invalido')
   return {
-    id, endereco: v.endereco, bairro: v.bairro, mesas: v.mesas,
-    faz_delivery: !!v.faz_delivery, so_delivery: !!v.so_delivery, canais_delivery: canaisParaArray(canais),
+    nome_unidade: v.nome_unidade, logradouro: v.logradouro, numero: v.numero, complemento: v.complemento, bairro: v.bairro,
+    cidade: v.cidade, uf: v.uf, cep: v.cep, referencia: v.referencia, whatsapp_publico: whatsappDigitos(v.whatsapp_publico),
+    consumo_local: v.consumo_local || 'nao_informado', retirada: v.retirada || 'nao_informado', delivery_combo: v.delivery_combo || 'nao_informado',
+    observacao_combo: v.observacao_combo, mesas: v.mesas == null ? '' : String(v.mesas),
+    faz_delivery: !!v.faz_delivery, so_delivery: !!v.so_delivery, delivery_regioes: v.delivery_regioes, delivery_taxa: v.delivery_taxa,
+    canais_delivery: canaisParaArray(canais),
   }
 }
 
@@ -505,6 +543,14 @@ export function AbaCombo({ participante, pode, onMudou }) {
           })}
         </GradeModulos>
       </MacroSecao>
+      <MacroSecao rotulo="Combo" titulo="Texto e informações alimentares" nota="O que o site mostra no topo do combo e nas restrições de cada item.">
+        <GradeModulos>
+          <Bloco icone={MODULO_ICONE.combo} titulo="Texto do combo" campos={CAMPOS_TEXTO_COMBO} valores={pa} podeEditar={podeEditar} comStatus
+            rotuloEditar="Editar texto do combo"
+            onSalvar={async (v) => { await rpc('org_salvar_dados_publicos', { p_secret: lerSenha(), p_participacao: pa.id, p_dados: v }); await f.depois() }} />
+          <AlimentarEquipe participacaoId={pa.id} itens={itens} unidades={f.dados.unidades || []} podeEditar={podeEditar} onSalvo={f.depois} />
+        </GradeModulos>
+      </MacroSecao>
       <MacroSecao rotulo="Informações comerciais" titulo="Tema e preço">
         <GradeModulos className="ui-modulos--dois">
           <Bloco icone={MODULO_ICONE.tema} titulo="Tema" campos={CAMPOS_TEMA} valores={pa} podeEditar={podeEditar} onSalvar={salvarParticipacao}
@@ -699,10 +745,10 @@ export function AbaUnidades({ participante, pode, onMudou }) {
         ) : (
           <GradeModulos>
             {unidades.map((u, i) => (
-              <Bloco key={u.id} icone={MODULO_ICONE.unidades} titulo={'Unidade ' + (i + 1)} nota={[u.bairro, u.endereco].filter(Boolean).join(' · ') || 'Sem endereço'}
+              <Bloco key={u.id} icone={MODULO_ICONE.unidades} titulo={'Unidade ' + (i + 1)} nota={[(u._un && u._un.bairro) || u.bairro, [(u._un && u._un.logradouro) || u.endereco, u._un && u._un.numero].filter(Boolean).join(', ')].filter(Boolean).join(' · ') || 'Sem endereço'}
                 campos={CAMPOS_UNIDADE} valores={unidadeParaValores(u)} podeEditar={podeEditar} comStatus rotuloEditar={'Editar unidade ' + (i + 1)}
                 acoes={podeEditar && <BotaoIcone icone="lixeira" rotulo="Remover" alvo={'unidade ' + (i + 1)} perigo onClick={() => removerUnidade(u)} />}
-                onSalvar={async (v) => { await rpc('org_salvar_unidade', { p_secret: lerSenha(), p_participacao: pa.id, p_dados: valoresParaUnidade(u.id, v) }); await f.depois() }}>
+                onSalvar={async (v) => { await rpc('org_salvar_unidade_site', { p_secret: lerSenha(), p_participacao: pa.id, p_pu: u.id, p_dados: valoresParaUnidade(v) }); await f.depois() }}>
                 <HorarioDaUnidade unidade={u} rotuloUnidade={'Unidade ' + (i + 1)} datas={festival.datas} datasFalharam={festival.falhou} datasCarregando={festival.carregando} onTentarDatas={festival.tentarDeNovo}
                   podeEditar={podeEditar} onSalvar={salvarHorario} />
               </Bloco>
