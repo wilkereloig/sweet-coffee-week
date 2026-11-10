@@ -126,3 +126,35 @@ export function Atalhos ({ placar = '', resumo = '', conteudo, pedido = null, ex
     </div>
   )
 }
+
+/*
+ * Faixa do jogo (09/11/2026): FORA da tela cheia os atalhos ficam à vista, com ícone e nome, entre a barra e o mapa (no computador o progresso,
+ * os prêmios e o ranking só existiam rolando a página ou entrando na tela cheia). A mesma folha e o mesmo `conteudo(chave, fechar)` da tela cheia.
+ * "Rota" só aparece no computador (no celular a barra já tem "Minha rota") e não abre folha: leva ao painel da rota, que ali já está na página.
+ */
+export const NA_FAIXA = ['progresso', 'premios', 'ranking', 'grupos', 'rota']
+export function FaixaJogo ({ placar = '', resumo = '', conteudo, aoRota }) {
+  const [aberta, setAberta] = React.useState(null)
+  const origem = React.useRef(null)
+  const fechar = React.useCallback(() => {
+    setAberta(null)
+    const de = origem.current
+    requestAnimationFrame(() => { if (de?.isConnected) de.focus({ preventScroll: true }) })
+  }, [])
+  const titulo = aberta ? TC.atalhoTitulo[aberta] : ''
+  return (
+    <nav className="ct-jogo-faixa" aria-label={TC.atalhosLista}>
+      {NA_FAIXA.map((chave) => (
+        <button key={chave} type="button" className="ct-chip ct-jogo-faixa__botao" data-faixa-jogo={chave} aria-haspopup={chave === 'rota' ? undefined : 'dialog'}
+          aria-label={chave === 'progresso' && resumo ? `${TC.atalho[chave]}: ${resumo}` : undefined}
+          onClick={(e) => { if (chave === 'rota') return aoRota?.(); origem.current = e.currentTarget; setAberta(chave) }}>
+          <IconeCartoon nome={ATALHOS.find(([c]) => c === chave)[1]} tamanho={24} /><span>{TC.atalho[chave]}</span>
+          {chave === 'progresso' && placar && <b className="ct-mapa__filtros-conta" aria-hidden="true">{placar}</b>}
+        </button>
+      ))}
+      <Folha variante="jogo" aberta={!!aberta} titulo={titulo} rotuloFechar={aberta ? TC.atalhoFechar(titulo) : 'Fechar'} aoFechar={fechar}>
+        {aberta && conteudo(aberta, fechar)}
+      </Folha>
+    </nav>
+  )
+}

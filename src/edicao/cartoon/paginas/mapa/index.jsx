@@ -59,7 +59,7 @@ import { QueroIr, JaFui } from '../../MarcasLover.jsx'
 import { MAPA as T, FASE_TEXTO } from '../../textos.js'
 import { AlbumCarimbos } from '../AlbumCarimbos.jsx'
 import { Cartao } from './Cartao.jsx'
-import { Atalhos } from './Atalhos.jsx'
+import { Atalhos, FaixaJogo } from './Atalhos.jsx'
 import { PainelPremios } from './PainelPremios.jsx'
 import { PopupDisputa } from '../../../caca/disputa/PopupDisputa.jsx'
 import { BarraDoMapa, Busca, CorpoDosFiltros } from './Controles.jsx'
@@ -456,6 +456,11 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             </div>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} botaoPerto={cheia ? null : botaoPerto} />
+            {!cheia && (
+              <FaixaJogo placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
+                resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho}
+                aoRota={() => { setPainel('rota'); const alvo = document.querySelector('.ct-mapa__lateral'); alvo?.scrollIntoView({ block: 'start' }); alvo?.querySelector('button, a')?.focus({ preventScroll: true }) }} />
+            )}
 
             <div className="ct-mapa__resumo">
               <p className="ct-catalogo__conta" aria-live="polite">{resumo}</p>

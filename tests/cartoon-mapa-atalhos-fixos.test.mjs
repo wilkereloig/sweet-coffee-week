@@ -100,3 +100,16 @@ test('estilo: alvo ≥ 44 px, coluna estreita à esquerda (longe do zoom), só �
   assert.doesNotMatch(bloco, /#[0-9a-fA-F]{3,8}/, 'cores só por token --ct-*')
   assert.match(css, /\.ct-jogo__botao:active, \.ct-jogo__fixo:active \{ translate: none/, 'movimento reduzido cobre o botão fixo')
 })
+
+test('faixa do jogo: fora da tela cheia, progresso, prêmios e ranking ficam à vista com nome (09/11/2026)', () => {
+  const at = ler('src/edicao/cartoon/paginas/mapa/Atalhos.jsx')
+  const pg = ler('src/edicao/cartoon/paginas/mapa/index.jsx')
+  const css = ler('src/styles/cartoon/16-mapa-tela.css')
+  assert.match(at, /export const NA_FAIXA = \['progresso', 'premios', 'ranking', 'grupos', 'rota'\]/)
+  assert.match(pg, /\{!cheia && \(\s*<FaixaJogo /, 'a faixa só existe fora da tela cheia (dentro, os Atalhos cobrem)')
+  assert.match(pg, /\{cheia && \(\s*<Atalhos /)
+  // o nome fica visível (não é botão só de ícone) e a Rota só no computador, onde a barra esconde "Minha rota"
+  assert.doesNotMatch(css, /\.ct-jogo-faixa__botao[^{]*span[^{]*\{[^}]*clip/)
+  assert.match(css, /\.ct-jogo-faixa__botao\[data-faixa-jogo='rota'\] \{ display: none; \}/)
+  assert.match(css, /min-width: 900px\) \{ \.ct-jogo-faixa__botao\[data-faixa-jogo='rota'\] \{ display: inline-flex; \} \}/)
+})
