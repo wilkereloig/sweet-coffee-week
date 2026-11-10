@@ -11,7 +11,7 @@
 import React from 'react'
 import { pinDaCasa, pinSicredi, atualizarPin, marcarRota, fioDoPin, aplicarAfastamento, seloDoGrupo } from './pin.js'
 import { partesDoNome } from './indicadores.js'
-import { planejarNoMapa } from './afastar.js'
+import { planejarNoMapa, projetar, desprojetar } from './afastar.js'
 import { MAPA_CACA as TC } from '../../caca/mapa/textos.js'
 
 const CHAVE = import.meta.env.VITE_GOOGLE_MAPS_KEY
@@ -21,6 +21,7 @@ const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
 let avisarFalha = null
 if (typeof window !== 'undefined') window.gm_authFailure = () => avisarFalha?.()
 const NATAL = { lat: -5.81, lng: -35.21 }
+const ZOOM_ABERTURA = 12 // menor zoom na abertura do mapa (Google, tile 256): abaixo dele quase tudo vira selo
 const ZOOM_PERTO = 13 // abaixo disso o mapa mostra a cidade toda: pins pequenos (16-mapa-tela.css, .ct-mapa__mapa--longe)
 
 let carregando = null
@@ -58,7 +59,7 @@ function elementoDoPonto (p) {
   const el = document.createElement('span')
   if (p.sicredi) { // patrocinador: marcador próprio, fora da contagem de marcadores das casas (.ct-marcador)
     el.className = 'ct-sicredi-marcador'
-    el.append(pinSicredi(p.pin, p.promocao))
+    el.append(pinSicredi(p.pin, p.promocao, { retirada: p.retirada }))
     return el
   }
   el.className = `ct-marcador${p.pin ? ' ct-marcador--pin' : ''}`
@@ -96,6 +97,17 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     feito.current = chave
     const plano = planejarNoMapa(pts, { zoom, tile: 256, zoomPerto: ZOOM_PERTO, selecionada: selecionadaRef.current })
     aplicarAfastamento(plano, pts, { elemento: (id) => marcadores.current.get(id)?.content, fio: (id) => fios.current.get(id)?.content })
+    // No Google quem pega o toque é o próprio marcador, que fica onde está a POSIÇÃO dele. Deslocado só no desenho (--dx/--dy), ele deixava
+    // a caixa invisível do pin no ponto verdadeiro, por cima do vizinho (placa larga dos apoiadores; e, com pins mais juntos desde 10/11, as
+    // casas também). Então o marcador INTEIRO vai para o lugar afastado; o fio continua no ponto verdadeiro. (MapLibre: o toque já é só no desenho.)
+    for (const p of pts) {
+      const mk = marcadores.current.get(p.id)
+      if (!mk) continue
+      const d = plano.desloc.get(p.id)
+      mk.content.style.setProperty('--dx', '0px'); mk.content.style.setProperty('--dy', '0px')
+      const o = projetar(p.lat, p.lng, zoom, 256)
+      mk.position = d ? desprojetar(o.x + d.dx, o.y + d.dy, zoom, 256) : { lat: p.lat, lng: p.lng }
+    }
     for (const s of selos.current) s.map = null
     selos.current = plano.grupos.map((g) => {
       const membros = pts.filter((p) => g.ids.includes(p.id))
@@ -116,7 +128,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       })
       const lat = membros.reduce((t, p) => t + p.lat, 0) / membros.length
       const lng = membros.reduce((t, p) => t + p.lng, 0) / membros.length
-      return marcadorClicavel(libs.current.AdvancedMarkerElement, { map: m, position: { lat, lng }, content: el, zIndex: 20 }, aproximar)
+      return marcadorClicavel(libs.current.AdvancedMarkerElement, { map: m, position: { lat, lng }, content: el, zIndex: 2000 }, aproximar)
     })
   }, [])
 
@@ -180,15 +192,27 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
     // O enquadramento segue as casas; só sem nenhuma casa na tela (filtro vazio) ele vai para as agências do Sicredi.
     const casas = pontos.filter((p) => !p.sicredi)
     const alvo = casas.length ? casas : pontos
-    // Fio abaixo (zIndex 1) de todos os pins (10): ele sai da ponta do pin e não pode passar por cima de nenhum.
+    // Fio abaixo (zIndex 1) de todos os pins (100 ou mais): ele sai da ponta do pin e não pode passar por cima de nenhum.
     for (const p of pontos) fios.current.set(p.id, new AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: fioDoPin(), zIndex: 1 }))
+    // Pins podem se sobrepor em parte (afastar.js › MIOLO): o mais ao SUL fica na frente, então a cauda dele cobre no máximo a cauda do
+    // vizinho de cima, nunca a cabeça com a logo. Ordem por latitude (100 + posição); patrocínio com promoção e apoiadores acima; selos (2000) no topo.
+    const ordemSul = new Map([...pontos].sort((a, b) => b.lat - a.lat).map((p, i) => [p.id, i]))
     for (const p of pontos) {
       const pos = { lat: p.lat, lng: p.lng }
-      marcadores.current.set(p.id, marcadorClicavel(AdvancedMarkerElement, { map: m, position: pos, content: elementoDoPonto(p), title: [p.titulo, p.promocao].filter(Boolean).join(' · '), zIndex: p.promocao ? 12 : 10 }, umaVez(() => aoSelecionar(p.id))))
+      const z = p.apoio ? 1500 : p.promocao ? 1200 : 100 + ordemSul.get(p.id)
+      marcadores.current.set(p.id, marcadorClicavel(AdvancedMarkerElement, { map: m, position: pos, content: elementoDoPonto(p), title: [p.titulo, p.promocao].filter(Boolean).join(' · '), zIndex: z }, umaVez(() => aoSelecionar(p.id))))
     }
     for (const p of alvo) limites.extend({ lat: p.lat, lng: p.lng })
-    if (alvo.length > 1) m.fitBounds(limites, 48)
-    else if (alvo.length === 1) { m.setCenter({ lat: alvo[0].lat, lng: alvo[0].lng }); m.setZoom(15) }
+    if (alvo.length > 1) {
+      m.fitBounds(limites, 48)
+      // Tela estreita: caber a região inteira (Zona Norte a Parnamirim) pedia zoom ~11 e quase tudo virava selo. Abre no miolo das casas
+      // (mediana) com zoom mínimo de abertura; quem está mais longe fica a um arrasto (Wilker, 10/11/2026: "tem que aproximar muito").
+      window.google.maps.event.addListenerOnce(m, 'idle', () => {
+        if ((m.getZoom() ?? ZOOM_ABERTURA) >= ZOOM_ABERTURA) return
+        const mediana = (v) => { const o = [...v].sort((a, b) => a - b); return o[Math.floor(o.length / 2)] }
+        m.setCenter({ lat: mediana(alvo.map((p) => p.lat)), lng: mediana(alvo.map((p) => p.lng)) }); m.setZoom(ZOOM_ABERTURA)
+      })
+    } else if (alvo.length === 1) { m.setCenter({ lat: alvo[0].lat, lng: alvo[0].lng }); m.setZoom(15) }
     reorganizar(true)
   }, [pronto, pontos.map((p) => p.id).join(), aoSelecionar, reorganizar])
 
@@ -212,7 +236,7 @@ export default function MapaGoogle ({ pontos, selecionada, aoSelecionar, voce = 
       if (p.sicredi) {
         el.classList.toggle('ct-sicredi-marcador--aprox', !!p.aproximada)
         el.classList.toggle('is-sel', p.id === selecionada)
-        mk.setAttribute('aria-label', TC.sicrediNomeMarcador(p.titulo, !!p.aproximada))
+        mk.setAttribute('aria-label', p.nomeMarcador || TC.sicrediNomeMarcador(p.titulo, !!p.aproximada)) // apoiador traz o próprio nome (apoio.js)
         continue
       }
       if (p.pin) { atualizarPin(el.firstElementChild, p.pin); marcarRota(el.firstElementChild, p.foi ? 'foi' : p.quero ? 'quero' : null) } // carimbo novo: a logo passa de P&B a colorida sem refazer o marcador

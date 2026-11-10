@@ -9,6 +9,21 @@
 const pelaOrdem = (unidades) => (a, b) => unidades[a].numero - unidades[b].numero || unidades[a].y - unidades[b].y
 const peloCaminho = (unidades) => (a, b) => unidades[a].y - unidades[b].y || unidades[a].x - unidades[b].x || unidades[a].numero - unidades[b].numero
 
+/**
+ * Unidade que entrou no cadastro DEPOIS da arte (sem lugar em `mundo.unidades`) herda o ponto e o número da própria casa (mesmo slug),
+ * como as outras unidades dela: a arte tem um lugar por casa. Sem isso ela sumia do mapa ilustrado e existia só no real
+ * (10/11/2026: Paneer Capim Macio e Lagoa Nova). Casa que a arte não tem continua fora.
+ */
+export function completarUnidades (mundo, participantes = []) {
+  const extra = {}
+  for (const p of participantes) {
+    const casa = mundo.casas?.[p.slug]
+    if (!casa?.ponto) continue
+    for (const u of p.unidades || []) if (!mundo.unidades[u.id]) extra[u.id] = { x: casa.ponto.x, y: casa.ponto.y, numero: casa.numero, slug: p.slug }
+  }
+  return Object.keys(extra).length ? { ...mundo, unidades: { ...mundo.unidades, ...extra } } : mundo
+}
+
 /** Linhas (unidade + casa) que têm lugar na arte, com x/y/número, na ordem da legenda (número) — a ordem do teclado. */
 export function casasNoMundo (unidades, linhas) {
   const ordem = pelaOrdem(unidades)

@@ -4,8 +4,11 @@
   dos ícones existentes como referência de estilo; prompts em docs/cartoon-2026-2/16-icones-atalhos.md) e aqui só recortados e
   ajustados ao quadro de 192 px. Antes o atalho "Prêmios" reaproveitava o recorte do troféu e o "Ranking" um pódio desenhado à mão;
   ambos saíram (Wilker, 07/11: "tem que fazer ícones novos que combinem").
+- `retirada` (10/11/2026, ponto de retirada dos vouchers): ILUSTRADO pela API (bandeja azul com dois vouchers, cupcake e café, seta
+  amarela entrando), mesma folha de referência; prompt em docs/cartoon-2026-2/16-icones-atalhos.md. O desenho por código saiu (Wilker:
+  "não é para construir um ícone, é para gerar uma imagem").
 Uso: python scripts/edicao/icones-atalhos.py                     (refaz o carimbo-delivery)
-     python scripts/edicao/icones-atalhos.py vouchers=a.png ranking=b.png   (ajusta os PNG gerados e grava os WebP)"""
+     python scripts/edicao/icones-atalhos.py vouchers=a.png ranking=b.png retirada=c.png   (ajusta os PNG gerados e grava os WebP)"""
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
@@ -57,7 +60,6 @@ def ajustar_png(origem, nome):
     out = Image.new('RGBA', (S, S), (0, 0, 0, 0))
     out.alpha_composite(im, ((S - im.width) // 2, (S - im.height) // 2))
     out.save(ICONES / f'{nome}.webp', quality=92, method=6)
-
 
 if __name__ == '__main__':
     import sys

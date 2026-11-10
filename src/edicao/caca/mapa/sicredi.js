@@ -9,13 +9,17 @@
  * Funções puras (tests/cartoon-caca-mapa.test.mjs).
  */
 
-export const FONTE_SICREDI = 'localizador de agências da Sicredi + Google Maps, 03/11/2026'
+export const FONTE_SICREDI = 'localizador de agências da Sicredi + Google Maps, 03/11/2026 (pontos de Cidade Verde e São Gonçalo revistos em 10/11/2026)'
 
 export const AGENCIAS_SICREDI = [
   { id: 'sicredi-natal', nome: 'Sicredi Natal (sede)', endereco: 'Rua Tuiuti, 765, Natal', lat: -5.7862581, lng: -35.1948449, precisao: 'confirmada' },
   // O Google Maps mostra Av. Ayrton Senna, 2349; o localizador diz 1995, salas L28 e L29: o número segue em conferência.
-  { id: 'sicredi-cidade-verde', nome: 'Sicredi Shopping Cidade Verde', endereco: 'Avenida Ayrton Senna, 1995, salas L28 e L29, Parnamirim', lat: -5.8918178, lng: -35.1988811, precisao: 'confirmada', numeroEmConferencia: true },
-  { id: 'sicredi-sao-goncalo', nome: 'Sicredi São Gonçalo do Amarante', endereco: 'Shopping Carajás, Avenida Bacharel Tomaz Landim, s/n, Conjunto Jardim Lola, São Gonçalo do Amarante', lat: -5.7669866, lng: -35.2769408, precisao: 'confirmada' },
+  // Ponto corrigido em 10/11/2026 para a ficha "Sicredi" do Google (dentro do Shopping Cidade Verde): o anterior (-5.8918178, -35.1988811)
+  // caía 510 m ao norte do shopping.
+  { id: 'sicredi-cidade-verde', nome: 'Sicredi Shopping Cidade Verde', endereco: 'Avenida Ayrton Senna, 1995, salas L28 e L29, Parnamirim', lat: -5.896485, lng: -35.198255, precisao: 'confirmada', numeroEmConferencia: true },
+  // Ponto corrigido em 10/11/2026 para a ficha "Sicredi São Gonçalo" do Google (Shopping Carajás): o anterior (-5.7669866, -35.2769408)
+  // caía 1,7 km a oeste do shopping.
+  { id: 'sicredi-sao-goncalo', nome: 'Sicredi São Gonçalo do Amarante', endereco: 'Shopping Carajás, Avenida Bacharel Tomaz Landim, s/n, Conjunto Jardim Lola, São Gonçalo do Amarante', lat: -5.773274, lng: -35.262356, precisao: 'confirmada' },
 ].map((a) => ({ ...a, fonte: FONTE_SICREDI }))
 
 export const ehSicredi = (id) => typeof id === 'string' && id.startsWith('sicredi-')

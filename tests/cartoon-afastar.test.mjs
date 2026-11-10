@@ -146,10 +146,10 @@ test('os tamanhos usados na conta batem com o CSS do pin (se mudar o desenho, mu
   assert.match(ler('src/styles/cartoon/16-mapa-tela.css'), new RegExp(`\{ scale: ${String(ESCALA_LONGE).replace('0.', '\.')}; \}`))
 })
 
-test('mapa real: o limite do selo sobe de perto (12) e some a partir do zoom 16', () => {
+test('mapa real: de perto, vizinhança de até 8 é afastada, 9 ou mais no mesmo ponto vira selo; a partir do zoom 16 nunca há selo', () => {
   const treze = perto(13)
-  assert.equal(planejarNoMapa(treze, { zoom: 14, zoomPerto: 13 }).grupos.length, 1, '13 pins no zoom 14: selo')
-  assert.equal(planejarNoMapa(perto(12), { zoom: 14, zoomPerto: 13 }).grupos.length, 0, '12 pins no zoom 14: afastados')
+  assert.equal(planejarNoMapa(perto(9), { zoom: 14, zoomPerto: 13 }).grupos.length, 1, '9 pins no mesmo ponto no zoom 14: selo')
+  assert.equal(planejarNoMapa(perto(8), { zoom: 14, zoomPerto: 13 }).grupos.length, 0, '8 pins no zoom 14: afastados')
   const fundo = planejarNoMapa(treze, { zoom: 16, zoomPerto: 13 })
   assert.deepEqual(fundo.grupos, [], 'no zoom 16 ninguém fica num selo')
   assert.equal(fundo.desloc.size, 13)
@@ -167,4 +167,14 @@ test('selo de grupo não fica em cima de pin nem de outro selo: quem ele cobriri
   const colados = afastarPins([...grupo, ...Array.from({ length: 8 }, (_, i) => pin(`h${i}`, 500 + 120, 400))])
   assert.ok(colados.grupos.length >= 1)
   for (const a of colados.grupos) for (const b of colados.grupos) if (a !== b) assert.ok(Math.hypot(a.x - b.x, a.y - b.y) >= 48 || false, 'selos não se tocam')
+})
+
+// 10/11/2026 (Wilker: "tem que aproximar muito para aparecer os locais"): vizinhanças por raio, sem corrente. Bairros vizinhos que se
+// encostam viram selos SEPARADOS (antes a corrente juntava a cidade inteira num selo só), e pins encostados mas não colados ficam soltos.
+test('mapa real: dois bairros encostados viram dois selos, não um; pin vizinho fora do miolo fica solto', () => {
+  const bairro = (n, lng, pref) => Array.from({ length: n }, (_, i) => ({ id: `${pref}${i}`, lat: -5.81 + (i % 3) * 0.00003, lng: lng + Math.floor(i / 3) * 0.00003 }))
+  const r = planejarNoMapa([...bairro(9, -35.2, 'a'), ...bairro(9, -35.18, 'b')], { zoom: 12, zoomPerto: 13 }) // ~2,2 km: ~58 px no zoom 12
+  assert.equal(r.grupos.length, 2, 'um selo por bairro')
+  const dois = planejarNoMapa([{ id: 'x', lat: -5.81, lng: -35.2 }, { id: 'y', lat: -5.81, lng: -35.1997 }], { zoom: 14, zoomPerto: 13 })
+  assert.deepEqual(dois.grupos, [])
 })

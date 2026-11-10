@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
-import { agruparPorCasa, casasNoMundo, ordemDoCaminho, pontosDaRota, tracado } from '../src/edicao/rota/mundo.js'
+import { agruparPorCasa, casasNoMundo, ordemDoCaminho, pontosDaRota, tracado, completarUnidades } from '../src/edicao/rota/mundo.js'
 import { mundoEdicao } from '../src/data/imageLibrary.js'
 
 const U = {
@@ -74,6 +74,9 @@ test('dados gerados: toda posição dentro da arte, toda imagem no disco, toda u
   const arquivo = new URL('../src/edicao/dados/retrato/cartoon.local.json', import.meta.url)
   if (!existsSync(arquivo)) return
   const retrato = JSON.parse(readFileSync(arquivo, 'utf8'))
-  const ids = (retrato.participantes || retrato).flatMap((p) => (p.unidades || []).map((u) => u.id))
-  assert.deepEqual(ids.filter((id) => !m.unidades[id]), [], 'unidade sem lugar no mundo: rodar scripts/edicao/mapa-mundo.py')
+  // Unidade nova (cadastrada depois da arte) herda o ponto da casa (completarUnidades); só casa que a arte não tem fica sem lugar.
+  const participantes = retrato.participantes || retrato
+  const completo = completarUnidades(m, participantes)
+  const ids = participantes.flatMap((p) => (p.unidades || []).map((u) => u.id))
+  assert.deepEqual(ids.filter((id) => !completo.unidades[id]), [], 'casa sem lugar no mundo: rodar scripts/edicao/mapa-mundo-final.py')
 })

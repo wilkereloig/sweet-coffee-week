@@ -38,6 +38,7 @@ import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { useCampanha } from '../../../caca/campanha/Campanha.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
+import { SeloRetirada } from '../../../caca/mapa/SeloRetirada.jsx'
 import { IMAGENS_ESTADO, IMAGEM_REVISITA } from '../../../caca/mapa/imagens.js'
 import { agruparPorCasa } from '../../../rota/mundo.js'
 import { afastarPins, LIMITE_GRUPO } from '../../../componentes/mapa/afastar.js'
@@ -96,7 +97,8 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
     const W = el.offsetWidth; const H = el.offsetHeight
     const itens = [...el.querySelectorAll('[data-casa]')].map((b) => ({
       id: b.dataset.casa, x: (parseFloat(b.style.left) / 100) * W, y: (parseFloat(b.style.top) / 100) * H,
-      w: b.offsetWidth, h: b.offsetHeight, ax: b.dataset.ancora ? Number(b.dataset.ancora) / 100 : 0.5,
+      // A etiqueta "Retirada de vouchers" fica acima do pin (absoluta): entra na altura, para nenhum vizinho ficar embaixo dela.
+      w: b.offsetWidth, h: b.offsetHeight + (b.querySelector('.ct-retirada')?.offsetHeight + 4 || 0), ax: b.dataset.ancora ? Number(b.dataset.ancora) / 100 : 0.5,
     }))
     let r = afastarPins(itens, { limite: c.z < ZOOM_AGRUPA ? LIMITE_GRUPO : Infinity })
     if (r.grupos.some((g) => g.ids.includes(alvoRef.current))) r = afastarPins(itens, { limite: Infinity }) // a casa escolhida nunca some num selo
@@ -347,13 +349,18 @@ export function Mundo ({ mundo, casas, agencias = [], trilha, selecionada, aoSel
               </span>
             ) : null
           })}
-          {agencias.map((a) => (
-            <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={a.id === selecionada} aria-label={`${a.nomeAcessivel || TC.sicrediNoMundo(a.nome, a.endereco)}${campanha.aberta && !a.apoio ? `. ${chamadaSicredi}` : ''}`}
-              className={`ct-mundo__sicredi${a.apoio ? ' ct-mundo__sicredi--largo' : campanha.aberta ? ' tem-promocao' : ''}${a.id === selecionada ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(a.id === selecionada ? '' : a.id)}>
-              <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={a.logo || mundo.sicrediLogo} alt="" draggable={false} /></span>
-              {campanha.aberta && !a.apoio && <span className="ct-mundo__sicredi-promocao" aria-hidden="true"><IconeCartoon nome="vouchers" tamanho={32} /></span>}
-            </button>
-          ))}
+          {agencias.map((a) => {
+            // Apoiador com vários locais: no mapa real a escolha vem como `apoio-x@local`; aqui o pin único dele fica marcado igual.
+            const sel = a.id === selecionada || (a.apoio && String(selecionada).startsWith(`${a.id}@`))
+            return (
+              <button key={a.id} type="button" data-casa={a.id} data-ancora={a.x > 0.9 ? 85 : 15} style={{ ...pos(a), '--ancora': a.x > 0.9 ? '85%' : '15%', ...deslocamento(a.id) }} aria-pressed={sel} aria-label={`${a.nomeAcessivel || TC.sicrediNoMundo(a.nome, a.endereco)}${campanha.aberta && !a.apoio ? `. ${chamadaSicredi}` : ''}`}
+                className={`ct-mundo__sicredi${a.apoio ? ' ct-mundo__sicredi--largo' : campanha.aberta ? ' tem-promocao' : ''}${a.retirada ? ' ct-mundo__sicredi--retirada' : ''}${sel ? ' is-sel' : ''}${agrupados.has(a.id) ? ' is-agrupado' : ''}`} onClick={() => aoSelecionar(sel ? '' : a.id)}>
+                {a.retirada && <span aria-hidden="true"><SeloRetirada /></span>}
+                <span className="ct-mundo__sicredi-letreiro" aria-hidden="true"><img src={a.logo || mundo.sicrediLogo} alt="" draggable={false} /></span>
+                {campanha.aberta && !a.apoio && <span className="ct-mundo__sicredi-promocao" aria-hidden="true"><IconeCartoon nome="vouchers" tamanho={32} /></span>}
+              </button>
+            )
+          })}
           {grupos.map((c) => {
             const marcada = c.ids.includes(selecionada)
             const arte = mundo.casas?.[c.slug]
