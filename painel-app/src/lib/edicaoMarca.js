@@ -14,7 +14,7 @@
  * mesma ordem). Mudou lá, muda cá — o teste confere contra o SQL.
  */
 import { ALERGENICOS, CARACTERISTICAS } from '../../../src/edicao/dados/modelo.js'
-import { canaisParaObjeto, canaisParaArray, NOMES_FALTANDO } from './cadastro.js'
+import { CANAIS, canaisParaObjeto, canaisParaArray, erroLinkCanal, NOMES_FALTANDO } from './cadastro.js'
 import { mascaraWhatsApp, validarWhatsApp, whatsappNormalizado } from './participantes.js'
 import { linhasCanonicas } from './horarioFestival.js'
 
@@ -99,8 +99,11 @@ export function camposInvalidosDaUnidade(u) {
   if (erroCep(u.cep)) r.push('o CEP')
   if (erroUf(u.uf)) r.push('a UF')
   if (erroWhatsappUnidade(u.whatsapp_publico)) r.push('o WhatsApp da loja')
+  if (temCanalInvalido(u)) r.push('os links de delivery')
   return r
 }
+// `canaisParaArray` descarta o link que não é endereço web: gravar a lista assim APAGARIA do banco o canal antigo.
+const temCanalInvalido = (u) => CANAIS.some((c) => erroLinkCanal(u.canais && u.canais[c.tipo]))
 
 /** Corpo do PATCH/POST em `unidades`. Valor inválido FICA DE FORA (o campo mostra o erro). */
 export function corpoUnidade(u) {
@@ -147,6 +150,12 @@ export const enderecoLegado = (u) => [texto(u.logradouro), texto(u.numero)].filt
  * texto — só linhas completas chegam aqui (o rascunho incompleto do seletor nunca entra em `u.horario_festival`).
  */
 export function corpoParticipacaoUnidade(u, ordem) {
+  const corpo = corpoParticipacaoUnidadeCheio(u, ordem)
+  // Link inválido: a lista inteira fica de fora (o campo mostra o erro) e o que está gravado continua no site.
+  if (temCanalInvalido(u)) delete corpo.canais_delivery
+  return corpo
+}
+function corpoParticipacaoUnidadeCheio(u, ordem) {
   return {
     ordem, participa: u.participa !== false,
     endereco: enderecoLegado(u), bairro: ouNulo(u.bairro),
