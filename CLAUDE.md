@@ -429,7 +429,7 @@ referência como "§6.12" continua válida, só mora em outro arquivo.
 
 | Seções | Arquivo | Carrega |
 |---|---|---|
-| §6 Sistema visual · §10.1–10.7 armadilhas de CSS, cor e layout | `src/CLAUDE.md` | sozinho, ao mexer em `src/` |
+| §6 Sistema visual · §10.1–10.7 armadilhas de CSS, cor e layout | `src/CLAUDE.md` (índice) → `docs/regras/06a-…`, `06b-…`, `10-1-a-10-7-armadilhas-css.md` | o índice carrega sozinho ao mexer em `src/`; **abrir a seção** antes de mexer |
 | §7 As páginas (Home, Edições, Awards, Participar, Apoiar, Contato, Em breve) | `src/pages/CLAUDE.md` | sozinho, ao mexer em `src/pages/` |
 | §10.4-b Páginas estáticas, painel, contas, push, Fases 5–18 e o painel da Cartoon | `painel-app/CLAUDE.md` (índice) → `docs/regras/10-4b-painel-01…04-*.md` | o índice carrega sozinho ao mexer em `painel-app/`; **abrir o arquivo da área** antes de mexer |
 | §4 Stack, Supabase, migrations, estrutura de pastas, demolição | `docs/regras/04-stack-e-estrutura.md` | **ler antes** de mexer em banco, Supabase, dependência ou estrutura |
