@@ -24,6 +24,7 @@ export const CACA_CAMINHOS = {
   visitaAnterior: `${C}/visita-anterior`,
   sicredi: `${CAMPANHA.caminho}?carimbo=1`,
   rota: `${EDICAO.caminho}/mapa?painel=rota`, // a rota é o painel do Mapa da Doçura
+  premios: `${EDICAO.caminho}/mapa?painel=premios`, // os prêmios também (aba do mesmo painel)
   casas: `${EDICAO.caminho}/participantes`,
   regulamento: `${EDICAO.caminho}/regulamento`,
 }
@@ -119,6 +120,7 @@ export const CACA = {
     titulo: 'Para onde ir',
     itens: [
       { chave: 'mapa', desenho: 'mapa', rotulo: 'Mapa' },
+      { chave: 'premios', desenho: 'vouchers', rotulo: 'Prêmios' },
       { chave: 'ranking', desenho: 'ranking', rotulo: 'Ranking' },
       { chave: 'grupos', desenho: 'conversar', rotulo: 'Grupos' },
       { chave: 'rota', desenho: 'rota', rotulo: 'Minha rota' },
