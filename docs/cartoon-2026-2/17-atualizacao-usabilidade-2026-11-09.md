@@ -1,7 +1,12 @@
 # 17 · Atualização de usabilidade, sincronização e "como carimbar" — 09/11/2026
 
 Registro de andamento do pedido do Wilker de 09/11/2026 (painéis, site Cartoon, mapa, jogo). Serve para continuar entre sessões:
-o que foi feito, o que foi conferido de verdade, o que ficou pendente e por quê. Branch `dev/site-completo`; nada foi para `master`.
+o que foi feito, o que foi conferido de verdade, o que ficou pendente e por quê.
+
+**Publicado em 10/11/2026** (pedido do Wilker): merge de `dev/site-completo` em `master` (`67d5a84b`), levando também os 46 commits de
+06 a 09/11 que ainda não estavam no ar. Conferido no domínio: ranking com "Atualizar agora" e ritmo, "Como carimbar?" no mapa e a seção
+nova do regulamento. Antes do merge: build limpo e todas as suítes verdes (cartoon 337, caça 301, organização 735, ícones, redesign,
+casca institucional, responsivo, privacidade, layout do mapa, guia, ranking ao vivo).
 
 ## Ambiente
 
@@ -61,3 +66,15 @@ classificação nem entra em prêmio; quem não avançou não aparece (ausência
 7. **Compreensão de "como carimbar":** validado tecnicamente (o guia abre, é acessível, o texto segue o fluxo real de dois toques
    QR → "Carimbar" → "Carimbar aqui"). **Não foi observado com usuários reais**: se a dificuldade diminuiu só se sabe olhando o uso
    (pedidos de revisão, carimbos pendentes sem avaliação, mensagens à organização).
+
+## Fechamento de 10/11/2026
+
+- **Decisões do Wilker:** alteração feita pela marca vai ao ar sem nova análise (fica como está); o regulamento foi atualizado
+  (seção "Carimbo por delivery, por visita anterior e carimbo Sicredi"); o endereço da Sweet Duo é o número 490 (corrigido no banco,
+  campo `participacao_unidades.endereco`).
+- **Testes que estavam vermelhos eram desatualizados, não defeito** (regra mudou de propósito e o teste não acompanhou): campanha até
+  13/11, carimbo Sicredi por print, sétimo atalho "Pedir carimbo", foto opcional na visita anterior, prêmio final sem dia, prefixo
+  `v2-` nos arquivos do build, Home institucional em `/festival`. Alinhados.
+- **Defeitos reais corrigidos antes de publicar:** raio literal em `inicio-marca.css`, ícone `mecanica/voucher` em tamanho fora da
+  escala (`Sicredi.jsx`), e a faixa do jogo empurrando o mapa para fora da primeira dobra no celular (agora duas fileiras).
+- **Seguem abertos:** pins de Senac e Espaço Reduzido (faltam unidades e endereços) e observar o uso real de "como carimbar".
