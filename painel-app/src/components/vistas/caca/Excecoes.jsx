@@ -5,7 +5,7 @@ import { pedirTexto, avisar, confirmar } from '../../Confirmar'
 import { cacaApi, horaNatal } from '../../../lib/caca'
 import {
   FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao, aguardandoACasa,
-  aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido,
+  aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido, notaSemProva, MIN_MOTIVO_SEM_PROVA,
 } from '../../../lib/cacaGps'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
 
@@ -73,6 +73,19 @@ export function Excecoes({ edicao, pode }) {
     if (r === undefined) return
     await lista.recarregar()
     setAviso(aprova ? `Aprovado. O carimbo de ${p.apelido} em ${p.casa} foi criado.` : `Pedido de ${p.apelido} em ${p.casa} negado.`)
+  }
+
+  // Visita anterior que ainda não mandou relato nem foto: só com motivo escrito (vai na decisão e na auditoria).
+  async function decidirSemProva(p) {
+    const motivo = await pedirTexto(
+      `${p.apelido} pediu o carimbo de visita anterior em ${p.casa} e NÃO mandou relato nem foto. Aprovar assim é uma exceção: vira um carimbo que vale no ranking e nos sorteios, e a decisão não se desfaz por aqui. Escreva por que está aprovando (mínimo ${MIN_MOTIVO_SEM_PROVA} caracteres): fica na auditoria.`,
+      { rotulo: 'Motivo da exceção (obrigatório)' }, { titulo: 'Aprovar sem prova?', acao: 'Aprovar com exceção', perigo: true })
+    if (motivo === null) return
+    if (motivo.trim().length < MIN_MOTIVO_SEM_PROVA) { await avisar(`Escreva pelo menos ${MIN_MOTIVO_SEM_PROVA} caracteres: o motivo fica na auditoria.`); return }
+    const r = await executar(p.id, () => cacaApi.decidirExcecao(p.id, 'aprovar', notaSemProva(motivo)))
+    if (r === undefined) return
+    await lista.recarregar()
+    setAviso(`Aprovado com exceção. O carimbo de ${p.apelido} em ${p.casa} foi criado.`)
   }
 
   // Aprova, um por um, todos os pedidos da lista na tela que mostrariam o botão Aprovar. Falha num não para os outros.
@@ -154,7 +167,15 @@ export function Excecoes({ edicao, pode }) {
                     </div>
                     <div className="cp-cartao__acao">
                       {!gerir ? null
-                        : espera ? <Selo tom="andamento">{espera}</Selo>
+                        : espera ? (
+                          <div className="cp-acoes">
+                            <Selo tom="andamento">{espera}</Selo>
+                            {podeDecidir(p) && <>
+                              <Botao variante="secundario" disabled={!!ocupado || !!lote} aria-label={`Aprovar com exceção, sem prova: ${p.apelido} em ${p.casa}`} onClick={() => decidirSemProva(p)}>Aprovar sem prova</Botao>
+                              <Botao variante="secundario" disabled={!!ocupado || !!lote} aria-label={`Negar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'negar')}>Negar</Botao>
+                            </>}
+                          </div>
+                        )
                           : podeDecidir(p) ? (
                             <div className="cp-acoes">
                               <Botao disabled={!!ocupado || !!lote} aria-label={`Aprovar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'aprovar')}>Aprovar</Botao>

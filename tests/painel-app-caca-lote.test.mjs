@@ -1,7 +1,7 @@
 // Pedidos de presença: "Aprovar todos" só leva o que mostraria o botão Aprovar; filtros rápidos.
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { aguardaEvidencia, aprovavelEmLote, filtrarRapido } from '../painel-app/src/lib/cacaGps.js'
+import { aguardaEvidencia, aprovavelEmLote, filtrarRapido, notaSemProva, PREFIXO_SEM_PROVA, MIN_MOTIVO_SEM_PROVA } from '../painel-app/src/lib/cacaGps.js'
 
 const gps = { id: 1, estado: 'pendente', motivo: 'gps', nota: 'Estou no balcão' }
 const semNada = { id: 2, estado: 'pendente', motivo: 'visita_anterior', nota: '' }
@@ -27,4 +27,12 @@ test('filtros rápidos', () => {
   assert.deepEqual(filtrarRapido(l, 'delivery').map((p) => p.id), [6])
   assert.equal(filtrarRapido(l, 'visita').length, 3)
   assert.equal(filtrarRapido(l, 'inexistente').length, 5)
+})
+
+test('exceção sem prova: nota leva o prefixo que o banco confere e nunca entra no lote', () => {
+  const nota = notaSemProva('  Mandou o print pelo WhatsApp  ')
+  assert.equal(nota, 'Exceção sem prova: Mandou o print pelo WhatsApp')
+  // o gatilho exige o prefixo e 34+ caracteres (prefixo de 19 + motivo mínimo de 15)
+  assert.equal(PREFIXO_SEM_PROVA.length + MIN_MOTIVO_SEM_PROVA, 34)
+  assert.equal(aprovavelEmLote(semNada), false)
 })
