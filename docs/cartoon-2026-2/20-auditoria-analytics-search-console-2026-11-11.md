@@ -50,7 +50,21 @@ Pedido do Wilker: conferir se todas as páginas, da edição e do institucional,
   - Redirecionamento permanente (301) dos 9 endereços antigos para a ficha atual ou para a home.
 - Limite que fica: todas as rotas servem o mesmo HTML, e o conteúdo vem por JavaScript. A indexação das páginas da edição depende do Google renderizar a página. O próximo passo, se for preciso, é pré-renderizar o HTML por rota.
 
-## Para ir ao ar
+## Feito em 11/11, com o ok do Wilker ("Sim, os dois")
+- **Publicado** na master `7395a4e9` (cherry-pick de 3321d1bc, f3280169 e deste doc). Conferido no ar:
+  - /mrcupcake, /carolidouces, /padoca, /omaestrocafe e /home respondem 308 para o endereço atual;
+  - canonical por rota;
+  - page_view de /cartoon/participantes/wow-cookies e /edicoes/2022 com o título certo.
+- **GA:** em Fluxo Site Lovers › Métrica otimizada › Visualizações de página, a opção "Alterações na página de acordo com os eventos do histórico de navegação" foi DESMARCADA e salva. A tela do GA mostra a opção desmarcada.
+  - O `gtag.js` servido às 18h ainda vinha com `"vtp_enableHistoryEvents":true`, porque o Google demora a propagar.
+  - Conferir de novo: `curl -s "https://www.googletagmanager.com/gtag/js?id=G-FM5ZJXL3MV" | grep -o '"vtp_enableHistoryEvents":[a-z]*'` deve dar `false`.
+  - Testado: `gtag('set', {page_location})` antes do `pushState` NÃO impede o envio do endereço cru. Só a opção do GA resolve.
+  - Alcance do vazamento: só acontece em navegação interna para essas páginas. O link do voucher e o do convite chegam por e-mail ou mensagem, o que é carga inicial, e aí o page_view é o do site, com o endereço limpo.
+- **Search Console:**
+  - "Validar correção" iniciada nos 404 (11/11).
+  - Indexação solicitada para /, /cartoon/combos, /cartoon/participantes, /cartoon/mapa e /festival. /festival ainda "não está no Google".
+
+## Para ir ao ar (histórico)
 - `3321d1bc` e `f3280169` estão só na dev. Publicar na master precisa do ok do Wilker.
 - Ajuste no GA (item 1): ok do Wilker.
 - Depois de publicar: no Search Console, "Validar correção" em 404 e "Solicitar indexação" das principais páginas.
