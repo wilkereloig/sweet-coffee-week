@@ -53,9 +53,13 @@ export const DESTINO_PREMIOS = '/cartoon/mapa?painel=premios'
 /** Página da campanha Ter com quem contar (Sicredi): o destino do aviso da categoria `campanha` (migration 20261234). */
 export const DESTINO_CAMPANHA = '/cartoon/ter-com-quem-contar'
 
-/** Caminho interno dentro de /cartoon/caca, o painel de Prêmios ou a página da campanha; qualquer outra coisa vira null (sem botão de abrir). */
+/** Ficha do combo de uma casa: o destino do aviso da categoria `delivery` (migration 20270130). Só o slug, sem query. */
+export const DESTINO_COMBO = /^\/cartoon\/combos\/[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/** Caminho interno dentro de /cartoon/caca, o painel de Prêmios, a página da campanha ou a ficha de um combo; qualquer outra coisa vira null. */
 export function destinoSeguro (url) {
   if (url === DESTINO_PREMIOS || url === DESTINO_CAMPANHA) return url
+  if (typeof url === 'string' && DESTINO_COMBO.test(url)) return url
   if (typeof url !== 'string' || !/^\/(?!\/)[A-Za-z0-9/_-]*$/.test(url)) return null
   return url === '/cartoon/caca' || url.startsWith('/cartoon/caca/') ? url : null
 }

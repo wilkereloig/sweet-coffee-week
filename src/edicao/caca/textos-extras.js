@@ -48,7 +48,7 @@ export const EXTRAS = {
     marcarVistos: 'Marcar todos como vistos',
     novosN: (n) => (n === 1 ? '1 aviso novo' : `${n} avisos novos`),
     semAvisos: 'Nenhum aviso por enquanto. Quando houver algo útil, aparece aqui, mesmo sem notificação no celular.',
-    acaoPorCategoria: { premio: 'Ver prêmios', voucher: 'Ver prêmios', meta: 'Ver minhas metas', avaliacao_pendente: 'Avaliar o combo', incentivo: 'Ver o mapa', campanha: 'Ver a campanha' },
+    acaoPorCategoria: { premio: 'Ver prêmios', voucher: 'Ver prêmios', meta: 'Ver minhas metas', avaliacao_pendente: 'Avaliar o combo', incentivo: 'Ver o mapa', campanha: 'Ver a campanha', delivery: 'Ver o combo' },
     marcarLida: 'Marcar como lida',
     marcarTodas: 'Marcar todas como lidas',
   },
