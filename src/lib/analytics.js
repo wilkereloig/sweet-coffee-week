@@ -37,6 +37,7 @@ const UTM = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_ter
 let ativo = false
 let script = null
 let ultimaRota = null
+const ESPERA_TITULO_MS = 700
 
 function gtag () {
   if (typeof window === 'undefined' || typeof window.gtag !== 'function') return
@@ -48,11 +49,23 @@ function gtag () {
    era "/cartoon" e a navegação interna (Mapa → Caça → campanha) nem gerava page_view, porque a rota não mudava. */
 const PAGINAS_CARTOON = ['participantes', 'combos', 'mapa', 'minha-rota', 'avaliar', 'premiacao', 'caca', 'regulamento', 'ter-com-quem-contar']
 
+/* Segundo nível que É dado público e vale relatório (11/11/2026, pedido do Wilker: "registrando todos os dados"):
+   a casa na ficha (/cartoon/participantes|combos/<slug>, slug público do site), a seção da Caça (lista fechada) e a edição
+   do acervo (/edicoes/2019.1). Código de carimbo, token de voucher, grupo e convite continuam fora. */
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const SECOES_CACA = ['recuperar', 'mapa', 'ranking', 'grupos', 'metas', 'compartilhar', 'delivery', 'visita-anterior']
+const EDICAO = /^\d{4}(?:\.\d)?$/
+
 /** Rota limpa a partir do hash ou do caminho. Pura, testada. */
 export function rotaLimpa (hash = '', pathname = '/') {
   const bruto = (hash.replace(/^#/, '') || pathname || '/').split(/[?#]/)[0]
-  const [primeiro = '', segundo = ''] = bruto.split('/').filter(Boolean)
-  if (primeiro === 'cartoon' && PAGINAS_CARTOON.includes(segundo)) return `/cartoon/${segundo}`
+  const [primeiro = '', segundo = '', terceiro = '', ...resto] = bruto.split('/').filter(Boolean)
+  if (primeiro === 'cartoon' && PAGINAS_CARTOON.includes(segundo)) {
+    const fica = !resto.length && terceiro && (
+      ((segundo === 'participantes' || segundo === 'combos') && SLUG.test(terceiro)) || (segundo === 'caca' && SECOES_CACA.includes(terceiro)))
+    return fica ? `/cartoon/${segundo}/${terceiro}` : `/cartoon/${segundo}`
+  }
+  if (primeiro === 'edicoes' && !terceiro && EDICAO.test(segundo)) return `/edicoes/${segundo}`
   return ROTAS.includes(primeiro) ? `/${primeiro}` : '/'
 }
 
@@ -163,9 +176,15 @@ export function trackPageView () {
   const rota = rotaAtual()
   if (rota === ultimaRota) return // hashchange + popstate na mesma troca
   ultimaRota = rota
-  const endereco = enderecoAtual()
-  gtag('set', endereco)
-  gtag('event', 'page_view', endereco)
+  gtag('set', enderecoAtual()) // eventos automáticos já saem com o endereço limpo
+  // O título das páginas da edição só chega depois (a página é carregada sob demanda e escreve o próprio título).
+  // ponytail: espera curta e fixa; se a rota mudou nesse meio-tempo, quem envia é a troca seguinte.
+  setTimeout(() => {
+    if (!ativo || !analisePermitida() || rotaAtual() !== rota) return
+    const endereco = enderecoAtual()
+    gtag('set', endereco)
+    gtag('event', 'page_view', endereco)
+  }, ESPERA_TITULO_MS)
 }
 
 /**
