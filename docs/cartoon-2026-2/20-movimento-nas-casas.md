@@ -73,3 +73,15 @@ para onde há menos movimento; incorporar ao mapa e à página de cada casa.
 - Visto no navegador (dev, 375 px): cartão do mapa com "Movimento acima do normal agora" e ficha da Wow Cookies com "Boa hora para
   visitar". Não vistos: o filtro "Menos movimento agora" e a aba Movimento do painel (pede login).
 - Desligar: painel › Caça › Movimento › "Desligar no site".
+
+## E · Ocupação pelas mesas (11/11, pedido do Wilker) — APLICADA
+"5 pessoas não é número grande": o nível passa a ser medido contra a capacidade real da casa.
+- Migration `20270129_caca_movimento_ocupacao.sql` (reverter em `supabase/reverter/`), aplicada 11/11 ~16h40.
+- **Taxa da casa** = rastros do dia (avaliações + carimbos GPS + ½ QR) ÷ combos vendidos (`vendas_diarias`), só dias anteriores.
+  < 50 combos registrados → taxa geral; presa entre 8% e 100%. Média medida: 1 avaliação a cada 4–5 combos (23%).
+- **Combos em 2 h** ≈ presenças ÷ taxa. **Ocupação** = combos/h × 30 min (máximo, Wilker) ÷ 1,5 combo por mesa (grupos de 2–3) ÷ mesas.
+- **Alto** = ocupação ≥ 70% (e presenças ≥ 3) · **tranquila** = ocupação ≤ 30% com normal ≥ 1. Casa sem mesas: sem selo.
+- Ensaio: sáb 08/11 17h → Jolie 75%, Marlon 72%, Wow Cookies (4 mesas, muita retirada) acima de 100%; 11/11 16h35 → nenhuma alta
+  (Maison Julie, que tinha o selo, estava em ~12% das 30 mesas).
+- ⚠️ Só conta público do festival (combo): cliente comum não aparece, a casa real está mais cheia. 13 de 42 unidades sem mesas.
+- Painel › Caça › Movimento: coluna "Ocupação estimada" (% · combos em 2 h · mesas).
