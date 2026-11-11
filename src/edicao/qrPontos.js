@@ -41,7 +41,7 @@ export function destinoDoCodigo (bruto) {
   if (GERAIS.has(codigo)) return base + GERAIS.get(codigo)
   const [prefixo, ...resto] = codigo.split('-')
   // Face do combo do display (05/11): vai direto à ficha da casa, no bloco do combo — sem tela intermediária. O convite
-  // a carimbar mora na própria ficha (AvisoCarimbo). O código impresso e o contador de leituras não mudam.
+  // a carimbar mora na própria ficha (painel "Carimbe e avalie", Carimbe.jsx). O código impresso e o contador de leituras não mudam.
   if (prefixo === 'd1' && resto.length) return `${base}/combos/${resto.join('-')}`
   if (prefixo === 'd2') return `${base}/avaliar`
   if (prefixo === 'mapa') return MAPA_PUBLICO ? `${base}/mapa` : base

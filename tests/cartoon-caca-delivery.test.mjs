@@ -158,8 +158,9 @@ test('nada de chave, código ou imagem em console, analytics, URL ou armazenamen
 })
 
 test('a ficha só oferece "Pedir carimbo do meu delivery" com delivery declarado "sim"', () => {
-  const f = ler('src/edicao/cartoon/paginas/participante/ComoPedir.jsx')
-  assert.match(f, /estadoModo\(p, 'delivery'\)\.estado === 'sim'[\s\S]{0,200}CACA_CAMINHOS\.delivery/)
+  const f = ler('src/edicao/cartoon/paginas/participante/Carimbe.jsx') // 11/11: o botão mora no painel "Carimbe e avalie"
+  assert.match(f, /entrega = M\.estadoModo\(p, 'delivery'\)\.estado === 'sim'/)
+  assert.match(f, /MAPA_NO_AR && entrega && \([\s\S]{0,300}CACA_CAMINHOS\.delivery/)
 })
 
 // ---------------------------------------------------------------- migration e edge functions

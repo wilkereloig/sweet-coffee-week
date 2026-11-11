@@ -1,5 +1,5 @@
 /*
- * 4 · Onde encontrar: um cartão por unidade, com tudo o que é DELA — nome e situação de hoje no cabeçalho; endereço,
+ * 4 · Onde e quando (era "Onde encontrar"): um cartão por unidade, com tudo o que é DELA — nome e situação de hoje no cabeçalho; endereço,
  * ações e o que ela atende à esquerda; o horário no festival à direita (no desktop). Linhas de informação com ícone de contorno.
  * Revisão de 07/11 (pedido do Wilker): o horário é SÓ os bloquinhos dos dias do festival (5 a 15/11), sempre à vista, com o de hoje
  * marcado — sem a lista escrita acima nem o "Ver todos os dias". A situação de hoje fica no topo do cartão, em pílula.
