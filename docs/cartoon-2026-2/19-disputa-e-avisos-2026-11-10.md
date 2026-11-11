@@ -56,3 +56,15 @@ Incentivo neutro e retomada para a mesma pessoa no mesmo dia: 0. Só 2 das 395 p
   pela preferência (sem `disputa` nas prefs = ligada) e pararia no limite — o esperado.
   Conferir em 11/11: `push_estado` da entrega = `enviado`, `cron.job` sem o job, e a linha no painel (1 na central · 1 no celular).
 - **Ponto de decisão 2:** ligar o interruptor e publicar só com o ok do Wilker.
+
+## Avisos de delivery (11/11/2026 · migration 20270130, ESCRITA E ENSAIADA, não aplicada)
+Pedido do Wilker: "notificações inteligentes … que estimulam a compra" (ex.: Vivianne Castro Doces com entrega grátis).
+- Categoria `delivery` (preferência ligada por padrão, como a disputa). Interruptor `delivery_aviso` nasce DESLIGADO; painel: Caça › Avisos › "Avisos de delivery".
+- Uma rodada por dia, 17h–19h de Natal: cada pessoa com carimbo recebe UMA das 12 casas com delivery do combo que ainda falta no mapa dela,
+  sem repetir casa já avisada (sorteio fixo por pessoa e dia). Um aviso por casa por dia; destino = ficha do combo (`/cartoon/combos/<slug>`).
+- Só dado do cadastro: unidade que participa + `delivery_combo = 'sim'` + combo aprovado; "entrega grátis" só se todas as unidades dizem grátis
+  (hoje só Vivianne Castro Doces). Texto não promete carimbo ("quando receber, peça o carimbo do delivery na Caça").
+- Push: limites de hoje (2/dia, 1 por categoria), prioridade do incentivo. Trava: mais de 1000 pessoas no dia = nada sai.
+- Ensaio (ROLLBACK, 11/11 16h50): 16h50 nada; 17h05 → 12 avisos, 697 pessoas (39 a 74 por casa); 17h20 já gerado; dia 12 nenhuma casa repetida;
+  ninguém recebe casa onde já tem carimbo. Só 8 pessoas têm push ativo: o alcance real é a central (sino).
+- O clique no celular abre a ficha só depois de publicar o `caca-sw.js` novo; antes disso abre a central.

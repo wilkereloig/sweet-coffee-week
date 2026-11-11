@@ -434,6 +434,24 @@ export function disputaPorDia(linhas) {
     .sort((a, b) => (a.dia < b.dia ? 1 : a.dia > b.dia ? -1 : 0))
 }
 
+/** Avisos de delivery (migration 20270130): linhas (dia, casa) → um item por dia, mais recente primeiro, casas com mais pessoas primeiro. */
+export function deliveryPorDia(linhas, casas) {
+  const nomes = new Map((Array.isArray(casas) ? casas : []).map((c) => [c?.slug, c?.nome]))
+  const dias = new Map()
+  for (const l of Array.isArray(linhas) ? linhas : []) {
+    if (!l || typeof l.dia !== 'string' || typeof l.casa !== 'string') continue
+    const d = dias.get(l.dia) || { dia: l.dia, geradas: 0, enviadas: 0, casas: [] }
+    const geradas = Number(l.geradas) || 0
+    const enviadas = Number(l.enviadas) || 0
+    d.geradas += geradas; d.enviadas += enviadas
+    d.casas.push({ slug: l.casa, nome: nomes.get(l.casa) || l.casa, geradas, enviadas })
+    dias.set(l.dia, d)
+  }
+  return [...dias.values()]
+    .map((d) => ({ ...d, casas: d.casas.sort((a, b) => b.geradas - a.geradas || a.nome.localeCompare(b.nome)) }))
+    .sort((a, b) => (a.dia < b.dia ? 1 : a.dia > b.dia ? -1 : 0))
+}
+
 /** Movimento nas casas (migrations 20270125 e 20270128): nível de cada unidade nas últimas 2 h, com todas as fontes somadas. */
 export const NIVEL_MOVIMENTO = Object.freeze({
   alto: { rotulo: 'Acima do normal', tom: 'alerta' },
@@ -678,6 +696,9 @@ export const cacaApi = {
   /** Avisos de disputa (migration 20270124): interruptor, último ciclo e contagem por dia e tipo. */
   disputaAvisoEstado: (f) => rpc('caca_disputa_aviso_estado', { p_secret: lerSenha() }, f),
   disputaAvisoDefinir: (ligado, f) => rpc('caca_disputa_aviso_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
+  /** Avisos de delivery (migration 20270130): interruptor, casas com delivery do combo e contagem por dia e casa. */
+  deliveryAvisoEstado: (f) => rpc('caca_delivery_aviso_estado', { p_secret: lerSenha() }, f),
+  deliveryAvisoDefinir: (ligado, f) => rpc('caca_delivery_aviso_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
   movimentoEstado: (f) => rpc('caca_movimento_estado', { p_secret: lerSenha() }, f),
   movimentoPublicoDefinir: (ligado, f) => rpc('caca_movimento_publico_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
   filaAvisos: (f) => rpc('caca_fila_avisos', { p_secret: lerSenha() }, f),

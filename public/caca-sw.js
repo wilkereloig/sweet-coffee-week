@@ -15,6 +15,7 @@ var ESCOPO = '/cartoon/caca';
 var CENTRAL = '/cartoon/caca';
 var PREMIOS = '/cartoon/mapa?painel=premios';
 var CAMPANHA = '/cartoon/ter-com-quem-contar';
+var COMBO = /^\/cartoon\/combos\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var ICONE = '/images/caca/app-icone-192-v2.png';
 
 self.addEventListener('install', function () { self.skipWaiting(); });
@@ -26,6 +27,7 @@ self.addEventListener('fetch', function () {});
 /* Só caminho interno dentro do escopo da Caça; qualquer outra coisa vira a central. */
 function destino(url) {
   if (url === PREMIOS || url === CAMPANHA) return url; // saídas da Caça: o painel de Prêmios do mapa e a página da campanha da Sicredi
+  if (typeof url === 'string' && COMBO.test(url)) return url; // aviso de delivery: a ficha do combo da casa (só o slug)
   if (typeof url !== 'string' || url.charAt(0) !== '/' || url.charAt(1) === '/') return CENTRAL;
   var limpo = url.split(/[?#]/)[0].replace(/\/+$/, '');
   return limpo === ESCOPO || limpo.indexOf(ESCOPO + '/') === 0 ? url : CENTRAL;

@@ -93,8 +93,8 @@ test('avisos: pendente primeiro, meta nova só se ainda não comemorada, vazio q
 /* ---------------------------------------------------------------- notificações */
 
 test('push: preferências só com as nove chaves booleanas; divulgação (edição, voucher e campanha) vem desligada', () => {
-  assert.deepEqual(PREFS_PADRAO, { avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true, incentivo: true, premio: true, campanha: false, disputa: true })
-  assert.deepEqual(normalizarPrefs({ edicao: true, meta: 'sim', outra: true }), { avaliacao_pendente: true, meta: true, grupo: true, edicao: true, voucher: false, imprevisto: true, incentivo: true, premio: true, campanha: false, disputa: true })
+  assert.deepEqual(PREFS_PADRAO, { avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true, incentivo: true, premio: true, campanha: false, disputa: true, delivery: true })
+  assert.deepEqual(normalizarPrefs({ edicao: true, meta: 'sim', outra: true }), { avaliacao_pendente: true, meta: true, grupo: true, edicao: true, voucher: false, imprevisto: true, incentivo: true, premio: true, campanha: false, disputa: true, delivery: true })
   assert.deepEqual(normalizarPrefs(null), PREFS_PADRAO)
 })
 
