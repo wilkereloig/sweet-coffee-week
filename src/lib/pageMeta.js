@@ -55,4 +55,22 @@ export function applyPageMeta(path) {
     document.head.appendChild(tag)
   }
   tag.setAttribute('content', description)
+  let canon = document.querySelector('link[rel="canonical"]')
+  if (!canon) {
+    canon = document.createElement('link')
+    canon.setAttribute('rel', 'canonical')
+    document.head.appendChild(canon)
+  }
+  canon.setAttribute('href', ORIGEM + canonicoDe(path))
+}
+
+// Endereço canônico (11/11/2026, Search Console): todas as rotas servem o mesmo index.html, então sem isto o Google trata
+// /cartoon como cópia de / e não escolhe sozinho entre a ficha em /participantes/<casa> e /combos/<casa>.
+const ORIGEM = 'https://www.sweetcoffeeweek.com.br'
+const ANTIGOS_DA_HOME = ['/cartoon', '/mapa', '/rota', '/participantes']
+export function canonicoDe(path = '/') {
+  const p = ('/' + String(path).replace(/^#?\/*/, '').split(/[?#]/)[0]).replace(/\/+$/, '') || '/'
+  if (ANTIGOS_DA_HOME.includes(p) || p.startsWith('/lovers')) return '/'
+  const ficha = p.match(/^\/cartoon\/participantes\/([a-z0-9-]+)$/)
+  return ficha ? `/cartoon/combos/${ficha[1]}` : p
 }

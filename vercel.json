@@ -220,6 +220,15 @@
     }
   ],
   "redirects": [
+    {"source": "/home", "destination": "/", "permanent": true},
+    {"source": "/blank", "destination": "/", "permanent": true},
+    {"source": "/territoriomexicano", "destination": "/", "permanent": true},
+    {"source": "/ludoces", "destination": "/", "permanent": true},
+    {"source": "/mrcupcake", "destination": "/cartoon/combos/mr-cupcake-confeitaria", "permanent": true},
+    {"source": "/justfoodecoffee", "destination": "/cartoon/combos/just-food-e-coffee", "permanent": true},
+    {"source": "/carolidouces", "destination": "/cartoon/combos/caroli-douces", "permanent": true},
+    {"source": "/padoca", "destination": "/cartoon/combos/padoca-do-bosque", "permanent": true},
+    {"source": "/omaestrocafe", "destination": "/cartoon/combos/o-maestro-cafe", "permanent": true},
     {
       "source": "/organizacao",
       "destination": "/painel/",
