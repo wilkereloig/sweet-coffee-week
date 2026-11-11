@@ -8,3 +8,5 @@ User-agent: *
 Disallow: /organizacao
 Disallow: /marca
 Allow: /
+
+Sitemap: https://www.sweetcoffeeweek.com.br/sitemap.xml
