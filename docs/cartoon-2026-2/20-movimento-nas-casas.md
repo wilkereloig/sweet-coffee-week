@@ -35,5 +35,10 @@ Nenhuma regra do jogo muda. O público só vê o que for confirmado por gente (B
 - Ensaio (ROLLBACK): ligar → a casa aparece em `filas_agora_publico`; desligar → some; sem senha e sem login → `nao_autorizado`.
 - **A confirmar com o Wilker:** prazo de 1 h.
 
-## Aplicar (só com o ok do Wilker), nesta ordem
+## ✅ Aplicadas em 11/11/2026 ~15h10 Natal (ok do Wilker: "Sim, aplicar as 3")
 `20270125` (A) → `20270126` (C) → `20270127` (B). Os reverters desfazem na ordem inversa.
+- Conferido depois: `anon` executa movimento, avisos da fila, definir (org, com senha), responder e a leitura pública;
+  não executa `caca_fila_gravar` nem as duas da marca (só `authenticated`); as tabelas novas não abrem para `anon`.
+  `caca_movimento_estado(null)` → `nao_autorizado`. 0 respostas e 0 avisos de fila no momento.
+- Falta: o site e o painel com as telas novas só chegam ao público quando a `dev` for para `master` (decisão do Wilker);
+  a conferência visual da aba Movimento e do cartão da marca é dele (pedem login).
