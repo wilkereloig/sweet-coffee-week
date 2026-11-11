@@ -411,13 +411,18 @@ export const TIPOS_PUSH = Object.freeze([
 ])
 export const tipoPushValido = (t) => TIPOS_PUSH.some(([k]) => k === t)
 
-/** Movimento nas casas (migration 20270125): nível de cada unidade nas últimas 2 h, só com carimbos feitos no local (GPS). */
+/** Movimento nas casas (migrations 20270125 e 20270128): nível de cada unidade nas últimas 2 h, com todas as fontes somadas. */
 export const NIVEL_MOVIMENTO = Object.freeze({
-  agitado: { rotulo: 'Agitado', tom: 'alerta' },
+  alto: { rotulo: 'Acima do normal', tom: 'alerta' },
   normal: { rotulo: 'Normal', tom: 'andamento' },
-  calmo: { rotulo: 'Calmo', tom: 'encerrado' },
+  baixo: { rotulo: 'Abaixo do normal', tom: 'encerrado' },
   sem_dado: { rotulo: 'Pouco dado', tom: 'neutro' },
   sem_base: { rotulo: 'Sem média ainda', tom: 'neutro' },
+})
+export const PROBLEMA_DISPLAY = Object.freeze({
+  nunca_lido: 'QR nunca lido: o display pode não estar na casa',
+  parado: 'Sem leitura há mais de 2 dias',
+  le_e_nao_carimba: 'Muita leitura para pouco carimbo: gente lê e não consegue carimbar',
 })
 
 /** "Tinha fila?" das últimas 2 h (parte C) em texto curto; vazio quando ninguém respondeu. */
@@ -427,24 +432,30 @@ export function textoFila(f) {
   return partes.join(' · ')
 }
 
-/** Resposta de caca_movimento_estado → unidades válidas (na ordem do banco), contagem por nível e as horas com movimento. */
+/** Resposta de caca_movimento_estado → unidades válidas (na ordem do banco), contagem por nível, horas com movimento e displays. */
 export function resumoMovimento(dados) {
+  const n = (v) => Number(v) || 0
   const unidades = (Array.isArray(dados?.unidades) ? dados.unidades : [])
     .filter((u) => u && typeof u.id === 'string')
     .map((u) => ({
       id: u.id, nome: u.nome || 'Casa sem nome', bairro: u.bairro || '',
-      janela: Number(u.janela) || 0, normal: u.normal == null ? null : Number(u.normal),
-      nivel: NIVEL_MOVIMENTO[u.nivel] ? u.nivel : 'sem_dado',
-      pico: Number.isInteger(u.pico_hora) ? u.pico_hora : null, hoje: Number(u.hoje) || 0, total: Number(u.total) || 0,
-      fila: { sem_fila: Number(u.fila?.sem_fila) || 0, pequena: Number(u.fila?.pequena) || 0, grande: Number(u.fila?.grande) || 0 },
+      indice: n(u.indice), normal: u.normal == null ? null : Number(u.normal),
+      nivel: NIVEL_MOVIMENTO[u.nivel] ? u.nivel : 'sem_dado', tranquila: u.tranquila === true,
+      fontes: { avaliacoes: n(u.fontes?.avaliacoes), carimbos: n(u.fontes?.carimbos), qr: n(u.fontes?.qr) },
+      pico: Number.isInteger(u.pico_hora) ? u.pico_hora : null, hoje: n(u.hoje), total: n(u.total),
+      fila: { sem_fila: n(u.fila?.sem_fila), pequena: n(u.fila?.pequena), grande: n(u.fila?.grande) },
     }))
   const niveis = Object.fromEntries(Object.keys(NIVEL_MOVIMENTO).map((k) => [k, 0]))
   for (const u of unidades) niveis[u.nivel] += 1
   const horas = (Array.isArray(dados?.horas) ? dados.horas : [])
-    .map((h) => ({ hora: Number(h?.hora), hoje: Number(h?.hoje) || 0, media: h?.media == null ? null : Number(h.media) }))
+    .map((h) => ({ hora: Number(h?.hora), hoje: n(h?.hoje), media: h?.media == null ? null : Number(h.media) }))
     .filter((h) => Number.isInteger(h.hora) && (h.hoje > 0 || (h.media || 0) > 0))
   const maximo = Math.max(1, ...horas.map((h) => Math.max(h.hoje, h.media || 0)))
-  return { unidades, niveis, horas, maximo, janelaHoras: Number(dados?.janela_horas) || 2, diasBase: Number(dados?.dias_base) || 0 }
+  const displays = (Array.isArray(dados?.displays) ? dados.displays : [])
+    .filter((d) => d && PROBLEMA_DISPLAY[d.problema])
+    .map((d) => ({ nome: d.nome || 'Casa sem nome', leituras: n(d.leituras), carimbos: n(d.carimbos), problema: d.problema, texto: PROBLEMA_DISPLAY[d.problema] }))
+  return { unidades, niveis, horas, maximo, displays, publico: dados?.publico === true, fotoEm: dados?.foto_em || null,
+    janelaHoras: n(dados?.janela_horas) || 2, diasBase: n(dados?.dias_base) }
 }
 
 /** O que a organização pode criar à mão. Meta e avaliação pendente são automáticas; grupo vem do próprio grupo. */
@@ -595,6 +606,7 @@ export function mensagemCaca(erro) {
 // `fetchImpl` só existe para o teste. O corpo de cada chamada é o do contrato (15-caca-contrato-*.md).
 export const cacaApi = {
   movimentoEstado: (f) => rpc('caca_movimento_estado', { p_secret: lerSenha() }, f),
+  movimentoPublicoDefinir: (ligado, f) => rpc('caca_movimento_publico_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
   filaAvisos: (f) => rpc('caca_fila_avisos', { p_secret: lerSenha() }, f),
   filaDefinir: (unidade, fila, f) => rpc('caca_fila_definir', { p_secret: lerSenha(), p_unidade: unidade, p_fila: !!fila }, f),
   config: (f) => rpc('caca_config_ler', { p_secret: lerSenha() }, f),

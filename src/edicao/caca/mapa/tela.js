@@ -5,7 +5,7 @@
 
 /** Filtros avançados ativos, para o contador do botão "Filtros". A busca por texto tem campo próprio e não entra na conta. */
 export function contarFiltros (f = {}, { aberto = f.aberto } = {}) {
-  return [f.bairro, f.modo, aberto, f.queroIr, f.jaFui, f.estado].filter(Boolean).length
+  return [f.bairro, f.modo, aberto, f.queroIr, f.jaFui, f.estado, f.tranquila].filter(Boolean).length
 }
 
 /**

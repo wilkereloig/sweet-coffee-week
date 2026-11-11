@@ -229,6 +229,7 @@ export const RPC_ESCRITA = Object.freeze({
   marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
   marca_combo_esgotado: ['participantes', 'avisos'], // informa disponibilidade e avisa a Organização
   marca_fila_definir: ['carimbos', 'avisos'], // "Estamos com fila agora" no mapa por 1 h e avisa a Organização
+  caca_movimento_publico_definir: ['carimbos'], // liga/desliga o movimento no site (aba Movimento)
   caca_fila_definir: ['carimbos'], // a Organização marca a fila em nome da casa (aba Movimento)
   marcar_senha_trocada: ['perfis'],
 })
