@@ -8,12 +8,14 @@ import { Tabela, useExecutar } from './comum'
 /*
  * Movimento nas casas (docs/cartoon-2026-2/20-movimento-nas-casas.md). Presenças de cada unidade nas últimas 2 h, somando as
  * fontes: pessoas que avaliaram o combo ali ou carimbaram por GPS (uma vez por pessoa) + metade das leituras do QR da casa no
- * display. Compara a casa com o normal dela e as casas entre si. É movimento, não lotação: o site nunca diz "lotada".
+ * display. Desde a migration 20270129 o nível vem da OCUPAÇÃO estimada das mesas: presenças ÷ taxa da casa (rastros por combo
+ * vendido) = combos em 2 h; × 30 min na mesa ÷ 1,5 combo por mesa ÷ mesas. Alto ≥ 70% · tranquila ≤ 30%. O site nunca diz "lotada".
  * O que o site mostra (selo "movimento acima do normal" e "boa hora para visitar") só sai com o interruptor ligado.
  */
 const hh = (h) => `${String(h).padStart(2, '0')}h`
 const horaNatal = (iso) => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Fortaleza' })
 const num = (n) => (n == null ? '—' : String(n).replace('.', ','))
+const textoOcupacao = (u) => (u.mesas == null ? 'sem mesas cadastradas' : `${Math.round((u.ocupacao || 0) * 100)}% · ≈ ${u.combos} combos em 2 h · ${u.mesas} mesas`)
 
 export function Movimento({ pode }) {
   const leitura = useLeitura(() => cacaApi.movimentoEstado(), ['carimbos'], { chave: 'caca-movimento' })
@@ -39,7 +41,7 @@ export function Movimento({ pode }) {
 
   return (
     <>
-      <Secao titulo="Movimento agora" nota={`Presenças de cada casa nas últimas ${m.janelaHoras} h: pessoas que avaliaram o combo ali ou carimbaram por GPS (uma vez por pessoa) mais metade das leituras do QR da casa no display. O normal é a média da mesma janela nos ${m.diasBase} dias anteriores. "Tranquila" compara as casas entre si: não está alta e tem presenças até a mediana. É movimento, não lotação.`}>
+      <Secao titulo="Movimento agora" nota={`Presenças de cada casa nas últimas ${m.janelaHoras} h: pessoas que avaliaram o combo ali ou carimbaram por GPS (uma vez por pessoa) mais metade das leituras do QR da casa no display. O normal é a média da mesma janela nos ${m.diasBase} dias anteriores. Ocupação estimada = presenças convertidas em combos pela taxa da casa (rastros por combo vendido), 30 min na mesa, 1,5 combo por mesa, dividido pelas mesas. Alto: 70% ou mais · tranquila: 30% ou menos. Só conta o público do festival.`}>
         <p className="ui-nota" role="status">
           <Selo tom={m.publico ? 'ok' : 'neutro'}>{m.publico ? 'No site: ligado' : 'No site: desligado'}</Selo>{' '}
           {resumo || 'Nenhuma casa com presença ainda.'}
@@ -49,12 +51,13 @@ export function Movimento({ pode }) {
           <Botao variante="secundario" onClick={leitura.recarregar}>Atualizar</Botao>
           {gerir && <Botao variante={m.publico ? 'secundario' : undefined} disabled={!!ocupado} aria-busy={ocupado === 'publico' || undefined} onClick={trocarPublico}>{m.publico ? 'Desligar no site' : 'Ligar no site…'}</Botao>}
         </div>
-        <Tabela rotulo="Movimento por casa" colunas={['Casa', 'Presenças', 'Normal', 'Nível', 'Fontes (avaliou · carimbou · QR)', 'Tinha fila?', 'Fila no mapa', 'Pico', 'Hoje']}>
+        <Tabela rotulo="Movimento por casa" colunas={['Casa', 'Presenças', 'Normal', 'Ocupação estimada', 'Nível', 'Fontes (avaliou · carimbou · QR)', 'Tinha fila?', 'Fila no mapa', 'Pico', 'Hoje']}>
           {m.unidades.map((u) => (
             <tr key={u.id}>
               <td>{u.nome}{u.bairro ? <span className="cp-sub"> · {u.bairro}</span> : null}</td>
               <td>{num(u.indice)}</td>
               <td>{num(u.normal)}</td>
+              <td>{textoOcupacao(u)}</td>
               <td><Selo tom={NIVEL_MOVIMENTO[u.nivel].tom}>{NIVEL_MOVIMENTO[u.nivel].rotulo}</Selo>{u.tranquila ? <span className="cp-sub"> · tranquila</span> : null}</td>
               <td>{u.fontes.avaliacoes} · {u.fontes.carimbos} · {u.fontes.qr}</td>
               <td>{textoFila(u.fila) || '—'}</td>

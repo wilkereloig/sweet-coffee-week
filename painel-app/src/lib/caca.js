@@ -443,6 +443,8 @@ export function resumoMovimento(dados) {
       nivel: NIVEL_MOVIMENTO[u.nivel] ? u.nivel : 'sem_dado', tranquila: u.tranquila === true,
       fontes: { avaliacoes: n(u.fontes?.avaliacoes), carimbos: n(u.fontes?.carimbos), qr: n(u.fontes?.qr) },
       pico: Number.isInteger(u.pico_hora) ? u.pico_hora : null, hoje: n(u.hoje), total: n(u.total),
+      // Parte E (migration 20270129): o nível sai da ocupação estimada das mesas. Sem mesas cadastradas, null.
+      mesas: n(u.mesas) > 0 ? n(u.mesas) : null, combos: n(u.combos), ocupacao: u.ocupacao == null ? null : Number(u.ocupacao),
       fila: { sem_fila: n(u.fila?.sem_fila), pequena: n(u.fila?.pequena), grande: n(u.fila?.grande) },
     }))
   const niveis = Object.fromEntries(Object.keys(NIVEL_MOVIMENTO).map((k) => [k, 0]))
