@@ -22,6 +22,7 @@ import * as M from '../../../dados/modelo.js'
 import { lerPerfil, gravarPerfil, mesmoEmail, chamar } from '../../../rota/carimbo.js'
 import { CacaAposAvaliar } from '../Carimbo.jsx'
 import { MAPA_NO_AR } from '../../contexto.js'
+import { Olhinhos } from '../../../componentes/sistema/Olhinhos.jsx'
 
 const TURNSTILE_SITE_KEY = '0x4AAAAAAEbvMJDSlYJpLY3b' // pública, a mesma de /quero-participar/
 const RASCUNHO = 'scw:cartoon:avaliacao:rascunho'
@@ -133,6 +134,22 @@ export function Formulario ({ dados, criterios, navigate }) {
 
   const casaOk = !!casa && (unidades.length < 2 || !!form.unidade)
   const faltamNotas = criterios.filter((c) => !Number.isInteger(form.notas[c.chave])).length
+  // Guia (11/11/2026): a primeira caixa sem nota é a "próxima" — destacada, e a tela desce até ela depois de cada nota nova.
+  const proxima = criterios.find((c) => !Number.isInteger(form.notas[c.chave]))?.chave
+  const caixas = React.useRef({})
+  const avancar = React.useRef(false)
+  const darNota = (chave, n) => {
+    if (!Number.isInteger(form.notas[chave])) avancar.current = true // trocar uma nota já dada não puxa a tela
+    muda('notas', { ...form.notas, [chave]: n })
+  }
+  React.useEffect(() => {
+    if (!avancar.current) return
+    avancar.current = false
+    const alvo = proxima && caixas.current[proxima]
+    if (!alvo) return
+    const reduzido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    alvo.scrollIntoView({ block: 'start', behavior: reduzido ? 'auto' : 'smooth' })
+  }, [form.notas, proxima])
   const dadosOk = form.nome.trim().length >= 2 && EMAIL.test(form.email.trim())
   const podeEnviar = casaOk && !faltamNotas && dadosOk && estado !== 'enviando' && verificacao !== 'carregando' && verificacao !== 'expirou'
 
@@ -164,7 +181,7 @@ export function Formulario ({ dados, criterios, navigate }) {
   if (estado === 'enviado') {
     return (
       <div className="ct-form__ok" role="status">
-        <ScwIcon nome="sucesso" tamanho={24} />
+        <Olhinhos expressao="encantado" tamanho={110} className="ct-form__ok-olhos" />
         <h3 className="ct-form__titulo">{T.okTitulo}</h3>
         <p>{T.okTexto(casa?.casa.nome)}</p>
         <div className="ct-acoes">
@@ -225,7 +242,7 @@ export function Formulario ({ dados, criterios, navigate }) {
             </label>
           )}
           <div ref={unidades.length > 1 ? null : proximo} className="ct-form__navegar">
-            <button type="button" className="ct-botao" disabled={!casaOk} onClick={() => irPara(2)}>{T.continuar}</button>
+            <button type="button" className={`ct-botao${casaOk ? ' is-pronto' : ''}`} disabled={!casaOk} onClick={() => irPara(2)}>{T.continuar}</button>
             {!casaOk && <p className="ct-nota">{T.faltaCasa}</p>}
           </div>
         </div>
@@ -245,11 +262,16 @@ export function Formulario ({ dados, criterios, navigate }) {
           {criterios.map((c) => {
             const texto = T.criterios[c.chave]
             const item = nomeDoItem(c.chave)
+            const feita = Number.isInteger(form.notas[c.chave])
+            const agora = c.chave === proxima
             return (
-              <fieldset key={c.chave} className="ct-nota-campo">
+              <fieldset key={c.chave} ref={(el) => { caixas.current[c.chave] = el }} aria-current={agora ? 'step' : undefined}
+                className={`ct-nota-campo${agora ? ' is-proxima' : ''}${feita ? ' is-feita' : ''}`}>
                 <legend>
                   {TIPO_ORDEM.includes(c.chave) && <ScwIcon nome={ICONE.tipo[c.chave]} tamanho={20} />}
                   <span>{texto?.pergunta || T.pergunta(c.rotulo)}</span>
+                  {agora && <span className="ct-nota-campo__agora" aria-hidden="true">{T.agora}</span>}
+                  {feita && <span className="ct-nota-campo__feita" aria-hidden="true">✓</span>}
                 </legend>
                 {item && <p className="ct-nota-campo__item">{TP.tipos[c.chave]}: <strong>{item}</strong></p>}
                 {texto?.ajuda && <p className="ct-nota-campo__ajuda">{texto.ajuda}</p>}
@@ -257,7 +279,7 @@ export function Formulario ({ dados, criterios, navigate }) {
                   {Array.from({ length: c.maximo - c.minimo + 1 }, (_, i) => c.minimo + i).map((n) => (
                     <label key={n} className="ct-escala__op">
                       <input type="radio" name={`nota-${c.chave}`} value={n} checked={form.notas[c.chave] === n}
-                        onChange={() => muda('notas', { ...form.notas, [c.chave]: n })} />
+                        onChange={() => darNota(c.chave, n)} />
                       <span>{n}</span>
                     </label>
                   ))}
@@ -265,10 +287,14 @@ export function Formulario ({ dados, criterios, navigate }) {
               </fieldset>
             )
           })}
-          <div className="ct-form__navegar">
+          {/* Barra do guia: presa ao pé da tela enquanto as notas estão à vista, conta o que já foi dado e acende o Continuar. */}
+          <div className="ct-form__navegar ct-guia">
+            <div className="ct-guia__conta">
+              <p className="ct-guia__texto" role="status">{faltamNotas ? T.notasDadas(criterios.length - faltamNotas, criterios.length) : T.notasProntas}</p>
+              <span className="ct-guia__barra" aria-hidden="true"><span style={{ width: `${((criterios.length - faltamNotas) / criterios.length) * 100}%` }} /></span>
+            </div>
             <button type="button" className="ct-botao ct-botao--contorno" onClick={() => irPara(1)}>{T.voltar}</button>
-            <button type="button" className="ct-botao" disabled={faltamNotas > 0} onClick={() => irPara(3)}>{T.continuar}</button>
-            {faltamNotas > 0 && <p className="ct-nota">{T.faltaNotas(faltamNotas)}</p>}
+            <button type="button" className={`ct-botao${faltamNotas ? '' : ' is-pronto'}`} disabled={faltamNotas > 0} onClick={() => irPara(3)}>{T.continuar}</button>
           </div>
         </div>
       )}
@@ -300,7 +326,7 @@ export function Formulario ({ dados, criterios, navigate }) {
           {recado && <p className="ct-aviso" role="alert">{recado}</p>}
           <div className="ct-form__navegar">
             <button type="button" className="ct-botao ct-botao--contorno" onClick={() => irPara(2)}>{T.voltar}</button>
-            <button type="submit" className="ct-botao" disabled={!podeEnviar} aria-busy={estado === 'enviando'}>
+            <button type="submit" className={`ct-botao${podeEnviar ? ' is-pronto' : ''}`} disabled={!podeEnviar} aria-busy={estado === 'enviando'}>
               <ScwIcon nome="enviar" tamanho={20} />{estado === 'enviando' ? T.enviando : T.enviar}
             </button>
             {!dadosOk && <p className="ct-nota">{T.faltaDados}</p>}

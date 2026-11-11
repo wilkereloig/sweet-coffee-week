@@ -435,7 +435,11 @@ export const AWARDS = {
   faltaCasa: 'Escolha a casa (e a unidade, se houver mais de uma).',
   faltaNotas: (n) => (n === 1 ? 'Falta 1 nota.' : `Faltam ${n} notas.`),
   faltaDados: 'Preencha nome e e-mail.',
-  okTitulo: 'Avaliação registrada',
+  // Guia passo a passo (11/11/2026): a próxima caixa se destaca e a barra conta as notas.
+  agora: 'Agora',
+  notasDadas: (n, total) => `${n} de ${total} notas`,
+  notasProntas: 'Tudo certo! Pode continuar.',
+  okTitulo: 'Avaliação registrada!',
   okTexto: (casa) => `Obrigado por avaliar ${casa}. Se avaliar a mesma casa de novo com este e-mail, vale a avaliação mais recente.`,
   avaliarOutra: 'Avaliar outra casa',
   verCasas: 'Ver as casas',

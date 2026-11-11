@@ -128,3 +128,41 @@
 .ct-form__ok { display: grid; justify-items: start; gap: 10px; max-width: 640px; padding: 22px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-turquesa); box-shadow: var(--ct-sombra); }
 .ct-form__ok p { margin: 0; }
 .ct-form__ok .ct-acoes { margin-top: 4px; }
+
+/* Guia passo a passo da avaliação (11/11/2026, pedido do Wilker): todas as caixas à vista, a PRÓXIMA sem nota fica
+   amarela com a etiqueta "Agora" (e pisca duas vezes ao chegar, só com movimento permitido); a respondida ganha o ✓
+   turquesa. A barra do guia fica presa ao pé da tela (acima da barra de abas e do aviso de cookies) com a contagem
+   e o Continuar, que se acende quando as notas fecham. Botão pronto (.is-pronto) dá um pulinho uma vez. */
+.ct-nota-campo { transition: background-color var(--ct-mo), box-shadow var(--ct-mo); }
+.ct-nota-campo.is-proxima { background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
+.ct-nota-campo__agora {
+  margin-left: auto; padding: 4px 10px; border-radius: 999px; background: var(--ct-chocolate); color: var(--ct-amarelo);
+  font: 900 12px/1 var(--ct-font); letter-spacing: .06em; text-transform: uppercase;
+}
+.ct-nota-campo__feita {
+  display: inline-grid; place-items: center; flex: none; width: 26px; height: 26px; margin-left: auto;
+  border: 2.5px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-turquesa); font: 900 14px/1 var(--ct-font);
+}
+/* A caixa seguinte para no topo, abaixo da barra do menu, longe da barra do guia. */
+.ct-nota-campo { scroll-margin-top: 96px; }
+/* Grade fixa (Voltar estreito + Continuar no resto): a barra fica baixa no celular e não cobre a caixa da vez. */
+.ct-form__navegar.ct-guia {
+  position: sticky; z-index: 25; bottom: calc(16px + var(--scw-aviso-h, 0px));
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; justify-self: stretch;
+  padding: 10px; border: var(--ct-traco); border-radius: 16px; background: var(--ct-creme); box-shadow: var(--ct-sombra-p);
+}
+.ct-guia__conta { grid-column: 1 / -1; }
+.ct-edicao .ct-guia .ct-botao--contorno { padding-inline: 14px; }
+@media (max-width: 899.98px) { .ct-form__navegar.ct-guia { bottom: calc(var(--scw-base-ocupada, 72px) + var(--scw-aviso-h, 0px) + 8px); } }
+.ct-guia__conta { display: grid; gap: 6px; }
+.ct-guia__texto { margin: 0; font: 800 15px/1.2 var(--ct-font); }
+.ct-guia__barra { display: block; height: 12px; overflow: hidden; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-branco); }
+.ct-guia__barra > span { display: block; height: 100%; background: var(--ct-turquesa); transition: width var(--ct-mo); }
+.ct-edicao .ct-guia .ct-botao { min-height: 46px; }
+.ct-form__ok-olhos { width: clamp(88px, 18vw, 110px); }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes ct-guia-pisca { 0%, 100% { outline-color: transparent; outline-offset: 0; } 50% { outline-color: var(--ct-chocolate); outline-offset: 5px; } }
+  .ct-nota-campo.is-proxima { outline: 3px solid transparent; animation: ct-guia-pisca 700ms ease-in-out 2; }
+  .ct-edicao .ct-botao.is-pronto { animation: ct-pulinho var(--ct-mo-quique-dur) var(--ct-mo-quique) 1; }
+  .ct-form__ok { animation: ct-quica var(--ct-mo-quique-dur) var(--ct-mo-quique) both; }
+}
