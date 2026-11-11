@@ -262,7 +262,10 @@
 .ct-entrada__avalie .ct-avalie__acoes { align-items: center; gap: 12px; margin-top: 30px; }
 .ct-edicao .ct-entrada__avalie .ct-avalie__acoes .ct-botao { min-height: 60px; padding: 0 32px; font-size: 21px; }
 .ct-edicao .ct-avalie__luva { width: clamp(70px, 7vw, 100px); height: auto; rotate: -6deg; }
-.ct-edicao .ct-entrada__avalie .ct-avalie__trofeu { width: clamp(150px, 17vw, 240px); margin-top: clamp(20px, 3vw, 36px); }
+/* O troféu pousa no círculo de luz do chão, não na borda dianteira do palco: tamanho médio e um vão embaixo que deixa a
+   borda do palco (o fim da cena desenhada) livre. */
+.ct-edicao .ct-entrada__avalie .ct-avalie__trofeu { width: clamp(130px, 13vw, 190px); margin-top: clamp(20px, 3vw, 36px); }
+.ct-palco.ct-entrada__avalie { padding-bottom: clamp(56px, 8vw, 120px); }
 @media (max-width: 599.98px) {
   .ct-edicao .ct-avalie__luva { display: none; }
   .ct-edicao .ct-entrada__avalie .ct-avalie__acoes .ct-botao { min-height: 54px; padding: 0 24px; font-size: 19px; }
