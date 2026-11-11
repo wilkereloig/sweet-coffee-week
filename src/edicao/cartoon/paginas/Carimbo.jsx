@@ -23,6 +23,7 @@ import { CriarMapa } from '../../caca/CriarMapa.jsx'
 import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
 import { CartaoEmailDoAparelho } from '../../caca/CartaoEmail.jsx'
 import { BotaoComoCarimbar } from '../../caca/guia/GuiaCarimbar.jsx'
+import { FilaPergunta } from '../../caca/FilaPergunta.jsx'
 
 const SLUG_CASA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const T = CACA.carimbo
@@ -208,6 +209,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
             <div className="ct-acoes"><button type="button" className="ct-botao" disabled={semDados} aria-busy={semDados || undefined} onClick={avaliar}>{T.pendenteAcao}</button></div>
           </div>
         )}
+        <FilaPergunta chave={chave} unidade={r.unidade} />
         {novo && <GuardarMapa chave={chave} />}
         {links}
       </section>

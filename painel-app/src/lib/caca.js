@@ -420,6 +420,13 @@ export const NIVEL_MOVIMENTO = Object.freeze({
   sem_base: { rotulo: 'Sem média ainda', tom: 'neutro' },
 })
 
+/** "Tinha fila?" das últimas 2 h (parte C) em texto curto; vazio quando ninguém respondeu. */
+export function textoFila(f) {
+  const partes = [['grande', 'fila grande'], ['pequena', 'fila pequena'], ['sem_fila', 'sem fila']]
+    .filter(([k]) => (f?.[k] || 0) > 0).map(([k, r]) => `${f[k]} ${r}`)
+  return partes.join(' · ')
+}
+
 /** Resposta de caca_movimento_estado → unidades válidas (na ordem do banco), contagem por nível e as horas com movimento. */
 export function resumoMovimento(dados) {
   const unidades = (Array.isArray(dados?.unidades) ? dados.unidades : [])
@@ -429,6 +436,7 @@ export function resumoMovimento(dados) {
       janela: Number(u.janela) || 0, normal: u.normal == null ? null : Number(u.normal),
       nivel: NIVEL_MOVIMENTO[u.nivel] ? u.nivel : 'sem_dado',
       pico: Number.isInteger(u.pico_hora) ? u.pico_hora : null, hoje: Number(u.hoje) || 0, total: Number(u.total) || 0,
+      fila: { sem_fila: Number(u.fila?.sem_fila) || 0, pequena: Number(u.fila?.pequena) || 0, grande: Number(u.fila?.grande) || 0 },
     }))
   const niveis = Object.fromEntries(Object.keys(NIVEL_MOVIMENTO).map((k) => [k, 0]))
   for (const u of unidades) niveis[u.nivel] += 1
