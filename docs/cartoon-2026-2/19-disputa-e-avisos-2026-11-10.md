@@ -68,3 +68,8 @@ Pedido do Wilker: "notificações inteligentes … que estimulam a compra" (ex.:
 - Ensaio (ROLLBACK, 11/11 16h50): 16h50 nada; 17h05 → 12 avisos, 697 pessoas (39 a 74 por casa); 17h20 já gerado; dia 12 nenhuma casa repetida;
   ninguém recebe casa onde já tem carimbo. Só 8 pessoas têm push ativo: o alcance real é a central (sino).
 - O clique no celular abre a ficha só depois de publicar o `caca-sw.js` novo; antes disso abre a central.
+- ✅ Teste da disputa (11/11): entrega do aviso `4376f3e6…` com `push_estado = enviado` às 8h15; o job `scw-teste-disputa-wilker` se apagou.
+- ⏳ Teste do delivery só no mapa do Wilker: aviso `c571ec81…` (Vivianne Castro Doces, entrega grátis; chave `teste-delivery:2026-11-12:wilker`,
+  fora da contagem do painel) criado como `agendado`. Em 11/11 ele já tinha os 2 pushes do dia. Job de uma vez `scw-teste-delivery-wilker`
+  (`5 11 12 11 *` = 12/11 8h05 Natal) libera e cria a entrega; o ciclo das 8h15 manda. Conferir: entrega `enviado`, job apagado.
+  Sem o site publicado, o toque abre a central (o `caca-sw.js` novo ainda não está no ar).
