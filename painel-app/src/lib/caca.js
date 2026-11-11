@@ -411,6 +411,34 @@ export const TIPOS_PUSH = Object.freeze([
 ])
 export const tipoPushValido = (t) => TIPOS_PUSH.some(([k]) => k === t)
 
+/** Movimento nas casas (migration 20270125): nível de cada unidade nas últimas 2 h, só com carimbos feitos no local (GPS). */
+export const NIVEL_MOVIMENTO = Object.freeze({
+  agitado: { rotulo: 'Agitado', tom: 'alerta' },
+  normal: { rotulo: 'Normal', tom: 'andamento' },
+  calmo: { rotulo: 'Calmo', tom: 'encerrado' },
+  sem_dado: { rotulo: 'Pouco dado', tom: 'neutro' },
+  sem_base: { rotulo: 'Sem média ainda', tom: 'neutro' },
+})
+
+/** Resposta de caca_movimento_estado → unidades válidas (na ordem do banco), contagem por nível e as horas com movimento. */
+export function resumoMovimento(dados) {
+  const unidades = (Array.isArray(dados?.unidades) ? dados.unidades : [])
+    .filter((u) => u && typeof u.id === 'string')
+    .map((u) => ({
+      id: u.id, nome: u.nome || 'Casa sem nome', bairro: u.bairro || '',
+      janela: Number(u.janela) || 0, normal: u.normal == null ? null : Number(u.normal),
+      nivel: NIVEL_MOVIMENTO[u.nivel] ? u.nivel : 'sem_dado',
+      pico: Number.isInteger(u.pico_hora) ? u.pico_hora : null, hoje: Number(u.hoje) || 0, total: Number(u.total) || 0,
+    }))
+  const niveis = Object.fromEntries(Object.keys(NIVEL_MOVIMENTO).map((k) => [k, 0]))
+  for (const u of unidades) niveis[u.nivel] += 1
+  const horas = (Array.isArray(dados?.horas) ? dados.horas : [])
+    .map((h) => ({ hora: Number(h?.hora), hoje: Number(h?.hoje) || 0, media: h?.media == null ? null : Number(h.media) }))
+    .filter((h) => Number.isInteger(h.hora) && (h.hoje > 0 || (h.media || 0) > 0))
+  const maximo = Math.max(1, ...horas.map((h) => Math.max(h.hoje, h.media || 0)))
+  return { unidades, niveis, horas, maximo, janelaHoras: Number(dados?.janela_horas) || 2, diasBase: Number(dados?.dias_base) || 0 }
+}
+
 /** O que a organização pode criar à mão. Meta e avaliação pendente são automáticas; grupo vem do próprio grupo. */
 export const CATEGORIAS_AVISO = Object.freeze([
   ['edicao', 'Novidade da edição'],
@@ -558,6 +586,7 @@ export function mensagemCaca(erro) {
 // ── Chamadas ao banco ────────────────────────────────────────────────────────
 // `fetchImpl` só existe para o teste. O corpo de cada chamada é o do contrato (15-caca-contrato-*.md).
 export const cacaApi = {
+  movimentoEstado: (f) => rpc('caca_movimento_estado', { p_secret: lerSenha() }, f),
   config: (f) => rpc('caca_config_ler', { p_secret: lerSenha() }, f),
   gravarConfig: (chave, valor, f) => rpc('caca_config_gravar', { p_secret: lerSenha(), p_chave: chave, p_valor: valor }, f),
   premios: (edicao, f) => rpc('caca_premio_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),
