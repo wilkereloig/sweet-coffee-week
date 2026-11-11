@@ -4,9 +4,10 @@
  *   Topo (amarelo com retícula, como a arte final do carrossel): letreiro "Agora é hora de PROVAR!", a frase, o preço em
  *   letreiro, a fita vermelha do período e as ações; ao lado, a mesa do combo desenhada com os olhinhos espiando e a
  *   explosão de gibi atrás. Os fatos (período, preço, nº de casas) ficam na primeira tela em qualquer largura.
- *   Vitrine (turquesa com retícula): 8 combos em foto no formato da lâmina do carrossel (nome da casa em amarelo sobre a
- *   foto, logo no canto); a ordem gira por dia · Como funciona (tira de gibi) · Onde ficam · Avalie (no palco) · Dúvidas
- *   (balões de fala).
+ * Venda (11/11/2026, pedido do Wilker: "na tela inicial o objetivo é vender combo"): o topo leva ao delivery e à
+ *   vitrine e conta os dias que faltam; a vitrine mostra TODOS os combos no cartão de compra (CartaoCombo: preço,
+ *   "Pedir delivery", "Ir até a casa"), com filtros Todos · Delivery · Abertas agora · Como funciona · patrocinador ·
+ *   Onde ficam · Avalie (no palco) · Dúvidas (balões de fala).
  * O mapa interativo NÃO carrega aqui.
  */
 import React from 'react'
@@ -15,20 +16,17 @@ import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { horaTexto } from '../../dados/horarioFestival.js'
 import { cenaEdicao, seloEdicao, TROFEU_DESENHO_EDICAO, srcSet } from '../../../data/imageLibrary'
-import { Link, Avisos, Falha, Carregando, Foto } from '../../componentes/base.jsx'
-import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
-import { SeloDaCasa } from '../../componentes/sistema/SeloDaCasa.jsx'
+import { Link, Avisos, Falha, Carregando } from '../../componentes/base.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
-import { Botao, Passos, Gibi, Preco } from '../../componentes/sistema/pecas.jsx'
-import { ENTRADA as T, CATALOGO, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
+import { Botao, Passos, Gibi, Preco, Chip } from '../../componentes/sistema/pecas.jsx'
+import { CartaoCombo } from '../CartaoCombo.jsx'
+import { ENTRADA as T, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
 import { useAgora } from '../useAgora.js'
-import { CACA_CAMINHOS } from '../../caca/textos.js'
 
 const C = EDICAO.caminho
-const NA_VITRINE = 8
 
 /**
  * Embaralha com semente do dia (Park–Miller): a vitrine muda de um dia para o outro e fica igual dentro do mesmo dia
@@ -46,96 +44,76 @@ export function doDia (lista, n, hoje = new Date()) {
 }
 
 /**
- * Casas para a vitrine: com foto do combo primeiro (é a foto que vende); sem foto — combos ainda não públicos, foto em
- * produção — a casa entra com a logo desenhada no quadro e leva à página dela. Assim a vitrine nunca some.
+ * A vitrine de venda (11/11/2026, "a gente tem que construir o site com o objetivo de mostrar os combos, de vender"):
+ * TODOS os combos, no cartão de compra (CartaoCombo), com três filtros à vista — Todos · Delivery · Abertas agora.
+ * Durante o festival a ordem é: abertas agora (com a hora em que fecham), as que abrem ainda hoje (com a hora), as
+ * demais; dentro de cada grupo, a ordem do dia (doDia), foto primeiro. Fora do festival não há "agora": só a ordem do dia.
+ * Recalcula sozinha com a página aberta (useAgora), com a mesma regra do Mapa (M.casasPorMomento).
  */
-function daVitrine (lista, n) {
-  const comFoto = doDia(lista.filter((p) => p.combo?.fotos?.principal), n)
-  return [...comFoto, ...doDia(lista.filter((p) => !p.combo?.fotos?.principal), n - comFoto.length)]
-}
+const comFotoPrimeiro = (l) => [...doDia(l.filter((p) => p.combo?.fotos?.principal), l.length), ...doDia(l.filter((p) => !p.combo?.fotos?.principal), l.length)]
 
-/**
- * O cartão é a lâmina do carrossel: foto inteira, a casa em amarelo e o tema em creme sobre a sombra da base. `etiqueta`
- * ({ tipo: 'aberta' | 'abre', texto }) só existe durante o festival e diz o que é verdade AGORA: nada de casa fechada
- * parecendo aberta.
- */
-function Vitrine ({ itens, navigate }) {
-  if (!itens.length) return null
-  return (
-    <ul className="ct-laminas">
-      {itens.map(({ p, etiqueta }) => {
-        const foto = p.combo?.fotos?.principal
-        return (
-          <li key={p.slug}>
-            <Link className="ct-lamina__link" href={`${C}/${foto ? 'combos' : 'participantes'}/${p.slug}`} navigate={navigate}>
-              {foto ? (
-                <span className="ct-lamina__foto">
-                  <Foto foto={foto} proporcao="4 / 5" alt="" />
-                  <SeloDaCasa casa={p.casa} />
-                </span>
-              ) : (
-                <span className="ct-lamina__foto ct-lamina__foto--reserva">
-                  <LogoDesenhada casa={p.casa} alt="" />
-                  <span className="ct-cartao__aviso">{p.combo ? CATALOGO.fotoEmProducao : CATALOGO.comboEmBreve}</span>
-                </span>
-              )}
-              <span className="ct-lamina__legenda">
-                {etiqueta && <span className={`ct-lamina__momento ct-lamina__momento--${etiqueta.tipo}`}>{etiqueta.texto}</span>}
-                <span className="ct-lamina__casa">{p.casa.nome}</span>
-                {/* Na lâmina vai o tema da casa, não o nome do combo (pedido do Wilker, 04/11). */}
-                {p.casa.tema && <span className="ct-lamina__tema">{p.casa.tema}</span>}
-              </span>
-            </Link>
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
-
-/**
- * O elenco do momento. Dentro do festival: as casas com o combo disponível AGORA (pelo menos uma unidade atendendo, a mesma
- * regra do Mapa — M.casasPorMomento) e, se sobrar lugar, as que abrem ainda hoje, com a hora. Recalcula sozinho com a página
- * aberta (useAgora). Ninguém aberto, ou horários que ninguém cadastrou: o aviso diz isso, e o caminho para todas as casas
- * continua logo abaixo. Antes e depois do festival não há "agora": o elenco do dia, sem prometer disponibilidade.
- */
-function ElencoDoMomento ({ elenco, dados, navigate }) {
+function VitrineVenda ({ elenco, dados, navigate }) {
   const agora = useAgora()
-  const periodo = dados?.fase === 'encerrada' ? null : dados?.edicao // edição encerrada: não há "agora", só o registro
+  const [filtro, setFiltro] = React.useState('todos')
+  const encerrada = dados?.fase === 'encerrada'
+  const periodo = encerrada ? null : dados?.edicao // edição encerrada: não há "agora", só o registro
   const momento = React.useMemo(() => M.casasPorMomento(elenco, agora, periodo), [elenco, agora, periodo])
   const itens = React.useMemo(() => {
-    if (!momento.noFestival) return daVitrine(elenco, NA_VITRINE).map((p) => ({ p }))
+    if (!momento.noFestival) return comFotoPrimeiro(elenco).map((p) => ({ p }))
     const ate = new Map(momento.abertas.map((x) => [x.p.slug, x.ate]))
-    const abertas = daVitrine(momento.abertas.map((x) => x.p), NA_VITRINE)
-      .map((p) => ({ p, etiqueta: { tipo: 'aberta', texto: T.etiquetaAberta(horaTexto(ate.get(p.slug))) } }))
-    const abrem = momento.abremHoje.slice(0, NA_VITRINE - abertas.length)
-      .map(({ p, as }) => ({ p, etiqueta: { tipo: 'abre', texto: T.etiquetaAbre(horaTexto(as)) } }))
-    return [...abertas, ...abrem]
+    const abertas = comFotoPrimeiro(momento.abertas.map((x) => x.p))
+      .map((p) => ({ p, aberta: true, etiqueta: { tipo: 'aberta', texto: T.etiquetaAberta(horaTexto(ate.get(p.slug))) } }))
+    const abrem = momento.abremHoje.map(({ p, as }) => ({ p, etiqueta: { tipo: 'abre', texto: T.etiquetaAbre(horaTexto(as)) } }))
+    const vistos = new Set([...abertas, ...abrem].map((x) => x.p.slug))
+    return [...abertas, ...abrem, ...comFotoPrimeiro(elenco.filter((p) => !vistos.has(p.slug))).map((p) => ({ p }))]
   }, [elenco, momento])
+  const entrega = (p) => M.estadoModo(p, 'delivery').estado === 'sim'
+  const nDelivery = itens.filter((x) => entrega(x.p)).length
+  const nAbertas = itens.filter((x) => x.aberta).length
+  const mostrados = filtro === 'delivery' ? itens.filter((x) => entrega(x.p)) : filtro === 'abertas' ? itens.filter((x) => x.aberta) : itens
 
   let aviso = null
   if (momento.noFestival) {
-    if (!itens.length) {
+    if (!nAbertas && !momento.abremHoje.length) {
       aviso = momento.comHorario
         ? { titulo: T.elencoNinguem, apoio: T.elencoNinguemApoio }
         : { titulo: T.elencoSemHorario, apoio: T.elencoSemHorarioApoio }
     } else {
-      const partes = momento.abertas.length ? [T.elencoAgora(momento.abertas.length)] : [T.elencoNinguem]
+      const partes = nAbertas ? [T.elencoAgora(nAbertas)] : [T.elencoNinguem]
       if (momento.abremHoje.length) partes.push(T.elencoAbremHoje(momento.abremHoje.length))
       aviso = { titulo: partes.join(' · ') }
     }
   }
+  const chips = [
+    ['todos', T.filtroTodos(itens.length), 'casas', true],
+    ['delivery', T.filtroDelivery(nDelivery), 'delivery', !encerrada && nDelivery > 0 && !!dados?.combos_publicos],
+    ['abertas', T.filtroAbertas(nAbertas), 'aberto-agora', !encerrada && nAbertas > 0],
+  ].filter((c) => c[3])
   return (
     <>
       {aviso && (
-        <div className={`ct-elenco-momento${itens.length ? '' : ' ct-elenco-momento--vazio'}`} role="status" aria-live="polite">
+        <div className="ct-elenco-momento" role="status" aria-live="polite">
           <p className="ct-elenco-momento__titulo">{aviso.titulo}</p>
           {aviso.apoio && <p className="ct-elenco-momento__apoio">{aviso.apoio}</p>}
         </div>
       )}
-      <Vitrine itens={itens} navigate={navigate} />
+      {chips.length > 1 && (
+        <div className="ct-chips ct-entrada__filtros" role="group" aria-label={T.filtrosRotulo}>
+          {chips.map(([k, rotulo, icone]) => <Chip key={k} ativo={filtro === k} icone={icone} onClick={() => setFiltro(k)}>{rotulo}</Chip>)}
+        </div>
+      )}
+      <ul className="ct-elenco ct-elenco--combos ct-entrada__vitrine">
+        {mostrados.map(({ p, etiqueta }) => <CartaoCombo key={p.slug} p={p} modo="combos" navigate={navigate} encerrada={encerrada} etiqueta={etiqueta} />)}
+      </ul>
     </>
   )
+}
+
+/** Dias que faltam até o fim da edição, no calendário de Natal (0 = último dia); null fora do festival. */
+function diasQueFaltam (edicao, agora) {
+  if (!M.dentroDoFestival(edicao, agora)) return null
+  const fim = String(edicao.fim).slice(0, 10)
+  return Math.round((Date.parse(`${fim}T12:00:00Z`) - Date.parse(`${M.hojeEmNatal(agora)}T12:00:00Z`)) / 864e5)
 }
 
 export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
@@ -151,6 +129,10 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
   const aberta = !!dados?.avaliacao?.aberta
   const abre = M.aberturaDaAvaliacao(dados)
   const comCombos = elenco.some((p) => p.combo)
+  const nCombos = elenco.filter((p) => p.combo).length
+  const agora = useAgora()
+  const faltam = encerrada ? null : diasQueFaltam(dados?.edicao, agora)
+  const temDelivery = !!dados?.combos_publicos && elenco.some((p) => M.estadoModo(p, 'delivery').estado === 'sim')
   const textoAvalie = aberta ? T.avalieAberta
     : encerrada ? FASE_TEXTO.avaliacaoEncerrada
     : abre ? T.avalieAbre(abre) : FASE_TEXTO.avaliacaoFechada
@@ -174,10 +156,13 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
               {elenco.length > 0 && <li className="ct-contagem ct-estreia__casas">{T.fatoCasas(elenco.length)}</li>}
             </ul>
           )}
+          {faltam !== null && <p className="ct-estreia__faltam">{T.faltam(faltam)}</p>}
           <div className="ct-acoes ct-estreia__acoes">
-            <Botao tipo="acao" href={`${C}/${comCombos ? 'combos' : 'participantes'}`} navigate={navigate}>{comCombos ? T.acaoCombos : T.acaoParticipantes}</Botao>
-            {!encerrada && MAPA_NO_AR && <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}>{T.acaoMapa}</Botao>}
-            {MAPA_NO_AR && <Botao tipo="secundario" href={CACA_CAMINHOS.visitaAnterior} navigate={navigate}>Pedir carimbo de visita</Botao>}
+            {/* Venda (11/11): delivery primeiro; "ver os combos" desce até a vitrine, logo abaixo. O carimbo mora na Caça. */}
+            {!encerrada && temDelivery && <Botao tipo="acao" href={`${C}/combos?modo=delivery`} navigate={navigate} data-acao="topo_delivery">{T.acaoDelivery}</Botao>}
+            {comCombos
+              ? <Botao tipo={!encerrada && temDelivery ? 'secundario' : 'acao'} href="#ct-vitrine">{T.acaoVerTodos(nCombos)}</Botao>
+              : <Botao tipo="acao" href={`${C}/participantes`} navigate={navigate}>{T.acaoParticipantes}</Botao>}
             <Gibi chave="luva-aponta" className="ct-estreia__luva" />
           </div>
         </div>
@@ -188,17 +173,16 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           <Olhinhos expressao="encantado" lado="direita" olhar={{ x: -0.6, y: 0.2 }} tamanho={150} className="ct-estreia__olhos" />
         </div>
       </TopoCanal>
-      <AssinaturaPatrocinio navigate={navigate} destaque />
 
-      <section className="ct-bloco ct-entrada__elenco ct-reticula" aria-labelledby="ct-elenco">
+      <section id="ct-vitrine" className="ct-bloco ct-entrada__elenco ct-reticula" aria-labelledby="ct-elenco">
         <Letreiro id="ct-elenco" texto={T.elencoTitulo} />
         {erro ? <Falha titulo="Não conseguimos carregar as casas agora" texto="Confira a conexão e tente de novo." tentar={tentar} />
           : carregando ? <Carregando texto="Carregando as casas…" />
           : elenco.length ? (
             <>
-              <ElencoDoMomento elenco={elenco} dados={dados} navigate={navigate} />
+              <VitrineVenda elenco={elenco} dados={dados} navigate={navigate} />
               <div className="ct-acoes">
-                {comCombos && <Botao href={`${C}/combos`} navigate={navigate}>{T.verCombos(elenco.filter((p) => p.combo).length)}</Botao>}
+                {comCombos && <Botao tipo="secundario" href={`${C}/combos`} navigate={navigate}>{T.buscarFiltrar}</Botao>}
                 <Botao tipo="secundario" href={`${C}/participantes`} navigate={navigate}>{T.verTodas(elenco.length)}</Botao>
               </div>
             </>
@@ -211,6 +195,8 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           <Passos passos={T.passos} />
         </section>
       )}
+      {/* O patrocinador logo depois da venda (11/11: os combos sobem para a primeira dobra). */}
+      <AssinaturaPatrocinio navigate={navigate} destaque />
 
       {!encerrada && MAPA_NO_AR && bairros.length > 0 && (
         <section className="ct-onde" aria-labelledby="ct-onde">

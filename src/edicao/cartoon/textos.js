@@ -13,8 +13,9 @@ const C = EDICAO.caminho
    Cabeçalho, menu do celular e barra de abas mostram as mesmas cinco. Avaliar e Premiação são UMA página
    (Sweet Awards, lista 13 N1): /avaliar e /premiacao abrem nela; depois dos resultados a aba vira "Prêmios". */
 export const NAV = [
+  // Venda (11/11/2026): "Combos" é o primeiro item e leva aos combos; a lista de casas segue no mesmo lugar (/participantes).
+  { cena: 'participantes', rotulo: 'Combos', aba: 'Combos', icone: 'casas', href: `${C}/combos` },
   { cena: 'entrada', rotulo: 'Início', aba: 'Início', icone: 'inicio', href: C },
-  { cena: 'participantes', rotulo: 'Casas', aba: 'Casas', icone: 'casas', href: `${C}/participantes` },
   // Mapa e Minha rota são UMA página (Mapa da Doçura): a rota é um painel dentro dela. O contador de paradas mora neste item.
   { cena: 'mapa', rotulo: 'Mapa da Doçura', aba: 'Mapa', icone: 'mapa', href: `${C}/mapa` },
   // Caça aos Carimbos: também na barra de abas do celular (a quinta, no lugar da antiga "Minha rota", que virou painel do mapa).
@@ -41,7 +42,17 @@ export const ENTRADA = {
     { titulo: 'Prove o combo', texto: 'No local, para levar ou por delivery, conforme a casa.', icone: 'no-local' },
     { titulo: 'Avalie', texto: 'Sua avaliação ajuda a escolher os destaques do Sweet Awards.', icone: 'avaliar' },
   ],
-  elencoTitulo: 'Estrelando: nosso elenco!',
+  elencoTitulo: 'Escolha seu combo',
+  // Topo de venda (11/11): duas ações, delivery primeiro; a vitrine com todos os combos logo abaixo.
+  acaoDelivery: 'Pedir no delivery',
+  acaoVerTodos: (n) => (n === 1 ? 'Ver o combo' : `Ver os ${n} combos`),
+  // Urgência verdadeira: conta os dias até o fim da edição (só durante o festival).
+  faltam: (n) => (n <= 0 ? 'Último dia do festival!' : n === 1 ? 'Só até amanhã!' : `Faltam ${n} dias para acabar`),
+  filtroTodos: (n) => `Todos (${n})`,
+  filtroDelivery: (n) => `Delivery (${n})`,
+  filtroAbertas: (n) => `Abertas agora (${n})`,
+  buscarFiltrar: 'Buscar e filtrar',
+  filtrosRotulo: 'Mostrar combos',
   // Durante o festival o elenco mostra quem está com o combo agora (mesma regra do Mapa); fora dele, só o elenco.
   elencoAgora: (n) => (n === 1 ? '1 casa com o combo agora' : `${n} casas com o combo agora`),
   elencoAbremHoje: (n) => (n === 1 ? '1 abre ainda hoje' : `${n} abrem ainda hoje`),
@@ -120,6 +131,13 @@ export const CATALOGO = {
   fotoEmProducao: 'Foto em produção',
   unidades: (n) => `${n} unidades`,
   tema: (t) => `Inspirado em ${t}`,
+}
+
+/* Ações de compra do cartão de combo e da barra da ficha (11/11/2026: o site existe para vender combo). Quem vende é a casa. */
+export const COMPRA = {
+  delivery: 'Pedir delivery',
+  irAteCasa: 'Ir até a casa',
+  novaAba: '(abre em nova aba)',
 }
 
 export const PARTICIPANTE = {
