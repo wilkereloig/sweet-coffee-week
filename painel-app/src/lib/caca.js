@@ -595,6 +595,8 @@ export function mensagemCaca(erro) {
 // `fetchImpl` só existe para o teste. O corpo de cada chamada é o do contrato (15-caca-contrato-*.md).
 export const cacaApi = {
   movimentoEstado: (f) => rpc('caca_movimento_estado', { p_secret: lerSenha() }, f),
+  filaAvisos: (f) => rpc('caca_fila_avisos', { p_secret: lerSenha() }, f),
+  filaDefinir: (unidade, fila, f) => rpc('caca_fila_definir', { p_secret: lerSenha(), p_unidade: unidade, p_fila: !!fila }, f),
   config: (f) => rpc('caca_config_ler', { p_secret: lerSenha() }, f),
   gravarConfig: (chave, valor, f) => rpc('caca_config_gravar', { p_secret: lerSenha(), p_chave: chave, p_valor: valor }, f),
   premios: (edicao, f) => rpc('caca_premio_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),

@@ -68,7 +68,7 @@ export const RPC_LEITURA = new Set([
   // Caça aos Carimbos (painel): leituras. `caca_sorteio_final` só é chamada em SIMULAÇÃO (p_simular: true) — o
   // sorteio oficial grava prêmios, mas a tela não o liga (lib/caca.js › SORTEIO_OFICIAL_LIBERADO).
   'caca_config_ler', 'caca_metas_painel_ler', 'caca_premio_listar', 'caca_carimbo_revisao_listar', 'caca_sorteio_final',
-  'caca_excecao_listar', 'caca_gps_resumo', 'caca_aviso_listar', 'caca_avisos_casas', 'caca_aviso_estimar', 'caca_avisos_auto_estado', 'caca_programacao_estado', 'caca_movimento_estado', 'caca_sorteio_estado', // estado = leitura (SQL stable): diz se a semente já foi comprometida
+  'caca_excecao_listar', 'caca_gps_resumo', 'caca_aviso_listar', 'caca_avisos_casas', 'caca_aviso_estimar', 'caca_avisos_auto_estado', 'caca_programacao_estado', 'caca_movimento_estado', 'caca_fila_avisos', 'marca_fila_estado', 'caca_sorteio_estado', // estado = leitura (SQL stable): diz se a semente já foi comprometida
   // Canais de tempo real que ESTA conta pode ouvir (lista do servidor).
   'sync_meus_canais',
 ])
@@ -228,6 +228,8 @@ export const RPC_ESCRITA = Object.freeze({
   caca_sorteio_comprometer: ['carimbos'], // grava o código da semente (aba Prêmio final, em Edição › Carimbos)
   marca_confirmar_leitura: ['arquivos'], // confirma (ou reconfirma, se o arquivo foi substituído) a leitura
   marca_combo_esgotado: ['participantes', 'avisos'], // informa disponibilidade e avisa a Organização
+  marca_fila_definir: ['carimbos', 'avisos'], // "Estamos com fila agora" no mapa por 1 h e avisa a Organização
+  caca_fila_definir: ['carimbos'], // a Organização marca a fila em nome da casa (aba Movimento)
   marcar_senha_trocada: ['perfis'],
 })
 

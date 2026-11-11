@@ -221,6 +221,7 @@ export const LOVER = {
 }
 
 export const MAPA = {
+  filaAgora: 'Fila agora, avisou a casa', // doc 20, parte B: vale 1 h
   titulo: 'Mapa da Doçura',
   lead: 'Todas as casas da Cartoon num mapa só. Escolha onde quer ir, monte sua rota e siga pelo Google Maps. Fica salvo neste aparelho.',
   busca: 'Buscar casa ou bairro',

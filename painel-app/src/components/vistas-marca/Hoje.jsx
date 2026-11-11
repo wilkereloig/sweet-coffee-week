@@ -14,6 +14,7 @@ import {
 } from '../../lib/inicioMarca'
 import { VendaDoDia } from './hoje/VendaDoDia'
 import { ComboEsgotado } from './hoje/ComboEsgotado'
+import { FilaAgora } from './hoje/FilaAgora'
 import { Identificacao } from './hoje/Identificacao'
 import { Agora } from './hoje/Agora'
 import { Pendencias } from './hoje/Pendencias'
@@ -160,6 +161,7 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
                   aoGravar={(linha) => setVendas((atual) => comVendaGravada(atual, linha))}
                   recarregar={carregarLocal} invalidar={() => { guarda() }} />}
             {momento === 'durante' && <ComboEsgotado participacaoId={participacaoId} hoje={hoje} />}
+            {momento === 'durante' && <FilaAgora participacaoId={participacaoId} hoje={hoje} />}
           </Secao>
           {carimbos && (momento === 'durante' || Number(carimbos.total) > 0) && (
             <Secao titulo="Carimbos de hoje" nota="Visitas registradas pelo QR do balcão (Mapa da Doçura). Quem carimba é o visitante: aqui é só para acompanhar.">
