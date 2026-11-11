@@ -346,7 +346,7 @@ try {
     const { ctx, page } = await contexto(nav, { w: 1440, h: 500 })
     const antes = falhas.length
     await ir(page, '/cartoon/participantes')
-    await page.click('.ct-chip:has-text("Delivery")')
+    await page.click('.ct-filtros__painel .ct-chip:has-text("Delivery")')
     await page.waitForFunction(() => new URLSearchParams(location.search).get('modo') === 'delivery')
     if ((await page.locator('.ct-cartao').count()) !== 1) falha(`filtro delivery: ${await page.locator('.ct-cartao').count()} cartões`)
     // Rola até o cartão ANTES de medir: o clique do Playwright rolaria até ele de novo e a posição guardada
@@ -508,9 +508,9 @@ try {
     if (!topo.selo) falha('@360 cabeçalho sem o selo da edição')
     if (topo.nav || !topo.menu) falha('@360 celular deveria mostrar só o botão Menu')
     const abas = await page.locator('.ct-abas .ct-aba').allInnerTexts()
-    if (abas.map((t) => t.trim()).join(' · ') !== 'Início · Casas · Mapa · Caça · Avaliar') falha(`@360 abas: ${abas.join(' · ')}`)
+    if (abas.map((t) => t.trim()).join(' · ') !== 'Combos · Início · Mapa · Caça · Avaliar') falha(`@360 abas: ${abas.join(' · ')}`)
     if ((await page.locator('.ct-abas .ct-aba img.ct-icone').count()) !== 5) falha('@360 abas sem o ícone da edição')
-    if ((await page.locator('.ct-abas .ct-aba[aria-current="page"]').innerText()).trim() !== 'Casas') falha('@360 aba ativa não é Casas')
+    if ((await page.locator('.ct-abas .ct-aba[aria-current="page"]').innerText()).trim() !== 'Combos') falha('@360 aba ativa não é Combos')
 
     const aberto = () => page.evaluate(() => document.getElementById('ct-menu').open)
     const focoNoBotao = () => page.evaluate(() => document.activeElement?.classList.contains('ct-topo__menu'))
@@ -533,10 +533,10 @@ try {
     await page.mouse.click(180, 30)
     if (await aberto()) falha('clique no véu não fechou o menu')
     if (!(await focoNoBotao())) falha('véu: o foco não voltou ao botão Menu')
-    // 3 · Link: navega e fecha. (Casas, e não Mapa: desde 10/11/2026 o mapa abre em tela cheia e é ele quem recebe o foco.)
+    // 3 · Link: navega e fecha. (Combos, e não Mapa: desde 10/11/2026 o mapa abre em tela cheia e é ele quem recebe o foco.)
     await page.click('.ct-topo__menu')
-    await page.click('#ct-menu a:has-text("Casas")')
-    await page.waitForFunction(() => location.pathname === '/cartoon/participantes')
+    await page.click('#ct-menu a:has-text("Combos")')
+    await page.waitForFunction(() => location.pathname === '/cartoon/combos')
     if (await aberto()) falha('link da folha não fechou o menu')
     if (!(await focoNoBotao())) falha('link: o foco não voltou ao botão Menu')
     await ctx.close()
@@ -545,7 +545,7 @@ try {
     const c = await contexto(nav, { w: 360, h: 800, edicao: { ...clone(DEMO_EDICAO), resultados_publicos: true } })
     await ir(c.page, '/cartoon/participantes')
     const abasDepois = (await c.page.locator('.ct-abas .ct-aba').allInnerTexts()).map((t) => t.trim()).join(' · ')
-    if (abasDepois !== 'Início · Casas · Mapa · Caça · Prêmios') falha(`com resultados, abas: ${abasDepois}`)
+    if (abasDepois !== 'Combos · Início · Mapa · Caça · Prêmios') falha(`com resultados, abas: ${abasDepois}`)
     await c.ctx.close()
 
     const d = await contexto(nav, { w: 1440, h: 900 })
@@ -575,7 +575,7 @@ try {
     // O "aberto agora" tem teste próprio: tests/cartoon-elenco-navegador.mjs.
     await page.clock.install({ time: new Date('2026-11-03T15:00:00-03:00') })
     await ir(page, '/cartoon')
-    await page.waitForSelector('.ct-laminas')
+    await page.waitForSelector('.ct-entrada__vitrine')
     const e = await page.evaluate(() => {
       const txt = (s) => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || ''
       return {
@@ -586,7 +586,7 @@ try {
         como: txt('#ct-como'),
         passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-gibi')?.getAttribute('src')?.match(/objetos\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.trim()]),
         // Vitrine (03/11): ordem sorteada por dia, então a conferência é do CONJUNTO; casa sem foto leva à página dela.
-        vitrine: [...document.querySelectorAll('.ct-lamina__link')].map((a) => a.getAttribute('href').split('?')[0]).sort(),
+        vitrine: [...document.querySelectorAll('.ct-entrada__vitrine .ct-cartao__link')].map((a) => a.getAttribute('href').split('?')[0]).sort(),
         fatos: [...document.querySelectorAll('.ct-estreia__fatos li')].map((li) => li.textContent.trim()),
         bairros: [...document.querySelectorAll('.ct-bairro')].map((a) => `${a.firstChild.textContent}:${a.querySelector('.ct-bairro__n').textContent}`),
         avalie: txt('.ct-entrada__avalie .ct-palco__texto'),
@@ -602,7 +602,7 @@ try {
     if (e.olhos !== 1) falha(`Entrada: ${e.olhos} par(es) de olhinhos no topo (espera 1, espiando da mesa)`)
     if (e.como !== 'Como funciona') falha(`Entrada: título "${e.como}"`)
     if (JSON.stringify(e.passos) !== JSON.stringify([['loja', 'Escolha a casa'], ['bandeja', 'Prove o combo'], ['prancheta', 'Avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
-    if (JSON.stringify(e.vitrine) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/${p.combo?.fotos?.principal ? 'combos' : 'participantes'}/${p.slug}`).sort())) falha(`Entrada: vitrine ${JSON.stringify(e.vitrine)}`)
+    if (JSON.stringify(e.vitrine) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/combos/${p.slug}`).sort())) falha(`Entrada: vitrine ${JSON.stringify(e.vitrine)}`)
     if (JSON.stringify(e.fatos) !== JSON.stringify(['5 a 15 de novembro', 'Combo R$ 38,90', '3 casas'])) falha(`Entrada: fatos do topo ${JSON.stringify(e.fatos)}`)
     if (JSON.stringify(e.bairros) !== JSON.stringify(['Tirol:2', 'Lagoa Nova:1', 'Ponta Negra:1'])) falha(`Entrada: bairros ${JSON.stringify(e.bairros)}`)
     if (!e.chao) falha('Entrada: Onde ficam sem a faixa de Natal')
@@ -620,7 +620,7 @@ try {
     await ir(c.page, '/cartoon')
     const fechado = await c.page.locator('.ct-conteudo').innerText()
     if (!fechado.includes('será revelado em breve')) falha('Entrada sem elenco não diz "em breve"')
-    if (await c.page.locator('.ct-estreia__casas, .ct-laminas, .ct-onde').count()) falha('Entrada sem elenco mostrou placa de casas, vitrine ou bairros')
+    if (await c.page.locator('.ct-estreia__casas, .ct-entrada__vitrine, .ct-onde').count()) falha('Entrada sem elenco mostrou placa de casas, vitrine ou bairros')
     if ((await c.page.locator('.ct-estreia__fatos .ct-fita').textContent())?.trim() !== '5 a 15 de novembro') falha('Entrada sem elenco perdeu a fita do período')
     await c.ctx.close()
     c = await contexto(nav, { edicao: 'falha' })
@@ -631,7 +631,7 @@ try {
     await c.ctx.close()
     c = await contexto(nav, { edicao: { ...clone(DEMO_EDICAO), fase: 'encerrada' } })
     await ir(c.page, '/cartoon')
-    await c.page.waitForSelector('.ct-laminas')
+    await c.page.waitForSelector('.ct-entrada__vitrine')
     const enc = await c.page.locator('.ct-conteudo').innerText()
     if (!enc.includes('terminou') || await c.page.locator('.ct-entrada__como, .ct-onde').count()) falha('Entrada encerrada: sem aviso, ou ainda com Como funciona/Onde ficam')
     if (!enc.includes('A avaliação desta edição foi encerrada.')) falha('Entrada encerrada: Avalie sem o texto de encerrada')

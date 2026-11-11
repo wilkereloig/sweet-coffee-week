@@ -22,6 +22,7 @@ import { Combo } from './Combo.jsx'
 import { ComoPedir } from './ComoPedir.jsx'
 import { Unidades } from './Unidades.jsx'
 import { Sobre } from './Sobre.jsx'
+import { AcoesCompra } from '../../CartaoCombo.jsx'
 
 export function Participante ({ slug, foco, navigate, edicao }) {
   const [res, setRes] = React.useState({ estado: 'carregando' })
@@ -42,7 +43,9 @@ export function Participante ({ slug, foco, navigate, edicao }) {
     if (res.estado !== 'publicado') return
     document.title = `${foco === 'combo' ? 'Combo da ' : ''}${p.casa.nome} · Sweet & Coffee Week Cartoon`
     // /combos/:slug abre no combo; "Quero ir" de casa com várias unidades, vindo do catálogo, abre nas unidades.
-    const alvo = foco === 'combo' ? 'combo' : new URLSearchParams(location.search).get('ver') === 'unidades' ? 'unidades' : ''
+    // ?ver=atendimento|unidades (cartão de compra, 11/11) manda mesmo em /combos/:slug.
+    const ver = new URLSearchParams(location.search).get('ver')
+    const alvo = ['unidades', 'atendimento'].includes(ver) ? ver : foco === 'combo' ? 'combo' : ''
     if (alvo) requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(alvo)?.scrollIntoView({ block: 'start' })))
   }, [res.estado, p, foco])
 
@@ -100,6 +103,9 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
           <Link className="ct-botao" href={`${EDICAO.caminho}/avaliar?participante=${p.slug}`} navigate={navigate}><ScwIcon nome={ICONE.avaliar} tamanho={20} />{T.avaliar}</Link>
         </section>
       )}
+      {/* Venda (11/11): no celular, "Pedir delivery | Ir até a casa" presos ao pé da tela, acima da barra de abas.
+          Só no site (a prévia do painel não tem navigate) e com a edição em curso. */}
+      {navigate && combo && !encerrada && <AcoesCompra p={p} navigate={navigate} naFicha className="ct-ficha__compra" />}
       {/* Só no site: na prévia do painel (sem navigate) a faixa presa ao pé cobriria a interface do painel. */}
       {navigate && <CenarioFixo slug={p.slug} />}
       {/* Convite à Caça: só com o mapa no ar, combo para avaliar, avaliação aberta (é quando o carimbo existe) e edição em curso. */}

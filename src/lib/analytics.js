@@ -168,6 +168,15 @@ export function trackPageView () {
   gtag('event', 'page_view', endereco)
 }
 
+/**
+ * Evento de interação (11/11/2026, venda de combo): mesma regra do page_view — só com a análise permitida, nunca
+ * dado pessoal. Hoje: `combo_acao` { acao, casa } (delivery, como_chegar, whatsapp, ver_combo…).
+ */
+export function trackEvento (nome, params = {}) {
+  if (!ativo || !analisePermitida()) return
+  gtag('event', nome, params)
+}
+
 /** Chamado uma vez pelo App: liga se a análise estiver permitida e segue a escolha. */
 let iniciado = false
 export function iniciarAnalytics () {

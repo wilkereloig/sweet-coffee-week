@@ -99,10 +99,11 @@ async function contexto (nav, dados, { w = 1440, h = 900, agora = NATAL(9, 15) }
 const abrir = async (page, caminho = '/cartoon') => {
   await page.goto(`${BASE}${caminho}`, { waitUntil: 'networkidle' })
 }
-const vitrine = async (page) => page.locator('.ct-entrada__elenco .ct-lamina__link').evaluateAll((els) => els.map((e) => ({
-  casa: e.querySelector('.ct-lamina__casa')?.textContent.trim(),
-  etiqueta: e.querySelector('.ct-lamina__momento')?.textContent.trim() || null,
-  tipo: e.querySelector('.ct-lamina__momento')?.className.match(/--(aberta|abre)/)?.[1] || null,
+// Vitrine de venda (11/11/2026): TODOS os combos no cartão de compra; abertas primeiro, depois as que abrem hoje, depois o resto.
+const vitrine = async (page) => page.locator('.ct-entrada__vitrine .ct-cartao__link').evaluateAll((els) => els.map((e) => ({
+  casa: (e.querySelector('.ct-cartao__sub') || e.querySelector('.ct-cartao__nome'))?.textContent.trim(),
+  etiqueta: e.querySelector('.ct-cartao__momento')?.textContent.trim() || null,
+  tipo: e.querySelector('.ct-cartao__momento')?.className.match(/--(aberta|abre)/)?.[1] || null,
 })))
 const aviso = async (page) => (await page.locator('.ct-elenco-momento').count() ? (await page.locator('.ct-elenco-momento').textContent()).replace(/\s+/g, ' ').trim() : null)
 const botoesDaLista = async (page) => page.locator('.ct-entrada__elenco .ct-acoes a').evaluateAll((els) => els.map((e) => e.getAttribute('href')))
@@ -123,9 +124,10 @@ try {
     igual(v.filter((x) => x.tipo === 'aberta').map((x) => x.casa).sort(), ['[DEMO] Casa Aurora'], 'só a Aurora está aberta às 15h (Bico fechou às 12h)')
     igual(v.find((x) => x.casa === '[DEMO] Casa Aurora')?.etiqueta, 'Aberta agora, até 20h', 'a etiqueta traz a hora em que fecha a unidade que está aberta (a outra só abre às 16h)')
     igual(v.filter((x) => x.tipo === 'abre').map((x) => [x.casa, x.etiqueta]), [['[DEMO] Casa Lua', 'Abre às 18h']], 'quem abre ainda hoje vem depois, com a hora')
-    const nomes = v.map((x) => x.casa)
-    if (nomes.includes('[DEMO] Casa Bico de Pena') || nomes.includes('[DEMO] Casa Quadro a Quadro')) falha('casa fechada ou sem horário apareceu na vitrine')
-    else ok('casa fechada e casa sem horário não aparecem')
+    // Venda (11/11): a casa fechada e a sem horário continuam à venda (delivery, outro dia), DEPOIS das abertas e sem etiqueta.
+    const resto = v.filter((x) => !x.tipo)
+    igual(v.map((x) => x.tipo || '-').join(','), 'aberta,abre,-,-', 'abertas primeiro, depois quem abre hoje, depois o resto')
+    igual(resto.map((x) => x.casa).sort(), ['[DEMO] Casa Bico de Pena', '[DEMO] Casa Quadro a Quadro'], 'casa fechada e casa sem horário vêm depois, sem etiqueta')
     igual(await aviso(page), '1 casa com o combo agora · 1 abre ainda hoje', 'a faixa de estado diz o que é verdade agora')
     igual((await botoesDaLista(page)).length >= 2, true, 'os botões das listas completas continuam')
     if (erros.length) falha(`console: ${erros.join(' | ')}`); else ok('console limpo')
@@ -148,7 +150,7 @@ try {
     igual((await vitrine(page)).filter((x) => x.tipo === 'aberta').map((x) => x.casa), [], 'às 13h58 ninguém está aberto (Aurora abre às 14h)')
     igual((await vitrine(page)).find((x) => x.casa === '[DEMO] Casa Aurora')?.etiqueta, 'Abre às 14h', 'a Aurora aparece como "Abre às 14h"')
     await page.clock.fastForward(3 * 60 * 1000)
-    await page.waitForFunction(() => document.querySelector('.ct-lamina__momento--aberta'), null, { timeout: 5000 }).catch(() => {})
+    await page.waitForFunction(() => document.querySelector('.ct-cartao__momento--aberta'), null, { timeout: 5000 }).catch(() => {})
     igual((await vitrine(page)).filter((x) => x.tipo === 'aberta').map((x) => x.casa), ['[DEMO] Casa Aurora'], 'três minutos depois, sem recarregar, a Aurora passa a "Aberta agora"')
     await ctx.close()
   }
@@ -157,7 +159,7 @@ try {
   {
     const { ctx, page } = await contexto(nav, edicao({ aurora: [['08:00', '09:00'], ['08:00', '09:00']], bico: [['08:00', '09:00']], lua: [['08:00', '09:00']] }), { agora: NATAL(9, 22) })
     await abrir(page)
-    igual((await vitrine(page)).length, 0, 'às 22h com todas encerradas, a vitrine não mostra casa nenhuma')
+    igual((await vitrine(page)).every((x) => x.etiqueta === null) && (await vitrine(page)).length > 0, true, 'às 22h com todas encerradas, a vitrine mostra os combos sem etiqueta de "agora"')
     const t = await aviso(page)
     if (/Nenhuma casa está com o combo agora/.test(t || '') && /todas as casas/.test(t || '')) ok('aviso claro com o caminho para as casas'); else falha(`aviso: ${t}`)
     igual((await botoesDaLista(page)).some((h) => h.endsWith('/participantes')), true, 'o botão "Ver as casas" continua')
@@ -167,7 +169,7 @@ try {
   {
     const { ctx, page } = await contexto(nav, edicao({ semHorario: true }), { agora: NATAL(9, 15) })
     await abrir(page)
-    igual((await vitrine(page)).length, 0, 'sem nenhum horário cadastrado, ninguém aparece como aberto')
+    igual((await vitrine(page)).some((x) => x.tipo === 'aberta'), false, 'sem nenhum horário cadastrado, ninguém aparece como aberto')
     const t = await aviso(page)
     if (/horários das casas ainda não estão disponíveis/.test(t || '')) ok('aviso diz que os horários não estão disponíveis (não "ninguém aberto")'); else falha(`aviso: ${t}`)
     await ctx.close()

@@ -289,3 +289,14 @@
 .ct-ficha__fotos-casa { max-width: 760px; }
 .ct-galeria { width: min(960px, 94vw); padding: 16px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-creme); }
 .ct-galeria::backdrop { background: rgba(58, 21, 15, .7); }
+
+/* Barra de compra da ficha (11/11/2026): só no celular, presa ao pé da tela logo acima da barra de abas, do topo da
+   ficha até o fim dela. No computador as mesmas ações já estão no topo ("Como pedir"). */
+.ct-ficha__compra { display: none; }
+@media (max-width: 899.98px) {
+  .ct-ficha__compra {
+    position: sticky; bottom: calc(var(--scw-base-ocupada, 72px) + 8px); z-index: 25; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    margin: 24px var(--ct-trilho) 0; padding: 8px; border: var(--ct-traco); border-radius: 16px; background: var(--ct-creme); box-shadow: 4px 4px 0 var(--ct-chocolate);
+  }
+  .ct-edicao .ct-ficha__compra .ct-compra__botao { gap: 6px; padding: 0 8px; font-size: 14px; letter-spacing: .02em; }
+}

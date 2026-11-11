@@ -10,22 +10,16 @@
  */
 import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import React from 'react'
-import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
-import { kitTemaEdicao } from '../../../data/imageLibrary'
-import { Link, Foto, proporcaoDe, Avisos } from '../../componentes/base.jsx'
+import { Avisos } from '../../componentes/base.jsx'
 import { useEnderecoDaBusca } from '../useEnderecoDaBusca.js'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Chip, Gibi, Preco } from '../../componentes/sistema/pecas.jsx'
 import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
-import ScwIcon from '../../../components/scw-icons/ScwIcon.jsx'
-import { LogoDesenhada } from '../../componentes/sistema/LogoDesenhada.jsx'
-import { SeloDaCasa } from '../../componentes/sistema/SeloDaCasa.jsx'
-import { QueroIrCasa, JaFui } from '../MarcasLover.jsx'
-import { MAPA_NO_AR } from '../contexto.js'
 import { useAgora } from '../useAgora.js'
-import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO, TIPO_ORDEM, ICONE } from '../textos.js'
+import { CATALOGO as T, FASE_TEXTO, ATENDIMENTO, RESTRICAO } from '../textos.js'
+import { CartaoCombo } from '../CartaoCombo.jsx'
 
 const CHAVE_POSICAO = 'scw:cartoon:catalogo:posicao'
 // [chave do filtro, chave da restrição em M.RESTRICOES]
@@ -43,71 +37,6 @@ function restaurarPosicao () {
       requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, v.y)))
     }
   } catch { /* sem storage */ }
-}
-
-/** Selos do cartão: atendimento que alguma unidade declarou + restrição declarada no combo inteiro. */
-function selosDaCasa (p) {
-  const modos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim').map((k) => ATENDIMENTO[k])
-  const restricoes = M.RESTRICOES.map((r) => r.chave).filter((k) => M.veredito(p.combo?.itens, k) === 'sim').map((k) => RESTRICAO[k])
-  const veg = M.opcaoVegetariana(p.combo?.itens)
-  const vegetariano = veg === 'nao' ? [] : [{ ...RESTRICAO.vegetariano, rotulo: veg === 'troca' ? RESTRICAO.vegetariano.rotuloTroca : RESTRICAO.vegetariano.rotulo }]
-  return [...modos, ...vegetariano, ...restricoes]
-}
-
-function Cartao ({ p, modo, navigate, encerrada }) {
-  const base = modo === 'combos' ? 'combos' : 'participantes'
-  const us = p.unidades || []
-  const bairros = [...new Map(us.map((u) => u.endereco?.bairro).filter(Boolean).map((b) => [M.normalizar(b), b])).values()]
-  const itens = [...(p.combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
-  const nomeCombo = p.combo?.nome ? M.caixaLegivel(p.combo.nome) : ''
-  const foto = p.combo?.fotos?.principal
-  const espia = kitTemaEdicao(p.slug)?.objetoB
-  const selos = selosDaCasa(p)
-  const nomesItens = itens.map((i) => i.nome).filter(Boolean)
-  return (
-    <li className={`ct-cartao${espia ? ' ct-cartao--espia' : ''}`}>
-      <Link className="ct-cartao__link" href={`${EDICAO.caminho}/${base}/${p.slug}`} navigate={navigate} aoIr={guardarPosicao}>
-        <div className="ct-cartao__visual">
-          {foto ? (
-            <>
-              <Foto foto={foto} proporcao={proporcaoDe(foto, '4 / 3')} alt="" />
-              <SeloDaCasa casa={p.casa} />
-            </>
-          ) : (
-            <div className="ct-cartao__reserva">
-              <LogoDesenhada casa={p.casa} alt="" />
-              <span className="ct-cartao__aviso">{p.combo ? T.fotoEmProducao : T.comboEmBreve}</span>
-            </div>
-          )}
-        </div>
-        {espia && <img className="ct-cartao__espia" src={espia.src} width={espia.largura} height={espia.altura} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-        <div className="ct-cartao__corpo">
-          <h2 className="ct-cartao__nome">{modo === 'combos' && nomeCombo ? nomeCombo : p.casa.nome}</h2>
-          {modo === 'combos' ? nomeCombo && <p className="ct-cartao__sub">{p.casa.nome}</p> : nomeCombo && <p className="ct-cartao__sub">{nomeCombo}</p>}
-          {modo === 'combos' && nomesItens.length > 0 && (
-            <ul className="ct-cartao__itens">
-              {itens.filter((i) => i.nome).map((i) => <li key={i.posicao}><ScwIcon nome={ICONE.tipo[i.tipo]} tamanho={16} /><span>{M.caixaLegivel(i.nome)}</span></li>)}
-            </ul>
-          )}
-          {p.casa.tema && <p className="ct-cartao__tema">{T.tema(p.casa.tema)}</p>}
-          {(bairros.length > 0 || us.length > 1) && (
-            <p className="ct-cartao__onde">{[bairros.join(' · '), us.length > 1 ? T.unidades(us.length) : null].filter(Boolean).join(' · ')}</p>
-          )}
-        </div>
-        {selos.length > 0 && (
-          <ul className="ct-selos ct-cartao__selos">
-            {selos.map((s) => <li key={s.icone} className="ct-selo"><IconeCartoon nome={s.icone} tamanho={32} /><span>{s.rotulo}</span></li>)}
-          </ul>
-        )}
-      </Link>
-      {!encerrada && MAPA_NO_AR && (p.unidades || []).length > 0 && (
-        <div className="ct-cartao__marcas">
-          <QueroIrCasa p={p} navigate={navigate} />
-          <JaFui p={p} />
-        </div>
-      )}
-    </li>
-  )
 }
 
 export function Catalogo ({ modo, navigate, dados }) {
@@ -176,6 +105,10 @@ export function Catalogo ({ modo, navigate, dados }) {
             <span className="ct-sr">{T.busca}</span>
             <input type="search" value={f.q} placeholder={T.busca} onChange={(e) => muda('q', e.target.value)} />
           </label>
+          {/* Venda (11/11): o filtro de delivery fica à vista, fora do painel de filtros. */}
+          {opcoes.modos.includes('delivery') && dados.combos_publicos && (
+            <Chip className="ct-filtros__rapido" ativo={f.modo === 'delivery'} icone={ATENDIMENTO.delivery.icone} onClick={() => muda('modo', f.modo === 'delivery' ? '' : 'delivery')}>{ATENDIMENTO.delivery.rotulo}</Chip>
+          )}
           <button type="button" className="ct-botao ct-botao--contorno ct-filtros__abrir" aria-expanded={painel} aria-controls="cat-filtros" onClick={() => setPainel(!painel)}>
             {T.filtros}{ativos ? ` (${ativos})` : ''}
           </button>
@@ -227,7 +160,7 @@ export function Catalogo ({ modo, navigate, dados }) {
 
         {filtrados.length ? (
           <ul className={`ct-elenco ct-elenco--${modo}`}>
-            {filtrados.map((p) => <Cartao key={p.slug} p={p} modo={modo} navigate={navigate} encerrada={dados.fase === 'encerrada'} />)}
+            {filtrados.map((p) => <CartaoCombo key={p.slug} p={p} modo={modo} navigate={navigate} encerrada={dados.fase === 'encerrada'} aoIr={guardarPosicao} />)}
           </ul>
         ) : (
           <div className="ct-estado ct-estado--vazio">

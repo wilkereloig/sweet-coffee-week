@@ -78,7 +78,7 @@
 @media (min-width: 1200px) { .ct-elenco { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 /* O cartão: o link em cima e, no pé, as marcas da rota (05-mapa-rota.css). Mora aqui, antes do bloco do celular, que
    zera o vão quando as marcas somem (antes a regra morava no 05, depois deste arquivo, e o "gap: 0" do celular perdia). */
-.ct-elenco .ct-cartao { display: grid; grid-template-rows: 1fr auto; gap: 10px; min-width: 0; }
+.ct-elenco .ct-cartao { display: grid; grid-template-rows: 1fr; grid-auto-rows: auto; gap: 10px; min-width: 0; }
 .ct-elenco .ct-cartao__link { position: relative; grid-template-rows: auto 1fr auto; }
 .ct-cartao__visual { position: relative; overflow: hidden; container-type: inline-size; border-bottom: 3px solid var(--ct-chocolate); background: var(--ct-creme); }
 .ct-cartao__visual .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
@@ -147,3 +147,31 @@
 .ct-cartao__itens { display: grid; gap: 2px; margin: 2px 0 0; padding: 0; list-style: none; font: 600 14px/1.35 var(--ct-font); }
 .ct-cartao__itens li { display: flex; align-items: flex-start; gap: 6px; }
 .ct-cartao__itens svg { flex: none; margin-top: 2px; }
+
+/* ---------------------------------------------------------------- venda (11/11/2026)
+   O pé de venda do cartão (CartaoCombo): o preço da edição e as duas ações de compra — "Pedir delivery" (vermelho, a
+   ação) e "Ir até a casa" (contorno). Fica fora do link, acima de "Quero ir"/"Já fui", e continua no celular (é o que
+   o cartão existe para vender). */
+.ct-cartao__venda { display: grid; gap: 10px; margin: 0 16px 16px; }
+.ct-cartao__preco { margin: 0; font: 900 22px/1 var(--ct-font); color: var(--ct-vermelho); }
+.ct-cartao__preco span { color: var(--ct-chocolate); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+.ct-compra { display: grid; gap: 8px; }
+.ct-edicao .ct-compra__botao { min-height: 46px; width: 100%; padding: 0 12px; font-size: 15px; box-shadow: 4px 4px 0 var(--ct-chocolate); }
+.ct-cartao__venda + .ct-cartao__marcas { margin-top: -4px; }
+/* O que é verdade agora, sobre a foto: "Aberta agora, até 18h" / "Abre às 15h". */
+.ct-cartao__momento {
+  position: absolute; left: 10px; bottom: 10px; z-index: 1; max-width: calc(100% - 20px); padding: 3px 10px;
+  border: 2px solid var(--ct-chocolate); border-radius: 999px; font: 800 12px/1.3 var(--ct-font);
+}
+.ct-cartao__momento--aberta { background: var(--ct-amarelo); color: var(--ct-chocolate); }
+.ct-cartao__momento--abre { background: var(--ct-creme); color: var(--ct-chocolate); }
+/* Filtro rápido de delivery no catálogo: à vista no celular; a partir de 900 o painel já mostra "Como pedir". */
+@media (min-width: 900px) { .ct-filtros .ct-filtros__rapido { display: none; } }
+@media (max-width: 599px) {
+  .ct-elenco .ct-cartao__venda { gap: 8px; margin: 0 8px 10px; }
+  .ct-elenco .ct-cartao__preco { font-size: 19px; }
+  .ct-elenco .ct-cartao__preco span { font-size: 11px; }
+  .ct-edicao .ct-elenco .ct-compra__botao { gap: 4px; min-height: 44px; padding: 0 6px; font-size: 12px; letter-spacing: .02em; }
+  .ct-elenco .ct-compra__botao svg, .ct-elenco .ct-compra__botao img { display: none; }
+  .ct-cartao__momento { left: 6px; bottom: 6px; max-width: calc(100% - 12px); padding: 2px 7px; font-size: 11px; }
+}

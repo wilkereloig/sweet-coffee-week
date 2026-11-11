@@ -28,7 +28,7 @@ test('a navegação tem UM item: Mapa da Doçura (sem "Minha rota")', () => {
   assert.equal(itens[0].rotulo, 'Mapa da Doçura')
   assert.equal(itens[0].href, '/cartoon/mapa')
   assert.equal(MAPA.titulo, 'Mapa da Doçura')
-  assert.deepEqual(NAV.map((n) => n.cena), ['entrada', 'participantes', 'mapa', 'caca', 'avaliar'], 'cinco abas: Início, Casas, Mapa, Caça e Avaliar (a rota mora dentro do Mapa)')
+  assert.deepEqual(NAV.map((n) => n.cena), ['participantes', 'entrada', 'mapa', 'caca', 'avaliar'], 'cinco abas: Combos (primeiro, venda 11/11), Início, Mapa, Caça e Avaliar (a rota mora dentro do Mapa)')
   assert.ok(NAV.every((n) => !n.semAba), 'toda página do menu tem aba no celular')
 })
 
