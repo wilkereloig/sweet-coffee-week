@@ -252,7 +252,10 @@
 
 /* Cartão da casa: compacto (a ação principal e as secundárias que mais se usa) + "Mais" com o resto.
    Revisão de 07/11: cabeçalho enxuto (logo · nome + estado · fechar) e as ações em duas fileiras alinhadas à mesma grade. */
-.ct-mapa__cartao { gap: 8px; padding: 10px 12px 12px; }
+/* Uma coluna que respeita a largura do cartão (11/11): sem ela, o selo de largura do texto ("Boa hora para visitar: menos
+   movimento agora") alargava a grade, e o cartão ganhava rolagem lateral, endereço cortado e o "Mais" partido. */
+.ct-mapa__cartao { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px 12px 12px; }
+.ct-mapa__cartao .ct-agora { width: fit-content; max-width: 100%; white-space: normal; text-wrap: balance; }
 .ct-mapa__cartao:focus { outline: none; }
 .ct-mapa__cartao:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 3px; border-radius: var(--ct-raio); }
 .ct-mapa__cartao-cabeca { gap: 10px; align-items: center; }

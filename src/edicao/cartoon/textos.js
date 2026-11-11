@@ -37,10 +37,11 @@ export const ENTRADA = {
   precoRotulo: 'Combo',
   fatoCasas: (n) => (n === 1 ? '1 casa' : `${n} casas`),
   comoTitulo: 'Como funciona',
+  // Auditoria da Home (11/11): os passos seguem a compra — escolher, pedir ou ir, carimbar e avaliar. Desenhos iguais.
   passos: [
-    { titulo: 'Escolha a casa', texto: 'Veja os combos e onde cada casa fica.', icone: 'casas' },
-    { titulo: 'Prove o combo', texto: 'No local, para levar ou por delivery, conforme a casa.', icone: 'no-local' },
-    { titulo: 'Avalie', texto: 'Sua avaliação ajuda a escolher os destaques do Sweet Awards.', icone: 'avaliar' },
+    { titulo: 'Escolha o combo', texto: 'Todos custam o mesmo. Veja os itens, o tema e onde cada casa fica.', icone: 'casas' },
+    { titulo: 'Peça ou vá até a casa', texto: 'Por delivery, para levar ou no local, conforme a casa.', icone: 'no-local' },
+    { titulo: 'Carimbe e avalie', texto: 'Carimbe na Caça aos Carimbos e avalie: sua nota ajuda a escolher os destaques do Sweet Awards.', icone: 'avaliar' },
   ],
   elencoTitulo: 'Escolha seu combo',
   // Topo de venda (11/11): duas ações, delivery primeiro; a vitrine com todos os combos logo abaixo.
@@ -52,8 +53,16 @@ export const ENTRADA = {
   filtroDelivery: (n) => `Delivery (${n})`,
   filtroAbertas: (n) => `Abertas agora (${n})`,
   filtroVegetariano: (n) => `Vegetariano (${n})`,
-  buscarFiltrar: 'Buscar e filtrar',
+  buscarFiltrar: 'Buscar combo, casa ou bairro',
   filtrosRotulo: 'Mostrar combos',
+  etiquetaEsgotado: 'Esgotado hoje',
+  etiquetaFila: 'Fila agora, avisou a casa',
+  verMais: (n) => (n === 1 ? 'Ver mais 1 combo' : `Ver mais ${n} combos`),
+  cacaApoio: 'Provou o combo?',
+  cacaTitulo: 'Carimbe!',
+  todosPor: 'Todos por',
+  cacaTexto: 'Cada casa visitada vira um carimbo no seu mapa da Caça aos Carimbos. Quem mais carimba sobe no ranking e concorre aos vouchers da edição.',
+  cacaAcao: 'Ir para a Caça',
   // Durante o festival o elenco mostra quem está com o combo agora (mesma regra do Mapa); fora dele, só o elenco.
   elencoAgora: (n) => (n === 1 ? '1 casa com o combo agora' : `${n} casas com o combo agora`),
   elencoAbremHoje: (n) => (n === 1 ? '1 abre ainda hoje' : `${n} abrem ainda hoje`),
@@ -72,17 +81,31 @@ export const ENTRADA = {
   avalieAbre: (quando) => `A avaliação abre ${quando}.`,
   avalieAberta: 'Provou o combo? Conte como foi: as avaliações do público ajudam a escolher os destaques do Sweet Awards.',
   avaliar: 'Avaliar',
+  avaliarCombo: 'Avaliar meu combo',
   comoAvaliar: 'Ver como avaliar',
   premiacao: 'Ver a premiação',
   duvidasTitulo: 'Dúvidas',
 }
 
-export const DUVIDAS = [
-  ['Quanto custa o combo?', 'O valor de cada combo aparece na página da casa.'],
-  ['Tem delivery?', 'Depende da casa e da unidade. Cada página diz onde o combo sai por delivery e por qual canal.'],
-  ['Tenho alergia ou restrição. O que faço?', 'Cada componente traz o que a casa informou sobre alergênicos e trocas. Confirme sempre com a loja antes de pedir: a informação é da casa, e o que ela não declarou não aparece.'],
-  ['Como avalio?', 'A avaliação abre durante o festival, na página do Sweet Awards. Vindo da página de uma casa, ela já fica escolhida.'],
-]
+/**
+ * Dúvidas da Entrada. Auditoria (11/11/2026): as respostas seguem o estado da edição — o preço vem do banco (é o mesmo em
+ * todas as casas) e a avaliação diz se está aberta. Antes o texto fixo dizia "o valor aparece na página da casa" e "a
+ * avaliação abre durante o festival" com ela já aberta.
+ */
+export function duvidasDaEdicao ({ precoTexto = '', aberta = false, caca = false } = {}) {
+  return [
+    ['Quanto custa o combo?', precoTexto
+      ? `${precoTexto} em todas as casas: um doce, um salgado e uma bebida, cada combo inspirado no tema da casa.`
+      : 'O valor do combo aparece na página de cada casa.'],
+    ['Tem delivery?', 'Em parte das casas. Use o filtro "Delivery" nos combos: o botão "Pedir delivery" leva direto ao canal da casa. Taxa e região de entrega são da casa.'],
+    ['Que horas as casas atendem?', 'Cada casa tem o seu horário. O filtro "Abertas agora" mostra quem está com o combo neste momento, e a página da casa traz o horário de cada unidade.'],
+    ['Tenho alergia ou restrição. O que faço?', 'Cada componente traz o que a casa informou sobre alergênicos e trocas, e o filtro "Vegetariano" mostra os combos que a casa declarou assim. Confirme sempre com a loja antes de pedir: a informação é da casa.'],
+    ...(caca ? [['Como funciona a Caça aos Carimbos?', 'Cada casa visitada (ou pedido por delivery confirmado) vira um carimbo no seu mapa. O regulamento e o ranking ficam na página da Caça.']] : []),
+    ['Como avalio?', aberta
+      ? 'A avaliação está aberta: na página do Sweet Awards, ou pelo botão "Avaliar" na página da casa, que já vem escolhida.'
+      : 'A avaliação abre durante o festival, na página do Sweet Awards. Vindo da página de uma casa, ela já fica escolhida.'],
+  ]
+}
 
 export const FASE_TEXTO = {
   semElenco: 'O elenco desta edição será revelado em breve.',
@@ -141,6 +164,7 @@ export const CATALOGO = {
 export const COMPRA = {
   delivery: 'Pedir delivery',
   irAteCasa: 'Ir até a casa',
+  esgotado: 'Esgotado hoje. Volte amanhã!',
   novaAba: '(abre em nova aba)',
 }
 

@@ -100,10 +100,11 @@ const abrir = async (page, caminho = '/cartoon') => {
   await page.goto(`${BASE}${caminho}`, { waitUntil: 'networkidle' })
 }
 // Vitrine de venda (11/11/2026): TODOS os combos no cartão de compra; abertas primeiro, depois as que abrem hoje, depois o resto.
-const vitrine = async (page) => page.locator('.ct-entrada__vitrine .ct-cartao__link').evaluateAll((els) => els.map((e) => ({
-  casa: (e.querySelector('.ct-cartao__sub') || e.querySelector('.ct-cartao__nome'))?.textContent.trim(),
-  etiqueta: e.querySelector('.ct-cartao__momento')?.textContent.trim() || null,
-  tipo: e.querySelector('.ct-cartao__momento')?.className.match(/--(aberta|abre)/)?.[1] || null,
+// Redesenho (11/11): a vitrine usa a lâmina de venda (LaminaCombo), no formato da lâmina aprovada do carrossel.
+const vitrine = async (page) => page.locator('.ct-entrada__vitrine .ct-lamina__link').evaluateAll((els) => els.map((e) => ({
+  casa: e.querySelector('.ct-lamina__casa')?.textContent.trim(),
+  etiqueta: e.querySelector('.ct-lamina__momento')?.textContent.trim() || null,
+  tipo: e.querySelector('.ct-lamina__momento')?.className.match(/--(aberta|abre)/)?.[1] || null,
 })))
 const aviso = async (page) => (await page.locator('.ct-elenco-momento').count() ? (await page.locator('.ct-elenco-momento').textContent()).replace(/\s+/g, ' ').trim() : null)
 const botoesDaLista = async (page) => page.locator('.ct-entrada__elenco .ct-acoes a').evaluateAll((els) => els.map((e) => e.getAttribute('href')))
@@ -128,8 +129,10 @@ try {
     const resto = v.filter((x) => !x.tipo)
     igual(v.map((x) => x.tipo || '-').join(','), 'aberta,abre,-,-', 'abertas primeiro, depois quem abre hoje, depois o resto')
     igual(resto.map((x) => x.casa).sort(), ['[DEMO] Casa Bico de Pena', '[DEMO] Casa Quadro a Quadro'], 'casa fechada e casa sem horário vêm depois, sem etiqueta')
-    igual(await aviso(page), '1 casa com o combo agora · 1 abre ainda hoje', 'a faixa de estado diz o que é verdade agora')
-    igual((await botoesDaLista(page)).length >= 2, true, 'os botões das listas completas continuam')
+    // Auditoria (11/11): com casa aberta, o chip "Abertas agora (N)" já conta — a faixa só aparece quando ninguém está aberto.
+    igual(await aviso(page), null, 'com casa aberta, sem faixa repetindo o chip')
+    igual(await page.locator('.ct-entrada__filtros .ct-chip:has-text("Abertas agora (1)")').count(), 1, 'o chip conta as abertas')
+    igual((await botoesDaLista(page)).some((h) => h.endsWith('/combos')), true, 'o botão do catálogo com busca continua')
     if (erros.length) falha(`console: ${erros.join(' | ')}`); else ok('console limpo')
     await ctx.close()
   }
@@ -150,7 +153,7 @@ try {
     igual((await vitrine(page)).filter((x) => x.tipo === 'aberta').map((x) => x.casa), [], 'às 13h58 ninguém está aberto (Aurora abre às 14h)')
     igual((await vitrine(page)).find((x) => x.casa === '[DEMO] Casa Aurora')?.etiqueta, 'Abre às 14h', 'a Aurora aparece como "Abre às 14h"')
     await page.clock.fastForward(3 * 60 * 1000)
-    await page.waitForFunction(() => document.querySelector('.ct-cartao__momento--aberta'), null, { timeout: 5000 }).catch(() => {})
+    await page.waitForFunction(() => document.querySelector('.ct-lamina__momento--aberta'), null, { timeout: 5000 }).catch(() => {})
     igual((await vitrine(page)).filter((x) => x.tipo === 'aberta').map((x) => x.casa), ['[DEMO] Casa Aurora'], 'três minutos depois, sem recarregar, a Aurora passa a "Aberta agora"')
     await ctx.close()
   }
@@ -162,7 +165,7 @@ try {
     igual((await vitrine(page)).every((x) => x.etiqueta === null) && (await vitrine(page)).length > 0, true, 'às 22h com todas encerradas, a vitrine mostra os combos sem etiqueta de "agora"')
     const t = await aviso(page)
     if (/Nenhuma casa está com o combo agora/.test(t || '') && /todas as casas/.test(t || '')) ok('aviso claro com o caminho para as casas'); else falha(`aviso: ${t}`)
-    igual((await botoesDaLista(page)).some((h) => h.endsWith('/participantes')), true, 'o botão "Ver as casas" continua')
+    igual((await botoesDaLista(page)).some((h) => h.endsWith('/combos')), true, 'o botão do catálogo continua')
     await page.screenshot({ path: join(SAIDA, 'desktop-ninguem-aberto.png') })
     await ctx.close()
   }

@@ -38,40 +38,8 @@
   .ct-estreia__itens { font-size: 13px; }
 }
 
-/* Vitrine (turquesa com retícula): a lâmina do carrossel — foto inteira com borda chocolate e sombra dura, a casa em
-   amarelo (com a barra amarela) e o combo em creme sobre a sombra da base; a logo da casa no canto de cima.
-   Celular: faixa que corre de lado (scroll-snap), com a beirada do próximo à vista; a partir de 600, grade. */
+/* Vitrine (turquesa com retícula): todos os combos no cartão de compra (CartaoCombo, 03-catalogo.css). */
 .ct-bloco.ct-entrada__elenco { margin-top: 0; padding-bottom: clamp(36px, 5vw, 64px); background-color: var(--ct-turquesa); border-bottom: 3px solid var(--ct-chocolate); }
-.ct-laminas {
-  display: grid; grid-auto-flow: column; grid-auto-columns: 72%; gap: 18px;
-  margin: 0 calc(var(--ct-trilho) * -1); padding: 10px var(--ct-trilho) 22px; list-style: none;
-  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--ct-trilho); overscroll-behavior-x: contain;
-}
-.ct-laminas li { scroll-snap-align: start; min-width: 0; }
-@media (min-width: 600px) {
-  .ct-laminas { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; margin: 0; padding: 10px 0 12px; overflow: visible; }
-  .ct-laminas li:nth-child(odd) { rotate: -1deg; }
-  .ct-laminas li:nth-child(even) { rotate: 1.2deg; }
-}
-@media (min-width: 900px) { .ct-laminas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.ct-lamina__link {
-  position: relative; display: grid; grid-template-areas: 'lamina'; height: 100%; overflow: hidden;
-  border: 3px solid var(--ct-chocolate); border-radius: 16px; background: var(--ct-creme); box-shadow: 6px 6px 0 var(--ct-chocolate);
-  color: inherit; text-decoration: none; transition: translate var(--ct-mo), rotate var(--ct-mo), box-shadow var(--ct-mo);
-}
-.ct-lamina__link:is(:hover, :focus-visible) { translate: -3px -5px; rotate: -1.5deg; box-shadow: 10px 10px 0 var(--ct-chocolate); }
-.ct-lamina__foto { grid-area: lamina; position: relative; display: block; }
-.ct-lamina__foto .ct-foto { border: 0; border-radius: 0; }
-.ct-lamina__foto .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
-.ct-lamina__link:is(:hover, :focus-visible) .ct-foto img { scale: 1.06; }
-.ct-lamina__legenda {
-  grid-area: lamina; align-self: end; position: relative; z-index: 1; display: grid; gap: 4px;
-  padding: 44px 14px 14px 26px; background: linear-gradient(to top, rgba(58, 21, 15, .94) 0%, rgba(58, 21, 15, .82) 48%, rgba(58, 21, 15, 0) 100%);
-}
-/* A barra amarela à esquerda do nome, como nas lâminas do carrossel. */
-.ct-lamina__legenda::before { content: ''; position: absolute; left: 14px; top: 44px; bottom: 14px; width: 4px; border-radius: 2px; background: var(--ct-amarelo); }
-.ct-lamina__casa { color: var(--ct-amarelo); font: 900 clamp(16px, 1.3vw, 19px)/1.1 var(--ct-font); text-transform: uppercase; text-wrap: balance; }
-.ct-lamina__tema { color: var(--ct-creme); font: 700 14px/1.25 var(--ct-font); text-wrap: balance; }
 /* Durante o festival o elenco diz quem está com o combo AGORA: a faixa de estado em cima da vitrine (turquesa) e a etiqueta na
    legenda da lâmina. Sem nenhuma casa aberta (ou sem horário cadastrado) a faixa vira um aviso em quadro, com o caminho logo abaixo. */
 .ct-elenco-momento { display: grid; gap: 2px; margin: 0 0 14px; }
@@ -79,9 +47,6 @@
 .ct-elenco-momento__titulo { font: 900 clamp(16px, 1.5vw, 19px)/1.25 var(--ct-font); text-transform: uppercase; letter-spacing: .02em; text-wrap: balance; }
 .ct-elenco-momento__apoio { font: 700 15px/1.4 var(--ct-font); }
 .ct-elenco-momento--vazio { max-width: 52ch; margin-bottom: 18px; padding: 16px 18px; border: 3px solid var(--ct-chocolate); border-radius: 6px; background: var(--ct-branco); box-shadow: 5px 5px 0 var(--ct-chocolate); }
-.ct-lamina__momento { justify-self: start; padding: 2px 9px; border-radius: 999px; font: 800 12px/1.35 var(--ct-font); letter-spacing: .02em; }
-.ct-lamina__momento--aberta { background: var(--ct-amarelo); color: var(--ct-chocolate); }
-.ct-lamina__momento--abre { background: var(--ct-creme); color: var(--ct-chocolate); }
 /* Selo da casa (SeloDaCasa.jsx): o mesmo na lâmina da Entrada e no cartão do catálogo (03-catalogo.css só muda o canto). */
 .ct-selo-casa {
   position: absolute; right: 10px; top: 10px; display: grid; place-items: center; width: clamp(50px, 24%, 66px); aspect-ratio: 1;
@@ -126,21 +91,6 @@
 .ct-edicao .ct-cabeca-desenho .ct-gibi { flex: none; width: clamp(56px, 8vw, 104px); height: auto; margin-bottom: clamp(14px, 2vw, 24px); rotate: -8deg; }
 .ct-cabeca-desenho .ct-letreiro { min-width: 0; }
 
-/* Onde ficam: o pino ao lado do título, os bairros como adesivos (cada um leva ao Mapa filtrado), a faixa de Natal
-   de chão. */
-.ct-onde__corpo .ct-lead { max-width: 40ch; }
-.ct-bairros { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 22px; padding: 0; list-style: none; }
-.ct-bairros li:nth-child(odd) { rotate: -1.2deg; }
-.ct-bairros li:nth-child(even) { rotate: 1deg; }
-.ct-bairro {
-  display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 8px 0 16px;
-  border: 3px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-branco); box-shadow: 4px 4px 0 var(--ct-chocolate);
-  font: 800 15px/1.2 var(--ct-font); text-decoration: none; transition: background-color var(--ct-mo), translate var(--ct-mo), box-shadow var(--ct-mo);
-}
-.ct-bairro:hover { background: var(--ct-amarelo); translate: -2px -2px; box-shadow: 6px 6px 0 var(--ct-chocolate); }
-.ct-bairro__n { display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 6px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 14px/1 var(--ct-font); }
-.ct-onde__chao { display: block; width: 100%; height: auto; margin-top: clamp(12px, 2.5vw, 32px); }
-
 /* Avalie no palco: a peça .ct-palco (07-sistema.css). */
 .ct-entrada__avalie .ct-palco__corpo { max-width: 600px; }
 
@@ -159,9 +109,164 @@
 .ct-duvidas details p { margin: 0; padding: 0 20px 18px; }
 
 /* Venda (11/11/2026): dias que faltam no topo e filtros da vitrine (todos os combos, no cartão de compra). */
-.ct-estreia__faltam {
-  justify-self: start; width: fit-content; margin: 14px 0 0; padding: 6px 14px; border: 3px solid var(--ct-chocolate); border-radius: 999px;
-  background: var(--ct-branco); box-shadow: 4px 4px 0 var(--ct-chocolate); font: 900 clamp(15px, 1.4vw, 18px)/1.2 var(--ct-font); text-transform: uppercase;
-}
 .ct-entrada__filtros { margin: 0 0 18px; }
 .ct-entrada__vitrine { margin-top: 4px; }
+
+/* Auditoria da Home (11/11/2026). Celular: o topo fica só com o que vende (título, fatos, dias que faltam, ações) — a frase
+   e a mesa desenhada saem para o primeiro combo aparecer na primeira tela. */
+@media (max-width: 599.98px) {
+  .ct-edicao .ct-estreia__frase, .ct-edicao .ct-estreia__cena { display: none; }
+  .ct-canal.ct-estreia { gap: 0; padding-bottom: 28px; }
+  .ct-estreia__texto { gap: 12px; }
+}
+/* Celular: 12 cartões e "Ver mais N combos" abre o resto (o HTML tem todos; só a vitrine curta esconde). */
+@media (max-width: 599.98px) { .ct-entrada__vitrine--curta > li:nth-child(n + 13) { display: none; } }
+.ct-edicao .ct-entrada__mais { display: none; }
+@media (max-width: 599.98px) { .ct-edicao .ct-entrada__mais { display: flex; width: 100%; margin-top: 18px; } }
+
+/* Caça aos Carimbos: faixa curta entre a vitrine e o Como funciona. */
+.ct-entrada__caca-corpo {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px 18px;
+  padding: 18px 20px; border: 3px solid var(--ct-chocolate); border-radius: 18px; background: var(--ct-amarelo); box-shadow: 6px 6px 0 var(--ct-chocolate);
+}
+.ct-entrada__caca-corpo > .ct-botao { grid-column: 1 / -1; justify-self: start; }
+@media (min-width: 900px) { .ct-entrada__caca-corpo { grid-template-columns: auto minmax(0, 1fr) auto; } .ct-entrada__caca-corpo > .ct-botao { grid-column: auto; } }
+.ct-entrada__caca-titulo { margin: 0 0 4px; font: 900 clamp(20px, 2vw, 26px)/1.1 var(--ct-font); }
+.ct-edicao .ct-entrada__caca-texto { margin: 0; font: 600 16px/1.45 var(--ct-font); }
+/* Celular: os filtros correm de lado numa linha só (antes quebravam em duas) e o "Ver os N combos" do topo sai — a
+   vitrine começa logo abaixo. */
+@media (max-width: 599.98px) {
+  .ct-chips.ct-entrada__filtros { /* (0,2,0): .ct-chips (03-catalogo) vem depois e quebraria a linha */
+    flex-wrap: nowrap; overflow-x: auto; margin: 0 calc(var(--ct-trilho) * -1) 12px; padding: 4px var(--ct-trilho) 10px;
+    scrollbar-width: none; overscroll-behavior-x: contain;
+  }
+  .ct-entrada__filtros .ct-chip { flex: none; }
+  .ct-edicao .ct-estreia__acoes .ct-estreia__ver { display: none; }
+  .ct-bloco.ct-entrada__elenco { padding-top: 20px; }
+}
+
+/* ---------------------------------------------------------------- redesenho das seções (11/11/2026)
+   Pedido do Wilker: "construir melhor os elementos de todas as seções". Tudo na língua das peças aprovadas: a lâmina do
+   carrossel na vitrine, o letreiro "COMBO R$ 38,90" da arte final, a fita e o adesivo de gibi. */
+
+/* Topo: o preço é o protagonista (como na arte final) e os dias que faltam viram um adesivo vermelho torto. */
+.ct-estreia .ct-preco__valor { font-size: clamp(52px, 6.4vw, 92px); }
+.ct-estreia .ct-preco__combo { font-size: clamp(24px, 2.6vw, 34px); }
+.ct-estreia__faltam {
+  justify-self: start; width: fit-content; margin: 4px 0 0; padding: 8px 18px; border: 3px solid var(--ct-chocolate); border-radius: 12px;
+  background: var(--ct-vermelho); color: var(--ct-creme); box-shadow: 4px 4px 0 var(--ct-chocolate);
+  font: 900 19px/1.15 var(--ct-font); letter-spacing: .02em; text-transform: uppercase; rotate: -2deg;
+}
+
+/* Cabeça da vitrine: o letreiro, o "Todos por R$ 38,90" em letreiro e a etiqueta dos itens. */
+.ct-vitrine__cabeca { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; margin-bottom: 18px; }
+.ct-vitrine__cabeca .ct-letreiro { margin: 0; }
+.ct-vitrine__preco .ct-preco__valor { font-size: clamp(36px, 4vw, 54px); }
+.ct-vitrine__preco .ct-preco__combo { font-size: clamp(18px, 1.8vw, 24px); }
+.ct-edicao .ct-vitrine__apoio {
+  flex-basis: 100%; max-width: fit-content; margin: 0; padding: 4px 12px; border: 2.5px solid var(--ct-chocolate); border-radius: 8px;
+  background: var(--ct-branco); font: 800 15px/1.3 var(--ct-font); text-transform: uppercase; rotate: -1deg;
+}
+
+/* A lâmina de venda (LaminaCombo): foto 4:5 inteira, a casa em amarelo e o tema em creme sobre a sombra da base, a
+   logo no canto de baixo — a lâmina aprovada do carrossel. No pé, o combo, os itens numa linha e a compra. */
+.ct-laminas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; margin: 0; padding: 4px 0 8px; list-style: none; }
+@media (min-width: 700px) { .ct-laminas { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 22px; } }
+@media (min-width: 1100px) { .ct-laminas { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 34px 26px; } }
+@media (min-width: 700px) {
+  .ct-laminas > li:nth-child(4n + 1) { rotate: -.8deg; }
+  .ct-laminas > li:nth-child(4n + 3) { rotate: .9deg; }
+}
+.ct-lamina {
+  display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden;
+  border: 3px solid var(--ct-chocolate); border-radius: 16px; background: var(--ct-creme); box-shadow: 6px 6px 0 var(--ct-chocolate);
+  transition: translate var(--ct-mo), rotate var(--ct-mo), box-shadow var(--ct-mo);
+}
+.ct-lamina:has(> .ct-lamina__link:is(:hover, :focus-visible)) { translate: -3px -5px; rotate: -1.2deg; box-shadow: 10px 10px 0 var(--ct-chocolate); }
+.ct-lamina__link { position: relative; display: grid; grid-template-areas: 'lamina'; overflow: hidden; border-bottom: 3px solid var(--ct-chocolate); color: inherit; text-decoration: none; }
+.ct-edicao .ct-lamina__link:focus-visible { outline-offset: -6px; }
+.ct-lamina__foto { grid-area: lamina; display: block; }
+.ct-lamina__foto .ct-foto { border: 0; border-radius: 0; }
+.ct-lamina__foto .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
+.ct-lamina__link:is(:hover, :focus-visible) .ct-foto img { scale: 1.06; }
+.ct-lamina__foto--reserva { display: grid; place-items: center; align-content: center; gap: 14px; aspect-ratio: 4 / 5; padding: 12px; --ct-desenho: min(60%, 150px); }
+.ct-lamina .ct-selo-casa { top: auto; bottom: 10px; right: 10px; z-index: 2; width: clamp(40px, 22%, 62px); }
+.ct-lamina__legenda {
+  grid-area: lamina; align-self: end; position: relative; z-index: 1; display: grid; gap: 3px;
+  padding: 48px 70px 14px 24px; background: linear-gradient(to top, rgba(58, 21, 15, .94) 0%, rgba(58, 21, 15, .8) 50%, rgba(58, 21, 15, 0) 100%);
+}
+.ct-lamina__legenda::before { content: ''; position: absolute; left: 12px; top: 48px; bottom: 14px; width: 4px; border-radius: 2px; background: var(--ct-amarelo); }
+.ct-lamina__casa { color: var(--ct-amarelo); font: 900 clamp(15px, 1.3vw, 20px)/1.08 var(--ct-font); text-transform: uppercase; text-wrap: balance; }
+.ct-lamina__tema { color: var(--ct-creme); font: 700 13px/1.25 var(--ct-font); text-wrap: balance; }
+.ct-lamina__momento {
+  grid-area: lamina; align-self: start; justify-self: start; z-index: 2; margin: 10px; padding: 3px 10px;
+  border: 2px solid var(--ct-chocolate); border-radius: 999px; font: 800 12px/1.3 var(--ct-font); box-shadow: 2px 2px 0 var(--ct-chocolate);
+}
+.ct-lamina__momento--aberta { background: var(--ct-amarelo); color: var(--ct-chocolate); }
+.ct-lamina__momento--abre { background: var(--ct-creme); color: var(--ct-chocolate); }
+.ct-lamina__momento--fila { background: color-mix(in srgb, var(--ct-amarelo) 35%, var(--ct-creme)); color: var(--ct-chocolate); }
+.ct-lamina__momento--tranquila { background: var(--ct-turquesa); color: var(--ct-chocolate); }
+.ct-lamina__momento--esgotado { background: #ffe1d8; color: var(--ct-chocolate); }
+.ct-lamina--esgotada .ct-foto img { filter: grayscale(.75); }
+.ct-lamina__pe { display: grid; grid-template-rows: auto auto 1fr; gap: 6px; padding: 14px 14px 16px; }
+.ct-lamina__pe .ct-lamina__combo { margin: 0; font: 900 17px/1.15 var(--ct-font); text-transform: uppercase; text-wrap: balance; }
+.ct-edicao .ct-lamina__itens { display: -webkit-box; overflow: hidden; margin: 0; font: 600 14px/1.35 var(--ct-font); -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ct-lamina__compra { align-self: end; margin-top: 6px; }
+@media (max-width: 599.98px) {
+  .ct-lamina__legenda { padding: 36px 44px 10px 18px; }
+  .ct-lamina__legenda::before { left: 8px; top: 36px; bottom: 10px; }
+  .ct-lamina__casa { font-size: 14px; }
+  .ct-lamina__tema { font-size: 11px; }
+  .ct-lamina .ct-selo-casa { bottom: 8px; right: 8px; width: 36px; border-width: 2px; }
+  .ct-lamina__momento { margin: 6px; padding: 2px 7px; font-size: 10.5px; }
+  .ct-lamina__pe { gap: 4px; padding: 10px 8px 12px; }
+  .ct-lamina__pe .ct-lamina__combo { font-size: 13px; }
+  .ct-edicao .ct-lamina__itens { display: none; }
+  .ct-edicao .ct-lamina__compra .ct-compra__botao { gap: 4px; min-height: 44px; padding: 0 6px; font-size: 12px; letter-spacing: .02em; }
+  .ct-lamina__compra .ct-compra__botao img, .ct-lamina__compra .ct-compra__botao svg { display: none; }
+}
+
+/* Caça aos Carimbos: painel de gibi — amarelo com retícula, a explosão turquesa atrás do carimbo, o letreiro e a luva. */
+.ct-caca-chamada {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px 28px; overflow: hidden; isolation: isolate;
+  padding: clamp(20px, 3vw, 36px); border: 3px solid var(--ct-chocolate); border-radius: 20px; background-color: var(--ct-amarelo); box-shadow: 8px 8px 0 var(--ct-chocolate);
+}
+.ct-caca-chamada__explosao { left: -40px; top: 50%; width: clamp(200px, 22vw, 280px); translate: 0 -50%; --ct-cor-explosao: var(--ct-turquesa); }
+.ct-caca-chamada__carimbo { position: relative; z-index: 1; display: grid; place-items: center; width: clamp(96px, 11vw, 150px); aspect-ratio: 1; rotate: -10deg; }
+.ct-edicao .ct-caca-chamada__carimbo img { width: 100%; height: auto; }
+.ct-caca-chamada__texto { position: relative; z-index: 1; display: grid; justify-items: start; gap: 10px; }
+.ct-caca-chamada__texto .ct-letreiro { margin: 0; }
+.ct-edicao .ct-caca-chamada__texto p { max-width: 52ch; margin: 0; font: 600 17px/1.45 var(--ct-font); }
+.ct-edicao .ct-caca-chamada__luva { position: absolute; z-index: 1; right: clamp(12px, 3vw, 48px); bottom: -8px; width: clamp(80px, 9vw, 130px); height: auto; rotate: 8deg; }
+@media (max-width: 699.98px) {
+  .ct-caca-chamada { grid-template-columns: minmax(0, 1fr); }
+  .ct-caca-chamada__explosao { left: auto; right: -50px; top: -30px; translate: none; width: 200px; }
+  .ct-caca-chamada__carimbo { position: absolute; top: 12px; right: 12px; width: 84px; }
+  .ct-edicao .ct-caca-chamada__luva { display: none; }
+  .ct-caca-chamada__texto { padding-right: 70px; }
+}
+/* Celular: o preço já está no topo logo acima; a cabeça da vitrine fica só com o letreiro e a primeira lâmina sobe. */
+@media (max-width: 599.98px) { .ct-edicao .ct-vitrine__preco, .ct-edicao .ct-vitrine__apoio { display: none; } .ct-vitrine__cabeca { margin-bottom: 10px; } }
+
+/* Avalie no palco (redesenho 11/11/2026): o texto num balão de fala branco, o botão grande com a luva apontando e o troféu
+   maior no centro do palco, sob os holofotes. */
+.ct-edicao .ct-entrada__avalie .ct-avalie__balao {
+  position: relative; max-width: 44ch; margin: 0; padding: 16px 24px; border: 3px solid var(--ct-chocolate); border-radius: 24px;
+  background: var(--ct-branco); color: var(--ct-chocolate); box-shadow: 5px 5px 0 var(--ct-chocolate);
+  font: 700 clamp(17px, 1.5vw, 20px)/1.45 var(--ct-font); text-align: center; text-wrap: balance;
+}
+.ct-entrada__avalie .ct-avalie__balao::after {
+  content: ''; position: absolute; left: 50%; bottom: -14px; width: 22px; height: 22px; translate: -50% 0; rotate: 45deg;
+  border-right: 3px solid var(--ct-chocolate); border-bottom: 3px solid var(--ct-chocolate); background: var(--ct-branco);
+}
+.ct-entrada__avalie .ct-avalie__acoes { align-items: center; gap: 12px; margin-top: 30px; }
+.ct-edicao .ct-entrada__avalie .ct-avalie__acoes .ct-botao { min-height: 60px; padding: 0 32px; font-size: 21px; }
+.ct-edicao .ct-avalie__luva { width: clamp(70px, 7vw, 100px); height: auto; rotate: -6deg; }
+/* O troféu pousa no círculo de luz do chão, não na borda dianteira do palco: tamanho médio e um vão embaixo que deixa a
+   borda do palco (o fim da cena desenhada) livre. */
+.ct-edicao .ct-entrada__avalie .ct-avalie__trofeu { width: clamp(130px, 13vw, 190px); margin-top: clamp(20px, 3vw, 36px); }
+.ct-palco.ct-entrada__avalie { padding-bottom: clamp(56px, 8vw, 120px); }
+@media (max-width: 599.98px) {
+  .ct-edicao .ct-avalie__luva { display: none; }
+  .ct-edicao .ct-entrada__avalie .ct-avalie__acoes .ct-botao { min-height: 54px; padding: 0 24px; font-size: 19px; }
+}

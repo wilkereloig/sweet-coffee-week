@@ -4,10 +4,10 @@
  *   Topo (amarelo com retícula, como a arte final do carrossel): letreiro "Agora é hora de PROVAR!", a frase, o preço em
  *   letreiro, a fita vermelha do período e as ações; ao lado, a mesa do combo desenhada com os olhinhos espiando e a
  *   explosão de gibi atrás. Os fatos (período, preço, nº de casas) ficam na primeira tela em qualquer largura.
- * Venda (11/11/2026, pedido do Wilker: "na tela inicial o objetivo é vender combo"): o topo leva ao delivery e à
- *   vitrine e conta os dias que faltam; a vitrine mostra TODOS os combos no cartão de compra (CartaoCombo: preço,
- *   "Pedir delivery", "Ir até a casa"), com filtros Todos · Delivery · Abertas agora · Como funciona · patrocinador ·
- *   Onde ficam · Avalie (no palco) · Dúvidas (balões de fala).
+ * Venda (11/11/2026, pedido do Wilker: "na tela inicial o objetivo é vender combo") e auditoria da Home (11/11, aprovada):
+ *   1 Topo enxuto · 2 Vitrine (todos os combos no cartão de compra, com esgotado/fila/movimento do banco) · 3 Caça aos
+ *   Carimbos · 4 Como funciona · 5 Patrocinador compacto · 6 Avalie (no palco) · 7 Dúvidas (respostas que seguem o estado
+ *   da edição). "Onde ficam" (bairros → mapa) saiu: repetia o Mapa, que está no menu.
  * O mapa interativo NÃO carrega aqui.
  */
 import React from 'react'
@@ -15,16 +15,19 @@ import { MAPA_NO_AR } from '../contexto.js'
 import { EDICAO } from '../../config.js'
 import * as M from '../../dados/modelo.js'
 import { horaTexto } from '../../dados/horarioFestival.js'
-import { cenaEdicao, seloEdicao, TROFEU_DESENHO_EDICAO, srcSet } from '../../../data/imageLibrary'
-import { Link, Avisos, Falha, Carregando } from '../../componentes/base.jsx'
+import { seloEdicao, TROFEU_DESENHO_EDICAO, srcSet } from '../../../data/imageLibrary'
+import { Avisos, Falha, Carregando } from '../../componentes/base.jsx'
+import { IconeCartoon } from '../../componentes/sistema/IconeCartoon.jsx'
 import { TopoCanal } from '../../componentes/sistema/TopoCanal.jsx'
 import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Botao, Passos, Gibi, Preco, Chip } from '../../componentes/sistema/pecas.jsx'
-import { CartaoCombo } from '../CartaoCombo.jsx'
-import { ENTRADA as T, DUVIDAS, FASE_TEXTO, PERIODO } from '../textos.js'
+import { LaminaCombo } from '../CartaoCombo.jsx'
+import { ENTRADA as T, duvidasDaEdicao, FASE_TEXTO, PERIODO } from '../textos.js'
 import { useAgora } from '../useAgora.js'
+import { useAgoraNasCasas } from '../useAgoraNasCasas.js'
+import { seloDoMovimento } from '../../caca/movimento.js'
 
 const C = EDICAO.caminho
 
@@ -44,71 +47,87 @@ export function doDia (lista, n, hoje = new Date()) {
 }
 
 /**
- * A vitrine de venda (11/11/2026, "a gente tem que construir o site com o objetivo de mostrar os combos, de vender"):
- * TODOS os combos, no cartão de compra (CartaoCombo), com filtros à vista — Todos · Delivery · Abertas agora · Vegetariano.
- * Durante o festival a ordem é: abertas agora (com a hora em que fecham), as que abrem ainda hoje (com a hora), as
- * demais; dentro de cada grupo, a ordem do dia (doDia), foto primeiro. Fora do festival não há "agora": só a ordem do dia.
- * Recalcula sozinha com a página aberta (useAgora), com a mesma regra do Mapa (M.casasPorMomento).
+ * A vitrine de venda: TODOS os combos no cartão de compra (CartaoCombo), com filtros à vista — Delivery · Abertas agora ·
+ * Vegetariano · Todos. Auditoria da Home (11/11/2026, aprovada pelo Wilker):
+ *  · o que é verdade AGORA vem do banco, como no Mapa (useAgoraNasCasas): combo esgotado hoje vai para o FIM, com o selo e
+ *    sem botão de compra; "Fila agora" aparece na etiqueta da foto; "menos movimento" só põe a casa antes na ordem;
+ *  · ordem: abertas agora (as de menos movimento primeiro), as que abrem ainda hoje, as demais, as esgotadas; dentro de cada
+ *    grupo, a ordem do dia (doDia), foto primeiro. Fora do festival não há "agora": só a ordem do dia;
+ *  · o aviso "N casas com o combo agora" saiu (o chip "Abertas agora (N)" já diz isso); só fica quando ninguém está aberto;
+ *  · no celular, 12 cartões e "Ver mais N combos" abre o resto na própria página (CSS esconde; nada é removido do HTML).
  */
 const comFotoPrimeiro = (l) => [...doDia(l.filter((p) => p.combo?.fotos?.principal), l.length), ...doDia(l.filter((p) => !p.combo?.fotos?.principal), l.length)]
+const NO_CELULAR = 12
 
 function VitrineVenda ({ elenco, dados, navigate }) {
   const agora = useAgora()
   const [filtro, setFiltro] = React.useState('todos')
+  const [tudo, setTudo] = React.useState(false)
   const encerrada = dados?.fase === 'encerrada'
   const periodo = encerrada ? null : dados?.edicao // edição encerrada: não há "agora", só o registro
+  const { esgotados, filas, movimento } = useAgoraNasCasas(encerrada ? null : dados?.edicao?.codigo)
   const momento = React.useMemo(() => M.casasPorMomento(elenco, agora, periodo), [elenco, agora, periodo])
   const itens = React.useMemo(() => {
+    const esgotado = (p) => esgotados.has(p.slug)
+    const fila = (p) => (p.unidades || []).some((u) => filas.has(u.id))
+    // Movimento da casa: alguma unidade aberta com "menos movimento" vence; senão, "acima do normal" se houver.
+    const mov = (p) => {
+      const selos = (p.unidades || []).map((u) => seloDoMovimento({ mov: movimento.get(u.id), aberto: M.estadoAgora(u, agora, periodo).estado === 'aberto', esgotado: esgotado(p), fila: filas.has(u.id) }))
+      return selos.includes('tranquila') ? 'tranquila' : selos.includes('alto') ? 'alto' : null
+    }
     if (!momento.noFestival) return comFotoPrimeiro(elenco).map((p) => ({ p }))
     const ate = new Map(momento.abertas.map((x) => [x.p.slug, x.ate]))
-    const abertas = comFotoPrimeiro(momento.abertas.map((x) => x.p))
-      .map((p) => ({ p, aberta: true, etiqueta: { tipo: 'aberta', texto: T.etiquetaAberta(horaTexto(ate.get(p.slug))) } }))
-    const abrem = momento.abremHoje.map(({ p, as }) => ({ p, etiqueta: { tipo: 'abre', texto: T.etiquetaAbre(horaTexto(as)) } }))
-    const vistos = new Set([...abertas, ...abrem].map((x) => x.p.slug))
-    return [...abertas, ...abrem, ...comFotoPrimeiro(elenco.filter((p) => !vistos.has(p.slug))).map((p) => ({ p }))]
-  }, [elenco, momento])
-  const entrega = (p) => M.estadoModo(p, 'delivery').estado === 'sim'
-  const nDelivery = itens.filter((x) => entrega(x.p)).length
-  const veg = (p) => M.opcaoVegetariana(p.combo?.itens) !== 'nao'
-  const nAbertas = itens.filter((x) => x.aberta).length
-  const nVeg = itens.filter((x) => veg(x.p)).length
-  const teste = { delivery: (x) => entrega(x.p), abertas: (x) => x.aberta, vegetariano: (x) => veg(x.p) }[filtro]
-  const mostrados = teste ? itens.filter(teste) : itens
-
-  let aviso = null
-  if (momento.noFestival) {
-    if (!nAbertas && !momento.abremHoje.length) {
-      aviso = momento.comHorario
-        ? { titulo: T.elencoNinguem, apoio: T.elencoNinguemApoio }
-        : { titulo: T.elencoSemHorario, apoio: T.elencoSemHorarioApoio }
-    } else {
-      const partes = nAbertas ? [T.elencoAgora(nAbertas)] : [T.elencoNinguem]
-      if (momento.abremHoje.length) partes.push(T.elencoAbremHoje(momento.abremHoje.length))
-      aviso = { titulo: partes.join(' · ') }
+    const etiquetaAberta = (p) => {
+      if (fila(p)) return { tipo: 'fila', texto: T.etiquetaFila }
+      // "Menos movimento" não vira etiqueta (marcava quase todas as casas e perdia o sentido): só ordena as abertas.
+      return { tipo: 'aberta', texto: T.etiquetaAberta(horaTexto(ate.get(p.slug))) }
     }
+    const disponiveis = (l) => l.filter((p) => !esgotado(p))
+    const abertasP = comFotoPrimeiro(disponiveis(momento.abertas.map((x) => x.p)))
+    const abertas = [...abertasP.filter((p) => mov(p) === 'tranquila'), ...abertasP.filter((p) => mov(p) !== 'tranquila')]
+      .map((p) => ({ p, aberta: true, etiqueta: etiquetaAberta(p) }))
+    const abrem = momento.abremHoje.filter(({ p }) => !esgotado(p))
+      .map(({ p, as }) => ({ p, etiqueta: { tipo: 'abre', texto: T.etiquetaAbre(horaTexto(as)) } }))
+    const vistos = new Set([...abertas, ...abrem].map((x) => x.p.slug))
+    const resto = comFotoPrimeiro(disponiveis(elenco.filter((p) => !vistos.has(p.slug)))).map((p) => ({ p }))
+    const fim = comFotoPrimeiro(elenco.filter(esgotado)).map((p) => ({ p, esgotado: true, etiqueta: { tipo: 'esgotado', texto: T.etiquetaEsgotado } }))
+    return [...abertas, ...abrem, ...resto, ...fim]
+  }, [elenco, momento, esgotados, filas, movimento, agora, periodo])
+  const entrega = (x) => !x.esgotado && M.estadoModo(x.p, 'delivery').estado === 'sim'
+  const veg = (x) => M.opcaoVegetariana(x.p.combo?.itens) !== 'nao'
+  const contagem = { todos: itens.length, delivery: itens.filter(entrega).length, abertas: itens.filter((x) => x.aberta).length, vegetariano: itens.filter(veg).length }
+  const teste = { delivery: entrega, abertas: (x) => x.aberta, vegetariano: veg }[filtro]
+  const mostrados = teste ? itens.filter(teste) : itens
+  const escondidos = tudo ? 0 : Math.max(0, mostrados.length - NO_CELULAR)
+
+  // Só o que muda a decisão: ninguém aberto agora (ou horários ausentes). Quando há casas abertas, o chip já conta.
+  let aviso = null
+  if (momento.noFestival && !contagem.abertas && !momento.abremHoje.length) {
+    aviso = momento.comHorario ? { titulo: T.elencoNinguem, apoio: T.elencoNinguemApoio } : { titulo: T.elencoSemHorario, apoio: T.elencoSemHorarioApoio }
   }
   const chips = [
-    ['todos', T.filtroTodos(itens.length), 'casas', true],
-    ['delivery', T.filtroDelivery(nDelivery), 'delivery', !encerrada && nDelivery > 0 && !!dados?.combos_publicos],
-    ['abertas', T.filtroAbertas(nAbertas), 'aberto-agora', !encerrada && nAbertas > 0],
-    ['vegetariano', T.filtroVegetariano(nVeg), 'vegetariano', !encerrada && nVeg > 0],
+    ['delivery', T.filtroDelivery(contagem.delivery), 'delivery', !encerrada && contagem.delivery > 0 && !!dados?.combos_publicos],
+    ['abertas', T.filtroAbertas(contagem.abertas), 'aberto-agora', !encerrada && contagem.abertas > 0],
+    ['vegetariano', T.filtroVegetariano(contagem.vegetariano), 'vegetariano', !encerrada && contagem.vegetariano > 0],
+    ['todos', T.filtroTodos(contagem.todos), 'casas', true],
   ].filter((c) => c[3])
   return (
     <>
       {aviso && (
-        <div className="ct-elenco-momento" role="status" aria-live="polite">
+        <div className="ct-elenco-momento ct-elenco-momento--vazio" role="status" aria-live="polite">
           <p className="ct-elenco-momento__titulo">{aviso.titulo}</p>
           {aviso.apoio && <p className="ct-elenco-momento__apoio">{aviso.apoio}</p>}
         </div>
       )}
       {chips.length > 1 && (
         <div className="ct-chips ct-entrada__filtros" role="group" aria-label={T.filtrosRotulo}>
-          {chips.map(([k, rotulo, icone]) => <Chip key={k} ativo={filtro === k} icone={icone} onClick={() => setFiltro(k)}>{rotulo}</Chip>)}
+          {chips.map(([k, rotulo, icone]) => <Chip key={k} ativo={filtro === k} icone={icone} onClick={() => { setFiltro(filtro === k ? 'todos' : k); setTudo(false) }}>{rotulo}</Chip>)}
         </div>
       )}
-      <ul className="ct-elenco ct-elenco--combos ct-entrada__vitrine">
-        {mostrados.map(({ p, etiqueta }) => <CartaoCombo key={p.slug} p={p} modo="combos" navigate={navigate} encerrada={encerrada} etiqueta={etiqueta} />)}
+      <ul className={`ct-laminas ct-entrada__vitrine${escondidos ? ' ct-entrada__vitrine--curta' : ''}`}>
+        {mostrados.map(({ p, etiqueta, esgotado }) => <LaminaCombo key={p.slug} p={p} navigate={navigate} encerrada={encerrada} etiqueta={etiqueta} esgotado={esgotado} />)}
       </ul>
+      {escondidos > 0 && <button type="button" className="ct-botao ct-botao--contorno ct-entrada__mais" onClick={() => setTudo(true)}>{T.verMais(escondidos)}</button>}
     </>
   )
 }
@@ -122,10 +141,8 @@ function diasQueFaltam (edicao, agora) {
 
 export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
   const selo = seloEdicao()
-  const natal = cenaEdicao('natal')
   const trofeu = TROFEU_DESENHO_EDICAO
   const elenco = dados?.participantes_publicos ? dados.participantes || [] : []
-  const bairros = M.contarBairros(elenco)
   const periodo = M.periodoDaEdicao(dados?.edicao, PERIODO)
   const preco = dados?.combos_publicos ? M.precoGeral(elenco) : null
   const precoTexto = preco ? M.formatarPreco(preco) : null
@@ -140,11 +157,14 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
   const textoAvalie = aberta ? T.avalieAberta
     : encerrada ? FASE_TEXTO.avaliacaoEncerrada
     : abre ? T.avalieAbre(abre) : FASE_TEXTO.avaliacaoFechada
+  const duvidas = duvidasDaEdicao({ precoTexto, aberta, caca: MAPA_NO_AR && !encerrada })
 
   return (
     <>
       <Avisos desatualizado={dados?.desatualizado} demo={dados?.demo} retrato={dados?.retrato} />
 
+      {/* 1 · Topo enxuto: preço, dias que faltam e as duas ações. No celular a mesa desenhada e a frase saem (02-entrada.css)
+          para o primeiro combo aparecer na primeira tela. */}
       <TopoCanal canal="estreia" className="ct-estreia ct-reticula" aria-labelledby="ct-estreia-titulo">
         <div className="ct-estreia__texto">
           {/* O cabeçalho já nomeia a edição (link do selo); aqui o selo é a abertura, sem repetir o nome. */}
@@ -165,7 +185,7 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
             {/* Venda (11/11): delivery primeiro; "ver os combos" desce até a vitrine, logo abaixo. O carimbo mora na Caça. */}
             {!encerrada && temDelivery && <Botao tipo="acao" href={`${C}/combos?modo=delivery`} navigate={navigate} data-acao="topo_delivery">{T.acaoDelivery}</Botao>}
             {comCombos
-              ? <Botao tipo={!encerrada && temDelivery ? 'secundario' : 'acao'} href="#ct-vitrine">{T.acaoVerTodos(nCombos)}</Botao>
+              ? <Botao tipo={!encerrada && temDelivery ? 'secundario' : 'acao'} href="#ct-vitrine" className={!encerrada && temDelivery ? 'ct-estreia__ver' : ''}>{T.acaoVerTodos(nCombos)}</Botao>
               : <Botao tipo="acao" href={`${C}/participantes`} navigate={navigate}>{T.acaoParticipantes}</Botao>}
             <Gibi chave="luva-aponta" className="ct-estreia__luva" />
           </div>
@@ -178,75 +198,77 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
         </div>
       </TopoCanal>
 
+      {/* 2 · A vitrine: todos os combos, com o que é verdade agora. Um botão só para o catálogo com busca. */}
       <section id="ct-vitrine" className="ct-bloco ct-entrada__elenco ct-reticula" aria-labelledby="ct-elenco">
-        <Letreiro id="ct-elenco" texto={T.elencoTitulo} />
+        <div className="ct-vitrine__cabeca">
+          <Letreiro id="ct-elenco" texto={T.elencoTitulo} />
+          {precoTexto && !encerrada && <Preco rotulo={T.todosPor} valor={precoTexto} className="ct-vitrine__preco" />}
+          <p className="ct-vitrine__apoio">{T.itensCombo}</p>
+        </div>
         {erro ? <Falha titulo="Não conseguimos carregar as casas agora" texto="Confira a conexão e tente de novo." tentar={tentar} />
           : carregando ? <Carregando texto="Carregando as casas…" />
           : elenco.length ? (
             <>
               <VitrineVenda elenco={elenco} dados={dados} navigate={navigate} />
               <div className="ct-acoes">
-                {comCombos && <Botao tipo="secundario" href={`${C}/combos`} navigate={navigate}>{T.buscarFiltrar}</Botao>}
-                <Botao tipo="secundario" href={`${C}/participantes`} navigate={navigate}>{T.verTodas(elenco.length)}</Botao>
+                <Botao tipo="secundario" href={`${C}/${comCombos ? 'combos' : 'participantes'}`} navigate={navigate}>{T.buscarFiltrar}</Botao>
               </div>
             </>
           ) : <p className="ct-lead">{FASE_TEXTO.semElenco}</p>}
       </section>
 
+      {/* 3 · Caça aos Carimbos: painel de gibi entre a venda e o Como funciona (antes só existia no menu). */}
+      {MAPA_NO_AR && !encerrada && (
+        <section className="ct-bloco ct-entrada__caca" aria-labelledby="ct-caca">
+          <div className="ct-caca-chamada ct-reticula">
+            <span className="ct-explosao ct-caca-chamada__explosao" aria-hidden="true" />
+            <span className="ct-caca-chamada__carimbo" aria-hidden="true"><IconeCartoon nome="ja-fui" tamanho={64} /></span>
+            <div className="ct-caca-chamada__texto">
+              <Letreiro id="ct-caca" apoio={T.cacaApoio} texto={T.cacaTitulo} cor="vermelho" />
+              <p>{T.cacaTexto}</p>
+              <Botao tipo="acao" href={`${C}/caca`} navigate={navigate}>{T.cacaAcao}</Botao>
+            </div>
+            <Gibi chave="luva-joinha" className="ct-caca-chamada__luva" />
+          </div>
+        </section>
+      )}
+
+      {/* 4 · Como funciona: escolher, pedir ou ir, carimbar e avaliar. */}
       {!encerrada && (
         <section className="ct-bloco ct-entrada__como" aria-labelledby="ct-como">
           <Letreiro id="ct-como" texto={T.comoTitulo} />
           <Passos passos={T.passos} />
         </section>
       )}
-      {/* O patrocinador logo depois da venda (11/11: os combos sobem para a primeira dobra). */}
+
+      {/* 5 · O patrocinador, compacto (vídeo atrás de um botão; depois do prazo da campanha, só a assinatura). */}
       <AssinaturaPatrocinio navigate={navigate} destaque />
 
-      {!encerrada && MAPA_NO_AR && bairros.length > 0 && (
-        <section className="ct-onde" aria-labelledby="ct-onde">
-          <div className="ct-bloco ct-onde__corpo">
-            <div className="ct-cabeca-desenho">
-              <Letreiro id="ct-onde" texto={T.ondeTitulo} />
-              <Gibi chave="pino" />
-            </div>
-            <p className="ct-lead">{T.ondeLead}</p>
-            <ul className="ct-bairros">
-              {bairros.map(({ bairro, casas }) => (
-                <li key={bairro}>
-                  <Link className="ct-bairro" href={`${C}/mapa?bairro=${encodeURIComponent(bairro)}`} navigate={navigate}>
-                    {bairro}<span className="ct-bairro__n" aria-hidden="true">{casas}</span><span className="ct-sr">, {T.bairroCasas(casas)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Botao tipo="secundario" href={`${C}/mapa`} navigate={navigate}>{T.acaoMapa}</Botao>
-          </div>
-          <img className="ct-onde__chao" src={natal.src} srcSet={srcSet(natal.src)} sizes="100vw" width={natal.largura} height={natal.altura} alt="" loading="lazy" decoding="async" />
-        </section>
-      )}
-
-      {/* Avalie no palco do Sweet Awards: cortina, holofotes e o troféu no círculo de luz. */}
+      {/* 6 · Avalie no palco do Sweet Awards. Redesenho (11/11): o texto vira balão de fala, o botão cresce com a luva
+          apontando e o troféu ganha o centro do palco, sob os holofotes. */}
       <section className="ct-palco ct-entrada__avalie" aria-labelledby="ct-avalie">
         <Gibi chave="palco" className="ct-palco__fundo" />
-        <div className="ct-palco__corpo">
+        <div className="ct-palco__corpo ct-avalie">
           <Letreiro id="ct-avalie" texto={T.avalieTitulo} cor="vermelho" />
-          <p className="ct-palco__texto">{textoAvalie}</p>
-          <div className="ct-acoes">
-            {!encerrada && <Botao href={`${C}/avaliar`} navigate={navigate}>{aberta ? T.avaliar : T.comoAvaliar}</Botao>}
+          <p className="ct-avalie__balao">{textoAvalie}</p>
+          <div className="ct-acoes ct-avalie__acoes">
+            {!encerrada && <Gibi chave="luva-aponta" className="ct-avalie__luva" />}
+            {!encerrada && <Botao tipo="acao" href={`${C}/avaliar`} navigate={navigate}>{aberta ? T.avaliarCombo : T.comoAvaliar}</Botao>}
             {/* Antes dos resultados a premiação é a mesma página da avaliação: o segundo botão só entra quando leva a algo novo. */}
-            {(encerrada || dados?.resultados_publicos) && <Botao tipo={encerrada ? 'primario' : 'secundario'} href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao>}
+            {(encerrada || dados?.resultados_publicos) && <Botao tipo={encerrada ? 'acao' : 'secundario'} href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao>}
           </div>
         </div>
-        <img className="ct-palco__trofeu" src={trofeu.src} width={trofeu.largura} height={trofeu.altura} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+        <img className="ct-palco__trofeu ct-avalie__trofeu" src={trofeu.src} width={trofeu.largura} height={trofeu.altura} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       </section>
 
+      {/* 7 · Dúvidas: respostas que acompanham o estado da edição (preço do banco, avaliação aberta ou não). */}
       <section className="ct-bloco ct-entrada__duvidas" aria-labelledby="ct-duvidas">
         <div className="ct-cabeca-desenho">
           <Letreiro id="ct-duvidas" texto={T.duvidasTitulo} />
           <Gibi chave="megafone" />
         </div>
         <div className="ct-duvidas">
-          {DUVIDAS.map(([q, r]) => <details key={q}><summary>{q}</summary><p>{r}</p></details>)}
+          {duvidas.map(([q, r]) => <details key={q}><summary>{q}</summary><p>{r}</p></details>)}
         </div>
       </section>
     </>
