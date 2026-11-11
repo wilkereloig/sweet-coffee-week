@@ -119,6 +119,12 @@ export async function carregarCombosEsgotados (codigo, { sinal } = {}) {
   return rpc('combos_esgotados_publico', { p_edicao: codigo }, sinal)
 }
 
+/** "Fila agora" (doc 20, parte B): unidades em que a casa (ou a organização) ligou o aviso; vence sozinho em 1 h. */
+export async function carregarFilasAgora (codigo, { sinal } = {}) {
+  if (!codigo || demoLigado()) return []
+  return rpc('filas_agora_publico', { p_edicao: codigo }, sinal)
+}
+
 async function buscarParticipante (codigo, slug, { sinal } = {}) {
   if (demoLigado()) {
     const { DEMO_EDICAO } = await import('./demo/cartoon.js')

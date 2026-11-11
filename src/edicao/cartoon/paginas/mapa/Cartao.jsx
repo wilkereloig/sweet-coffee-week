@@ -7,6 +7,7 @@
  * ver a casa, WhatsApp, "já fui", avaliar o combo, notas do lugar e os OUTROS ENDEREÇOS da mesma casa (a casa conta
  * uma vez na Caça, mesmo com vários endereços). Avaliar sozinho não cria carimbo e o cartão diz isso.
  * `estado`: 'nao-visitada' | 'pendente' | 'conquistada' | null (sem mapa) — sempre o do servidor.
+ * `filaAgora`: a casa avisou "Estamos com fila agora" (vence em 1 h; doc 20, parte B).
  * `irmas`: outras unidades da mesma casa, `{ u, p }` · `aoEscolher(id)`: trocar de endereço.
  */
 import React from 'react'
@@ -27,7 +28,7 @@ import { ESTADO_TEXTO, MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { CACA_CAMINHOS } from '../../../caca/textos.js'
 import { DELIVERY as TD } from '../../../caca/delivery/textos.js'
 
-export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher, esgotadoHoje = false }) {
+export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher, esgotadoHoje = false, filaAgora = false }) {
   const [mais, setMais] = React.useState(false)
   const relogio = useAgora(60000) // "Abre em 30 min" anda com o relógio sem recarregar
   const rota = useRota()
@@ -83,6 +84,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label={T.fechar}><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
       {(esgotadoHoje || aberto) && agoraNo}
+      {filaAgora && !esgotadoHoje && <p className="ct-agora ct-agora--fila ct-mapa__cartao-linha" role="status"><span aria-hidden="true">!</span>{T.filaAgora}</p>}
       {deliveryApenas
         ? <p className="ct-nota ct-mapa__so-delivery-nota">{T.soDeliveryNota}</p>
         : M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}

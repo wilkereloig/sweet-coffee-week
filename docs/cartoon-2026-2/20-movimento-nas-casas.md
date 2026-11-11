@@ -22,4 +22,18 @@ Nenhuma regra do jogo muda. O público só vê o que for confirmado por gente (B
 - Painel: coluna "Tinha fila?" na tabela do Movimento. Público: nada por enquanto.
 - Ensaio (ROLLBACK): resposta gravada aparece no movimento (1 fila grande na unidade); chave errada → `mapa_desconhecido`;
   resposta fora da lista → `resposta_invalida`. O caminho feliz pela chave real só dá para ver depois de aplicada, num carimbo de verdade.
-## B · "Estamos com fila agora" pela casa — a fazer
+## B · "Estamos com fila agora" pela casa
+- Migration `20270127_caca_fila_aviso.sql` (reverter em `supabase/reverter/`): tabela `caca_fila_aviso` (uma linha por unidade,
+  `ate` = agora + 1 h; ligar de novo renova; desligar antes põe `ate` = agora). Modelo do combo esgotado (20270115).
+  - Marca: `marca_fila_estado` / `marca_fila_definir` (dona da participação, a unidade é dela, só no período do festival; ligar
+    avisa a Organização por `notificar`, tipo `fila_casa`).
+  - Organização: `caca_fila_definir` (`producao.gerir`) e `caca_fila_avisos` (`dado.ler`).
+  - Público: `filas_agora_publico(p_edicao)` → só slug + id público, só casa com combo publicado e aviso valendo.
+- Painel da marca: cartão "Fila no mapa" no Início (durante o festival), um por endereço, ao lado do combo esgotado.
+- Painel: coluna "Fila no mapa" na aba Movimento, com "Marcar fila (1 h)" / "Tirar fila" para quem gere a produção.
+- Site: o mapa relê junto com o combo esgotado (45 s, foco, aba visível); o cartão da casa mostra "Fila agora, avisou a casa".
+- Ensaio (ROLLBACK): ligar → a casa aparece em `filas_agora_publico`; desligar → some; sem senha e sem login → `nao_autorizado`.
+- **A confirmar com o Wilker:** prazo de 1 h.
+
+## Aplicar (só com o ok do Wilker), nesta ordem
+`20270125` (A) → `20270126` (C) → `20270127` (B). Os reverters desfazem na ordem inversa.
