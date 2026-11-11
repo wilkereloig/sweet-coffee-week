@@ -73,3 +73,8 @@ Pedido do Wilker: "notificações inteligentes … que estimulam a compra" (ex.:
   fora da contagem do painel) criado como `agendado`. Em 11/11 ele já tinha os 2 pushes do dia. Job de uma vez `scw-teste-delivery-wilker`
   (`5 11 12 11 *` = 12/11 8h05 Natal) libera e cria a entrega; o ciclo das 8h15 manda. Conferir: entrega `enviado`, job apagado.
   Sem o site publicado, o toque abre a central (o `caca-sw.js` novo ainda não está no ar).
+
+## Publicação (11/11/2026 ~18h40, "Publicar tudo")
+- master = dev em `7e776e64` (fast-forward): cartão "Sua disputa hoje", convite ao push, pop-up em balões, preferências disputa/delivery, seções "Avisos de disputa" e "Avisos de delivery" no painel, data da campanha Sicredi no regulamento.
+- Conferido no ar: textos no bundle do site e do painel; regulamento com "até 13 de novembro". Não conferido: o cartão com um mapa real logado.
+- Interruptores `disputa_aviso` e `delivery_aviso` seguem DESLIGADOS no banco.
