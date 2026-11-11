@@ -276,6 +276,7 @@ export const MAPA = {
   // doc 20, parte D: movimento comparado com o normal da casa e com as outras casas. Nunca "lotada".
   movimento: { alto: 'Movimento acima do normal agora', tranquila: 'Boa hora para visitar: menos movimento agora' },
   filtroTranquilas: 'Menos movimento agora',
+  abertasAgora: (n) => `Abertas agora (${n})`,
   titulo: 'Mapa da Doçura',
   lead: 'Todas as casas da Cartoon num mapa só. Escolha onde quer ir, monte sua rota e siga pelo Google Maps. Fica salvo neste aparelho.',
   busca: 'Buscar casa ou bairro',

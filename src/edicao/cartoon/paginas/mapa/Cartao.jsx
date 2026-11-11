@@ -2,7 +2,10 @@
  * Cartão da casa escolhida (lista 13, M2; compacto desde o redesign de 06/11/2026). Mora numa folha (Folha.jsx):
  * embaixo no celular, na coluna lateral no desktop. O que cabe à vista é o que decide: logo, nome, estado na Caça
  * (forma + texto, nunca só cor), como está agora, endereço e UMA ação principal por contexto —
- *   carimbo pendente → "Avaliar e validar o carimbo";  senão → "Como chegar".
+ *   carimbo pendente → "Avaliar e validar o carimbo";  senão → as AÇÕES DE COMPRA ("Pedir delivery" / "Ir até a casa", as mesmas
+ *   da Home, do catálogo e da ficha, valendo só para este endereço; esgotado hoje: sem compra).
+ * Redesenho de 11/11/2026 (auditoria do Mapa): o mapa é onde se decide para onde ir, então o cartão vende — miniatura da foto,
+ * nome do combo, itens e preço logo abaixo do nome da casa.
  * Ao lado, as secundárias que mais se usa ("Ver o combo", "Quero ir") e o botão "Mais", que abre o resto: como pedir,
  * ver a casa, WhatsApp, "já fui", avaliar o combo, notas do lugar e os OUTROS ENDEREÇOS da mesma casa (a casa conta
  * uma vez na Caça, mesmo com vários endereços). Avaliar sozinho não cria carimbo e o cartão diz isso.
@@ -16,13 +19,14 @@ import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { EDICAO } from '../../../config.js'
 import * as M from '../../../dados/modelo.js'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
-import { Link } from '../../../componentes/base.jsx'
+import { Link, Foto } from '../../../componentes/base.jsx'
 import { Botao, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { QueroIr, JaFui } from '../../MarcasLover.jsx'
 import { useRota } from '../../contexto.js'
 import { useAgora } from '../../useAgora.js'
 import { nivelDaUnidade } from '../../../componentes/mapa/indicadores.js'
-import { MAPA as T, ATENDIMENTO, ICONE } from '../../textos.js'
+import { MAPA as T, PARTICIPANTE as TP, ATENDIMENTO, ICONE, TIPO_ORDEM } from '../../textos.js'
+import { AcoesCompra } from '../../CartaoCombo.jsx'
 import { LogoDoPin } from './LogoDoPin.jsx'
 import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { ESTADO_TEXTO, MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
@@ -68,11 +72,15 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   const comoChegarBotao = comoChegar && !deliveryApenas && (
     <Botao tipo={pendente ? 'secundario' : 'primario'} href={comoChegar} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.comoChegar} tamanho={20} />{T.comoChegar}</Botao>
   )
-  // Casa só delivery: a ação principal é pedir (link do canal; sem link, a ficha mostra como pedir) e o carimbo é o do delivery.
-  const linkDelivery = M.canaisSeguros(u)[0]?.link
-  const pedirBotao = deliveryApenas && (linkDelivery
-    ? <Botao href={linkDelivery} target="_blank" rel="noopener noreferrer"><IconeCartoon nome="delivery" tamanho={32} />{T.pedirDelivery}</Botao>
-    : <Botao href={`${EDICAO.caminho}/participantes/${p.slug}`} navigate={navigate}><IconeCartoon nome="delivery" tamanho={32} />{T.comoPedir}</Botao>)
+  // Oferta: o combo da casa (foto, nome, itens e preço) à vista, como na lâmina da Home.
+  const foto = p.combo?.fotos?.principal
+  const nomeCombo = p.combo?.nome ? M.caixaLegivel(p.combo.nome) : ''
+  const itensCombo = [...(p.combo?.itens || [])].sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
+    .map((i) => i.nome).filter(Boolean).map(M.caixaLegivel).join(' + ')
+  const preco = p.combo?.preco ? M.formatarPreco(p.combo.preco) : ''
+  const comOferta = !!p.combo && !!(foto || nomeCombo || preco)
+  // Compra: não em carimbo pendente (a ação principal é avaliar) nem com o combo esgotado hoje.
+  const comprar = !!p.combo && !pendente && !esgotadoHoje
   return (
     <article className="ct-mapa__cartao" aria-labelledby="mapa-cartao-nome" tabIndex={-1}>
       <div className="ct-mapa__cartao-cabeca">
@@ -86,6 +94,16 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         </div>
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label={T.fechar}><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
+      {comOferta && (
+        <div className={`ct-mapa__oferta${esgotadoHoje ? ' is-esgotada' : ''}`}>
+          {foto && <span className="ct-mapa__oferta-foto"><Foto foto={foto} proporcao="4 / 5" alt="" /></span>}
+          <div className="ct-mapa__oferta-texto">
+            {nomeCombo && <p className="ct-mapa__oferta-combo">{nomeCombo}</p>}
+            {itensCombo && <p className="ct-mapa__oferta-itens">{itensCombo}</p>}
+            {preco && <p className="ct-mapa__oferta-preco"><span>{TP.precoRotulo}</span> {preco}</p>}
+          </div>
+        </div>
+      )}
       {(esgotadoHoje || aberto) && agoraNo}
       {filaAgora && !esgotadoHoje && <p className="ct-agora ct-agora--fila ct-mapa__cartao-linha" role="status"><span aria-hidden="true">!</span>{T.filaAgora}</p>}
       {selo && <p className={`ct-agora ct-agora--movimento ct-agora--movimento-${selo} ct-mapa__cartao-linha`} role="status">{T.movimento[selo]}</p>}
@@ -105,7 +123,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
       )}
       {/* Ações em duas fileiras: a principal ocupa a linha; embaixo, quatro controles do mesmo tamanho (dois botões, "Quero ir" só com o coração, "Mais"). */}
       <div className="ct-acoes ct-mapa__cartao-acoes">
-        {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : (pedirBotao || comoChegarBotao)}
+        {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : comprar ? <AcoesCompra p={p} unidade={u} navigate={navigate} className="ct-mapa__compra" /> : (!p.combo && comoChegarBotao)}
         {/* Atalho do carimbo: a mesma página do QR do display (pede a localização e só carimba com você na casa); casa só delivery usa o carimbo do delivery. */}
         {deliveryApenas
           ? <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`} navigate={navigate}>{TD.titulo}</Botao>
@@ -132,7 +150,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         )}
         {irmas.length > 0 && <p className="ct-nota">{TC.outrosEnderecosNota}</p>}
         <div className="ct-acoes">
-          {pendente && comoChegarBotao}
+          {(pendente || esgotadoHoje) && comoChegarBotao}
           {!pendente && estado !== 'conquistada' && aoAvaliar && <Botao tipo="secundario" onClick={() => aoAvaliar(p, u)}>{TC.avaliarCombo}</Botao>}
           <Botao tipo="secundario" href={`${EDICAO.caminho}/participantes/${p.slug}`} navigate={navigate}>{T.verCasa}</Botao>
           {u.whatsapp && <Botao tipo="secundario" href={M.linkWhatsApp(u.whatsapp)} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.whatsapp} tamanho={20} />WhatsApp</Botao>}
