@@ -45,7 +45,7 @@ export function doDia (lista, n, hoje = new Date()) {
 
 /**
  * A vitrine de venda (11/11/2026, "a gente tem que construir o site com o objetivo de mostrar os combos, de vender"):
- * TODOS os combos, no cartão de compra (CartaoCombo), com três filtros à vista — Todos · Delivery · Abertas agora.
+ * TODOS os combos, no cartão de compra (CartaoCombo), com filtros à vista — Todos · Delivery · Abertas agora · Vegetariano.
  * Durante o festival a ordem é: abertas agora (com a hora em que fecham), as que abrem ainda hoje (com a hora), as
  * demais; dentro de cada grupo, a ordem do dia (doDia), foto primeiro. Fora do festival não há "agora": só a ordem do dia.
  * Recalcula sozinha com a página aberta (useAgora), com a mesma regra do Mapa (M.casasPorMomento).
@@ -69,8 +69,11 @@ function VitrineVenda ({ elenco, dados, navigate }) {
   }, [elenco, momento])
   const entrega = (p) => M.estadoModo(p, 'delivery').estado === 'sim'
   const nDelivery = itens.filter((x) => entrega(x.p)).length
+  const veg = (p) => M.opcaoVegetariana(p.combo?.itens) !== 'nao'
   const nAbertas = itens.filter((x) => x.aberta).length
-  const mostrados = filtro === 'delivery' ? itens.filter((x) => entrega(x.p)) : filtro === 'abertas' ? itens.filter((x) => x.aberta) : itens
+  const nVeg = itens.filter((x) => veg(x.p)).length
+  const teste = { delivery: (x) => entrega(x.p), abertas: (x) => x.aberta, vegetariano: (x) => veg(x.p) }[filtro]
+  const mostrados = teste ? itens.filter(teste) : itens
 
   let aviso = null
   if (momento.noFestival) {
@@ -88,6 +91,7 @@ function VitrineVenda ({ elenco, dados, navigate }) {
     ['todos', T.filtroTodos(itens.length), 'casas', true],
     ['delivery', T.filtroDelivery(nDelivery), 'delivery', !encerrada && nDelivery > 0 && !!dados?.combos_publicos],
     ['abertas', T.filtroAbertas(nAbertas), 'aberto-agora', !encerrada && nAbertas > 0],
+    ['vegetariano', T.filtroVegetariano(nVeg), 'vegetariano', !encerrada && nVeg > 0],
   ].filter((c) => c[3])
   return (
     <>

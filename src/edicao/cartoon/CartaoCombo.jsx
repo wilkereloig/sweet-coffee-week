@@ -26,7 +26,9 @@ const C = EDICAO.caminho
 function selosDaCasa (p) {
   const modos = M.MODOS.map(([k]) => k).filter((k) => M.estadoModo(p, k).estado === 'sim').map((k) => ATENDIMENTO[k])
   const restricoes = M.RESTRICOES.map((r) => r.chave).filter((k) => M.veredito(p.combo?.itens, k) === 'sim').map((k) => RESTRICAO[k])
-  return [...modos, ...restricoes]
+  const veg = M.opcaoVegetariana(p.combo?.itens)
+  const vegetariano = veg === 'nao' ? [] : [{ ...RESTRICAO.vegetariano, rotulo: veg === 'troca' ? RESTRICAO.vegetariano.rotuloTroca : RESTRICAO.vegetariano.rotulo }]
+  return [...modos, ...vegetariano, ...restricoes]
 }
 
 /**

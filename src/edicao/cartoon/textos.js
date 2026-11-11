@@ -51,6 +51,7 @@ export const ENTRADA = {
   filtroTodos: (n) => `Todos (${n})`,
   filtroDelivery: (n) => `Delivery (${n})`,
   filtroAbertas: (n) => `Abertas agora (${n})`,
+  filtroVegetariano: (n) => `Vegetariano (${n})`,
   buscarFiltrar: 'Buscar e filtrar',
   filtrosRotulo: 'Mostrar combos',
   // Durante o festival o elenco mostra quem está com o combo agora (mesma regra do Mapa); fora dele, só o elenco.
@@ -100,6 +101,8 @@ export const ATENDIMENTO = {
 }
 export const RESTRICAO = {
   vegano: { rotulo: 'Vegano', icone: 'vegano', sim: 'Vegano, segundo a casa', nao: 'Não é vegano' },
+  // Doce e salgado; a bebida não conta. `troca`: o combo fica vegetariano com a troca que a casa declarou (selo do cartão).
+  vegetariano: { rotulo: 'Vegetariano', rotuloTroca: 'Vegetariano com troca', icone: 'vegetariano', sim: 'Vegetariano, segundo a casa', troca: 'Vegetariano com a troca, segundo a casa' },
   acucar: { rotulo: 'Sem açúcar', icone: 'sem-acucar', sim: 'Sem açúcar adicionado, segundo a casa', nao: 'Tem açúcar adicionado' },
   gluten: { rotulo: 'Sem glúten', icone: 'sem-gluten', sim: 'Sem glúten, segundo a casa', nao: 'Contém ou pode conter glúten' },
   lactose: { rotulo: 'Sem lactose', icone: 'sem-lactose', sim: 'Sem lactose, segundo a casa', nao: 'Contém lactose' },
@@ -127,6 +130,7 @@ export const CATALOGO = {
   nenhum: (q) => (q ? `Nenhuma casa encontrada para "${q}".` : 'Nenhuma casa com esses filtros.'),
   verTodas: 'Ver todas as casas',
   declarado: 'Restrição só vale quando a casa declarou para todos os itens do combo.',
+  declaradoVegetariano: 'Vegetariano: doce e salgado do combo, direto ou com a troca que a casa oferece. A bebida não conta.',
   comboEmBreve: 'Combo em breve',
   fotoEmProducao: 'Foto em produção',
   unidades: (n) => `${n} unidades`,

@@ -169,7 +169,7 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       })
     }),
 
-    /** Anexa uma foto opcional como prova ao pedido de visita anterior já criado. */
+    /** Anexa a foto (obrigatória para aprovar) ao pedido de visita anterior já criado. */
     visitaAnteriorEnviarImagem: (chave, id, { blob, ext, tipo }) => comChave(chave, async () => {
       if (!FORMATO_UUID.test(String(id || '')) || !blob) return sem('pedido_nao_encontrado')
       try {

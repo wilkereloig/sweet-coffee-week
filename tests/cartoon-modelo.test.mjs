@@ -111,11 +111,34 @@ test('filtros usam só dado declarado', () => {
 })
 
 test('filtros vão e voltam pela query string', () => {
-  const f = { q: 'café', bairro: 'Tirol', modo: 'retirada', aberto: true, hoje: true, vegano: true, semAcucar: true, semGluten: true, semLactose: true }
+  const f = { q: 'café', bairro: 'Tirol', modo: 'retirada', aberto: true, hoje: true, vegano: true, vegetariano: true, semAcucar: true, semGluten: true, semLactose: true }
   const s = M.buscaDosFiltros(f)
   assert.deepEqual(M.filtrosDaBusca(s), f)
   assert.equal(M.buscaDosFiltros({}), '')
-  assert.deepEqual(M.filtrosDaBusca(''), { q: '', bairro: '', modo: '', aberto: false, hoje: false, vegano: false, semAcucar: false, semGluten: false, semLactose: false })
+  assert.deepEqual(M.filtrosDaBusca(''), { q: '', bairro: '', modo: '', aberto: false, hoje: false, vegano: false, vegetariano: false, semAcucar: false, semGluten: false, semLactose: false })
+})
+
+test('vegetariano: doce e salgado, direto ou por troca; bebida não conta; só um dos dois não basta', () => {
+  const veg = (tipo, estado = 'sim', ...trocas) => ({
+    tipo, alimentar: estado ? [{ aspecto: 'vegetariano', estado }] : [],
+    substituicoes: trocas.map((t) => ({ alternativa: 'troca', alimentar: t ? [{ aspecto: 'vegetariano', estado: t }] : [] })),
+  })
+  const bebida = veg('bebida', 'nao')
+  assert.equal(M.opcaoVegetariana([veg('doce'), veg('salgado'), bebida]), 'direto', 'bebida não vegetariana não tira')
+  assert.equal(M.opcaoVegetariana([veg('doce'), veg('salgado', 'nao', 'sim')]), 'troca', 'salgado só vegetariano na troca')
+  assert.equal(M.opcaoVegetariana([veg('doce', null, 'sim'), veg('salgado', 'nao', 'sim')]), 'troca')
+  assert.equal(M.opcaoVegetariana([veg('doce'), veg('salgado', 'nao')]), 'nao', 'doce vegetariano e salgado não: fora')
+  assert.equal(M.opcaoVegetariana([veg('doce', 'nao'), veg('salgado')]), 'nao', 'salgado vegetariano e doce não: fora')
+  assert.equal(M.opcaoVegetariana([veg('doce'), veg('salgado', null)]), 'nao', 'não informado não vale')
+  assert.equal(M.opcaoVegetariana([veg('doce'), veg('salgado', 'nao', 'nao')]), 'nao', 'troca declarada "não" não vale')
+  assert.equal(M.opcaoVegetariana([veg('doce'), veg('salgado', 'nao', null)]), 'nao', 'troca sem declaração não vale')
+  assert.equal(M.opcaoVegetariana([veg('doce')]), 'nao', 'falta o salgado')
+  assert.equal(M.opcaoVegetariana([]), 'nao')
+  const casa = (slug, itens) => ({ slug, casa: { nome: slug }, unidades: [], combo: { itens } })
+  const lista = [casa('a', [veg('doce'), veg('salgado')]), casa('b', [veg('doce'), veg('salgado', 'nao', 'sim')]), casa('c', [veg('doce'), veg('salgado', 'nao')])]
+  assert.deepEqual(M.filtrar(lista, { vegetariano: true }).map((p) => p.slug), ['a', 'b'])
+  assert.equal(M.opcoesFiltro(lista).vegetariano, true)
+  assert.equal(M.opcoesFiltro([lista[2]]).vegetariano, false, 'sem casa vegetariana o filtro não aparece')
 })
 
 test('restrições do combo: sim só com todos os itens declarados; "não" só com declaração; o resto é não informado', () => {
