@@ -502,7 +502,9 @@ const ICONES_EDICAO = new Set(('inicio casas mapa rota avaliar premio no-local p
   // 10/11/2026, ponto de retirada dos vouchers (selo do pin do Espaço Reduzido): bilhete + seta + bandeja — scripts/edicao/icones-atalhos.py retirada
   + 'retirada '
   // 10/11/2026, filtro "Vegetariano": cenoura ilustrada pela API de imagem, ajustada por scripts/edicao/icones-atalhos.py
-  + 'vegetariano').split(' '))
+  + 'vegetariano '
+  // 11/11/2026, filtro "Menos movimento agora" do mapa: mesinha de café com xícara e uma cadeira vazia (doc 20, parte D)
+  + 'movimento-tranquilo').split(' '))
 
 /** Ícone ilustrado da edição (192×192, exibir a 32, 48 ou 64 px), ou `null`. Nunca carrega função sozinho: leva texto ao lado. */
 export function iconeEdicao(nome) {
