@@ -8,6 +8,7 @@ import { Configuracao } from './Configuracao'
 import { Metas } from './Metas'
 import { Avisos } from './Avisos'
 import { Auditoria } from './Auditoria'
+import { Movimento } from './Movimento'
 import '../../../styles/caca-painel.css'
 
 /** As abas da Caça dentro de Edição › Carimbos (a primeira, "Mapa e adesivos", é o que já existia). */
@@ -19,6 +20,7 @@ export const ABAS_CACA = Object.freeze([
   { chave: 'config', rotulo: 'Regras e prazos' },
   { chave: 'metas', rotulo: 'Metas' },
   { chave: 'avisos', rotulo: 'Avisos' },
+  { chave: 'movimento', rotulo: 'Movimento' },
   { chave: 'auditoria', rotulo: 'Auditoria' },
 ])
 
@@ -32,6 +34,7 @@ export function PainelCaca({ edicao, pode, aba }) {
     case 'config': return <Configuracao pode={pode} dados={dados} />
     case 'metas': return <Metas edicao={edicao} pode={pode} />
     case 'avisos': return <Avisos edicao={edicao} pode={pode} />
+    case 'movimento': return <Movimento pode={pode} />
     case 'auditoria': return <Auditoria dados={dados} />
     default: return null
   }
