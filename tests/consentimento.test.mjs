@@ -177,3 +177,16 @@ test('12 · documentos legais abrem sob qualquer gate; o resto continua protegid
   assert.equal(R.resolverRota('/apoiar', {}), 'apoiar')
   assert.equal(R.resolverRota('/', {}), 'home')
 })
+
+test('12 · Search Console: endereço canônico por rota e redirecionamento dos endereços antigos', async () => {
+  const { canonicoDe } = await import('../src/lib/pageMeta.js')
+  assert.equal(canonicoDe('/cartoon'), '/', '/cartoon é a mesma página que /')
+  assert.equal(canonicoDe('/mapa'), '/')
+  assert.equal(canonicoDe('/cartoon/participantes/wow-cookies'), '/cartoon/combos/wow-cookies', 'uma ficha, um endereço')
+  assert.equal(canonicoDe('/edicoes/2019.1?utm_source=x'), '/edicoes/2019.1')
+  assert.equal(canonicoDe('#/contato'), '/contato')
+  const { readFileSync } = await import('node:fs')
+  const v = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'))
+  const r = Object.fromEntries(v.redirects.map((x) => [x.source, x]))
+  for (const antigo of ['/mrcupcake', '/justfoodecoffee', '/carolidouces', '/padoca', '/omaestrocafe', '/home']) assert.equal(r[antigo]?.permanent, true, antigo)
+})
