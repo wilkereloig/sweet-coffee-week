@@ -80,6 +80,8 @@ import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/ma
 import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
 import { useTelaCheia } from './useTelaCheia.js'
 import { carregarCombosEsgotados, carregarFilasAgora } from '../../../dados/publico.js'
+import { useMovimento } from '../../../caca/useMovimento.js'
+import { seloDoMovimento } from '../../../caca/movimento.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
 // ou não carregar —, o MapLibre (OpenFreeMap), que não pede chave. A página só conhece a interface comum.
@@ -88,7 +90,7 @@ const MapaLibre = React.lazy(() => import('../../../componentes/mapa/MapaUnidade
 // Ranking e Grupos (as seções da Caça) só baixam quando o atalho é aberto na tela cheia.
 const Ranking = React.lazy(() => import('../../../caca/secoes/Ranking.jsx'))
 const Grupos = React.lazy(() => import('../../../caca/secoes/Grupos.jsx'))
-const VAZIO = { q: '', bairro: '', modo: '', aberto: false, queroIr: false, jaFui: false, estado: '' }
+const VAZIO = { q: '', bairro: '', modo: '', aberto: false, queroIr: false, jaFui: false, estado: '', tranquila: false }
 const VISTAS = ['mundo', 'real', 'lista']
 const PAINEIS = ['rota', 'album', 'premios']
 const largo = () => matchMedia('(min-width: 900px)').matches
@@ -159,6 +161,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     return () => { ativo = false; clearInterval(intervalo); document.removeEventListener('visibilitychange', aoFocar); window.removeEventListener('focus', ler) }
   }, [periodo?.codigo])
   const esgotadosSet = React.useMemo(() => new Set(esgotadosHoje), [esgotadosHoje])
+  // Movimento (doc 20, parte D): vazio com o interruptor desligado — aí nem o filtro nem os selos aparecem.
+  const movimento = useMovimento(periodo?.codigo)
+  const seloDe = (p, u) => seloDoMovimento({ mov: movimento.get(u.id), aberto: M.estadoAgora(u, new Date(), periodo).estado === 'aberto', esgotado: esgotadosSet.has(p.slug), fila: filasAgora.includes(u.id) })
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, periodo), [lista, periodo])
   const filtro = { ...f, aberto: f.aberto && opcoes.hoje } // fora do festival, ?aberto=1 antigo não esconde nada
   const marcas = { rota: rota.ids, foi: rota.foi }
@@ -167,7 +172,9 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const estadoDe = (slug) => (casasMapa ? estadoDaCasa(casasMapa.get(slug)) : null)
   const revisitasDe = (slug) => (casasMapa ? revisitasDaCasa(casasMapa.get(slug)) : 0)
   const filtroEstado = casasMapa ? f.estado : ''
+  const filtroTranquila = f.tranquila && opcoes.hoje && movimento.size > 0 // "Menos movimento agora": as abertas mais tranquilas
   const linhas = filtrarPorEstado(M.unidadesDoMapa(lista, filtro, marcas, { periodo, posicao: perto ? posicao : null }), filtroEstado, casasMapa)
+    .filter(({ p, u }) => !filtroTranquila || seloDe(p, u) === 'tranquila')
   const noMapa = linhas.filter((x) => x.u.coordenada)
   const todas = M.unidadesDoMapa(lista, {}, marcas, { periodo })
   const agencias = React.useMemo(() => agenciasSicredi(mundo.sicredi), [mundo])
@@ -177,8 +184,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const apoiosVisiveis = APOIOS.filter((a) => agenciaCombina({ nome: a.nome, endereco: a.locais.map((l) => `${l.nome} ${l.endereco}`).join(' ') }, f.q))
   const escolhida = agenciaEscolhida || apoioEscolhido ? null : linhas.find((x) => x.u.id === sel) || todas.find((x) => x.u.id === sel) || null
   // `ativos` inclui a busca (o "Limpar filtros" limpa tudo); o contador do botão só conta os filtros da folha.
-  const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui, filtroEstado].filter(Boolean).length
-  const nFiltros = contarFiltros({ ...f, estado: filtroEstado }, { aberto: filtro.aberto })
+  const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui, filtroEstado, filtroTranquila].filter(Boolean).length
+  const nFiltros = contarFiltros({ ...f, estado: filtroEstado, tranquila: filtroTranquila }, { aberto: filtro.aberto })
   const bairroOpcao = opcoes.bairros.find((b) => M.normalizar(b) === M.normalizar(f.bairro)) || ''
   const { casas: nCasas, enderecos: nEnderecos } = casasEEnderecos(lista)
 
@@ -464,7 +471,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
         : (
           <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
             parada={paradaDe.get(escolhida.u.id) || null} estado={estadoDe(escolhida.p.slug)} revisitas={revisitasDe(escolhida.p.slug)}
-            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)} filaAgora={filasAgora.includes(escolhida.u.id)}
+            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)} filaAgora={filasAgora.includes(escolhida.u.id)} movimento={movimento.get(escolhida.u.id) || null}
             proxima={escolhida.p.slug === proximaSlug} aoAvaliar={avaliar}
             irmas={enderecosDaCasa(todas, escolhida.p.slug, escolhida.u.id)} aoEscolher={escolher} />
           )}
@@ -627,7 +634,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             )}
             {cheia && cartao}
             <Folha variante="filtros" aberta={filtrosAbertos} titulo={TC.filtrosTitulo} rotuloFechar={TC.fecharFiltros} aoFechar={() => setFiltrosAbertos(false)}>
-              <CorpoDosFiltros f={f} muda={muda} opcoes={opcoes} bairroOpcao={bairroOpcao} temEstado={!!casasMapa} hoje={opcoes.hoje}
+              <CorpoDosFiltros f={f} muda={muda} opcoes={opcoes} bairroOpcao={bairroOpcao} temEstado={!!casasMapa} hoje={opcoes.hoje} comMovimento={movimento.size > 0}
                 sugestoes={sugestoes} aoSugestoes={(v) => setSugestoes(ligarSugestoes(v))} comBusca={cheia} aoBuscar={(v) => muda('q', v)} total={linhas.length} ativos={ativos} aoLimpar={() => setF(VAZIO)} aoAplicar={() => setFiltrosAbertos(false)} />
             </Folha>
           </div>

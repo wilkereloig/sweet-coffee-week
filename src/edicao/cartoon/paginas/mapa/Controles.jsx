@@ -47,7 +47,7 @@ export function BarraDoMapa ({ vistas, vista, aoVista, q, aoBuscar, filtros, aoF
   )
 }
 
-export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje, sugestoes = true, aoSugestoes = null, comBusca, aoBuscar, total, ativos, aoLimpar, aoAplicar }) {
+export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje, comMovimento = false, sugestoes = true, aoSugestoes = null, comBusca, aoBuscar, total, ativos, aoLimpar, aoAplicar }) {
   return (
     <div className="ct-mapa__filtros">
       {comBusca && <Busca q={f.q} aoBuscar={aoBuscar} />}
@@ -72,6 +72,7 @@ export function CorpoDosFiltros ({ f, muda, opcoes, bairroOpcao, temEstado, hoje
         <legend className="ct-rotulo">{T.mostrar}</legend>
         <div className="ct-chips">
           {hoje && <Chip ativo={f.aberto} icone="aberto-agora" onClick={() => muda('aberto', !f.aberto)}>{T.aberto}</Chip>}
+          {hoje && comMovimento && <Chip ativo={f.tranquila} icone="aberto-agora" onClick={() => muda('tranquila', !f.tranquila)}>{T.filtroTranquilas}</Chip>}
           <Chip ativo={f.queroIr} icone="quero-ir" onClick={() => muda('queroIr', !f.queroIr)}>{LOVER.queroIr}</Chip>
           <Chip ativo={f.jaFui} icone="ja-fui" onClick={() => muda('jaFui', !f.jaFui)}>{LOVER.jaFui}</Chip>
         </div>
