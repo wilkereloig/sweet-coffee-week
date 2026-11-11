@@ -11,10 +11,11 @@
  *
  * `semKit="natal"`: casa sem kit ganha a faixa de Natal como chão, sem objetos
  * (.ct-cenario--natal não reserva o espaço do objeto A).
- * `faixa={false}` (ficha da casa): só os objetos no topo; a faixa vai para o <CenarioFixo> no rodapé da tela.
+ * `faixa={false}`: só os objetos no topo, sem a faixa.
+ * (A ficha da casa não usa mais este componente: o cenário do combo fecha a capa — Capa.jsx.)
  */
 import React from 'react'
-import { kitTemaEdicao, cenaEdicao, cenarioComboEdicao, srcSet } from '../../../data/imageLibrary'
+import { kitTemaEdicao, cenaEdicao, srcSet } from '../../../data/imageLibrary'
 
 export function CenarioTema ({ slug, semKit = null, faixa: comFaixa = true }) {
   const kit = kitTemaEdicao(slug)
@@ -68,31 +69,6 @@ export function CenarioTema ({ slug, semKit = null, faixa: comFaixa = true }) {
       {comFaixa && <img className="ct-cenario__faixa" src={cenario.src} srcSet={srcSet(cenario.src)} sizes="100vw" width={cenario.largura} height={cenario.altura} alt="" decoding="async" />}
       <img className="ct-cenario__objeto ct-cenario__objeto--a" src={objetoA.src} width={objetoA.largura} height={objetoA.altura} alt="" decoding="async" />
       <img className="ct-cenario__objeto ct-cenario__objeto--b" src={objetoB.src} width={objetoB.largura} height={objetoB.altura} alt="" decoding="async" />
-    </div>
-  )
-}
-
-/**
- * Faixa do mundo da casa presa ao pé da tela, de ponta a ponta (acima da barra de abas no celular): o cenário
- * com o combo desenhado, ou a faixa do kit. Acompanha a largura da página (altura = largura × razão do arquivo),
- * começa baixa e sobe com a rolagem até aparecer inteira no fim (lista 13, P1). Decorativa e sem clique.
- * A razão também vai para a raiz .ct-edicao: é lá que o rodapé lê a altura a reservar, para nada ficar
- * escondido embaixo da faixa quando a rolagem acaba.
- */
-export function CenarioFixo ({ slug }) {
-  const faixa = cenarioComboEdicao(slug)
-  const ref = React.useRef(null)
-  const razao = faixa ? (faixa.altura / faixa.largura).toFixed(4) : null
-  React.useEffect(() => {
-    const raiz = ref.current?.closest('.ct-edicao')
-    if (!raiz || !razao) return undefined
-    raiz.style.setProperty('--ct-fixo-razao', razao)
-    return () => raiz.style.removeProperty('--ct-fixo-razao')
-  }, [razao])
-  if (!faixa) return null
-  return (
-    <div ref={ref} className="ct-cenario-fixo" aria-hidden="true" style={{ '--ct-fixo-razao': razao }}>
-      <img src={faixa.src} srcSet={srcSet(faixa.src)} sizes="100vw" width={faixa.largura} height={faixa.altura} alt="" decoding="async" />
     </div>
   )
 }

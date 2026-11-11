@@ -56,32 +56,3 @@
 .ct-carimbar__pedido { display: grid; gap: 12px; max-width: 520px; margin-top: 8px; }
 .ct-carimbar__pedido textarea { width: 100%; min-height: 88px; resize: vertical; }
 .ct-carimbar__pedido .ct-acoes button { min-height: 44px; }
-
-/* ------------------------------------------------------------- aviso de carimbo na ficha (05/11)
-   Flutuante e fora do fluxo. Celular: faixa acima da barra de abas e do aviso de cookies (as duas alturas vêm em
-   --scw-base-ocupada e --scw-aviso-h). Desktop: cartão no canto inferior direito, acima do aviso de cookies (40px = os 24px de folga dele + respiro).
-   z-index 25: sobre o conteúdo e a faixa do cenário (20), sob a barra de abas (30). O rodapé ganha folga para o aviso
-   não cobrir os links no fim da página. */
-.ct-aviso-carimbo {
-  position: fixed; z-index: 25; right: 20px; bottom: calc(40px + var(--scw-aviso-h, 0px)); width: min(380px, calc(100vw - 40px));
-  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px 10px;
-  padding: 10px 6px 10px 14px; border: 3px solid var(--ct-chocolate); border-radius: 16px; background: var(--ct-creme);
-  box-shadow: 5px 5px 0 var(--ct-chocolate);
-}
-.ct-aviso-carimbo__texto { margin: 0; font: 700 15px/1.25 var(--ct-font); color: var(--ct-chocolate); }
-.ct-aviso-carimbo__texto strong { display: block; margin-bottom: 2px; font: 800 12px/1 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
-.ct-edicao .ct-aviso-carimbo__acao { min-height: 44px; padding: 0 16px; border-width: 2.5px; border-radius: 12px; box-shadow: 3px 3px 0 var(--ct-chocolate); font-size: 15px; }
-.ct-edicao .ct-aviso-carimbo__acao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
-.ct-aviso-carimbo__fechar {
-  display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px;
-  background: none; color: var(--ct-chocolate); cursor: pointer;
-}
-.ct-aviso-carimbo__fechar:hover { background: rgba(58, 21, 15, .1); }
-.ct-edicao:has(.ct-aviso-carimbo) .ct-rodape { padding-bottom: calc(40px + var(--ct-fixo-h, 0px) + 96px); }
-@media (max-width: 899.98px) {
-  .ct-aviso-carimbo { right: 8px; left: 8px; width: auto; bottom: calc(var(--scw-base-ocupada, 72px) + var(--scw-aviso-h, 0px) + 8px); }
-}
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes ct-aviso-sobe { from { translate: 0 24px; opacity: 0; } to { translate: 0 0; opacity: 1; } }
-  .ct-aviso-carimbo { animation: ct-aviso-sobe 360ms cubic-bezier(.22, .9, .24, 1) 600ms backwards; }
-}

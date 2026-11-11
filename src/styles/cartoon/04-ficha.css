@@ -5,97 +5,77 @@
 /* Texto de apoio em peso de destaque (hoje: "já fui" vazio no painel da rota). */
 .ct-ni { font-weight: 600; }
 
-/* 1 · Topo (canal Elenco + cenário): logo desenhada no quadro, nome em letreiro display, selos de atendimento. */
-.ct-ficha__cabeca { display: grid; justify-items: start; gap: 22px; width: 100%; }
-/* Revisão de 06/11 (cabeçalho): o cartão da logo perdeu as fitas (elas ficam só na foto do combo), cresceu e deixou de
-   girar; o NOME e o bloco COMBO (inspiração · nome do combo · preço) são dois grupos separados, alinhados à mesma grade. */
-.ct-ficha__logo { --ct-desenho: clamp(112px, 34vw, 150px); }
-.ct-ficha__titulo { display: grid; justify-items: start; gap: 12px; min-width: 0; }
-.ct-ficha__titulo .ct-rotulo, .ct-ficha__titulo .ct-letreiro, .ct-ficha__titulo .ct-ficha__tema, .ct-ficha__combo { margin: 0; }
-/* O tamanho da letra do nome segue a PALAVRA MAIS LONGA (--ct-palavra, calculada em Topo.jsx): palavra não quebra no meio,
+/* 1 · Capa da casa (redesenho de 11/11/2026): a lâmina do combo em tamanho de página. Celular: nome · foto · oferta, em coluna;
+   computador: foto à esquerda (quadro de 3px com sombra dura, como a lâmina do carrossel) e, à direita, o nome da casa e o que vende. */
+.ct-voltar { margin: 0; padding: 12px var(--ct-trilho) 0; }
+.ct-voltar a { display: inline-flex; align-items: center; min-height: 44px; font: 700 15px/1 var(--ct-font); }
+/* Texto de apoio em peso de destaque (hoje: "já fui" vazio no painel da rota). */
+.ct-ni { font-weight: 600; }
+
+.ct-capa__grade { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'nome' 'lamina' 'oferta'; justify-items: start; gap: 24px; width: 100%; }
+.ct-capa__nome { grid-area: nome; display: grid; gap: 10px; justify-items: start; width: 100%; min-width: 0; --ct-nome-teto: 18cqi; }
+/* O tamanho da letra do nome segue a PALAVRA MAIS LONGA (--ct-palavra, calculada em Capa.jsx): palavra não quebra no meio,
    então com nome curto a letra cresce e com "Confeitaria" ou "Restaurante" ela encolhe até caber — nunca vaza da coluna. */
-.ct-ficha__nome { --ct-nome-teto: 14cqi; width: 100%; min-width: 0; }
-.ct-ficha__nome .ct-letreiro--display .ct-letreiro__linha { font-size: clamp(20px, min(var(--ct-nome-teto), calc(100cqi / (var(--ct-palavra, 7) * .62))), 96px); }
-.ct-ficha__info { display: grid; justify-items: start; gap: 12px; min-width: 0; }
-.ct-ficha__oferta { display: grid; gap: 12px; justify-items: start; min-width: 0; }
-/* O nome do combo vem antes do preço (revisão de 04/11): quem chega pelo QR confere o que vem e quanto custa sem rolar. */
-.ct-ficha__combo { max-width: 24ch; font: 900 clamp(20px, 2.1vw, 26px)/1.15 var(--ct-font); text-wrap: balance; }
-.ct-ficha__titulo .ct-letreiro { max-width: 16ch; }
-/* Topo da ficha em dois grupos com rótulo: "Como pedir" são atalhos (levam ao endereço/horário ou ao pedido) e
-   "Minha rota" são marcações do visitante — desenhos diferentes para não se confundirem. */
-.ct-ficha__grupo { display: grid; justify-items: start; gap: 8px; }
-.ct-ficha__grupo > .ct-rotulo { margin: 0; }
-.ct-ficha__modos { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.ct-edicao .ct-atalho {
-  display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 14px 6px 8px;
-  border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
-  color: var(--ct-chocolate); text-decoration: none;
+/* O letreiro é o próprio container do cqi (07-sistema): sem teto em ch, ele mede a coluna inteira. */
+.ct-capa__nome .ct-letreiro { max-width: none; margin: 0; }
+.ct-capa__nome .ct-letreiro--display .ct-letreiro__linha { font-size: clamp(20px, min(var(--ct-nome-teto), calc(100cqi / (var(--ct-palavra, 7) * .62))), 92px); }
+.ct-capa__tema { margin: 0; font: 700 clamp(17px, 1.6vw, 21px)/1.3 var(--ct-font); }
+
+.ct-capa__lamina { grid-area: lamina; position: relative; isolation: isolate; width: 100%; max-width: 460px; }
+/* Explosão de gibi atrás do quadro (a mesma do Confirmados): sai pelas bordas. */
+.ct-capa__explosao { inset: -6% -10% -10%; width: auto; --ct-cor-explosao: var(--ct-amarelo); --ct-cor-ponto: rgba(58, 21, 15, .14); }
+.ct-capa__quadro {
+  position: relative; z-index: 1; overflow: hidden; border: 3px solid var(--ct-chocolate); border-radius: 16px; background: var(--ct-creme);
+  box-shadow: 8px 8px 0 var(--ct-chocolate); rotate: -1deg;
 }
-.ct-atalho__texto { display: grid; gap: 1px; text-align: left; }
-.ct-atalho__nome { font: 800 16px/1.15 var(--ct-font); }
-.ct-atalho__dica { font: 600 13px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 2px; }
-.ct-atalho__seta { font: 900 18px/1 var(--ct-font); }
-.ct-ficha__grupo--rota { padding: 10px 14px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: rgba(253, 240, 222, .6); }
+.ct-capa__foto { display: block; }
+.ct-capa__foto .ct-foto { border: 0; border-radius: 0; }
+.ct-capa__foto--reserva { display: grid; place-items: center; align-content: center; gap: 14px; aspect-ratio: 4 / 5; padding: 12px; --ct-desenho: min(60%, 170px); }
+.ct-capa__quadro .ct-selo-casa { top: auto; bottom: 12px; right: 12px; z-index: 2; width: clamp(52px, 18%, 78px); }
+/* O momento da casa (aberta agora, fila, esgotado) na ponta de cima, como na lâmina da Home; as cores vêm de .ct-lamina__momento--*. */
+.ct-capa__momento { position: absolute; top: 0; left: 0; margin: 12px; font-size: 13px; }
+.ct-capa__lamina.is-esgotada .ct-foto img { filter: grayscale(.75); }
+
+.ct-capa__oferta { grid-area: oferta; display: grid; justify-items: start; gap: 14px; width: 100%; min-width: 0; }
+.ct-capa__oferta > * { margin: 0; }
+.ct-capa__combo { max-width: 22ch; font: 900 clamp(24px, 2.6vw, 34px)/1.1 var(--ct-font); text-wrap: balance; }
+.ct-capa__itens { max-width: 46ch; font: 600 clamp(16px, 1.4vw, 19px)/1.4 var(--ct-font); text-wrap: pretty; }
+.ct-capa__oferta .ct-preco__valor { font-size: clamp(44px, 5vw, 72px); }
+.ct-capa__oferta .ct-preco__combo { font-size: clamp(22px, 2.3vw, 30px); }
+.ct-capa__esgotado { align-self: stretch; max-width: 460px; }
+/* Ações de compra: aqui são GRANDES e em todas as telas (antes só existiam como barra do celular). */
+.ct-capa__compra { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; width: 100%; max-width: 620px; }
+.ct-edicao .ct-capa__compra .ct-compra__botao { min-height: 58px; gap: 8px; padding: 0 20px; font-size: 18px; box-shadow: 5px 5px 0 var(--ct-chocolate); }
+.ct-edicao .ct-capa__ver { display: inline-flex; align-items: center; min-height: 44px; font: 700 15px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; }
+/* "Minha rota" são marcações do visitante (ficam salvas no aparelho): contorno tracejado, secundárias. */
+.ct-capa__rota { display: grid; justify-items: start; gap: 8px; padding: 10px 14px 12px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: rgba(253, 240, 222, .6); }
+.ct-capa__rota > .ct-rotulo { margin: 0; }
 .ct-ficha__nota { margin: 0; font: 600 13px/1.3 var(--ct-font); }
-/* Topo com a foto do combo (revisão de 03/11). Celular: logo · nome · foto · como pedir/rota, em coluna.
-   Computador: logo e nome à esquerda, a foto à direita ocupando as duas linhas, "como pedir" e rota sob o nome. */
-.ct-ficha__cabeca { grid-template-areas: 'logo' 'titulo' 'foto' 'acoes'; }
-.ct-ficha__logo { grid-area: logo; }
-.ct-ficha__titulo { grid-area: titulo; }
-/* Fitas só na foto do combo, menores que o padrão do quadro: seguram o canto sem cobrir a imagem (o recuo do quadro é 13px). */
-.ct-ficha__foto.ct-quadro--fita::before, .ct-ficha__foto.ct-quadro--fita::after { top: -9px; width: 46px; height: 16px; }
-.ct-ficha__foto.ct-quadro--fita::before { left: -13px; }
-.ct-ficha__foto.ct-quadro--fita::after { right: -13px; }
-.ct-ficha__vitrine { grid-area: foto; position: relative; isolation: isolate; display: block; width: 100%; max-width: 460px; color: inherit; text-decoration: none; }
-/* Explosão de gibi atrás do quadro da foto (Confirmados): sai pelas bordas do quadro. */
-.ct-ficha__explosao { inset: -12% -14%; width: auto; --ct-cor-explosao: var(--ct-amarelo); --ct-cor-ponto: rgba(58, 21, 15, .14); }
-.ct-ficha__vitrine .ct-quadro { z-index: 1; }
-.ct-ficha__acoes { grid-area: acoes; display: grid; justify-items: start; gap: 18px; min-width: 0; }
-.ct-quadro.ct-ficha__foto { display: grid; place-items: stretch; width: 100%; padding: 10px; rotate: 1.5deg; transition: rotate var(--ct-mo), translate var(--ct-mo); }
-.ct-ficha__foto .ct-foto { border-radius: 10px; }
-.ct-ficha__vitrine:is(:hover, :focus-visible) .ct-ficha__foto { rotate: 0deg; translate: 0 -3px; }
-.ct-ficha__preco { margin-top: 6px; }
-/* Celular (04/11): quem chega pelo QR do prisma confere primeiro a casa — logo pequena e nome em cima, a foto do
-   combo logo abaixo, ainda na primeira tela. O objeto A do kit ficaria atrás da foto: sai no celular. */
+/* O cenário do combo fecha a capa, de ponta a ponta (sangra o trilho); a seção de baixo sobe e senta EM CIMA dele, cobrindo o chão do
+   desenho (a ponte, o riacho) e deixando à vista a mesa com o combo. Sobe 14% da altura do desenho (largura da tela × razão do arquivo). */
+.ct-canal.ct-capa { position: relative; padding-bottom: 0; border-bottom: 0; }
+.ct-capa__grade { margin-bottom: clamp(28px, 5vw, 64px); }
+.ct-capa__cenario { width: calc(100% + 2 * var(--ct-trilho)); margin: 0 calc(var(--ct-trilho) * -1) calc(var(--ct-capa-razao, .4) * -14vw); pointer-events: none; }
+.ct-edicao .ct-capa__cenario img { display: block; width: 100%; height: auto; }
+.ct-capa + :is(.ct-bloco, .ct-canal, .ct-aviso) { position: relative; z-index: 2; }
+.ct-capa + .ct-bloco { background: var(--ct-creme); border-top: var(--ct-traco); border-radius: clamp(20px, 3vw, 36px) clamp(20px, 3vw, 36px) 0 0; }
+.ct-capa + .ct-aviso { margin: 0; padding: 16px var(--ct-trilho); background: var(--ct-creme); }
 @media (max-width: 900px) {
-  /* Linha 1: logo (cartão de ~130 px) ao lado do nome; linha 2: inspiração + combo à esquerda e preço à direita, em toda a largura. */
-  .ct-ficha__cabeca { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'logo nome' 'info info' 'foto foto' 'acoes acoes'; align-items: center; gap: 16px; }
-  .ct-ficha__logo { --ct-desenho: clamp(96px, 30vw, 124px); }
-  .ct-ficha__titulo { display: contents; }
-  .ct-ficha__nome { grid-area: nome; --ct-nome-teto: 18cqi; }
-  .ct-ficha__nome .ct-letreiro--display .ct-letreiro__linha { max-width: none; }
-  .ct-ficha__info { grid-area: info; gap: 6px; }
-  .ct-ficha__oferta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 18px; width: 100%; }
-  .ct-ficha__oferta .ct-ficha__combo { flex: 1 1 130px; }
-  .ct-ficha__oferta .ct-ficha__preco { flex: none; margin: 0 4px 0 0; }
-  .ct-ficha__oferta .ct-preco__valor { font-size: 36px; }
-  .ct-ficha__oferta .ct-preco__combo { font-size: 22px; }
-  .ct-ficha__vitrine { justify-self: stretch; max-width: none; }
-  /* Com o nome e o preço em cima, a explosão atrás da foto subia sobre o preço: ela fica rente ao quadro em cima,
-     a foto ganha respiro e o bloco do nome fica na frente. */
-  .ct-ficha__vitrine { margin-top: 14px; }
-  .ct-ficha__explosao { inset: -4% -10% -10%; }
-  .ct-ficha__nome, .ct-ficha__info { position: relative; z-index: 2; }
-  .ct-ficha__topo .ct-cenario__objeto--a { display: none; }
+  .ct-canal.ct-capa { padding-top: clamp(28px, 6vw, 56px); }
+  .ct-capa__lamina { justify-self: center; }
+  .ct-capa__oferta .ct-preco__valor { font-size: 52px; }
 }
 @media (min-width: 901px) {
-  .ct-ficha__cabeca {
-    grid-template-columns: auto minmax(0, 1fr) minmax(280px, .85fr); grid-template-areas: 'logo titulo foto' '. acoes foto';
-    align-items: start; gap: 24px 40px;
-  }
-  .ct-ficha__logo { --ct-desenho: clamp(150px, 12vw, 200px); }
-  .ct-ficha__vitrine { justify-self: end; }
-}
-/* Celular: o objeto A do kit vai para o canto direito, ao lado do quadro da logo; o topo não reserva faixa em cima. */
-@media (max-width: 900px) {
-  .ct-canal.ct-ficha__topo:has(> .ct-cenario) { padding-top: clamp(28px, 6vw, 56px); }
-  .ct-ficha__topo .ct-cenario__objeto--a { top: 22px; left: auto; right: var(--ct-trilho); height: clamp(96px, 28vw, 150px); }
+  .ct-capa__grade { grid-template-columns: minmax(300px, 460px) minmax(0, 1fr); grid-template-areas: 'lamina nome' 'lamina oferta'; align-content: start; align-items: start; gap: 28px 64px; }
+  .ct-capa__nome { --ct-nome-teto: 11cqi; }
 }
 
-/* 2 · O combo (canal Cardápio): o rosa é moldura; foto no quadro, preço em placa e texto no painel creme, itens em cartões. */
+/* 3 · O que vem no combo (canal Cardápio): o rosa é moldura; foto no quadro, preço em placa e texto no painel creme, itens em cartões. */
 .ct-cardapio { gap: 0; }
 .ct-cardapio > .ct-etiqueta { margin-bottom: 10px; }
-.ct-cardapio > .ct-letreiro { max-width: 20ch; margin: 0 0 28px; }
+.ct-cardapio > .ct-letreiro { max-width: 20ch; margin: 0 0 22px; }
+/* Alergênicos à vista, antes dos cartões (a capa já tem foto, nome e preço): quem tem restrição vê sem abrir nada. */
+.ct-cardapio > .ct-alertas { margin: 0 0 28px; }
 .ct-cardapio__grade { display: grid; gap: 28px; width: 100%; align-items: start; }
 /* .ct-quadro vem depois no arquivo (inline-grid, centro): o prefixo garante a foto na largura toda. */
 .ct-quadro.ct-cardapio__foto { display: grid; place-items: stretch; width: 100%; padding: 12px; color: var(--ct-chocolate); rotate: -1deg; }
@@ -106,7 +86,6 @@
 @media (min-width: 900px) {
   .ct-cardapio__grade.ct-cardapio__grade--so-painel { grid-template-columns: minmax(0, 1fr); }
   .ct-cardapio__grade--so-painel .ct-cardapio__painel { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; column-gap: 48px; }
-  .ct-cardapio__grade--so-painel .ct-cardapio__painel > :is(.ct-composicao-bloco, .ct-alertas, .ct-cardapio__preco) { grid-column: 1 / -1; }
 }
 .ct-cardapio__grade--so-painel .ct-cardapio__painel { width: 100%; max-width: none; }
 .ct-cardapio__painel p { margin: 0; }
@@ -120,21 +99,10 @@
   border: var(--ct-traco); border-radius: 22px; background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
   font: 800 15px/1.3 var(--ct-font); text-decoration: none;
 }
+/* Texto chocolate: o link herda o creme do canal rosa (a pílula é branca ou amarela). */
+.ct-edicao .ct-alerta { color: var(--ct-chocolate); }
 .ct-alerta--contem { background: var(--ct-amarelo); }
 .ct-alerta--pode { border-color: var(--ct-vermelho); }
-/* "No combo": a faixa dos itens — miniatura, tipo e nome; cada um leva ao seu cartão. Uma coluna no celular, até três no computador. */
-.ct-composicao { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
-.ct-edicao .ct-composicao__item {
-  display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 76px; padding: 6px 14px 6px 6px;
-  border: 2.5px solid var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
-  color: var(--ct-chocolate); text-decoration: none;
-}
-.ct-edicao .ct-composicao__item:hover { background: var(--ct-creme); }
-.ct-composicao__foto { display: grid; place-items: center; width: 64px; height: 64px; overflow: hidden; border: 2px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-creme); }
-.ct-composicao__foto .ct-foto { width: 100%; height: 100%; border: 0; border-radius: 0; }
-.ct-composicao__texto { display: grid; gap: 1px; min-width: 0; }
-.ct-composicao__tipo { font: 800 13px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
-.ct-composicao__nome { font: 800 17px/1.2 var(--ct-font); overflow-wrap: anywhere; }
 /* A etiqueta do tipo pousa na borda de cima do cartão, como fita. */
 .ct-cardapio__itens { display: grid; gap: 32px; width: 100%; margin: 40px 0 0; padding: 0; list-style: none; }
 .ct-item {
@@ -149,6 +117,11 @@
 .ct-item__bloco > p { margin: 0; font-size: 15px; }
 .ct-item .ct-galeria-item { margin: 4px 0 6px; }
 .ct-item__restricoes { display: grid; gap: 6px; margin-top: 8px; padding-top: 12px; border-top: 2px dotted var(--ct-chocolate); }
+/* Ingredientes, restrições e trocas ficam recolhidos: consulta, não leitura corrida (os alergênicos do combo estão à vista no topo da seção). */
+.ct-item__mais { align-self: start; border-top: 2px dotted var(--ct-chocolate); }
+.ct-item__mais > summary { display: flex; align-items: center; gap: 8px; min-height: 44px; font: 800 15px/1.2 var(--ct-font); cursor: pointer; }
+.ct-item__mais-corpo { display: grid; gap: 12px; padding: 4px 0 8px; }
+.ct-item__mais-corpo .ct-item__restricoes { margin-top: 0; padding-top: 0; border-top: 0; }
 .ct-item__restricoes .ct-rotulo { margin: 0; }
 .ct-item > .ct-trocas { margin-top: 4px; }
 .ct-edicao .ct-cardapio__preco-arte { display: block; width: clamp(200px, 22vw, 300px); height: auto; rotate: -3deg; }
@@ -172,20 +145,19 @@
   .ct-cardapio__grade { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 44px; }
   .ct-cardapio__itens { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
   .ct-edicao .ct-item[id] { scroll-margin-top: 140px; }
-  /* Os cartões dividem as MESMAS sete linhas (fita · foto · nome · descrição · ingredientes · restrições · trocas): o nome, o texto
-     e as restrições de um item ficam na altura dos do vizinho, mesmo quando um tem galeria (com contador) e o outro uma foto só.
+  /* Os cartões dividem as MESMAS seis linhas (fita · foto · nome · descrição · ingredientes e alergênicos · trocas): o nome e o texto
+     de um item ficam na altura dos do vizinho, mesmo quando um tem galeria (com contador) e o outro uma foto só.
      Sem subgrade o cartão segue como era (cada um com a sua altura). O espaço entre fileiras vai na margem do cartão. */
   @supports (grid-template-rows: subgrid) {
     .ct-cardapio__itens { row-gap: 0; margin-bottom: -24px; }
-    .ct-item { grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; margin-bottom: 24px; }
+    .ct-item { grid-row: span 6; grid-template-rows: subgrid; row-gap: 0; margin-bottom: 24px; }
     .ct-item > :not(.ct-etiqueta) { margin-top: 8px; }
     .ct-item > .ct-etiqueta { grid-row: 1; }
     .ct-item > :is(.ct-galeria-item, .ct-foto) { grid-row: 2; }
     .ct-item > .ct-item__nome { grid-row: 3; }
     .ct-item > .ct-item__descricao { grid-row: 4; }
-    .ct-item > .ct-item__bloco:not(.ct-item__restricoes) { grid-row: 5; }
-    .ct-item > .ct-item__restricoes { grid-row: 6; }
-    .ct-item > .ct-trocas { grid-row: 7; }
+    .ct-item > .ct-item__mais { grid-row: 5; }
+    .ct-item > .ct-trocas { grid-row: 6; }
   }
 }
 
@@ -193,7 +165,7 @@
 .ct-ficha__secao > .ct-letreiro { margin-bottom: 10px; }
 .ct-ficha__secao > .ct-lead { margin-bottom: 22px; }
 
-/* 3 · Restrições: o veredito do combo inteiro (4 linhas) e o que cada item declarou. */
+/* Restrições: o veredito do combo inteiro (4 linhas) e o que cada item declarou. */
 .ct-vereditos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; margin: 0 0 24px; padding: 0; list-style: none; }
 .ct-veredito {
   display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 8px;
@@ -222,9 +194,11 @@
 .ct-trocas__meta { font: 500 14px/1.4 var(--ct-font); }
 .ct-confirme { max-width: 68ch; margin: 22px 0 0; padding: 14px 18px; border: var(--ct-traco); border-radius: 14px; background: var(--ct-turquesa); font: 700 15px/1.45 var(--ct-font); }
 
-/* 4 · Como pedir: um cartão por modo. Disponível em branco com sombra; "não" em creme; o que a casa não declarou não tem cartão. */
+/* 2 · Peça ou venha: um cartão por modo. Disponível em branco com sombra; "não" em creme; o que a casa não declarou não tem cartão. */
 .ct-modos { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
 @media (min-width: 900px) { .ct-modos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
+/* Celular: os três modos mais baixos, para o canal de pedido aparecer logo (a página vende). */
+@media (max-width: 599.98px) { .ct-modos { gap: 10px; } .ct-modo { align-items: center; gap: 12px; padding: 10px 14px; } .ct-modo .ct-icone { width: 40px; height: 40px; } .ct-modo__nome { font-size: 18px; } .ct-modo__estado { font-size: 15px; } }
 .ct-modo { display: flex; align-items: flex-start; gap: 14px; padding: 18px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); }
 .ct-modo:not([data-estado='sim']) { background: var(--ct-creme); box-shadow: none; }
 .ct-modo:not([data-estado='sim']) .ct-icone { opacity: .45; filter: grayscale(1); }
@@ -249,19 +223,21 @@
 .ct-ficha__secao > .ct-rotulo { margin: 14px 0 10px; }
 .ct-ficha__fale .ct-acoes { margin-top: 6px; }
 
-/* 5 · Unidades: cartão largo — nome e situação de hoje no cabeçalho; onde fica, as ações e o que atende à esquerda; o horário à direita (desktop). */
-.ct-unidades { display: grid; gap: 20px; }
-.ct-unidade { display: grid; gap: 16px; padding: clamp(18px, 2.4vw, 28px); border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra); }
+/* 4 · Onde e quando: cartão largo — nome e situação de hoje no cabeçalho; onde fica, as ações e o que atende à esquerda; o horário à direita (desktop). */
+/* Faixa única com minmax(0, 1fr): sem isso a trilha implícita (auto) cresce até o texto mais largo e o cartão vaza da tela no celular
+   (iPhone 390, 11/11: "Boa hora para visitar: menos movimento agora", endereço e botões cortados à direita). */
+.ct-unidades { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.ct-unidade { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 16px; padding: clamp(18px, 2.4vw, 28px); border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra); }
 .ct-unidade__cab { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
 .ct-unidade__ident { display: grid; gap: 4px; min-width: 0; }
 .ct-unidade__ident .ct-rotulo { margin: 0; }
-.ct-unidade__corpo { display: grid; gap: 20px 44px; }
+.ct-unidade__corpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px 44px; }
 @media (min-width: 900px) { .ct-unidade__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); } }
 .ct-unidade__modos { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .ct-unidade p { margin: 0; }
 .ct-unidade__onde, .ct-unidade__horario { display: grid; align-content: start; gap: 10px; min-width: 0; }
 .ct-unidade__nome { margin: 0; font: 900 clamp(22px, 2.4vw, 28px)/1.1 var(--ct-font); }
-.ct-unidade__linha { display: flex; align-items: center; gap: 8px; }
+.ct-unidade__linha { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
 .ct-unidade__linha .ct-icone { margin-left: -4px; }
 .ct-unidade__horario > .ct-unidade__linha { margin: 0; }
 .ct-unidade__obs { font-size: 15px; }
@@ -277,26 +253,29 @@
 .ct-dia.is-fechado { border-style: dashed; background: transparent; }
 .ct-dia.is-hoje { border-width: 2.5px; background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); }
 .ct-dia__hoje { padding: 1px 8px; border-radius: 999px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 12px/1.4 var(--ct-font); letter-spacing: .06em; text-transform: uppercase; }
-.ct-unidade .ct-agora { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 4px 14px 4px 10px; border: 2.5px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 800 15px/1.3 var(--ct-font); }
+.ct-unidade .ct-agora { width: fit-content; max-width: 100%; white-space: normal; text-wrap: balance; display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 4px 14px 4px 10px; border: 2.5px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 800 15px/1.3 var(--ct-font); }
 .ct-unidade .ct-agora--aberto { padding-left: 4px; background: var(--ct-turquesa); }
 .ct-unidade .ct-agora--abre_hoje { background: var(--ct-amarelo); }
 .ct-agora::before { content: ''; flex: none; width: 10px; height: 10px; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: var(--ct-creme); }
 .ct-agora--aberto::before { display: none; }
 .ct-agora--abre_hoje::before { background: var(--ct-amarelo); }
-.ct-avalie { padding-bottom: 8px; }
 
 /* 5 · Fotos da casa (fachada, salão): a mesma Galeria dos itens, num palco mais largo. Ampliada: <dialog>. */
 .ct-ficha__fotos-casa { max-width: 760px; }
 .ct-galeria { width: min(960px, 94vw); padding: 16px; border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-creme); }
 .ct-galeria::backdrop { background: rgba(58, 21, 15, .7); }
 
-/* Barra de compra da ficha (11/11/2026): só no celular, presa ao pé da tela logo acima da barra de abas, do topo da
-   ficha até o fim dela. No computador as mesmas ações já estão no topo ("Como pedir"). */
+/* Barra de compra da ficha (11/11/2026): só no celular, presa ao pé da tela logo acima da barra de abas, SEM caixa (os botões já têm
+   contorno e sombra: a caixa em volta virava uma "borda dupla" sobre o texto). Entra quando as ações da capa saem da tela e some ao
+   chegar ao fim da página (.is-oculta); no computador as ações grandes da capa bastam. É fixa, então não ocupa lugar no fluxo. */
 .ct-ficha__compra { display: none; }
 @media (max-width: 899.98px) {
   .ct-ficha__compra {
-    position: sticky; bottom: calc(var(--scw-base-ocupada, 72px) + 8px); z-index: 25; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-    margin: 24px var(--ct-trilho) 0; padding: 8px; border: var(--ct-traco); border-radius: 16px; background: var(--ct-creme); box-shadow: 4px 4px 0 var(--ct-chocolate);
+    position: fixed; z-index: 25; left: var(--ct-trilho); right: var(--ct-trilho); bottom: calc(var(--scw-base-ocupada, 72px) + var(--scw-aviso-h, 0px) + 8px);
+    display: flex; gap: 8px; margin: 0; padding: 0; border: 0; background: none; box-shadow: none;
   }
-  .ct-edicao .ct-ficha__compra .ct-compra__botao { gap: 6px; padding: 0 8px; font-size: 14px; letter-spacing: .02em; }
+  .ct-ficha__compra.is-oculta { display: none; }
+  .ct-edicao .ct-ficha__compra .ct-compra__botao { flex: 1 1 0; gap: 6px; padding: 0 8px; font-size: 14px; letter-spacing: .02em; }
 }
+/* 5 · Carimbe e avalie: o painel da Caça da Home (.ct-caca-chamada) com os botões em fileira. */
+.ct-ficha__carimbe-acoes { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 0; }

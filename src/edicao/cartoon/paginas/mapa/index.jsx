@@ -79,8 +79,8 @@ import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, ad
 import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/mapa/Proximidade.jsx'
 import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
 import { useTelaCheia } from './useTelaCheia.js'
-import { carregarCombosEsgotados, carregarFilasAgora } from '../../../dados/publico.js'
-import { useMovimento } from '../../../caca/useMovimento.js'
+import { useAgoraNasCasas } from '../../useAgoraNasCasas.js'
+import { AcoesCompra } from '../../CartaoCombo.jsx'
 import { seloDoMovimento } from '../../../caca/movimento.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
@@ -145,25 +145,10 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const lista = dados?.participantes || []
   const mundo = React.useMemo(() => completarUnidades(arte, lista), [arte, lista]) // unidade nova herda o lugar da casa na arte
   const periodo = dados?.edicao
-  const [esgotadosHoje, setEsgotadosHoje] = React.useState([])
-  const [filasAgora, setFilasAgora] = React.useState([]) // ids públicos das unidades com "Fila agora" (vence em 1 h)
-  React.useEffect(() => {
-    let ativo = true
-    const ler = () => {
-      carregarCombosEsgotados(periodo?.codigo).then((r) => { if (ativo) setEsgotadosHoje((r || []).map((x) => x.slug)) }).catch(() => {})
-      carregarFilasAgora(periodo?.codigo).then((r) => { if (ativo) setFilasAgora((r || []).map((x) => x.unidade)) }).catch(() => {})
-    }
-    ler()
-    const intervalo = setInterval(ler, 45000)
-    const aoFocar = () => { if (document.visibilityState === 'visible') ler() }
-    document.addEventListener('visibilitychange', aoFocar)
-    window.addEventListener('focus', ler)
-    return () => { ativo = false; clearInterval(intervalo); document.removeEventListener('visibilitychange', aoFocar); window.removeEventListener('focus', ler) }
-  }, [periodo?.codigo])
-  const esgotadosSet = React.useMemo(() => new Set(esgotadosHoje), [esgotadosHoje])
-  // Movimento (doc 20, parte D): vazio com o interruptor desligado — aí nem o filtro nem os selos aparecem.
-  const movimento = useMovimento(periodo?.codigo)
-  const seloDe = (p, u) => seloDoMovimento({ mov: movimento.get(u.id), aberto: M.estadoAgora(u, new Date(), periodo).estado === 'aberto', esgotado: esgotadosSet.has(p.slug), fila: filasAgora.includes(u.id) })
+  // O que é verdade AGORA nas casas (esgotado por casa, fila por unidade, movimento): a MESMA leitura da Home e da ficha (useAgoraNasCasas).
+  // Movimento: vazio com o interruptor desligado — aí nem o filtro nem os selos aparecem (doc 20, parte D).
+  const { esgotados: esgotadosSet, filas: filasAgora, movimento } = useAgoraNasCasas(periodo?.codigo)
+  const seloDe = (p, u) => seloDoMovimento({ mov: movimento.get(u.id), aberto: M.estadoAgora(u, new Date(), periodo).estado === 'aberto', esgotado: esgotadosSet.has(p.slug), fila: filasAgora.has(u.id) })
   const opcoes = React.useMemo(() => M.opcoesFiltro(lista, periodo), [lista, periodo])
   const filtro = { ...f, aberto: f.aberto && opcoes.hoje } // fora do festival, ?aberto=1 antigo não esconde nada
   const marcas = { rota: rota.ids, foi: rota.foi }
@@ -186,6 +171,10 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   // `ativos` inclui a busca (o "Limpar filtros" limpa tudo); o contador do botão só conta os filtros da folha.
   const ativos = [f.q, f.bairro, f.modo, filtro.aberto, f.queroIr, f.jaFui, filtroEstado, filtroTranquila].filter(Boolean).length
   const nFiltros = contarFiltros({ ...f, estado: filtroEstado, tranquila: filtroTranquila }, { aberto: filtro.aberto })
+  // Horário de hoje de cada pin (aberto · abre em breve · fechado): o relógio só refaz a tela quando algum nível muda (useAberturas.js).
+  const aberturas = useAberturas(lista, periodo)
+  // "Abertas agora": casas com algum endereço aberto neste instante e com combo ainda à venda (o número do chip rápido).
+  const nAbertasAgora = lista.filter((p) => p.combo && !esgotadosSet.has(p.slug) && aberturas.nivelDaCasa(p.slug) === 'aberto').length
   const bairroOpcao = opcoes.bairros.find((b) => M.normalizar(b) === M.normalizar(f.bairro)) || ''
   const { casas: nCasas, enderecos: nEnderecos } = casasEEnderecos(lista)
 
@@ -222,8 +211,6 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   }, [lista, mundo, rota.ids, meu.mapa, casasMapa, distancias])
   const proximaSlug = ['avaliar', 'rota', 'visitar'].includes(passo.tipo) ? passo.slug : ''
   const { recentes, aviso: avisoConquista } = useConquistas(casasMapa, nomeDeSlug)
-  // Horário de hoje de cada pin (aberto · abre em breve · fechado): o relógio só refaz a tela quando algum nível muda (useAberturas.js).
-  const aberturas = useAberturas(lista, periodo)
 
   // O pin é UM só nos dois mapas (ilustrado e real): a mesma logo, o mesmo número e o mesmo estado, calculados aqui uma vez.
   // Logo desenhada P&B sem carimbo, colorida com carimbo; casa sem desenho cai na oficial reduzida do Mundo e, sem ela, na inicial.
@@ -473,7 +460,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
         : (
           <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
             parada={paradaDe.get(escolhida.u.id) || null} estado={estadoDe(escolhida.p.slug)} revisitas={revisitasDe(escolhida.p.slug)}
-            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)} filaAgora={filasAgora.includes(escolhida.u.id)} movimento={movimento.get(escolhida.u.id) || null}
+            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)} filaAgora={filasAgora.has(escolhida.u.id)} movimento={movimento.get(escolhida.u.id) || null}
             proxima={escolhida.p.slug === proximaSlug} aoAvaliar={avaliar}
             irmas={enderecosDaCasa(todas, escolhida.p.slug, escolhida.u.id)} aoEscolher={escolher} />
           )}
@@ -495,6 +482,11 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             </div>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} botaoPerto={cheia ? null : botaoPerto} />
+            {opcoes.hoje && (
+              <div className="ct-mapa__rapidos">
+                <Chip ativo={f.aberto} icone="aberto-agora" onClick={() => muda('aberto', !f.aberto)}>{T.abertasAgora(nAbertasAgora)}</Chip>
+              </div>
+            )}
             {!cheia && (
               <FaixaJogo placar={progressoDoJogo ? `${progressoDoJogo.feitas}/${progressoDoJogo.total}` : ''}
                 resumo={progressoDoJogo ? TC.atalhosResumo(progressoDoJogo.feitas, progressoDoJogo.total) : ''} conteudo={conteudoAtalho} navigate={navigate}
@@ -555,7 +547,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                   {painelPerto && <div className="ct-perto-fluxo">{painelPerto}</div>}
                   {linhas.length ? (
                     <ul className="ct-mapa__lista" aria-label={T.contagem(linhas.length)}>
-                      {linhas.map(({ u, p, dist, foi }) => {
+                      {(perto ? linhas : [...linhas].sort((a, b) => Number(aberturas.nivelDaUnidade(b.u.id) === 'aberto') - Number(aberturas.nivelDaUnidade(a.u.id) === 'aberto'))).map(({ u, p, dist, foi }) => {
                         const titulo = M.tituloDaUnidade(p, u)
                         const esgotado = esgotadosSet.has(p.slug)
                         const est = u.combo ? M.estadoAgora(u, undefined, dados?.edicao) : null
@@ -576,6 +568,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
                                 {nota && <span className={`ct-mapa__local${u.coordenada ? ' ct-mapa__local--aprox' : ''}`}>{nota}</span>}
                               </span>
                             </button>
+                            {p.combo && !esgotado && <AcoesCompra p={p} unidade={u} navigate={navigate} className="ct-mapa__item-compra" />}
                             <div className="ct-mapa__marcas"><QueroIr u={u} nome={titulo} /><JaFui p={p} /></div>
                           </li>
                         )

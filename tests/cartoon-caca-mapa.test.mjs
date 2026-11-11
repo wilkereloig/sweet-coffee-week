@@ -122,11 +122,13 @@ test('textos do próximo passo: distância curta e dica de localização', () =>
   assert.ok(T.pertoDica.disponivel && T.pertoDica.negada && !T.pertoDica.indisponivel)
 })
 
-test('a assinatura do Sicredi abre a ficha da casa (só no site) e o Mapa, e não é fixa', () => {
+test('a assinatura do Sicredi fica no topo de TODA página da edição (casca), uma só vez, e não é fixa', () => {
   const src = (f) => readFileSync(fileURLToPath(new URL(`../src/edicao/${f}`, import.meta.url)), 'utf8')
-  const ficha = src('cartoon/paginas/participante/index.jsx')
-  assert.match(ficha, /\{navigate && <AssinaturaPatrocinio \/>\}/, 'na ficha só com navigate: a prévia do painel não leva patrocinador')
-  assert.ok(ficha.indexOf('<AssinaturaPatrocinio />') < ficha.indexOf('<Topo '), 'a assinatura vem antes do topo da ficha')
+  const casca = src('cartoon/index.jsx')
+  assert.match(casca, /<div className="ct-conteudo"><AssinaturaPatrocinio \/>\{conteudo\}<\/div>/, 'na casca, no começo do conteúdo (abaixo do cabeçalho fixo): aparece no topo de todas as páginas da Cartoon')
+  assert.ok(casca.indexOf('<AssinaturaPatrocinio />') > casca.indexOf('</header>'), 'depois do cabeçalho, antes do conteúdo')
+  assert.doesNotMatch(src('cartoon/paginas/participante/index.jsx'), /<AssinaturaPatrocinio\b/, 'a ficha não repete a assinatura (a casca já a traz)')
+  assert.doesNotMatch(src('cartoon/paginas/Catalogo.jsx'), /<AssinaturaPatrocinio\b/, 'o catálogo não repete a assinatura (a casca já a traz)')
   assert.doesNotMatch(src('cartoon/paginas/mapa/index.jsx'), /<AssinaturaPatrocinio\b/, 'o mapa apresenta o patrocinador nos próprios marcadores')
   const css = readFileSync(fileURLToPath(new URL('../src/styles/cartoon/01-base.css', import.meta.url)), 'utf8')
   assert.doesNotMatch(css.match(/\.ct-assina-patrocinio \{[^}]*\}/)[0], /position: (fixed|sticky)/, 'não é fixa na tela (manual da Sicredi)')

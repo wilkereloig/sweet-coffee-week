@@ -37,10 +37,13 @@ function selosDaCasa (p) {
  *  · Ir até a casa: uma unidade → "Como chegar" no mapa; várias → a lista de unidades da ficha.
  * Casa que declarou "não" para consumo no local E para retirada não ganha "Ir até a casa".
  * `naFicha`: dentro da própria ficha os destinos internos rolam até o bloco (Ancora) em vez de navegar.
+ * `unidade`: o Mapa decide por ENDEREÇO, não por casa — com ela, delivery e "Ir até a casa" valem só para essa unidade
+ * (casa só delivery: só o botão de delivery; sem canal na unidade: a ficha mostra como pedir).
  * `data-acao` e `data-casa` alimentam a contagem de cliques (useContagemCliques).
  */
-export function AcoesCompra ({ p, navigate, className = '', naFicha = false }) {
-  if (!p.combo) return null
+export function AcoesCompra ({ p: casa, navigate, className = '', naFicha = false, unidade = null }) {
+  if (!casa.combo) return null
+  const p = unidade ? { ...casa, unidades: [unidade] } : casa
   const us = p.unidades || []
   const delivery = M.estadoModo(p, 'delivery').estado === 'sim' ? M.destinoDelivery(p) : null
   const presencial = us.length > 0 && ['local', 'retirada'].some((k) => M.estadoModo(p, k).estado !== 'nao')

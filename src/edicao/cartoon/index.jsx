@@ -24,6 +24,7 @@ import { useTopoSobreSecao } from './useTopoSobreSecao.js'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
 import { FaixaMarcas } from '../componentes/sistema/Marcas.jsx'
+import { AssinaturaPatrocinio } from '../componentes/sistema/AssinaturaPatrocinio.jsx'
 import ScwIcon from '../../components/scw-icons/ScwIcon.jsx'
 import { RotaContexto, MAPA_NO_AR } from './contexto.js'
 import { NAV, MENU, CENA_TEXTO, RODAPE } from './textos.js'
@@ -235,7 +236,9 @@ export function CartoonPage ({ path, navigate }) {
           <MenuCelular itens={PAGINAS} ativa={ativa} navigate={navigate} paradas={paradas} />
         </header>
 
-        <div className="ct-conteudo">{conteudo}</div>
+        {/* Patrocínio Sicredi no TOPO de toda página da edição (Wilker, 11/11/2026: "todas as páginas da Cartoon"): uma assinatura só, aqui.
+            Dentro do .ct-conteudo, para ficar logo abaixo do cabeçalho fixo (o recuo do cabeçalho é desse contêiner). */}
+        <div className="ct-conteudo"><AssinaturaPatrocinio />{conteudo}</div>
         <p className="ct-sr" aria-live="polite">{rota.anuncio}</p>
 
         <FaixaMarcas />

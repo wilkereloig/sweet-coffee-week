@@ -261,15 +261,3 @@
 .ct-canal:has(> .ct-cenario--natal) { padding-top: clamp(32px, 6vw, 72px); padding-right: var(--ct-trilho); }
 /* Ficha da casa: o topo leva só os objetos do kit (sem a faixa). */
 .ct-canal:has(> .ct-cenario--sem-faixa) { padding-bottom: clamp(32px, 6vw, 72px); }
-/* Faixa presa ao pé da tela (lista 13, P1 — Wilker, 03/11): acompanha a LARGURA da página em qualquer tela
-   (altura = largura × --ct-fixo-razao, a razão do arquivo, que o CenarioFixo põe também na raiz) e fica BEM
-   baixa: no começo só uns 18% da altura da tela à mostra (e ao menos 40% do desenho abaixo da borda);
-   com a rolagem ela sobe e aparece inteira no fim da página (09-movimento.css). O rodapé reserva a altura
-   inteira: no fim nada fica coberto. Celular: acima da barra de abas. */
-.ct-edicao:has(.ct-cenario-fixo) { --ct-fixo-h: calc(var(--ct-fixo-razao, .33) * 100vw); }
-/* Revisão de 03/11 (crítica visual): baixa, ela ainda cobria 18% da tela — no celular, somada às abas, um terço da
-   leitura (o nome do item, "Como pedir"). Agora: SEM animação de rolagem (movimento reduzido, navegador sem
-   scroll-timeline) a faixa fica no fluxo, no fim da ficha, inteira e sem cobrir nada; COM ela, fica escondida enquanto
-   se lê e sobe só no último trecho (09-movimento.css). */
-.ct-cenario-fixo { position: relative; pointer-events: none; margin-top: clamp(32px, 6vw, 72px); }
-.ct-edicao .ct-cenario-fixo img { display: block; width: 100%; height: auto; }
