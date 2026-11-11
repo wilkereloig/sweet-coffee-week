@@ -247,3 +247,23 @@
 }
 /* Celular: o preço já está no topo logo acima; a cabeça da vitrine fica só com o letreiro e a primeira lâmina sobe. */
 @media (max-width: 599.98px) { .ct-edicao .ct-vitrine__preco, .ct-edicao .ct-vitrine__apoio { display: none; } .ct-vitrine__cabeca { margin-bottom: 10px; } }
+
+/* Avalie no palco (redesenho 11/11/2026): o texto num balão de fala branco, o botão grande com a luva apontando e o troféu
+   maior no centro do palco, sob os holofotes. */
+.ct-edicao .ct-entrada__avalie .ct-avalie__balao {
+  position: relative; max-width: 44ch; margin: 0; padding: 16px 24px; border: 3px solid var(--ct-chocolate); border-radius: 24px;
+  background: var(--ct-branco); color: var(--ct-chocolate); box-shadow: 5px 5px 0 var(--ct-chocolate);
+  font: 700 clamp(17px, 1.5vw, 20px)/1.45 var(--ct-font); text-align: center; text-wrap: balance;
+}
+.ct-entrada__avalie .ct-avalie__balao::after {
+  content: ''; position: absolute; left: 50%; bottom: -14px; width: 22px; height: 22px; translate: -50% 0; rotate: 45deg;
+  border-right: 3px solid var(--ct-chocolate); border-bottom: 3px solid var(--ct-chocolate); background: var(--ct-branco);
+}
+.ct-entrada__avalie .ct-avalie__acoes { align-items: center; gap: 12px; margin-top: 30px; }
+.ct-edicao .ct-entrada__avalie .ct-avalie__acoes .ct-botao { min-height: 60px; padding: 0 32px; font-size: 21px; }
+.ct-edicao .ct-avalie__luva { width: clamp(70px, 7vw, 100px); height: auto; rotate: -6deg; }
+.ct-edicao .ct-entrada__avalie .ct-avalie__trofeu { width: clamp(150px, 17vw, 240px); margin-top: clamp(20px, 3vw, 36px); }
+@media (max-width: 599.98px) {
+  .ct-edicao .ct-avalie__luva { display: none; }
+  .ct-edicao .ct-entrada__avalie .ct-avalie__acoes .ct-botao { min-height: 54px; padding: 0 24px; font-size: 19px; }
+}

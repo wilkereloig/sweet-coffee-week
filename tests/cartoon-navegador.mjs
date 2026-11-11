@@ -591,7 +591,7 @@ try {
         // Auditoria da Home (11/11): "Onde ficam" saiu (repetia o Mapa); entrou a faixa da Caça aos Carimbos.
         onde: document.querySelectorAll('.ct-onde, .ct-bairro').length,
         caca: !!document.querySelector('.ct-entrada__caca a[href="/cartoon/caca"]'),
-        avalie: txt('.ct-entrada__avalie .ct-palco__texto'),
+        avalie: txt('.ct-entrada__avalie .ct-avalie__balao'),
         avaliar: !!document.querySelector('.ct-entrada__avalie a[href^="/cartoon/avaliar"]'),
         duvidas: document.querySelectorAll('.ct-duvidas details').length,
       }

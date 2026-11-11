@@ -89,71 +89,46 @@
 /* Link de texto ao lado do logo na assinatura do patrocínio (entrada). Alvo de toque de 44px. */
 .ct-edicao .ct-assina-patrocinio__campanha { display: inline-flex; align-items: center; min-height: 44px; font: 700 14px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; }
 
-/* Assinatura ampliada: deixa o patrocínio visível e explica a campanha enquanto ela está aberta. */
-.ct-assina-patrocinio--destaque {
-  display: grid; grid-template-columns: minmax(0, 1100px); justify-content: center; gap: 12px;
-  padding: 24px var(--ct-trilho) 32px; border-top: var(--ct-traco); border-bottom: var(--ct-traco); text-align: left;
+/* ---------------------------------------------------------------- painel do patrocinador (redesenho 11/11/2026)
+   Wilker: "essa seção ainda está bem ruim". Painel de gibi turquesa com retícula: fita vermelha do prazo, letreiro, os três
+   passos em balões numerados, o vídeo num quadro com fita crepe e o adesivo amarelo do carimbo Sicredi. A logo do
+   patrocinador fica no alto, sobre branco, sem caixa (versão preferencial). */
+.ct-sicredi { padding: clamp(32px, 5vw, 64px) var(--ct-trilho) clamp(36px, 5vw, 72px); }
+.ct-sicredi__marca { display: flex; align-items: center; justify-content: center; gap: 14px; width: fit-content; margin: 0 auto 22px; padding: 10px 22px; border-radius: 999px; background: var(--ct-branco); }
+.ct-sicredi__marca .ct-assina-patrocinio__rotulo { margin: 0; }
+.ct-edicao .ct-sicredi__marca img { display: block; width: auto; height: clamp(30px, 3vw, 40px); }
+.ct-sicredi__painel {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(220px, .6fr); align-items: center; gap: 28px clamp(28px, 4vw, 56px);
+  max-width: 1120px; margin: 0 auto; padding: clamp(22px, 3.5vw, 48px); border: 3px solid var(--ct-chocolate); border-radius: 22px;
+  background-color: var(--ct-turquesa); box-shadow: 8px 8px 0 var(--ct-chocolate);
 }
-.ct-assina-patrocinio__marca { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 4px 0; background: var(--ct-branco); }
-.ct-assina-patrocinio__promocao {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 190px) minmax(0, .85fr); align-items: center; gap: 24px;
-  padding: clamp(20px, 3vw, 36px); border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-creme);
+.ct-sicredi__chamada { display: grid; justify-items: start; gap: 14px; min-width: 0; }
+.ct-sicredi__chamada .ct-letreiro { margin: 0; }
+.ct-sicredi__prazo { margin: 0; }
+.ct-edicao .ct-sicredi__lead { max-width: 46ch; margin: 0; font: 600 clamp(17px, 1.4vw, 19px)/1.45 var(--ct-font); }
+.ct-sicredi__passos { display: grid; gap: 12px; width: 100%; max-width: 560px; margin: 4px 0 0; padding: 0; list-style: none; counter-reset: none; }
+.ct-sicredi__passos li { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 12px; }
+.ct-sicredi__passos li:nth-child(2) { margin-left: 18px; }
+.ct-sicredi__n {
+  display: grid; place-items: center; width: 44px; height: 44px; border: 3px solid var(--ct-chocolate); border-radius: 50%;
+  background: var(--ct-vermelho); color: var(--ct-creme); font: 900 21px/1 var(--ct-font); box-shadow: 3px 3px 0 var(--ct-chocolate);
 }
-.ct-assina-patrocinio__chamada { display: grid; align-content: center; justify-items: start; gap: 12px; }
-.ct-edicao .ct-assina-patrocinio__selo { margin: 0; font: 800 12px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; }
-.ct-edicao .ct-assina-patrocinio__titulo { max-width: 19ch; margin: 0; font: 900 clamp(27px, 3.2vw, 42px)/1.08 var(--ct-font); text-wrap: balance; }
-.ct-edicao .ct-assina-patrocinio__nome { max-width: 38ch; margin: 0; font: 600 16px/1.45 var(--ct-font); }
-.ct-assina-patrocinio__beneficio {
-  display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: start; gap: 11px; width: 100%; max-width: 440px;
-  padding: 12px; border: 2px solid #63c733; border-radius: 16px;
-  background: linear-gradient(135deg, color-mix(in srgb, #63c733 13%, var(--ct-branco)), var(--ct-branco) 72%);
-  box-shadow: 3px 3px 0 color-mix(in srgb, #63c733 56%, var(--ct-chocolate));
+.ct-edicao .ct-sicredi__passos p {
+  margin: 0; padding: 10px 16px; border: 2.5px solid var(--ct-chocolate); border-radius: 16px; background: var(--ct-branco);
+  box-shadow: 3px 3px 0 var(--ct-chocolate); font: 600 15px/1.4 var(--ct-font);
 }
-.ct-assina-patrocinio__beneficio-simbolo {
-  position: relative; display: grid; place-items: center; width: 48px; height: 48px; margin-top: 2px;
-  border: 2px dashed var(--ct-chocolate); border-radius: 50%; background: #63c733; color: var(--ct-chocolate);
-  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--ct-branco) 55%, transparent);
+.ct-sicredi__video { position: relative; display: grid; justify-items: center; gap: 10px; margin: 0; }
+.ct-sicredi__quadro { width: min(100%, 250px); rotate: 2deg; }
+.ct-edicao .ct-sicredi__quadro video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: cover; background: var(--ct-chocolate); }
+.ct-edicao .ct-sicredi__video figcaption { font: 800 13px/1.3 var(--ct-font); text-transform: uppercase; letter-spacing: .04em; }
+.ct-edicao .ct-sicredi__adesivo {
+  display: flex; align-items: center; gap: 8px; max-width: 260px; margin: 2px 0 0; padding: 8px 14px 8px 8px;
+  border: 3px solid var(--ct-chocolate); border-radius: 14px; background: var(--ct-amarelo); box-shadow: 4px 4px 0 var(--ct-chocolate);
+  font: 600 14px/1.3 var(--ct-font); rotate: -3deg;
 }
-.ct-assina-patrocinio__beneficio-simbolo > span { font: 900 25px/.9 var(--ct-font); }
-.ct-assina-patrocinio__beneficio-simbolo i { position: absolute; top: -5px; right: -4px; color: var(--ct-amarelo); font: 900 17px/1 var(--ct-font); text-shadow: 1px 1px 0 var(--ct-chocolate); }
-.ct-edicao .ct-assina-patrocinio__beneficio-rotulo { margin: 0 0 3px; color: #276b22; font: 900 10px/1.1 var(--ct-font); letter-spacing: .1em; }
-.ct-edicao .ct-assina-patrocinio__beneficio h3 { margin: 0; font: 900 16px/1.15 var(--ct-font); }
-.ct-edicao .ct-assina-patrocinio__beneficio-conteudo > p:not(.ct-assina-patrocinio__beneficio-rotulo, .ct-assina-patrocinio__beneficio-valor, .ct-assina-patrocinio__beneficio-nota) { margin: 5px 0 0; font: 600 12px/1.35 var(--ct-font); }
-.ct-edicao .ct-assina-patrocinio__beneficio-valor {
-  display: flex; align-items: center; gap: 5px; width: fit-content; max-width: 100%; margin: 7px 0 0; padding: 5px 8px;
-  border-radius: 999px; background: var(--ct-amarelo); font: 900 11px/1.2 var(--ct-font);
+.ct-sicredi__adesivo strong { display: block; font-weight: 900; text-transform: uppercase; }
+@media (max-width: 760px) {
+  .ct-sicredi__painel { grid-template-columns: minmax(0, 1fr); }
+  .ct-sicredi__passos li:nth-child(2) { margin-left: 0; }
+  .ct-sicredi__quadro { width: min(70%, 220px); }
 }
-.ct-edicao .ct-assina-patrocinio__beneficio-valor span { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; border-radius: 50%; background: #63c733; font: 900 11px/1 var(--ct-font); }
-.ct-edicao .ct-assina-patrocinio__beneficio-nota { margin: 5px 0 0; font: 600 11px/1.3 var(--ct-font); }
-.ct-assina-patrocinio__prazo { margin: 0; padding: 6px 12px; border-radius: 999px; background: var(--ct-amarelo); font: 800 14px/1.3 var(--ct-font); }
-.ct-assina-patrocinio__video { display: grid; justify-items: center; gap: 8px; width: 100%; max-width: 190px; margin: 0 auto; }
-.ct-assina-patrocinio__video video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: contain; border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-chocolate); }
-.ct-edicao .ct-assina-patrocinio__video figcaption { font: 700 12px/1.3 var(--ct-font); text-align: center; }
-.ct-assina-patrocinio__passos { position: relative; display: grid; align-content: center; gap: 10px; padding: 24px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
-.ct-edicao .ct-assina-patrocinio__passos img { width: 76px; height: 76px; object-fit: contain; }
-.ct-edicao .ct-assina-patrocinio__passos-titulo { margin: 0; font: 900 19px/1.2 var(--ct-font); }
-.ct-assina-patrocinio__passos ol { display: grid; gap: 8px; margin: 0; padding-left: 22px; font: 600 15px/1.4 var(--ct-font); }
-.ct-assina-patrocinio__passos li::marker { font-weight: 900; }
-.ct-edicao .ct-assina-patrocinio__nota { margin: 0; font: 500 13px/1.4 var(--ct-font); }
-.ct-edicao .ct-assina-patrocinio__promocao .ct-botao { justify-self: start; min-height: 44px; }
-@media (max-width: 850px) {
-  .ct-assina-patrocinio--destaque { grid-template-columns: 1fr; gap: 12px; padding-block: 16px; }
-  .ct-assina-patrocinio__promocao { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px; }
-  .ct-assina-patrocinio__passos { padding: 16px; }
-}
-@media (max-width: 500px) {
-  .ct-assina-patrocinio__beneficio { grid-template-columns: 42px minmax(0, 1fr); gap: 9px; padding: 10px; }
-  .ct-assina-patrocinio__beneficio-simbolo { width: 42px; height: 42px; }
-  .ct-assina-patrocinio__beneficio-simbolo > span { font-size: 22px; }
-  .ct-edicao .ct-assina-patrocinio__beneficio-valor { border-radius: 12px; }
-}
-
-/* Vídeo atrás de um botão (auditoria da Home, 11/11): a seção encolhe; o vídeo só aparece (e carrega) quando a pessoa abre. */
-.ct-assina-patrocinio__video-abrir { display: grid; justify-items: center; gap: 12px; }
-.ct-assina-patrocinio__video-abrir > summary { list-style: none; }
-.ct-assina-patrocinio__video-abrir > summary::-webkit-details-marker { display: none; }
-/* Os dois botões da chamada (Como participar · Assistir ao vídeo) lado a lado; aberto, o vídeo ocupa a linha de baixo. */
-.ct-assina-patrocinio__acoes { align-items: flex-start; }
-.ct-assina-patrocinio__video-abrir[open] { flex-basis: 100%; justify-items: start; }
-/* Redesenho (11/11): o vídeo foi para dentro da chamada; sobram duas colunas — a chamada e os passos. */
-@media (min-width: 851px) { .ct-assina-patrocinio__promocao:has(.ct-assina-patrocinio__video-abrir) { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }

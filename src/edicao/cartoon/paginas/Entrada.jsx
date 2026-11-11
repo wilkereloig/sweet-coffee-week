@@ -244,19 +244,21 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
       {/* 5 · O patrocinador, compacto (vídeo atrás de um botão; depois do prazo da campanha, só a assinatura). */}
       <AssinaturaPatrocinio navigate={navigate} destaque />
 
-      {/* 6 · Avalie no palco do Sweet Awards: cortina, holofotes e o troféu no círculo de luz. */}
+      {/* 6 · Avalie no palco do Sweet Awards. Redesenho (11/11): o texto vira balão de fala, o botão cresce com a luva
+          apontando e o troféu ganha o centro do palco, sob os holofotes. */}
       <section className="ct-palco ct-entrada__avalie" aria-labelledby="ct-avalie">
         <Gibi chave="palco" className="ct-palco__fundo" />
-        <div className="ct-palco__corpo">
+        <div className="ct-palco__corpo ct-avalie">
           <Letreiro id="ct-avalie" texto={T.avalieTitulo} cor="vermelho" />
-          <p className="ct-palco__texto">{textoAvalie}</p>
-          <div className="ct-acoes">
-            {!encerrada && <Botao href={`${C}/avaliar`} navigate={navigate}>{aberta ? T.avaliar : T.comoAvaliar}</Botao>}
+          <p className="ct-avalie__balao">{textoAvalie}</p>
+          <div className="ct-acoes ct-avalie__acoes">
+            {!encerrada && <Gibi chave="luva-aponta" className="ct-avalie__luva" />}
+            {!encerrada && <Botao tipo="acao" href={`${C}/avaliar`} navigate={navigate}>{aberta ? T.avaliarCombo : T.comoAvaliar}</Botao>}
             {/* Antes dos resultados a premiação é a mesma página da avaliação: o segundo botão só entra quando leva a algo novo. */}
-            {(encerrada || dados?.resultados_publicos) && <Botao tipo={encerrada ? 'primario' : 'secundario'} href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao>}
+            {(encerrada || dados?.resultados_publicos) && <Botao tipo={encerrada ? 'acao' : 'secundario'} href={`${C}/premiacao`} navigate={navigate}>{T.premiacao}</Botao>}
           </div>
         </div>
-        <img className="ct-palco__trofeu" src={trofeu.src} width={trofeu.largura} height={trofeu.altura} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+        <img className="ct-palco__trofeu ct-avalie__trofeu" src={trofeu.src} width={trofeu.largura} height={trofeu.altura} alt="" aria-hidden="true" loading="lazy" decoding="async" />
       </section>
 
       {/* 7 · Dúvidas: respostas que acompanham o estado da edição (preço do banco, avaliação aberta ou não). */}

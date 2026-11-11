@@ -81,6 +81,7 @@ export const ENTRADA = {
   avalieAbre: (quando) => `A avaliação abre ${quando}.`,
   avalieAberta: 'Provou o combo? Conte como foi: as avaliações do público ajudam a escolher os destaques do Sweet Awards.',
   avaliar: 'Avaliar',
+  avaliarCombo: 'Avaliar meu combo',
   comoAvaliar: 'Ver como avaliar',
   premiacao: 'Ver a premiação',
   duvidasTitulo: 'Dúvidas',
