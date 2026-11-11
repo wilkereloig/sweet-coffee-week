@@ -1,18 +1,19 @@
 /**
- * cartoon-aviso-carimbo-navegador.mjs — o aviso "Carimbar" da ficha e o QR do display que abre direto no combo.
+ * cartoon-aviso-carimbo-navegador.mjs — o painel "Carimbe e avalie" da ficha (era o aviso flutuante "Carimbar") e o QR do display.
  *
  *   npm run build && npm run test:cartoon-aviso        (CARTOON_BUILD_DIR=<pasta> usa um build fora do projeto)
  *
  * A projeção pública é INTERCEPTADA (como em cartoon-navegador.mjs). A regra "QR d1-<casa> → /cartoon/combos/<casa>" é
  * testada sem navegador (qr-leituras.test.mjs); aqui o QR é a URL que ele devolve (com utm_*).
+ * Redesenho de 11/11/2026 (auditoria da Página da casa): o aviso flutuante saiu; o convite à Caça é um painel no fluxo.
  * Reprova:
- *  1. QR DO DISPLAY — a URL do redirect abre a ficha da casa no combo, sem tela intermediária; aviso presente.
- *  2. ENTRADAS — catálogo e link direto mostram o aviso; ficha inexistente / retirada não.
- *  3. FECHAR — botão e Escape fecham; ao reabrir a ficha (recarregar, voltar, outra casa) o aviso volta; nada fica gravado.
+ *  1. QR DO DISPLAY — a URL do redirect abre a ficha da casa na capa, sem tela intermediária; painel presente.
+ *  2. ENTRADAS — catálogo e link direto mostram o painel; ficha inexistente / retirada não.
+ *  3. SEM FLUTUANTE — nada fixo cobrindo o pé da tela, nada gravado no aparelho.
  *  4. CARIMBAR — leva à tela do carimbo da casa e NÃO chama o banco para carimbar; casa com 2 unidades: um botão, sem escolha.
- *  5. ESTADOS — sem aviso com a avaliação fechada, edição encerrada ou casa sem combo.
- *  6. LAYOUT — 390 e 1440, com aviso de cookies e barra de abas: dentro da tela, sem cobrir a barra nem o aviso de cookies,
- *     alvos ≥ 44 px, foco visível, teclado, movimento reduzido. Capturas em tests/capturas-aviso-carimbo/.
+ *  5. ESTADOS — sem painel com a avaliação fechada, edição encerrada ou casa sem combo.
+ *  6. LAYOUT — 390 e 1440: sem rolagem lateral, alvos ≥ 44 px, foco visível; barra de compra do celular escondida com as
+ *     ações da capa à vista e sem cobrir a barra de abas. Capturas em tests/capturas-aviso-carimbo/.
  */
 import { chromium } from 'playwright'
 import { spawn, execSync } from 'node:child_process'
@@ -84,7 +85,7 @@ async function contexto (nav, dados, { w = 1440, h = 900, reduzido = false } = {
   return { ctx, page, erros, bancoChamado }
 }
 const abrir = (page, caminho) => page.goto(`${BASE}${caminho}`, { waitUntil: 'networkidle' })
-const aviso = (page) => page.locator('.ct-aviso-carimbo')
+const painel = (page) => page.locator('#carimbe .ct-ficha__carimbe')
 const rect = (loc) => loc.evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, b: r.bottom, r: r.right } })
 const cruza = (a, b) => a.x < b.r && b.x < a.r && a.y < b.b && b.y < a.b
 const AURORA = '/cartoon/combos/demo-casa-aurora'
@@ -99,16 +100,16 @@ try {
   await waitForServer(BASE)
   nav = await chromium.launch()
 
-  console.log('\n1 · QR do display: direto na ficha, no combo, sem tela intermediária')
+  console.log('\n1 · QR do display: direto na ficha, sem tela intermediária; capa do combo no topo e painel "Carimbe e avalie"')
   {
     const { ctx, page, erros, bancoChamado } = await contexto(nav, edicao())
     await abrir(page, QR)
     verdade(new URL(page.url()).pathname === AURORA, 'o endereço fica /cartoon/combos/<casa> (nenhuma passagem por /carimbo)')
     igual(await page.locator('h1').first().textContent().then((t) => /Caça aos Carimbos/i.test(t)), false, 'o título não é o da tela do carimbo')
     verdade(await page.locator('#combo').count() === 1, 'a ficha tem o bloco do combo')
-    const topoCombo = await page.locator('#combo').evaluate((e) => Math.round(e.getBoundingClientRect().top))
-    verdade(topoCombo < 200, `a página abre com o combo em destaque (topo do combo a ${topoCombo}px)`)
-    verdade(await aviso(page).isVisible(), 'o aviso de carimbo aparece')
+    const topoNome = await page.locator('#casa-nome').evaluate((e) => Math.round(e.getBoundingClientRect().top))
+    verdade(topoNome >= 0 && topoNome < 400, `a página abre na capa da casa (nome a ${topoNome}px)`)
+    verdade(await painel(page).count() === 1, 'o painel "Carimbe e avalie" está na ficha')
     igual(bancoChamado, [], 'nada foi carimbado ao abrir')
     if (erros.length) falha(`console: ${erros.join(' | ')}`); else ok('console limpo')
     await ctx.close()
@@ -120,33 +121,23 @@ try {
     await abrir(page, '/cartoon/participantes')
     await page.locator('a[href$="/participantes/demo-casa-aurora"]').first().click()
     await page.waitForSelector('.ct-part')
-    verdade(await aviso(page).isVisible(), 'abrindo a casa pelo catálogo: aviso presente')
+    igual(await painel(page).count(), 1, 'abrindo a casa pelo catálogo: painel presente')
     await abrir(page, '/cartoon/participantes/demo-casa-bico-de-pena')
-    verdade(await aviso(page).isVisible(), 'link direto de outra casa: aviso presente')
+    igual(await painel(page).count(), 1, 'link direto de outra casa: painel presente')
     await abrir(page, '/cartoon/combos/nao-existe')
-    igual(await aviso(page).count(), 0, 'casa inexistente: mensagem clara, sem aviso')
+    igual(await painel(page).count(), 0, 'casa inexistente: mensagem clara, sem painel')
     await ctx.close()
   }
 
-  console.log('\n3 · fechar não grava nada: volta na próxima visita')
+  console.log('\n3 · nada flutuante: o convite à Caça é um painel no fluxo da página (o aviso que cobria o pé da tela saiu)')
   {
     const { ctx, page } = await contexto(nav, edicao())
     await abrir(page, AURORA)
-    await page.getByRole('button', { name: 'Fechar o aviso' }).click()
-    igual(await aviso(page).count(), 0, 'o botão fecha o aviso')
+    igual(await page.locator('.ct-aviso-carimbo').count(), 0, 'sem aviso flutuante')
+    const pos = await painel(page).evaluate((e) => getComputedStyle(e).position)
+    verdade(pos !== 'fixed' && pos !== 'sticky', `o painel não é fixo (position: ${pos})`)
     const guardado = await page.evaluate(() => Object.keys(localStorage).concat(Object.keys(sessionStorage)).filter((k) => /aviso|carimbo|dispens/i.test(k)))
-    igual(guardado, [], 'nenhuma dispensa gravada no aparelho')
-    await abrir(page, AURORA)
-    verdade(await aviso(page).isVisible(), 'recarregar a ficha: o aviso volta')
-    await page.keyboard.press('Tab')
-    await aviso(page).locator('.ct-aviso-carimbo__acao').focus()
-    await page.keyboard.press('Escape')
-    igual(await aviso(page).count(), 0, 'Escape, com o foco no aviso, fecha')
-    await page.locator('.ct-topo__marca').first().click()
-    await page.waitForLoadState('networkidle')
-    await page.goBack()
-    await page.waitForSelector('.ct-part')
-    verdade(await aviso(page).isVisible(), 'sair e voltar à ficha (voltar do navegador): o aviso volta')
+    igual(guardado, [], 'nada gravado no aparelho')
     await ctx.close()
   }
 
@@ -154,11 +145,11 @@ try {
   {
     const { ctx, page, bancoChamado } = await contexto(nav, edicao())
     await abrir(page, AURORA)
-    igual(await aviso(page).locator('a.ct-aviso-carimbo__acao').count(), 1, 'um só botão "Carimbar", mesmo com 2 unidades (o banco escolhe pela localização)')
-    await aviso(page).getByRole('link', { name: 'Carimbar' }).click()
+    igual(await painel(page).locator('a[href$="/carimbo/demo-casa-aurora"]').count(), 1, 'um só botão "Carimbar", mesmo com 2 unidades (o banco escolhe pela localização)')
+    await painel(page).getByRole('link', { name: 'Carimbar esta casa' }).click()
     await page.waitForSelector('.ct-carimbar')
     verdade(new URL(page.url()).pathname === '/cartoon/carimbo/demo-casa-aurora', 'abre a tela do carimbo da casa certa')
-    igual(bancoChamado, [], 'tocar em Carimbar do aviso não registra carimbo')
+    igual(bancoChamado, [], 'tocar em Carimbar não registra carimbo')
     verdade(await page.locator('.ct-carimbar__principal, .ct-carimbar .ct-botao').first().isVisible(), 'a tela do carimbo pede o toque seguinte (botão ou criação do mapa)')
     await ctx.close()
   }
@@ -173,50 +164,41 @@ try {
       const { ctx, page } = await contexto(nav, dados)
       await abrir(page, caminho)
       await page.waitForSelector('.ct-part')
-      igual(await aviso(page).count(), 0, `${nome}: sem aviso`)
+      igual(await painel(page).count(), 0, `${nome}: sem painel`)
       await ctx.close()
     }
   }
 
-  console.log('\n6 · layout: celular (com aviso de cookies e barra de abas) e desktop')
+  console.log('\n6 · layout: celular e desktop (sem rolagem lateral, alvos ≥ 44 px, foco visível); barra de compra do celular')
   for (const [rotulo, w, h] of [['celular', 390, 844], ['desktop', 1440, 900]]) {
     const { ctx, page } = await contexto(nav, edicao(), { w, h })
     await abrir(page, AURORA)
-    await page.waitForTimeout(1200) // entrada do aviso (360ms + 600ms de espera)
-    const a = await rect(aviso(page))
-    verdade(a.x >= 0 && a.r <= w && a.y >= 0 && a.b <= h, `${rotulo}: aviso inteiro dentro da tela (${Math.round(a.w)}×${Math.round(a.h)})`)
-    const cookies = page.locator('.cookie-consent')
-    if (await cookies.count()) {
-      const c = await rect(cookies)
-      verdade(!cruza(a, c), `${rotulo}: não sobrepõe o aviso de cookies`)
-    } else ok(`${rotulo}: (aviso de cookies não apareceu neste contexto)`)
+    await painel(page).scrollIntoViewIfNeeded()
+    await page.waitForTimeout(500)
+    const a = await rect(painel(page))
+    verdade(a.x >= 0 && a.r <= w, `${rotulo}: painel dentro da largura (${Math.round(a.w)}×${Math.round(a.h)})`)
+    igual(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${rotulo}: sem rolagem lateral`)
+    for (const link of await painel(page).locator('a.ct-botao').all()) {
+      const r = await rect(link)
+      verdade(r.h >= 44, `${rotulo}: botão do painel com alvo ≥ 44px (${Math.round(r.w)}×${Math.round(r.h)})`)
+    }
+    const primeiro = painel(page).locator('a.ct-botao').first()
+    await primeiro.focus()
+    verdade((await primeiro.evaluate((e) => getComputedStyle(e).outlineStyle)) !== 'none', `${rotulo}: foco visível no botão`)
+    await page.screenshot({ path: join(SAIDA, `painel-${rotulo}.png`) })
     if (w < 900) {
+      // Barra de compra: escondida enquanto as ações da capa aparecem; entra depois que elas saem da tela, sem cobrir a barra de abas.
+      await page.locator('.ct-capa__compra').scrollIntoViewIfNeeded()
+      await page.evaluate(() => scrollBy(0, -200))
+      await page.waitForTimeout(600)
+      igual(await page.locator('.ct-ficha__compra').isVisible(), false, 'celular: barra de compra escondida com as ações da capa à vista')
+      await page.evaluate(() => scrollTo(0, 1400))
+      await page.waitForTimeout(600)
+      verdade(await page.locator('.ct-ficha__compra').isVisible(), 'celular: barra de compra aparece depois que as ações da capa saem da tela')
+      const barra = await rect(page.locator('.ct-ficha__compra'))
       const abas = await rect(page.locator('.ct-abas'))
-      verdade(!cruza(a, abas), 'celular: não cobre a barra de abas')
+      verdade(!cruza(barra, abas), 'celular: a barra de compra não cobre a barra de abas')
     }
-    const foto = page.locator('.ct-cardapio__foto').first()
-    if (await foto.count()) {
-      const f = await rect(foto)
-      verdade(f.y < a.y, `${rotulo}: o topo da foto do combo fica acima do aviso (foto a ${Math.round(f.y)}px, aviso a ${Math.round(a.y)}px)`)
-    }
-    for (const sel of ['.ct-aviso-carimbo__acao', '.ct-aviso-carimbo__fechar']) {
-      const r = await rect(aviso(page).locator(sel))
-      verdade(r.h >= 44 && r.w >= 44, `${rotulo}: ${sel.slice(1)} com alvo ≥ 44px (${Math.round(r.w)}×${Math.round(r.h)})`)
-    }
-    // Teclado: Tab alcança o botão e o X, com contorno visível.
-    await aviso(page).locator('.ct-aviso-carimbo__acao').focus()
-    const contorno = await aviso(page).locator('.ct-aviso-carimbo__acao').evaluate((e) => getComputedStyle(e).outlineStyle)
-    verdade(contorno !== 'none', `${rotulo}: foco visível no botão`)
-    await page.screenshot({ path: join(SAIDA, `aviso-${rotulo}.png`) })
-    await ctx.close()
-  }
-
-  console.log('\n7 · movimento reduzido')
-  {
-    const { ctx, page } = await contexto(nav, edicao(), { reduzido: true })
-    await abrir(page, AURORA)
-    const anim = await aviso(page).evaluate((e) => getComputedStyle(e).animationName)
-    igual(anim, 'none', 'sem animação de entrada com prefers-reduced-motion')
     await ctx.close()
   }
 } finally {
@@ -224,5 +206,5 @@ try {
   killTree(preview.pid)
 }
 
-console.log(falhas.length ? `\n✗ ${falhas.length} falha(s)` : '\n✓ aviso de carimbo ok')
+console.log(falhas.length ? `\n✗ ${falhas.length} falha(s)` : '\n✓ painel de carimbo ok')
 process.exit(falhas.length ? 1 : 0)

@@ -1,5 +1,7 @@
 /*
- * 3 · Como pedir: um cartão compacto por modo (no local · para viagem · delivery) com o estado — "Em todas as unidades"
+ * 2 · Peça ou venha (era "Como pedir"; redesenho de 11/11/2026): vem logo depois da capa, ANTES do combo detalhado — quem
+ * chegou para comprar não rola cinco cartões de item para achar o canal. O carimbo de delivery foi para "Carimbe e avalie".
+ * Um cartão compacto por modo (no local · para viagem · delivery) com o estado — "Em todas as unidades"
  * quando todas oferecem, senão em quais — e, havendo delivery, o painel de pedido: os canais de CADA unidade que entrega
  * (o canal é da unidade, nunca da casa), com a taxa e a região uma vez só quando valem para todas. Embaixo, os canais da
  * casa (Instagram, site).
@@ -13,8 +15,6 @@ import { Letreiro } from '../../../componentes/sistema/Letreiro.jsx'
 import { IconeCartoon } from '../../../componentes/sistema/IconeCartoon.jsx'
 import { Botao, Rotulo } from '../../../componentes/sistema/pecas.jsx'
 import { PARTICIPANTE as T, ATENDIMENTO, ICONE } from '../../textos.js'
-import { CACA_CAMINHOS } from '../../../caca/textos.js'
-import { DELIVERY as TD } from '../../../caca/delivery/textos.js'
 
 const nomeDaUnidade = (u, p) => M.caixaLegivel(u.nome || u.endereco?.bairro || p.casa.nome)
 
@@ -111,13 +111,6 @@ export function ComoPedir ({ p }) {
         </ul>
       )}
       <Delivery p={p} />
-      {/* Carimbo de delivery (Caça): só com delivery declarado "sim" por alguma unidade ("não informado" não é delivery). */}
-      {M.estadoModo(p, 'delivery').estado === 'sim' && p.slug && (
-        <div className="ct-delivery__carimbo">
-          <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`}><IconeCartoon nome={TD.acaoFichaIcone} tamanho={32} />{TD.acaoFicha}</Botao>
-          <p className="ct-delivery__nota">{TD.acaoFichaDica}</p>
-        </div>
-      )}
       {(instagram || site) && (
         <div className="ct-ficha__fale">
           <Rotulo icone={ICONE.whatsapp}>{T.faleCom}</Rotulo>

@@ -126,7 +126,7 @@ test('a assinatura do Sicredi abre a ficha da casa (só no site) e o Mapa, e nã
   const src = (f) => readFileSync(fileURLToPath(new URL(`../src/edicao/${f}`, import.meta.url)), 'utf8')
   const ficha = src('cartoon/paginas/participante/index.jsx')
   assert.match(ficha, /\{navigate && <AssinaturaPatrocinio \/>\}/, 'na ficha só com navigate: a prévia do painel não leva patrocinador')
-  assert.ok(ficha.indexOf('<AssinaturaPatrocinio />') < ficha.indexOf('<Topo '), 'a assinatura vem antes do topo da ficha')
+  assert.ok(ficha.indexOf('<AssinaturaPatrocinio />') > ficha.indexOf('<Combo '), 'a assinatura vem depois do que vende (capa, pedido e combo), não antes do nome da casa')
   assert.doesNotMatch(src('cartoon/paginas/mapa/index.jsx'), /<AssinaturaPatrocinio\b/, 'o mapa apresenta o patrocinador nos próprios marcadores')
   const css = readFileSync(fileURLToPath(new URL('../src/styles/cartoon/01-base.css', import.meta.url)), 'utf8')
   assert.doesNotMatch(css.match(/\.ct-assina-patrocinio \{[^}]*\}/)[0], /position: (fixed|sticky)/, 'não é fixa na tela (manual da Sicredi)')

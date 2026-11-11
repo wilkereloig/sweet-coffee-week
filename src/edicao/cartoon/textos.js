@@ -170,8 +170,13 @@ export const COMPRA = {
 
 export const PARTICIPANTE = {
   voltar: 'Voltar para as casas',
-  // Aviso flutuante da ficha (convite à Caça). Não carimba: só leva à tela do carimbo, que pede o toque e a localização.
-  avisoCarimbo: { rotulo: 'Caça aos Carimbos', texto: 'Provou o combo? Carimbe seu mapa!', acao: 'Carimbar', fechar: 'Fechar o aviso' },
+  // Painel "Carimbe e avalie" (11/11/2026; no lugar do aviso flutuante). Carimbar não carimba: leva à tela do carimbo,
+  // que pede o toque e a localização.
+  carimbe: {
+    apoio: 'Provou o combo?', titulo: 'Carimbe e avalie!', tituloSoAvalie: 'Avalie!', carimbar: 'Carimbar esta casa',
+    texto: 'Carimbe esta casa no seu mapa da Caça aos Carimbos e dê a sua nota: ela ajuda a escolher os destaques do Sweet Awards.',
+    textoSoAvalie: 'Conte como foi. As avaliações do público ajudam a escolher os destaques do Sweet Awards.',
+  },
   selo: 'Casa participante da Sweet & Coffee Week Cartoon',
   tema: (t) => `Inspirado em ${t}`,
   comboTitulo: 'O combo',
@@ -179,7 +184,9 @@ export const PARTICIPANTE = {
   precoRotulo: 'Combo',
   comboSemNome: (casa) => `Combo da ${casa}`,
   precoAConfirmar: 'Preço a confirmar',
-  noCombo: 'No combo',
+  noCombo: 'O que vem no combo',
+  ingredientesEAlergenicos: 'Ingredientes e alergênicos',
+  maisFotos: 'Mais fotos do combo',
   condicoes: 'Condições',
   fotoReserva: 'Foto do combo em produção',
   tipos: { doce: 'Doce', salgado: 'Salgado', bebida: 'Bebida' },
@@ -200,7 +207,7 @@ export const PARTICIPANTE = {
     acrescimo: (v) => `acréscimo de ${v}`, de: 'Troca', por: 'por',
   },
   confirme: 'Tem alergia ou restrição? Confirme com a loja antes de pedir. As informações acima foram dadas pela casa.',
-  atendimentoTitulo: 'Como pedir',
+  atendimentoTitulo: 'Peça ou venha',
   comoPedirDica: { local: 'Endereço e horário', retirada: 'Retirar na loja', delivery: 'Pedir agora', deliveryEscolher: 'Escolha a unidade', deliveryInfo: 'Ver como pedir' },
   minhaRota: 'Minha rota',
   minhaRotaNota: 'Marque aqui; fica salvo neste aparelho.',
@@ -215,7 +222,7 @@ export const PARTICIPANTE = {
   regioes: 'Entrega em',
   faleCom: 'Fale com a casa',
   site: 'Site da casa',
-  unidadesTitulo: (n) => (n === 1 ? 'Onde encontrar' : 'As unidades'),
+  unidadesTitulo: (n) => (n === 1 ? 'Onde e quando' : 'Onde e quando: as unidades'),
   horarioFestival: 'Horário no festival',
   naoAbre: 'não abre',
   hoje: 'hoje',
@@ -227,8 +234,6 @@ export const PARTICIPANTE = {
   galeriaReserva: 'Galeria em produção',
   fotoRotulo: { cortado: 'Detalhe', opcao: 'Outra opção' },
   fotosDaCasa: 'Fotos da casa',
-  avaliarTitulo: 'Avalie sua experiência',
-  avaliarTexto: 'Provou o combo? Conte como foi. As avaliações do público ajudam a escolher os destaques do Sweet Awards.',
   avaliar: 'Avaliar esta casa',
   inexistente: 'Não encontramos essa casa na Cartoon.',
   retirado: 'Esta página saiu do ar.',

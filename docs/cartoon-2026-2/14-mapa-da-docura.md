@@ -509,8 +509,8 @@ O mapa é de todo mundo; a Caça é opcional **dentro dele**. Três camadas inde
   sorteio) e prêmio final (press kit + surpresa) por sorteio entre quem completou o mapa. **Em 04/11 a contagem virou casas diferentes + extras, e cada extra soma 1 ao peso do sorteio (regra vigente no fim deste item).**
 - **[Decisão · REVISTA em 05/11]** O **QR do display de mesa** (face do combo, `/q/d1-<casa>`) abre **direto a ficha da casa, no combo**
   (`/cartoon/combos/<slug>`; a tela intermediária saiu — o objetivo do QR é a pessoa conhecer e consumir o combo). O convite a carimbar é o
-  **aviso flutuante da ficha** (`AvisoCarimbo`): toda abertura da ficha com mapa no ar, combo, avaliação aberta e edição em curso; fechar vale só
-  para a visita (nada é gravado); "Carimbar" só leva a `/cartoon/carimbo/<slug>` — nunca carimba sozinho. Antes (04/11), `destinoDoCodigo` levava
+  **painel "Carimbe e avalie" da ficha** (`Carimbe.jsx`, 11/11 — no lugar do aviso flutuante `AvisoCarimbo`, que cobria o pé da tela): fica no fluxo
+  da página, com mapa no ar, combo, avaliação aberta e edição em curso; nada é gravado; "Carimbar esta casa" só leva a `/cartoon/carimbo/<slug>` — nunca carimba sozinho. Antes (04/11), `destinoDoCodigo` levava
   a `/cartoon/carimbo/<slug>`, que mostra o nome e a logo da casa, **"Ver o combo"** e o botão de carimbar, e segue valendo como a tela do carimbo. A página aceita os
   dois formatos (código de 8 caracteres da unidade ou slug da casa; nenhum slug da edição tem o formato do código).
   `mapa_carimbar_casa(chave, slug, lat, lng, precisão)` escolhe a unidade da casa mais perto do celular e chama

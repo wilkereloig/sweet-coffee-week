@@ -110,14 +110,15 @@ test('QR do display carimba pela casa e o carimbo fica pendente até a avaliaç�
   assert.match(sql, /validadas as/, 'o placar só conta casas avaliadas')
 })
 
-test('aviso de carimbo na ficha: só convida (não carimba, não grava dispensa) e só no site com a Caça aberta', async () => {
+test('painel "Carimbe e avalie" na ficha: só convida (não carimba, não grava dispensa) e só no site com a Caça aberta', async () => {
   const { readFileSync } = await import('node:fs')
   const ler = (c) => readFileSync(new URL(c, import.meta.url), 'utf8')
-  const aviso = ler('../src/edicao/cartoon/paginas/participante/AvisoCarimbo.jsx')
-  assert.doesNotMatch(aviso, /localStorage|sessionStorage|indexedDB|document\.cookie/, 'fechar vale só para a visita: nada fica gravado')
-  assert.doesNotMatch(aviso, /mapa_carimbar|C\.chamar|capturarPosicao|geolocation/, 'o aviso não carimba nem pede a posição')
-  assert.match(aviso, /\/carimbo\/\$\{slug\}/, 'leva à tela do carimbo da casa')
-  assert.match(aviso, /Escape/, 'fecha pelo teclado')
+  const painel = ler('../src/edicao/cartoon/paginas/participante/Carimbe.jsx')
+  assert.doesNotMatch(painel, /localStorage|sessionStorage|indexedDB|document\.cookie/, 'nada fica gravado')
+  assert.doesNotMatch(painel, /mapa_carimbar|C\.chamar|capturarPosicao|geolocation/, 'o painel não carimba nem pede a posição')
+  assert.match(painel, /\/carimbo\/\$\{p\.slug\}/, 'leva à tela do carimbo da casa')
+  assert.match(painel, /MAPA_NO_AR && <Botao/, 'com o mapa fora do ar não há botão da Caça')
   const ficha = ler('../src/edicao/cartoon/paginas/participante/index.jsx')
-  assert.match(ficha, /navigate && MAPA_NO_AR && combo && aberta && !encerrada && <AvisoCarimbo/, 'prévia do painel (sem navigate), mapa fora do ar, sem combo, avaliação fechada ou edição encerrada: sem aviso')
+  assert.match(ficha, /const avaliacaoAberta = aberta && !!combo && !!navigate && !encerrada/, 'prévia do painel (sem navigate), sem combo, avaliação fechada ou edição encerrada: sem painel')
+  assert.match(ficha, /avaliacaoAberta && <Carimbe/, 'o painel só entra com a avaliação aberta (é quando o carimbo existe)')
 })
