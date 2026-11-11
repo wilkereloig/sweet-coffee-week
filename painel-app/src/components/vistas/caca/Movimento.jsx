@@ -1,7 +1,7 @@
 import React from 'react'
 import { Botao, Carregando, Erro, Secao, Selo } from '../../ui'
 import { useLeitura } from '../../../lib/leituraVivaReact'
-import { cacaApi, NIVEL_MOVIMENTO, resumoMovimento } from '../../../lib/caca'
+import { cacaApi, NIVEL_MOVIMENTO, resumoMovimento, textoFila } from '../../../lib/caca'
 import { Tabela } from './comum'
 
 /*
@@ -22,16 +22,17 @@ export function Movimento({ pode }) {
 
   return (
     <>
-      <Secao titulo="Movimento agora" nota={`Carimbos feitos no local (GPS) nas últimas ${m.janelaHoras} h, comparados com a média de cada casa na mesma janela dos ${m.diasBase} dias anteriores. Delivery, visita anterior e exceção aprovada não entram. Mede quem joga a Caça, não a lotação: casa cheia de quem não joga aparece calma. Com menos de 3 carimbos na janela, fica "pouco dado".`}>
+      <Secao titulo="Movimento agora" nota={`Carimbos feitos no local (GPS) nas últimas ${m.janelaHoras} h, comparados com a média de cada casa na mesma janela dos ${m.diasBase} dias anteriores. Delivery, visita anterior e exceção aprovada não entram. Mede quem joga a Caça, não a lotação: casa cheia de quem não joga aparece calma. Com menos de 3 carimbos na janela, fica "pouco dado". "Tinha fila?" é a resposta opcional de quem carimbou nessas horas.`}>
         <p className="ui-nota" role="status">{resumo || 'Nenhuma casa com carimbo ainda.'}</p>
         <div className="ui-linha-acoes"><Botao variante="secundario" onClick={leitura.recarregar}>Atualizar</Botao></div>
-        <Tabela rotulo="Movimento por casa" colunas={['Casa', `Últimas ${m.janelaHoras} h`, 'Normal', 'Nível', 'Pico', 'Hoje']}>
+        <Tabela rotulo="Movimento por casa" colunas={['Casa', `Últimas ${m.janelaHoras} h`, 'Normal', 'Nível', 'Tinha fila?', 'Pico', 'Hoje']}>
           {m.unidades.map((u) => (
             <tr key={u.id}>
               <td>{u.nome}{u.bairro ? <span className="cp-sub"> · {u.bairro}</span> : null}</td>
               <td>{u.janela}</td>
               <td>{num(u.normal)}</td>
               <td><Selo tom={NIVEL_MOVIMENTO[u.nivel].tom}>{NIVEL_MOVIMENTO[u.nivel].rotulo}</Selo></td>
+              <td>{textoFila(u.fila) || '—'}</td>
               <td>{u.pico == null ? '—' : hh(u.pico)}</td>
               <td>{u.hoje}</td>
             </tr>

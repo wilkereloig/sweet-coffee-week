@@ -242,6 +242,14 @@ export const CACA = {
   },
 
   // Porta do QR (página /cartoon/carimbo/<código>): carimbar na casa. A avaliação é a outra porta (aposAvaliar).
+  // "Tinha fila?" (doc 20, parte C): opcional, não conta ponto. Ajuda a organização a ver o movimento das casas.
+  fila: {
+    pergunta: 'Tinha fila?',
+    nota: 'Opcional, não muda seus pontos. Ajuda a organização a acompanhar o movimento das casas.',
+    opcoes: [['sem_fila', 'Sem fila'], ['pequena', 'Fila pequena'], ['grande', 'Fila grande']],
+    obrigado: 'Valeu! Resposta registrada.',
+    falhou: 'Não deu para registrar agora. Pode seguir, tudo certo com o seu carimbo.',
+  },
   carimbo: {
     rotulo: 'Caça aos Carimbos',
     titulo: 'Carimbe sua visita',
