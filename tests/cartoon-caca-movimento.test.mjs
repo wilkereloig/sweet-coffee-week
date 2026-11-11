@@ -30,7 +30,7 @@ test('índice: avaliações e carimbos por GPS uma vez por pessoa, QR da casa pe
 test('níveis: alto só com 4+ presenças e 1,5 × o normal; tranquila nunca é alta e fica até a mediana', () => {
   assert.match(sql, /when l\.indice >= 4 and l\.indice > 1\.5 \* l\.normal then 'alto'/)
   assert.match(sql, /when l\.normal >= 3 and l\.indice < 0\.5 \* l\.normal then 'baixo'/)
-  assert.match(sql, /n\.nivel <> 'alto' and n\.indice <= coalesce\(\(select m from med\), 0\)/)
+  assert.match(sql, /n\.nivel <> 'alto' and n\.normal >= 1 and n\.indice <= coalesce\(\(select m from med\), 0\)/)
 })
 
 test('público: nasce desligado, sem número, só foto recente e casa publicada; cálculo e gravação fechados', () => {

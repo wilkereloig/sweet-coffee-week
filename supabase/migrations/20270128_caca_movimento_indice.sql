@@ -7,7 +7,8 @@
 -- da casa, então as leituras se dividem entre os endereços dela; vêm por hora cheia).
 -- Nível: 'alto' (≥ 4 presenças e > 1,5 × o normal da unidade) · 'baixo' (normal ≥ 3 e < metade dele) · 'normal' · 'sem_dado'
 -- (< 3 agora e < 3 de normal) · 'sem_base' (1º dia). Normal = média da mesma janela nos dias anteriores da edição.
--- 'tranquila' = não está alta e tem presenças até a mediana das casas com algum movimento (comparação entre as casas).
+-- 'tranquila' = não está alta, costuma ter movimento nessa hora (normal ≥ 1: sem isso não há base para dizer nada) e tem
+-- presenças até a mediana das casas com algum movimento (comparação entre as casas).
 -- Um job (pg_cron, 15 min) grava a foto em caca_movimento_foto; o site lê a foto e só recebe 'alto' e 'tranquila', nunca
 -- números. A parte pública nasce DESLIGADA (caca_config 'movimento_publico'). Aditiva.
 -- Reverter: supabase/reverter/20270128_caca_movimento_indice.sql.
@@ -87,7 +88,7 @@ begin
                      else 'normal' end nivel
       from lin l)
   select n.id, n.nome, n.bairro, n.indice, n.normal, n.nivel,
-         (n.nivel <> 'alto' and n.indice <= coalesce((select m from med), 0)) tranquila, n.av, n.ca, n.qrn
+         (n.nivel <> 'alto' and n.normal >= 1 and n.indice <= coalesce((select m from med), 0)) tranquila, n.av, n.ca, n.qrn
     from niv n;
 end $function$;
 

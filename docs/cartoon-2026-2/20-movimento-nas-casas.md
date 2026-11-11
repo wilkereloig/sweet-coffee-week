@@ -63,3 +63,13 @@ para onde há menos movimento; incorporar ao mapa e à página de cada casa.
 - Ensaio (ROLLBACK), 08/11 18h30: 9 altas · 19 normais · 6 baixas · 8 pouco dado (só carimbos: 30 pouco dado); com o interruptor
   desligado o site recebe 0 linhas, ligado recebe 42.
 - Não entra (ainda): "Perto de mim" anônimo (coleta nova) e combos vendidos por dia (sem hora).
+
+### ✅ Parte D aplicada, publicada e LIGADA em 11/11 ~15h50 Natal (Wilker: "Siga com tudo")
+- `20270128` aplicada; job `scw-caca-movimento` ativo (1ª execução 15h45, ok); `anon` não executa o cálculo nem a gravação e não lê a foto.
+- Ajuste no mesmo dia (`20270128b` no banco, já no arquivo): **tranquila exige normal ≥ 1** — a casa precisa costumar ter movimento
+  nessa hora. Sem isso, 27 das 42 saíam "tranquilas" (casas sem histórico no horário); com isso, 11.
+- Publicado em master `7a593739`. Interruptor `movimento_publico` LIGADO por SQL (atualizado_por registra a ordem).
+  Na hora: 3 altas (Maison Julie, Sabor de Pão, Mr. Cupcake) e 11 tranquilas.
+- Visto no navegador (dev, 375 px): cartão do mapa com "Movimento acima do normal agora" e ficha da Wow Cookies com "Boa hora para
+  visitar". Não vistos: o filtro "Menos movimento agora" e a aba Movimento do painel (pede login).
+- Desligar: painel › Caça › Movimento › "Desligar no site".
