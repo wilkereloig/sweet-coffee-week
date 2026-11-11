@@ -18,6 +18,7 @@ import { useMinhaRota } from '../rota/useMinhaRota.js'
 import { marcaDoTopo, srcSet } from '../../data/imageLibrary'
 import { LINKS_LEGAIS } from '../../components/SiteFooter'
 import { abrirPreferencias } from '../../lib/consentimento'
+import { trackEvento } from '../../lib/analytics'
 import { useReservaDaBase } from '../../hooks/useReservaDaBase'
 import { useTopoSobreSecao } from './useTopoSobreSecao.js'
 import { Link, Carregando, Falha } from '../componentes/base.jsx'
@@ -149,6 +150,25 @@ export function CartoonPage ({ path, navigate }) {
   React.useEffect(() => {
     if (pedida.abrirRota) window.history.replaceState(window.history.state, '', `${EDICAO.caminho}/mapa${location.search}${location.hash}`)
   }, [pedida.abrirRota])
+
+  // Contagem de cliques de compra (11/11/2026: medir o que vende). Um ouvinte só, na edição inteira: link com
+  // data-acao (cartão de combo, barra da ficha) conta pelo atributo; link externo sem ele conta pelo destino
+  // (WhatsApp, Como chegar, canal de delivery da ficha). A casa vem de data-casa ou do endereço da ficha.
+  React.useEffect(() => {
+    const aoClicar = (e) => {
+      const a = e.target.closest?.('a[href]')
+      if (!a || !a.closest('.ct-edicao')) return
+      const href = a.getAttribute('href') || ''
+      const acao = a.dataset.acao || (/wa\.me\//.test(href) ? 'whatsapp'
+        : /google\.com\/maps/.test(href) ? 'como_chegar'
+          : /^https?:/.test(href) && a.closest('#delivery, #atendimento, .ct-ficha__modos') ? 'delivery' : '')
+      if (!acao) return
+      const casa = a.closest('[data-casa]')?.dataset.casa || location.pathname.match(/\/(?:combos|participantes)\/([^/?#]+)/)?.[1] || ''
+      trackEvento('combo_acao', { acao, casa })
+    }
+    document.addEventListener('click', aoClicar, true)
+    return () => document.removeEventListener('click', aoClicar, true)
+  }, [])
 
   React.useEffect(() => {
     if (cena !== 'participante') document.title = cena === 'entrada' ? `${EDICAO.nome} · 5 a 15 de novembro` : `${TITULOS[cena]} · ${EDICAO.nome}`
