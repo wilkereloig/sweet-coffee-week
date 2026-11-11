@@ -237,8 +237,10 @@ export function CartoonPage ({ path, navigate }) {
         </header>
 
         {/* Patrocínio Sicredi no TOPO de toda página da edição (Wilker, 11/11/2026: "todas as páginas da Cartoon"): uma assinatura só, aqui.
-            Dentro do .ct-conteudo, para ficar logo abaixo do cabeçalho fixo (o recuo do cabeçalho é desse contêiner). */}
-        <div className="ct-conteudo"><AssinaturaPatrocinio />{conteudo}</div>
+            Dentro do .ct-conteudo, para ficar logo abaixo do cabeçalho fixo (o recuo do cabeçalho é desse contêiner).
+            Exceção: o MAPA. Ele abre em tela cheia (a faixa ficaria escondida) e, na página comum, o mapa tem de começar na primeira
+            dobra do celular (a faixa o empurrava de 631 para 693 px); o patrocinador já está nos marcadores do mapa. */}
+        <div className="ct-conteudo">{cena !== 'mapa' && <AssinaturaPatrocinio />}{conteudo}</div>
         <p className="ct-sr" aria-live="polite">{rota.anuncio}</p>
 
         <FaixaMarcas />

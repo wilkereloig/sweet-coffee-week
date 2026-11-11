@@ -125,7 +125,7 @@ test('textos do próximo passo: distância curta e dica de localização', () =>
 test('a assinatura do Sicredi fica no topo de TODA página da edição (casca), uma só vez, e não é fixa', () => {
   const src = (f) => readFileSync(fileURLToPath(new URL(`../src/edicao/${f}`, import.meta.url)), 'utf8')
   const casca = src('cartoon/index.jsx')
-  assert.match(casca, /<div className="ct-conteudo"><AssinaturaPatrocinio \/>\{conteudo\}<\/div>/, 'na casca, no começo do conteúdo (abaixo do cabeçalho fixo): aparece no topo de todas as páginas da Cartoon')
+  assert.match(casca, /<div className="ct-conteudo">\{cena !== 'mapa' && <AssinaturaPatrocinio \/>\}\{conteudo\}<\/div>/, 'na casca, no começo do conteúdo (abaixo do cabeçalho fixo): topo de todas as páginas da Cartoon, menos o mapa (que começa na primeira dobra e tem o patrocinador nos marcadores)')
   assert.ok(casca.indexOf('<AssinaturaPatrocinio />') > casca.indexOf('</header>'), 'depois do cabeçalho, antes do conteúdo')
   assert.doesNotMatch(src('cartoon/paginas/participante/index.jsx'), /<AssinaturaPatrocinio\b/, 'a ficha não repete a assinatura (a casca já a traz)')
   assert.doesNotMatch(src('cartoon/paginas/Catalogo.jsx'), /<AssinaturaPatrocinio\b/, 'o catálogo não repete a assinatura (a casca já a traz)')
