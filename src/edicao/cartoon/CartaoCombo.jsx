@@ -131,3 +131,44 @@ export function CartaoCombo ({ p, modo = 'combos', navigate, encerrada = false, 
     </li>
   )
 }
+
+/**
+ * Lâmina de venda da Entrada (redesenho de 11/11/2026, pedido do Wilker: "construir melhor os elementos de todas as seções").
+ * É a lâmina aprovada do carrossel de combos: a FOTO inteira manda, a casa em amarelo e o tema em creme sobre a sombra da
+ * base, a logo no canto. Embaixo, só o que vende: o nome do combo, os três itens numa linha e as ações de compra.
+ * Fora dela (moram no catálogo e na ficha): preço repetido, selos de atendimento, "Quero ir" / "Já fui".
+ */
+export function LaminaCombo ({ p, navigate, encerrada = false, etiqueta = null, esgotado = false }) {
+  const foto = p.combo?.fotos?.principal
+  const nomeCombo = p.combo?.nome ? M.caixaLegivel(p.combo.nome) : ''
+  const itens = [...(p.combo?.itens || [])]
+    .sort((a, b) => a.posicao - b.posicao || TIPO_ORDEM.indexOf(a.tipo) - TIPO_ORDEM.indexOf(b.tipo))
+    .map((i) => i.nome).filter(Boolean).map(M.caixaLegivel)
+  return (
+    <li className={`ct-lamina${esgotado ? ' ct-lamina--esgotada' : ''}`}>
+      <Link className="ct-lamina__link" href={`${C}/${p.combo ? 'combos' : 'participantes'}/${p.slug}`} navigate={navigate} data-acao="ver_combo" data-casa={p.slug}>
+        {foto ? (
+          <span className="ct-lamina__foto"><Foto foto={foto} proporcao="4 / 5" alt="" /></span>
+        ) : (
+          <span className="ct-lamina__foto ct-lamina__foto--reserva">
+            <LogoDesenhada casa={p.casa} alt="" />
+            <span className="ct-cartao__aviso">{p.combo ? T.fotoEmProducao : T.comboEmBreve}</span>
+          </span>
+        )}
+        {foto && <SeloDaCasa casa={p.casa} />}
+        {etiqueta && <span className={`ct-lamina__momento ct-lamina__momento--${etiqueta.tipo}`}>{etiqueta.texto}</span>}
+        <span className="ct-lamina__legenda">
+          <span className="ct-lamina__casa">{p.casa.nome}</span>
+          {p.casa.tema && <span className="ct-lamina__tema">{p.casa.tema}</span>}
+        </span>
+      </Link>
+      <div className="ct-lamina__pe">
+        {nomeCombo && <h3 className="ct-lamina__combo">{nomeCombo}</h3>}
+        {itens.length > 0 && <p className="ct-lamina__itens">{itens.join(' + ')}</p>}
+        {!encerrada && p.combo && (esgotado
+          ? <p className="ct-cartao__esgotado">{COMPRA.esgotado}</p>
+          : <AcoesCompra p={p} navigate={navigate} className="ct-lamina__compra" />)}
+      </div>
+    </li>
+  )
+}

@@ -100,10 +100,11 @@ const abrir = async (page, caminho = '/cartoon') => {
   await page.goto(`${BASE}${caminho}`, { waitUntil: 'networkidle' })
 }
 // Vitrine de venda (11/11/2026): TODOS os combos no cartão de compra; abertas primeiro, depois as que abrem hoje, depois o resto.
-const vitrine = async (page) => page.locator('.ct-entrada__vitrine .ct-cartao__link').evaluateAll((els) => els.map((e) => ({
-  casa: (e.querySelector('.ct-cartao__sub') || e.querySelector('.ct-cartao__nome'))?.textContent.trim(),
-  etiqueta: e.querySelector('.ct-cartao__momento')?.textContent.trim() || null,
-  tipo: e.querySelector('.ct-cartao__momento')?.className.match(/--(aberta|abre)/)?.[1] || null,
+// Redesenho (11/11): a vitrine usa a lâmina de venda (LaminaCombo), no formato da lâmina aprovada do carrossel.
+const vitrine = async (page) => page.locator('.ct-entrada__vitrine .ct-lamina__link').evaluateAll((els) => els.map((e) => ({
+  casa: e.querySelector('.ct-lamina__casa')?.textContent.trim(),
+  etiqueta: e.querySelector('.ct-lamina__momento')?.textContent.trim() || null,
+  tipo: e.querySelector('.ct-lamina__momento')?.className.match(/--(aberta|abre)/)?.[1] || null,
 })))
 const aviso = async (page) => (await page.locator('.ct-elenco-momento').count() ? (await page.locator('.ct-elenco-momento').textContent()).replace(/\s+/g, ' ').trim() : null)
 const botoesDaLista = async (page) => page.locator('.ct-entrada__elenco .ct-acoes a').evaluateAll((els) => els.map((e) => e.getAttribute('href')))
@@ -152,7 +153,7 @@ try {
     igual((await vitrine(page)).filter((x) => x.tipo === 'aberta').map((x) => x.casa), [], 'às 13h58 ninguém está aberto (Aurora abre às 14h)')
     igual((await vitrine(page)).find((x) => x.casa === '[DEMO] Casa Aurora')?.etiqueta, 'Abre às 14h', 'a Aurora aparece como "Abre às 14h"')
     await page.clock.fastForward(3 * 60 * 1000)
-    await page.waitForFunction(() => document.querySelector('.ct-cartao__momento--aberta'), null, { timeout: 5000 }).catch(() => {})
+    await page.waitForFunction(() => document.querySelector('.ct-lamina__momento--aberta'), null, { timeout: 5000 }).catch(() => {})
     igual((await vitrine(page)).filter((x) => x.tipo === 'aberta').map((x) => x.casa), ['[DEMO] Casa Aurora'], 'três minutos depois, sem recarregar, a Aurora passa a "Aberta agora"')
     await ctx.close()
   }

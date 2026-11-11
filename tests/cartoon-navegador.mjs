@@ -586,7 +586,7 @@ try {
         como: txt('#ct-como'),
         passos: [...document.querySelectorAll('.ct-passos li')].map((li) => [li.querySelector('img.ct-gibi')?.getAttribute('src')?.match(/objetos\/(.+)\.webp/)?.[1], li.querySelector('h3')?.textContent.trim()]),
         // Vitrine (03/11): ordem sorteada por dia, então a conferência é do CONJUNTO; casa sem foto leva à página dela.
-        vitrine: [...document.querySelectorAll('.ct-entrada__vitrine .ct-cartao__link')].map((a) => a.getAttribute('href').split('?')[0]).sort(),
+        vitrine: [...document.querySelectorAll('.ct-entrada__vitrine .ct-lamina__link')].map((a) => a.getAttribute('href').split('?')[0]).sort(),
         fatos: [...document.querySelectorAll('.ct-estreia__fatos li')].map((li) => li.textContent.trim()),
         // Auditoria da Home (11/11): "Onde ficam" saiu (repetia o Mapa); entrou a faixa da Caça aos Carimbos.
         onde: document.querySelectorAll('.ct-onde, .ct-bairro').length,
@@ -603,7 +603,7 @@ try {
     if (e.olhos !== 1) falha(`Entrada: ${e.olhos} par(es) de olhinhos no topo (espera 1, espiando da mesa)`)
     if (e.como !== 'Como funciona') falha(`Entrada: título "${e.como}"`)
     if (JSON.stringify(e.passos) !== JSON.stringify([['loja', 'Escolha o combo'], ['bandeja', 'Peça ou vá até a casa'], ['prancheta', 'Carimbe e avalie']])) falha(`Entrada: passos ${JSON.stringify(e.passos)}`)
-    if (JSON.stringify(e.vitrine) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/combos/${p.slug}`).sort())) falha(`Entrada: vitrine ${JSON.stringify(e.vitrine)}`)
+    if (JSON.stringify(e.vitrine) !== JSON.stringify(DEMO_EDICAO.participantes.map((p) => `/cartoon/${p.combo ? 'combos' : 'participantes'}/${p.slug}`).sort())) falha(`Entrada: vitrine ${JSON.stringify(e.vitrine)}`)
     if (JSON.stringify(e.fatos) !== JSON.stringify(['5 a 15 de novembro', 'Combo R$ 38,90', '3 casas'])) falha(`Entrada: fatos do topo ${JSON.stringify(e.fatos)}`)
     if (e.onde) falha('Entrada: "Onde ficam" voltou (saiu na auditoria de 11/11)')
     if (!e.caca) falha('Entrada: sem a faixa da Caça aos Carimbos levando a /cartoon/caca')

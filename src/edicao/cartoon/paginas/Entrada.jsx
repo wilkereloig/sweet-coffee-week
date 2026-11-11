@@ -23,7 +23,7 @@ import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Botao, Passos, Gibi, Preco, Chip } from '../../componentes/sistema/pecas.jsx'
-import { CartaoCombo } from '../CartaoCombo.jsx'
+import { LaminaCombo } from '../CartaoCombo.jsx'
 import { ENTRADA as T, duvidasDaEdicao, FASE_TEXTO, PERIODO } from '../textos.js'
 import { useAgora } from '../useAgora.js'
 import { useAgoraNasCasas } from '../useAgoraNasCasas.js'
@@ -50,7 +50,7 @@ export function doDia (lista, n, hoje = new Date()) {
  * A vitrine de venda: TODOS os combos no cartão de compra (CartaoCombo), com filtros à vista — Delivery · Abertas agora ·
  * Vegetariano · Todos. Auditoria da Home (11/11/2026, aprovada pelo Wilker):
  *  · o que é verdade AGORA vem do banco, como no Mapa (useAgoraNasCasas): combo esgotado hoje vai para o FIM, com o selo e
- *    sem botão de compra; "Fila agora" e "menos movimento" aparecem na etiqueta da foto;
+ *    sem botão de compra; "Fila agora" aparece na etiqueta da foto; "menos movimento" só põe a casa antes na ordem;
  *  · ordem: abertas agora (as de menos movimento primeiro), as que abrem ainda hoje, as demais, as esgotadas; dentro de cada
  *    grupo, a ordem do dia (doDia), foto primeiro. Fora do festival não há "agora": só a ordem do dia;
  *  · o aviso "N casas com o combo agora" saiu (o chip "Abertas agora (N)" já diz isso); só fica quando ninguém está aberto;
@@ -79,8 +79,8 @@ function VitrineVenda ({ elenco, dados, navigate }) {
     const ate = new Map(momento.abertas.map((x) => [x.p.slug, x.ate]))
     const etiquetaAberta = (p) => {
       if (fila(p)) return { tipo: 'fila', texto: T.etiquetaFila }
-      const m = mov(p)
-      return { tipo: m === 'tranquila' ? 'tranquila' : 'aberta', texto: m === 'tranquila' ? T.etiquetaTranquila : T.etiquetaAberta(horaTexto(ate.get(p.slug))) }
+      // "Menos movimento" não vira etiqueta (marcava quase todas as casas e perdia o sentido): só ordena as abertas.
+      return { tipo: 'aberta', texto: T.etiquetaAberta(horaTexto(ate.get(p.slug))) }
     }
     const disponiveis = (l) => l.filter((p) => !esgotado(p))
     const abertasP = comFotoPrimeiro(disponiveis(momento.abertas.map((x) => x.p)))
@@ -124,8 +124,8 @@ function VitrineVenda ({ elenco, dados, navigate }) {
           {chips.map(([k, rotulo, icone]) => <Chip key={k} ativo={filtro === k} icone={icone} onClick={() => { setFiltro(filtro === k ? 'todos' : k); setTudo(false) }}>{rotulo}</Chip>)}
         </div>
       )}
-      <ul className={`ct-elenco ct-elenco--combos ct-entrada__vitrine${escondidos ? ' ct-entrada__vitrine--curta' : ''}`}>
-        {mostrados.map(({ p, etiqueta, esgotado }) => <CartaoCombo key={p.slug} p={p} modo="combos" navigate={navigate} encerrada={encerrada} etiqueta={etiqueta} esgotado={esgotado} />)}
+      <ul className={`ct-laminas ct-entrada__vitrine${escondidos ? ' ct-entrada__vitrine--curta' : ''}`}>
+        {mostrados.map(({ p, etiqueta, esgotado }) => <LaminaCombo key={p.slug} p={p} navigate={navigate} encerrada={encerrada} etiqueta={etiqueta} esgotado={esgotado} />)}
       </ul>
       {escondidos > 0 && <button type="button" className="ct-botao ct-botao--contorno ct-entrada__mais" onClick={() => setTudo(true)}>{T.verMais(escondidos)}</button>}
     </>
@@ -200,7 +200,11 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
 
       {/* 2 · A vitrine: todos os combos, com o que é verdade agora. Um botão só para o catálogo com busca. */}
       <section id="ct-vitrine" className="ct-bloco ct-entrada__elenco ct-reticula" aria-labelledby="ct-elenco">
-        <Letreiro id="ct-elenco" texto={T.elencoTitulo} />
+        <div className="ct-vitrine__cabeca">
+          <Letreiro id="ct-elenco" texto={T.elencoTitulo} />
+          {precoTexto && !encerrada && <Preco rotulo={T.todosPor} valor={precoTexto} className="ct-vitrine__preco" />}
+          <p className="ct-vitrine__apoio">{T.itensCombo}</p>
+        </div>
         {erro ? <Falha titulo="Não conseguimos carregar as casas agora" texto="Confira a conexão e tente de novo." tentar={tentar} />
           : carregando ? <Carregando texto="Carregando as casas…" />
           : elenco.length ? (
@@ -213,16 +217,18 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           ) : <p className="ct-lead">{FASE_TEXTO.semElenco}</p>}
       </section>
 
-      {/* 3 · Caça aos Carimbos: depois de provar, carimbar e concorrer (antes só existia no menu). */}
+      {/* 3 · Caça aos Carimbos: painel de gibi entre a venda e o Como funciona (antes só existia no menu). */}
       {MAPA_NO_AR && !encerrada && (
         <section className="ct-bloco ct-entrada__caca" aria-labelledby="ct-caca">
-          <div className="ct-entrada__caca-corpo">
-            <IconeCartoon nome="ja-fui" tamanho={64} />
-            <div>
-              <h2 id="ct-caca" className="ct-entrada__caca-titulo">{T.cacaTitulo}</h2>
-              <p className="ct-entrada__caca-texto">{T.cacaTexto}</p>
+          <div className="ct-caca-chamada ct-reticula">
+            <span className="ct-explosao ct-caca-chamada__explosao" aria-hidden="true" />
+            <span className="ct-caca-chamada__carimbo" aria-hidden="true"><IconeCartoon nome="ja-fui" tamanho={64} /></span>
+            <div className="ct-caca-chamada__texto">
+              <Letreiro id="ct-caca" apoio={T.cacaApoio} texto={T.cacaTitulo} cor="vermelho" />
+              <p>{T.cacaTexto}</p>
+              <Botao tipo="acao" href={`${C}/caca`} navigate={navigate}>{T.cacaAcao}</Botao>
             </div>
-            <Botao href={`${C}/caca`} navigate={navigate}>{T.cacaAcao}</Botao>
+            <Gibi chave="luva-joinha" className="ct-caca-chamada__luva" />
           </div>
         </section>
       )}
