@@ -79,7 +79,7 @@ import { sugerirProximaCasa, sugestoesLigadas, ligarSugestoes, conviteAdiado, ad
 import { ConviteLocalizacao, SugestaoPerto, SemSugestao } from '../../../caca/mapa/Proximidade.jsx'
 import { usePermissaoLocalizacao } from '../../../caca/usePermissaoLocalizacao.js'
 import { useTelaCheia } from './useTelaCheia.js'
-import { carregarCombosEsgotados } from '../../../dados/publico.js'
+import { carregarCombosEsgotados, carregarFilasAgora } from '../../../dados/publico.js'
 
 // Google Maps quando a chave existe neste ambiente (D-03 revisto, 31/10); sem ela — ou se o Google recusar a chave
 // ou não carregar —, o MapLibre (OpenFreeMap), que não pede chave. A página só conhece a interface comum.
@@ -144,9 +144,13 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
   const mundo = React.useMemo(() => completarUnidades(arte, lista), [arte, lista]) // unidade nova herda o lugar da casa na arte
   const periodo = dados?.edicao
   const [esgotadosHoje, setEsgotadosHoje] = React.useState([])
+  const [filasAgora, setFilasAgora] = React.useState([]) // ids públicos das unidades com "Fila agora" (vence em 1 h)
   React.useEffect(() => {
     let ativo = true
-    const ler = () => carregarCombosEsgotados(periodo?.codigo).then((r) => { if (ativo) setEsgotadosHoje((r || []).map((x) => x.slug)) }).catch(() => {})
+    const ler = () => {
+      carregarCombosEsgotados(periodo?.codigo).then((r) => { if (ativo) setEsgotadosHoje((r || []).map((x) => x.slug)) }).catch(() => {})
+      carregarFilasAgora(periodo?.codigo).then((r) => { if (ativo) setFilasAgora((r || []).map((x) => x.unidade)) }).catch(() => {})
+    }
     ler()
     const intervalo = setInterval(ler, 45000)
     const aoFocar = () => { if (document.visibilityState === 'visible') ler() }
@@ -460,7 +464,7 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
         : (
           <Cartao linha={escolhida} periodo={periodo} navigate={navigate} fechar={fecharCasa}
             parada={paradaDe.get(escolhida.u.id) || null} estado={estadoDe(escolhida.p.slug)} revisitas={revisitasDe(escolhida.p.slug)}
-            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)}
+            esgotadoHoje={esgotadosSet.has(escolhida.p.slug)} filaAgora={filasAgora.includes(escolhida.u.id)}
             proxima={escolhida.p.slug === proximaSlug} aoAvaliar={avaliar}
             irmas={enderecosDaCasa(todas, escolhida.p.slug, escolhida.u.id)} aoEscolher={escolher} />
           )}
