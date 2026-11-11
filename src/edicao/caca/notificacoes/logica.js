@@ -4,7 +4,7 @@
  */
 
 /** Padrão do servidor na primeira assinatura (contrato metas-push §4): divulgação da edição só por escolha. */
-export const PREFS_PADRAO = Object.freeze({ avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true, incentivo: true, premio: true, campanha: false })
+export const PREFS_PADRAO = Object.freeze({ avaliacao_pendente: true, meta: true, grupo: true, edicao: false, voucher: false, imprevisto: true, incentivo: true, premio: true, campanha: false, disputa: true })
 export const CHAVES_PREFS = Object.keys(PREFS_PADRAO)
 export const TODAS_PREFS = Object.freeze(Object.fromEntries(CHAVES_PREFS.map((k) => [k, true])))
 

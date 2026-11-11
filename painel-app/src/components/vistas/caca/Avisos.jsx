@@ -3,7 +3,7 @@ import { Botao, Carregando, Erro, Secao, Selo } from '../../ui'
 import { confirmar } from '../../Confirmar'
 import { useLeitura } from '../../../lib/leituraVivaReact'
 import {
-  cacaApi, mensagemCaca, TIPOS_PUSH, tipoPushValido, CATEGORIAS_AVISO, DESTINOS_AVISO, PUBLICOS_AVISO, AVISO_LIMITES,
+  cacaApi, mensagemCaca, TIPOS_PUSH, tipoPushValido, CATEGORIAS_AVISO, DESTINOS_AVISO, PUBLICOS_AVISO, AVISO_LIMITES, disputaPorDia,
   ROTULO_ESTADO_AVISO, comporImprevisto, validarAviso, resumoDoEnvio, horaNatal,
 } from '../../../lib/caca'
 import { useExecutar, AvisoOk } from './comum'
@@ -176,6 +176,8 @@ export function Avisos({ edicao, pode }) {
 
       <Programacao pode={pode} />
 
+      <Disputa pode={pode} />
+
       <Simulacao pode={pode} />
     </div>
   )
@@ -251,6 +253,47 @@ function Programacao({ pode }) {
             <strong>{c.titulo}</strong> {c.gerado ? `— enviada para ${c.pessoas} ${Number(c.pessoas) === 1 ? 'pessoa' : 'pessoas'}` : '— ainda não gerada'}</li>
         ))}
       </ul>
+    </Secao>
+  )
+}
+
+/**
+ * Avisos de disputa (migration 20270124): ultrapassagem, perto da zona, reta final e quem está parado há 2 dias. Nasce desligado;
+ * ligar vale a partir do próximo ciclo. Por dia: quantas pessoas receberam na central (geradas) e quantas no celular (enviadas).
+ */
+function Disputa({ pode }) {
+  const est = useLeitura(() => cacaApi.disputaAvisoEstado(), ['carimbos'], { chave: 'caca-disputa-aviso', opcional: true })
+  const [ocupado, executar] = useExecutar()
+  if (!pode('dado.ler') || !est.dados) return null
+  const d = est.dados
+  const dias = disputaPorDia(d.dias)
+  async function trocar() {
+    if (!d.ligado && !(await confirmar('Ligar os avisos de disputa? A partir do próximo ciclo (15 min), quem está na disputa do voucher recebe avisos na central e, com o celular ligado, no aparelho: ultrapassagem, perto da zona e reta final. Quem está parado há 2 dias recebe um lembrete (até ' + (d.retomada_por_ciclo ?? 150) + ' por ciclo).'))) return
+    const r = await executar('disputa', () => cacaApi.disputaAvisoDefinir(!d.ligado))
+    if (r) await est.recarregar()
+  }
+  return (
+    <Secao titulo="Avisos de disputa" nota="Avisam quem está na disputa do voucher do dia: quando alguém passa a pessoa, quando ela está a 1 ou 2 casas da zona, na reta final (2 h antes do corte) e quando ela está parada há 2 dias. Cada tipo vai no máximo uma vez por dia por pessoa, nunca promete voucher e vence no corte. Mais de 300 num ciclo, nada sai.">
+      <p className="ui-nota" role="status">
+        <Selo tom={d.ligado && d.avisos_auto ? 'ok' : 'neutro'}>{!d.ligado ? 'Desligados' : d.avisos_auto ? 'Ligados' : 'Parados: avisos automáticos desligados'}</Selo>{' '}
+        {`${d.aparelhos} ${d.aparelhos === 1 ? 'pessoa recebe' : 'pessoas recebem'} no celular.`}
+        {d.erro ? ` Último ciclo com problema: ${d.erro}.` : ''}
+      </p>
+      {pode('producao.gerir') && (
+        <div className="ui-linha-acoes">
+          <Botao variante={d.ligado ? 'secundario' : undefined} disabled={!!ocupado} aria-busy={ocupado === 'disputa' || undefined} onClick={trocar}>{d.ligado ? 'Desligar avisos de disputa' : 'Ligar avisos de disputa…'}</Botao>
+        </div>
+      )}
+      {dias.length === 0
+        ? <p className="ui-nota">Nenhum aviso de disputa gerado ainda.</p>
+        : (
+          <ul className="cp-fatos">
+            {dias.map((x) => (
+              <li key={x.dia}><span>{x.dia.slice(8, 10)}/{x.dia.slice(5, 7)} · {x.geradas} na central · {x.enviadas} no celular</span>
+                {x.tipos.map((t) => `${t.rotulo}: ${t.geradas}/${t.enviadas}`).join(' · ')}</li>
+            ))}
+          </ul>
+          )}
     </Secao>
   )
 }

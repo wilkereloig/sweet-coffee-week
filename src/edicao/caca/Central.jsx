@@ -15,6 +15,9 @@ import { CACA, CACA_CAMINHOS as RUA } from './textos.js'
 import { ComoCarimbar } from './mapa/ComoCarimbar.jsx'
 import { PrimeiraVez, BotaoComoCarimbar } from './guia/GuiaCarimbar.jsx'
 import { PopupDisputa } from './disputa/PopupDisputa.jsx'
+import { CartaoDisputa } from './disputa/CartaoDisputa.jsx'
+import { ConvitePush } from './notificacoes/ConvitePush.jsx'
+import { momentoUtilParaInstalar } from './pwa/instalacao.js' // "tem carimbo": a mesma conta que oferece o app
 import { CriarMapa } from './CriarMapa.jsx'
 import { GuardarMapa } from './GuardarMapa.jsx'
 import { CartaoEmail } from './CartaoEmail.jsx'
@@ -127,6 +130,8 @@ export function Central ({ caca, dados, navigate }) {
         <VisitaAnterior caca={caca} dados={dados} navigate={navigate} />
       </div>
       <div className="ct-central__col">
+        <CartaoDisputa caca={caca} navigate={navigate} />
+        <ConvitePush chave={caca.chave} api={caca.api} temCarimbo={momentoUtilParaInstalar(caca.mapa)} curto />
         <BotaoComoCarimbar navigate={navigate} />
         <Entradas navigate={navigate} />
         <div className="ct-central__extras">

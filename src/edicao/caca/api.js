@@ -278,6 +278,12 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
       return r.ok && Array.isArray(r.dado?.premios) ? { ok: true, premios: r.dado.premios } : r.ok ? sem('resposta_invalida') : r
     }),
 
+    /** `caca_minha_disputa` (migration 20270123): estado da disputa do dia para este mapa (posição, zona de voucher, corte). Só leitura; exige a chave. */
+    minhaDisputa: (chave) => comChave(chave, async () => {
+      const r = await rpcDado('caca_minha_disputa', { p_chave: chave })
+      return r.ok && r.dado && typeof r.dado.estado === 'string' ? { ok: true, disputa: r.dado } : r.ok ? sem('resposta_invalida') : r
+    }),
+
     /** Atribui ao prêmio um dos vouchers digitais ainda disponíveis no conjunto reservado pela organização. */
     meusPremiosEscolherVoucher: (chave, premio, opcao) => comChave(chave, () => rpcOk('caca_meus_premios_escolher_voucher', {
       p_chave: chave, p_premio: premio, p_opcao: opcao,

@@ -411,6 +411,29 @@ export const TIPOS_PUSH = Object.freeze([
 ])
 export const tipoPushValido = (t) => TIPOS_PUSH.some(([k]) => k === t)
 
+/** Avisos de disputa (migration 20270124): os quatro gatilhos, na ordem em que o painel mostra. */
+export const ROTULO_TIPO_DISPUTA = Object.freeze({
+  ultrapassagem: 'Passaram na disputa', perto: 'Perto da zona', reta_final: 'Reta final', retomada: 'Parado há 2 dias',
+})
+
+/** Linhas de caca_disputa_aviso_estado (uma por dia e tipo) → um item por dia, mais recente primeiro, com os totais do dia. */
+export function disputaPorDia(linhas) {
+  const dias = new Map()
+  for (const l of Array.isArray(linhas) ? linhas : []) {
+    if (!l || typeof l.dia !== 'string' || !ROTULO_TIPO_DISPUTA[l.tipo]) continue
+    const d = dias.get(l.dia) || { dia: l.dia, geradas: 0, enviadas: 0, tipos: [] }
+    const geradas = Number(l.geradas) || 0
+    const enviadas = Number(l.enviadas) || 0
+    d.geradas += geradas; d.enviadas += enviadas
+    d.tipos.push({ tipo: l.tipo, rotulo: ROTULO_TIPO_DISPUTA[l.tipo], geradas, enviadas })
+    dias.set(l.dia, d)
+  }
+  const ordem = Object.keys(ROTULO_TIPO_DISPUTA)
+  return [...dias.values()]
+    .map((d) => ({ ...d, tipos: d.tipos.sort((a, b) => ordem.indexOf(a.tipo) - ordem.indexOf(b.tipo)) }))
+    .sort((a, b) => (a.dia < b.dia ? 1 : a.dia > b.dia ? -1 : 0))
+}
+
 /** Movimento nas casas (migrations 20270125 e 20270128): nível de cada unidade nas últimas 2 h, com todas as fontes somadas. */
 export const NIVEL_MOVIMENTO = Object.freeze({
   alto: { rotulo: 'Acima do normal', tom: 'alerta' },
@@ -607,10 +630,6 @@ export function mensagemCaca(erro) {
 // ── Chamadas ao banco ────────────────────────────────────────────────────────
 // `fetchImpl` só existe para o teste. O corpo de cada chamada é o do contrato (15-caca-contrato-*.md).
 export const cacaApi = {
-  movimentoEstado: (f) => rpc('caca_movimento_estado', { p_secret: lerSenha() }, f),
-  movimentoPublicoDefinir: (ligado, f) => rpc('caca_movimento_publico_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
-  filaAvisos: (f) => rpc('caca_fila_avisos', { p_secret: lerSenha() }, f),
-  filaDefinir: (unidade, fila, f) => rpc('caca_fila_definir', { p_secret: lerSenha(), p_unidade: unidade, p_fila: !!fila }, f),
   config: (f) => rpc('caca_config_ler', { p_secret: lerSenha() }, f),
   gravarConfig: (chave, valor, f) => rpc('caca_config_gravar', { p_secret: lerSenha(), p_chave: chave, p_valor: valor }, f),
   premios: (edicao, f) => rpc('caca_premio_listar', { p_secret: lerSenha(), p_edicao: edicao }, f),
@@ -656,6 +675,13 @@ export const cacaApi = {
   programacaoEstado: (f) => rpc('caca_programacao_estado', { p_secret: lerSenha() }, f),
   /** Ajusta a programação: { ligada, hora (8 a 20, Fortaleza), janela_horas (1 a 8) }. Datas do festival vêm da edição, não daqui. */
   programacaoDefinir: (cfg, f) => rpc('caca_programacao_definir', { p_secret: lerSenha(), p_cfg: cfg }, f),
+  /** Avisos de disputa (migration 20270124): interruptor, último ciclo e contagem por dia e tipo. */
+  disputaAvisoEstado: (f) => rpc('caca_disputa_aviso_estado', { p_secret: lerSenha() }, f),
+  disputaAvisoDefinir: (ligado, f) => rpc('caca_disputa_aviso_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
+  movimentoEstado: (f) => rpc('caca_movimento_estado', { p_secret: lerSenha() }, f),
+  movimentoPublicoDefinir: (ligado, f) => rpc('caca_movimento_publico_definir', { p_secret: lerSenha(), p_ligado: !!ligado }, f),
+  filaAvisos: (f) => rpc('caca_fila_avisos', { p_secret: lerSenha() }, f),
+  filaDefinir: (unidade, fila, f) => rpc('caca_fila_definir', { p_secret: lerSenha(), p_unidade: unidade, p_fila: !!fila }, f),
   /** Quantas entregas esperam push (não envia nada). */
   pushDoAvisoSimular: (id, f) => chamarFuncao('caca-push', { secret: lerSenha(), aviso_id: id, dry_run: true }, f),
   /** AÇÃO REAL: processa um lote de até 200 aparelhos de um aviso JÁ enviado; repetir enquanto `restam > 0`. */

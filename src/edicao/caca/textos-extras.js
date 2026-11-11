@@ -48,7 +48,7 @@ export const EXTRAS = {
     marcarVistos: 'Marcar todos como vistos',
     novosN: (n) => (n === 1 ? '1 aviso novo' : `${n} avisos novos`),
     semAvisos: 'Nenhum aviso por enquanto. Quando houver algo útil, aparece aqui, mesmo sem notificação no celular.',
-    acaoPorCategoria: { premio: 'Ver prêmios', voucher: 'Ver prêmios', meta: 'Ver minhas metas', avaliacao_pendente: 'Avaliar o combo', incentivo: 'Ver o mapa', campanha: 'Ver a campanha' },
+    acaoPorCategoria: { premio: 'Ver prêmios', voucher: 'Ver prêmios', meta: 'Ver minhas metas', avaliacao_pendente: 'Avaliar o combo', incentivo: 'Ver o mapa', campanha: 'Ver a campanha', disputa: 'Ver minha disputa' },
     marcarLida: 'Marcar como lida',
     marcarTodas: 'Marcar todas como lidas',
   },
@@ -79,6 +79,7 @@ export const EXTRAS = {
       incentivo: { rotulo: 'Lembretes da Caça', texto: 'Um empurrãozinho para experimentar um combo e avançar no mapa. No celular, no máximo um a cada dois dias (nos dois últimos dias do festival podem vir em dias seguidos).' },
       premio: { rotulo: 'Prêmios e prazos', texto: 'Quando você for selecionado para um voucher ou prêmio e o prazo para confirmar.' },
       campanha: { rotulo: 'Campanhas e parcerias', texto: 'Novidades de campanhas do festival e dos patrocinadores, como a Ter com quem contar. Vem desligado: só chega se você escolher.' },
+      disputa: { rotulo: 'Disputa do voucher', texto: 'Quando alguém passar você, quando faltar pouco para a zona de voucher e na reta final antes do corte. Também um lembrete se você ficar 2 dias sem carimbar. Nunca anuncia resultado antes da apuração.' },
     },
     honestidade: 'Os avisos são enviados pela organização quando há o que dizer: não chegam na hora de cada carimbo ou de cada meta, e podem atrasar ou não chegar, dependendo do aparelho e do navegador. Você pode desligar quando quiser.',
     ligar: 'Ativar avisos neste aparelho',
@@ -104,6 +105,16 @@ export const EXTRAS = {
     falha: 'Não deu para ativar os avisos agora. Tente de novo em instantes.',
     falhaPreferencia: 'Não deu para salvar a preferência. Tente de novo.',
     falhaDesligar: 'Não deu para desligar agora. Tente de novo.',
+    // Convite no momento certo (docs/cartoon-2026-2/19, etapa 2): tela do carimbo confirmado e hub de quem já carimbou.
+    convite: {
+      titulo: 'Quer saber quando alguém passar você?',
+      texto: 'Ative os avisos e a Caça chama você neste aparelho quando a disputa mudar, quando houver prêmio em jogo e quando o corte estiver perto.',
+      curto: 'Ative os avisos para saber quando alguém passar você na disputa.',
+      nota: 'Podem atrasar, dependendo do aparelho. Você desliga quando quiser.',
+      botao: 'Ativar avisos',
+      agoraNao: 'Agora não',
+      iosTitulo: 'No iPhone, os avisos precisam do app',
+    },
   },
 
   instalar: {

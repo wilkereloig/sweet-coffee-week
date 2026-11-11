@@ -6,6 +6,7 @@
 import {
   avisoSuportado, ehIOS, instalado, assinaturaDoAparelho, ligarAvisos, desligarAvisos,
 } from '../../../../painel-app/src/lib/push.js'
+import { TODAS_PREFS } from './logica.js'
 
 export { ehIOS, instalado as appInstalado }
 
@@ -19,6 +20,24 @@ export async function lerAparelho () {
 
 /** Pede permissão (chamar só de um clique), assina e entrega `{ endpoint, p256dh, auth }` a `registrar`. Lança 'bloqueado' | 'sem_resposta' | o erro do banco. */
 export const ativarNesteAparelho = (registrar) => ligarAvisos(registrar)
+
+/** Avisa as outras peças da tela (AvisosPush, convite) que o push deste aparelho mudou, para relerem o aparelho. */
+export const EVENTO_PUSH = 'scw:caca-push'
+
+/**
+ * "Ativar" da central e do convite: assina este aparelho com todas as categorias e grava no banco. Devolve a resposta do banco
+ * (prefs, dispositivos). Lança o mesmo que `ativarNesteAparelho` (classificar com logica.classificarErroPush).
+ */
+export async function ativarAvisosDoMapa (api, chave) {
+  let resposta = null
+  await ativarNesteAparelho(async ({ endpoint, p256dh, auth }) => {
+    const r = await api.pushRegistrar(chave, { endpoint, keys: { p256dh, auth } }, TODAS_PREFS)
+    if (!r.ok) throw Object.assign(new Error(r.motivo), { motivo: r.motivo })
+    resposta = r
+  })
+  globalThis.dispatchEvent?.(new Event(EVENTO_PUSH))
+  return resposta
+}
 export async function endpointDesteAparelho () {
   return (await assinaturaDoAparelho())?.endpoint || null
 }

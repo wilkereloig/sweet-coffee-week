@@ -7,7 +7,7 @@
 import React from 'react'
 import { EXTRAS, mensagemDoMotivoExtras } from '../textos-extras.js'
 import { PREFS_PADRAO, TODAS_PREFS, normalizarPrefs, estadoDoPush, classificarErroPush } from './logica.js'
-import { lerAparelho, ativarNesteAparelho, desativarNesteAparelho, esquecerAssinaturaLocal, endpointDesteAparelho } from './aparelho.js'
+import { lerAparelho, ativarAvisosDoMapa, desativarNesteAparelho, esquecerAssinaturaLocal, endpointDesteAparelho, EVENTO_PUSH } from './aparelho.js'
 
 const T = EXTRAS.push
 
@@ -18,6 +18,9 @@ export function AvisosPush ({ caca }) {
   const [ocupado, setOcupado] = React.useState('') // '' · 'ligando' · 'desligando' · 'prefs'
   const [msg, setMsg] = React.useState({ tipo: '', texto: '' }) // tipo: 'ok' | 'erro'
   const { chave, api } = caca
+  // Ativado pelo convite (ConvitePush) na mesma tela: relê o aparelho para o selo não ficar em "desligados".
+  const [releitura, reler] = React.useReducer((n) => n + 1, 0)
+  React.useEffect(() => { globalThis.addEventListener(EVENTO_PUSH, reler); return () => globalThis.removeEventListener(EVENTO_PUSH, reler) }, [])
 
   React.useEffect(() => {
     let vivo = true
@@ -33,7 +36,7 @@ export function AvisosPush ({ caca }) {
       else if (r.motivo === 'sem_assinatura') setAparelho((x) => ({ ...x, assinado: false }))
     }).catch(() => { if (vivo) setAparelho({ suportado: false, ios: false, instalado: false, permissao: 'default', assinado: false }) })
     return () => { vivo = false }
-  }, [chave, api])
+  }, [chave, api, releitura])
 
   if (!aparelho) return null
   const estado = estadoDoPush(aparelho)
@@ -48,13 +51,8 @@ export function AvisosPush ({ caca }) {
 
   const ativar = async () => {
     setOcupado('ligando'); setMsg({ tipo: '', texto: '' })
-    let resposta = null
     try {
-      await ativarNesteAparelho(async ({ endpoint, p256dh, auth }) => {
-        const r = await api.pushRegistrar(chave, { endpoint, keys: { p256dh, auth } }, TODAS_PREFS)
-        if (!r.ok) throw Object.assign(new Error(r.motivo), { motivo: r.motivo })
-        resposta = r
-      })
+      const resposta = await ativarAvisosDoMapa(api, chave)
       setAparelho((a) => ({ ...a, permissao: 'granted', assinado: true }))
       if (resposta) { setPrefs(normalizarPrefs(resposta.prefs)); setDispositivos(Number(resposta.dispositivos) || 1) }
       falar('ok', T.ligadoEm(Number(resposta?.dispositivos) || 1))
