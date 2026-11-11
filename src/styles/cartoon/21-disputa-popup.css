@@ -1,7 +1,55 @@
-/* Camada Cartoon · Pop-up "O que você disputa" (mapa). Reaproveita .ct-premios (blocos de prêmio) e .ct-campanha-bloco (Sicredi);
-   aqui só o que é do pop-up. Só tokens --ct-*. Entra por src/styles/scw-cartoon.css, depois do 20. */
+/* Camada Cartoon · Pop-up "O que você disputa" (mapa): os avisos em balões de notificação (.ct-notif). Só tokens --ct-*. Entra por src/styles/scw-cartoon.css, depois do 20. */
 .ct-disputa { padding-bottom: 20px; }
-.ct-disputa__atencao { display: grid; gap: 6px; padding: 14px; border: 2px dashed var(--ct-chocolate); border-radius: var(--ct-raio-p); background: var(--ct-branco); }
-.ct-disputa .ct-campanha-bloco { margin-top: 0; }
 .ct-disputa__acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
 .ct-disputa__acoes .ct-link { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* ---------------------------------------------------------------- notificações (redesenho 11/11/2026)
+   Wilker: "parece uma redação, não parece notificação". Cada aviso é um balão de notificação empilhado: ícone do app num
+   quadrado arredondado (a cor diz o tipo), "de onde · quando", título curto, uma linha, etiquetas e a ação. A regra
+   completa fica recolhida em "Como funciona". Os balões entram um depois do outro, de cima. */
+.ct-notifs { display: grid; gap: 12px; margin: 0 0 18px; padding: 0; list-style: none; }
+.ct-notif {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: start; gap: 12px;
+  padding: 14px 16px 14px 14px; border: 2.5px solid var(--ct-chocolate); border-radius: 20px; background: var(--ct-branco);
+  box-shadow: 4px 4px 0 var(--ct-chocolate);
+}
+.ct-notif__app {
+  display: grid; place-items: center; width: 52px; height: 52px; border: 2.5px solid var(--ct-chocolate); border-radius: 14px;
+  background: var(--ct-amarelo);
+}
+.ct-edicao .ct-notif__app img { width: 40px; height: 40px; }
+.ct-notif--campanha .ct-notif__app { background: var(--ct-turquesa); }
+.ct-notif--final .ct-notif__app { background: var(--ct-creme); }
+.ct-notif--atencao .ct-notif__app { background: var(--ct-vermelho); }
+.ct-notif--atencao { background: var(--ct-creme); }
+.ct-notif__corpo { display: grid; gap: 4px; min-width: 0; }
+.ct-edicao .ct-notif__meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 10px; margin: 0; font: 700 13px/1.3 var(--ct-font); }
+.ct-notif__origem { font-weight: 800; }
+.ct-notif__quando { font-weight: 600; }
+.ct-edicao .ct-notif__titulo { margin: 0; font: 900 18px/1.2 var(--ct-font); text-wrap: balance; }
+.ct-edicao .ct-notif__texto { margin: 0; font: 500 15px/1.4 var(--ct-font); text-wrap: pretty; }
+.ct-notif__etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.ct-notif__etiquetas li { padding: 3px 10px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 800 12.5px/1.3 var(--ct-font); }
+.ct-notif__progresso { display: grid; gap: 4px; margin-top: 6px; }
+.ct-notif__barra { display: block; height: 14px; overflow: hidden; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); }
+.ct-notif__barra > span { display: block; height: 100%; min-width: 6px; border-radius: 999px; background: var(--ct-vermelho); }
+.ct-notif__conta { font: 800 13px/1.3 var(--ct-font); }
+.ct-notif__pe { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 4px; }
+.ct-edicao .ct-notif__pe .ct-botao { min-height: 44px; padding: 0 16px; font-size: 14px; }
+.ct-notif__mais { flex: 0 1 auto; }
+.ct-notif__mais[open] { flex-basis: 100%; }
+.ct-notif__mais > summary { display: inline-flex; align-items: center; min-height: 44px; font: 800 14px/1.2 var(--ct-font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ct-notif__mais > div { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--ct-creme); }
+.ct-edicao .ct-notif__mais p { margin: 0; font: 500 14px/1.45 var(--ct-font); }
+@media (prefers-reduced-motion: no-preference) {
+  .ct-notif { animation: ct-notif-entra 420ms cubic-bezier(.22, 1, .36, 1) both; }
+  .ct-notif:nth-child(2) { animation-delay: 90ms; }
+  .ct-notif:nth-child(3) { animation-delay: 180ms; }
+  .ct-notif:nth-child(4) { animation-delay: 270ms; }
+}
+@keyframes ct-notif-entra { from { opacity: .001; translate: 0 -14px; } }
+@media (max-width: 420px) {
+  .ct-notif { grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 12px; }
+  .ct-notif__app { width: 44px; height: 44px; border-radius: 12px; }
+  .ct-edicao .ct-notif__app img { width: 34px; height: 34px; }
+}

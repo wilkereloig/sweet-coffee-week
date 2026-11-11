@@ -21,6 +21,14 @@ export const DISPUTA = {
   emailTitulo: 'Confirme o e-mail do seu mapa',
   emailTexto: 'Quem é selecionado sem o e-mail confirmado tem só até o meio-dia do dia seguinte para confirmar; passado o prazo, a vez vai para a próxima pessoa.',
   finalTitulo: 'Prêmio final',
+  // Balões de notificação (redesenho de 11/11/2026): de onde vem, quando, e o resumo de uma linha.
+  origem: { caca: 'Caça aos Carimbos', sicredi: 'Sicredi · patrocinador' },
+  agora: 'agora',
+  ateOFim: 'até 15/11',
+  quando: { hoje: 'hoje', amanha: 'amanhã', depois: 'em breve' },
+  corte: (c) => `Corte às ${c}`,
+  campanhaTexto: 'Publique seu vídeo até 13/11: 10 histórias ganham um par de vouchers.',
+  comoFunciona: 'Como funciona',
   acao: {
     'criar-mapa': 'Criar meu mapa',
     'confirmar-email': 'Confirmar meu e-mail',
