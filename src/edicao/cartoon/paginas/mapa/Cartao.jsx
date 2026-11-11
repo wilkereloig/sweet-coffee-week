@@ -8,6 +8,7 @@
  * uma vez na Caça, mesmo com vários endereços). Avaliar sozinho não cria carimbo e o cartão diz isso.
  * `estado`: 'nao-visitada' | 'pendente' | 'conquistada' | null (sem mapa) — sempre o do servidor.
  * `filaAgora`: a casa avisou "Estamos com fila agora" (vence em 1 h; doc 20, parte B).
+ * `movimento`: `{ alto, tranquila }` da unidade (doc 20, parte D) ou null; o cartão só fala de casa aberta agora.
  * `irmas`: outras unidades da mesma casa, `{ u, p }` · `aoEscolher(id)`: trocar de endereço.
  */
 import React from 'react'
@@ -27,8 +28,9 @@ import { SeloEstado } from '../../../caca/mapa/SeloEstado.jsx'
 import { ESTADO_TEXTO, MAPA_CACA as TC } from '../../../caca/mapa/textos.js'
 import { CACA_CAMINHOS } from '../../../caca/textos.js'
 import { DELIVERY as TD } from '../../../caca/delivery/textos.js'
+import { seloDoMovimento } from '../../../caca/movimento.js'
 
-export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher, esgotadoHoje = false, filaAgora = false }) {
+export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estado = null, revisitas = 0, proxima = false, aoAvaliar, irmas = [], aoEscolher, esgotadoHoje = false, filaAgora = false, movimento = null }) {
   const [mais, setMais] = React.useState(false)
   const relogio = useAgora(60000) // "Abre em 30 min" anda com o relógio sem recarregar
   const rota = useRota()
@@ -55,6 +57,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
   const passoJaFui = rota?.foi?.(p) && estado !== 'conquistada' ? TC.jaFuiPasso[estado || 'semMapa'] : ''
   // "Aberto agora" e "Abre em 30 min" são decisão de ir e ficam à vista; os outros horários ("abre hoje às 11h") esperam em "Mais".
   const aberto = est?.estado === 'aberto' || nivelDaUnidade(u, relogio, periodo) === 'breve'
+  const selo = seloDoMovimento({ mov: movimento, aberto: est?.estado === 'aberto', esgotado: esgotadoHoje, fila: filaAgora })
   const agoraNo = esgotadoHoje
     ? <p className="ct-agora ct-agora--esgotado ct-mapa__cartao-linha" role="status"><span aria-hidden="true">!</span>Combos esgotados hoje</p>
     : agora && (
@@ -85,6 +88,7 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
       </div>
       {(esgotadoHoje || aberto) && agoraNo}
       {filaAgora && !esgotadoHoje && <p className="ct-agora ct-agora--fila ct-mapa__cartao-linha" role="status"><span aria-hidden="true">!</span>{T.filaAgora}</p>}
+      {selo && <p className={`ct-agora ct-agora--movimento ct-agora--movimento-${selo} ct-mapa__cartao-linha`} role="status">{T.movimento[selo]}</p>}
       {deliveryApenas
         ? <p className="ct-nota ct-mapa__so-delivery-nota">{T.soDeliveryNota}</p>
         : M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}

@@ -125,6 +125,12 @@ export async function carregarFilasAgora (codigo, { sinal } = {}) {
   return rpc('filas_agora_publico', { p_edicao: codigo }, sinal)
 }
 
+/** Movimento das casas (doc 20, parte D): por unidade, só `alto` e `tranquila`. Vazio com o interruptor desligado. */
+export async function carregarMovimento (codigo, { sinal } = {}) {
+  if (!codigo || demoLigado()) return []
+  return rpc('movimento_publico', { p_edicao: codigo }, sinal)
+}
+
 async function buscarParticipante (codigo, slug, { sinal } = {}) {
   if (demoLigado()) {
     const { DEMO_EDICAO } = await import('./demo/cartoon.js')

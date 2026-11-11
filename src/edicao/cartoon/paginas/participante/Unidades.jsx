@@ -17,6 +17,9 @@ import { PARTICIPANTE as T, ATENDIMENTO, ICONE } from '../../textos.js'
 import { QueroIr } from '../../MarcasLover.jsx'
 import { MAPA_NO_AR } from '../../contexto.js'
 import { useAgora } from '../../useAgora.js'
+import { useMovimento } from '../../../caca/useMovimento.js'
+import { seloDoMovimento } from '../../../caca/movimento.js'
+import { MAPA as TM } from '../../textos.js'
 
 /**
  * O horário no festival. Com as datas da edição: as frases em destaque (a leitura de relance) e, abaixo, os dias um a um
@@ -44,10 +47,12 @@ function Dias ({ linhas, periodo, instante }) {
 /** Os modos que a unidade declarou "sim" para o combo (nunca deduz: "não informado" não entra). */
 const modosDaUnidade = (u) => M.MODOS.map(([k]) => k).filter((k) => u.combo?.modos?.[k] === 'sim')
 
-function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) {
+function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos, movimento = null }) {
   const instante = useAgora() // a ficha aberta por horas não pode seguir dizendo "aberto agora" depois que a casa fechou
   const est = M.estadoAgora(u, instante, periodo)
   const agora = M.textoEstado(est)
+  // Movimento (doc 20, parte D): só para casa aberta agora; a ficha não sabe de combo esgotado nem de fila (isso é do mapa).
+  const selo = comCombo ? seloDoMovimento({ mov: movimento, aberto: est.estado === 'aberto' }) : null
   const titulo = M.caixaLegivel(u.nome || u.endereco?.bairro || casa.nome)
   const comoChegar = M.linkComoChegar(u)
   const obs = comCombo ? M.observacaoUtil(u.combo?.observacao) : ''
@@ -65,6 +70,7 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) 
             {est.estado === 'aberto' && <IconeCartoon nome="aberto-agora" tamanho={32} />}{agora}
           </p>
         )}
+        {selo && <p className={`ct-agora ct-agora--movimento ct-agora--movimento-${selo}`} role="status">{TM.movimento[selo]}</p>}
       </header>
       <div className="ct-unidade__corpo">
         <div className="ct-unidade__onde">
@@ -99,6 +105,7 @@ function Unidade ({ u, casa, navigate, comCombo, rota, periodo, mostrarModos }) 
 
 export function Unidades ({ p, navigate, comCombo, rota, periodo }) {
   const unidades = p.unidades || []
+  const movimento = useMovimento(comCombo && unidades.length ? periodo?.codigo : null)
   if (!unidades.length) return null // casa sem unidade informada: a seção não aparece (nada de "não informado")
   // Só vale dizer o que cada unidade atende quando elas não atendem todas do mesmo jeito (senão é o que "Como pedir" já disse).
   const mostrarModos = comCombo && unidades.length > 1 && new Set(unidades.map((u) => modosDaUnidade(u).join())).size > 1
@@ -106,7 +113,7 @@ export function Unidades ({ p, navigate, comCombo, rota, periodo }) {
     <section id="unidades" className="ct-bloco ct-ficha__secao" aria-labelledby="un-titulo">
       <Letreiro id="un-titulo" texto={T.unidadesTitulo(unidades.length)} />
       <div className={`ct-unidades${unidades.length > 1 ? ' ct-unidades--varias' : ''}`}>
-        {unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={comCombo} rota={rota} periodo={periodo} mostrarModos={mostrarModos} />)}
+        {unidades.map((u) => <Unidade key={u.id} u={u} casa={p.casa} navigate={navigate} comCombo={comCombo} rota={rota} periodo={periodo} mostrarModos={mostrarModos} movimento={movimento.get(u.id) || null} />)}
       </div>
     </section>
   )

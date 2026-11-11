@@ -42,3 +42,24 @@ Nenhuma regra do jogo muda. O público só vê o que for confirmado por gente (B
   `caca_movimento_estado(null)` → `nao_autorizado`. 0 respostas e 0 avisos de fila no momento.
 - Falta: o site e o painel com as telas novas só chegam ao público quando a `dev` for para `master` (decisão do Wilker);
   a conferência visual da aba Movimento e do cartão da marca é dele (pedem login).
+
+## D · Índice somado, segundo plano e o site (11/11, pedido do Wilker)
+"Coletar a quantidade de dados que existir", nunca dizer "lotada", comparar a casa com o normal dela e as casas entre si, levar gente
+para onde há menos movimento; incorporar ao mapa e à página de cada casa.
+- Migration `20270128_caca_movimento_indice.sql` (reverter em `supabase/reverter/`).
+- **Presenças** da unidade nas últimas 2 h = pessoas diferentes que avaliaram o combo ali ou carimbaram por GPS (uma vez por
+  pessoa, pelo e-mail) + metade das leituras do QR da casa no display (anônimas, por hora cheia, divididas entre os endereços).
+  Fontes de 05 a 11/11: 3.883 avaliações (a maior, e de quem não joga também), 1.605 leituras do QR da casa, 1.138 carimbos por GPS.
+- **Nível:** `alto` (≥ 4 presenças e > 1,5 × o normal) · `baixo` (normal ≥ 3 e < metade) · `normal` · `sem_dado` · `sem_base`.
+  **Tranquila** = não está alta e tem presenças até a mediana das casas com movimento (comparação entre casas).
+- **Segundo plano:** job `scw-caca-movimento` (pg_cron, 15 min) → `caca_movimento_gravar()` → tabela `caca_movimento_foto`.
+- **Site** (`movimento_publico`): só com o interruptor `caca_config.movimento_publico` ligado (nasce desligado), só foto com
+  menos de 40 min, só `alto` e `tranquila` por unidade — nenhum número.
+  - `src/edicao/caca/movimento.js` (`seloDoMovimento`): só fala de casa aberta agora; combo esgotado e fila da casa calam o selo.
+  - Cartão do mapa e ficha da casa (Unidades): "Movimento acima do normal agora" / "Boa hora para visitar: menos movimento agora".
+  - Mapa › Filtros: "Menos movimento agora" (as abertas tranquilas), só aparece com dados.
+- **Painel** (aba Movimento): presenças, normal, nível, cada fonte, "Tinha fila?", fila no mapa; "Displays para conferir"
+  (nunca lido · parado há 2 dias · muita leitura para pouco carimbo); botão "Ligar no site…" (`producao.gerir`).
+- Ensaio (ROLLBACK), 08/11 18h30: 9 altas · 19 normais · 6 baixas · 8 pouco dado (só carimbos: 30 pouco dado); com o interruptor
+  desligado o site recebe 0 linhas, ligado recebe 42.
+- Não entra (ainda): "Perto de mim" anônimo (coleta nova) e combos vendidos por dia (sem hora).
