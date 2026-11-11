@@ -48,13 +48,17 @@ export function AssinaturaPatrocinio ({ navigate, destaque = false }) {
             <p className="ct-assina-patrocinio__prazo">{prazoCurto(campanha)}</p>
             <Botao tipo="secundario" href={CAMPANHA.caminho} navigate={navigate}>Como participar</Botao>
           </div>
-          <figure className="ct-assina-patrocinio__video">
-            <video controls playsInline preload="none" poster={CAMPANHA.video.capa} width={CAMPANHA.video.largura} height={CAMPANHA.video.altura} aria-label={TC.videoRotulo}>
-              <source src={CAMPANHA.video.src} type="video/mp4" />
-              {TC.videoSemSuporte} <a href={CAMPANHA.video.src}>{TC.videoBaixar}</a>.
-            </video>
-            <figcaption>Assista ao vídeo da campanha</figcaption>
-          </figure>
+          {/* Compacto (auditoria da Home, 11/11): o vídeo fica atrás de um botão; só carrega quando a pessoa abre. */}
+          <details className="ct-assina-patrocinio__video-abrir">
+            <summary className="ct-botao ct-botao--contorno">Assistir ao vídeo da campanha</summary>
+            <figure className="ct-assina-patrocinio__video">
+              <video controls playsInline preload="none" poster={CAMPANHA.video.capa} width={CAMPANHA.video.largura} height={CAMPANHA.video.altura} aria-label={TC.videoRotulo}>
+                <source src={CAMPANHA.video.src} type="video/mp4" />
+                {TC.videoSemSuporte} <a href={CAMPANHA.video.src}>{TC.videoBaixar}</a>.
+              </video>
+              <figcaption>Assista ao vídeo da campanha</figcaption>
+            </figure>
+          </details>
           <div className="ct-assina-patrocinio__passos">
             <IconeCartoon nome="vouchers" tamanho={64} />
             <p className="ct-assina-patrocinio__passos-titulo">Para participar</p>

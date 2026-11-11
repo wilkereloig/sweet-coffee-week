@@ -147,3 +147,8 @@
   .ct-assina-patrocinio__beneficio-simbolo > span { font-size: 22px; }
   .ct-edicao .ct-assina-patrocinio__beneficio-valor { border-radius: 12px; }
 }
+
+/* Vídeo atrás de um botão (auditoria da Home, 11/11): a seção encolhe; o vídeo só aparece (e carrega) quando a pessoa abre. */
+.ct-assina-patrocinio__video-abrir { display: grid; justify-items: center; gap: 12px; }
+.ct-assina-patrocinio__video-abrir > summary { list-style: none; }
+.ct-assina-patrocinio__video-abrir > summary::-webkit-details-marker { display: none; }

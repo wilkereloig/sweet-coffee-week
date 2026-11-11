@@ -67,7 +67,7 @@ export function AcoesCompra ({ p, navigate, className = '', naFicha = false }) {
  * `modo` 'combos' põe o combo à frente (nome do combo, itens); 'participantes', a casa. `etiqueta` ({ tipo, texto }) só
  * durante o festival, e diz o que é verdade AGORA ("Aberta agora, até 18h" / "Abre às 15h").
  */
-export function CartaoCombo ({ p, modo = 'combos', navigate, encerrada = false, etiqueta = null, aoIr }) {
+export function CartaoCombo ({ p, modo = 'combos', navigate, encerrada = false, etiqueta = null, esgotado = false, aoIr }) {
   const base = modo === 'combos' ? 'combos' : 'participantes'
   const us = p.unidades || []
   const bairros = [...new Map(us.map((u) => u.endereco?.bairro).filter(Boolean).map((b) => [M.normalizar(b), b])).values()]
@@ -79,7 +79,7 @@ export function CartaoCombo ({ p, modo = 'combos', navigate, encerrada = false, 
   const nomesItens = itens.map((i) => i.nome).filter(Boolean)
   const preco = !encerrada && p.combo?.preco ? M.formatarPreco(p.combo.preco) : ''
   return (
-    <li className={`ct-cartao${espia ? ' ct-cartao--espia' : ''}`}>
+    <li className={`ct-cartao${espia ? ' ct-cartao--espia' : ''}${esgotado ? ' ct-cartao--esgotado' : ''}`}>
       <Link className="ct-cartao__link" href={`${C}/${base}/${p.slug}`} navigate={navigate} aoIr={aoIr} data-acao="ver_combo" data-casa={p.slug}>
         <div className="ct-cartao__visual">
           {foto ? (
@@ -118,7 +118,8 @@ export function CartaoCombo ({ p, modo = 'combos', navigate, encerrada = false, 
       {!encerrada && p.combo && (
         <div className="ct-cartao__venda">
           {preco && <p className="ct-cartao__preco"><span>{T.precoRotulo}</span> {preco}</p>}
-          <AcoesCompra p={p} navigate={navigate} />
+          {/* Esgotado hoje (combos_esgotados_publico): sem botão de compra; a ficha segue aberta pelo link do cartão. */}
+          {esgotado ? <p className="ct-cartao__esgotado">{COMPRA.esgotado}</p> : <AcoesCompra p={p} navigate={navigate} />}
         </div>
       )}
       {!encerrada && MAPA_NO_AR && us.length > 0 && (

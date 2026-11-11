@@ -38,40 +38,8 @@
   .ct-estreia__itens { font-size: 13px; }
 }
 
-/* Vitrine (turquesa com retícula): a lâmina do carrossel — foto inteira com borda chocolate e sombra dura, a casa em
-   amarelo (com a barra amarela) e o combo em creme sobre a sombra da base; a logo da casa no canto de cima.
-   Celular: faixa que corre de lado (scroll-snap), com a beirada do próximo à vista; a partir de 600, grade. */
+/* Vitrine (turquesa com retícula): todos os combos no cartão de compra (CartaoCombo, 03-catalogo.css). */
 .ct-bloco.ct-entrada__elenco { margin-top: 0; padding-bottom: clamp(36px, 5vw, 64px); background-color: var(--ct-turquesa); border-bottom: 3px solid var(--ct-chocolate); }
-.ct-laminas {
-  display: grid; grid-auto-flow: column; grid-auto-columns: 72%; gap: 18px;
-  margin: 0 calc(var(--ct-trilho) * -1); padding: 10px var(--ct-trilho) 22px; list-style: none;
-  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--ct-trilho); overscroll-behavior-x: contain;
-}
-.ct-laminas li { scroll-snap-align: start; min-width: 0; }
-@media (min-width: 600px) {
-  .ct-laminas { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; margin: 0; padding: 10px 0 12px; overflow: visible; }
-  .ct-laminas li:nth-child(odd) { rotate: -1deg; }
-  .ct-laminas li:nth-child(even) { rotate: 1.2deg; }
-}
-@media (min-width: 900px) { .ct-laminas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.ct-lamina__link {
-  position: relative; display: grid; grid-template-areas: 'lamina'; height: 100%; overflow: hidden;
-  border: 3px solid var(--ct-chocolate); border-radius: 16px; background: var(--ct-creme); box-shadow: 6px 6px 0 var(--ct-chocolate);
-  color: inherit; text-decoration: none; transition: translate var(--ct-mo), rotate var(--ct-mo), box-shadow var(--ct-mo);
-}
-.ct-lamina__link:is(:hover, :focus-visible) { translate: -3px -5px; rotate: -1.5deg; box-shadow: 10px 10px 0 var(--ct-chocolate); }
-.ct-lamina__foto { grid-area: lamina; position: relative; display: block; }
-.ct-lamina__foto .ct-foto { border: 0; border-radius: 0; }
-.ct-lamina__foto .ct-foto img { transition: scale 620ms cubic-bezier(.22, .9, .24, 1); }
-.ct-lamina__link:is(:hover, :focus-visible) .ct-foto img { scale: 1.06; }
-.ct-lamina__legenda {
-  grid-area: lamina; align-self: end; position: relative; z-index: 1; display: grid; gap: 4px;
-  padding: 44px 14px 14px 26px; background: linear-gradient(to top, rgba(58, 21, 15, .94) 0%, rgba(58, 21, 15, .82) 48%, rgba(58, 21, 15, 0) 100%);
-}
-/* A barra amarela à esquerda do nome, como nas lâminas do carrossel. */
-.ct-lamina__legenda::before { content: ''; position: absolute; left: 14px; top: 44px; bottom: 14px; width: 4px; border-radius: 2px; background: var(--ct-amarelo); }
-.ct-lamina__casa { color: var(--ct-amarelo); font: 900 clamp(16px, 1.3vw, 19px)/1.1 var(--ct-font); text-transform: uppercase; text-wrap: balance; }
-.ct-lamina__tema { color: var(--ct-creme); font: 700 14px/1.25 var(--ct-font); text-wrap: balance; }
 /* Durante o festival o elenco diz quem está com o combo AGORA: a faixa de estado em cima da vitrine (turquesa) e a etiqueta na
    legenda da lâmina. Sem nenhuma casa aberta (ou sem horário cadastrado) a faixa vira um aviso em quadro, com o caminho logo abaixo. */
 .ct-elenco-momento { display: grid; gap: 2px; margin: 0 0 14px; }
@@ -79,9 +47,6 @@
 .ct-elenco-momento__titulo { font: 900 clamp(16px, 1.5vw, 19px)/1.25 var(--ct-font); text-transform: uppercase; letter-spacing: .02em; text-wrap: balance; }
 .ct-elenco-momento__apoio { font: 700 15px/1.4 var(--ct-font); }
 .ct-elenco-momento--vazio { max-width: 52ch; margin-bottom: 18px; padding: 16px 18px; border: 3px solid var(--ct-chocolate); border-radius: 6px; background: var(--ct-branco); box-shadow: 5px 5px 0 var(--ct-chocolate); }
-.ct-lamina__momento { justify-self: start; padding: 2px 9px; border-radius: 999px; font: 800 12px/1.35 var(--ct-font); letter-spacing: .02em; }
-.ct-lamina__momento--aberta { background: var(--ct-amarelo); color: var(--ct-chocolate); }
-.ct-lamina__momento--abre { background: var(--ct-creme); color: var(--ct-chocolate); }
 /* Selo da casa (SeloDaCasa.jsx): o mesmo na lâmina da Entrada e no cartão do catálogo (03-catalogo.css só muda o canto). */
 .ct-selo-casa {
   position: absolute; right: 10px; top: 10px; display: grid; place-items: center; width: clamp(50px, 24%, 66px); aspect-ratio: 1;
@@ -126,21 +91,6 @@
 .ct-edicao .ct-cabeca-desenho .ct-gibi { flex: none; width: clamp(56px, 8vw, 104px); height: auto; margin-bottom: clamp(14px, 2vw, 24px); rotate: -8deg; }
 .ct-cabeca-desenho .ct-letreiro { min-width: 0; }
 
-/* Onde ficam: o pino ao lado do título, os bairros como adesivos (cada um leva ao Mapa filtrado), a faixa de Natal
-   de chão. */
-.ct-onde__corpo .ct-lead { max-width: 40ch; }
-.ct-bairros { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 22px; padding: 0; list-style: none; }
-.ct-bairros li:nth-child(odd) { rotate: -1.2deg; }
-.ct-bairros li:nth-child(even) { rotate: 1deg; }
-.ct-bairro {
-  display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 8px 0 16px;
-  border: 3px solid var(--ct-chocolate); border-radius: 10px; background: var(--ct-branco); box-shadow: 4px 4px 0 var(--ct-chocolate);
-  font: 800 15px/1.2 var(--ct-font); text-decoration: none; transition: background-color var(--ct-mo), translate var(--ct-mo), box-shadow var(--ct-mo);
-}
-.ct-bairro:hover { background: var(--ct-amarelo); translate: -2px -2px; box-shadow: 6px 6px 0 var(--ct-chocolate); }
-.ct-bairro__n { display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 6px; background: var(--ct-chocolate); color: var(--ct-creme); font: 800 14px/1 var(--ct-font); }
-.ct-onde__chao { display: block; width: 100%; height: auto; margin-top: clamp(12px, 2.5vw, 32px); }
-
 /* Avalie no palco: a peça .ct-palco (07-sistema.css). */
 .ct-entrada__avalie .ct-palco__corpo { max-width: 600px; }
 
@@ -165,3 +115,37 @@
 }
 .ct-entrada__filtros { margin: 0 0 18px; }
 .ct-entrada__vitrine { margin-top: 4px; }
+
+/* Auditoria da Home (11/11/2026). Celular: o topo fica só com o que vende (título, fatos, dias que faltam, ações) — a frase
+   e a mesa desenhada saem para o primeiro combo aparecer na primeira tela. */
+@media (max-width: 599.98px) {
+  .ct-edicao .ct-estreia__frase, .ct-edicao .ct-estreia__cena { display: none; }
+  .ct-canal.ct-estreia { gap: 0; padding-bottom: 28px; }
+  .ct-estreia__texto { gap: 12px; }
+  .ct-estreia__faltam { margin-top: 2px; }
+}
+/* Celular: 12 cartões e "Ver mais N combos" abre o resto (o HTML tem todos; só a vitrine curta esconde). */
+@media (max-width: 599.98px) { .ct-entrada__vitrine--curta > li:nth-child(n + 13) { display: none; } }
+.ct-edicao .ct-entrada__mais { display: none; }
+@media (max-width: 599.98px) { .ct-edicao .ct-entrada__mais { display: flex; width: 100%; margin-top: 18px; } }
+
+/* Caça aos Carimbos: faixa curta entre a vitrine e o Como funciona. */
+.ct-entrada__caca-corpo {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px 18px;
+  padding: 18px 20px; border: 3px solid var(--ct-chocolate); border-radius: 18px; background: var(--ct-amarelo); box-shadow: 6px 6px 0 var(--ct-chocolate);
+}
+.ct-entrada__caca-corpo > .ct-botao { grid-column: 1 / -1; justify-self: start; }
+@media (min-width: 900px) { .ct-entrada__caca-corpo { grid-template-columns: auto minmax(0, 1fr) auto; } .ct-entrada__caca-corpo > .ct-botao { grid-column: auto; } }
+.ct-entrada__caca-titulo { margin: 0 0 4px; font: 900 clamp(20px, 2vw, 26px)/1.1 var(--ct-font); }
+.ct-edicao .ct-entrada__caca-texto { margin: 0; font: 600 16px/1.45 var(--ct-font); }
+/* Celular: os filtros correm de lado numa linha só (antes quebravam em duas) e o "Ver os N combos" do topo sai — a
+   vitrine começa logo abaixo. */
+@media (max-width: 599.98px) {
+  .ct-chips.ct-entrada__filtros { /* (0,2,0): .ct-chips (03-catalogo) vem depois e quebraria a linha */
+    flex-wrap: nowrap; overflow-x: auto; margin: 0 calc(var(--ct-trilho) * -1) 12px; padding: 4px var(--ct-trilho) 10px;
+    scrollbar-width: none; overscroll-behavior-x: contain;
+  }
+  .ct-entrada__filtros .ct-chip { flex: none; }
+  .ct-edicao .ct-estreia__acoes .ct-estreia__ver { display: none; }
+  .ct-bloco.ct-entrada__elenco { padding-top: 20px; }
+}

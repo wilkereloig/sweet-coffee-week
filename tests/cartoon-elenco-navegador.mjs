@@ -128,8 +128,10 @@ try {
     const resto = v.filter((x) => !x.tipo)
     igual(v.map((x) => x.tipo || '-').join(','), 'aberta,abre,-,-', 'abertas primeiro, depois quem abre hoje, depois o resto')
     igual(resto.map((x) => x.casa).sort(), ['[DEMO] Casa Bico de Pena', '[DEMO] Casa Quadro a Quadro'], 'casa fechada e casa sem horário vêm depois, sem etiqueta')
-    igual(await aviso(page), '1 casa com o combo agora · 1 abre ainda hoje', 'a faixa de estado diz o que é verdade agora')
-    igual((await botoesDaLista(page)).length >= 2, true, 'os botões das listas completas continuam')
+    // Auditoria (11/11): com casa aberta, o chip "Abertas agora (N)" já conta — a faixa só aparece quando ninguém está aberto.
+    igual(await aviso(page), null, 'com casa aberta, sem faixa repetindo o chip')
+    igual(await page.locator('.ct-entrada__filtros .ct-chip:has-text("Abertas agora (1)")').count(), 1, 'o chip conta as abertas')
+    igual((await botoesDaLista(page)).some((h) => h.endsWith('/combos')), true, 'o botão do catálogo com busca continua')
     if (erros.length) falha(`console: ${erros.join(' | ')}`); else ok('console limpo')
     await ctx.close()
   }
@@ -162,7 +164,7 @@ try {
     igual((await vitrine(page)).every((x) => x.etiqueta === null) && (await vitrine(page)).length > 0, true, 'às 22h com todas encerradas, a vitrine mostra os combos sem etiqueta de "agora"')
     const t = await aviso(page)
     if (/Nenhuma casa está com o combo agora/.test(t || '') && /todas as casas/.test(t || '')) ok('aviso claro com o caminho para as casas'); else falha(`aviso: ${t}`)
-    igual((await botoesDaLista(page)).some((h) => h.endsWith('/participantes')), true, 'o botão "Ver as casas" continua')
+    igual((await botoesDaLista(page)).some((h) => h.endsWith('/combos')), true, 'o botão do catálogo continua')
     await page.screenshot({ path: join(SAIDA, 'desktop-ninguem-aberto.png') })
     await ctx.close()
   }
