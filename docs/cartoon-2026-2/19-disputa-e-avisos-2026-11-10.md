@@ -57,7 +57,7 @@ Incentivo neutro e retomada para a mesma pessoa no mesmo dia: 0. Só 2 das 395 p
   Conferir em 11/11: `push_estado` da entrega = `enviado`, `cron.job` sem o job, e a linha no painel (1 na central · 1 no celular).
 - **Ponto de decisão 2:** ligar o interruptor e publicar só com o ok do Wilker.
 
-## Avisos de delivery (11/11/2026 · migration 20270130, ESCRITA E ENSAIADA, não aplicada)
+## Avisos de delivery (11/11/2026 · migration 20270130 ✅ APLICADA 11/11 ~17h, interruptor DESLIGADO)
 Pedido do Wilker: "notificações inteligentes … que estimulam a compra" (ex.: Vivianne Castro Doces com entrega grátis).
 - Categoria `delivery` (preferência ligada por padrão, como a disputa). Interruptor `delivery_aviso` nasce DESLIGADO; painel: Caça › Avisos › "Avisos de delivery".
 - Uma rodada por dia, 17h–19h de Natal: cada pessoa com carimbo recebe UMA das 12 casas com delivery do combo que ainda falta no mapa dela,
