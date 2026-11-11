@@ -23,6 +23,7 @@ import { CriarMapa } from '../../caca/CriarMapa.jsx'
 import { GuardarMapa } from '../../caca/GuardarMapa.jsx'
 import { CartaoEmailDoAparelho } from '../../caca/CartaoEmail.jsx'
 import { BotaoComoCarimbar } from '../../caca/guia/GuiaCarimbar.jsx'
+import { ConvitePush } from '../../caca/notificacoes/ConvitePush.jsx'
 import { FilaPergunta } from '../../caca/FilaPergunta.jsx'
 
 const SLUG_CASA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -211,6 +212,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
         )}
         <FilaPergunta chave={chave} unidade={r.unidade} />
         {novo && <GuardarMapa chave={chave} />}
+        {r.avaliou && <ConvitePush chave={chave} api={api} temCarimbo />}
         {links}
       </section>
     )

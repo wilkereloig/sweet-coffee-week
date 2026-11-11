@@ -304,6 +304,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
     lerPosicao(60000)
   }
   const sairDePerto = () => { setPerto(false); aguardaFoco.current = false }
+  // "Ver casas perto de mim" do cartão da disputa (hub): a pessoa pediu no toque de lá, então o mapa abre já em "Perto de mim".
+  React.useEffect(() => { if (pedido.get('perto') === '1') localizar() }, []) // eslint-disable-line react-hooks/exhaustive-deps -- uma vez, na abertura
   // Trocar de mapa com o painel aberto: o mapa novo carrega depois e a rolagem pode se perder — o painel nunca fica sob a barra de abas.
   React.useEffect(() => {
     if (!perto) return undefined

@@ -56,7 +56,7 @@
    em vez de ficar no fim da coluna 2. As colunas se dissolvem (display: contents) e só a ordem muda; o resto segue na ordem do documento. */
 @media (max-width: 899px) {
   .ct-central__col { display: contents; }
-  .ct-central__col > :not(.ct-central__progresso, .ct-central__proxima, .ct-central__entradas) { order: 1; }
+  .ct-central__col > :not(.ct-central__progresso, .ct-central__proxima, .ct-central__disputa, .ct-central__convite-push, .ct-central__entradas) { order: 1; }
   .ct-central__entradas { padding: 12px; border: 2px solid var(--ct-chocolate); border-radius: var(--ct-raio); background: var(--ct-amarelo); }
 }
 @media (min-width: 900px) {
@@ -133,6 +133,18 @@
 .ct-central__proxima .ct-nota { margin-top: 4px; font-size: 15px; }
 .ct-central__proxima .ct-acoes { margin-top: 12px; }
 .ct-central__proxima--avaliar .ct-botao { background: var(--ct-vermelho); color: var(--ct-creme); font-size: 19px; }
+
+/* "Sua disputa hoje": mesmo cartão do próximo passo; na zona de voucher ganha o amarelo da edição. */
+.ct-central__disputa {
+  padding: 14px 16px 16px;
+  border: var(--ct-traco); border-radius: var(--ct-raio); background: var(--ct-branco); box-shadow: var(--ct-sombra-p);
+}
+.ct-central__disputa--dentro { background: var(--ct-amarelo); }
+.ct-central__disputa .ct-rotulo { margin: 0 0 4px; }
+.ct-central__disputa .ct-sub { margin: 0 0 4px; font-size: clamp(19px, 4.6vw, 24px); }
+.ct-central__disputa .ct-nota { margin-top: 4px; font-size: 15px; }
+.ct-central__disputa .ct-central__disputa-foto { font-size: 14px; }
+.ct-central__disputa .ct-acoes { margin-top: 12px; }
 
 /* Atalhos de peso menor: ícone e rótulo, três por linha. O Mapa, onde a Caça acontece, leva a cor da edição. */
 .ct-central__entradas .ct-rotulo { margin: 0; }

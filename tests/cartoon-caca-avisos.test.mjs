@@ -87,16 +87,20 @@ async function descobrirChaveValida () {
 }
 
 test('preferências: as chaves do app são as do banco, todas com texto, e o padrão não liga divulgação', () => {
-  const sql = ler('supabase/migrations/20261234_caca_campanha_sicredi.sql') // a definição vigente das categorias e do padrão (substitui a de 20261232)
-  const norm = sql.match(/unnest\(array\[([^\]]+)\]\) k/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
+  const sql = ler('supabase/migrations/20261234_caca_campanha_sicredi.sql') // o padrão do registro (caca_push_registrar)
+  const disp = ler('supabase/migrations/20270130_caca_delivery_avisos.sql') // a definição vigente das categorias (substitui 20261234 e 20270124)
+  const norm = disp.match(/unnest\(array\[([^\]]+)\]\) k/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
   assert.deepEqual([...CHAVES_PREFS].sort(), [...norm].sort(), 'CHAVES_PREFS = caca_push_prefs_norm')
   const padrao = JSON.parse(sql.match(/v_padrao constant jsonb := '(\{[^']+\})'/)[1])
-  assert.deepEqual(padrao, { ...PREFS_PADRAO }, 'padrão do app = padrão do servidor')
+  // 'disputa' e 'delivery' não estão no padrão gravado: quem não tem a chave recebe (coalesce em caca_aviso_entregas_pendentes).
+  assert.match(disp, /v_padrao := a\.categoria in \('disputa', 'delivery'\)/)
+  assert.deepEqual({ ...padrao, disputa: true, delivery: true }, { ...PREFS_PADRAO }, 'padrão do app = padrão do servidor')
   for (const k of CHAVES_PREFS) assert.ok(EXTRAS.push.categorias[k]?.rotulo && EXTRAS.push.categorias[k]?.texto, `texto de ${k}`)
   assert.equal(PREFS_PADRAO.edicao, false); assert.equal(PREFS_PADRAO.voucher, false); assert.equal(PREFS_PADRAO.campanha, false, 'campanha vem desligada, como a divulgação da edição')
-  assert.equal(CHAVES_PREFS.length, 9)
+  assert.equal(PREFS_PADRAO.disputa, true, 'disputa vem ligada (pedido de 10/11/2026)')
+  assert.equal(CHAVES_PREFS.length, 11)
   assert.equal(EXTRAS.avisos.acaoPorCategoria.campanha, 'Ver a campanha')
-  const cats = sql.match(/add constraint caca_aviso_categoria_check\s+check \(categoria in \(([^)]+)\)\)/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
+  const cats = disp.match(/add constraint caca_aviso_categoria_check check \(categoria = any \(array\[([^\]]+)\]\)\)/)[1].split(',').map((s) => s.trim().replace(/'/g, ''))
   assert.deepEqual([...cats].sort(), [...CHAVES_PREFS].sort(), 'toda categoria de aviso é uma preferência que a pessoa controla')
 })
 
