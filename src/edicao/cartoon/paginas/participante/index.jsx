@@ -4,7 +4,7 @@
  *
  * Redesenho de 11/11/2026 (auditoria da Página da casa), na ordem de quem vem comprar. Uma seção por arquivo nesta pasta:
  * Capa (a lâmina do combo: foto, preço, momento, ações de compra) · ComoPedir ("Peça ou venha") · Combo (o que vem, com os
- * detalhes dos itens recolhidos) · Unidades ("Onde e quando") · Carimbe e avalie · patrocinador · Sobre a casa. A barra de
+ * detalhes dos itens recolhidos) · Unidades ("Onde e quando") · Carimbe e avalie · Sobre a casa. (O patrocinador Sicredi mora no TOPO de toda página da edição, na casca — cartoon/index.jsx.) A barra de
  * compra do celular só aparece depois que as ações da capa saem da tela; o cenário do combo fecha a capa e a seção seguinte senta por cima dele.
  * Tudo à vista, sem abas. O que o painel ainda não tem aparece como "não informado" — nunca escondido, nunca deduzido.
  */
@@ -12,7 +12,6 @@ import React from 'react'
 import { EDICAO } from '../../../config.js'
 import { carregarParticipante } from '../../../dados/publico.js'
 import { Link, Carregando, Falha, Avisos } from '../../../componentes/base.jsx'
-import { AssinaturaPatrocinio } from '../../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { PARTICIPANTE as T, FASE_TEXTO, TIPO_ORDEM } from '../../textos.js'
 import { useRota } from '../../contexto.js'
 import { useAgoraNasCasas } from '../../useAgoraNasCasas.js'
@@ -84,6 +83,20 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
   // A barra de compra do celular só entra quando as ações da capa saem da tela (senão são duas iguais na primeira tela).
   const [capaComCompra, setCapaComCompra] = React.useState(true)
   const naCompra = !encerrada && !!combo && !!navigate && !esgotado
+  // Fim da página: com ele à vista a barra de compra some (não fica solta entre o patrocínio e o rodapé).
+  const [noFim, setNoFim] = React.useState(false)
+  const fimRef = React.useRef(null)
+  React.useEffect(() => {
+    const el = fimRef.current
+    if (!el) return undefined
+    // Pela rolagem (e não por IntersectionObserver): um salto até o rodapé passa do marcador sem nunca "cruzá-lo" e o observador não avisa.
+    let quadro = 0
+    const ler = () => { cancelAnimationFrame(quadro); quadro = requestAnimationFrame(() => setNoFim(el.getBoundingClientRect().top < window.innerHeight)) }
+    ler()
+    window.addEventListener('scroll', ler, { passive: true })
+    window.addEventListener('resize', ler)
+    return () => { cancelAnimationFrame(quadro); window.removeEventListener('scroll', ler); window.removeEventListener('resize', ler) }
+  }, [])
 
   return (
     <article className="ct-part">
@@ -100,14 +113,12 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
       {/* Provou? Carimbe e avalie: um painel só (era o bloco Avalie + o aviso flutuante + o botão do carimbo de delivery). */}
       {avaliacaoAberta && <Carimbe p={p} navigate={navigate} />}
 
-      {/* Só no site: a prévia do painel (sem navigate) não leva a assinatura do patrocinador. Depois do que vende. */}
-      {navigate && <AssinaturaPatrocinio />}
-
       <Sobre p={p} />
+      <span ref={fimRef} className="ct-ficha__fim" aria-hidden="true" />
 
       {/* Venda: no celular, "Pedir delivery | Ir até a casa" presos ao pé da tela, acima da barra de abas, depois que as da
           capa saem da tela. Só no site (a prévia do painel não tem navigate), com a edição em curso e o combo à venda. */}
-      {naCompra && <AcoesCompra p={p} navigate={navigate} naFicha className={`ct-ficha__compra${capaComCompra ? ' is-oculta' : ''}`} />}
+      {naCompra && <AcoesCompra p={p} navigate={navigate} naFicha className={`ct-ficha__compra${capaComCompra || noFim ? ' is-oculta' : ''}`} />}
     </article>
   )
 }
