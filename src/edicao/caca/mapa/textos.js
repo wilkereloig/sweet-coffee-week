@@ -18,6 +18,7 @@ export const MAPA_CACA = {
   caminhos: CACA_CAMINHOS,
   // Progresso pessoal
   progressoTitulo: 'Seu progresso',
+  conviteEtiqueta: 'Caça aos Carimbos',
   progresso: (x, n) => `${x} de ${n} ${n === 1 ? 'casa validada' : 'casas validadas'}`,
   progressoDetalhe: (pendentes, extras) => [
     pendentes > 0 && (pendentes === 1 ? '1 carimbo esperando avaliação' : `${pendentes} carimbos esperando avaliação`),

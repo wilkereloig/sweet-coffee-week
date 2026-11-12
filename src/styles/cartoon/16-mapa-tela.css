@@ -51,6 +51,12 @@
    a ajuda sob o texto (os passos abrem na largura toda, sem espremer o texto). */
 .ct-edicao .ct-mapa__convite { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 14px; margin: 0 0 10px; padding: 12px 14px; }
 .ct-mapa__convite-texto { margin: 0; font: 700 16px/1.4 var(--ct-font); text-wrap: pretty; }
+/* Redesenho de 12/11 (Wilker: "melhorar visualmente"): o convite fala a língua do gibi — selo amarelo com a bandeira, levemente torto, sobre a retícula,
+   uma etiqueta chocolate com o nome da campanha e o texto logo abaixo. Só visual: o texto, o botão e a ajuda são os de sempre. */
+.ct-mapa__convite-selo { display: grid; place-items: center; width: 68px; height: 68px; border: var(--ct-traco); border-radius: 50%; background: var(--ct-amarelo); box-shadow: var(--ct-sombra-p); rotate: -7deg; }
+.ct-mapa__convite-selo > img { width: 44px; height: 44px; }
+.ct-mapa__convite-corpo { display: grid; justify-items: start; gap: 6px; min-width: 0; }
+.ct-mapa__convite-etiqueta { padding: 3px 10px; border-radius: 6px; background: var(--ct-chocolate); color: var(--ct-creme); font: 900 11px/1.2 var(--ct-font); letter-spacing: .08em; text-transform: uppercase; rotate: -1.5deg; }
 .ct-mapa__convite > .ct-botao { grid-column: 1 / -1; min-height: 48px; }
 .ct-mapa__convite > .ct-como-carimbar { grid-column: 1 / -1; padding: 0; border-top: 2px dashed color-mix(in srgb, var(--ct-chocolate) 35%, transparent); }
 .ct-mapa__convite > .ct-como-carimbar > summary { min-height: 44px; font-weight: 800; }

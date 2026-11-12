@@ -37,9 +37,12 @@ export function ProgressoPessoal ({ estado, mapa, totalDaEdicao, proximo, geo, a
   if (estado === 'sem-mapa') {
     // Convite: o benefício (texto), UMA ação principal (o botão) e a ajuda ("Como carimbar") como acesso secundário, que abre no lugar.
     return (
-      <section className="ct-progresso ct-mapa__convite" aria-label={T.progressoTitulo}>
-        <IconeCartoon nome="progresso" tamanho={48} />
-        <p className="ct-mapa__convite-texto">{T.semMapa}</p>
+      <section className="ct-progresso ct-mapa__convite ct-reticula" aria-label={T.progressoTitulo}>
+        <span className="ct-mapa__convite-selo" aria-hidden="true"><IconeCartoon nome="progresso" tamanho={44} /></span>
+        <div className="ct-mapa__convite-corpo">
+          <span className="ct-mapa__convite-etiqueta">{T.conviteEtiqueta}</span>
+          <p className="ct-mapa__convite-texto">{T.semMapa}</p>
+        </div>
         <Botao href={T.caminhos.central} navigate={navigate}>{T.criarMapa}</Botao>
         <ComoCarimbar />
       </section>
