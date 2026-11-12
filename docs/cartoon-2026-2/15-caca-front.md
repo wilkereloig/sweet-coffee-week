@@ -95,3 +95,16 @@ Texto público conferido frase a frase contra as migrations 20261203 a 20261220 
 ## Central redesenhada (06/11/2026)
 
 Pedido do Wilker: a interface estava confusa e poluída. A central (`caca/Central.jsx`) gira em torno de **progresso** ("X de N casas validadas") e **um próximo passo** com uma ação principal; o carimbo pendente é o destaque (cartão amarelo, botão "Avaliar o combo") e **não se repete** em avisos nem em chips. Mapa, ranking, grupos, rota, metas e compartilhar são atalhos de peso menor (3 por linha, só ícone e rótulo). E-mail pendente, metas alcançadas, avisos no celular e instalar do app são **linhas pequenas e dispensáveis** (`.ct-central__linha`); avisos no celular vêm fechados (`<details>`: explicação, categorias e botão juntos). "Como conta?" (fechado) guarda casa × unidade, extra e "Já fui não é carimbo". O cabeçalho da página ficou compacto (sem rótulo repetido, lead só para quem não tem mapa). Ranking: regras atrás de "Como o ranking funciona". Grupos: quem já tem grupo vê a lista primeiro e "Criar outro grupo" fica fechado. Compartilhar: a ação vem antes da prévia no celular. CSS em `13-caca.css` (`ct-central*`), `14-caca-grupos.css` e `15-caca-extras.css`. Capturas e scripts de conferência: `tests/capturas-caca-redesign/` (fora do git).
+
+## Boas-vindas e saudação da central (12/11/2026)
+
+Pedido do Wilker, em duas partes.
+
+**1. Primeira visita (sem mapa).** A tela repetia três vezes o convite para criar o mapa (introdução amarela "Primeira vez na Caça?", cartão "Primeira vez aqui?" e "Já tenho mapa"). Agora a central sem mapa (`Central.jsx`) renderiza `caca/BoasVindas.jsx` e, logo abaixo, o formulário (`CriarMapa` com `portas={false}`):
+1. painel de gibi (o mesmo da Home): "Boas-vindas, Sweet Lover! · Vamos caçar carimbos?", **um** botão "Criar meu mapa" (leva ao campo do apelido) e, ao lado, "Já tem um mapa? Recuperar meu mapa";
+2. "O que você pode ganhar": a mesma lista de balões do pop-up "O que você disputa" (`disputa/ListaDisputa.jsx` + `disputa/useDisputa.js`, extraídos do pop-up). Nada de prêmio é escrito no texto: só aparece o que o banco diz que está valendo (voucher do dia, campanha do Sicredi, prêmio final); sem dado, a seção some;
+3. "Como carimbar, em quatro passos" (`Passos`, versão curta de `GUIA.passos`) e o botão do guia completo.
+O pop-up da disputa não entra nessa tela (ela já mostra a disputa e registra o dia, `gravarDia`); quem já tem mapa segue com a introdução `PrimeiraVez` e o pop-up diário. Ao criar o mapa a página volta ao topo. Textos em `caca/guia/textos.js` (`BOAS_VINDAS`).
+
+**2. Saudação no cartão "Mapa de <apelido>".** `caca/saudacao.js` (lógica pura + frases) e `caca/useSaudacao.js` (sorteio uma vez por visita). Saudação pela hora de Natal; o incentivo muda com o estado do mapa (começando, andando, quase completo, carimbo pendente, completo), sábado/domingo, últimos dias do festival e dado real (casas com combo disponível agora, hora do primeiro combo de hoje). Fora do festival, só a saudação. Nunca cita voucher, disputa, delivery, prêmio, ranking nem "votar". Testes: `tests/cartoon-caca-regras.test.mjs`.
+

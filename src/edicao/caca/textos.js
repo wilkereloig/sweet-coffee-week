@@ -45,6 +45,7 @@ export const CACA = {
     convite: 'Convite para um grupo',
   },
   leads: {
+    // A central não mostra o lead na tela (12/11/2026): sem mapa, as boas-vindas ocupam o lugar; com mapa, o progresso. O texto fica como a descrição da seção (cada seção tem a sua).
     central: 'Carimbe a visita, avalie o combo e junte casas diferentes. Cada casa nova validada conta no seu mapa.',
     recuperar: 'Perdeu o acesso ao seu mapa ou abriu em outro celular? Recupere com o e-mail do mapa.',
     ranking: 'Quem mais conheceu casas diferentes na Cartoon.',

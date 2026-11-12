@@ -41,17 +41,13 @@ try {
       checar(await botao.evaluate((el) => el === document.activeElement), `${nome} · ${onde}: o foco volta ao botão`)
     }
 
-    // Hub, primeira visita: a introdução aparece na tela (não é janela), abre o guia e não volta depois.
+    // Hub, primeira visita (12/11/2026): as BOAS-VINDAS ocupam o lugar da introdução amarela e dos cartões "primeira vez"; o guia completo abre pelo botão dos passos.
     const pronto = () => page.locator('[data-como-carimbar]').first().waitFor({ state: 'attached', timeout: 45000 }) // a página consulta dados de tempos em tempos: a rede nunca fica ociosa
     await page.goto(`${BASE}/cartoon/caca`, { waitUntil: 'domcontentloaded' }); await pronto()
-    const intro = page.locator('.ct-guia__intro')
-    checar(await intro.isVisible(), `${nome} · hub: introdução do primeiro acesso à vista`)
+    checar(await page.locator('.ct-boasvindas').isVisible(), `${nome} · hub: as boas-vindas estão à vista`)
+    checar(await page.locator('.ct-guia__intro').count() === 0, `${nome} · hub: sem a introdução amarela repetida`)
     checar(await page.getByRole('dialog').count() === 0, `${nome} · hub: nada abre por cima sozinho`)
     await semRolagem('hub')
-    await page.locator('[data-guia-depois]').click()
-    checar(await intro.count() === 0, `${nome} · hub: "Agora não" dispensa`)
-    await page.reload({ waitUntil: 'domcontentloaded' }); await pronto()
-    checar(await page.locator('.ct-guia__intro').count() === 0, `${nome} · hub: a dispensa fica lembrada`)
     await abreEFecha('hub')
 
     // Mapa: o atalho mora na faixa do jogo, fora da tela cheia.

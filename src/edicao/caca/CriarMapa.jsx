@@ -12,6 +12,16 @@ import { api as apiPadrao } from './api.js'
 import { CACA, mensagemDoMotivo } from './textos.js'
 
 const T = CACA.criar
+const ID_APELIDO = 'mapa-apelido'
+
+/** Leva a pessoa ao primeiro campo do formulário (o apelido): é o que fazem os botões "Criar meu mapa" que ficam FORA do formulário (boas-vindas, "Começar agora"). */
+export function irAoApelido () {
+  const el = typeof document === 'undefined' ? null : document.getElementById(ID_APELIDO)
+  if (!el) return
+  const calmo = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  el.scrollIntoView({ block: 'center', behavior: calmo ? 'auto' : 'smooth' })
+  el.focus({ preventScroll: true })
+}
 
 export function AbrirPeloLink ({ aoAbrir }) {
   const [colado, setColado] = React.useState('')
@@ -37,8 +47,10 @@ export function AbrirPeloLink ({ aoAbrir }) {
 /**
  * `aoAbrir(chave, criado)`: chamado com a chave nova (criado=true) ou a colada do link (criado=false).
  * `navigate`: com ele, o "já tenho mapa" oferece também a recuperação por e-mail.
+ * `portas`: os dois cartões "Primeira vez aqui?" e "Já tenho mapa" acima do formulário. A Central de quem ainda não tem mapa passa `false`: lá a tela de
+ * boas-vindas (BoasVindas) já faz esse convite, com a recuperação ao lado do botão, e repeti-lo era o defeito apontado pelo Wilker em 12/11/2026.
  */
-export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota, botao = T.acao, comLink = true, api = apiPadrao }) {
+export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota, botao = T.acao, comLink = true, portas = true, api = apiPadrao }) {
   const [f, setF] = React.useState(() => {
     const p = C.lerPerfil(EDICAO.codigo)
     return { apelido: p.nome.slice(0, 24), email: p.email, whatsapp: p.whatsapp, instagram: '', ranking: false, aceite: false }
@@ -62,20 +74,18 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
     aoAbrir(r.chave, true)
   }
 
-  const apelidoRef = React.useRef(null)
-  const irAoFormulario = () => { const el = apelidoRef.current; if (!el) return; el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus({ preventScroll: true }) }
   const temNoAparelho = !!C.lerChave(EDICAO.codigo) // normalmente a Central já abriu esse mapa; aqui é a rede de segurança
 
   return (
     <>
       {comLink && navigate && (temNoAparelho
         ? <p className="ct-nota" role="status">{T.jaTemNoAparelho} <Link href={`${EDICAO.caminho}/caca`} navigate={navigate} className="ct-link-solto">{T.abrirMeuMapa}</Link></p>
-        : (
+        : portas && (
           <div className="ct-caca__portas" role="group" aria-label={T.portasRotulo}>
             <div className="ct-caca__porta">
               <p className="ct-sub">{T.portaNova}</p>
               <p className="ct-nota">{T.notaCurta}</p>
-              <div className="ct-acoes"><button type="button" className="ct-botao" onClick={irAoFormulario}>{T.portaNovaAcao}</button></div>
+              <div className="ct-acoes"><button type="button" className="ct-botao" onClick={irAoApelido}>{T.portaNovaAcao}</button></div>
             </div>
             <div className="ct-caca__porta">
               <p className="ct-sub">{T.jaTenho}</p>
@@ -88,7 +98,7 @@ export function CriarMapa ({ aoAbrir, navigate, titulo = T.titulo, nota = T.nota
         <p id="mapa-novo" className="ct-sub">{titulo}</p>
         <p className="ct-nota">{nota}</p>
         <label className="ct-campo"><span>{T.apelido}</span>
-          <input ref={apelidoRef} type="text" autoComplete="nickname" value={f.apelido} maxLength={24} onChange={(e) => muda('apelido', e.target.value)} required />
+          <input id={ID_APELIDO} type="text" autoComplete="nickname" value={f.apelido} maxLength={24} onChange={(e) => muda('apelido', e.target.value)} required />
         </label>
         <label className="ct-campo"><span>{T.email}</span>
           <input type="email" autoComplete="email" value={f.email} maxLength={160} onChange={(e) => muda('email', e.target.value)} required />

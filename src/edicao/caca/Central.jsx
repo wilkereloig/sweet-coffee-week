@@ -16,6 +16,7 @@ import { CACA, CACA_CAMINHOS as RUA } from './textos.js'
 import { ComoCarimbar } from './mapa/ComoCarimbar.jsx'
 import { PrimeiraVez, BotaoComoCarimbar } from './guia/GuiaCarimbar.jsx'
 import { PopupDisputa } from './disputa/PopupDisputa.jsx'
+import { BoasVindas } from './BoasVindas.jsx'
 import { CartaoDisputa } from './disputa/CartaoDisputa.jsx'
 import { ConvitePush } from './notificacoes/ConvitePush.jsx'
 import { momentoUtilParaInstalar } from './pwa/instalacao.js' // "tem carimbo": a mesma conta que oferece o app
@@ -110,17 +111,21 @@ function Entradas ({ navigate }) {
 }
 
 export function Central ({ caca, dados, navigate }) {
+  // Quem acaba de criar o mapa estava no fim da página (o formulário vem depois das boas-vindas): a tela encurta e o mapa novo fica no alto, então volta ao topo.
+  React.useEffect(() => { if (caca.recemCriado && caca.estado === 'pronto') window.scrollTo({ top: 0, behavior: 'auto' }) }, [caca.recemCriado, caca.estado])
   // "O que você disputa" (voucher do dia, campanha, prêmio final): morava no mapa; com o mapa abrindo em tela cheia (10/11/2026) passa a aparecer aqui, no hub.
   const disputa = <PopupDisputa caca={caca} totalDaEdicao={(dados?.participantes || []).filter((p) => (p.unidades || []).length).length} navigate={navigate} bloqueado={false} />
   if (caca.estado === 'sem-mapa') {
+    // Quem ainda não tem mapa vê as BOAS-VINDAS (12/11/2026): uma mensagem só, o que dá para ganhar, como carimbar, o formulário e a saída de quem já tem mapa.
+    // Antes eram a introdução amarela, o cartão "Primeira vez aqui?" e o "Já tenho mapa", dizendo a mesma coisa. O pop-up da disputa não entra: a tela já mostra a disputa.
     return (
       <>
         {caca.perdeu && <p className="ct-aviso" role="status">{CACA.chaveTrocada}</p>}
-        <PrimeiraVez navigate={navigate} />
-        <CriarMapa navigate={navigate} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
-        <p><BotaoComoCarimbar navigate={navigate} /></p>
+        <BoasVindas caca={caca} dados={dados} navigate={navigate} />
+        <div className="ct-boasvindas__criar">
+          <CriarMapa navigate={navigate} portas={false} aoAbrir={(k, criado) => caca.entrar(k, { criado })} />
+        </div>
         <VisitaAnterior caca={caca} dados={dados} navigate={navigate} />
-        {disputa}
       </>
     )
   }

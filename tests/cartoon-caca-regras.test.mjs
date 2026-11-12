@@ -8,6 +8,8 @@ import * as C from '../src/edicao/rota/carimbo.js'
 import { proximaAcao, resumoProgresso, nomeDaCasa, situacaoEmail, emailMascarado, ajudaLocalizacao, tokenValido, grupoIdValido } from '../src/edicao/caca/regras.js'
 import { CACA, CACA_CAMINHOS, mensagemDoMotivo } from '../src/edicao/caca/textos.js'
 import { FRASES, faixaDoDia, situacaoDoJogo, saudar, contextoDaSaudacao } from '../src/edicao/caca/saudacao.js'
+import { BOAS_VINDAS } from '../src/edicao/caca/guia/textos.js'
+import { iconeEdicao } from '../src/data/imageLibrary.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
 const UUID = '3f2b8c1e-5a4d-4e7f-9b6a-1c2d3e4f5a6b'
@@ -330,4 +332,70 @@ test('saudação: o cartão da Central usa a saudação e o estilo do balão exi
   const css = fs.readFileSync(path.join(raiz, 'src/styles/cartoon/13-caca.css'), 'utf8')
   assert.match(css, /\.ct-central__saudacao \{[^}]*border: 3px solid var\(--ct-chocolate\)[^}]*box-shadow: 3px 3px 0 var\(--ct-chocolate\)/, 'balão no traço do gibi')
   assert.doesNotMatch(css.slice(css.indexOf('.ct-central__saudacao {')), /!important/)
+})
+
+// ---------------------------------------------------------------- boas-vindas de quem ainda não tem mapa (BoasVindas.jsx, 12/11/2026)
+const lerFonte = (arq) => fs.readFileSync(path.join(raiz, arq), 'utf8')
+
+test('boas-vindas: a primeira visita é uma sequência só — sem a introdução amarela, sem os cartões repetidos e sem o pop-up por cima', () => {
+  const central = lerFonte('src/edicao/caca/Central.jsx')
+  const marca = '  return (\n    <div className="ct-caca__central ct-central">'
+  const semMapa = central.slice(central.indexOf("if (caca.estado === 'sem-mapa') {"), central.indexOf(marca))
+  assert.ok(semMapa.length > 200, 'achou o ramo de quem não tem mapa')
+  assert.match(semMapa, /<BoasVindas caca=\{caca\} dados=\{dados\} navigate=\{navigate\} \/>/)
+  assert.match(semMapa, /<CriarMapa navigate=\{navigate\} portas=\{false\}/, 'o formulário vem sem os cartões "primeira vez aqui" e "já tenho mapa"')
+  assert.doesNotMatch(semMapa.replace(/\/\/.*$/gm, ''), /PrimeiraVez|BotaoComoCarimbar|PopupDisputa|\{disputa\}/, 'nada repetido: a introdução, o atalho solto e o pop-up ficam de fora')
+  const comMapa = central.slice(central.indexOf(marca))
+  assert.match(comMapa, /<PrimeiraVez /, 'quem já tem mapa e ainda não viu o guia segue com a introdução')
+  assert.match(comMapa, /\{disputa\}/, 'e com o pop-up diário')
+  assert.match(central, /window\.scrollTo\(\{ top: 0/, 'quem acaba de criar o mapa volta ao topo (a página encurtou)')
+  const pagina = lerFonte('src/edicao/cartoon/paginas/caca/index.jsx')
+  assert.match(pagina, /\{!central && \(!precisaMapa \|\| caca\.estado !== 'sem-mapa'\) && <p className="ct-lead">/, 'sem o texto de abertura repetido no alto da central')
+})
+
+test('boas-vindas: um só botão para criar, a recuperação ao lado, o que dá para ganhar vem do banco e os passos são os do guia', () => {
+  const bv = lerFonte('src/edicao/caca/BoasVindas.jsx')
+  assert.equal((bv.match(/data-criar-mapa/g) || []).length, 1, 'um único botão "Criar meu mapa" nas boas-vindas')
+  assert.match(bv, /onClick=\{irAoApelido\}/, 'o botão leva ao campo do apelido')
+  assert.match(bv, /\/caca\/recuperar/, 'a recuperação do mapa fica à vista, ao lado do botão')
+  assert.match(bv, /useDisputa\(caca, totalDaEdicao\)/)
+  assert.match(bv, /<ListaDisputa disputa=\{disputa\} campanha=\{campanha\} navigate=\{navigate\} \/>/, 'o que dá para ganhar é a lista do pop-up, não texto escrito aqui')
+  assert.match(bv, /comPremio = lido !== 'carregando' && /, 'sem dado de prêmio a seção some: não anuncia o que não existe')
+  assert.match(bv, /gravarDia\(armazem\(\), hojeIso\)/, 'registra o dia: o pop-up da disputa só volta amanhã')
+  assert.match(bv, /<Passos passos=\{B\.passos\} \/>/, 'os passos usam a tira de gibi da edição')
+  assert.match(bv, /<BotaoComoCarimbar navigate=\{navigate\} rotulo=\{GUIA\.completo\} \/>/, 'o guia completo a um toque')
+  const criar = lerFonte('src/edicao/caca/CriarMapa.jsx')
+  assert.match(criar, /export function irAoApelido/)
+  assert.match(criar, /portas = true/, 'as outras seções seguem com os dois cartões')
+  assert.match(criar, /: portas && \(/)
+  assert.match(criar, /<input id=\{ID_APELIDO\}/)
+  assert.match(lerFonte('src/edicao/caca/disputa/PopupDisputa.jsx'), /<ListaDisputa /, 'o pop-up e as boas-vindas dividem a mesma lista')
+})
+
+test('boas-vindas: o texto não escreve número, data nem voucher (vem do banco), tem quatro passos curtos e fala neutro de gênero', () => {
+  const B = BOAS_VINDAS
+  const textos = [B.apoio, B.titulo, B.texto, B.jaTem, B.ganharTitulo, B.comoTitulo, ...B.passos.flatMap((p) => [p.titulo, p.texto])]
+  for (const t of textos) {
+    assert.doesNotMatch(t, /\d/, `número escrito à mão: ${t}`)
+    assert.doesNotMatch(t, /voucher|sorteio|delivery|ranking|\bvot(o|ar|ação)\b/i, `promessa ou palavra que o site evita: ${t}`)
+    assert.doesNotMatch(t, /\bSweet\b(?! Lover)/, `"Sweet" sozinho não: ${t}`)
+    assert.doesNotMatch(t, /\b(bem-vindo|bem-vinda|pronto|pronta|obrigado|obrigada)\b/i, `texto neutro de gênero: ${t}`)
+  }
+  assert.equal(B.passos.length, 4)
+  for (const p of B.passos) {
+    assert.ok(p.titulo.length <= 30 && p.texto.length <= 90, `passo curto: ${p.titulo} (${p.texto.length})`)
+    assert.ok(iconeEdicao(p.icone), `o ícone do passo existe: ${p.icone}`)
+  }
+  assert.match(B.apoio, /^Boas-vindas/)
+  assert.match(B.titulo, /\?$/, 'o título convida com uma pergunta')
+})
+
+test('boas-vindas: o CSS usa só tokens, sem !important, e o formulário vira cartão só aqui', () => {
+  const css = lerFonte('src/styles/cartoon/13-caca.css')
+  const bloco = css.slice(css.indexOf('/* Boas-vindas de quem ainda não tem mapa'))
+  assert.ok(bloco.length > 800, 'bloco das boas-vindas encontrado')
+  assert.doesNotMatch(bloco, /!important/)
+  assert.doesNotMatch(bloco, /#[0-9a-fA-F]{3,8}\b/, 'só tokens --ct-*')
+  assert.match(bloco, /\.ct-boasvindas__criar \.ct-carimbar__form \{[^}]*box-shadow: var\(--ct-sombra-p\)/, 'o formulário vira cartão só dentro das boas-vindas')
+  assert.match(bloco, /min-height: 44px/, 'a recuperação tem alvo de toque de 44 px')
 })

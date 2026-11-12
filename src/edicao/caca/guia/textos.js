@@ -39,3 +39,24 @@ export const GUIA = {
     depois: 'Agora não',
   },
 }
+
+/*
+ * Boas-vindas de quem ainda não tem mapa (12/11/2026, pedido do Wilker: "a tela de primeira vez precisa ser interessante, de querer fazer o mapa: uma
+ * mensagem de bem-vindo, o que a pessoa pode ganhar, como carimbar; e quem já tem mapa, a opção de recuperar"). Antes eram dois cartões dizendo "primeira
+ * vez" e "crie agora". O que a pessoa pode ganhar NÃO é escrito aqui: vem do banco pela mesma lista do pop-up "O que você disputa" (voucher do dia, prêmio
+ * final, campanha do Sicredi), então só aparece o que está valendo. Os passos são a versão curta do guia acima (GUIA.passos): mudou o fluxo, muda nos dois.
+ */
+export const BOAS_VINDAS = {
+  apoio: 'Boas-vindas, Sweet Lover!',
+  titulo: 'Vamos caçar carimbos?',
+  texto: 'Visite as casas do festival, peça o combo e carimbe pelo celular. Cada casa diferente vai para o seu mapa e conta para os prêmios.',
+  jaTem: 'Já tem um mapa?',
+  ganharTitulo: 'O que você pode ganhar',
+  comoTitulo: 'Como carimbar, em quatro passos',
+  passos: [
+    { titulo: 'Crie seu mapa', texto: 'Só apelido e e-mail, sem senha. Ele junta os seus carimbos.', icone: 'mapa' },
+    { titulo: 'Peça o combo', texto: 'Escolha uma casa no Mapa da Doçura e peça o combo lá.', icone: 'casas' },
+    { titulo: 'Carimbe pelo celular', texto: 'Ainda na casa, aponte a câmera para o QR da mesa e toque em Carimbar.', icone: 'ja-fui' },
+    { titulo: 'Avalie o combo', texto: 'A casa só entra no seu mapa depois da sua avaliação.', icone: 'avaliar' },
+  ],
+}

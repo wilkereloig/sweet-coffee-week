@@ -86,8 +86,8 @@ function PaginaDaCaca ({ secao, navigate, dados, grupoId, token }) {
       {!central && <p className="ct-caca__voltar"><Link href={CACA_CAMINHOS.central} navigate={navigate}>{CACA.voltar}</Link></p>}
       {/* Na central o título repetiria o letreiro da Caça que já está na barra do topo: fica só para leitor de tela (um <h1> por página). */}
       <h1 className={central ? 'ct-h1 ct-sr' : 'ct-h1'}>{CACA.titulos[secao]}</h1>
-      {/* Na central o lead só serve a quem ainda não tem mapa; com mapa, o progresso e o próximo passo ocupam o lugar dele. */}
-      {(central ? caca.estado === 'sem-mapa' : (!precisaMapa || caca.estado !== 'sem-mapa')) && <p className="ct-lead">{CACA.leads[secao]}</p>}
+      {/* Na central não há lead: sem mapa, as boas-vindas ocupam o lugar dele (12/11/2026); com mapa, o progresso e o próximo passo. */}
+      {!central && (!precisaMapa || caca.estado !== 'sem-mapa') && <p className="ct-lead">{CACA.leads[secao]}</p>}
       {corpo}
     </section>
   )

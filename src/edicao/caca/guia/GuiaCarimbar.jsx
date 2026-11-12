@@ -52,12 +52,12 @@ export function FolhaGuia ({ aberta, aoFechar, navigate }) {
   )
 }
 
-export function BotaoComoCarimbar ({ navigate, className = 'ct-chip ct-guia__botao' }) {
+export function BotaoComoCarimbar ({ navigate, className = 'ct-chip ct-guia__botao', rotulo = G.abrir }) {
   const [aberta, setAberta] = React.useState(false)
   return (
     <>
       <button type="button" className={className} data-como-carimbar aria-haspopup="dialog" onClick={() => { marcarGuiaVisto(); setAberta(true) }}>
-        <span className="ct-guia__interrogacao" aria-hidden="true">?</span><span>{G.abrir}</span>
+        <span className="ct-guia__interrogacao" aria-hidden="true">?</span><span>{rotulo}</span>
       </button>
       <FolhaGuia aberta={aberta} aoFechar={() => setAberta(false)} navigate={navigate} />
     </>
