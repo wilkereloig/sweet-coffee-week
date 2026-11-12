@@ -501,3 +501,41 @@ test('chamar: corpo que não é JSON NÃO vira "mapa desconhecido" (era assim qu
   const apiNula = criarApi({ chamar: (nome, corpo) => C.chamar(nome, corpo, { buscar: nulo }) })
   assert.equal((await apiNula.mapaLer(CHAVE_A)).motivo, 'mapa_desconhecido', 'o null verdadeiro continua dizendo "desconhecida"')
 })
+
+test('banco: recuperar não derruba mais as outras chaves (migration 20270131 e o reverter)', () => {
+  const sql = fonte('supabase/migrations/20270131_mapa_chaves_antigas.sql')
+  const rev = fonte('supabase/reverter/20270131_mapa_chaves_antigas.sql')
+  const corpo = sql.replace(/--.*$/gm, '')
+  // tabela fechada, ligada ao mapa, que some junto com ele
+  assert.match(corpo, /create table if not exists public\.mapa_chaves_antigas \([\s\S]*?references public\.mapas_lover \(id\) on delete cascade/)
+  assert.match(corpo, /alter table public\.mapa_chaves_antigas enable row level security/)
+  assert.match(corpo, /revoke all on table public\.mapa_chaves_antigas, public\.mapa_funcoes_20270131 from public, anon, authenticated/)
+  assert.match(corpo, /arquivada_em timestamptz not null default clock_timestamp\(\)/, 'a ordem das chaves é a do relógio de verdade, não a do início da transação')
+  // mapa_hash: sem arquivo, o hash de sempre; chave antiga resolve para o hash atual do mapa
+  const hash = corpo.match(/create or replace function public\.mapa_hash[\s\S]*?\$\$;/)[0]
+  assert.match(hash, /security definer/)
+  assert.match(hash, /\bstable\b/)
+  assert.match(hash, /from public\.mapa_chaves_antigas a join public\.mapas_lover m on m\.id = a\.mapa_id/)
+  assert.match(hash, /encode\(extensions\.digest\(coalesce\(p_chave, ''\), 'sha256'\), 'hex'\)\)\s*\$\$/, 'o hash de uma chave comum não muda')
+  // recuperar guarda a chave que o mapa tinha ANTES de trocar, e no máximo 10 ficam
+  const validar = corpo.match(/create or replace function public\.mapa_codigo_validar[\s\S]*?end \$\$;/)[0]
+  assert.ok(validar.indexOf('insert into public.mapa_chaves_antigas') > 0 && validar.indexOf('insert into public.mapa_chaves_antigas') < validar.indexOf('update public.mapas_lover set chave_hash'), 'guarda antes de trocar')
+  assert.match(validar, /order by a2\.arquivada_em desc limit 10/)
+  assert.match(validar, /v_cod !~ '\^\\d\{6\}\$'/, 'o código segue sendo de 6 dígitos (nada do resto da função mudou)')
+  // a organização revoga de verdade (link vazado)
+  const nova = corpo.match(/create or replace function public\.mapa_nova_chave[\s\S]*?end \$\$;/)[0]
+  assert.match(nova, /delete from public\.mapa_chaves_antigas where mapa_id = p_mapa/)
+  assert.match(nova, /public\.pode\(p_secret, 'producao\.gerir'\)/, 'continua exigindo a permissão')
+  // aditiva: nada é apagado nem derrubado
+  assert.doesNotMatch(corpo, /\b(drop|truncate)\b/i)
+  // o reverter restaura das cópias, recusa rodar sem elas e apaga as duas tabelas
+  assert.match(rev, /from public\.mapa_funcoes_20270131/)
+  assert.match(rev, /raise exception 'copia_das_funcoes_incompleta/)
+  assert.match(rev, /drop table if exists public\.mapa_chaves_antigas/)
+  assert.match(rev, /drop table if exists public\.mapa_funcoes_20270131/)
+  assert.match(sql, /pg_get_functiondef\('public\.mapa_hash\(text\)'::regprocedure\)/, 'tira a cópia das definições de hoje')
+  // o contrato diz o que o banco faz
+  const doc = fonte('docs/cartoon-2026-2/15-caca-contrato-identidade.md')
+  assert.match(doc, /NÃO deixa de valer[\s\S]*20270131/)
+  assert.doesNotMatch(doc, /A chave antiga \*\*desse mapa\*\* deixa de valer no ato;/, 'a regra antiga saiu do contrato')
+})
