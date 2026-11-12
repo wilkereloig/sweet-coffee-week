@@ -190,7 +190,6 @@ export const MAPA_CACA = {
   sicrediAviso: 'O Sicredi é patrocinador da Cartoon, não uma casa do mapa. Ao participar da campanha e enviar o print do vídeo publicado, você pode ganhar um carimbo Sicredi após aprovação da organização.',
   sicrediNoMundo: (nome, endereco) => `${nome}, agência do patrocinador Sicredi${endereco ? `: ${endereco}` : ''}. A agência não conta como casa; o carimbo especial é concedido após aprovação do print da campanha`,
   sicrediPonto: { confirmada: 'Localização conferida', aproximada: 'Localização aproximada', 'nao-informada': 'Localização não informada' },
-  sicrediNumero: 'O número do endereço está em conferência com a agência.',
   sicrediComoChegar: 'Como chegar',
   sicrediNomeMarcador: (nome, aproximada) => `${nome}, patrocinador${aproximada ? ', ponto aproximado' : ''}, não conta como casa`,
   // Pins colados demais para afastar todos (zoom da cidade): um selo com a contagem que, ao tocar, aproxima o mapa.

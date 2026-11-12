@@ -28,7 +28,6 @@ export function CartaoSicredi ({ agencia, fechar, navigate }) {
       </div>
       <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{agencia.endereco || T.sicrediSemEndereco}</span></p>
       {agencia.precisao !== 'confirmada' && <p className="ct-mapa__local ct-mapa__local--aprox">{T.sicrediPonto[agencia.precisao]}</p>}
-      {agencia.numeroEmConferencia && <p className="ct-nota">{T.sicrediNumero}</p>}
       <p className="ct-nota ct-caca-mapa__sicredi-aviso">{T.sicrediAviso}</p>
       {link && (
         <div className="ct-acoes">
@@ -75,7 +74,6 @@ export function ListaSicredi ({ agencias, selecionada, aoSelecionar, navigate })
                 <strong>{a.nome}</strong>
                 <span>{a.endereco || T.sicrediSemEndereco}</span>
                 <span className={`ct-mapa__local${a.precisao === 'confirmada' ? '' : ' ct-mapa__local--aprox'}`}>{T.sicrediPonto[a.precisao]}</span>
-                {a.numeroEmConferencia && <span className="ct-nota">{T.sicrediNumero}</span>}
                 <span className="ct-nota">{T.sicrediNaoConta}</span>
               </button>
               {link && <div className="ct-mapa__acoes"><Botao tipo="secundario" href={link} target="_blank" rel="noopener noreferrer"><ScwIcon nome={ICONE.comoChegar} tamanho={20} />{T.sicrediComoChegar}</Botao></div>}
