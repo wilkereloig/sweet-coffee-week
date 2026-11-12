@@ -275,7 +275,7 @@
   font: 900 12px/1.25 var(--ct-font); letter-spacing: .08em; rotate: -1.5deg;
 }
 .ct-central__progresso .ct-central__grande { margin: 10px 0 12px; }
-.ct-central__progresso .ct-central__grande strong { font: 900 clamp(48px, 14vw, 64px)/1 var(--ct-font); text-shadow: 3px 3px 0 var(--ct-amarelo); }
+.ct-central__progresso .ct-central__grande strong { font: 900 clamp(38px, 10.5vw, 56px)/1 var(--ct-font); text-shadow: 3px 3px 0 var(--ct-amarelo); }
 .ct-central__progresso .ct-caca__barra { height: 24px; box-shadow: 2px 2px 0 var(--ct-chocolate); }
 .ct-central__progresso .ct-caca__barra::-webkit-progress-value { background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ct-branco) 35%, transparent) 0 6px, transparent 6px 12px), var(--ct-turquesa); }
 .ct-central__progresso .ct-caca__barra::-moz-progress-bar { background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ct-branco) 35%, transparent) 0 6px, transparent 6px 12px), var(--ct-turquesa); }
