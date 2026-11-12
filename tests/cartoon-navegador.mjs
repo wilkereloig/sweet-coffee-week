@@ -477,6 +477,9 @@ try {
             .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0)
           let el = e; let fundo = getComputedStyle(el).backgroundColor
           while (el && /rgba\(0, 0, 0, 0\)|transparent/.test(fundo)) { el = el.parentElement; fundo = el ? getComputedStyle(el).backgroundColor : 'rgb(253, 242, 223)' }
+          // Cabeçalho (11/11/2026): o fundo dos controles é o degradê preto (background-image, que este cálculo não enxerga). Proxy
+          // conservador: o degradê (tinta ≈ rgb(35, 16, 10)) a ~80% sobre o creme da página, que é o que há na altura da marca e do Menu.
+          if (e.closest('.ct-topo')) fundo = 'rgb(79, 61, 53)'
           const { color, fontSize, fontWeight } = getComputedStyle(e)
           const [a1, a2] = [lum(rgb(color)), lum(rgb(fundo))]
           // Texto grande (≥ 24px, ou ≥ 18,66px em peso ≥ 700) pede 3:1 — regra de contraste da spec e WCAG 1.4.3.

@@ -24,32 +24,28 @@
      então o fundo da primeira seção sobe até o topo da janela, por trás da marca e do menu. Quem protege o conteúdo é a área segura
      --ct-topo-barra (abaixo), que cada seção inicial soma ao próprio padding-top. */
   margin-bottom: calc(-1 * (var(--ct-topo-barra) + var(--ct-topo-fade)));
-  /* Rampa em S elevada à 4ª (11 paradas): começa dentro da base dos controles, cai depressa para o transparente e deixa uma cauda longa e fraca (src/CLAUDE.md §10.4).
-     Parada do topo: creme a 42% — no início da página o fundo da seção aparece por baixo, sem faixa sólida. Ao rolar (.is-rolado), a camada ::before
-     põe o creme pleno atrás da marca e do menu para o conteúdo que passa por baixo não brigar com eles. */
+  /* 11/11/2026 (pedido do Wilker: "tira, deixa só um degradê preto, sem marcação, suave"): sem faixa, sem placa e sem etiqueta — só um
+     degradê preto que nasce no alto da tela e se dissolve em direção ao conteúdo (rampa suave de 7 paradas, sem corte). Marca e links ficam em
+     creme por cima. Ao rolar (.is-rolado), a camada ::before reforça o degradê atrás da marca e do menu. */
+  --ct-topo-tinta: color-mix(in srgb, var(--ct-chocolate) 35%, black);
   background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--ct-creme) 42%, transparent) 0,
-    color-mix(in srgb, var(--ct-creme) 36%, transparent) calc(100% - var(--ct-topo-raio)),
-    color-mix(in srgb, var(--ct-creme) 24%, transparent) calc(100% - var(--ct-topo-raio) * 0.8),
-    color-mix(in srgb, var(--ct-creme) 10%, transparent) calc(100% - var(--ct-topo-raio) * 0.6),
-    color-mix(in srgb, var(--ct-creme) 2%, transparent) calc(100% - var(--ct-topo-raio) * 0.4),
-    transparent calc(100% - var(--ct-topo-raio) * 0.2),
+    color-mix(in srgb, var(--ct-topo-tinta) 86%, transparent) 0,
+    color-mix(in srgb, var(--ct-topo-tinta) 74%, transparent) 22%,
+    color-mix(in srgb, var(--ct-topo-tinta) 52%, transparent) 44%,
+    color-mix(in srgb, var(--ct-topo-tinta) 28%, transparent) 64%,
+    color-mix(in srgb, var(--ct-topo-tinta) 11%, transparent) 82%,
+    color-mix(in srgb, var(--ct-topo-tinta) 3%, transparent) 94%,
     transparent 100%);
   pointer-events: none;
 }
 .ct-topo::before {
   content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity var(--ct-mo); pointer-events: none;
   background: linear-gradient(to bottom,
-    var(--ct-creme) 0,
-    var(--ct-creme) calc(100% - var(--ct-topo-raio)),
-    color-mix(in srgb, var(--ct-creme) 89.3%, transparent) calc(100% - var(--ct-topo-raio) * 0.9),
-    color-mix(in srgb, var(--ct-creme) 64.5%, transparent) calc(100% - var(--ct-topo-raio) * 0.8),
-    color-mix(in srgb, var(--ct-creme) 37.8%, transparent) calc(100% - var(--ct-topo-raio) * 0.7),
-    color-mix(in srgb, var(--ct-creme) 17.6%, transparent) calc(100% - var(--ct-topo-raio) * 0.6),
-    color-mix(in srgb, var(--ct-creme) 6.2%, transparent) calc(100% - var(--ct-topo-raio) * 0.5),
-    color-mix(in srgb, var(--ct-creme) 1.5%, transparent) calc(100% - var(--ct-topo-raio) * 0.4),
-    color-mix(in srgb, var(--ct-creme) 0.2%, transparent) calc(100% - var(--ct-topo-raio) * 0.3),
-    transparent calc(100% - var(--ct-topo-raio) * 0.2),
+    color-mix(in srgb, var(--ct-topo-tinta) 88%, transparent) 0,
+    color-mix(in srgb, var(--ct-topo-tinta) 76%, transparent) 26%,
+    color-mix(in srgb, var(--ct-topo-tinta) 50%, transparent) 50%,
+    color-mix(in srgb, var(--ct-topo-tinta) 24%, transparent) 72%,
+    color-mix(in srgb, var(--ct-topo-tinta) 7%, transparent) 90%,
     transparent 100%);
 }
 .ct-topo.is-rolado::before { opacity: 1; }
@@ -70,22 +66,25 @@
 /* Letreiros largos (proporção ≈ 2:1): mais altos que o selo para o texto ler, com margem negativa para não engordar a barra. */
 .ct-topo__marca--mapa img, .ct-topo__marca--caca img { height: 72px; margin-block: -4px; }
 /* Botão "Menu" do celular: ícone + palavra, mais baixo que o botão de ação para não competir com o conteúdo. */
-.ct-edicao .ct-topo__menu.ct-botao { min-height: 44px; padding: 0 14px 0 12px; border-width: 2.5px; border-radius: 12px; box-shadow: 3px 3px 0 var(--ct-chocolate); font-size: 15px; }
-.ct-edicao .ct-topo__menu.ct-botao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
+.ct-edicao .ct-topo__menu.ct-botao {
+  min-height: 44px; padding: 0 12px; border: 0; border-radius: 12px; background: transparent; box-shadow: none; color: var(--ct-creme);
+  font-size: 15px; text-shadow: 0 1px 8px color-mix(in srgb, var(--ct-topo-tinta) 70%, transparent);
+}
+.ct-edicao .ct-topo__menu.ct-botao:active { translate: 0 1px; }
+.ct-edicao .ct-topo__menu.ct-botao svg, .ct-edicao .ct-topo__menu.ct-botao img { filter: none; }
 /* Âncoras (#combo, #unidades…) param abaixo do cabeçalho preso. */
 .ct-edicao [id] { scroll-margin-top: 88px; }
 .ct-topo__nav { display: none; }
-/* Placa de creme translúcido atrás dos links: com o cabeçalho sobre a seção inicial, o texto chocolate cai em cima de fundo roxo, vermelho ou turquesa. */
-.ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; padding: 3px 6px; border-radius: 16px; background: color-mix(in srgb, var(--ct-creme) 90%, transparent); list-style: none; }
-/* Links do topo como etiquetas de gibi (repaginação de 04/11): no hover ganham a borda e a sombra dura; a página atual é
-   a etiqueta amarela inclinada ("ENTROU PARA O ELENCO"), como as das peças. A borda transparente reserva o espaço. */
-.ct-topo__nav a {
+/* Links em creme direto sobre o degradê (11/11/2026): sem placa, sem borda, sem sombra e sem etiqueta na página atual ("sem marcação").
+   O retorno do toque é só o sublinhado no hover e no foco; o anel de foco vira creme (o do resto do site é chocolate e sumiria no preto). */
+.ct-topo__nav ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 6px; margin: 0; padding: 0; list-style: none; }
+.ct-edicao .ct-topo__nav a {
   display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px;
-  border: 3px solid transparent; border-radius: 10px; font: 800 16px/1 var(--ct-font); text-decoration: none;
-  transition: background-color var(--ct-mo), border-color var(--ct-mo), box-shadow var(--ct-mo), rotate var(--ct-mo);
+  color: var(--ct-creme); font: 800 16px/1 var(--ct-font); text-decoration: none; text-shadow: 0 1px 8px color-mix(in srgb, var(--ct-topo-tinta) 70%, transparent);
+  text-decoration-thickness: 2px; text-underline-offset: 7px; transition: text-decoration-color var(--ct-mo);
 }
-.ct-topo__nav a:hover { border-color: var(--ct-chocolate); background: var(--ct-branco); box-shadow: 3px 3px 0 var(--ct-chocolate); }
-.ct-edicao .ct-topo__nav a[aria-current='page'] { border-color: var(--ct-chocolate); background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: 3px 3px 0 var(--ct-chocolate); rotate: -2deg; }
+.ct-edicao .ct-topo__nav a:is(:hover, :focus-visible) { text-decoration-line: underline; }
+.ct-edicao .ct-topo :is(a, button):focus-visible { outline-color: var(--ct-creme); }
 @media (min-width: 900px) {
   .ct-edicao { --ct-topo-barra: calc(104px + env(safe-area-inset-top)); }
   .ct-topo { --ct-topo-fade: 90px; --ct-topo-raio: 112px; padding-top: calc(10px + env(safe-area-inset-top)); padding-bottom: calc(10px + var(--ct-topo-fade)); }
