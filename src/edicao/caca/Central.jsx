@@ -43,7 +43,7 @@ function Progresso ({ caca, dados, navigate }) {
         {pendentes > 0 && <li className="ct-central__esperando">{P.esperando(pendentes)}</li>}
         {extras > 0 && <li>{P.extras(extras)}</li>}
         {caca.mapa?.carimbo_sicredi && <li className="ct-central__sicredi">Carimbo especial Sicredi · vale no ranking e nos sorteios</li>}
-        {posicao && <li>{`${P.posicao(posicao)}${comEmpate > 0 ? `, ${P.empate(comEmpate)}` : ''}`}</li>}
+        {posicao && <li className="ct-central__posicao">{`${P.posicao(posicao)}${comEmpate > 0 ? `, ${P.empate(comEmpate)}` : ''}`}</li>}
       </ul>
       {!posicao && <p className="ct-nota">{P.semPosicao}</p>}
       {completo && <p className="ct-nota"><strong>{P.completo}</strong></p>}

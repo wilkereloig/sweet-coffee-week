@@ -262,3 +262,24 @@
 .ct-guia__intro { display: grid; gap: 8px; padding: 14px 16px; border: var(--ct-traco); border-radius: 18px; background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); }
 .ct-guia__intro > * { margin: 0; }
 .ct-guia__intro .ct-botao--contorno { background: var(--ct-branco); }
+
+/* Placar da Caça redesenhado em 12/11 (Wilker: "melhorar visualmente"): o cartão de progresso vira um placar de gibi — retícula no fundo, o nome do mapa
+   numa etiqueta chocolate torta, o número grande com sombra dura amarela, a barra listrada e a posição no ranking em destaque. Só visual: textos e
+   dados são os de sempre. (0,3,0): vence a regra do apelido de 15-caca-extras.css, que vem depois. */
+.ct-central__progresso {
+  background: radial-gradient(circle, color-mix(in srgb, var(--ct-chocolate) 11%, transparent) 1.6px, transparent 2.1px) 0 0 / 15px 15px, var(--ct-branco);
+  padding: 16px 16px 10px;
+}
+.ct-central__progresso .ct-central__cabeca .ct-central__apelido {
+  flex: 0 1 auto; margin: 0; padding: 4px 10px; border-radius: 6px; background: var(--ct-chocolate); color: var(--ct-creme);
+  font: 900 12px/1.25 var(--ct-font); letter-spacing: .08em; rotate: -1.5deg;
+}
+.ct-central__progresso .ct-central__grande { margin: 10px 0 12px; }
+.ct-central__progresso .ct-central__grande strong { font: 900 clamp(48px, 14vw, 64px)/1 var(--ct-font); text-shadow: 3px 3px 0 var(--ct-amarelo); }
+.ct-central__progresso .ct-caca__barra { height: 24px; box-shadow: 2px 2px 0 var(--ct-chocolate); }
+.ct-central__progresso .ct-caca__barra::-webkit-progress-value { background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ct-branco) 35%, transparent) 0 6px, transparent 6px 12px), var(--ct-turquesa); }
+.ct-central__progresso .ct-caca__barra::-moz-progress-bar { background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ct-branco) 35%, transparent) 0 6px, transparent 6px 12px), var(--ct-turquesa); }
+.ct-central__progresso .ct-central__numeros { margin-top: 12px; }
+.ct-central__progresso .ct-central__posicao { background: var(--ct-chocolate); color: var(--ct-creme); }
+.ct-central__progresso > .ct-central__como, .ct-central__progresso > .ct-como-carimbar { margin-top: 8px; }
+
