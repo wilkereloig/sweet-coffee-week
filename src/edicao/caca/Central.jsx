@@ -11,6 +11,7 @@ import { prepararAvaliacao } from '../rota/carimbo.js'
 import { Link } from '../componentes/base.jsx'
 import { IconeCartoon } from '../componentes/sistema/IconeCartoon.jsx'
 import { nomeDaCasa } from './regras.js'
+import { useSaudacao } from './useSaudacao.js'
 import { CACA, CACA_CAMINHOS as RUA } from './textos.js'
 import { ComoCarimbar } from './mapa/ComoCarimbar.jsx'
 import { PrimeiraVez, BotaoComoCarimbar } from './guia/GuiaCarimbar.jsx'
@@ -30,12 +31,18 @@ const P = CACA.progresso
 
 function Progresso ({ caca, dados, navigate }) {
   const { total, validadas, faltam, extras, posicao, comEmpate, pendentes, completo } = caca.resumo
+  const fala = useSaudacao(caca.mapa?.apelido, caca.resumo, dados)
   return (
     <section className="ct-central__progresso" aria-labelledby="caca-progresso">
       <div className="ct-central__cabeca">
         <h2 id="caca-progresso" className="ct-central__apelido">{P.titulo(caca.mapa?.apelido)}</h2>
         <SinoDeAvisos caca={caca} dados={dados} navigate={navigate} />
       </div>
+      {/* Saudação (12/11/2026, pedido do Wilker): bom dia, boa tarde ou boa noite, com um convite que muda conforme o horário e o momento do jogo. */}
+      <p className="ct-central__saudacao">
+        <strong className="ct-central__saudacao-oi">{fala.saudacao}</strong>
+        {fala.incentivo && <span className="ct-central__saudacao-texto">{fala.incentivo}</span>}
+      </p>
       <p className="ct-central__grande"><strong>{P.casas(validadas, total)}</strong> <span>{P.casasRotulo}</span></p>
       <progress className="ct-caca__barra" value={validadas} max={Math.max(total, 1)} aria-label={P.casas(validadas, total)} />
       <ul className="ct-central__numeros">

@@ -283,3 +283,16 @@
 .ct-central__progresso .ct-central__posicao { background: var(--ct-chocolate); color: var(--ct-creme); }
 .ct-central__progresso > .ct-central__como, .ct-central__progresso > .ct-como-carimbar { margin-top: 8px; }
 
+/* Saudação do cartão de progresso (12/11/2026): um balão de fala creme, com a ponta apontando para a etiqueta do mapa — é o mapa falando com a pessoa.
+   Três linhas no máximo no celular; o nome entra como a pessoa digitou (até 24 caracteres), com quebra se for comprido. */
+.ct-central__saudacao {
+  position: relative; display: grid; gap: 2px; margin: 14px 0 4px; padding: 10px 14px; border: 3px solid var(--ct-chocolate); border-radius: 18px;
+  background: var(--ct-creme); box-shadow: 3px 3px 0 var(--ct-chocolate); overflow-wrap: anywhere;
+}
+.ct-central__saudacao::before {
+  content: ''; position: absolute; left: 26px; top: -11px; width: 16px; height: 16px; rotate: 45deg; background: var(--ct-creme);
+  border-top: 3px solid var(--ct-chocolate); border-left: 3px solid var(--ct-chocolate);
+}
+.ct-central__saudacao-oi { font: 900 18px/1.25 var(--ct-font); }
+.ct-central__saudacao-texto { font: 600 15px/1.4 var(--ct-font); text-wrap: pretty; }
+

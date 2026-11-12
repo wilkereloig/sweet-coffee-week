@@ -220,6 +220,9 @@ const diaIso = (v) => { const s = String(v || '').slice(0, 10); return /^\d{4}-\
 /** 'AAAA-MM-DD' de hoje em Natal. */
 export const hojeEmNatal = (agora = new Date()) => partesLocais(agora).data
 
+/** Hora cheia de agora em Natal (0 a 23). */
+export const horaEmNatal = (agora = new Date()) => Number(partesLocais(agora).hora.slice(0, 2))
+
 /**
  * Período da edição para a placa e o texto: { texto: '5 a 15 de novembro', numero: '5 a 15', rotulo: 'de novembro' }.
  * Sem datas válidas em `edicao` ({ inicio, fim }), usa o texto `reserva` (mesma forma); sem os dois, null.

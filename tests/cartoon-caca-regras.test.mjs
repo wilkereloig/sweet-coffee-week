@@ -7,6 +7,7 @@ import { resolverCena } from '../src/edicao/rotas.js'
 import * as C from '../src/edicao/rota/carimbo.js'
 import { proximaAcao, resumoProgresso, nomeDaCasa, situacaoEmail, emailMascarado, ajudaLocalizacao, tokenValido, grupoIdValido } from '../src/edicao/caca/regras.js'
 import { CACA, CACA_CAMINHOS, mensagemDoMotivo } from '../src/edicao/caca/textos.js'
+import { FRASES, faixaDoDia, situacaoDoJogo, saudar, contextoDaSaudacao } from '../src/edicao/caca/saudacao.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
 const UUID = '3f2b8c1e-5a4d-4e7f-9b6a-1c2d3e4f5a6b'
@@ -176,4 +177,157 @@ test('textos: "Já fui" é lembrete pessoal (não valida), metas em definição 
   assert.doesNotMatch(EXTRAS.push.lead, /tudo o que importa também aparece/)
   assert.match(EXTRAS.push.honestidade, /organização/) // o lead novo (430669b6) não cita mais a organização; a honestidade segue dizendo quem envia
   assert.match(CACA.carimbo.privacidade, /quando ela já tem o ponto conferido/)
+})
+
+// ---------------------------------------------------------------- saudação do cartão "Mapa de <apelido>" (saudacao.js, 12/11/2026)
+const natal = (iso) => new Date(`${iso}-03:00`) // 'AAAA-MM-DDTHH:MM' em Natal (UTC−3, sem horário de verão)
+const EDICAO_T = { inicio: '2026-11-05', fim: '2026-11-15' }
+const RESUMO = (o = {}) => ({ total: 27, validadas: 2, faltam: 25, pendentes: 0, completo: false, ...o })
+const CASA = (slug, abre, fecha, data = '2026-11-12') => ({ slug, unidades: [{ id: `u-${slug}`, combo: { disponibilidade: [{ data, abre, fecha }] } }] })
+const ctx = (quando, o = {}) => contextoDaSaudacao({ apelido: 'Eloi', resumo: RESUMO(o.resumo), dados: { edicao: EDICAO_T, participantes: o.casas || [] }, agora: natal(quando) })
+const SORTEIOS = Array.from({ length: 50 }, (_, i) => ({ a: i / 50, b: i / 50 }))
+const todas = (c) => new Set(SORTEIOS.map((x) => saudar(c, x).incentivo))
+
+test('saudação: a faixa do dia vem da hora de Natal (bom dia · boa tarde · boa noite · madrugada)', () => {
+  assert.deepEqual([0, 4, 5, 11, 12, 17, 18, 23].map(faixaDoDia), ['madrugada', 'madrugada', 'manha', 'manha', 'tarde', 'tarde', 'noite', 'noite'])
+  assert.equal(faixaDoDia(NaN), 'tarde', 'hora estranha nunca quebra')
+  // 02:30 UTC de 12/11 ainda é 23:30 de 11/11 em Natal: dia e hora seguem o fuso do festival, não o do aparelho
+  const c = contextoDaSaudacao({ apelido: 'Eloi', resumo: RESUMO(), dados: { edicao: EDICAO_T }, agora: new Date('2026-11-12T02:30:00Z') })
+  assert.equal(c.faixa, 'noite')
+  assert.equal(c.diaDaSemana, 3, '11/11/2026 é quarta-feira')
+})
+
+test('saudação: três formas com o nome do mapa; sem apelido, as mesmas sem o nome (nada de "undefined" nem vírgula solta)', () => {
+  const c = ctx('2026-11-12T15:00')
+  assert.equal(c.nome, 'Eloi')
+  assert.deepEqual([0, 0.4, 0.9].map((a) => saudar(c, { a, b: 0 }).saudacao), ['Oi, Eloi! Boa tarde.', 'Boa tarde, Eloi!', 'Olá, Eloi! Boa tarde.'])
+  const sem = { ...c, nome: '' }
+  assert.deepEqual([0, 0.4, 0.9].map((a) => saudar(sem, { a, b: 0 }).saudacao), ['Oi! Boa tarde.', 'Boa tarde!', 'Olá! Boa tarde.'])
+  assert.equal(saudar({ ...c, faixa: 'manha' }, { a: 0.4 }).saudacao, 'Bom dia, Eloi!')
+  assert.equal(saudar({ ...c, faixa: 'madrugada' }, { a: 0.4 }).saudacao, 'Boa noite, Eloi!', 'de madrugada a saudação segue sendo boa noite')
+  // apelido: espaços colapsados, no máximo 24 caracteres, ausente vira vazio
+  assert.equal(contextoDaSaudacao({ apelido: '  Maria   da  Luz  ', resumo: RESUMO() }).nome, 'Maria da Luz')
+  assert.equal(contextoDaSaudacao({ apelido: 'x'.repeat(60), resumo: RESUMO() }).nome.length, 24)
+  assert.equal(contextoDaSaudacao({ apelido: null, resumo: RESUMO() }).nome, '')
+})
+
+test('saudação: o incentivo segue o momento do jogo (completo · pendente · novo · andando · quase · fora do festival)', () => {
+  const quando = '2026-11-12T15:00'
+  assert.equal(situacaoDoJogo(ctx(quando, { resumo: { validadas: 0, faltam: 27 } })), 'novo')
+  assert.equal(situacaoDoJogo(ctx(quando)), 'andando')
+  assert.equal(situacaoDoJogo(ctx(quando, { resumo: { validadas: 25, faltam: 2 } })), 'quase')
+  assert.equal(situacaoDoJogo(ctx(quando, { resumo: { validadas: 27, faltam: 0, completo: true } })), 'completo')
+  assert.equal(situacaoDoJogo(ctx(quando, { resumo: { pendentes: 1 } })), 'pendente')
+  assert.equal(situacaoDoJogo(ctx(quando, { resumo: { validadas: 27, faltam: 0, completo: true, pendentes: 1 } })), 'pendente', 'avaliar vem antes de comemorar (como a próxima ação da Central)')
+  // antes e depois do festival: só a saudação, nenhum convite
+  for (const fora of ['2026-11-04T15:00', '2026-11-16T15:00']) {
+    const c = ctx(fora)
+    assert.equal(situacaoDoJogo(c), 'fora')
+    const r = saudar(c, { a: 0, b: 0 })
+    assert.equal(r.saudacao, 'Oi, Eloi! Boa tarde.')
+    assert.equal(r.incentivo, '')
+  }
+  // dados da edição ainda não chegaram: não corta o convite (e não inventa nada de hora de casa)
+  const semDados = contextoDaSaudacao({ apelido: 'Eloi', resumo: RESUMO(), agora: natal(quando) })
+  assert.equal(semDados.noFestival, true)
+  assert.equal(semDados.abertas, 0)
+  assert.ok(saudar(semDados, { a: 0, b: 0 }).incentivo.length > 10)
+})
+
+test('saudação: completo comemora com o total real; pendente pede a avaliação (singular e plural)', () => {
+  const comp = ctx('2026-11-12T15:00', { resumo: { total: 27, validadas: 27, faltam: 0, completo: true } })
+  assert.ok(todas(comp).has('Mapa completo: as 27 casas são suas! Parabéns!'), 'usa o total do servidor, não um número escrito aqui')
+  const um = ctx('2026-11-12T15:00', { resumo: { pendentes: 1 } })
+  const varios = ctx('2026-11-12T15:00', { resumo: { pendentes: 3 } })
+  assert.ok(todas(um).has('Falta só avaliar o combo para o carimbo valer.'))
+  assert.ok(todas(varios).has('Faltam 3 avaliações para os seus carimbos valerem.'))
+  assert.ok(![...todas(varios)].some((t) => /Falta só avaliar o combo/.test(t)), 'plural nunca usa a frase do singular')
+})
+
+test('saudação: último dia e reta final do festival (datas da edição, hora de Natal)', () => {
+  const ultimo = ctx('2026-11-15T15:00')
+  assert.equal(ultimo.ultimoDia, true)
+  assert.ok([...todas(ultimo)].every((t) => /último dia/i.test(t)), 'no último dia toda frase fala do último dia')
+  const quase = ctx('2026-11-15T15:00', { resumo: { validadas: 26, faltam: 1 } })
+  assert.ok(todas(quase).has('Último dia do festival! Falta 1 para completar o mapa.'))
+  const amanha = ctx('2026-11-14T15:00')
+  assert.equal(amanha.diasRestantes, 1)
+  assert.ok([...todas(amanha)].every((t) => /O festival termina amanhã/.test(t)))
+  const doisDias = ctx('2026-11-13T15:00')
+  assert.equal(doisDias.diasRestantes, 2)
+  assert.ok([...todas(doisDias)].every((t) => /O festival termina em 2 dias/.test(t)))
+  assert.equal(ctx('2026-11-12T15:00').diasRestantes, 3, 'com 3 dias ainda não é reta final')
+  assert.ok(![...todas(ctx('2026-11-12T15:00'))].some((t) => /festival termina|último dia/i.test(t)))
+})
+
+test('saudação: casas com o combo disponível agora e a hora do primeiro combo de hoje vêm do dado real', () => {
+  const abertas = [CASA('a', '10:00', '22:00'), CASA('b', '12:00', '23:00'), CASA('c', '18:00', '22:00'), CASA('d', '10:00', '22:00', '2026-11-11')]
+  const c = ctx('2026-11-12T15:00', { casas: abertas })
+  assert.equal(c.abertas, 2, 'só a e b estão com o combo disponível às 15h de 12/11 (c abre às 18h; d é de ontem)')
+  assert.ok(todas(c).has('2 casas estão com combo disponível agora. Qual entra no seu mapa?'))
+  const uma = ctx('2026-11-12T15:00', { casas: [CASA('a', '10:00', '22:00')] })
+  assert.ok(todas(uma).has('1 casa está com combo disponível agora. Qual entra no seu mapa?'), 'singular')
+  // de manhã nada está aberto, mas o primeiro combo libera às 10h: a hora vem do cadastro
+  const cedo = ctx('2026-11-12T07:00', { casas: abertas })
+  assert.equal(cedo.abertas, 0)
+  assert.equal(cedo.abreAs, '10h')
+  assert.ok(todas(cedo).has('O primeiro combo de hoje fica disponível às 10h. Programe a próxima casa!'))
+  // sem horário cadastrado nunca vira "aberta" nem "abre às"
+  const vazio = ctx('2026-11-12T15:00', { casas: [{ slug: 'x', unidades: [{ id: 'u', combo: {} }] }] })
+  assert.equal(vazio.abertas, 0)
+  assert.equal(vazio.abreAs, '')
+})
+
+test('saudação: a frase varia (por faixa do dia, por dia da semana e por sorteio) e o mesmo sorteio dá sempre a mesma frase', () => {
+  const tarde = ctx('2026-11-12T15:00')
+  assert.ok(todas(tarde).size >= 3, 'à tarde há pelo menos três frases diferentes')
+  assert.equal(saudar(tarde, { a: 0.3, b: 0.3 }).incentivo, saudar(tarde, { a: 0.3, b: 0.3 }).incentivo, 'determinística para o mesmo sorteio')
+  const manha = todas(ctx('2026-11-12T09:00')); const noite = todas(ctx('2026-11-12T20:00')); const mad = todas(ctx('2026-11-12T02:00'))
+  assert.ok(!manha.has('A manhã é boa para começar o mapa: escolha uma casa e vá de combo.'), 'quem já tem casa não recebe a frase de quem está começando')
+  assert.ok(manha.has('Comece o dia somando mais uma casa ao mapa.'))
+  assert.ok(noite.has('A noite também conta: veja as casas abertas e some mais um carimbo.'))
+  assert.ok(mad.has('Descanse: amanhã o mapa cresce mais um pouco.'))
+  assert.ok(manha.has('Hoje é um bom dia para comer um combo.') && !noite.has('Hoje é um bom dia para comer um combo.'), 'de noite é "esta noite é boa", nunca "bom dia"')
+  assert.ok(noite.has('Esta noite é boa para comer um combo.'))
+  const ate30 = { inicio: '2026-11-05', fim: '2026-11-30' } // fim distante, para o fim de semana aparecer sem a urgência da reta final
+  const em = (quando) => todas(contextoDaSaudacao({ apelido: 'Eloi', resumo: RESUMO(), dados: { edicao: ate30 }, agora: natal(quando) }))
+  assert.ok(em('2026-11-14T15:00').has('Sábado de passeio: que tal mais uma casa no mapa?'))
+  assert.ok(em('2026-11-15T15:00').has('Domingo de combo: veja as casas abertas hoje e some um carimbo.'))
+  assert.ok(!em('2026-11-12T15:00').has('Sábado de passeio: que tal mais uma casa no mapa?'), 'só no sábado')
+})
+
+test('saudação: toda frase é curta, sem "undefined", sem promessa de função que pode estar desligada e sem as palavras que o site evita', () => {
+  const contextos = [
+    { total: 27, pendentes: 1, faltam: 1, diasRestantes: 1, abertas: 1, abreAs: '8h' },
+    { total: 27, pendentes: 3, faltam: 3, diasRestantes: 2, abertas: 12, abreAs: '15h30' },
+  ]
+  const frases = []
+  const andar = (no) => {
+    if (Array.isArray(no)) for (const f of no) frases.push(...(typeof f === 'function' ? contextos.map((c) => f(c)) : [f]))
+    else for (const v of Object.values(no)) andar(v)
+  }
+  andar(FRASES)
+  assert.ok(new Set(frases).size >= 70, `banco com variedade (${new Set(frases).size} frases)`)
+  const PROIBIDAS = /voucher|delivery|pr[eê]mio|sorteio|disputa|ranking|\bvot(o|a|ar|ou|ação|ações)\b|experi[eê]ncia|\bcidade\b|mem[óo]ria|\brota\b|\bmarcas?\b/i
+  for (const f of frases) {
+    assert.equal(typeof f, 'string')
+    assert.ok(f.length >= 20 && f.length <= 90, `tamanho da frase (${f.length}): ${f}`)
+    assert.doesNotMatch(f, /undefined|NaN|null|\[object|\$\{/, f)
+    assert.doesNotMatch(f, PROIBIDAS, `palavra que o site evita ou promessa de função: ${f}`)
+    assert.match(f, /[.!?]$/, `termina com pontuação: ${f}`)
+    assert.doesNotMatch(f, /\bSweet\b(?! Lover)/, `"Sweet" sozinho não: ${f}`)
+    assert.doesNotMatch(f, /\b(pronto|pronta|animado|animada|obrigado|obrigada|bem-vindo|bem-vinda)\b/i, `texto neutro de gênero: ${f}`)
+  }
+})
+
+test('saudação: o cartão da Central usa a saudação e o estilo do balão existe', () => {
+  const central = fs.readFileSync(path.join(raiz, 'src/edicao/caca/Central.jsx'), 'utf8')
+  assert.match(central, /const fala = useSaudacao\(caca\.mapa\?\.apelido, caca\.resumo, dados\)/, 'o cartão de progresso lê a saudação')
+  assert.match(central, /<p className="ct-central__saudacao">[\s\S]*\{fala\.saudacao\}[\s\S]*\{fala\.incentivo &&/, 'saudação e incentivo no cartão')
+  const gancho = fs.readFileSync(path.join(raiz, 'src/edicao/caca/useSaudacao.js'), 'utf8')
+  assert.match(central, /import \{ useSaudacao \} from '\.\/useSaudacao\.js'/)
+  assert.match(gancho, /React\.useState\(\(\) => \(\{ a: Math\.random\(\), b: Math\.random\(\) \}\)\)/, 'sorteio uma vez por visita (não a cada renderização)')
+  const css = fs.readFileSync(path.join(raiz, 'src/styles/cartoon/13-caca.css'), 'utf8')
+  assert.match(css, /\.ct-central__saudacao \{[^}]*border: 3px solid var\(--ct-chocolate\)[^}]*box-shadow: 3px 3px 0 var\(--ct-chocolate\)/, 'balão no traço do gibi')
+  assert.doesNotMatch(css.slice(css.indexOf('.ct-central__saudacao {')), /!important/)
 })
