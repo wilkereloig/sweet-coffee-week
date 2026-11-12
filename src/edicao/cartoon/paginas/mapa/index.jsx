@@ -482,7 +482,8 @@ export function Mapa ({ navigate, dados, abrirRota = false }) {
             </div>
             <BarraDoMapa vistas={vistas} vista={vista} aoVista={setVista} q={f.q} aoBuscar={(v) => muda('q', v)} filtros={nFiltros}
               aoFiltros={() => setFiltrosAbertos(true)} filtrosAbertos={filtrosAbertos} cheia={cheia} aoFechar={fecharCheia} botaoRota={botaoRota} botaoPerto={cheia ? null : botaoPerto} />
-            {opcoes.hoje && (
+            {/* Some com uma casa escolhida na tela cheia: ele cobria o rótulo do marcador selecionado (e o cartão já ocupa a parte de baixo). */}
+            {opcoes.hoje && !(cheia && sel) && (
               <div className="ct-mapa__rapidos">
                 <Chip ativo={f.aberto} icone="aberto-agora" onClick={() => muda('aberto', !f.aberto)}>{T.abertasAgora(nAbertasAgora)}</Chip>
               </div>

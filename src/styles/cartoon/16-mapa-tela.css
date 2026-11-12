@@ -616,3 +616,35 @@
 /* "Abertas agora (N)": o chip rápido da barra. Na página, uma fileira acima do resumo; na tela cheia, sobre o mapa, no centro do alto. */
 .ct-mapa__rapidos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
 .is-cheia .ct-mapa__rapidos { position: absolute; z-index: 44; top: calc(var(--ct-barra-h) + 10px); left: 50%; translate: -50% 0; margin: 0; }
+
+/* Cartão do mapa — correção de 11/11/2026 (iPhone, "cartão com erros"). O cartão vira uma coluna: cabeçalho e AÇÕES presos (sempre à vista),
+   o meio rola com sombra nas bordas (avisa que há mais). Dentro dele, tudo menor: os avisos de agora em pílulas numa fileira só, o ícone
+   da porta no tamanho do texto, o combo mais baixo e os outros endereços empilhados (não rolam para o lado). (0,3,0) e depois das regras
+   de altura máxima acima: o cartão deixa de rolar inteiro, rola só o miolo. */
+.ct-edicao .ct-folha-m--casa .ct-mapa__cartao { display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.ct-mapa__cartao-cabeca { flex: none; }
+.ct-mapa__cartao-rolagem {
+  display: grid; align-content: start; gap: 8px; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-inline: -2px; padding-inline: 2px;
+  background:
+    linear-gradient(var(--ct-branco) 30%, transparent) 0 0 / 100% 16px no-repeat local,
+    linear-gradient(transparent, var(--ct-branco) 70%) 0 100% / 100% 16px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, color-mix(in srgb, var(--ct-chocolate) 28%, transparent), transparent) 0 0 / 100% 7px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, var(--ct-chocolate) 28%, transparent), transparent) 0 100% / 100% 7px no-repeat scroll;
+}
+.ct-mapa__cartao-acoes { flex: none; padding-top: 2px; }
+.ct-mapa__cartao-rolagem > * { margin: 0; }
+.ct-mapa__estados { display: flex; flex-wrap: wrap; gap: 6px; }
+.ct-mapa__estados:empty { display: none; }
+.ct-mapa__cartao .ct-mapa__estados .ct-agora { flex: 0 1 auto; align-items: center; gap: 6px; padding: 3px 10px 3px 8px; border-width: 2px; font: 700 13px/1.25 var(--ct-font); }
+/* A porta de "aberto agora": 22 px, alinhada ao centro do texto (era 32 px, solta no alto da linha). */
+.ct-mapa__cartao .ct-agora .ct-icone { flex: none; width: 22px; height: 22px; }
+.ct-mapa__cartao .ct-agora--aberto { padding-left: 6px; }
+.ct-mapa__cartao .ct-mapa__oferta { grid-template-columns: 52px minmax(0, 1fr); gap: 8px; padding: 5px; }
+.ct-mapa__cartao .ct-mapa__oferta:not(:has(.ct-mapa__oferta-foto)) { grid-template-columns: minmax(0, 1fr); padding: 7px 10px; }
+.ct-mapa__cartao .ct-mapa__oferta-itens { -webkit-line-clamp: 1; }
+.ct-mapa__cartao-linha { align-items: center; }
+.ct-mapa__cartao-linha > span { min-width: 0; overflow-wrap: anywhere; }
+/* Outros endereços da mesma casa: lista vertical, sem rolagem lateral escondida; endereço longo ganha reticências. */
+.ct-mapa__irmas ul { display: grid; gap: 6px; overflow: visible; padding-bottom: 0; scroll-snap-type: none; }
+.ct-mapa__irmas li { min-width: 0; }
+.ct-mapa__irma { width: 100%; min-width: 0; text-align: left; }

@@ -94,6 +94,9 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
         </div>
         <button type="button" className="ct-mapa__fechar" onClick={fechar} aria-label={T.fechar}><ScwIcon nome="fechar" tamanho={20} /></button>
       </div>
+      {/* Correção de 11/11 (cartão no iPhone cortava as ações): o cabeçalho e as AÇÕES ficam presos; o que está no meio rola, com sombra
+          nas bordas que avisa que há mais. As ações principais cabem sempre. */}
+      <div className="ct-mapa__cartao-rolagem">
       {comOferta && (
         <div className={`ct-mapa__oferta${esgotadoHoje ? ' is-esgotada' : ''}`}>
           {foto && <span className="ct-mapa__oferta-foto"><Foto foto={foto} proporcao="4 / 5" alt="" /></span>}
@@ -104,9 +107,11 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
           </div>
         </div>
       )}
+      <div className="ct-mapa__estados">
       {(esgotadoHoje || aberto) && agoraNo}
       {filaAgora && !esgotadoHoje && <p className="ct-agora ct-agora--fila ct-mapa__cartao-linha" role="status"><span aria-hidden="true">!</span>{T.filaAgora}</p>}
       {selo && <p className={`ct-agora ct-agora--movimento ct-agora--movimento-${selo} ct-mapa__cartao-linha`} role="status">{T.movimento[selo]}</p>}
+      </div>
       {deliveryApenas
         ? <p className="ct-nota ct-mapa__so-delivery-nota">{T.soDeliveryNota}</p>
         : M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
@@ -121,17 +126,6 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
           </ul>
         </div>
       )}
-      {/* Ações em duas fileiras: a principal ocupa a linha; embaixo, quatro controles do mesmo tamanho (dois botões, "Quero ir" só com o coração, "Mais"). */}
-      <div className="ct-acoes ct-mapa__cartao-acoes">
-        {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : comprar ? <AcoesCompra p={p} unidade={u} navigate={navigate} className="ct-mapa__compra" /> : (!p.combo && comoChegarBotao)}
-        {/* Atalho do carimbo: a mesma página do QR do display (pede a localização e só carimba com você na casa); casa só delivery usa o carimbo do delivery. */}
-        {deliveryApenas
-          ? <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`} navigate={navigate}>{TD.titulo}</Botao>
-          : <Botao tipo="secundario" href={`${EDICAO.caminho}/carimbo/${p.slug}`} navigate={navigate}>{TC.carimbarAqui}</Botao>}
-        <Botao tipo="secundario" href={`${EDICAO.caminho}/combos/${p.slug}`} navigate={navigate}>{TC.verCombo}</Botao>
-        <QueroIr u={u} nome={titulo} />
-        <button type="button" className="ct-chip ct-mapa__mais-botao" aria-expanded={mais} aria-controls={idMais} aria-label={mais ? TC.menosDetalhes : TC.maisDetalhes} onClick={() => setMais((v) => !v)}>{mais ? TC.menosCurto : TC.maisCurto}</button>
-      </div>
       <div id={idMais} className="ct-mapa__mais" hidden={!mais}>
         {!esgotadoHoje && !aberto && agoraNo}
         {deliveryApenas && M.enderecoEmLinha(u.endereco) && <p className="ct-mapa__cartao-linha"><ScwIcon nome={ICONE.endereco} tamanho={20} /><span>{M.enderecoEmLinha(u.endereco)}</span></p>}
@@ -162,6 +156,18 @@ export function Cartao ({ linha, periodo, navigate, fechar, parada = null, estad
             {passoJaFui}{!estado && <> <Link href={TC.caminhos.central} navigate={navigate}>{TC.conhecerCaca}</Link></>}
           </p>
         )}
+      </div>
+      </div>
+      {/* Ações em duas fileiras: a principal ocupa a linha; embaixo, quatro controles do mesmo tamanho (dois botões, "Quero ir" só com o coração, "Mais"). */}
+      <div className="ct-acoes ct-mapa__cartao-acoes">
+        {pendente && aoAvaliar ? <Botao onClick={() => aoAvaliar(p, u)}>{TC.avaliarValidar}</Botao> : comprar ? <AcoesCompra p={p} unidade={u} navigate={navigate} className="ct-mapa__compra" /> : (!p.combo && comoChegarBotao)}
+        {/* Atalho do carimbo: a mesma página do QR do display (pede a localização e só carimba com você na casa); casa só delivery usa o carimbo do delivery. */}
+        {deliveryApenas
+          ? <Botao tipo="secundario" href={`${CACA_CAMINHOS.delivery}?casa=${encodeURIComponent(p.slug)}`} navigate={navigate}>{TD.titulo}</Botao>
+          : <Botao tipo="secundario" href={`${EDICAO.caminho}/carimbo/${p.slug}`} navigate={navigate}>{TC.carimbarAqui}</Botao>}
+        <Botao tipo="secundario" href={`${EDICAO.caminho}/combos/${p.slug}`} navigate={navigate}>{TC.verCombo}</Botao>
+        <QueroIr u={u} nome={titulo} />
+        <button type="button" className="ct-chip ct-mapa__mais-botao" aria-expanded={mais} aria-controls={idMais} aria-label={mais ? TC.menosDetalhes : TC.maisDetalhes} onClick={() => setMais((v) => !v)}>{mais ? TC.menosCurto : TC.maisCurto}</button>
       </div>
     </article>
   )
