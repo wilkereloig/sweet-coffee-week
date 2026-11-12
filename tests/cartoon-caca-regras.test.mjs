@@ -539,3 +539,13 @@ test('banco: recuperar não derruba mais as outras chaves (migration 20270131 e 
   assert.match(doc, /NÃO deixa de valer[\s\S]*20270131/)
   assert.doesNotMatch(doc, /A chave antiga \*\*desse mapa\*\* deixa de valer no ato;/, 'a regra antiga saiu do contrato')
 })
+
+test('chave do mapa: nenhum texto diz mais que o aparelho antigo "precisa recuperar de novo" (o banco guarda as chaves antigas, 20270131)', () => {
+  const recuperado = CACA.codigo.recuperado('Ana')
+  assert.match(recuperado, /outros aparelhos continuam abertos/)
+  assert.doesNotMatch(recuperado, /precisar[áa] recuperar de novo/)
+  assert.match(CACA.chaveTrocada, /outros aparelhos continuam abertos/)
+  assert.doesNotMatch(CACA.chaveTrocada, /recuperou em outro celular/, 'recuperar em outro celular já não derruba este aparelho')
+  assert.doesNotMatch(fonte('src/edicao/caca/Recuperar.jsx'), /o aparelho antigo precisará recuperar de novo\./)
+})
+

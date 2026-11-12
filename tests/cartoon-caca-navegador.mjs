@@ -382,7 +382,7 @@ secao(2, 'recuperar e confirmar por e-mail (estados do envio)', async () => {
   await c.page.getByRole('button', { name: 'Enviar código' }).click()
   await validar(c.page)
   await c.page.getByText(/foi recuperado neste aparelho/).waitFor({ timeout: 8000 }).catch(() => falha('código válido: sem a confirmação de recuperação'))
-  checar(/aparelho antigo precisará recuperar de novo/.test(await texto(c.page)), 'recuperar avisa que a chave antiga deixa de valer')
+  checar(/outros aparelhos continuam abertos/.test(await texto(c.page)), 'recuperar avisa que os outros aparelhos seguem abertos (a chave antiga segue valendo, 20270131)')
   checar((await registrar(c.page)) === novo.chave, 'código válido guarda a chave NOVA no aparelho')
   const corpoValidar = c.pedidos.find((p) => p.fn === 'mapa_codigo_validar')?.corpo
   checar(corpoValidar?.p_finalidade === 'recuperar' && corpoValidar?.p_codigo === '123456' && !JSON.stringify(c.pedidos.filter((p) => p.fn !== 'mapa_codigo_validar')).includes('123456'), 'o código só viaja no corpo da validação')

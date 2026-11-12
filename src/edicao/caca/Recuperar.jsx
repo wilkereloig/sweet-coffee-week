@@ -1,6 +1,6 @@
 /*
  * /cartoon/caca/recuperar (spec 15 §4): pede o código por e-mail, valida e guarda a chave NOVA no aparelho. Quem só sabe
- * o e-mail não acessa o mapa sem o código. A recuperação troca a chave deste mapa: o aparelho antigo precisará recuperar de novo.
+ * o e-mail não acessa o mapa sem o código. A recuperação dá ao aparelho uma chave nova e as chaves antigas seguem valendo (migration 20270131, 12/11/2026): os outros aparelhos não precisam recuperar de novo.
  */
 import React from 'react'
 import { Link } from '../componentes/base.jsx'

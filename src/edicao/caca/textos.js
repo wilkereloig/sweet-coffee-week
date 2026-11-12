@@ -67,7 +67,7 @@ export const CACA = {
   },
   carregando: 'Abrindo a sua Caça…',
   falha: { titulo: 'Não conseguimos abrir seu mapa agora', texto: 'Seus carimbos estão guardados. Confira a conexão e tente de novo.' },
-  chaveTrocada: 'Este aparelho não reconhece mais o mapa que estava salvo aqui. Se você o recuperou em outro celular, recupere de novo por aqui com o seu e-mail.',
+  chaveTrocada: 'Este aparelho não reconhece mais o mapa que estava salvo aqui. Recupere com o seu e-mail: depois disso o mapa fica salvo neste aparelho e os seus outros aparelhos continuam abertos.',
 
   progresso: {
     titulo: (apelido) => (apelido ? `Mapa de ${apelido}` : 'Seu mapa'),
@@ -220,7 +220,7 @@ export const CACA = {
     validar: 'Validar código',
     validando: 'Validando…',
     invalido: 'Código inválido ou vencido. Peça um novo.',
-    recuperado: (apelido) => `Pronto! O mapa${apelido ? ` de ${apelido}` : ''} foi recuperado neste aparelho. O aparelho antigo precisará recuperar de novo.`,
+    recuperado: (apelido) => `Pronto! O mapa${apelido ? ` de ${apelido}` : ''} foi recuperado e fica salvo neste aparelho. Os seus outros aparelhos continuam abertos.`,
     emailInvalido: 'Confira o e-mail.',
     rede: 'Sem conexão com o servidor agora. Tente de novo em instantes.',
     tentarDeNovo: 'Tentar de novo',
