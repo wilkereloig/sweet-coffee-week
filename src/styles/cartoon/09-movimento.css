@@ -27,7 +27,9 @@
      chegam na tela (onde o navegador sabe; nos outros, ao abrir). */
   @keyframes ct-estoura { from { scale: .3; rotate: -25deg; opacity: 0; } to { scale: 1; rotate: 0deg; opacity: 1; } }
   @keyframes ct-cutuca { 0%, 100% { translate: 0 0; } 40% { translate: 12px 0; } 65% { translate: 4px 0; } }
-  .ct-estreia__explosao, .ct-catalogo__explosao, .ct-capa__explosao { animation: ct-estoura 620ms var(--ct-mo-quique) both; }
+  .ct-catalogo__explosao, .ct-capa__explosao { animation: ct-estoura 620ms var(--ct-mo-quique) both; }
+  /* `backwards`: depois de estourar, o rotate/scale voltam a ser do CSS — é por eles que a rolagem gira e pulsa a explosão do herói. */
+  .ct-estreia__explosao { animation: ct-estoura 620ms var(--ct-mo-quique) backwards; }
   .ct-estreia__mesa, .ct-catalogo__desenho { transform-origin: 50% 100%; animation: ct-quica 760ms var(--ct-mo-quique) 140ms both; }
   .ct-edicao .ct-estreia__luva { animation: ct-cutuca 700ms ease-in-out 1100ms 2; }
   .ct-passos__desenho, .ct-cabeca-desenho .ct-gibi {

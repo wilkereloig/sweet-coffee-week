@@ -24,6 +24,7 @@ import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Botao, Passos, Gibi, Preco, Chip } from '../../componentes/sistema/pecas.jsx'
 import { PanoramaParalaxe } from '../../componentes/sistema/PanoramaParalaxe.jsx'
+import { BalancoNaRolagem } from '../../componentes/sistema/BalancoNaRolagem.jsx'
 import { LaminaCombo } from '../CartaoCombo.jsx'
 import { ENTRADA as T, duvidasDaEdicao, FASE_TEXTO, PERIODO } from '../textos.js'
 import { useAgora } from '../useAgora.js'
@@ -169,6 +170,8 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
       <TopoCanal canal="estreia" className="ct-estreia ct-reticula" aria-labelledby="ct-estreia-titulo">
         {/* A cidade de Natal presa à base do herói, atrás do texto e dos botões, com paralaxe suave (11/11, pedido do Wilker). */}
         <PanoramaParalaxe />
+        {/* Os elementos do herói ganham vida enquanto a página rola (molas na rolagem; parado, nada se mexe). */}
+        <BalancoNaRolagem />
         <div className="ct-estreia__texto">
           {/* O cabeçalho já nomeia a edição (link do selo); aqui o selo é a abertura, sem repetir o nome. */}
           <img className="ct-estreia__selo" src={selo.src} srcSet={srcSet(selo.src)} sizes="160px" alt="" width={selo.largura} height={selo.altura} />

@@ -285,3 +285,13 @@
   .ct-edicao .ct-avalie__luva { display: none; }
   .ct-edicao .ct-entrada__avalie .ct-avalie__acoes .ct-botao { min-height: 54px; padding: 0 24px; font-size: 19px; }
 }
+
+/* Movimento na rolagem (11/11/2026, pedido do Wilker): a cena do herói balança como desenho animado enquanto a página rola e assenta
+   quando ela para. As molas moram em BalancoNaRolagem.jsx (--ct-m1/2/3 de −1 a 1, + para baixo; --ct-mm a intensidade; --ct-sp o
+   progresso); aqui só os multiplicadores, e só com propriedades de transform. Sem `prefers-reduced-motion` ligado nada se mexe
+   (as variáveis ficam em 0 e os valores abaixo caem nos estáticos de sempre). */
+.ct-edicao .ct-estreia__mesa { translate: 0 calc(var(--ct-m1, 0) * 15px); rotate: calc(var(--ct-m1, 0) * 3.2deg); scale: calc(1 + var(--ct-mm, 0) * .04) calc(1 - var(--ct-mm, 0) * .04); }
+.ct-estreia__explosao { rotate: calc(var(--ct-sp, 0) * 34deg + var(--ct-m2, 0) * 6deg); scale: calc(1 + var(--ct-mm, 0) * .045); }
+.ct-estreia__olhos { rotate: calc(14deg + var(--ct-m2, 0) * 13deg); translate: calc(var(--ct-m3, 0) * -8px) calc(var(--ct-m2, 0) * 18px); }
+.ct-estreia__itens { rotate: calc(-5deg + var(--ct-m3, 0) * -9deg); translate: 0 calc(var(--ct-m2, 0) * 8px); }
+.ct-edicao .ct-estreia__luva { rotate: calc(-6deg + var(--ct-m3, 0) * 12deg); }
