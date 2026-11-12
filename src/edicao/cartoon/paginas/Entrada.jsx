@@ -23,6 +23,7 @@ import { Letreiro } from '../../componentes/sistema/Letreiro.jsx'
 import { Olhinhos } from '../../componentes/sistema/Olhinhos.jsx'
 import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Botao, Passos, Gibi, Preco, Chip } from '../../componentes/sistema/pecas.jsx'
+import { PanoramaParalaxe } from '../../componentes/sistema/PanoramaParalaxe.jsx'
 import { LaminaCombo } from '../CartaoCombo.jsx'
 import { ENTRADA as T, duvidasDaEdicao, FASE_TEXTO, PERIODO } from '../textos.js'
 import { useAgora } from '../useAgora.js'
@@ -166,6 +167,8 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
       {/* 1 · Topo enxuto: preço, dias que faltam e as duas ações. No celular a mesa desenhada e a frase saem (02-entrada.css)
           para o primeiro combo aparecer na primeira tela. */}
       <TopoCanal canal="estreia" className="ct-estreia ct-reticula" aria-labelledby="ct-estreia-titulo">
+        {/* A cidade de Natal presa à base do herói, atrás do texto e dos botões, com paralaxe suave (11/11, pedido do Wilker). */}
+        <PanoramaParalaxe />
         <div className="ct-estreia__texto">
           {/* O cabeçalho já nomeia a edição (link do selo); aqui o selo é a abertura, sem repetir o nome. */}
           <img className="ct-estreia__selo" src={selo.src} srcSet={srcSet(selo.src)} sizes="160px" alt="" width={selo.largura} height={selo.altura} />
