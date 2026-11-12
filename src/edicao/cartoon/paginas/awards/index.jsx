@@ -6,6 +6,7 @@
  *   Avaliação: o formulário em passos (avaliação aberta), ou "abre em …" (antes), ou encerrada.
  *   Premiados: quando os resultados saem; antes, "resultados depois de <fim do festival>" (D-15).
  */
+import { AssinaturaPatrocinio } from '../../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'
 import { EDICAO } from '../../../config.js'
@@ -106,6 +107,7 @@ export function SweetAwards ({ navigate, dados, foco }) {
           <img className="ct-palco__trofeu" src={trofeu.src} srcSet={srcSet(trofeu.src)} sizes="(max-width: 899px) 70vw, 440px" width={trofeu.largura} height={trofeu.altura} alt={T.trofeuAlt} decoding="async" />
         </figure>
       </TopoCanal>
+      <AssinaturaPatrocinio />
 
       {resultados && <Resultados navigate={navigate} />}
 

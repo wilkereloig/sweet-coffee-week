@@ -122,13 +122,17 @@ test('textos do próximo passo: distância curta e dica de localização', () =>
   assert.ok(T.pertoDica.disponivel && T.pertoDica.negada && !T.pertoDica.indisponivel)
 })
 
-test('a assinatura do Sicredi fica no topo de TODA página da edição (casca), uma só vez, e não é fixa', () => {
+test('a assinatura do Sicredi fica logo abaixo da primeira seção (herói) e nunca no alto das páginas com herói; sem herói, no começo; não é fixa', () => {
   const src = (f) => readFileSync(fileURLToPath(new URL(`../src/edicao/${f}`, import.meta.url)), 'utf8')
   const casca = src('cartoon/index.jsx')
-  assert.match(casca, /<div className="ct-conteudo">\{cena !== 'mapa' && <AssinaturaPatrocinio \/>\}\{conteudo\}<\/div>/, 'na casca, no começo do conteúdo (abaixo do cabeçalho fixo): topo de todas as páginas da Cartoon, menos o mapa (que começa na primeira dobra e tem o patrocinador nos marcadores)')
-  assert.ok(casca.indexOf('<AssinaturaPatrocinio />') > casca.indexOf('</header>'), 'depois do cabeçalho, antes do conteúdo')
-  assert.doesNotMatch(src('cartoon/paginas/participante/index.jsx'), /<AssinaturaPatrocinio\b/, 'a ficha não repete a assinatura (a casca já a traz)')
-  assert.doesNotMatch(src('cartoon/paginas/Catalogo.jsx'), /<AssinaturaPatrocinio\b/, 'o catálogo não repete a assinatura (a casca já a traz)')
+  assert.match(casca, /const SEM_HEROI = \['caca', 'carimbo', 'voucher', 'regulamento'\]/, 'a casca só põe a faixa no alto das páginas sem herói')
+  assert.match(casca, /ct-conteudo\$\{SEM_HEROI\.includes\(cena\) \? ' ct-conteudo--faixa-branca' : ''\}`\}>\{SEM_HEROI\.includes\(cena\) && <AssinaturaPatrocinio \/>\}\{conteudo\}<\/div>/, 'dentro do conteúdo, abaixo do cabeçalho fixo, com a faixa de cima branca nas páginas sem herói')
+  // páginas com herói: a faixa vem DEPOIS do herói (sem faixa creme no alto, o herói sobe por trás do cabeçalho)
+  for (const [arq, trecho] of [['cartoon/paginas/Entrada.jsx', '</TopoCanal>\n      {/* Patrocínio Sicredi logo abaixo do herói'], ['cartoon/paginas/Catalogo.jsx', '</TopoCanal>\n      <AssinaturaPatrocinio />'], ['cartoon/paginas/awards/index.jsx', '</TopoCanal>\n      <AssinaturaPatrocinio />']]) {
+    assert.ok(src(arq).includes(trecho), `${arq}: a faixa do Sicredi vem logo depois do herói`)
+  }
+  const ficha = src('cartoon/paginas/participante/index.jsx')
+  assert.ok(ficha.indexOf('<AssinaturaPatrocinio />') > ficha.indexOf('<Capa '), 'ficha: a faixa vem depois da capa')
   assert.doesNotMatch(src('cartoon/paginas/mapa/index.jsx'), /<AssinaturaPatrocinio\b/, 'o mapa apresenta o patrocinador nos próprios marcadores')
   const css = readFileSync(fileURLToPath(new URL('../src/styles/cartoon/01-base.css', import.meta.url)), 'utf8')
   assert.doesNotMatch(css.match(/\.ct-assina-patrocinio \{[^}]*\}/)[0], /position: (fixed|sticky)/, 'não é fixa na tela (manual da Sicredi)')

@@ -37,6 +37,8 @@ test('paleta do manual v03, e nada da paleta antiga', () => {
   assert.deepEqual(tokens(), {
     creme: '#FDF0DE', amarelo: '#FDB901', chocolate: '#3A150F', preto: '#050505', vermelho: '#ED1C20',
     rosa: '#E8195A', branco: '#FCFCFC', azul: '#0184E4', turquesa: '#05BEBA', roxo: '#6424AB',
+    // 11/11/2026, pedido do Wilker: verde = disponível, bom (aviso "menos movimento agora"). Fora do manual v03: só nesse uso.
+    verde: '#6CC24A',
   })
   const css = lerCss()
   for (const velho of [/#FAC506/i, /#FDF2DF/i, /amarelo-heroi/, /var\(--scw-font/, /rgba\(\s*5\s*,\s*5\s*,\s*5\s*,/]) {
@@ -47,7 +49,7 @@ test('paleta do manual v03, e nada da paleta antiga', () => {
 
 test('contraste medido a partir dos tokens', () => {
   const t = tokens()
-  const LEITURA = [['chocolate', 'creme'], ['chocolate', 'amarelo'], ['chocolate', 'turquesa'], ['chocolate', 'branco'],
+  const LEITURA = [['chocolate', 'creme'], ['chocolate', 'amarelo'], ['chocolate', 'turquesa'], ['chocolate', 'branco'], ['chocolate', 'verde'],
     ['creme', 'chocolate'], ['creme', 'roxo'], ['preto', 'azul']]
   const SO_GRANDE = [['creme', 'vermelho'], ['creme', 'rosa'], ['creme', 'azul']]
   const PROIBIDO = [['chocolate', 'roxo'], ['chocolate', 'azul']]

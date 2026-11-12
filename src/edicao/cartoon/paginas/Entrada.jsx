@@ -203,6 +203,8 @@ export function Entrada ({ navigate, dados, carregando, erro, tentar }) {
           <Olhinhos expressao="encantado" lado="direita" olhar={{ x: -0.6, y: 0.2 }} tamanho={150} className="ct-estreia__olhos" />
         </div>
       </TopoCanal>
+      {/* Patrocínio Sicredi logo abaixo do herói (pedido do Wilker, 11/11/2026). */}
+      <AssinaturaPatrocinio />
 
       {/* 2 · A vitrine: todos os combos, com o que é verdade agora. Um botão só para o catálogo com busca. */}
       <section id="ct-vitrine" className="ct-bloco ct-entrada__elenco ct-reticula" aria-labelledby="ct-elenco">

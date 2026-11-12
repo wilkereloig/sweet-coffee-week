@@ -56,6 +56,8 @@
   --ct-branco: #FCFCFC;
   --ct-azul: #0184E4;
   --ct-turquesa: #05BEBA;
+  /* 11/11/2026 (pedido do Wilker): verde = disponível, bom (hoje só no aviso "menos movimento agora"). Texto chocolate sobre ele: 7,7:1. */
+  --ct-verde: #6CC24A;
   --ct-roxo: #6424AB;
 
   /* Formas de gibi (repaginação de 04/11, §10.17), usadas como máscara — a cor vem do background de quem usa:

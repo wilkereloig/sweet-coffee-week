@@ -648,3 +648,9 @@
 .ct-mapa__irmas ul { display: grid; gap: 6px; overflow: visible; padding-bottom: 0; scroll-snap-type: none; }
 .ct-mapa__irmas li { min-width: 0; }
 .ct-mapa__irma { width: 100%; min-width: 0; text-align: left; }
+
+/* Aviso de movimento ("Boa hora para visitar: menos movimento agora" / "Movimento acima do normal"): texto menor em todo lugar; o de boa hora é
+   VERDE (verde = disponível, bom — Wilker, 11/11/2026). (0,3,0), por último: vence o tamanho que cada cartão dá às pílulas de "agora". */
+.ct-edicao .ct-agora.ct-agora--movimento { gap: 6px; padding: 3px 10px 3px 8px; border-width: 2px; font: 700 12.5px/1.25 var(--ct-font); }
+.ct-edicao .ct-agora.ct-agora--movimento-tranquila { background: var(--ct-verde); }
+.ct-edicao .ct-agora--movimento-tranquila::before { background: var(--ct-branco); }

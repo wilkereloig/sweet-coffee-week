@@ -111,6 +111,8 @@ function MenuCelular ({ itens, ativa, navigate, paradas }) {
 // Sem o mapa no ar, a navegação fica sem o Mapa da Doçura e a Caça, e estas páginas mostram o "em breve".
 const PAGINAS = NAV.filter((n) => MAPA_NO_AR || !['mapa', 'caca'].includes(n.cena))
 const CENAS_DO_MAPA = ['mapa', 'carimbo', 'caca', 'regulamento']
+// Páginas que abrem sem herói (começam em conteúdo creme): a faixa do Sicredi fica no começo delas.
+const SEM_HEROI = ['caca', 'carimbo', 'voucher', 'regulamento']
 
 const TITULOS = {
   'mapa-em-breve': 'Mapa da Doçura', participantes: 'Participantes', combos: 'Combos', mapa: 'Mapa da Doçura',
@@ -236,11 +238,11 @@ export function CartoonPage ({ path, navigate }) {
           <MenuCelular itens={PAGINAS} ativa={ativa} navigate={navigate} paradas={paradas} />
         </header>
 
-        {/* Patrocínio Sicredi no TOPO de toda página da edição (Wilker, 11/11/2026: "todas as páginas da Cartoon"): uma assinatura só, aqui.
-            Dentro do .ct-conteudo, para ficar logo abaixo do cabeçalho fixo (o recuo do cabeçalho é desse contêiner).
-            Exceção: o MAPA. Ele abre em tela cheia (a faixa ficaria escondida) e, na página comum, o mapa tem de começar na primeira
-            dobra do celular (a faixa o empurrava de 631 para 693 px); o patrocinador já está nos marcadores do mapa. */}
-        <div className="ct-conteudo">{cena !== 'mapa' && <AssinaturaPatrocinio />}{conteudo}</div>
+        {/* Patrocínio Sicredi (Wilker, 11/11/2026: "todas as páginas da Cartoon"; depois: "retire a faixa creme de cima e ponha a faixa branca
+            abaixo da primeira seção"). Páginas COM herói (Entrada, catálogo, ficha, Sweet Awards) levam a faixa logo abaixo dele — assim o herói
+            volta a subir por trás do cabeçalho, sem faixa creme no alto. Aqui ficam só as páginas sem herói (SEM_HEROI); o Mapa (marcadores) e a
+            página do próprio Sicredi (Ter com quem contar) não levam. Dentro do .ct-conteudo para ficar abaixo do cabeçalho fixo. */}
+        <div className={`ct-conteudo${SEM_HEROI.includes(cena) ? ' ct-conteudo--faixa-branca' : ''}`}>{SEM_HEROI.includes(cena) && <AssinaturaPatrocinio />}{conteudo}</div>
         <p className="ct-sr" aria-live="polite">{rota.anuncio}</p>
 
         <FaixaMarcas />

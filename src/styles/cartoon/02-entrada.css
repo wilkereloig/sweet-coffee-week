@@ -19,7 +19,7 @@
 /* Computador (1440×900): a faixa do Sicredi no alto de toda página empurrou o botão "Pedir no delivery" para baixo da primeira dobra
    (920 px). O topo do herói fica mais justo: menos recuo em cima, selo menor, vãos menores (botão a ~810 px). */
 @media (min-width: 900px) {
-  .ct-canal.ct-estreia { padding-top: clamp(24px, 3vw, 40px); }
+  .ct-canal.ct-estreia { padding-top: calc(clamp(24px, 3vw, 40px) + var(--ct-topo-extra, 0px)); }
   .ct-estreia__texto { gap: 12px; }
 }
 .ct-estreia__texto .ct-letreiro { margin: 0; }

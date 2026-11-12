@@ -1,7 +1,8 @@
 /*
  * Assinatura de patrocínio: "Patrocínio" + logo oficial do Sicredi, em linha própria sobre branco (versão preferencial,
- * sem box, sem rotação, sombra ou contorno). Um componente só, no TOPO de toda página da edição Cartoon (casca, cartoon/index.jsx;
- * 05/11/2026 e, para todas as páginas, 11/11/2026 — pedido do Wilker); não é fixa na tela e não repete por seção.
+ * sem box, sem rotação, sombra ou contorno). Uma por página da edição Cartoon (05/11/2026; para todas, 11/11/2026 — pedido do Wilker):
+ * logo ABAIXO da primeira seção (o herói) nas páginas com herói; no começo nas que abrem sem herói (SEM_HEROI em cartoon/index.jsx).
+ * Não é fixa na tela e não repete por seção.
  * A faixa completa de marcas continua antes do rodapé (Marcas.jsx).
  */
 import React from 'react'

@@ -58,6 +58,9 @@
    (cada regra de padding da seção inicial usa var(--ct-topo-extra, 0px)). Página que abre com conteúdo sem fundo (ficha, Caça, regulamento,
    mapa no celular) fica com a reserva no .ct-conteudo. */
 .ct-conteudo { padding-top: var(--ct-topo-barra); }
+/* Páginas sem herói (Caça, Carimbo, Voucher, Regulamento — SEM_HEROI na casca): a faixa de cima, atrás do cabeçalho, é BRANCA, igual à do Sicredi logo
+   abaixo (Wilker, 11/11/2026: "em vez de creme, branco também"). O degradê preto cai sobre o branco e a faixa do patrocínio continua o mesmo branco. */
+.ct-conteudo--faixa-branca { background: linear-gradient(#fff, #fff) 0 0 / 100% var(--ct-topo-barra) no-repeat; }
 /* :where() zera a especificidade do :has() — a exceção do mapa no celular (16-mapa-tela.css) precisa vencer esta regra. */
 .ct-conteudo:where(:has(> .ct-canal:first-child, > .ct-catalogo:first-child > .ct-canal:first-child)) { padding-top: 0; }
 .ct-conteudo > .ct-canal:first-child, .ct-conteudo > .ct-catalogo:first-child > .ct-canal:first-child { --ct-topo-extra: var(--ct-topo-barra); }

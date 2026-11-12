@@ -8,6 +8,7 @@
  * de rolagem volta quando o visitante retorna de uma casa. "Quero ir" e "Já fui" ficam abaixo do cartão,
  * fora do link (área própria, nunca botão dentro de link).
  */
+import { AssinaturaPatrocinio } from '../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import React from 'react'
 import * as M from '../../dados/modelo.js'
 import { Avisos } from '../../componentes/base.jsx'
@@ -96,6 +97,7 @@ export function Catalogo ({ modo, navigate, dados }) {
           <Gibi chave={combos ? 'bandeja' : 'loja'} className="ct-catalogo__desenho" prioridade />
         </div>
       </TopoCanal>
+      <AssinaturaPatrocinio />
 
       <section className="ct-bloco ct-catalogo__corpo">
         <div className="ct-filtros ct-filtros--catalogo">

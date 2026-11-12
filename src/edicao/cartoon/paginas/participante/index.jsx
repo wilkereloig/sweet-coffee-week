@@ -15,6 +15,7 @@ import { Link, Carregando, Falha, Avisos } from '../../../componentes/base.jsx'
 import { PARTICIPANTE as T, FASE_TEXTO, TIPO_ORDEM } from '../../textos.js'
 import { useRota } from '../../contexto.js'
 import { useAgoraNasCasas } from '../../useAgoraNasCasas.js'
+import { AssinaturaPatrocinio } from '../../../componentes/sistema/AssinaturaPatrocinio.jsx'
 import { Capa } from './Capa.jsx'
 import { Carimbe } from './Carimbe.jsx'
 import { Combo } from './Combo.jsx'
@@ -104,6 +105,8 @@ export function FichaParticipante ({ p, fase, avaliacaoAberta: aberta = false, n
       {navigate && <p className="ct-voltar"><Link href={`${EDICAO.caminho}/participantes`} navigate={navigate}>← {T.voltar}</Link></p>}
 
       <Capa p={p} encerrada={encerrada} rota={rota} navigate={navigate} esgotado={esgotado} fila={fila} periodo={periodo} aoVerCompra={setCapaComCompra} />
+      {/* Só no site (a prévia do painel não leva patrocinador), logo abaixo da capa. */}
+      {navigate && <AssinaturaPatrocinio />}
       {encerrada && <p className="ct-aviso">{FASE_TEXTO.encerrada}</p>}
 
       {combo && !encerrada && <ComoPedir p={p} />}
