@@ -133,7 +133,7 @@ export function Carimbo ({ codigo, navigate, dados }) {
       const resp = porCasa
         ? await C.chamar('mapa_carimbar_casa', { p_chave: k, p_slug: codigo, ...onde })
         : await C.chamar('mapa_carimbar', { p_chave: k, p_qr: codigo, ...onde })
-      if (resp?.motivo === 'mapa_desconhecido') { C.apagarChave(EDICAO.codigo); setChave(null); setEstado('pronto'); return }
+      if (resp?.motivo === 'mapa_desconhecido') { C.soltarChave(EDICAO.codigo); setChave(null); setEstado('pronto'); return } // quarentena, não apaga: a Central tenta de novo na próxima visita
       // `posicao` = erro do navegador (negada · indisponivel · demorou) e `precisao` = margem do GPS, para explicar a recusa.
       // Só é "carimbado" com `ok: true` do servidor; qualquer outra resposta é recusa.
       const final = resp && typeof resp === 'object' ? resp : { motivo: 'rede' }

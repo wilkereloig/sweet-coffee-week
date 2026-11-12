@@ -108,3 +108,10 @@ O pop-up da disputa não entra nessa tela (ela já mostra a disputa e registra o
 
 **2. Saudação no cartão "Mapa de <apelido>".** `caca/saudacao.js` (lógica pura + frases) e `caca/useSaudacao.js` (sorteio uma vez por visita). Saudação pela hora de Natal; o incentivo muda com o estado do mapa (começando, andando, quase completo, carimbo pendente, completo), sábado/domingo, últimos dias do festival e dado real (casas com combo disponível agora, hora do primeiro combo de hoje). Fora do festival, só a saudação. Nunca cita voucher, disputa, delivery, prêmio, ranking nem "votar". Testes: `tests/cartoon-caca-regras.test.mjs`.
 
+## A chave do mapa não se perde (12/11/2026)
+
+Pedido do Wilker: "os dados salvos têm que ficar salvos; não quero que as pessoas tenham que entrar, recuperar e-mail e receber código de novo". Causas achadas e o que mudou no front (o lado do banco está em `15-caca-contrato-identidade.md`, D3):
+- **Uma resposta só apagava o mapa do aparelho.** `mapa_ler_v2` devolve `null` para chave desconhecida e o hook apagava a chave na hora. Agora (`caca/leituraDoMapa.js`): erro de rede, 5xx ou banco fora do ar NUNCA solta a chave; "desconhecida" é confirmada com uma segunda leitura (2,5 s depois) e só então a chave sai do lugar de chave ativa — para a **quarentena** (`rota/carimbo.js`: `soltarChave`, `chaveDaQuarentena`), não para o lixo. O aparelho tenta a chave da quarentena de novo **uma vez por sessão, por até 7 dias**: se o problema era do banco, o mapa volta sozinho, sem código por e-mail. Só "sair/apagar" (a pessoa decidiu) e uma chave nova (criação ou recuperação) esvaziam a quarentena. A tela do carimbo (`Carimbo.jsx`) também só solta.
+- **200 com corpo que não é JSON virava `null`.** Um Wi-Fi com página de login, um proxy ou uma resposta cortada chegava como "mapa desconhecido". `chamar` agora lança `rpc_resposta_ilegivel` (o `null` de verdade chega como o texto JSON `null`; função sem retorno é 204).
+- Testes: `tests/cartoon-caca-regras.test.mjs` (decisão, quarentena, `chamar`, e a fonte do hook).
+

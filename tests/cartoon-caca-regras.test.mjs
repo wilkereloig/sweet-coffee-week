@@ -9,6 +9,8 @@ import { proximaAcao, resumoProgresso, nomeDaCasa, situacaoEmail, emailMascarado
 import { CACA, CACA_CAMINHOS, mensagemDoMotivo } from '../src/edicao/caca/textos.js'
 import { FRASES, faixaDoDia, situacaoDoJogo, saudar, contextoDaSaudacao } from '../src/edicao/caca/saudacao.js'
 import { BOAS_VINDAS } from '../src/edicao/caca/guia/textos.js'
+import { aposLeitura, ESPERA_CONFIRMACAO_MS } from '../src/edicao/caca/leituraDoMapa.js'
+import { criarApi } from '../src/edicao/caca/api.js'
 import { iconeEdicao } from '../src/data/imageLibrary.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
@@ -398,4 +400,104 @@ test('boas-vindas: o CSS usa só tokens, sem !important, e o formulário vira ca
   assert.doesNotMatch(bloco, /#[0-9a-fA-F]{3,8}\b/, 'só tokens --ct-*')
   assert.match(bloco, /\.ct-boasvindas__criar \.ct-carimbar__form \{[^}]*box-shadow: var\(--ct-sombra-p\)/, 'o formulário vira cartão só dentro das boas-vindas')
   assert.match(bloco, /min-height: 44px/, 'a recuperação tem alvo de toque de 44 px')
+})
+
+// ---------------------------------------------------------------- a chave do mapa não se perde (leituraDoMapa.js + quarentena em carimbo.js, 12/11/2026)
+const memoria = (inicial = {}) => {
+  const m = new Map(Object.entries(inicial))
+  return { m, getItem: (k) => m.get(k) ?? null, setItem: (k, v) => { m.set(k, String(v)) }, removeItem: (k) => { m.delete(k) } }
+}
+const CHAVE_A = 'A'.repeat(32)
+const CHAVE_B = 'B'.repeat(32)
+const CHAVE_C = 'C'.repeat(32)
+const MAPA_KEY = 'scw:edicao:2026.2:mapa'
+const QUAR_KEY = 'scw:edicao:2026.2:mapa:quarentena'
+
+test('chave do aparelho: nenhuma falha comum apaga o mapa — só duas respostas "desconhecida" seguidas o soltam', () => {
+  const ok = { ok: true }
+  const desc = { ok: false, motivo: 'mapa_desconhecido' }
+  assert.equal(aposLeitura({ ...ok }), 'abrir')
+  // erro de rede, banco lento/fora, resposta estranha, limite de pedidos: a chave fica e o mapa tenta de novo
+  for (const motivo of ['rede', 'resposta_invalida', 'muitos_pedidos', 'negado', '', undefined]) assert.equal(aposLeitura({ ok: false, motivo }), 'falha', String(motivo))
+  assert.equal(aposLeitura({ ...desc, duvidas: 0, chave: CHAVE_A }), 'reler', 'a primeira "desconhecida" só manda perguntar de novo')
+  assert.equal(aposLeitura({ ...desc, duvidas: 1, chave: CHAVE_A }), 'soltar', 'a segunda solta (para a quarentena, não apaga)')
+  // chave nova que o banco não conhece volta à que o aparelho já tinha, sem confirmação (é o fluxo de colar um link errado)
+  assert.equal(aposLeitura({ ...desc, duvidas: 0, volta: CHAVE_B, chave: CHAVE_A }), 'voltar')
+  assert.equal(aposLeitura({ ...desc, duvidas: 0, volta: CHAVE_A, chave: CHAVE_A }), 'reler', 'voltar à própria chave não é voltar')
+  // a chave que veio da quarentena (segunda chance) não é solta de novo nem reaparece como "chave trocada": segue guardada até vencer
+  assert.equal(aposLeitura({ ...desc, duvidas: 0, chave: CHAVE_A, daQuarentena: true }), 'segurar')
+  assert.equal(aposLeitura({ ...ok, daQuarentena: true }), 'abrir', 'e se o banco a reconhece, o mapa volta')
+  assert.ok(ESPERA_CONFIRMACAO_MS >= 1000 && ESPERA_CONFIRMACAO_MS <= 10000, 'espera curta entre as duas perguntas')
+})
+
+test('quarentena: soltar guarda a chave à parte (sem apagar de vez), tenta de novo uma vez por sessão e vence em 7 dias', () => {
+  const arm = memoria({ [MAPA_KEY]: CHAVE_A })
+  const sessao = memoria()
+  C.soltarChave('2026.2', { armazenamento: arm, agora: 1_000_000 })
+  assert.equal(C.lerChave('2026.2', arm), null, 'o aparelho passa a "sem mapa"')
+  assert.deepEqual(C.lerQuarentena('2026.2', arm), { chave: CHAVE_A, desde: 1_000_000 }, 'mas a chave está guardada')
+  assert.equal(arm.m.has(MAPA_KEY), false)
+  // 1ª tentativa da sessão devolve a chave; a 2ª (bem depois, mesma sessão) não; outra sessão tenta de novo
+  assert.equal(C.chaveDaQuarentena('2026.2', { armazenamento: arm, sessao, agora: 2_000_000 }), CHAVE_A)
+  assert.equal(C.chaveDaQuarentena('2026.2', { armazenamento: arm, sessao, agora: 2_030_000 }), null, 'uma vez por sessão')
+  assert.equal(C.chaveDaQuarentena('2026.2', { armazenamento: arm, sessao: memoria(), agora: 2_040_000 }), CHAVE_A, 'outra sessão tenta de novo')
+  // ganchos montados juntos na mesma página recebem a mesma chave (janela curta)
+  assert.equal(C.chaveDaQuarentena('2026.2', { armazenamento: arm, sessao: memoria({ scw_caca_quarentena_tentada: '1' }), agora: 2_041_000 }), CHAVE_A, 'a segunda instância da mesma página tenta a mesma chave')
+  // vence em 7 dias: a quarentena é esvaziada
+  assert.equal(C.chaveDaQuarentena('2026.2', { armazenamento: arm, sessao: memoria(), agora: 1_000_000 + C.QUARENTENA_MS + 1 }), null)
+  assert.equal(C.lerQuarentena('2026.2', arm), null, 'vencida, sai de vez')
+})
+
+test('quarentena: só entra chave de formato válido, lixo no armazenamento não quebra nada e sem espaço o aparelho se comporta como sempre', () => {
+  const arm = memoria({ [QUAR_KEY]: 'não é json' })
+  assert.equal(C.lerQuarentena('2026.2', arm), null)
+  assert.equal(C.chaveDaQuarentena('2026.2', { armazenamento: arm, sessao: memoria() }), null)
+  arm.m.set(QUAR_KEY, JSON.stringify({ chave: 'curta', desde: 1 }))
+  assert.equal(C.lerQuarentena('2026.2', arm), null, 'chave fora do formato não vale')
+  arm.m.set(QUAR_KEY, JSON.stringify({ chave: CHAVE_B, desde: 'ontem' }))
+  assert.equal(C.lerQuarentena('2026.2', arm), null, 'data inválida não vale')
+  C.apagarQuarentena('2026.2', arm)
+  assert.equal(arm.m.has(QUAR_KEY), false)
+  // armazenamento que recusa gravar (cheio/bloqueado): soltar não lança e a chave ativa sai como sempre saiu
+  const cheio = { getItem: (k) => (k === MAPA_KEY ? CHAVE_C : null), setItem: () => { throw new Error('QuotaExceededError') }, removeItem: () => {} }
+  assert.doesNotThrow(() => C.soltarChave('2026.2', { armazenamento: cheio }))
+  // sem sessionStorage a segunda chance ainda é tentada (uma leitura a mais não custa o mapa)
+  const arm2 = memoria({ [QUAR_KEY]: JSON.stringify({ chave: CHAVE_C, desde: 5_000_000 }) })
+  assert.equal(C.chaveDaQuarentena('2026.2', { armazenamento: arm2, sessao: { getItem: () => { throw new Error('bloqueado') }, setItem: () => {} }, agora: 5_100_000 }), CHAVE_C)
+})
+
+test('chave do aparelho: o hook e o carimbo soltam para a quarentena em vez de apagar; só "sair" e "apagar" esvaziam tudo', () => {
+  const hook = fonte('src/edicao/caca/useCaca.js')
+  assert.match(hook, /import \{ aposLeitura, ESPERA_CONFIRMACAO_MS \} from '\.\/leituraDoMapa\.js'/)
+  assert.match(hook, /C\.soltarChave\(EDICAO\.codigo\)/, 'chave desconhecida vai para a quarentena')
+  assert.match(hook, /return C\.lerChave\(EDICAO\.codigo\) \|\| C\.chaveDaQuarentena\(EDICAO\.codigo\)/, 'sem chave ativa, tenta a da quarentena')
+  assert.match(hook, /espera = setTimeout\(\(\) => setLeitura\(\(n\) => n \+ 1\), ESPERA_CONFIRMACAO_MS\)/, 'confirma antes de soltar')
+  assert.match(hook, /clearTimeout\(espera\)/, 'a espera não sobrevive ao desmonte')
+  // a única chamada que apaga a chave ativa de vez é a de sair/apagar (a pessoa decidiu)
+  const sobra = hook.replace(/\/\/.*$/gm, '').match(/C\.apagarChave\(/g) || []
+  assert.equal(sobra.length, 1, 'só `sair` apaga a chave de vez')
+  assert.match(hook, /const sair = React\.useCallback\(\(\) => \{\s*C\.apagarChave\(EDICAO\.codigo\); C\.apagarQuarentena\(EDICAO\.codigo\); C\.apagarPerfil\(EDICAO\.codigo\)/, 'sair esvazia a quarentena também')
+  assert.match(hook, /C\.apagarQuarentena\(EDICAO\.codigo\) \/\/ chave nova/, 'chave nova (criada ou recuperada) esvazia a quarentena')
+  const carimbo = fonte('src/edicao/cartoon/paginas/Carimbo.jsx').replace(/\/\/.*$/gm, '')
+  assert.match(carimbo, /C\.soltarChave\(EDICAO\.codigo\)/, 'a tela do carimbo também só solta')
+  assert.doesNotMatch(carimbo, /C\.apagarChave\(EDICAO\.codigo\)/)
+})
+
+test('chamar: corpo que não é JSON NÃO vira "mapa desconhecido" (era assim que um Wi-Fi com login fazia o aparelho largar o mapa); o null de verdade e o 204 seguem valendo', async () => {
+  const html = async () => ({ ok: true, status: 200, json: async () => { throw new SyntaxError('Unexpected token < in JSON') } })
+  await assert.rejects(C.chamar('mapa_ler_v2', { p_chave: CHAVE_A }, { buscar: html }), /rpc_resposta_ilegivel/)
+  const nulo = async () => ({ ok: true, status: 200, json: async () => null })
+  assert.equal(await C.chamar('mapa_ler_v2', { p_chave: CHAVE_A }, { buscar: nulo }), null, 'o `null` que o banco devolve para chave desconhecida segue sendo null')
+  const semCorpo = async () => ({ ok: true, status: 204, json: async () => { throw new SyntaxError('Unexpected end of JSON input') } })
+  assert.equal(await C.chamar('funcao_sem_retorno', {}, { buscar: semCorpo }), null, 'função sem retorno (204) segue valendo')
+  const gateway = async () => ({ ok: false, status: 502, json: async () => { throw new SyntaxError('Unexpected token < in JSON') } })
+  await assert.rejects(C.chamar('mapa_ler_v2', {}, { buscar: gateway }), /rpc_502/)
+  // na API da Caça o corpo ilegível é erro (a chave fica), nunca "mapa_desconhecido"
+  const api = criarApi({ chamar: (nome, corpo) => C.chamar(nome, corpo, { buscar: html }) })
+  const lido = await api.mapaLer(CHAVE_A)
+  assert.equal(lido.ok, false)
+  assert.notEqual(lido.motivo, 'mapa_desconhecido')
+  assert.equal(aposLeitura({ ok: lido.ok, motivo: lido.motivo }), 'falha', 'e a leitura segue como falha passageira: nada é solto')
+  const apiNula = criarApi({ chamar: (nome, corpo) => C.chamar(nome, corpo, { buscar: nulo }) })
+  assert.equal((await apiNula.mapaLer(CHAVE_A)).motivo, 'mapa_desconhecido', 'o null verdadeiro continua dizendo "desconhecida"')
 })

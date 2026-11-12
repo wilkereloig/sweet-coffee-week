@@ -28,6 +28,52 @@ export function apagarChave (codigo, armazenamento) {
   try { loja(armazenamento).removeItem(chaveMapa(codigo)) } catch { /* sem storage */ }
 }
 
+/*
+ * QUARENTENA da chave (12/11/2026, pedido do Wilker: "os dados salvos têm que ficar salvos; não quero que as pessoas tenham que recuperar o mapa de novo").
+ * Quando o banco deixa de reconhecer a chave do aparelho (confirmado em duas leituras), ela NÃO é apagada: sai do lugar da chave ativa — o aparelho passa
+ * a "sem mapa" e mostra a recuperação — e fica guardada à parte. O aparelho a tenta de novo UMA vez por sessão, por até 7 dias: se o problema estava do
+ * lado do banco (um erro, uma restauração, uma migration), o mapa volta sozinho, sem código por e-mail. Só `sair`/`apagar` (a pessoa decidiu) e uma
+ * chave nova (criação ou recuperação) esvaziam a quarentena; um mapa que o banco conhece de novo também.
+ */
+export const QUARENTENA_MS = 7 * 24 * 60 * 60 * 1000
+const chaveQuarentena = (codigo) => `${chaveMapa(codigo)}:quarentena`
+const SESSAO_QUARENTENA = 'scw_caca_quarentena_tentada'
+
+/** `{ chave, desde }` da quarentena (formato conferido) ou null. */
+export function lerQuarentena (codigo, armazenamento) {
+  try {
+    const q = JSON.parse(loja(armazenamento).getItem(chaveQuarentena(codigo)) || 'null')
+    return q && chaveValida(q.chave) && Number.isFinite(q.desde) ? { chave: q.chave, desde: q.desde } : null
+  } catch { return null }
+}
+export function apagarQuarentena (codigo, armazenamento) {
+  try { loja(armazenamento).removeItem(chaveQuarentena(codigo)) } catch { /* sem storage */ }
+}
+/** A chave ativa sai do lugar de "chave do aparelho" e vai para a quarentena (grava ANTES de tirar: sem lugar para guardar, nada muda de lugar às cegas). */
+export function soltarChave (codigo, { armazenamento, agora = Date.now() } = {}) {
+  const k = lerChave(codigo, armazenamento)
+  if (k) { try { loja(armazenamento).setItem(chaveQuarentena(codigo), JSON.stringify({ chave: k, desde: agora })) } catch { /* sem espaço: cai no comportamento de sempre */ } }
+  apagarChave(codigo, armazenamento)
+}
+let tentativaAgora = null // { chave, quando }: os ganchos montados juntos na mesma página recebem a MESMA chave para tentar (não um sim e outro não)
+/**
+ * A chave da quarentena que vale tentar de novo NESTA visita, ou null: uma vez por sessão (`sessao`, padrão sessionStorage) e só até 7 dias depois de
+ * ter sido solta; vencida, a quarentena é esvaziada. Chamar isto já conta a tentativa da sessão.
+ */
+export function chaveDaQuarentena (codigo, { armazenamento, sessao, agora = Date.now() } = {}) {
+  const q = lerQuarentena(codigo, armazenamento)
+  if (!q) return null
+  if (agora - q.desde > QUARENTENA_MS) { apagarQuarentena(codigo, armazenamento); return null }
+  if (tentativaAgora && tentativaAgora.chave === q.chave && agora - tentativaAgora.quando < 8000) return q.chave
+  try {
+    const s = sessao ?? globalThis.sessionStorage
+    if (s.getItem(SESSAO_QUARENTENA) === '1') return null // já tentada nesta sessão
+    s.setItem(SESSAO_QUARENTENA, '1')
+  } catch { /* sem sessionStorage: tenta mesmo assim, uma leitura a mais não custa o mapa */ }
+  tentativaAgora = { chave: q.chave, quando: agora }
+  return q.chave
+}
+
 /** `#mapa=<chave>` (sozinho ou com outros parâmetros no hash) → chave; qualquer outra coisa → null. */
 export function chaveDoHash (hash) {
   const m = /(?:^#|&)mapa=([^&]+)/.exec(String(hash || ''))
@@ -117,6 +163,7 @@ export function estadoAlbum (participantes = [], mapa = null) {
 }
 
 /** Chamada anônima ao banco. Erro do PostgREST (exceção da função) vira `Error(<mensagem>)`, ex.: 'email_invalido'. */
+const ILEGIVEL = Symbol('corpo ilegível')
 export function chamar (funcao, corpo, { buscar = globalThis.fetch } = {}) {
   // `comEnvio`: enquanto a chamada não volta, o app da Caça não troca de versão (carimbo, avaliação e criação do mapa não se perdem).
   return comEnvio(async () => {
@@ -125,8 +172,11 @@ export function chamar (funcao, corpo, { buscar = globalThis.fetch } = {}) {
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(corpo),
     })
-    const dados = await r.json().catch(() => null)
-    if (!r.ok) throw new Error(dados?.message || `rpc_${r.status}`)
+    const dados = await r.json().catch(() => ILEGIVEL)
+    if (!r.ok) throw new Error((dados !== ILEGIVEL && dados?.message) || `rpc_${r.status}`)
+    // 200 com um corpo que não é JSON (a página de login de um Wi-Fi, um proxy, uma resposta cortada) NÃO é "o banco respondeu null": antes virava `null`, que a Caça lê
+    // como "mapa desconhecido" — e o aparelho largava o mapa. Agora é erro de rede (a chave fica). O `null` de verdade chega como o texto JSON `null`; função sem retorno é 204.
+    if (dados === ILEGIVEL) { if (r.status === 204) return null; throw new Error('rpc_resposta_ilegivel') }
     return dados
   })
 }
