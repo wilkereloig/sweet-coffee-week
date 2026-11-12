@@ -12,6 +12,9 @@
  * Atalhos FIXOS (06/11/2026): três dos sete ficam sempre à mão, em botões compactos logo abaixo do "Atalhos" (esquerda, longe do zoom
  * e da localização). Padrão Progresso · Prêmios · Ranking; a pessoa troca no menu ("Escolher atalhos fixos") e a escolha fica neste aparelho
  * (atalhosFixos.js). O botão fixo e o item da lista chamam o MESMO `abrir(chave)`: a folha, o conteúdo e o estado do mapa são os de sempre.
+ *
+ * 12/11/2026 (opção B do Wilker): nada disso flutua mais sobre o desenho. O menu, o Perto de mim, o "?" e os fixos moram numa barra embaixo do
+ * mapa (16-mapa-tela.css, --ct-jogo-h), e o mapa termina em cima dela; o menu abre para cima.
  */
 import React from 'react'
 import ScwIcon from '../../../../components/scw-icons/ScwIcon.jsx'

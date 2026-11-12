@@ -176,10 +176,10 @@
 .ct-mundo__janela > .ct-perto { cursor: default; }
 @media (min-width: 900px) { .ct-perto { left: 12px; right: auto; width: min(760px, calc(100% - 24px)); bottom: 12px; } .ct-mapa__area > .ct-perto { bottom: 34px; } .ct-perto__cartao { width: 240px; } }
 /* Tela cheia: respeita a área segura; no desenho o painel sobe acima do aviso "ilustrativo" e do crédito. */
-/* A direita fica livre para a coluna dos três atalhos fixos (44px + 10px de borda + 8px de respiro): o painel nunca passa por baixo deles. */
-.is-cheia .ct-perto { bottom: calc(10px + env(safe-area-inset-bottom)); left: calc(8px + env(safe-area-inset-left)); right: calc(62px + env(safe-area-inset-right)); }
-.is-cheia .ct-mundo__janela > .ct-perto { bottom: calc(62px + env(safe-area-inset-bottom)); }
-.is-cheia .ct-mapa__area > .ct-perto { bottom: calc(34px + env(safe-area-inset-bottom)); }
+/* 12/11: os atalhos fixos desceram para a barra do jogo, embaixo do mapa: o painel volta a usar a largura toda e para logo acima do crédito. */
+.is-cheia .ct-perto { bottom: 10px; left: calc(8px + env(safe-area-inset-left)); right: calc(8px + env(safe-area-inset-right)); }
+.is-cheia .ct-mundo__janela > .ct-perto { bottom: 28px; }
+.is-cheia .ct-mapa__area > .ct-perto { bottom: 34px; }
 @media (min-width: 900px) { .is-cheia .ct-perto { right: auto; left: calc(16px + env(safe-area-inset-left)); } }
 @media (prefers-reduced-motion: reduce) { .ct-perto__giro { animation-duration: 2.4s; } .ct-perto__trilho { scroll-behavior: auto; } }
 
@@ -353,7 +353,11 @@
 /* ------------------------------------------------------------- TELA CHEIA (useTelaCheia.js): o mesmo contêiner, expandido */
 .ct-mapa__explorar.is-cheia {
   position: fixed; z-index: 80; left: 0; right: 0; top: var(--ct-vv-top, 0); height: var(--ct-vv-h, 100dvh);
-  --ct-mapa-alto: calc(var(--ct-vv-h, 100dvh) - var(--ct-barra-h)); /* o desenho vai até a borda de baixo: o cartão é que respeita o safe area */
+  /* 12/11 (opção B do Wilker): os controles do jogo saem de cima do desenho e moram numa BARRA embaixo dele (Atalhos.jsx). O mapa termina em cima
+     dela: nada flutua nas bordas e nenhum marcador (o Sicredi da beirada, por exemplo) fica escondido atrás de botão. 10 + 44 + 10 px, mais a base
+     do aparelho e o aviso de cookies, quando aberto. */
+  --ct-jogo-h: calc(64px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px));
+  --ct-mapa-alto: calc(var(--ct-vv-h, 100dvh) - var(--ct-barra-h) - var(--ct-jogo-h));
   gap: 0; overflow: hidden; background: var(--ct-creme); overscroll-behavior: none;
 }
 .ct-mapa__explorar.is-cheia:fullscreen { width: 100vw; height: 100vh; }
@@ -374,7 +378,7 @@
   .is-cheia .ct-mapa__sair, .is-cheia .ct-mapa__filtros-botao, .is-cheia .ct-mapa__rota-botao { padding: 0 11px; }
 }
 .is-cheia .ct-mapa__resumo, .is-cheia .ct-mapa__fora { display: none; }
-.is-cheia .ct-mapa__moldura { display: block; flex: 1 1 auto; min-height: 0; }
+.is-cheia .ct-mapa__moldura { display: block; flex: 1 1 auto; min-height: 0; margin-bottom: var(--ct-jogo-h); border-bottom: var(--ct-traco); }
 .is-cheia .ct-mapa__previa { display: none; }
 .is-cheia .ct-mapa__ampliar { display: none; }
 .is-cheia .ct-mundo { height: 100%; grid-template-rows: minmax(0, 1fr); gap: 0; }
@@ -382,36 +386,39 @@
 .is-cheia .ct-mapa__area, .ct-mapa__explorar.is-cheia .ct-mapa__area:has(.ct-mapa__mapa) { height: 100%; border-width: 0; border-radius: 0; box-shadow: none; }
 .is-cheia .ct-mapa__mapa { height: 100%; }
 .is-cheia .ct-mundo__zoom { top: 10px; right: calc(10px + env(safe-area-inset-right)); }
+/* No toque a pinça já aproxima: o + e − saem da tela cheia e a borda direita do desenho fica livre. Mouse e teclado continuam com eles. */
+@media (pointer: coarse) { .is-cheia .ct-mundo__zoom { display: none; } }
 /* Na tela cheia o aviso "mapa ilustrativo" e o crédito deixam de ser legenda e viram etiquetas sobre o desenho (nunca somem). */
 .is-cheia .ct-mundo__aviso, .is-cheia .ct-mundo__credito {
   position: absolute; z-index: 4; left: calc(10px + env(safe-area-inset-left)); max-width: min(560px, calc(100% - 20px)); pointer-events: none;
   background: color-mix(in srgb, var(--ct-creme) 94%, transparent); border-radius: 10px;
 }
-.is-cheia .ct-mundo__aviso { bottom: calc(80px + env(safe-area-inset-bottom)); padding: 3px 10px; border: 2px solid var(--ct-chocolate); font-size: 12px; }
+.is-cheia .ct-mundo__aviso { bottom: 28px; padding: 3px 10px; border: 2px solid var(--ct-chocolate); font-size: 12px; }
 /* Revisão de 07/11: o aviso do mapa ilustrado vira um ícone de informação; o texto aparece ao tocar e some sozinho (Mundo.jsx › TEMPO_AVISO). */
 .is-cheia .ct-mundo__aviso:not(.is-aberto) { display: none; }
 .is-cheia .ct-mundo__aviso.is-aberto { animation: ct-aviso-entra 180ms ease-out both; }
 @keyframes ct-aviso-entra { from { opacity: 0; translate: 0 6px; } }
+/* O "i" mora no meio da barra do jogo, fora do desenho: −57 px = o filete de 3 px e a barra de 64 px, menos os 10 px de respiro que os outros botões têm. */
 .is-cheia .ct-mundo__info {
-  position: absolute; z-index: 4; left: calc(10px + env(safe-area-inset-left)); bottom: calc(30px + env(safe-area-inset-bottom)); display: grid; place-items: center;
+  position: absolute; z-index: 4; left: calc(50% - 22px); bottom: -57px; display: grid; place-items: center;
   width: 44px; height: 44px; padding: 0; border: 2px solid var(--ct-chocolate); border-radius: 50%; background: color-mix(in srgb, var(--ct-creme) 94%, transparent);
   color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); cursor: pointer;
 }
 .is-cheia .ct-mundo__info[aria-expanded="true"] { background: var(--ct-amarelo); }
 .is-cheia .ct-mundo__info:focus-visible { outline: 3px solid var(--ct-chocolate); outline-offset: 2px; }
-.is-cheia .ct-mundo__credito { bottom: calc(8px + env(safe-area-inset-bottom)); padding: 0 8px; font-size: 11px; }
+.is-cheia .ct-mundo__credito { bottom: 6px; padding: 0 8px; font-size: 11px; }
 /* O cartão da casa na tela cheia: folha embaixo no celular; no desktop, um painel à esquerda sobre o mapa. */
 .is-cheia .ct-folha-m--casa { bottom: var(--scw-aviso-h, 0px); padding-bottom: calc(8px + env(safe-area-inset-bottom)); padding-inline: calc(8px + env(safe-area-inset-left)) calc(8px + env(safe-area-inset-right)); }
 @media (min-width: 900px) {
-  /* À direita da coluna de botões do jogo (10 + 48 + 12 px): antes o cartão começava em 16 px e a coluna (z 45) ficava sobre a marca e o texto. */
-  .is-cheia .ct-folha-m--casa { position: absolute; z-index: 6; left: calc(70px + env(safe-area-inset-left)); right: auto; bottom: 16px; width: min(400px, 40%); padding: 0; pointer-events: none; }
+  /* Painel à esquerda, logo acima da barra do jogo (12/11: os botões saíram da lateral, o cartão volta a começar em 16 px). */
+  .is-cheia .ct-folha-m--casa { position: absolute; z-index: 6; left: calc(16px + env(safe-area-inset-left)); right: auto; bottom: calc(var(--ct-jogo-h) + 16px); width: min(400px, 40%); padding: 0; pointer-events: none; }
   .is-cheia .ct-folha-m--casa .ct-mapa__cartao { pointer-events: auto; max-height: calc(var(--ct-mapa-alto) - 32px); overflow: auto; overscroll-behavior: contain; }
 }
 
 /* Celular e tablet na tela cheia: o cartão da casa é uma folha na largura toda, por cima dos atalhos fixos (canto de baixo) e do botão de
    informação. Enquanto ele está aberto esses controles saem de cena (visibility tira também do Tab e do toque) e voltam ao fechar. */
 @media (max-width: 899.98px) {
-  .is-cheia:has(.ct-folha-m--casa) :is(.ct-jogo__fixos, .ct-mundo__info, .ct-mundo__aviso) { visibility: hidden; }
+  .is-cheia:has(.ct-folha-m--casa) :is(.ct-jogo__linha, .ct-jogo__fixos, .ct-mundo__info, .ct-mundo__aviso) { visibility: hidden; }
 }
 
 /* ------------------------------------------------------------- ATALHOS DO JOGO (Atalhos.jsx; só na tela cheia) */
@@ -425,21 +432,23 @@
 .ct-jogo__linha > *, .ct-jogo__fixos > * { pointer-events: auto; }
 /* Revisão de 07/11: os controles do mapa viram UMA coluna estreita de círculos só com ícone, colada na borda esquerda (antes eram pílulas com texto,
    duas fileiras largas, que cobriam as casas). Atalhos (com o placar como selo) · Perto de mim · os três atalhos fixos. O nome de cada um continua no
-   aria-label e no title; a lista dos atalhos abre ao lado da coluna. */
+   aria-label e no title; a lista dos atalhos abre ao lado da coluna.
+   12/11 (opção B): a coluna desce para a BARRA do jogo, embaixo do desenho, numa fileira só: menu, Perto de mim e "?" à esquerda, o "i" no
+   meio e os três fixos à direita. Círculos de 44 px (o alvo mínimo) para os sete caberem em 360 px; o menu abre para cima. */
 .ct-jogo__botao {
-  position: relative; display: inline-grid; place-items: center; width: 48px; min-height: 48px; height: 48px; padding: 0; border: var(--ct-traco); border-radius: 50%;
+  position: relative; display: inline-grid; place-items: center; width: 44px; min-height: 44px; height: 44px; padding: 0; border: var(--ct-traco); border-radius: 50%;
   background: var(--ct-amarelo); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); font: 900 14px/1 var(--ct-font); cursor: pointer;
 }
 .ct-jogo__botao:active { translate: 3px 3px; box-shadow: 0 0 0 var(--ct-chocolate); }
 .ct-jogo__botao > span:not(.ct-jogo__placar), .ct-jogo__linha .ct-mapa__perto-botao > span, .ct-jogo__fixo > span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.ct-jogo__linha { position: absolute; z-index: 45; top: calc(var(--ct-barra-h) + 10px); left: calc(10px + env(safe-area-inset-left)); display: grid; gap: 8px; justify-items: start; }
+.ct-jogo__linha { position: absolute; z-index: 45; bottom: calc(10px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); left: calc(10px + env(safe-area-inset-left)); display: flex; gap: 6px; align-items: center; }
 /* "Como carimbar?" na coluna da tela cheia: o círculo mostra só o "?" (o nome segue no botão, para leitor de tela). */
 .ct-jogo__linha .ct-jogo__botao > span.ct-guia__interrogacao { position: static; width: 26px; height: 26px; margin: 0; overflow: visible; clip: auto; background: var(--ct-creme); }
-.ct-jogo__linha .ct-mapa__perto-botao { display: inline-grid; place-items: center; width: 48px; min-height: 48px; height: 48px; padding: 0; border-radius: 50%; }
-/* O placar ("2/26") vira um selo no canto do botão: o número continua à vista, sem gastar largura. */
-.ct-jogo__placar { position: absolute; top: -7px; left: 30px; display: inline-grid; place-items: center; min-width: 30px; height: 20px; padding: 0 5px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 900 11px/1 var(--ct-font); }
-/* Atalhos FIXOS: três círculos em coluna no canto de baixo à direita (acima do aviso de cookies; o painel "Perto de mim" estreita para não passar por baixo deles). */
-.ct-jogo__fixos { position: absolute; z-index: 35; right: calc(10px + env(safe-area-inset-right)); bottom: calc(44px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); display: grid; gap: 8px; }
+.ct-jogo__linha .ct-mapa__perto-botao { display: inline-grid; place-items: center; width: 44px; min-height: 44px; height: 44px; padding: 0; border-radius: 50%; }
+/* O placar ("2/26") vira um selo no alto do botão, centrado (na barra o vizinho fica a 6 px): o número continua à vista, sem gastar largura. */
+.ct-jogo__placar { position: absolute; top: -9px; left: 50%; translate: -50% 0; display: inline-grid; place-items: center; min-width: 30px; height: 20px; padding: 0 5px; border: 2px solid var(--ct-chocolate); border-radius: 999px; background: var(--ct-creme); font: 900 11px/1 var(--ct-font); }
+/* Atalhos FIXOS: três círculos lado a lado na ponta direita da barra do jogo (acima do aviso de cookies). */
+.ct-jogo__fixos { position: absolute; z-index: 35; right: calc(10px + env(safe-area-inset-right)); bottom: calc(10px + env(safe-area-inset-bottom) + var(--scw-aviso-h, 0px)); display: flex; gap: 6px; }
 .ct-jogo__fixo {
   display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: var(--ct-traco); border-radius: 50%;
   background: var(--ct-creme); color: var(--ct-chocolate); box-shadow: var(--ct-sombra-p); cursor: pointer;
@@ -463,8 +472,8 @@
 }
 .ct-jogo__pronto:disabled { opacity: .5; box-shadow: none; cursor: default; }
 .ct-jogo__lista {
-  position: absolute; z-index: 46; top: calc(var(--ct-barra-h) + 10px); left: calc(68px + env(safe-area-inset-left));
-  display: grid; gap: 2px; width: min(228px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))); max-height: calc(var(--ct-mapa-alto) - 144px); margin: 0; padding: 6px; overflow: auto;
+  position: absolute; z-index: 46; bottom: calc(var(--ct-jogo-h) + 6px); left: calc(10px + env(safe-area-inset-left));
+  display: grid; gap: 2px; width: min(228px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))); max-height: calc(var(--ct-mapa-alto) - 20px); margin: 0; padding: 6px; overflow: auto;
   border: var(--ct-traco); border-radius: var(--ct-raio-p); background: var(--ct-branco); box-shadow: var(--ct-sombra-p); list-style: none; animation: ct-folha-surge 160ms ease-out both;
 }
 .ct-jogo__item {
@@ -475,13 +484,10 @@
 /* Celular deitado: a lista deita também (cinco itens lado a lado, ícone em cima do rótulo) e não passa da altura da tela. */
 @media (max-height: 520px) and (orientation: landscape) {
   .ct-jogo__lista { display: flex; flex-wrap: nowrap; width: auto; max-width: calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)); max-height: none; overflow-x: auto; }
-  /* Deitado a coluna vira fileira (a altura não comporta cinco círculos em pé) e a lista abre embaixo dela. */
-  .ct-jogo__linha { display: flex; gap: 8px; }
-  .ct-jogo__lista { top: calc(var(--ct-barra-h) + 66px); left: calc(10px + env(safe-area-inset-left)); }
   .ct-jogo__item { flex-direction: column; justify-content: center; gap: 2px; min-width: 76px; min-height: 64px; padding: 4px 6px; font-size: 13px; text-align: center; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
-  .ct-jogo__lista:has(.ct-jogo__escolha) { display: grid; width: min(260px, calc(100vw - 24px)); max-height: calc(100dvh - var(--ct-barra-h) - 140px); overflow-y: auto; }
+  .ct-jogo__lista:has(.ct-jogo__escolha) { display: grid; width: min(260px, calc(100vw - 24px)); max-height: calc(var(--ct-mapa-alto) - 20px); overflow-y: auto; }
   .ct-jogo__lista:has(.ct-jogo__escolha) .ct-jogo__item { flex-direction: row; justify-content: flex-start; min-width: 0; text-align: left; }
 }
 .ct-jogo__convite { display: grid; gap: 12px; justify-items: start; }

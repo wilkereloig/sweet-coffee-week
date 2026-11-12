@@ -417,7 +417,7 @@ test('atalhos: uma folha por vez (variante "jogo"), lista recolhe ao abrir, Esca
   assert.match(pag, /React\.lazy\(\(\) => import\('\.\.\/\.\.\/\.\.\/caca\/secoes\/Grupos\.jsx'\)\)/, 'Grupos sob demanda')
   assert.match(pag, /\{!cheia && <Folha variante="painel"/, 'sem o painel lateral atrás do véu: nenhum id repetido')
   const css = readFileSync(new URL('../src/styles/cartoon/16-mapa-tela.css', import.meta.url), 'utf8')
-  assert.match(css, /\.ct-jogo__botao \{[^}]*min-height: 48px/, 'alvo do botão ≥ 44 px')
+  assert.match(css, /\.ct-jogo__botao \{[^}]*min-height: 44px/, 'alvo do botão ≥ 44 px (12/11: 44 para os sete caberem na barra em 360 px)')
   assert.match(css, /\.ct-jogo__item \{[^}]*min-height: 48px/)
   assert.match(css, /\.ct-jogo__linha \{[^}]*env\(safe-area-inset-left\)/, 'o menu respeita o entalhe à esquerda')
   assert.match(css, /\.ct-jogo__fixos \{[^}]*env\(safe-area-inset-right\)[^}]*env\(safe-area-inset-bottom\)/, 'os fixos respeitam o entalhe à direita e a base')

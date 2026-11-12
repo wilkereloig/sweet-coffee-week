@@ -86,14 +86,15 @@ test('o botão fixo chama a MESMA função da lista, tem nome acessível e não 
   assert.match(ler('src/edicao/cartoon/paginas/mapa/atalhosFixos.js'), /try \{ return globalThis\.localStorage/, 'acesso ao armazenamento protegido')
 })
 
-test('estilo: alvo ≥ 44 px, coluna estreita à esquerda (longe do zoom), só ícone (nome no aria-label), sem cor fora do sistema', () => {
+test('estilo: alvo ≥ 44 px, na barra do jogo embaixo do mapa (12/11), só ícone (nome no aria-label), sem cor fora do sistema', () => {
   const css = ler('src/styles/cartoon/16-mapa-tela.css')
   assert.match(css, /\.ct-jogo__fixo \{[^}]*width: 44px; height: 44px/, 'círculo de 44 px')
   assert.match(css, /\.ct-jogo__opcao \{[^}]*min-height: 48px/)
   assert.match(css, /\.ct-jogo__opcao input \{[^}]*width: 24px; height: 24px/)
-  assert.match(css, /\.ct-jogo__fixos \{ position: absolute;[^}]*right: calc\(10px[^}]*bottom: calc\([^}]*display: grid; gap: 8px; \}/, 'os três ficam em coluna, no canto de baixo à direita')
-  assert.doesNotMatch(css, /\.is-cheia:has\(\.ct-perto\) \.ct-jogo__fixos/, 'os atalhos não saem do canto: é o painel que estreita')
-  assert.match(css, /\.is-cheia \.ct-perto \{[^}]*right: calc\(62px/, 'o painel Perto de mim deixa a coluna dos atalhos livre à direita')
+  assert.match(css, /\.ct-jogo__fixos \{ position: absolute;[^}]*right: calc\(10px[^}]*bottom: calc\([^}]*display: flex; gap: 6px; \}/, 'os três ficam lado a lado, na ponta direita da barra do jogo')
+  assert.doesNotMatch(css, /\.is-cheia:has\(\.ct-perto\) \.ct-jogo__fixos/, 'os atalhos não saem da barra quando o painel abre')
+  assert.match(css, /\.is-cheia \.ct-mapa__moldura \{[^}]*margin-bottom: var\(--ct-jogo-h\)/, 'o mapa termina em cima da barra: nenhum botão sobre o desenho')
+  assert.match(css, /\.is-cheia \.ct-perto \{[^}]*right: calc\(8px/, 'o painel Perto de mim usa a largura toda (os atalhos estão na barra, fora do mapa)')
   assert.match(css, /\.ct-jogo__fixo > span \{ position: absolute; width: 1px; height: 1px/, 'o rótulo só para o leitor de tela')
   const bloco = css.slice(css.indexOf('/* Revisão de 07/11: os controles do mapa'), css.indexOf('.ct-jogo__lista {'))
   assert.ok(bloco.length > 200, 'bloco dos controles encontrado')
