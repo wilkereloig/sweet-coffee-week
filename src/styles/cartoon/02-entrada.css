@@ -6,7 +6,22 @@
 /* Topo: texto | cena (explosão turquesa, a mesa do combo desenhada, os olhinhos espiando, a etiqueta dos itens).
    Celular: a cena vem depois do texto, menor. (0,2,0): .ct-canal (display/gap) vem depois no arquivo. */
 .ct-canal.ct-estreia { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 36px 40px; overflow: hidden; padding-block: calc(clamp(36px, 6vw, 80px) + var(--ct-topo-extra, 0px)) clamp(36px, 6vw, 80px); }
+/* Panorama de Natal na base do herói (11/11/2026): atrás do texto, da mesa e dos botões, nunca recebe toque. O herói reserva embaixo
+   a metade de baixo da arte (chão, ponte, mar), para o texto e os botões ficarem sobre o céu e as pontas das torres; a de cima
+   é o fundo amarelo. Largura da arte = largura do herói; altura = largura × 750/2097 (35,77vw). Só `transform` se mexe (paralaxe). */
+.ct-canal.ct-estreia { position: relative; padding-bottom: calc(clamp(36px, 6vw, 80px) + 17vw); }
+.ct-edicao .ct-panorama {
+  position: absolute; z-index: 0; left: 0; bottom: 0; width: 100%; height: auto; max-width: none; pointer-events: none;
+  transform: translate3d(0, calc(var(--ct-pano-p, 0) * 22%), 0); will-change: transform;
+}
+.ct-estreia__cena { z-index: 1; }
 .ct-estreia__texto { position: relative; z-index: 1; display: grid; justify-items: start; gap: 18px; min-width: 0; }
+/* Computador (1440×900): a faixa do Sicredi no alto de toda página empurrou o botão "Pedir no delivery" para baixo da primeira dobra
+   (920 px). O topo do herói fica mais justo: menos recuo em cima, selo menor, vãos menores (botão a ~810 px). */
+@media (min-width: 900px) {
+  .ct-canal.ct-estreia { padding-top: clamp(24px, 3vw, 40px); }
+  .ct-estreia__texto { gap: 12px; }
+}
 .ct-estreia__texto .ct-letreiro { margin: 0; }
 /* Prefixo: .scw-raiz img { display: block } (0,1,1) venceria a classe sozinha (CLAUDE.md §10.1). */
 .ct-edicao .ct-estreia__selo { display: none; height: auto; margin-bottom: 10px; }
@@ -14,7 +29,7 @@
 .ct-estreia__texto .ct-acoes { margin-top: 4px; }
 @media (min-width: 900px) {
   .ct-canal.ct-estreia { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); }
-  .ct-edicao .ct-estreia__selo { display: block; width: clamp(110px, 9vw, 140px); }
+  .ct-edicao .ct-estreia__selo { display: block; width: clamp(84px, 6.5vw, 100px); margin-bottom: 0; }
 }
 
 /* Os fatos: a fita do período, o preço em letreiro e a etiqueta das casas — na primeira tela em qualquer largura. */
@@ -116,7 +131,7 @@
    e a mesa desenhada saem para o primeiro combo aparecer na primeira tela. */
 @media (max-width: 599.98px) {
   .ct-edicao .ct-estreia__frase, .ct-edicao .ct-estreia__cena { display: none; }
-  .ct-canal.ct-estreia { gap: 0; padding-bottom: 28px; }
+  .ct-canal.ct-estreia { gap: 0; padding-bottom: calc(28px + 13vw); }
   .ct-estreia__texto { gap: 12px; }
 }
 /* Celular: 12 cartões e "Ver mais N combos" abre o resto (o HTML tem todos; só a vitrine curta esconde). */
