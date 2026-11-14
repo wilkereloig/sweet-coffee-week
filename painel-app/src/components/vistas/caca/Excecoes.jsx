@@ -14,14 +14,36 @@ import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
  * que a ORGANIZAÇÃO olhe o caso. O pedido não conta nada. Aprovar cria o carimbo (origem "exceção do painel", respeitando
  * as 12 h e a janela); negar exige o motivo. A casa não participa e o banco guarda quem decidiu.
  */
+/** Foto do pedido à vista (bucket privado: pede o link de 300 s ao montar). Tocar abre em tamanho cheio. */
+// ponytail: um pedido de link por foto, todos de uma vez — serve para os pedidos de UMA pessoa (dezenas); lista geral segue com o botão.
+function FotoDoPedido({ p, aoAbrir }) {
+  const [src, setSrc] = React.useState(null)
+  const [falhou, setFalhou] = React.useState(false)
+  React.useEffect(() => {
+    let vivo = true
+    setSrc(null); setFalhou(false)
+    cacaApi.imagemDelivery(p.imagem).then((r) => { if (vivo) { if (r && r.url) setSrc(r.url); else setFalhou(true) } }).catch(() => { if (vivo) setFalhou(true) })
+    return () => { vivo = false }
+  }, [p.imagem])
+  if (falhou) return <p className="cp-sub">Não deu para carregar a foto. Use “Ver imagem”.</p>
+  return (
+    <button type="button" className="cp-foto" onClick={aoAbrir} aria-label={`Abrir em tamanho cheio a foto do pedido de ${p.apelido} em ${p.casa}`}>
+      {src ? <img src={src} alt={`Foto enviada por ${p.apelido} no pedido de ${p.casa}`} loading="lazy" decoding="async" onError={() => setFalhou(true)} /> : <span className="cp-sub">Carregando a foto…</span>}
+    </button>
+  )
+}
+
 export function Excecoes({ edicao, pode }) {
   const gerir = pode('producao.gerir')
   const contato = pode('relatorio.ler')
-  const lista = useLeitura(() => cacaApi.excecoes(edicao), ['carimbos'], { chave: 'excecoes-' + edicao })
+  // Pessoa escolhida (mapa): a lista vira "todos os pedidos dela", de qualquer situação, com a foto à vista em cada cartão.
+  const [pessoa, setPessoa] = React.useState('')
+  const lista = useLeitura(() => cacaApi.excecoes(edicao, null, undefined, pessoa || null), ['carimbos'], { chave: 'excecoes-' + edicao + '-' + pessoa })
   const sicredi = useLeitura(() => cacaApi.sicrediCampanha(edicao), ['carimbos'], { chave: 'sicredi-campanha-' + edicao, ativo: gerir, opcional: !gerir })
   const [ocupado, executar] = useExecutar()
   const [aviso, setAviso] = React.useState('')
   const [estado, setEstado] = React.useState('pendente')
+  function escolherPessoa(mapa) { setPessoa(mapa); setEstado(mapa ? 'todos' : 'pendente'); setRapido('todos') }
   const [rapido, setRapido] = React.useState('todos')
   const [lote, setLote] = React.useState(null)
 
@@ -136,6 +158,8 @@ export function Excecoes({ edicao, pode }) {
       )}
       <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização ou com código vencido pode ser decidido aqui; pedidos por código no prazo são confirmados pela casa.">
         <div className="cp-ferramentas">
+          <Escolha rotulo="Pessoa" valor={pessoa} onMudar={escolherPessoa} className="cp-filtro"
+            opcoes={[['', 'Todas as pessoas'], ...(lista.dados.pessoas || []).map((x) => [x.mapa, `${x.apelido} (${x.pedidos})`])]} />
           <Escolha rotulo="Situação" valor={estado} onMudar={setEstado} className="cp-filtro"
             opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
           {gerir && alvosLote.length > 0 && (
@@ -191,6 +215,7 @@ export function Excecoes({ edicao, pode }) {
                     {p.motivo === 'visita_anterior' ? <Selo tom="atencao">Visita anterior</Selo> : <Selo tom="neutro">{rotuloMotivoPedido(p.motivo)}</Selo>}
                     {' '}<b>{p.casa}</b>{p.nome_unidade ? ` · ${p.nome_unidade}` : ''}{p.unidades_na_casa > 1 && p.motivo === 'visita_anterior' ? ' (a casa tem mais de um endereço)' : ''}
                   </p>
+                  {pessoa && gerir && p.imagem && <FotoDoPedido p={p} aoAbrir={() => verImagem(p)} />}
                   <dl className="cp-cartao__dados">
                     <div><dt>O celular informou</dt><dd>{descricaoDoSinal(p)}</dd></div>
                     <div><dt>Relato</dt><dd>{relato}</dd></div>

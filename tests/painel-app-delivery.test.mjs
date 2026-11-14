@@ -101,3 +101,17 @@ test('banco: delivery com código vencido pode ser decidido pela organização (
   assert.doesNotMatch(rev, /codigo_expira_em/)
   assert.match(rev, /<> 'imagem' then raise exception 'aguarda_casa'/)
 })
+
+test('pedidos de uma pessoa: o filtro vai ao banco (sem o teto de 300) e a tela mostra a foto à vista', () => {
+  const sql = ler('supabase/migrations/20270203_caca_excecao_listar_pessoa.sql')
+  assert.match(sql, /p_mapa uuid default null/)
+  assert.match(sql, /p_mapa is null or e\.mapa_id = p_mapa/)
+  assert.match(sql, /'pessoas'/)
+  assert.match(sql, /grant execute on function public\.caca_excecao_listar\(text, text, text, uuid\)/)
+  const api = ler('painel-app/src/lib/caca.js')
+  assert.match(api, /p_mapa: mapa/)
+  const tela = ler('painel-app/src/components/vistas/caca/Excecoes.jsx')
+  assert.match(tela, /rotulo="Pessoa"/)
+  assert.match(tela, /<FotoDoPedido /)
+  assert.match(tela, /<img src=\{src\} alt=/)
+})
