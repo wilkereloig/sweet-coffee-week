@@ -667,7 +667,8 @@ export const cacaApi = {
   anularCarimbo: (carimbo, motivo, f) => rpc('carimbo_anular', { p_secret: lerSenha(), p_carimbo: carimbo, p_motivo: motivo }, f),
   // Pedidos de revisão de presença (GPS) e o resumo de carimbos sem GPS (15-caca-contrato-gps.md).
   // `mapa` (opcional): todos os pedidos de UMA pessoa, sem o teto de 300 da lista geral (migration 20270203).
-  excecoes: (edicao, estado, f, mapa) => rpc('caca_excecao_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null, ...(mapa ? { p_mapa: mapa } : {}) }, f),
+  // `soFotos`: só visita anterior com foto, lista completa (até 1000), para o "Analisar todas as fotos" (migration 20270204).
+  excecoes: (edicao, estado, f, mapa, soFotos) => rpc('caca_excecao_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null, ...(mapa ? { p_mapa: mapa } : {}), ...(soFotos ? { p_so_fotos: true } : {}) }, f),
   decidirExcecao: (id, decisao, nota, f) => rpc('caca_excecao_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),
   sicrediCampanha: (edicao, estado, f) => rpc('caca_sicredi_campanha_listar', { p_secret: lerSenha(), p_edicao: edicao, p_estado: estado || null }, f),
   decidirSicrediCampanha: (id, decisao, nota, f) => rpc('caca_sicredi_campanha_decidir', { p_secret: lerSenha(), p_id: id, p_decisao: decisao, p_nota: nota || null }, f),

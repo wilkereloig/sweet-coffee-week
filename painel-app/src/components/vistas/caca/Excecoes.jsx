@@ -8,6 +8,7 @@ import {
   aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido, notaSemProva, MIN_MOTIVO_SEM_PROVA, pistaDaFoto,
 } from '../../../lib/cacaGps'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
+import { medirImagemPorUrl, emLotes } from '../../../lib/medidaImagem'
 
 /*
  * Pedidos de revisão de presença (15-caca-gps-excecao.md): a pessoa está na casa, o GPS falhou várias vezes e ela pediu
@@ -40,6 +41,70 @@ function FotoDoPedido({ p, aoAbrir }) {
   )
 }
 
+/**
+ * "Analisar todas as fotos" (14/11/2026): mede cada foto de visita anterior (só o começo do arquivo) e diz, por pessoa, quantas têm
+ * formato de foto da câmera e quantas parecem print. Pista para a organização conferir, não decisão automática.
+ */
+function AnaliseDasFotos({ edicao, medidas, setMedidas, aoVerPessoa }) {
+  const [andamento, setAndamento] = React.useState(null)
+  const [erro, setErro] = React.useState('')
+  const [itens, setItens] = React.useState(null)
+  async function analisar() {
+    setErro(''); setAndamento({ feito: 0, total: 0 })
+    let lista
+    try { lista = ((await cacaApi.excecoes(edicao, null, undefined, null, true)) || {}).itens || [] } catch (e) { setErro('Não deu para ler a lista de pedidos: ' + (e.message || 'erro')); setAndamento(null); return }
+    const comFoto = lista.filter((p) => p.imagem)
+    setItens(comFoto); setAndamento({ feito: 0, total: comFoto.length })
+    const novas = new Map(medidas)
+    await emLotes(comFoto.filter((p) => !novas.has(p.imagem)), async (p) => {
+      const r = await cacaApi.imagemDelivery(p.imagem)
+      if (!r || !r.url) throw new Error('sem_link')
+      const m = await medirImagemPorUrl(r.url)
+      novas.set(p.imagem, pistaDaFoto(m.largura, m.altura))
+    }, { simultaneas: 4, aoAvancar: (f) => setAndamento({ feito: f, total: comFoto.length }) })
+    setMedidas(novas); setAndamento(null)
+  }
+  const porPessoa = React.useMemo(() => {
+    if (!itens) return []
+    const g = new Map()
+    for (const p of itens) {
+      const x = g.get(p.mapa) || { mapa: p.mapa, apelido: p.apelido, fotos: 0, camera: 0, print: 0, semMedida: 0, aprovados: 0 }
+      const m = medidas.get(p.imagem)
+      x.fotos++; if (p.estado === 'aprovado') x.aprovados++
+      if (!m) x.semMedida++; else if (m.tipo === 'camera') x.camera++; else x.print++
+      g.set(p.mapa, x)
+    }
+    return [...g.values()].sort((a, b) => b.print - a.print || (b.print / b.fotos) - (a.print / a.fotos) || a.apelido.localeCompare(b.apelido))
+  }, [itens, medidas])
+  const t = porPessoa.reduce((s, x) => ({ fotos: s.fotos + x.fotos, camera: s.camera + x.camera, print: s.print + x.print, sem: s.sem + x.semMedida }), { fotos: 0, camera: 0, print: 0, sem: 0 })
+  return (
+    <Secao titulo="Análise das fotos de visita anterior"
+      nota="Mede cada foto enviada. O site reduz a foto no celular e apaga os metadados; sobra a medida: foto da câmera chega com 1600 px no lado maior, print de tela chega estreito ou menor. É pista, não prova: foto recebida pelo WhatsApp também chega menor.">
+      <div className="cp-ferramentas">
+        <Botao disabled={!!andamento} onClick={analisar}>
+          {andamento ? (andamento.total ? `Analisando ${andamento.feito} de ${andamento.total}…` : 'Lendo a lista…') : itens ? 'Analisar de novo' : 'Analisar todas as fotos'}
+        </Botao>
+      </div>
+      {erro && <Erro texto={erro} onTentar={analisar} />}
+      {itens && !andamento && (
+        <>
+          <p className="ui-nota" role="status">{t.fotos} fotos de {porPessoa.length} pessoas · {t.camera} em formato de câmera · {t.print} parecem print{t.sem ? ` · ${t.sem} não deu para medir` : ''}.</p>
+          <Tabela rotulo="Fotos por pessoa" colunas={['Pessoa', 'Fotos', 'Câmera', 'Parecem print', 'Aprovados', '']}>
+            {porPessoa.map((x) => (
+              <tr key={x.mapa}>
+                <th scope="row">{x.apelido}</th><td>{x.fotos}</td><td>{x.camera}</td>
+                <td>{x.print ? <Selo tom="atencao">{x.print}{x.fotos > 1 ? ` de ${x.fotos}` : ''}</Selo> : '0'}{x.semMedida ? <span className="cp-sub"> · {x.semMedida} sem medida</span> : null}</td>
+                <td>{x.aprovados}</td>
+                <td><Botao variante="secundario" onClick={() => aoVerPessoa(x.mapa)} aria-label={`Ver os pedidos de ${x.apelido}`}>Ver pedidos</Botao></td>
+              </tr>
+            ))}
+          </Tabela>
+        </>
+      )}
+    </Secao>
+  )
+}
+
 export function Excecoes({ edicao, pode }) {
   const gerir = pode('producao.gerir')
   const contato = pode('relatorio.ler')
@@ -53,6 +118,8 @@ export function Excecoes({ edicao, pode }) {
   function escolherPessoa(mapa) { setPessoa(mapa); setEstado(mapa ? 'todos' : 'pendente'); setRapido('todos') }
   const [rapido, setRapido] = React.useState('todos')
   const [lote, setLote] = React.useState(null)
+  // Medidas das fotos (caminho → pista), da análise geral; valem para os cartões enquanto a tela estiver aberta.
+  const [medidas, setMedidas] = React.useState(() => new Map())
 
   // Imagem do pedido de delivery (bucket privado): link de 300 s, aberto numa aba nova; excluir é manual e não desfaz o carimbo.
   async function verImagem(p) {
@@ -163,7 +230,9 @@ export function Excecoes({ edicao, pode }) {
             </Tabela>}
         </Secao>
       )}
-      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização ou com código vencido pode ser decidido aqui; pedidos por código no prazo são confirmados pela casa.">
+      {gerir && <AnaliseDasFotos edicao={edicao} medidas={medidas} setMedidas={setMedidas}
+        aoVerPessoa={(mapa) => { escolherPessoa(mapa); setTimeout(() => document.getElementById('cp-pedidos')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0) }} />}
+      <Secao titulo="Pedidos de presença e visitas anteriores" id="cp-pedidos" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização ou com código vencido pode ser decidido aqui; pedidos por código no prazo são confirmados pela casa.">
         <div className="cp-ferramentas">
           <Escolha rotulo="Pessoa" valor={pessoa} onMudar={escolherPessoa} className="cp-filtro"
             opcoes={[['', 'Todas as pessoas'], ...(lista.dados.pessoas || []).map((x) => [x.mapa, `${x.apelido} (${x.pedidos})`])]} />
@@ -227,7 +296,9 @@ export function Excecoes({ edicao, pode }) {
                     <div><dt>O celular informou</dt><dd>{descricaoDoSinal(p)}</dd></div>
                     <div><dt>Relato</dt><dd>{relato}</dd></div>
                     {(p.imagem || p.imagem_removida) && (
-                      <div><dt>Foto</dt><dd>{p.imagem ? (
+                      <div><dt>Foto</dt><dd>{p.imagem && medidas.get(p.imagem) && p.motivo !== 'delivery' && !pessoa && (
+                        <><Selo tom={medidas.get(p.imagem).tom}>{medidas.get(p.imagem).texto}</Selo> <span className="cp-sub">{medidas.get(p.imagem).medida}</span><br /></>
+                      )}{p.imagem ? (
                         <span className="cp-acoes">
                           {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Ver a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => verImagem(p)}>Ver imagem</Botao>}
                           {gerir && <Botao variante="secundario" disabled={!!ocupado} aria-label={`Excluir a imagem do pedido de ${p.apelido} em ${p.casa}`} onClick={() => excluirImagem(p)}>Excluir</Botao>}
