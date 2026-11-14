@@ -56,7 +56,22 @@ export function criarServidorFalso({ aceitar = () => ({ ok: true }), ...opcoes }
     },
     derrubar(i = sockets.length - 1) { const s = sockets[i]; if (s && s.readyState === 1) s._fechar() },
     erroDeCanal(topico) {
-      for (const s of sockets) if (s.readyState === 1 && s.entrou.has(topico)) s._receber({ topic: 'realtime:' + topico, event: 'phx_error', payload: {}, ref: null })
+      for (const s of sockets) {
+        if (s.readyState !== 1 || !s.entrou.has(topico)) continue
+        const jr = s.entrou.get(topico)
+        s.entrou.delete(topico)                       // canal que caiu não existe mais no servidor
+        s._receber({ topic: 'realtime:' + topico, event: 'phx_error', payload: {}, ref: jr, join_ref: jr })
+      }
+    },
+    // Como o Realtime faz quando o token do canal vence: avisa por `system` e derruba o canal (phx_close com o join_ref dele).
+    expirarCanal(topico) {
+      for (const s of sockets) {
+        if (s.readyState !== 1 || !s.entrou.has(topico)) continue
+        const jr = s.entrou.get(topico)
+        s.entrou.delete(topico)
+        s._receber({ topic: 'realtime:' + topico, event: 'system', payload: { status: 'error', message: 'Token has expired 5 seconds ago' }, ref: null, join_ref: jr })
+        s._receber({ topic: 'realtime:' + topico, event: 'phx_close', payload: {}, ref: jr, join_ref: jr })
+      }
     },
   }
   class FakeWS {
@@ -85,7 +100,13 @@ export function criarServidorFalso({ aceitar = () => ({ ok: true }), ...opcoes }
         const agendarResposta = servidor.segurar ? (f) => servidor.retidos.push(f) : (f) => setImmediate(f)
         agendarResposta(() => {
           if (this.readyState !== 1) return
-          if (r.ok) { this.entrou.set(topico, m.join_ref); this._receber({ topic: m.topic, event: 'phx_reply', ref: m.ref, join_ref: m.join_ref, payload: { status: 'ok', response: { postgres_changes: [] } } }) }
+          if (r.ok) {
+            // Phoenix.Socket: entrada repetida no mesmo tópico fecha o canal ANTIGO (phx_close com o join_ref velho), depois da resposta da nova.
+            const velho = this.entrou.get(topico)
+            this.entrou.set(topico, m.join_ref)
+            this._receber({ topic: m.topic, event: 'phx_reply', ref: m.ref, join_ref: m.join_ref, payload: { status: 'ok', response: { postgres_changes: [] } } })
+            if (velho !== undefined && velho !== m.join_ref) this._receber({ topic: m.topic, event: 'phx_close', payload: {}, ref: velho, join_ref: velho })
+          }
           else this._receber({ topic: m.topic, event: 'phx_reply', ref: m.ref, join_ref: m.join_ref, payload: { status: 'error', response: { reason: r.motivo || 'Unauthorized: sem permissão' } } })
         })
         return

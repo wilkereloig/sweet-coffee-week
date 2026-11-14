@@ -234,6 +234,32 @@ test('phx_error de um canal: reentra e a sessão é avisada para reler', async (
   assert.equal(c.reconectou, 1)
 })
 
+// 14/11/2026 — "o painel fica travando": em produção o servidor registrou "SocketJoinRateLimitReached: Too many joins on this
+// socket" depois de 3 h com o painel relendo tudo a cada 1–2 s. O canal derrubado agendava DUAS reentradas (system + phx_close);
+// a segunda era entrada repetida, o Phoenix fechava o canal antigo, e esse phx_close velho era lido como queda do canal novo.
+test('token do canal vence: reentra UMA vez e para — sem laço de reentrada nem de releitura', async () => {
+  const c = montar()
+  await iniciarAtivo(c)
+  c.srv.expirarCanal('scw:org')
+  await fluxo(10)
+  await c.rel.avancar(60000); await fluxo(10)
+  assert.equal(c.t.estado().ativo, true)
+  assert.equal(c.srv.joins.filter((j) => j.topico === 'scw:org').length, 2, 'a entrada inicial e UMA reentrada')
+  assert.equal(c.reconectou, 1, 'a sessão relê uma vez só')
+})
+
+test('phx_close de uma entrada ANTIGA (join_ref velho) não derruba o canal atual', async () => {
+  const c = montar()
+  await iniciarAtivo(c)
+  const s = c.srv.sockets[0]
+  s._receber({ topic: 'realtime:scw:org', event: 'phx_close', payload: {}, ref: 'velho', join_ref: 'velho' })
+  await fluxo()
+  assert.equal(c.t.estado().ativo, true)
+  await c.rel.avancar(30000); await fluxo(10)
+  assert.equal(c.srv.joins.filter((j) => j.topico === 'scw:org').length, 1)
+  assert.equal(c.reconectou, 0)
+})
+
 test('entrada sem resposta no prazo não fica "ativa" e tenta de novo', async () => {
   const c = montar({ servidor: { semResposta: true } })
   await iniciarAtivo(c)

@@ -200,14 +200,19 @@ export function criarTempoReal({
     const c = canais.get(topico)
     if (!c) return
     if (c.prazo) cancelar(c.prazo)
+    if (c.reentrada) cancelar(c.reentrada)
     enviar({ topic: topicoWs(topico), event: 'phx_leave', payload: {}, ref: novoRef(), join_ref: c.joinRef })
     canais.delete(topico)
   }
 
   function reentrar(meu, topico, c) {
+    // Uma reentrada pendente por canal. A queda chega em dois avisos (system + phx_close, ou phx_error + phx_close): duas
+    // reentradas viravam entrada REPETIDA no mesmo tópico, e o Phoenix responde a isso fechando o canal antigo — laço sem fim.
+    if (c.reentrada) return
     c.tentativas = (c.tentativas || 0) + 1
     const espera = recuoMs[Math.min(c.tentativas - 1, recuoMs.length - 1)] + Math.floor(aleatorio() * 250)
-    agendar(() => {
+    c.reentrada = agendar(() => {
+      c.reentrada = null
       if (meu !== idSocket || !ligado || canais.get(topico) !== c) return
       entrarNoCanal(meu, topico)
     }, espera)
@@ -259,6 +264,8 @@ export function criarTempoReal({
       return
     }
     if (event === 'phx_error' || event === 'phx_close') {
+      // Fechamento de uma entrada ANTIGA (join_ref velho) não é queda do canal atual — o cliente oficial do Phoenix também descarta.
+      if (m.join_ref != null && m.join_ref !== c.joinRef) return
       if (c.estado === 'negado') return
       c.estado = 'erro'; mudou()
       reentrar(meu, topico, c)
@@ -289,7 +296,7 @@ export function criarTempoReal({
     ws = null
     try { if (velho) { velho.onopen = velho.onmessage = velho.onclose = velho.onerror = null; velho.close() } } catch { /* já fechado */ }
     limparTimers()
-    for (const c of canais.values()) { if (c.prazo) cancelar(c.prazo); c.estado = 'erro' }
+    for (const c of canais.values()) { if (c.prazo) cancelar(c.prazo); if (c.reentrada) { cancelar(c.reentrada); c.reentrada = null }; c.estado = 'erro' }
     conexao = 'caido'
     tentativas += 1
     mudou()
@@ -312,7 +319,7 @@ export function criarTempoReal({
     const velho = ws; ws = null
     try { if (velho) { velho.onopen = velho.onmessage = velho.onclose = velho.onerror = null; velho.close() } } catch { /* já fechado */ }
     limparTimers()
-    for (const c of canais.values()) { if (c.prazo) cancelar(c.prazo); c.estado = 'erro' }
+    for (const c of canais.values()) { if (c.prazo) cancelar(c.prazo); if (c.reentrada) { cancelar(c.reentrada); c.reentrada = null }; c.estado = 'erro' }
     conectar()
   }
 
