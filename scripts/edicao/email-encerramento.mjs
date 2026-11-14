@@ -6,6 +6,7 @@
  *   node scripts/edicao/email-encerramento.mjs herois   → arte do topo em public/images/email/encerramento/ (Playwright + Grandstander)
  *   node scripts/edicao/email-encerramento.mjs previa   → prévias em docs/cartoon-2026-2/previas-email/encerramento-*.{html,png}
  *   node scripts/edicao/email-encerramento.mjs modelo <obrigado|disputa>  → JSON { assunto, html, texto } com os marcadores, para o SQL
+ *   node scripts/edicao/email-encerramento.mjs casas    → texto da mensagem às casas (painel)
  */
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -100,6 +101,29 @@ ${corpo}
 }
 
 const MAILTO = `mailto:${CONTATO}?subject=${encodeURIComponent('Como foi a minha Caça aos Carimbos')}`
+// Assinatura (Wilker, 14/11): a Eline é a cara do festival; nome, cargo e @ conferidos no perfil dela (bio: "Curadora de @sweetcoffeeweek").
+const ELINE = { nome: 'Eline Eulália', cargo: 'Curadora do Sweet & Coffee Week', insta: 'linelalia' }
+const assinatura = () => `<p style="margin:4px 0 6px;font-size:16px;line-height:1.6;color:${C.choco};">Um abraço doce,</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;"><tr><td style="border-left:5px solid ${C.rosa};padding:2px 0 2px 14px;font-size:14px;line-height:1.55;color:#5a4038;">
+<span style="font-family:${FT};font-weight:900;font-size:19px;color:${C.rosa};">${ELINE.nome}</span><br>
+${ELINE.cargo} · <a href="https://www.instagram.com/${ELINE.insta}/" style="color:${C.roxo};font-weight:700;text-decoration:none;">@${ELINE.insta}</a><br>
+e toda a equipe do festival</td></tr></table>`
+const ASSINATURA_TEXTO = ['Um abraço doce,', `${ELINE.nome} (@${ELINE.insta})`, ELINE.cargo, 'e toda a equipe do festival']
+
+/** Mensagem às casas (painel › Mensagens, texto puro), aprovada pelo Wilker em 14/11. */
+export const MENSAGEM_CASAS = [
+  'Oi, pessoal! A edição Cartoon do Sweet & Coffee Week chegou ao fim, e a gente quer começar agradecendo de verdade: pelo combo pensado com tanto carinho, pela equipe que recebeu cada Sweet Lover e por toparem entrar nessa com a gente.',
+  '',
+  'Agora queremos ouvir vocês. Como foi participar? O que funcionou bem, o que deu trabalho, o que vocês mudariam? Pode mandar elogio, crítica ou sugestão, do jeito que vier: cada comentário é lido e analisado pela organização e faz muita diferença para as próximas edições. É só responder aqui, nas mensagens do painel.',
+  '',
+  'E o que vem por aí:',
+  '• O Sweet Awards vai ser apurado agora, e o resultado sai em breve.',
+  '• Depois do resultado, cada casa recebe um relatório só seu, com o resumo das avaliações dos Sweet Lovers.',
+  '',
+  'Obrigado por fazer parte!',
+  '',
+  ...ASSINATURA_TEXTO,
+].join('\n')
 const botao = (t, href) => `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 14px;"><tr><td style="background:${C.amarelo};border:3px solid ${C.choco};border-radius:14px;box-shadow:4px 4px 0 ${C.choco};"><a href="${href}" style="display:inline-block;padding:13px 24px;font-family:${FT};font-weight:900;font-size:17px;color:${C.choco};text-decoration:none;">${t}</a></td></tr></table>`
 
 /** Modelos com marcadores. obrigado: {{CASAS_TEXTO}} ("1 casa carimbada" / "12 casas carimbadas"). disputa: {{WPP_HTML}} e {{WPP_TEXTO}} (vazios quando há WhatsApp). */
@@ -117,10 +141,10 @@ export const MODELOS = {
         p('Como foi a Caça para você? O que você amou, o que deu errado, o que faria diferente? Pode mandar elogio, crítica ou ideia, do jeito que vier. Cada mensagem é lida com calma pela nossa equipe e ajuda a deixar o festival ainda melhor.'),
         botao('Contar como foi', MAILTO),
         p(`Se preferir, é só responder este e-mail. Ele chega direto em <strong>${CONTATO}</strong>.`, 'font-size:14px;color:#5a4038;'),
-        p('Um abraço doce,<br><strong>Equipe Sweet &amp; Coffee Week</strong>'),
+        assinatura(),
       ].join('\n'),
     })
-    const texto = ['Oi, Sweet Lover!', '', 'A edição Cartoon do Sweet & Coffee Week terminou, e a gente não podia deixar passar sem dizer obrigado. Foram onze dias de combos novos, casas descobertas e carimbo atrás de carimbo, e você fez parte disso.', '', 'Seu mapa terminou com {{CASAS_TEXTO}}.', '', 'Agora é a sua vez de falar: como foi a Caça para você? O que você amou, o que deu errado, o que faria diferente? Pode mandar elogio, crítica ou ideia, do jeito que vier. Cada mensagem é lida com calma pela nossa equipe e ajuda a deixar o festival ainda melhor.', '', `É só responder este e-mail ou escrever para ${CONTATO}.`, '', 'Um abraço doce,', 'Equipe Sweet & Coffee Week'].join('\n')
+    const texto = ['Oi, Sweet Lover!', '', 'A edição Cartoon do Sweet & Coffee Week terminou, e a gente não podia deixar passar sem dizer obrigado. Foram onze dias de combos novos, casas descobertas e carimbo atrás de carimbo, e você fez parte disso.', '', 'Seu mapa terminou com {{CASAS_TEXTO}}.', '', 'Agora é a sua vez de falar: como foi a Caça para você? O que você amou, o que deu errado, o que faria diferente? Pode mandar elogio, crítica ou ideia, do jeito que vier. Cada mensagem é lida com calma pela nossa equipe e ajuda a deixar o festival ainda melhor.', '', `É só responder este e-mail ou escrever para ${CONTATO}.`, '', ...ASSINATURA_TEXTO].join('\n')
     return { assunto, html, texto }
   },
   disputa () {
@@ -138,10 +162,11 @@ export const MODELOS = {
         ].join('')),
         '{{WPP_HTML}}',
         p('E, ganhando ou não, obrigado por ter ido tão longe com a gente. Você foi uma das pessoas que mais aproveitaram esta edição.'),
-        p('Torcendo por você,<br><strong>Equipe Sweet &amp; Coffee Week</strong>'),
+        p('<strong>Torcendo por você!</strong>'),
+        assinatura(),
       ].join('\n'),
     })
-    const texto = ['Oi, Sweet Lover!', '', 'Que caminhada! Você chegou ao fim da Caça aos Carimbos entre as pessoas que disputam o prêmio final: o press kit oficial da edição Cartoon + uma surpresa.', '', 'Como fica daqui pra frente:', '- O resultado sai nesta segunda, 16/11. Antes de divulgar, a nossa equipe confere tudo com cuidado.', '- A forma de entrega do prêmio ainda está sendo definida. Quem ganhar recebe o nosso contato com todos os detalhes.', '{{WPP_TEXTO}}', 'E, ganhando ou não, obrigado por ter ido tão longe com a gente. Você foi uma das pessoas que mais aproveitaram esta edição.', '', 'Torcendo por você,', 'Equipe Sweet & Coffee Week'].join('\n')
+    const texto = ['Oi, Sweet Lover!', '', 'Que caminhada! Você chegou ao fim da Caça aos Carimbos entre as pessoas que disputam o prêmio final: o press kit oficial da edição Cartoon + uma surpresa.', '', 'Como fica daqui pra frente:', '- O resultado sai nesta segunda, 16/11. Antes de divulgar, a nossa equipe confere tudo com cuidado.', '- A forma de entrega do prêmio ainda está sendo definida. Quem ganhar recebe o nosso contato com todos os detalhes.', '{{WPP_TEXTO}}', 'E, ganhando ou não, obrigado por ter ido tão longe com a gente. Você foi uma das pessoas que mais aproveitaram esta edição.', '', 'Torcendo por você!', '', ...ASSINATURA_TEXTO].join('\n')
     return { assunto, html, texto }
   },
 }
@@ -178,4 +203,5 @@ const [cmd, arg] = process.argv.slice(2)
 if (cmd === 'herois') await gerarHerois()
 else if (cmd === 'previa') await previa()
 else if (cmd === 'modelo' && MODELOS[arg]) process.stdout.write(JSON.stringify(MODELOS[arg]()))
-else if (cmd) { console.error('uso: herois | previa | modelo <obrigado|disputa>'); process.exit(1) }
+else if (cmd === 'casas') process.stdout.write(MENSAGEM_CASAS)
+else if (cmd) { console.error('uso: herois | previa | modelo <obrigado|disputa> | casas'); process.exit(1) }
