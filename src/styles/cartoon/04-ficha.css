@@ -57,6 +57,9 @@
 .ct-capa__grade { margin-bottom: clamp(28px, 5vw, 64px); }
 .ct-capa__cenario { width: calc(100% + 2 * var(--ct-trilho)); margin: 0 calc(var(--ct-trilho) * -1) calc(var(--ct-capa-razao, .4) * -14vw); pointer-events: none; }
 .ct-edicao .ct-capa__cenario img { display: block; width: 100%; height: auto; }
+/* Com a faixa do Sicredi logo abaixo, é ela que senta no chão do desenho — e ela só tem ~65 px: o recuo não pode passar disso,
+   senão a ponta do cenário aparece embaixo da faixa (Wilker, 13/11/2026). */
+.ct-capa:has(+ .ct-assina-patrocinio) .ct-capa__cenario { margin-bottom: calc(-1 * min(var(--ct-capa-razao, .4) * 14vw, 48px)); }
 /* 12/11 (Wilker: "o elemento está acima da faixa da Sicredi, deve estar atrás"): no site a faixa do patrocínio vem logo depois da capa, então é
    ELA que sobe e senta em cima do cenário, com a mesma borda arredondada da seção (o fundo continua branco, como pede o manual da marca). */
 .ct-capa + :is(.ct-bloco, .ct-canal, .ct-aviso, .ct-assina-patrocinio) { position: relative; z-index: 2; }
