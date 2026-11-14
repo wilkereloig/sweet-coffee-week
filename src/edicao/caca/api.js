@@ -42,6 +42,12 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
     } catch (e) { return sem(motivoDoErro(e)) }
   }
   const comChave = (chave, fn) => (chaveValida(chave) ? fn() : Promise.resolve(sem('mapa_desconhecido')))
+  /** Anexa a imagem e, se deu certo, manda os metadados da foto original (migration 20270207). Falha nos metadados nunca muda a resposta. */
+  async function anexarComMeta (rpc, chave, id, path, meta) {
+    const r = await rpcOk(rpc, { p_chave: chave, p_id: id, p_path: path })
+    if (r.ok === true && meta && typeof meta === 'object') await rpcOk('caca_foto_meta', { p_chave: chave, p_id: id, p_meta: meta })
+    return r
+  }
   const comGrupo = (chave, grupo, fn) => (!chaveValida(chave) ? Promise.resolve(sem('mapa_desconhecido')) : !grupoIdValido(grupo) ? Promise.resolve(sem('negado')) : fn())
 
   return {
@@ -170,7 +176,7 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
     }),
 
     /** Anexa a foto (obrigatória para aprovar) ao pedido de visita anterior já criado. */
-    visitaAnteriorEnviarImagem: (chave, id, { blob, ext, tipo }) => comChave(chave, async () => {
+    visitaAnteriorEnviarImagem: (chave, id, { blob, ext, tipo, meta }) => comChave(chave, async () => {
       if (!FORMATO_UUID.test(String(id || '')) || !blob) return sem('pedido_nao_encontrado')
       try {
         const r = await buscar(`${urlBase}/functions/v1/caca-delivery`, {
@@ -181,7 +187,7 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
         if (d?.ok !== true || typeof d.url !== 'string') return sem(typeof d?.motivo === 'string' && MOTIVO.test(d.motivo) ? d.motivo : 'rede')
         const up = await buscar(d.url, { method: 'PUT', body: blob, headers: { 'Content-Type': tipo } })
         if (!up.ok) return sem('upload_falhou')
-        return await rpcOk('caca_visita_anterior_anexar', { p_chave: chave, p_id: id, p_path: d.path })
+        return await anexarComMeta('caca_visita_anterior_anexar', chave, id, d.path, meta)
       } catch { return sem('rede') }
     }),
 
@@ -212,7 +218,7 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
      * e confirma no banco. Falha em qualquer passo devolve `{ ok:false, motivo }` e NÃO perde o pedido: dá para tentar de novo (até 5 reservas).
      * Motivos: limite_imagem · formato_invalido · upload_falhou · imagem_ausente · imagem_invalida · transicao_invalida · rede · falha_temporaria.
      */
-    deliveryEnviarImagem: (chave, id, { blob, ext, tipo }) => comChave(chave, async () => {
+    deliveryEnviarImagem: (chave, id, { blob, ext, tipo, meta }) => comChave(chave, async () => {
       if (!FORMATO_UUID.test(String(id || '')) || !blob) return sem('pedido_nao_encontrado')
       try {
         const r = await buscar(`${urlBase}/functions/v1/caca-delivery`, {
@@ -222,7 +228,7 @@ export function criarApi ({ chamar = chamarRpc, buscar = (...a) => comEnvio(() =
         if (d?.ok !== true || typeof d.url !== 'string') return sem(typeof d?.motivo === 'string' && MOTIVO.test(d.motivo) ? d.motivo : 'rede')
         const up = await buscar(d.url, { method: 'PUT', body: blob, headers: { 'Content-Type': tipo } })
         if (!up.ok) return sem('upload_falhou')
-        return await rpcOk('caca_delivery_anexar', { p_chave: chave, p_id: id, p_path: d.path })
+        return await anexarComMeta('caca_delivery_anexar', chave, id, d.path, meta)
       } catch { return sem('rede') }
     }),
 

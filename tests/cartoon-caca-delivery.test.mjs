@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import {
-  LIMITES, casaDaConsulta, casasComDelivery, codigoLegivel, dimensoesFinais, estadoDoDelivery, extensaoDoTipo, pedidosDelivery, validadeDoCodigo,
+  LIMITES, casaDaConsulta, casasComDelivery, codigoLegivel, dimensoesFinais, estadoDoDelivery, exifDoJpeg, extensaoDoTipo, pedidosDelivery, validadeDoCodigo,
 } from '../src/edicao/caca/delivery/logica.js'
 import { DELIVERY as T } from '../src/edicao/caca/delivery/textos.js'
 import { criarApi } from '../src/edicao/caca/api.js'
@@ -148,6 +148,36 @@ test('API: imagem = URL assinada da edge function, PUT direto no armazenamento, 
   assert.equal(putCaiu.chamadas.length, 0, 'upload que falhou nunca anexa')
   const rede = montar({}, { edge: new Error('offline') })
   assert.equal((await rede.api.deliveryEnviarImagem(CHAVE, ID, { blob: new Blob(['x']), ext: 'webp', tipo: 'image/webp' })).motivo, 'rede')
+})
+
+test('metadados (14/11): EXIF da foto original lido antes de reduzir; anexo ok manda caca_foto_meta, anexo recusado não manda', async () => {
+  // JPEG mínimo, big-endian: Make, Model, DateTimeOriginal (sub-IFD) e GPS com latitude.
+  const b = []; const u16 = (n) => b.push(n >> 8, n & 255); const u32 = (n) => { u16(n >>> 16); u16(n & 0xFFFF) }
+  const txt = (s) => { for (const c of s) b.push(c.charCodeAt(0)); b.push(0) }
+  const ent = (tag, tipo, n, val) => { u16(tag); u16(tipo); u32(n); u32(val) }
+  b.push(0x4D, 0x4D); u16(42); u32(8)
+  u16(4); ent(0x010F, 2, 6, 62); ent(0x0110, 2, 10, 68); ent(0x8769, 4, 1, 78); ent(0x8825, 4, 1, 116); u32(0)
+  txt('Apple'); txt('iPhone 13')
+  u16(1); ent(0x9003, 2, 20, 96); u32(0); txt('2026:11:12 14:30:00')
+  u16(1); ent(0x0002, 5, 3, 0); u32(0)
+  const tiff = Uint8Array.from(b)
+  const jpeg = Uint8Array.from([0xFF, 0xD8, 0xFF, 0xE1, (tiff.length + 8) >> 8, (tiff.length + 8) & 255, 0x45, 0x78, 0x69, 0x66, 0, 0, ...tiff, 0xFF, 0xD9])
+  assert.deepEqual(exifDoJpeg(jpeg.buffer), { marca: 'Apple', modelo: 'iPhone 13', software: null, data: null, data_original: '2026:11:12 14:30:00', gps: true })
+  assert.equal(exifDoJpeg(Uint8Array.from([0x89, 0x50, 0x4E, 0x47]).buffer), null, 'PNG não tem EXIF')
+  assert.equal(exifDoJpeg(jpeg.slice(0, 40).buffer), null, 'arquivo cortado não quebra')
+  assert.match(ler('src/edicao/caca/delivery/imagem.js'), /const meta = await metadadosDoArquivo\(arquivo, bmp\)\.catch\(\(\) => null\)/)
+
+  const caminho = `2026.2/${ID}/${ID}.webp`; const meta = { v: 1, tipo: 'image/jpeg' }
+  const envio = { blob: new Blob(['x']), ext: 'webp', tipo: 'image/webp', meta }
+  const fluxo = () => ({ edge: resp({ ok: true, url: 'https://x/u', path: caminho }), put: resp({}) })
+  const ok = montar({ caca_visita_anterior_anexar: { ok: true }, caca_foto_meta: { ok: true } }, fluxo())
+  assert.equal((await ok.api.visitaAnteriorEnviarImagem(CHAVE, ID, envio)).ok, true)
+  assert.deepEqual(ok.chamadas[1], ['caca_foto_meta', { p_chave: CHAVE, p_id: ID, p_meta: meta }])
+  const metaCaiu = montar({ caca_delivery_anexar: { ok: true }, caca_foto_meta: new Error('fora') }, fluxo())
+  assert.equal((await metaCaiu.api.deliveryEnviarImagem(CHAVE, ID, envio)).ok, true, 'falha nos metadados não derruba o envio')
+  const recusado = montar({ caca_delivery_anexar: { ok: false, motivo: 'transicao_invalida' } }, fluxo())
+  assert.equal((await recusado.api.deliveryEnviarImagem(CHAVE, ID, envio)).motivo, 'transicao_invalida')
+  assert.deepEqual(recusado.chamadas.map((c) => c[0]), ['caca_delivery_anexar'])
 })
 
 test('nada de chave, código ou imagem em console, analytics, URL ou armazenamento', () => {
