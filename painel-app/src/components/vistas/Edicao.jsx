@@ -306,6 +306,9 @@ function AbaVendas({ edicao, pode }) {
   const r = resumoVendas(dados)
   const dias = diasDoFestival(dados.festival_inicio, dados.festival_fim)
   const momento = momentoEdicao(dados, dados.hoje)
+  // Valor em reais só neste relatório da organização (não vai para o painel da marca): combos × valor do combo da edição.
+  const preco = Number(edicao.valor_combo) > 0 ? Number(edicao.valor_combo) : null
+  const reais = (n) => (preco ? (Number(n || 0) * preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—')
   return (
     <div className="ui-pilha">
       <ul className="ui-numeros ui-numeros--compacto">
@@ -313,13 +316,16 @@ function AbaVendas({ edicao, pode }) {
         <li className="ui-numero"><span className="ui-numero__n">{r.totalHoje}</span><span className="ui-numero__rotulo">hoje</span></li>
         <li className="ui-numero"><span className="ui-numero__n">{r.registraramHoje}</span><span className="ui-numero__rotulo">registraram hoje</span></li>
         <li className="ui-numero"><span className="ui-numero__n">{r.faltamHoje}</span><span className="ui-numero__rotulo">faltam hoje</span></li>
+        <li className="ui-numero"><span className="ui-numero__n">{reais(r.total)}</span><span className="ui-numero__rotulo">em combos na edição</span></li>
+        <li className="ui-numero"><span className="ui-numero__n">{reais(r.totalHoje)}</span><span className="ui-numero__rotulo">em combos hoje</span></li>
       </ul>
+      {!preco && <p className="ui-nota">Defina o valor do combo na aba Configuração para ver as vendas em reais.</p>}
       {momento !== 'durante' && <p className="ui-nota">{momento === 'antes' ? 'O festival ainda não começou: as vendas aparecem aqui a partir de ' + dataBr(dados.festival_inicio) + '.' : momento === 'depois' ? 'O festival terminou. A tabela é o fechamento.' : 'Configure as datas do festival na aba Configuração.'}</p>}
       {(dados.marcas || []).length === 0 && <Vazio titulo="Nenhuma marca nesta edição">As vendas aparecem aqui quando houver marcas na edição.</Vazio>}
       {dias.length > 0 && (dados.marcas || []).length > 0 && (
         <div className="ui-tabela-rolagem" role="region" aria-label="Vendas por dia" tabIndex={0}>
           <table className="ui-tabela">
-            <thead><tr><th scope="col">Marca</th>{dias.map((d) => <th key={d} scope="col">{dataBr(d).slice(0, 5)}</th>)}<th scope="col">Total</th></tr></thead>
+            <thead><tr><th scope="col">Marca</th>{dias.map((d) => <th key={d} scope="col">{dataBr(d).slice(0, 5)}</th>)}<th scope="col">Total</th><th scope="col">Valor</th></tr></thead>
             <tbody>{dados.marcas.map((m) => (
               <tr key={m.participacao_id}>
                 <th scope="row"><MarcaComLogo nome={m.marca} participanteId={m.participante_id} />{!m.tem_conta && <span className="ui-tabela__nota"> (sem acesso)</span>}{Number(m.corrigidas) > 0 && <span className="ui-tabela__nota"> · {m.corrigidas} correç{Number(m.corrigidas) === 1 ? 'ão' : 'ões'}</span>}</th>
@@ -333,6 +339,7 @@ function AbaVendas({ edicao, pode }) {
                   </td>
                 })}
                 <td><b>{m.total}</b></td>
+                <td>{reais(m.total)}</td>
               </tr>
             ))}</tbody>
           </table>
