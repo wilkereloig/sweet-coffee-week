@@ -4,7 +4,7 @@ import { Botao, Carregando, Erro, Escolha, Secao, Selo, Vazio } from '../../ui'
 import { pedirTexto, avisar, confirmar } from '../../Confirmar'
 import { cacaApi, horaNatal } from '../../../lib/caca'
 import {
-  FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao, aguardandoACasa,
+  FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao, aguardandoACasa, deliveryVencido,
   aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido, notaSemProva, MIN_MOTIVO_SEM_PROVA,
 } from '../../../lib/cacaGps'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
@@ -134,7 +134,7 @@ export function Excecoes({ edicao, pode }) {
             </Tabela>}
         </Secao>
       )}
-      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização pode ser decidido aqui; pedidos por código são confirmados pela casa.">
+      <Secao titulo="Pedidos de presença e visitas anteriores" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização ou com código vencido pode ser decidido aqui; pedidos por código no prazo são confirmados pela casa.">
         <div className="cp-ferramentas">
           <Escolha rotulo="Situação" valor={estado} onMudar={setEstado} className="cp-filtro"
             opcoes={FILTROS_PEDIDO.map(([v, r]) => [v, v === 'pendente' ? `${r} (${lista.dados.pendentes})` : r])} />
@@ -178,11 +178,12 @@ export function Excecoes({ edicao, pode }) {
                         )
                           : podeDecidir(p) ? (
                             <div className="cp-acoes">
+                              {deliveryVencido(p) && <Selo tom="andamento">Código vencido</Selo>}
                               <Botao disabled={!!ocupado || !!lote} aria-label={`Aprovar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'aprovar')}>Aprovar</Botao>
                               <Botao variante="secundario" disabled={!!ocupado || !!lote} aria-label={`Negar o pedido de ${p.apelido} em ${p.casa}`} onClick={() => decidir(p, 'negar')}>Negar</Botao>
                             </div>
                           ) : aguardandoACasa(p)
-                            ? <Selo tom="andamento">{p.via_pretendida === 'imagem' ? 'Aguardando imagem' : p.codigo_expirado ? 'Código vencido' : 'Aguardando a casa'}</Selo>
+                            ? <Selo tom="andamento">{p.via_pretendida === 'imagem' ? 'Aguardando imagem' : 'Aguardando a casa'}</Selo>
                             : <Selo tom={tomPedido(p.estado)}>{rotuloPedido(p.estado)}</Selo>}
                     </div>
                   </div>

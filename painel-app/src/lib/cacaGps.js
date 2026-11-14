@@ -36,8 +36,11 @@ export function descricaoDoSinal(p) {
   return d + m
 }
 
+/** Delivery por código que VENCEU: a casa não confirma mais, então a organização decide (14/11/2026, migration 20270202). */
+export const deliveryVencido = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa' && p.via_pretendida !== 'imagem' && !!p.codigo_expirado
+
 /** Só pedido pendente tem ação. */
-export const podeDecidir = (p) => !!p && p.estado === 'pendente' && (!p.aguardando_casa || (p.motivo === 'delivery' && p.via_pretendida === 'imagem'))
+export const podeDecidir = (p) => !!p && p.estado === 'pendente' && (!p.aguardando_casa || (p.motivo === 'delivery' && p.via_pretendida === 'imagem') || deliveryVencido(p))
 
 /** Visita anterior sem foto: a foto é obrigatória (desde 10/11/2026), então não se aprova (nem em lote) — só por exceção com motivo. */
 export function aguardaEvidencia(p) {
@@ -49,7 +52,7 @@ export const PREFIXO_SEM_PROVA = 'Exceção sem prova: '
 export const MIN_MOTIVO_SEM_PROVA = 15
 export const notaSemProva = (motivo) => PREFIXO_SEM_PROVA + String(motivo || '').trim()
 /** Entra no "Aprovar todos": o mesmo pedido que mostraria o botão Aprovar na linha. */
-export const aprovavelEmLote = (p) => podeDecidir(p) && !aguardaEvidencia(p)
+export const aprovavelEmLote = (p) => podeDecidir(p) && !aguardaEvidencia(p) && !deliveryVencido(p)
 
 /** Filtros rápidos por cima da situação. */
 export const FILTROS_RAPIDOS = Object.freeze([
@@ -67,7 +70,7 @@ const PREDICADO_RAPIDO = {
 export const filtrarRapido = (itens, chave) => (itens || []).filter(PREDICADO_RAPIDO[chave] || PREDICADO_RAPIDO.todos)
 
 /** Delivery com código: quem confirma é a CASA, não a organização. */
-export const aguardandoACasa = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa' && p.via_pretendida !== 'imagem'
+export const aguardandoACasa = (p) => !!p && p.estado === 'pendente' && p.motivo === 'delivery' && p.via === 'casa' && p.via_pretendida !== 'imagem' && !p.codigo_expirado
 
 /** Texto da confirmação antes de decidir (a decisão não se desfaz por aqui). */
 export function textoDaDecisao(p, decisao) {

@@ -169,7 +169,7 @@ async function principal() {
       const img = linhas.find((l) => /Ana/.test(l.t)); const casa = linhas.find((l) => /Bia/.test(l.t)); const exp = linhas.find((l) => /Caio/.test(l.t))
       ok(img && img.botoes.includes('Aprovar') && img.botoes.includes('Negar') && img.botoes.includes('Ver imagem'), 'delivery com imagem: Ver imagem, Aprovar e Negar')
       ok(casa && casa.botoes.length === 0 && /Aguardando a casa/.test(casa.t), 'delivery com código: "Aguardando a casa" e nenhum botão para a organização')
-      ok(exp && exp.botoes.length === 0 && /Código vencido/.test(exp.t), 'código vencido: sem botões, rótulo "Código vencido"')
+      ok(exp && exp.botoes.includes('Aprovar') && exp.botoes.includes('Negar') && /Código vencido/.test(exp.t), 'código vencido: rótulo "Código vencido" com Aprovar e Negar da organização')
       ok(img && /Delivery/.test(img.t) && /sem prova de local/.test(img.t), 'motivo "Delivery" e aviso de que não há prova de local')
       ok(await horizontal(page), 'sem rolagem lateral')
       await capturar(page, 'org-fila-delivery')

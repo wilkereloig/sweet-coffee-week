@@ -6,7 +6,7 @@ import path from 'node:path'
 import {
   RECADO_DELIVERY, codigoDeliveryCompleto, formatarCodigoDelivery, linhasDoPedido, normalizarCodigoDelivery, recadoDoDelivery,
 } from '../painel-app/src/lib/deliveryCasa.js'
-import { MOTIVO_PEDIDO, aguardandoACasa, descricaoDoSinal, podeDecidir, rotuloMotivoPedido, textoDaDecisao } from '../painel-app/src/lib/cacaGps.js'
+import { MOTIVO_PEDIDO, aguardandoACasa, aprovavelEmLote, descricaoDoSinal, podeDecidir, rotuloMotivoPedido, textoDaDecisao } from '../painel-app/src/lib/cacaGps.js'
 import { ROTULO_ORIGEM, ROTULO_EVENTO } from '../painel-app/src/lib/caca.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
@@ -65,6 +65,10 @@ test('fila da organização: delivery com código é da casa; pedido para organi
   assert.equal(podeDecidir(comImagem), true)
   assert.equal(podeDecidir({ estado: 'pendente', motivo: 'longe' }), true, 'os outros pedidos seguem iguais')
   assert.equal(podeDecidir({ estado: 'aprovado', motivo: 'delivery', via: 'imagem' }), false)
+  const vencido = { ...comCodigo, codigo_expirado: true }
+  assert.equal(podeDecidir(vencido), true, 'código vencido: a organização decide (a casa não confirma mais)')
+  assert.equal(aguardandoACasa(vencido), false)
+  assert.equal(aprovavelEmLote(vencido), false, 'código vencido não entra no Aprovar todos: decide-se um por um')
   assert.match(descricaoDoSinal({ motivo: 'delivery', pedido_data: '2026-11-05', pedido_ref: 'X1' }), /pedido de 05\/11\/2026 \(ref\. X1\).*sem prova de local/)
   assert.match(textoDaDecisao({ motivo: 'delivery', apelido: 'Ana', casa: 'Alfa' }, 'aprovar'), /imagem é opcional/i)
   assert.match(textoDaDecisao({ motivo: 'delivery', apelido: 'Ana', casa: 'Alfa' }, 'aprovar'), /n[ãa]o muda voucher/i)
@@ -88,4 +92,12 @@ test('o texto da ajuda do balcão não promete mais que a casa nunca cria carimb
   const a = ler('painel-app/src/components/vistas-marca/AjudaCarimbo.jsx')
   assert.match(a, /A casa não aprova carimbo presencial nem de outra casa/)
   assert.match(a, /Confirmar carimbo de delivery/)
+})
+
+test('banco: delivery com código vencido pode ser decidido pela organização (migration 20270202 e o reverter)', () => {
+  const sql = ler('supabase/migrations/20270202_caca_delivery_codigo_vencido_org.sql')
+  const rev = ler('supabase/reverter/20270202_caca_delivery_codigo_vencido_org.sql')
+  assert.match(sql, /coalesce\(e\.codigo_expira_em > now\(\), true\) then raise exception 'aguarda_casa'/)
+  assert.doesNotMatch(rev, /codigo_expira_em/)
+  assert.match(rev, /<> 'imagem' then raise exception 'aguarda_casa'/)
 })
