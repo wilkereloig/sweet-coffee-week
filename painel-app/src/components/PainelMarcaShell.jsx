@@ -29,10 +29,10 @@ import { Trilha, useHistorico } from './Trilha'
 // Início e do sino; o Guia de fotos, de dentro de Fotos.
 const DESTINOS = ['inicio', 'cadastro', 'combo', 'fotos', 'arquivos']
 // Vistas que existem sem estar no menu (abertas a partir de outra).
-const OCULTAS = ['pedidos', 'mensagens', 'guia']
+const OCULTAS = ['pedidos', 'mensagens', 'guia', 'opiniao']
 // Barra do celular: os cinco cabem, sem "Mais".
 const ATALHOS = DESTINOS
-const TITULOS = { inicio: 'Início', cadastro: 'Meu cadastro', combo: 'Meu combo', fotos: 'Fotos', arquivos: 'Arquivos', pedidos: 'Solicitações', mensagens: 'Mensagens', guia: 'Guia de fotos' }
+const TITULOS = { inicio: 'Início', cadastro: 'Meu cadastro', combo: 'Meu combo', fotos: 'Fotos', arquivos: 'Arquivos', pedidos: 'Solicitações', mensagens: 'Mensagens', guia: 'Guia de fotos', opiniao: 'Sua opinião' }
 const SUBS = {
   inicio: 'o que falta e o que vem agora',
   cadastro: 'o estabelecimento e onde encontrar',
@@ -42,12 +42,13 @@ const SUBS = {
   pedidos: 'o que a organização pediu',
   mensagens: 'conversa com a organização',
   guia: 'como preparar o combo para as fotos',
+  opiniao: 'como foi a edição para a sua casa',
 }
 
 // Ícone de cada vista (registro único): as do menu têm o nome da vista; as abertas de outra, o seu.
-const ICONE_VISTA = { pedidos: 'pedido', mensagens: 'mensagens', guia: 'camera' }
+const ICONE_VISTA = { pedidos: 'pedido', mensagens: 'mensagens', guia: 'camera', opiniao: 'depoimento' }
 // Uma cor da paleta fechada por vista, nunca repetida (CLAUDE.md §6.3).
-const ACENTO_VISTA = { inicio: 'amarelo', cadastro: 'cyan', combo: 'laranja', fotos: 'magenta', arquivos: 'marrom', pedidos: 'laranja', mensagens: 'roxo', guia: 'magenta' }
+const ACENTO_VISTA = { inicio: 'amarelo', cadastro: 'cyan', combo: 'laranja', fotos: 'magenta', arquivos: 'marrom', pedidos: 'laranja', mensagens: 'roxo', guia: 'magenta', opiniao: 'cyan' }
 
 
 function aplicarAcento(vista) {

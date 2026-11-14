@@ -1,4 +1,5 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
+Nova tela "Sua opinião" para as casas contarem como foi a edição (aparece no Início quando o festival termina); a resposta aparece na ficha da marca, em Comunicação.
 Pedidos de presença: novo "Baixar fotos das visitas", um ZIP por casa com as fotos que o público enviou.
 Pedidos de presença: filtro por pessoa com a foto à vista, selo "parece print" e o botão Analisar todas as fotos. Vendas agora em reais.
 Combos vendidos: agora dá para lançar também os dias anteriores do festival (campo "Dia" acima do número).

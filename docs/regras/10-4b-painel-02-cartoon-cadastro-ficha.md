@@ -637,3 +637,11 @@ teste `tests/painel-app-preenchimento.test.mjs`.
   - ⚠️ **O kit `ngx4uek` baixa ~90 arquivos / ~3 MB** (dezenas de famílias sem uso): a Nexa chega em ~3,5 s
     em 4G e ~17 s em 3G, e até lá a página aparece em Slab (sem texto invisível). Enxugar o kit no Adobe Fonts
     (só Nexa e Nexa Text) resolve a página, o painel e o site de uma vez. `events:false` não adianta.
+
+#### Sua opinião (feedback da casa sobre a edição) — 14/11/2026 (pedido do Wilker)
+
+- **Casa:** vista oculta `opiniao` (`components/vistas-marca/Opiniao.jsx`), endereço direto `/painel/#opiniao` — é o link que vai na página final do relatório de avaliações em PDF. Cartão "Como foi a edição para a sua casa?" no Início só com `momento === 'depois'` (`ordemDoInicio`), logo abaixo do "agora".
+- **Perguntas (tudo opcional):** recomendação 0–10 (vira número geral do relatório da edição), o que funcionou, marcadores do que pode melhorar + texto, interesse nas próximas edições (sim/talvez/não — interesse, nunca promessa de vaga, §8.4), tema sugerido, campo livre. Uma resposta por participação, editável.
+- **Banco:** `feedback_casa` (migration `20270208_feedback_casa.sql`, APLICADA 14/11) sem acesso direto; casa lê/grava por `marca_minha_opiniao()` / `marca_salvar_opiniao(p jsonb)` (resolve pela sessão, `meu_participante` + `edicao_atual`); organização lê por `org_opinioes_casas(p_secret, p_participante default null)` com `dado.ler`. Marcadores fechados em `feedback_casa_temas()` = `TEMAS_MELHORAR` em `lib/opiniaoCasa.js` (o teste confere).
+- **Organização:** módulo "Opinião da casa sobre a edição" na ficha › Comunicação (`components/vistas/OpiniaoCasa.jsx`), só leitura. Sem lista geral no painel: o consolidado sai no relatório da edição (`org_opinioes_casas` sem marca devolve todas).
+- Teste: `tests/painel-app-opiniao.test.mjs`.
