@@ -120,3 +120,28 @@ export function pistaDaFoto(largura, altura) {
   if (maior >= 1590) return { tipo: 'camera', tom: 'ok', texto: 'Formato de foto da câmera', medida }
   return { tipo: 'menor', tom: 'atencao', texto: 'Menor que foto da câmera: print, recorte ou imagem de outro app', medida }
 }
+
+/**
+ * "Baixar fotos por casa" (14/11/2026): agrupa as fotos de visita anterior por casa para um ZIP por casa. Negadas ficam fora.
+ * Nome do arquivo = apelido + dia da visita (a extensão vem do tipo real no download). Casa com mais de `porZip` fotos vira partes.
+ */
+export function lotesDeFotosPorCasa(itens, porZip = 60) {
+  const porCasa = new Map()
+  for (const p of Array.isArray(itens) ? itens : []) {
+    if (!p || !p.imagem || p.estado === 'negado') continue
+    const casa = String(p.casa || 'Sem casa').trim()
+    const dia = /^\d{4}-(\d{2})-(\d{2})/.exec(String(p.visita_data || '')) || []
+    const nome = (String(p.apelido || 'visitante').trim() + (dia[1] ? ' ' + dia[2] + '-' + dia[1] : '')).replace(/[\/:*?"<>|]/g, '-').slice(0, 70)
+    if (!porCasa.has(casa)) porCasa.set(casa, [])
+    porCasa.get(casa).push({ bucket: 'caca-delivery', path: p.imagem, nome, mime: '' })
+  }
+  const lotes = []
+  for (const casa of [...porCasa.keys()].sort((a, b) => a.localeCompare(b, 'pt-BR'))) {
+    const fotos = porCasa.get(casa); const partes = Math.ceil(fotos.length / porZip)
+    for (let i = 0; i < partes; i++) {
+      const rotulo = partes > 1 ? casa + ' (parte ' + (i + 1) + ' de ' + partes + ')' : casa
+      lotes.push({ chave: casa + ':' + i, rotulo, itens: fotos.slice(i * porZip, (i + 1) * porZip) })
+    }
+  }
+  return lotes
+}

@@ -1,4 +1,5 @@
 # Uma linha curta: aparece no aviso "Atualização disponível" do painel (o push tem texto fixo). Linhas com # são ignoradas.
+Pedidos de presença: novo "Baixar fotos das visitas", um ZIP por casa com as fotos que o público enviou.
 Pedidos de presença: filtro por pessoa com a foto à vista, selo "parece print" e o botão Analisar todas as fotos. Vendas agora em reais.
 Combos vendidos: agora dá para lançar também os dias anteriores do festival (campo "Dia" acima do número).
 Balcão da casa: os botões agora dizem o que fazem, e "Carimbo de delivery" virou "Confirmar carimbo de delivery", com ícone próprio.

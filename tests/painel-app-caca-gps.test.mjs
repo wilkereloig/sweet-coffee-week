@@ -111,3 +111,18 @@ test('aba nova existe e a tela só aprova/nega com permissão, motivo e confirma
   for (const aba of ['VouchersDia', 'PremioFinal']) assert.match(ler(`painel-app/src/components/vistas/caca/${aba}.jsx`), /<AvisoSemGps edicao=\{edicao\} \/>/)
   assert.match(ler('painel-app/src/components/vistas/caca/Revisao.jsx'), /<ResumoSemGps edicao=\{edicao\} \/>/)
 })
+
+test('baixar fotos por casa (14/11): um lote por casa, negadas fora, nome = apelido + dia, casa grande vira partes de 60', () => {
+  const p = (casa, estado, apelido, dia, n) => ({ casa, estado, apelido, visita_data: '2026-11-' + dia, imagem: `2026.2/${casa}/${n}.webp` })
+  const lotes = G.lotesDeFotosPorCasa([
+    p('Jolie', 'aprovado', 'Kami', '07', 1), p('Carcará', 'pendente', 'Ana/B', '05', 2), p('Jolie', 'negado', 'X', '08', 3),
+    { casa: 'Jolie', estado: 'aprovado', apelido: 'Sem foto' }, p('Carcará', 'aprovado', 'Iranilton', '06', 4),
+  ])
+  assert.deepEqual(lotes.map((l) => [l.rotulo, l.itens.length]), [['Carcará', 2], ['Jolie', 1]])
+  assert.deepEqual(lotes[0].itens[0], { bucket: 'caca-delivery', path: '2026.2/Carcará/2.webp', nome: 'Ana-B 05-11', mime: '' })
+  const muitas = G.lotesDeFotosPorCasa(Array.from({ length: 61 }, (_, i) => p('Jolie', 'aprovado', 'A', '07', i)))
+  assert.deepEqual(muitas.map((l) => [l.rotulo, l.itens.length]), [['Jolie (parte 1 de 2)', 60], ['Jolie (parte 2 de 2)', 1]])
+  assert.deepEqual(G.lotesDeFotosPorCasa(null), [])
+  const tela = readFileSync(join(raiz, 'painel-app/src/components/vistas/caca/Excecoes.jsx'), 'utf8')
+  assert.match(tela, /\{gerir && <FotosPorCasa edicao=\{edicao\} \/>\}/, 'só quem gere vê (o banco só devolve a foto a producao.gerir)')
+})

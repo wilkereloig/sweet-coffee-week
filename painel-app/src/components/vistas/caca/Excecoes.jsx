@@ -5,8 +5,9 @@ import { pedirTexto, avisar, confirmar } from '../../Confirmar'
 import { cacaApi, horaNatal } from '../../../lib/caca'
 import {
   FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao, aguardandoACasa, deliveryVencido,
-  aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido, notaSemProva, MIN_MOTIVO_SEM_PROVA, pistaDaFoto,
+  aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido, notaSemProva, MIN_MOTIVO_SEM_PROVA, pistaDaFoto, lotesDeFotosPorCasa,
 } from '../../../lib/cacaGps'
+import { useEntrega, EstadoEntrega, BotoesEntrega } from '../BaixarArquivo'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
 import { medirImagemPorUrl, emLotes } from '../../../lib/medidaImagem'
 
@@ -101,6 +102,39 @@ function AnaliseDasFotos({ edicao, medidas, setMedidas, aoVerPessoa }) {
           </Tabela>
         </>
       )}
+    </Secao>
+  )
+}
+
+/**
+ * "Baixar fotos por casa" (14/11/2026, pedido do Wilker): um ZIP por casa com as fotos de visita anterior (menos as negadas),
+ * para escolher fotos boas da comida. Baixar não é publicar: uso público só com autorização de quem tirou.
+ */
+function FotosPorCasa({ edicao }) {
+  const entrega = useEntrega()
+  const [lotes, setLotes] = React.useState(null)
+  const [erro, setErro] = React.useState('')
+  async function carregar() {
+    setErro('')
+    try { setLotes(lotesDeFotosPorCasa(((await cacaApi.excecoes(edicao, null, undefined, null, true)) || {}).itens)) }
+    catch (e) { setErro('Não deu para ler a lista de fotos: ' + (e.message || 'erro')) }
+  }
+  return (
+    <Secao titulo="Baixar fotos das visitas"
+      nota="Um ZIP por casa com as fotos de visita anterior (as negadas ficam fora), no tamanho em que chegaram (até 1600 px). O nome de cada foto é o apelido e o dia da visita. Para mostrar ao público, peça autorização a quem tirou.">
+      <div className="cp-ferramentas"><Botao variante="secundario" icone="baixar" onClick={carregar}>{lotes ? 'Atualizar a lista' : 'Ver fotos por casa'}</Botao></div>
+      {erro && <Erro texto={erro} onTentar={carregar} />}
+      <EstadoEntrega entrega={entrega} />
+      {lotes && (lotes.length ? (
+        <Tabela rotulo="Fotos por casa" colunas={['Casa', 'Fotos', '']}>
+          {lotes.map((l) => (
+            <tr key={l.chave}>
+              <th scope="row">{l.rotulo}</th><td>{l.itens.length}</td>
+              <td><BotoesEntrega entrega={entrega} itens={l.itens} nomeZip={'fotos-visitas-' + l.rotulo} compacto /></td>
+            </tr>
+          ))}
+        </Tabela>
+      ) : <Vazio titulo="Nenhuma foto guardada" />)}
     </Secao>
   )
 }
@@ -230,6 +264,7 @@ export function Excecoes({ edicao, pode }) {
             </Tabela>}
         </Secao>
       )}
+      {gerir && <FotosPorCasa edicao={edicao} />}
       {gerir && <AnaliseDasFotos edicao={edicao} medidas={medidas} setMedidas={setMedidas}
         aoVerPessoa={(mapa) => { escolherPessoa(mapa); setTimeout(() => document.getElementById('cp-pedidos')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0) }} />}
       <Secao titulo="Pedidos de presença e visitas anteriores" id="cp-pedidos" nota="Analise pedidos de GPS, visitas anteriores e delivery. Confira o relato e a imagem, quando houver. Delivery enviado à organização ou com código vencido pode ser decidido aqui; pedidos por código no prazo são confirmados pela casa.">
