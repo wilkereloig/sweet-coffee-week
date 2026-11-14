@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
@@ -8,7 +9,7 @@ import * as C from '../painel-app/src/lib/caca.js'
 const mem = new Map()
 globalThis.sessionStorage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, v), removeItem: (k) => mem.delete(k) }
 
-const raiz = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const raiz = fileURLToPath(new URL('..', import.meta.url)).replace(/^\/([A-Za-z]:)/, '$1')
 const ler = (rel) => readFileSync(join(raiz, rel), 'utf8')
 const dirCaca = join(raiz, 'painel-app/src/components/vistas/caca')
 const fontesCaca = () => readdirSync(dirCaca).filter((n) => /\.jsx?$/.test(n)).map((n) => [n, readFileSync(join(dirCaca, n), 'utf8')])

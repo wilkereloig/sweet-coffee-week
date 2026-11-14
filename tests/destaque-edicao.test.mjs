@@ -1,6 +1,7 @@
 // Destaque de edição na abertura da Home (src/data/destaqueEdicao.js).
 // Garante: tema e período vêm da fonte única (proximaEdicao.js), nada de
 // ativação pela metade, e a Home usa o contrato (não um segundo jeito de decidir).
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -63,7 +64,7 @@ test('a Home decide pela função do contrato', () => {
       else if (/\.jsx?$/.test(nome)) arquivos.push(p)
     }
   }
-  varrer(new URL('../src/pages/home', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'))
+  varrer(fileURLToPath(new URL('../src/pages/home', import.meta.url)).replace(/^\/([A-Za-z]:)/, '$1'))
   const fonte = arquivos.map((p) => readFileSync(p, 'utf8')).join('\n')
   assert.match(fonte, /destaqueValido\(/, 'a abertura precisa perguntar ao contrato se o destaque vale')
   assert.doesNotMatch(fonte, /destaqueEdicao\.ativo/, 'não decidir por `ativo` direto: um campo faltando abriria bloco vazio')

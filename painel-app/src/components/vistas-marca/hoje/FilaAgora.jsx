@@ -21,8 +21,14 @@ export function FilaAgora({ participacaoId, hoje }) {
     }
   }, [participacaoId])
 
-  // O aviso vence sozinho: reler a cada minuto mantém o botão certo sem recarregar a página.
-  React.useEffect(() => { ler(); const t = setInterval(ler, 60000); return () => clearInterval(t) }, [ler, hoje])
+  React.useEffect(() => { ler() }, [ler, hoje])
+  // O aviso vence sozinho (1 h): relê UMA vez, logo depois do vencimento mais próximo, em vez de reler a cada minuto.
+  React.useEffect(() => {
+    const vence = (unidades || []).map((u) => (u.ate ? new Date(u.ate).getTime() : NaN)).filter((t) => t > Date.now())
+    if (!vence.length) return undefined
+    const t = setTimeout(ler, Math.min(...vence) - Date.now() + 2000)
+    return () => clearTimeout(t)
+  }, [unidades, ler])
 
   async function trocar(u) {
     setSalvando(u.unidade); setErro('')

@@ -164,8 +164,9 @@ async function principal() {
         { ...base, id: 'e-exp', estado: 'pendente', via: 'casa', aguardando_casa: true, codigo_expirado: true, apelido: 'Caio' },
       ] })
       await irPara(page, '#edicao/carimbos?sub=presenca')
-      await page.waitForSelector('table', { timeout: 20000 })
-      const linhas = await page.evaluate(() => [...document.querySelectorAll('tbody tr')].map((tr) => ({ t: tr.innerText, botoes: [...tr.querySelectorAll('button')].map((x) => x.innerText.trim()) })))
+      // Desde 10/11/2026 a fila é de cartões (.cp-cartao), não de tabela.
+      await page.waitForSelector('.cp-cartao', { timeout: 20000 })
+      const linhas = await page.evaluate(() => [...document.querySelectorAll('.cp-cartao')].map((c) => ({ t: c.innerText, botoes: [...c.querySelectorAll('button')].map((x) => x.innerText.trim()) })))
       const img = linhas.find((l) => /Ana/.test(l.t)); const casa = linhas.find((l) => /Bia/.test(l.t)); const exp = linhas.find((l) => /Caio/.test(l.t))
       ok(img && img.botoes.includes('Aprovar') && img.botoes.includes('Negar') && img.botoes.includes('Ver imagem'), 'delivery com imagem: Ver imagem, Aprovar e Negar')
       ok(casa && casa.botoes.length === 0 && /Aguardando a casa/.test(casa.t), 'delivery com código: "Aguardando a casa" e nenhum botão para a organização')

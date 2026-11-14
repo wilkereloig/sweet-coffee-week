@@ -60,3 +60,8 @@ vivo.**
 
 ---
 
+
+#### Caminho de arquivo em teste: sempre `fileURLToPath` — 14/11/2026
+A pasta do projeto tem espaço e acento (`Criação ELOI Design`). `new URL(…, import.meta.url).pathname` devolve `F:\F2%20Experience…`
+(codificado) e o teste falha com `ENOENT` — sete testes do painel ficaram quebrados assim, e um deles (`painel-app-sync-sem-polling`)
+deixou passar um `setInterval` novo sem ninguém ver. Use `fileURLToPath(new URL('..', import.meta.url))` (de `node:url`).

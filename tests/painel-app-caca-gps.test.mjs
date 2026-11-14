@@ -1,4 +1,5 @@
 // Painel: pedidos de revisão de presença (GPS) e resumo de carimbos sem GPS (lib/cacaGps.js, Excecoes.jsx, SemGps.jsx).
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -9,7 +10,7 @@ import { RPC_LEITURA, dominiosDeRpc } from '../painel-app/src/lib/sync/dominios.
 
 const mem = new Map()
 globalThis.sessionStorage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, v), removeItem: (k) => mem.delete(k) }
-const raiz = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const raiz = fileURLToPath(new URL('..', import.meta.url)).replace(/^\/([A-Za-z]:)/, '$1')
 const ler = (rel) => readFileSync(join(raiz, rel), 'utf8')
 
 function falsoFetch(resposta = {}) {

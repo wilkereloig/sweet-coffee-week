@@ -4,12 +4,13 @@
  * Intervalos permitidos são só os que NÃO releem dado do painel — cada um com o motivo.
  * Isto não prova comportamento; só impede o polling disperso de voltar sem ninguém ver.
  */
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 
-const RAIZ = new URL('../painel-app/src/', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const RAIZ = fileURLToPath(new URL('../painel-app/src/', import.meta.url)).replace(/^\/([A-Za-z]:)/, '$1')
 
 const PERMITIDOS = {
   'lib/sync/': 'a própria camada de sincronização (heartbeat, renovação de token, periódico/conferência)',

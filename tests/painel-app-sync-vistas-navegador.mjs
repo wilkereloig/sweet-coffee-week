@@ -11,10 +11,11 @@
  * acompanha o banco, conflito pede escolha, só o que mudou vai ao servidor, trocar de registro não herda
  * dados, resposta velha não sobrescreve, falha de releitura não derruba a tela.
  */
+import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
 
-const REPO = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1').replace(/\/$/, '')
+const REPO = fileURLToPath(new URL('..', import.meta.url)).replace(/^\/([A-Za-z]:)/, '$1').replace(/\/$/, '')
 const SO = process.argv[2] || ''   // filtro opcional: só os cenários cujo nome contém este texto
 const require = createRequire(REPO + '/package.json')
 const esbuild = require('esbuild')

@@ -1,4 +1,5 @@
 // Painel › Caça › Avisos: compor, validar, imprevisto confirmado, chamadas ao banco e travas do envio (migration 20261230).
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -7,7 +8,7 @@ import * as C from '../painel-app/src/lib/caca.js'
 
 const mem = new Map()
 globalThis.sessionStorage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, v), removeItem: (k) => mem.delete(k) }
-const raiz = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const raiz = fileURLToPath(new URL('..', import.meta.url)).replace(/^\/([A-Za-z]:)/, '$1')
 const ler = (rel) => readFileSync(join(raiz, rel), 'utf8')
 
 function falsoFetch (resposta = {}) {

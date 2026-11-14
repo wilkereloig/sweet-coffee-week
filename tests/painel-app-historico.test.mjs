@@ -1,6 +1,7 @@
 // Histórico do painel (24/10/2026): Voltar do cabeçalho, telas recentes e o Voltar do SISTEMA (Android)
 // fechando folhas. Janela falsa com histórico de verdade: go() é assíncrono e dispara popstate/hashchange,
 // como no aparelho — é isso que pega a corrida "voltar atrasado desfaz o push".
+import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -355,7 +356,7 @@ test('nomes das telas ficam na sessão (a ficha diz "Sabor de Pão")', () => {
 })
 
 test('ninguém mexe no histórico fora de lib/historico.js', () => {
-  const raiz = new URL('../painel-app/src/', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+  const raiz = fileURLToPath(new URL('../painel-app/src/', import.meta.url)).replace(/^\/([A-Za-z]:)/, '$1')
   const arquivos = []
   const andar = (d) => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) andar(p); else if (/\.(jsx?|mjs)$/.test(n)) arquivos.push(p) } }
   andar(raiz)
