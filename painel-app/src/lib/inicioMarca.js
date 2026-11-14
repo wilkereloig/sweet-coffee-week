@@ -425,6 +425,8 @@ export function ordemDoInicio(momento) {
   const corpo = ['pendencias', 'acompanhamento', 'comunicacao']
   if (momento === 'durante') return ['identificacao', 'balcao', 'agora', 'venda', ...corpo, 'materiais']
   if (momento === 'antes') return ['identificacao', 'balcao', 'agora', ...corpo, 'materiais']
+  // Edição encerrada: o convite para a casa dar a opinião sobe logo abaixo do "agora" (14/11/2026).
+  if (momento === 'depois') return ['identificacao', 'balcao', 'agora', 'opiniao', ...corpo, 'venda', 'materiais']
   return ['identificacao', 'balcao', 'agora', ...corpo, 'venda', 'materiais']
 }
 

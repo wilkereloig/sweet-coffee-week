@@ -21,6 +21,7 @@ import { AbaOperacao, AbaTrajetoria } from './FichaOperacao'
 import { AbaCadastroMarca, AbaCombo, AbaUnidades, CorrecoesCampo } from './FichaCadastro'
 import { AbaAcesso } from './AcessoMarca'
 import { PreenchimentoMarca } from './Preenchimento'
+import { OpiniaoCasa } from './OpiniaoCasa'
 import { AbaPublicacao, PreviaPagina, ConferirLocalizacao, RevisarFotos } from './Publicacao'
 import { useFichaGeral, VisaoParticipante } from './FichaVisao'
 import { FolhaCobrar, NomeDoCombo } from './CobrarPendencias'
@@ -426,6 +427,7 @@ export function FichaMarcaPagina({ participante: p, logo, sub, campo = '', onSub
           <div className="ui-pilha">
             <AbaMensagens key={p.id} participante={p} pode={pode} />
             {p.participacao_id && <CorrecoesCampo key={p.participacao_id} participacaoId={p.participacao_id} pode={pode} />}
+            {pode('dado.ler') && <OpiniaoCasa key={'op-' + p.id} participante={p} />}
           </div>
         )}
         {vista === 'historico' && (

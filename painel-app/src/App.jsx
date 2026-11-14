@@ -13,6 +13,7 @@ import { Fotos as FotosMarca } from './components/vistas-marca/Fotos'
 import { Arquivos as ArquivosMarca } from './components/vistas-marca/Arquivos'
 import { GuiaFotos as GuiaFotosMarca } from './components/vistas-marca/GuiaFotos'
 import { Mensagens as MensagensMarca } from './components/vistas-marca/Mensagens'
+import { Opiniao as OpiniaoMarca } from './components/vistas-marca/Opiniao'
 import { Conexao } from './components/Conexao'
 import { Confirmacoes } from './components/Confirmar'
 import { lerIrDaUrl } from './lib/central'
@@ -124,7 +125,7 @@ const MeuCadastro = (p) => <Cadastro {...p} blocos={[0, 4]} />
 const MeuCombo = (p) => <Cadastro {...p} blocos={[1, 2, 3]} />
 const VISTAS_MARCA = {
   inicio: Hoje, cadastro: MeuCadastro, combo: MeuCombo, fotos: FotosMarca, arquivos: ArquivosMarca,
-  pedidos: PedidosMarca, mensagens: MensagensMarca, guia: GuiaFotosMarca,
+  pedidos: PedidosMarca, mensagens: MensagensMarca, guia: GuiaFotosMarca, opiniao: OpiniaoMarca,
 }
 
 export function App() {

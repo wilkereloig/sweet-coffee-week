@@ -174,6 +174,11 @@ export function Hoje({ irPara, abrirLink, contadores = {}, alvo, consumirAlvo, r
         </>
       ) : null,
       balcao: <VouchersMarca />,
+      opiniao: (
+        <Secao titulo="Como foi a edição para a sua casa?" nota="Conte à organização o que funcionou, o que pode melhorar e se a casa tem interesse nas próximas edições. Leva poucos minutos.">
+          <button className="acao" type="button" onClick={() => irPara('opiniao')}>Dar minha opinião</button>
+        </Secao>
+      ),
       pendencias: grupos.length ? <Pendencias grupos={grupos} itens={itens} ir={ir} irPara={irPara} alemDoDestaque={!!plano.fora} /> : null,
       acompanhamento: <Acompanhamento progresso={textoProgresso(resumo)} linhas={linhasDeAcompanhamento({ resumo, dados: dadosMarca })} irPara={irPara} />,
       comunicacao: (
