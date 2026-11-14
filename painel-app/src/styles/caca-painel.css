@@ -31,6 +31,7 @@
 .cp-cartao { display: grid; align-content: start; gap: var(--e-2); padding: var(--e-3); border: 1px solid var(--scw-linha); border-radius: var(--r-2); background: var(--sup-2); min-width: 0; }
 /* Foto do pedido à vista (lista de uma pessoa): inteira, sem cortar, para dar para ver se é foto ou print. */
 .cp-foto { display: grid; place-items: center; width: 100%; min-height: 120px; padding: 0; border: 1px solid var(--scw-linha); border-radius: var(--r-2); background: var(--sup-2); cursor: zoom-in; overflow: hidden; }
+.cp-foto-bloco { display: grid; gap: 6px; min-width: 0; }
 .cp-foto img { display: block; width: 100%; height: auto; max-height: 420px; object-fit: contain; }
 .cp-cartao__topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-2); }
 .cp-cartao__quem { display: grid; gap: 2px; font: 700 16px/1.2 var(--f-ui); color: var(--scw-choco); }

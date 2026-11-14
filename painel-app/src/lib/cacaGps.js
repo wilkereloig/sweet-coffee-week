@@ -102,3 +102,21 @@ export function textoSemGps(r) {
   if (pend > 0) partes.push(`${pend} pedido${pend === 1 ? '' : 's'} de presença aguardando decisão`)
   return partes.join(' · ')
 }
+
+/**
+ * Pista sobre a foto de um pedido, pela MEDIDA (14/11/2026). O site regrava a foto no celular antes de enviar
+ * (src/edicao/caca/delivery/imagem.js: lado maior até 1600 px), o que apaga os metadados; a proporção sobra.
+ *   · foto da câmera do celular é grande → chega com o lado maior em 1600 px, em proporção de câmera (3:4, 16:9, 1:1);
+ *   · tela inteira de celular (9:19,5 ou 9:20) → também 1600 de altura, mas estreita: print;
+ *   · lado maior abaixo de 1600 → não veio da câmera: print, recorte de print ou imagem já reduzida por outro app (WhatsApp).
+ * É pista, não prova: quem decide é a organização. `tom` segue o Selo.
+ */
+export function pistaDaFoto(largura, altura) {
+  const w = Number(largura) || 0; const h = Number(altura) || 0
+  if (w < 1 || h < 1) return null
+  const maior = Math.max(w, h); const razao = Math.min(w, h) / maior
+  const medida = `${w} × ${h} px`
+  if (maior >= 1590 && razao < 0.48) return { tipo: 'tela', tom: 'atencao', texto: 'Parece print de tela inteira', medida }
+  if (maior >= 1590) return { tipo: 'camera', tom: 'ok', texto: 'Formato de foto da câmera', medida }
+  return { tipo: 'menor', tom: 'atencao', texto: 'Menor que foto da câmera: print, recorte ou imagem de outro app', medida }
+}

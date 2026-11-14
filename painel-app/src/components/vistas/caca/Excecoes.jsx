@@ -5,7 +5,7 @@ import { pedirTexto, avisar, confirmar } from '../../Confirmar'
 import { cacaApi, horaNatal } from '../../../lib/caca'
 import {
   FILTROS_PEDIDO, filtrarPedidos, rotuloMotivoPedido, rotuloPedido, tomPedido, descricaoDoSinal, podeDecidir, textoDaDecisao, aguardandoACasa, deliveryVencido,
-  aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido, notaSemProva, MIN_MOTIVO_SEM_PROVA,
+  aguardaEvidencia, aprovavelEmLote, FILTROS_RAPIDOS, filtrarRapido, notaSemProva, MIN_MOTIVO_SEM_PROVA, pistaDaFoto,
 } from '../../../lib/cacaGps'
 import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
 
@@ -19,17 +19,24 @@ import { useExecutar, Tabela, contatoDe, AvisoOk } from './comum'
 function FotoDoPedido({ p, aoAbrir }) {
   const [src, setSrc] = React.useState(null)
   const [falhou, setFalhou] = React.useState(false)
+  const [pista, setPista] = React.useState(null)
   React.useEffect(() => {
     let vivo = true
-    setSrc(null); setFalhou(false)
+    setSrc(null); setFalhou(false); setPista(null)
     cacaApi.imagemDelivery(p.imagem).then((r) => { if (vivo) { if (r && r.url) setSrc(r.url); else setFalhou(true) } }).catch(() => { if (vivo) setFalhou(true) })
     return () => { vivo = false }
   }, [p.imagem])
   if (falhou) return <p className="cp-sub">Não deu para carregar a foto. Use “Ver imagem”.</p>
+  // Delivery: o comprovante costuma ser print do pedido, então a pista só aparece na visita anterior (ali se espera foto da visita).
+  const mostrarPista = pista && p.motivo !== 'delivery'
   return (
-    <button type="button" className="cp-foto" onClick={aoAbrir} aria-label={`Abrir em tamanho cheio a foto do pedido de ${p.apelido} em ${p.casa}`}>
-      {src ? <img src={src} alt={`Foto enviada por ${p.apelido} no pedido de ${p.casa}`} loading="lazy" decoding="async" onError={() => setFalhou(true)} /> : <span className="cp-sub">Carregando a foto…</span>}
-    </button>
+    <div className="cp-foto-bloco">
+      <button type="button" className="cp-foto" onClick={aoAbrir} aria-label={`Abrir em tamanho cheio a foto do pedido de ${p.apelido} em ${p.casa}`}>
+        {src ? <img src={src} alt={`Foto enviada por ${p.apelido} no pedido de ${p.casa}`} loading="lazy" decoding="async" onError={() => setFalhou(true)}
+          onLoad={(e) => setPista(pistaDaFoto(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight))} /> : <span className="cp-sub">Carregando a foto…</span>}
+      </button>
+      {mostrarPista && <p className="cp-sub"><Selo tom={pista.tom}>{pista.texto}</Selo> {pista.medida}</p>}
+    </div>
   )
 }
 

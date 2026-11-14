@@ -6,7 +6,7 @@ import path from 'node:path'
 import {
   RECADO_DELIVERY, codigoDeliveryCompleto, formatarCodigoDelivery, linhasDoPedido, normalizarCodigoDelivery, recadoDoDelivery,
 } from '../painel-app/src/lib/deliveryCasa.js'
-import { MOTIVO_PEDIDO, aguardandoACasa, aprovavelEmLote, descricaoDoSinal, podeDecidir, rotuloMotivoPedido, textoDaDecisao } from '../painel-app/src/lib/cacaGps.js'
+import { MOTIVO_PEDIDO, aguardandoACasa, aprovavelEmLote, pistaDaFoto, descricaoDoSinal, podeDecidir, rotuloMotivoPedido, textoDaDecisao } from '../painel-app/src/lib/cacaGps.js'
 import { ROTULO_ORIGEM, ROTULO_EVENTO } from '../painel-app/src/lib/caca.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
@@ -114,4 +114,22 @@ test('pedidos de uma pessoa: o filtro vai ao banco (sem o teto de 300) e a tela 
   assert.match(tela, /rotulo="Pessoa"/)
   assert.match(tela, /<FotoDoPedido /)
   assert.match(tela, /<img src=\{src\} alt=/)
+})
+
+test('pista da foto pela medida (as 16 fotos reais da Kami, 14/11): câmera = 1600 px; tela inteira e menores = print', () => {
+  // foto da câmera do iPhone (4032x3024 / 3024x4032) e 16:9, reduzidas a 1600 pelo site
+  assert.equal(pistaDaFoto(1600, 1200).tipo, 'camera')
+  assert.equal(pistaDaFoto(1200, 1600).tipo, 'camera')
+  assert.equal(pistaDaFoto(900, 1600).tipo, 'camera')
+  assert.equal(pistaDaFoto(1600, 1600).tipo, 'camera')
+  // tela inteira de iPhone (1179x2556 → 738x1600) e de Android (1080x2400 → 720x1600)
+  assert.equal(pistaDaFoto(738, 1600).tipo, 'tela')
+  assert.equal(pistaDaFoto(720, 1600).tipo, 'tela')
+  // recortes de print (largura de tela 1179 ou menos) — medidas reais recebidas
+  for (const [w, h] of [[1179, 1551], [1179, 556], [1132, 939], [942, 1171], [446, 685], [950, 956]]) assert.equal(pistaDaFoto(w, h).tipo, 'menor', w + 'x' + h)
+  assert.equal(pistaDaFoto(0, 0), null)
+  assert.match(pistaDaFoto(738, 1600).medida, /738 × 1600 px/)
+  const tela = ler('painel-app/src/components/vistas/caca/Excecoes.jsx')
+  assert.match(tela, /naturalWidth, e\.currentTarget\.naturalHeight/)
+  assert.match(tela, /p\.motivo !== 'delivery'/)
 })
