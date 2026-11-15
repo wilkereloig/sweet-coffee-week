@@ -15,7 +15,7 @@ import { tmpdir } from 'node:os'
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const SITE = 'https://www.sweetcoffeeweek.com.br'
-const IMG = { selo: '/images/email/selo-cartoon-email.png', apoios: '/images/email/apoios-email.png', obrigado: '/images/email/encerramento/obrigado.jpg', disputa: '/images/email/encerramento/disputa.jpg' }
+const IMG = { selo: '/images/email/selo-cartoon-email.png', apoios: '/images/email/apoios-email.png', obrigado: '/images/email/encerramento/obrigado.jpg', disputa: '/images/email/encerramento/disputa.jpg', revisao: '/images/email/encerramento/revisao.jpg' }
 // Cenário de Natal colorido (o mesmo do prisma "Você decide!" e do adesivo). Mora no Dropbox da edição; só a arte final vai para o site.
 const CENARIO = 'F:/F2 Experience Dropbox/Criação ELOI Design/SWEET&COFFEE WEEK/2026.2 SCW CARTOONS/06_MATERIAIS_PDV/01_ADESIVO_45X45/_bastidores/cenario-natal-colorido.png'
 const CONTATO = 'contato@sweetcoffeeweek.com.br'
@@ -28,6 +28,7 @@ const C = { creme: '#FDF0DE', amarelo: '#FDB901', choco: '#3A150F', rosa: '#E819
 const HEROIS = {
   obrigado: { fundo: C.amarelo, ponto: 'rgba(58,21,15,.13)', etiqueta: 'CAÇA AOS CARIMBOS', linhas: ['OBRIGADO,', 'SWEET LOVER!'], letra: C.rosa, sombra: C.choco },
   disputa: { fundo: C.roxo, ponto: 'rgba(253,240,222,.16)', etiqueta: 'PRÊMIO FINAL', linhas: ['TÁ NA', 'DISPUTA!'], letra: C.amarelo, sombra: C.vermelho },
+  revisao: { fundo: C.creme, ponto: 'rgba(58,21,15,.10)', etiqueta: 'CAÇA AOS CARIMBOS', linhas: ['SOBRE O', 'SEU MAPA'], letra: C.roxo, sombra: C.amarelo },
 }
 
 function heroiHTML (h, cenario, fonte) {
@@ -173,6 +174,43 @@ export const MODELOS = {
   },
 }
 
+/**
+ * Anulação de carimbos na conferência final (Wilker, 14/11): texto respeitoso, motivo, base no regulamento, direito de contestar.
+ * Marcadores: {{MOTIVO_HTML}}/{{MOTIVO_TEXTO}} (MOTIVOS abaixo) e {{CASAS_HTML}}/{{CASAS_TEXTO}} (lista das casas anuladas).
+ */
+MODELOS.anulacao = function () {
+  const assunto = 'Sobre alguns carimbos do seu mapa na Caça aos Carimbos'
+  const resposta = `mailto:${CONTATO}?subject=${encodeURIComponent('Revisão dos meus carimbos')}`
+  const html = moldura({
+    assunto, previa: 'Na conferência final, alguns carimbos do seu mapa não puderam ser mantidos. Explicamos aqui.', heroi: IMG.revisao,
+    alt: 'Sobre o seu mapa. Caça aos Carimbos, edição Cartoon do Sweet & Coffee Week',
+    corpo: [
+      titulo('Oi, Sweet Lover!', C.roxo),
+      p('Antes de tudo, obrigado por ter entrado na Caça aos Carimbos da edição Cartoon. Foi muito bom ver tanta gente rodando a cidade atrás dos combos.'),
+      p('Antes de divulgar os ganhadores, a nossa equipe confere todos os mapas, carimbo por carimbo. Nessa conferência, <strong>alguns carimbos do seu mapa precisaram ser anulados</strong>, e a gente quer explicar o porquê com transparência.'),
+      caixa([subtitulo('O que aconteceu'), '{{MOTIVO_HTML}}', subtitulo('Carimbos anulados'), '{{CASAS_HTML}}'].join('')),
+      p('O regulamento da Caça já previa essa etapa: a organização confere os mapas antes do resultado e pode anular carimbos que não comprovam a visita. Os outros carimbos do seu mapa continuam valendo normalmente.'),
+      subtitulo('Acha que foi um engano?'),
+      p('Pode contestar, sim. Responda este e-mail contando como foi a visita e, se tiver, mande a foto original, tirada por você na casa. A gente analisa cada caso com atenção e, se a visita se confirmar, o carimbo volta para o seu mapa. Como o resultado do prêmio final sai na segunda, 16/11, quanto antes você escrever, melhor.'),
+      botao('Pedir revisão', resposta),
+      p('Obrigado pela compreensão e por fazer parte desta edição com a gente.'),
+      `<p style="margin:4px 0 18px;font-size:16px;line-height:1.6;color:${C.choco};">Um abraço,<br><strong>Equipe Sweet &amp; Coffee Week</strong><br><span style="font-size:14px;color:#5a4038;">${CONTATO}</span></p>`,
+    ].join('\n'),
+  })
+  const texto = ['Oi, Sweet Lover!', '', 'Antes de tudo, obrigado por ter entrado na Caça aos Carimbos da edição Cartoon. Foi muito bom ver tanta gente rodando a cidade atrás dos combos.', '', 'Antes de divulgar os ganhadores, a nossa equipe confere todos os mapas, carimbo por carimbo. Nessa conferência, alguns carimbos do seu mapa precisaram ser anulados, e a gente quer explicar o porquê com transparência.', '', 'O que aconteceu:', '{{MOTIVO_TEXTO}}', '', 'Carimbos anulados:', '{{CASAS_TEXTO}}', '', 'O regulamento da Caça já previa essa etapa: a organização confere os mapas antes do resultado e pode anular carimbos que não comprovam a visita. Os outros carimbos do seu mapa continuam valendo normalmente.', '', 'Acha que foi um engano? Pode contestar, sim. Responda este e-mail contando como foi a visita e, se tiver, mande a foto original, tirada por você na casa. A gente analisa cada caso com atenção e, se a visita se confirmar, o carimbo volta para o seu mapa. Como o resultado do prêmio final sai na segunda, 16/11, quanto antes você escrever, melhor.', '', 'Obrigado pela compreensão e por fazer parte desta edição com a gente.', '', 'Um abraço,', 'Equipe Sweet & Coffee Week', CONTATO].join('\n')
+  return { assunto, html, texto }
+}
+/** Motivo por tipo de anulação (texto curto, sem acusar; o HTML vai dentro da caixa). */
+export const MOTIVOS = {
+  print: 'Estes carimbos vieram de pedidos de visita com uma foto que é uma captura de tela (print) de outra imagem, sem nenhum relato da visita. Um print não mostra que a visita foi sua, então ele não comprova a presença na casa.',
+  sem_prova: 'Estes carimbos vieram de pedidos aprovados sem foto e sem nenhum relato da visita. Na conferência final, só continuam valendo os carimbos feitos na casa com a localização conferida e os pedidos com foto ou relato da visita.',
+  gps: 'Estes carimbos foram feitos com uma localização que não é a real do celular (aplicativo de GPS falso ou simulador): todos chegaram com a mesma precisão de 1 metro, um sinal que o GPS de verdade não dá.',
+}
+export const motivoHTML = (tipos) => tipos.map((t) => p(esc(MOTIVOS[t]), 'margin-bottom:10px;')).join('')
+export const motivoTexto = (tipos) => tipos.map((t) => MOTIVOS[t]).join('\n\n')
+export const casasHTML = (casas) => `<ul style="margin:0 0 4px;padding-left:20px;font-size:16px;line-height:1.6;color:${C.choco};">${casas.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>`
+export const casasTextoLista = (casas) => casas.map((c) => `- ${c}`).join('\n')
+
 export const WPP_HTML = caixa(p('<strong>Falta só uma coisa:</strong> não temos o seu WhatsApp. Responda este e-mail com o seu número para a gente conseguir falar com você.', 'margin:0;'), C.rosa)
 export const WPP_TEXTO = '\nFalta só uma coisa: não temos o seu WhatsApp. Responda este e-mail com o seu número para a gente conseguir falar com você.\n'
 export const casasTexto = (n) => (n === 1 ? '1 casa carimbada' : `${n} casas carimbadas`)
@@ -186,6 +224,7 @@ async function previa () {
     'encerramento-obrigado': MODELOS.obrigado().html.replace('{{CASAS_TEXTO}}', casasTexto(12)),
     'encerramento-disputa': MODELOS.disputa().html.replace('{{WPP_HTML}}', ''),
     'encerramento-disputa-sem-whatsapp': MODELOS.disputa().html.replace('{{WPP_HTML}}', WPP_HTML),
+    'anulacao-print': MODELOS.anulacao().html.replace('{{MOTIVO_HTML}}', motivoHTML(['print'])).replace('{{CASAS_HTML}}', casasHTML(['Jolie Café Pâtisserie', 'Mangai'])),
   }
   const b = await chromium.launch()
   for (const [nome, html] of Object.entries(pecas)) {
@@ -206,4 +245,4 @@ if (cmd === 'herois') await gerarHerois()
 else if (cmd === 'previa') await previa()
 else if (cmd === 'modelo' && MODELOS[arg]) process.stdout.write(JSON.stringify(MODELOS[arg]()))
 else if (cmd === 'casas') process.stdout.write(MENSAGEM_CASAS)
-else if (cmd) { console.error('uso: herois | previa | modelo <obrigado|disputa> | casas'); process.exit(1) }
+else if (cmd) { console.error('uso: herois | previa | modelo <obrigado|disputa|anulacao> | casas'); process.exit(1) }
