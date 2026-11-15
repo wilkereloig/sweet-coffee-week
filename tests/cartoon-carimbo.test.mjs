@@ -43,7 +43,8 @@ test('recusas explicam o que fazer, com a hora no fuso de Natal', () => {
   assert.equal(longe.titulo, 'Você não parece estar na Caroli Douces')
   assert.match(longe.texto, /1,2 km/)
   assert.equal(C.distanciaTexto(643), '640 m')
-  for (const motivo of ['sem_localizacao', 'nao_aberta', 'encerrada', 'qr_invalido', 'mapa_desconhecido', 'qualquer']) {
+  assert.match(C.mensagemRecusa({ motivo: 'gps_falso' }).titulo, /localização falsa/)
+  for (const motivo of ['sem_localizacao', 'nao_aberta', 'encerrada', 'qr_invalido', 'mapa_desconhecido', 'gps_falso', 'qualquer']) {
     const m = C.mensagemRecusa({ motivo })
     assert.ok(m.titulo && m.texto, motivo)
     assert.doesNotMatch(m.titulo + m.texto, /\bSweet\b(?! (Lovers?|Awards|&))/, 'nunca "Sweet" sozinho')

@@ -122,6 +122,7 @@ export function mensagemRecusa (r, { casa = 'esta casa', agora = new Date() } = 
     case 'qr_invalido': return { titulo: 'Este QR não vale', texto: 'Ele não é da Caça aos Carimbos desta edição ou foi trocado. Leia o adesivo que está no balcão da casa.' }
     case 'casa_sem_combo': return { titulo: 'Esta casa ainda não tem combo', texto: 'O carimbo só vale em casa com combo para avaliar. Quando o combo da casa entrar no ar, o carimbo abre.' }
     case 'sem_ponto': return { titulo: 'Esta casa precisa de uma conferência', texto: 'O ponto exato desta casa ainda está sendo conferido, e o QR sozinho não prova que você está lá. Você pode pedir à organização que confira a sua visita.' }
+    case 'gps_falso': return { titulo: 'Detectamos uma localização falsa', texto: 'Seu celular tentou carimbar com uma localização que não é real (app de GPS falso ou simulador). O carimbo não foi registrado. Localização falsa anula os carimbos e pode desclassificar o mapa.' }
     case 'mapa_desconhecido': return { titulo: 'Não achamos seu mapa', texto: 'Abra pelo seu link pessoal ou comece um mapa novo.' }
     default: return { titulo: 'Não deu para carimbar agora', texto: 'Tente de novo em instantes.' }
   }
