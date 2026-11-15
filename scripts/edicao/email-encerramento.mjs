@@ -202,7 +202,7 @@ MODELOS.anulacao = function () {
 }
 /** Motivo por tipo de anulação (texto curto, sem acusar; o HTML vai dentro da caixa). */
 export const MOTIVOS = {
-  print: 'Estes carimbos vieram de pedidos de visita com uma foto que é uma captura de tela (print) de outra imagem, sem nenhum relato da visita. Um print não mostra que a visita foi sua, então ele não comprova a presença na casa.',
+  print: 'Estes carimbos vieram de pedidos de visita com uma imagem que é uma captura de tela (print), e não a foto original da visita, sem nenhum relato. Um print não mostra que a visita foi sua, então ele não comprova a presença na casa.',
   sem_prova: 'Estes carimbos vieram de pedidos aprovados sem foto e sem nenhum relato da visita. Na conferência final, só continuam valendo os carimbos feitos na casa com a localização conferida e os pedidos com foto ou relato da visita.',
   gps: 'Estes carimbos foram feitos com uma localização que não é a real do celular (aplicativo de GPS falso ou simulador): todos chegaram com a mesma precisão de 1 metro, um sinal que o GPS de verdade não dá.',
 }
