@@ -102,7 +102,6 @@ const CURIOSIDADES = {
   ],
   '2026.2': [
     { t: 'Caça aos Carimbos', x: 'Quem visitava uma casa participante registrava um carimbo digital no mapa da edição.' },
-    { t: 'Júri técnico', x: 'O Senac formou o júri técnico da edição.' },
   ],
 }
 

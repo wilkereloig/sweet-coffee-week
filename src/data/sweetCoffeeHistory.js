@@ -2607,7 +2607,7 @@ export const SWEET_COFFEE_HISTORY = {
       "formato": "1 doce + 1 salgado + 1 bebida",
       "premiacao": {
         "status": "em-apuracao",
-        "observacao": "Sweet Awards — avaliação do público e júri técnico. Edição encerrada em 15/11/2026; resultado em apuração. Não preencher categorias nem pódios antes da divulgação oficial.",
+        "observacao": "Sweet Awards — avaliação do público. Edição encerrada em 15/11/2026; resultado em apuração. Não preencher categorias nem pódios antes da divulgação oficial.",
         "categorias": []
       },
       "patrocinadores": {
