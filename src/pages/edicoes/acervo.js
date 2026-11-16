@@ -107,7 +107,9 @@ export function anos(edicoes = EDICOES) {
   grupos.reverse()
   return grupos.map((g, i) => ({
     ...g,
-    largura: i === 0 ? 'dupla' : i === grupos.length - 1 ? 'inteira' : null,
+    /* Largura dupla só com UMA edição no ano: com duas, cada cartão já ocupa
+       uma coluna (edx-ano--par) e a dupla empilharia os dois na mesma célula. */
+    largura: i === grupos.length - 1 ? 'inteira' : i === 0 && g.edicoes.length === 1 ? 'dupla' : null,
   }))
 }
 
