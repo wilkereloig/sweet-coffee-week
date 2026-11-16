@@ -5,6 +5,10 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { normalizarCodigo, destinoDoCodigo } from '../src/edicao/qrPontos.js'
+import { CARTOON_PUBLICA } from '../src/edicao/config.js'
+
+// Edição encerrada (CARTOON_PUBLICA desligada, 16/11/2026): toda peça impressa abre a Home. Com a edição no ar, vale a regra do código.
+const d = (caminho) => (CARTOON_PUBLICA ? caminho : '/')
 import handler, { responder, config } from '../api/q.js'
 
 const raiz = path.resolve(import.meta.dirname, '..')
@@ -34,23 +38,23 @@ function bancoFalso (resposta = null, status = 200) {
 
 test('regra do código: cada peça leva para o destino certo e o resto vai para a entrada da edição', () => {
   const casos = [
-    ['d1-cookitos', '/cartoon/combos/cookitos'],
-    ['d1-casa-1190-restaurante-e-coffee', '/cartoon/combos/casa-1190-restaurante-e-coffee'],
-    ['d2-cookitos', '/cartoon/avaliar'],
-    ['pl-geral', '/cartoon'],
-    ['inicio', '/cartoon'],
-    ['avaliar', '/cartoon/avaliar'],
-    ['premiacao', '/cartoon/premiacao'],
-    ['patrocinador', '/cartoon'],
-    ['constructor', '/cartoon'],
-    ['mapa-bitly', '/cartoon/mapa'],
-    ['teste', '/cartoon'],
-    ['d1', '/cartoon'], // sem casa
-    ['qualquer-outra-coisa', '/cartoon'],
-    ['D1-Cookitos', '/cartoon/combos/cookitos'], // maiúscula é normalizada
-    ['', '/cartoon'], [null, '/cartoon'], [undefined, '/cartoon'],
-    ['../etc/passwd', '/cartoon'], ['d1-a b', '/cartoon'], ['d1--x', '/cartoon'], ['d1-x-', '/cartoon'],
-    ['x'.repeat(81), '/cartoon'],
+    ['d1-cookitos', d('/cartoon/combos/cookitos')],
+    ['d1-casa-1190-restaurante-e-coffee', d('/cartoon/combos/casa-1190-restaurante-e-coffee')],
+    ['d2-cookitos', d('/cartoon/avaliar')],
+    ['pl-geral', d('/cartoon')],
+    ['inicio', d('/cartoon')],
+    ['avaliar', d('/cartoon/avaliar')],
+    ['premiacao', d('/cartoon/premiacao')],
+    ['patrocinador', d('/cartoon')],
+    ['constructor', d('/cartoon')],
+    ['mapa-bitly', d('/cartoon/mapa')],
+    ['teste', d('/cartoon')],
+    ['d1', d('/cartoon')], // sem casa
+    ['qualquer-outra-coisa', d('/cartoon')],
+    ['D1-Cookitos', d('/cartoon/combos/cookitos')], // maiúscula é normalizada
+    ['', d('/cartoon')], [null, d('/cartoon')], [undefined, d('/cartoon')],
+    ['../etc/passwd', d('/cartoon')], ['d1-a b', d('/cartoon')], ['d1--x', d('/cartoon')], ['d1-x-', d('/cartoon')],
+    ['x'.repeat(81), d('/cartoon')],
   ]
   for (const [codigo, esperado] of casos) assert.equal(destinoDoCodigo(codigo), esperado, `código ${JSON.stringify(codigo)}`)
 })
@@ -69,7 +73,7 @@ test('leitura normal: conta uma vez e redireciona 302 para a página da casa, co
     cab: { 'x-vercel-ip-country': 'BR', 'x-vercel-ip-country-region': 'RN', 'x-vercel-ip-city': 'Natal' },
   }), { fetchImpl })
   assert.equal(r.status, 302)
-  assert.equal(r.headers.get('location'), `${ORIGEM}/cartoon/combos/cookitos?${UTM}&utm_content=d1-cookitos`)
+  assert.equal(r.headers.get('location'), `${ORIGEM}${d('/cartoon/combos/cookitos')}?${UTM}&utm_content=d1-cookitos`)
   assert.equal(r.headers.get('cache-control'), 'no-store', 'redirecionamento em cache faria a leitura não contar')
   assert.equal(r.headers.get('x-robots-tag'), 'noindex')
   assert.equal(chamadas.length, 1)
@@ -137,7 +141,7 @@ test('NUNCA quebra: banco lento é abandonado no limite e o QR redireciona do me
   const r = await responder(pedido('d1-cookitos'), { fetchImpl: lento, limiteMs: 25 })
   assert.ok(Date.now() - t0 < 1000, 'esperou o banco além do limite')
   assert.equal(r.status, 302)
-  assert.equal(r.headers.get('location'), `${ORIGEM}/cartoon/combos/cookitos?${UTM}&utm_content=d1-cookitos`)
+  assert.equal(r.headers.get('location'), `${ORIGEM}${d('/cartoon/combos/cookitos')}?${UTM}&utm_content=d1-cookitos`)
 })
 
 test('destino manual do banco vale; o que não é caminho do próprio site é ignorado', async () => {
@@ -160,7 +164,7 @@ test('código inválido não chama o banco e vai para a entrada da edição, sem
     const { fetchImpl, chamadas } = bancoFalso(null)
     const r = await responder(pedido(ruim), { fetchImpl })
     assert.equal(r.status, 302)
-    assert.equal(r.headers.get('location'), `${ORIGEM}/cartoon?${UTM}`)
+    assert.equal(r.headers.get('location'), `${ORIGEM}${d('/cartoon')}?${UTM}`)
     assert.equal(chamadas.length, 0, `chamou o banco com ${JSON.stringify(ruim)}`)
   }
 })
@@ -178,7 +182,7 @@ test('maiúscula vira minúscula e o último pedaço do caminho vale quando não
 test('a origem do pedido manda: prévia da Vercel e domínio oficial redirecionam para si mesmos', async () => {
   const previa = 'https://sweet-coffee-week-git-qr-abc.vercel.app'
   const r = await responder(pedido('pl-geral', { origem: previa }), { fetchImpl: bancoFalso(null).fetchImpl })
-  assert.equal(r.headers.get('location'), `${previa}/cartoon?${UTM}&utm_content=pl-geral`)
+  assert.equal(r.headers.get('location'), `${previa}${d('/cartoon')}?${UTM}&utm_content=pl-geral`)
 })
 
 test('api/q.js é função de borda e o rewrite entrega /q/:codigo a ela', () => {

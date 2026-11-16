@@ -1,5 +1,5 @@
 // GERADO por scripts/combos-edicoes.py a partir de scripts/combos-edicoes.json.
-// Um combo por marca participante, edições 2017.2 a 2025. Não editar à mão.
+// Um combo por marca participante, edições 2017.2 a 2025 e 2026.2. Não editar à mão.
 export const EDITION_COMBOS = {
   "2017.2": [
     { marca: "Barões do Café", src: "/images/edicoes/2017.2/combos/baroes-do-cafe.webp" },
@@ -348,5 +348,34 @@ export const EDITION_COMBOS = {
     { marca: "Sweet Duo Confeitaria", src: "/images/edicoes/2025/combos/sweet-duo-confeitaria.webp" },
     { marca: "Território Mexicano", src: "/images/edicoes/2025/combos/territorio-mexicano.webp" },
     { marca: "Wow Cookies", src: "/images/edicoes/2025/combos/wow-cookies.webp" },
+  ],
+  "2026.2": [
+    { marca: "Adocee Doceria", src: "/images/edicoes/2026.2/combos/adocee-doceria.webp" },
+    { marca: "Boldfood Confeitaria Inclusiva", src: "/images/edicoes/2026.2/combos/boldfood-confeitaria-inclusiva.webp" },
+    { marca: "Bolomania", src: "/images/edicoes/2026.2/combos/bolomania.webp" },
+    { marca: "Caffè Basilico's", src: "/images/edicoes/2026.2/combos/caffe-basilico-s.webp" },
+    { marca: "Canuto's", src: "/images/edicoes/2026.2/combos/canuto-s.webp" },
+    { marca: "Carcará", src: "/images/edicoes/2026.2/combos/carcara.webp" },
+    { marca: "Caroli Douces", src: "/images/edicoes/2026.2/combos/caroli-douces.webp" },
+    { marca: "Casa 1190 - Restaurant e Coffee", src: "/images/edicoes/2026.2/combos/casa-1190-restaurant-e-coffee.webp" },
+    { marca: "Casa Alice Doceria", src: "/images/edicoes/2026.2/combos/casa-alice-doceria.webp" },
+    { marca: "Cookitos", src: "/images/edicoes/2026.2/combos/cookitos.webp" },
+    { marca: "Delicato Bolos", src: "/images/edicoes/2026.2/combos/delicato-bolos.webp" },
+    { marca: "Diva do Café", src: "/images/edicoes/2026.2/combos/diva-do-cafe.webp" },
+    { marca: "Jolie Café Pâtisserie", src: "/images/edicoes/2026.2/combos/jolie-cafe-patisserie.webp" },
+    { marca: "Just Food&Coffee", src: "/images/edicoes/2026.2/combos/just-food-coffee.webp" },
+    { marca: "Maison Julie Douceur", src: "/images/edicoes/2026.2/combos/maison-julie-douceur.webp" },
+    { marca: "Mangai", src: "/images/edicoes/2026.2/combos/mangai.webp" },
+    { marca: "Mariana's Confeitaria", src: "/images/edicoes/2026.2/combos/mariana-s-confeitaria.webp" },
+    { marca: "Marlon Vinicius", src: "/images/edicoes/2026.2/combos/marlon-vinicius.webp" },
+    { marca: "Mr. Cupcake Confeitaria", src: "/images/edicoes/2026.2/combos/mr-cupcake-confeitaria.webp" },
+    { marca: "O Maestro Café", src: "/images/edicoes/2026.2/combos/o-maestro-cafe.webp" },
+    { marca: "Padoca do Bosque", src: "/images/edicoes/2026.2/combos/padoca-do-bosque.webp" },
+    { marca: "Paneer Pâtisserie", src: "/images/edicoes/2026.2/combos/paneer-patisserie.webp" },
+    { marca: "Parma Doces", src: "/images/edicoes/2026.2/combos/parma-doces.webp" },
+    { marca: "Sabor de Pão", src: "/images/edicoes/2026.2/combos/sabor-de-pao.webp" },
+    { marca: "Sweet Duo Confeitaria", src: "/images/edicoes/2026.2/combos/sweet-duo-confeitaria.webp" },
+    { marca: "Vivianne Castro Doces", src: "/images/edicoes/2026.2/combos/vivianne-castro-doces.webp" },
+    { marca: "Wow Cookies", src: "/images/edicoes/2026.2/combos/wow-cookies.webp" },
   ],
 }

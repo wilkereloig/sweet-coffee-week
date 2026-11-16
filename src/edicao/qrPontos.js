@@ -15,8 +15,9 @@
  *           patrocinador  verso do mapa A5 (a página própria saiu, 04/11)   → entrada da edição
  *           d2-<slug>, pl-…  sem peça impressa desde 30/10/2026 (a avaliação virou um QR só); a regra fica
  *           qualquer outro                                                → entrada da edição (nunca erro)
+ *           ⚠️ com CARTOON_PUBLICA desligada (edição encerrada), TODO código → '/' (Home institucional)
  */
-import { EDICAO, MAPA_PUBLICO } from './config.js'
+import { EDICAO, CARTOON_PUBLICA, MAPA_PUBLICO } from './config.js'
 
 // Mesmo desenho do slug da casa: minúsculas e dígitos, hífen só entre eles.
 const CODIGO = /^[a-z0-9]+(-[a-z0-9]+)*$/
@@ -35,6 +36,9 @@ export function normalizarCodigo (bruto) {
  * reconhece vai para a entrada da edição.
  */
 export function destinoDoCodigo (bruto) {
+  // Edição fora do ar (encerrada, 16/11/2026): toda peça impressa abre a Home, que diz que a edição terminou.
+  // A leitura continua sendo contada em api/q.js. Religou CARTOON_PUBLICA, a regra abaixo volta a valer.
+  if (!CARTOON_PUBLICA) return '/'
   const base = EDICAO.caminho
   const codigo = normalizarCodigo(bruto)
   if (!codigo) return base

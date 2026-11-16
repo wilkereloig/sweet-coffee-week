@@ -6,14 +6,17 @@
 
    O que existe no acervo (public/), e o que NÃO existe:
 
-   · `/images/edicoes/<code>/NN.webp` — 11 a 12 fotos POR EDIÇÃO, das 16 edições.
+   · `/images/edicoes/<code>/NN.webp` — 11 a 12 fotos POR EDIÇÃO, de 2016 a 2026.1.
+     A Cartoon (2026.2) não tem registros avulsos: a galeria dela aponta para
+     os próprios combos por marca (editionGallery.js).
      São registros da edição (combos, lojas, público) SEM rótulo de participante:
      o acervo não diz qual foto é de qual marca. Por isso a legenda fala da
      edição, nunca de um participante específico — atribuir seria invenção.
    · `/images/combos/<slug>/main.jpg` + `photo-NN.jpg` — fotos POR PARTICIPANTE
      da edição Lovers (2026.1), 21 marcas.
    · `/images/edicoes/<code>/combos/<slug>.webp` — UMA foto de combo por
-     participante das edições 2017.2 a 2025, escolhida nas pastas "combos por
+     participante das edições 2017.2 a 2025 e da Cartoon (2026.2, os 27 combos
+     aprovados da edição), escolhida nas pastas "combos por
      participante" do acervo bruto (14/10/2026). Manifesto em editionCombos.js.
      2016, 2017.1 e 2018.2 não têm esse vínculo no acervo.
    · `/images/marcas-edicoes/<code>/logo.png` — marca de cada edição.

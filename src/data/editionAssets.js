@@ -32,6 +32,9 @@ const EXISTING_MARKS = {
   '2024':   '/images/marcas-edicoes/2024/logo.png',
   '2025':   '/images/marcas-edicoes/2025/logo.png',
   '2026.1': '/images/marcas-edicoes/2026.1/logo.png',
+  // Cartoon: o selo oficial da edição já vive no repositório (camada de edição). A página usa
+  // <img src> direto, então aponta para a versão de 960px (115 KB), no peso das outras marcas.
+  '2026.2': '/images/marcas-edicoes/2026.2/selo/selo-cartoon-960.webp',
 }
 
 /* Apresentação de cada marca quando ela aparece em lista (histórico do Sweet

@@ -11,9 +11,9 @@ código precisa saber.
 | Dado | Valor |
 |---|---|
 | Primeira edição | setembro de **2016** |
-| Edições realizadas | **16** |
-| Participações somadas | **410** |
-| Marcas distintas | **123** |
+| Edições realizadas | **17** (Cartoon, 2026.2, registrada em 16/11/2026) |
+| Participações somadas | **437** |
+| Marcas distintas | **131** |
 | Marcas que já subiram ao pódio | **44** |
 | Colocações no total | **271** |
 | Edições premiadas | **11** (as 5 primeiras não tiveram premiação) |
@@ -38,6 +38,15 @@ código precisa saber.
 | 2024 | Books | 29 |
 | 2025 | Celebration | 26 |
 | 2026.1 | Lovers | 21 |
+| 2026.2 | Cartoon | 27 |
+
+✅ **Cartoon (2026.2) no acervo desde 16/11/2026.** Nomes e valor do combo conferidos no painel. Oito marcas
+estreantes (Boldfood, Casa Alice, Cookitos, Diva do Café, Maison Julie, Mariana's, Sabor de Pão, Vivianne Castro:
+`sem_correspondencia_no_acervo`/novas no painel) levam 123 → 131. Dois aliases novos: "Marlon Vinicius - Confeitaria e
+Café" → Marlon Vinicius; "Casa 1190 Restaurante e Coffee" → Casa 1190 - Restaurant e Coffee. **Diva do Café não é a
+Diva Café de 2024** (o painel não liga as duas). Premiação: `status: 'em-apuracao'`, sem categorias — a edição não
+entra no Sweet Awards nem no Hall até a divulgação oficial. Fotos: os 27 combos aprovados, por marca
+(`scripts/combos-edicoes.json`, caminho absoluto da pasta da edição); a galeria da edição aponta para eles.
 
 ⚠️ **As duas mudanças em relação ao código (2021.2 e 2022) vêm de duplicação de marca,
 não de participante a mais ou a menos.** A Fran's conta uma vez em 2021.2; a Caramel
@@ -144,7 +153,7 @@ como NÃO PUBLICAR.**
 
 ### 9.6 Patrocinadores e parceiros
 
-⛔ **Patrocinadores e parceiros não são exibidos por enquanto.** A página Apoiar mostra
+⛔ **Patrocinadores e parceiros não são exibidos por enquanto.** (Exceção de 16/11/2026, pedido do Wilker: a seção Encerramento da Home agradece Sicredi, Senac e Espaço Reduzido pela edição Cartoon, §7.1.) A página Apoiar mostra
 **formatos de ativação** — o que já foi feito, sem nomear a marca:
 
 | Formato | Exemplo real (não nomeado no site) |

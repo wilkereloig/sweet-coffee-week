@@ -1,7 +1,7 @@
 /*
  * CÁLCULOS DO ACERVO — Sweet & Coffee Week.
- * Fonte oficial: src/data/sweetCoffeeHistory.js (SWEET_COFFEE_HISTORY, 16 edições
- * 2016–2026.1, com participantAliases/categoryAliases). Os pódios da 16ª edição
+ * Fonte oficial: src/data/sweetCoffeeHistory.js (SWEET_COFFEE_HISTORY, 17 edições
+ * 2016–2026.2, com participantAliases/categoryAliases). Os pódios da 16ª edição
  * (Lovers 2026.1) vêm de src/data/loversAwardsResults.js quando a base ainda não
  * os traz estruturados. Nada inventado; empates preservados.
  *
@@ -82,7 +82,7 @@ function editionAwards(ed) {
   }))
 }
 
-// Modelo interno uniforme das 16 edições.
+// Modelo interno uniforme das edições da base.
 const EDITIONS = edicoes.map((ed) => ({
   id: ed.id,
   code: ed.id,
@@ -209,7 +209,7 @@ export function getCurrentEditionScenes() {
   }))
 }
 
-// ---- Totais de pódio (pos 1/2/3) por marca, nas 16 edições (2026.1 já entra certo). ----
+// ---- Totais de pódio (pos 1/2/3) por marca, em todas as edições (2026.1 já entra certo; 2026.2 em apuração, sem pódio). ----
 export function getPodiumTotals() {
   const map = new Map()
   for (const r of collectAwardEntries()) {
@@ -265,7 +265,7 @@ export function getTieStats() {
   return { totalTiedPlacements: ties.length, examples }
 }
 
-// ---- Cobertura de dados: quantas das 16 edições têm pódio registrado. ----
+// ---- Cobertura de dados: quantas edições têm pódio registrado ('em-apuracao' = ainda sem). ----
 export function getResultsCoverage() {
   const ordered = [...EDITIONS].sort((a, b) => a.ordem - b.ordem)
   const withoutResults = ordered.filter((e) => e.status !== 'completa' && e.status !== 'completa_em_publicacoes_oficiais')

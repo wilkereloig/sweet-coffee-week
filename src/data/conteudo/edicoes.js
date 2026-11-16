@@ -1,5 +1,5 @@
 /*
- * Edições — identidade editorial das 16 edições e textos de interface da página.
+ * Edições — identidade editorial das 17 edições e textos de interface da página.
  *
  * Aqui só mora o que é EDITORIAL: o tema como a página o apresenta, a etapa
  * (a frase curta que acompanha o ano no detalhe) e a foto de capa escolhida
@@ -10,8 +10,9 @@
  *
  * `capa` é o número da foto no acervo da edição (a ordem de editionPhotos),
  * escolhida em 13/10/2026 olhando as 190 fotos: a que melhor resume o tema,
- * alternando detalhe de combo, composição completa e registro de gente. A
- * Lovers abre a coleção em largura dupla, então a capa dela é horizontal.
+ * alternando detalhe de combo, composição completa e registro de gente.
+ * A Cartoon (2026.2, registrada em 16/11/2026) não tem registros avulsos: o
+ * acervo dela são os 27 combos por marca, e a capa é um deles.
  * O índice é só uma escolha — o caminho continua sendo montado por
  * imageLibrary.editionPhotos().
  */
@@ -32,6 +33,7 @@ export const CENAS = [
   { code: '2024',   tema: 'Books',               etapa: 'Literatura e café',    capa: 8 },
   { code: '2025',   tema: 'Celebration',         etapa: 'Festa e rito',         capa: 2 },
   { code: '2026.1', tema: 'Lovers',              etapa: 'Especial 10 anos',     capa: 4 },
+  { code: '2026.2', tema: 'Cartoon',             etapa: 'Universo da animação', capa: 1 },
 ]
 
 /* Abertura da página: quatro registros de edições diferentes — um par de mãos,
@@ -50,6 +52,7 @@ export const PREMIACAO = {
   completa: 'Premiação registrada',
   completa_em_publicacoes_oficiais: 'Premiação registrada',
   parcial: 'Premiação parcial',
+  'em-apuracao': 'Premiação em apuração',
 }
 
 /* Textos de interface. Nada aqui é dado do festival. */

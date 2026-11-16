@@ -16,7 +16,7 @@ const FAQ_DADOS = (function () {
     avaliacoes: null,
     resultados: null,
     // Última edição realizada (histórico, seguro para citar)
-    ultima: { code: '2026.1', tema: 'Lovers', periodo: '4 a 14 de junho de 2026', valorCombo: 'R$ 38,90', edicoes: 16 },
+    ultima: { code: '2026.2', tema: 'Cartoon', periodo: '5 a 15 de novembro de 2026', valorCombo: 'R$ 38,90', edicoes: 17 },
   };
 
   var LINKS = {

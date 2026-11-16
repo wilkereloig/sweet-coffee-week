@@ -10,8 +10,9 @@
  *   src/data/edicoesNarrativa.js     → lead, marco, curiosidade, legado
  *   src/data/imageLibrary.js         → fotos · src/data/editionAssets.js → marca
  *
- * Só as edições encerradas do acervo (16). A edição em campanha (Cartoon) não
- * entra: ela mora em src/data/destaqueEdicao.js e na Home, não no histórico.
+ * Só as edições encerradas do acervo (17, com a Cartoon desde 16/11/2026). Uma
+ * edição em campanha não entra: ela mora em src/data/destaqueEdicao.js e na
+ * Home até encerrar, e só então é registrada em sweetCoffeeHistory.js.
  */
 import { CENAS, FOTOS_ABERTURA, PREMIACAO } from '../../data/conteudo/edicoes.js'
 import { EDICOES_DADOS } from '../../data/handoff/edicoesData.js'
@@ -58,7 +59,7 @@ function resumo(cena) {
   }
 }
 
-/** As 16 edições, da mais antiga para a mais recente (ordem do acervo). */
+/** As edições do acervo, da mais antiga para a mais recente (ordem do acervo). */
 export const EDICOES = CENAS.map(resumo)
 const POR_CODIGO = Object.fromEntries(EDICOES.map((e) => [e.code, e]))
 const PRIMEIRA = EDICOES[0].code

@@ -433,7 +433,7 @@ export function EmBrevePage() {
             Uma <em className="scw-italico eb-h1__dest">nova edição</em> do Sweet &amp; Coffee Week vem aí.
           </h1>
           <p className="scw-lead eb-lead">
-            São 16 edições transformando Natal numa rota de doce, salgado e café. Os
+            São 17 edições transformando Natal numa rota de doce, salgado e café. Os
             estabelecimentos que quiserem participar das próximas já podem registrar o interesse.
           </p>
         </div>

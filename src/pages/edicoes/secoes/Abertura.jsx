@@ -11,7 +11,7 @@ import { fotosAbertura } from '../acervo'
  * crossfade. Título, uma frase e a linha de números (sem rótulo desde
  * 14/10/2026 — o menu já diz a página).
  *
- * A linha de números vem de festivalFacts (16 edições · 123 marcas · 410
+ * A linha de números vem de festivalFacts (17 edições · 131 marcas · 437
  * participações), a mesma fonte do resto do site — nada digitado aqui.
  */
 const FOTOS = fotosAbertura()

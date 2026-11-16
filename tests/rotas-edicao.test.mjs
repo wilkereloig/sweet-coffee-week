@@ -14,10 +14,10 @@ const FECHADA = {}
 const PUBLICA = { edicaoPublica: true }
 const ENTRADA = { edicaoPublica: true, entradaEdicao: true }
 
-test('interruptores do domínio coerentes: Cartoon pública e na entrada do domínio', () => {
-  assert.equal(CARTOON_PUBLICA, true)
-  assert.equal(ENTRADA_PRINCIPAL, 'cartoon')
-  assert.equal(INICIO_INSTITUCIONAL, '/festival')
+test('interruptores do domínio coerentes: edição encerrada, institucional na entrada do domínio', () => {
+  assert.equal(CARTOON_PUBLICA, false)
+  assert.equal(ENTRADA_PRINCIPAL, 'institucional')
+  assert.equal(INICIO_INSTITUCIONAL, '/')
   assert.ok(['institucional', 'cartoon'].includes(ENTRADA_PRINCIPAL))
   if (ENTRADA_PRINCIPAL === 'cartoon') assert.equal(CARTOON_PUBLICA, true, 'Cartoon na entrada exige a rota pública')
   assert.equal(EDICAO.codigo, '2026.2')
@@ -87,7 +87,7 @@ test('a Caça aos Carimbos segue o mesmo gate do mapa e não mexe nas flags', ()
   assert.match(idx, /CENAS_DO_MAPA = \[[^\]]*'caca'/, 'sem MAPA_NO_AR a cena vira "em breve"')
   assert.match(idx, /MAPA_NO_AR \|\| !\['mapa', 'caca'\]/, 'o Mapa da Doçura e a Caça somem do menu juntos')
   assert.doesNotMatch(idx, /'minha-rota'/, 'sem item nem página própria para a rota')
-  assert.match(ler('src/edicao/config.js'), /export const MAPA_PUBLICO = true/)
+  assert.match(ler('src/edicao/config.js'), /export const MAPA_PUBLICO = false/)
   assert.ok(CENAS.includes('caca'))
 })
 

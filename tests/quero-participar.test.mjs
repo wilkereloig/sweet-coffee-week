@@ -169,13 +169,13 @@ test('"10 anos" confere com festivalFacts', () => {
     `HTML diz ${item.valor}, festivalFacts.years diz ${festivalFacts.years.value}`)
 })
 
-test('"16 edições" confere com a base', () => {
+test('"17 edições" confere com a base', () => {
   const item = NUMEROS.find((n) => /ediç/.test(n.rotulo))
   assert.ok(item, 'sumiu o número de edições realizadas')
   assert.equal(Number(item.valor), festivalFacts.editions.value,
     `HTML diz ${item.valor}, festivalFacts.editions diz ${festivalFacts.editions.value}`)
-  // §9.1: o acervo fecha em 16 edições realizadas.
-  assert.equal(festivalFacts.editions.value, 16, 'a contagem de edições divergiu do acervo §9.1')
+  // §9.1: o acervo fecha em 17 edições realizadas (Cartoon, 2026.2, registrada em 16/11/2026).
+  assert.equal(festivalFacts.editions.value, 17, 'a contagem de edições divergiu do acervo §9.1')
 })
 
 test('irmãos não repetem cor de disco', () => {

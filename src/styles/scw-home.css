@@ -983,6 +983,80 @@
 }
 
 /* ============================================================================
+   Encerramento da edição (16/11/2026) — abaixo da abertura, enquanto ativo.
+   Apuração em chapa chocolate, agradecimentos em bege, próxima edição em
+   amarelo (cor da Home) e as marcas sobre branco: fundo exigido pela versão
+   preferencial da Sicredi (mesma exceção da faixa de marcas da edição).
+   ========================================================================= */
+.hm-fim__cab { margin-bottom: var(--scw-gap-cabeca); }
+.hm-fim__grade {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(14px, 1.8vw, 24px);
+}
+.hm-fim__apura,
+.hm-fim__grato,
+.hm-fim__proxima,
+.hm-fim__marcas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: clamp(24px, 3vw, 44px);
+  border-radius: var(--scw-r-secao);
+}
+.hm-fim__apura { background: var(--scw-choco); color: var(--scw-creme); }
+.scw-raiz .hm-fim__apura a:focus-visible { outline-color: var(--scw-creme); }
+.hm-fim__gratos { display: grid; gap: clamp(14px, 1.8vw, 24px); }
+.hm-fim__grato { background: var(--scw-bege); color: var(--scw-choco); }
+.hm-fim__proxima {
+  margin-top: clamp(14px, 1.8vw, 24px);
+  background: var(--scw-amarelo);
+  color: var(--scw-choco);
+}
+.scw-raiz .hm-fim__proxima a:focus-visible { outline-color: var(--scw-choco); }
+.hm-fim__h3 {
+  margin: 0;
+  max-width: 24ch;
+  font: 900 clamp(22px, 2vw, 30px)/1.05 var(--scw-font-black);
+  letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.hm-fim__h3--grande { font-size: clamp(26px, 2.6vw, 40px); }
+.hm-fim__texto {
+  max-width: 58ch;
+  margin: 0;
+  font: 400 clamp(15.5px, 1.2vw, 17px)/1.55 var(--scw-font-texto);
+  text-wrap: pretty;
+}
+.hm-fim__marcas {
+  margin-top: clamp(14px, 1.8vw, 24px);
+  background: #fff;
+  color: var(--scw-choco);
+}
+.hm-fim__logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 28px clamp(32px, 5vw, 72px);
+  width: 100%;
+}
+.hm-fim__grupo { display: flex; flex-direction: column; gap: 12px; }
+.hm-fim__papel {
+  margin: 0;
+  font: 700 11px/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--scw-marrom);
+}
+.hm-fim__par { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 32px; }
+.hm-fim__logo { display: block; width: auto; height: 26px; max-width: 100%; }
+.hm-fim__logo--sicredi { height: 44px; }
+@media (max-width: 899px) {
+  .hm-fim__grade { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ============================================================================
    Resposta dos links (camada 1, §6.15): a seta avança 4px, só transform.
    ========================================================================= */
 .hm-link > svg,

@@ -10,12 +10,13 @@ export const AWARD_STATUS = {
   'completa':       { label: 'Premiação completa',         tone: 'ok'     },
   'parcial':        { label: 'Premiação parcial',          tone: 'info'   },
   'a-conferir':     { label: 'A conferir',                 tone: 'info'   },
+  'em-apuracao':    { label: 'Premiação em apuração',      tone: 'info'   },
 }
 
 export const SWEET_COFFEE_HISTORY = {
   "meta": {
     "titulo": "Sweet & Coffee Week — Base Histórica Geral",
-    "descricao": "Base geral com participantes, premiações (Sweet Awards), períodos e metadados das 16 edições do Sweet & Coffee Week, de 2016 a 2026.1.",
+    "descricao": "Base geral com participantes, premiações (Sweet Awards), períodos e metadados das 17 edições do Sweet & Coffee Week, de 2016 a 2026.2.",
     "fontes": [
       "Instagram @sweetcoffeeweek",
       "Acervo de criação da agência (Experience)",
@@ -26,7 +27,7 @@ export const SWEET_COFFEE_HISTORY = {
     "observacoes": {
       "trilhas": "trilha pode ser 'juri_tecnico', 'sweet_lovers' ou null (quando a peça não distingue trilha).",
       "empates": "cada colocação tem um array 'nomes'; quando há empate, o array tem mais de um nome.",
-      "status_premiacao": "'completa' | 'nao-teve' | 'nao-encontrada'",
+      "status_premiacao": "'completa' | 'nao-teve' | 'nao-encontrada' | 'em-apuracao' (edição encerrada, resultado ainda não divulgado)",
       "lovers_2026_1": "A edição Lovers foi adicionada à base geral com participantes, período, conceito, categorias oficiais e links dos posts oficiais de resultado. Os pódios estruturados por categoria devem ser preenchidos a partir dos cards/posts oficiais caso ainda não estejam em fonte estruturada."
     }
   },
@@ -2564,6 +2565,73 @@ export const SWEET_COFFEE_HISTORY = {
         "premiacaoPodios": "pendente_estruturacao",
         "observacao": "Não inventar pódios de Lovers se ainda não estiverem estruturados; usar posts oficiais ou preencher manualmente com os dados validados."
       }
+    },
+    {
+      "id": "2026.2",
+      "ordem": 17,
+      "nome": "Sweet & Coffee Week Cartoon",
+      "tema": "Cartoon",
+      "periodo": "05 a 15 de novembro de 2026",
+      "comboValor": "R$ 38,90",
+      "participantesCount": 27,
+      "participantes": [
+        "Adocee Doceria",
+        "Boldfood Confeitaria Inclusiva",
+        "Bolomania",
+        "Caffè Basilico's",
+        "Canuto's",
+        "Carcará",
+        "Caroli Douces",
+        "Casa 1190 Restaurante e Coffee",
+        "Casa Alice Doceria",
+        "Cookitos",
+        "Delicato Bolos",
+        "Diva do Café",
+        "Jolie Café Pâtisserie",
+        "Just Food&Coffee",
+        "Maison Julie Douceur",
+        "Mangai",
+        "Mariana's Confeitaria",
+        "Marlon Vinicius - Confeitaria e Café",
+        "Mr. Cupcake Confeitaria",
+        "O Maestro Café",
+        "Padoca do Bosque",
+        "Paneer Pâtisserie",
+        "Parma Doces",
+        "Sabor de Pão",
+        "Sweet Duo Confeitaria",
+        "Vivianne Castro Doces",
+        "Wow Cookies"
+      ],
+      "conceito": "Edição com o universo da animação como tema: cada casa participante partiu de um desenho animado para criar doce, salgado e bebida.",
+      "formato": "1 doce + 1 salgado + 1 bebida",
+      "premiacao": {
+        "status": "em-apuracao",
+        "observacao": "Sweet Awards — avaliação do público e júri técnico. Edição encerrada em 15/11/2026; resultado em apuração. Não preencher categorias nem pódios antes da divulgação oficial.",
+        "categorias": []
+      },
+      "patrocinadores": {
+        "parceiros": [
+          {
+            "nome": "Sicredi",
+            "tipo": "patrocínio"
+          },
+          {
+            "nome": "Senac",
+            "tipo": "apoio"
+          },
+          {
+            "nome": "Espaço Reduzido",
+            "tipo": "apoio"
+          }
+        ]
+      },
+      "statusDados": {
+        "participantes": "completo",
+        "premiacaoCategorias": "pendente",
+        "premiacaoPodios": "pendente",
+        "observacao": "Participantes e valor do combo conferidos no painel (banco) em 16/11/2026. Premiação: aguardar divulgação oficial."
+      }
     }
   ],
   "dadosGerais": {
@@ -2572,10 +2640,14 @@ export const SWEET_COFFEE_HISTORY = {
     "criadoEm": 2016,
     "cidadeOrigem": "Natal/RN",
     "formatoClassico": "1 doce + 1 salgado + 1 bebida",
-    "edicoesRealizadas": 16,
+    "edicoesRealizadas": 17,
     "observacaoNomenclatura": "Quando se referir ao festival, usar Sweet & Coffee Week, SCW, o festival ou a edição. Não usar Sweet sozinho como apelido do festival."
   },
   "participantAliases": {
+    "Casa 1190 - Restaurant e Coffee": [
+      "Casa 1190 - Restaurant e Coffee",
+      "Casa 1190 Restaurante e Coffee"
+    ],
     "Mr. Cupcake Confeitaria": [
       "Mr Cupcake",
       "Mr. Cupcake",
@@ -2640,7 +2712,8 @@ export const SWEET_COFFEE_HISTORY = {
       "Marlon",
       "Marlon Vinicius",
       "Marlon Gastronomia",
-      "Marlon Doceria"
+      "Marlon Doceria",
+      "Marlon Vinicius - Confeitaria e Café"
     ],
     "Bolomania": [
       "Bolo Mania",

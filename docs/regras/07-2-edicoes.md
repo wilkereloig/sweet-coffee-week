@@ -19,8 +19,8 @@ Texto de interface, etapa e **capa escolhida de cada edição** em
 
 **Rota:** as duas camadas são a MESMA rota do App (`'edicoes'`, `resolverRota` em
 `src/lib/rotas.js`); o App passa `path` e a página não remonta ao entrar e sair de uma
-edição. `codigoDaRota()` só aceita código do acervo — `/edicoes/2026.2` ou um código
-inexistente mostram a coleção. Título da aba por edição em `pageMeta.js`; o Analytics
+edição. `codigoDaRota()` só aceita código do acervo — um código inexistente mostra a
+coleção. (A Cartoon, `/edicoes/2026.2`, é do acervo desde 16/11/2026.) Título da aba por edição em `pageMeta.js`; o Analytics
 registra tudo como `/edicoes` (`rotaLimpa`). **Voltar à coleção** (pelo link ou pelo
 voltar do navegador) rola até o cartão da última edição vista e põe o foco nele (o
 roteador leva ao topo; a página corrige dois quadros depois).
@@ -92,9 +92,9 @@ movimento** (arquivo de consulta: nada encenado).
 5. **Sweet Awards** (chocolate, o contraponto escuro) **só quando houve**: 1º lugar de
    cada categoria (trilha só quando a categoria se repete), a nota pública de
    `awardsData.js` e "Ver o Sweet Awards" → `/sweet-awards` (cor do destino, anel creme).
-   Sem premiação: uma linha na ficha ("Sem premiação nesta edição"), sem bloco.
+   Sem premiação: uma linha na ficha ("Sem premiação nesta edição"), sem bloco. Edição encerrada com resultado ainda não divulgado (`em-apuracao`): "Premiação em apuração", também sem bloco.
 6. **Continuidade** (chapa laranja): edição anterior e próxima com capa, tema e ano, e
-   "Todas as edições". A Lovers não tem próxima: Cartoon não é histórico.
+   "Todas as edições". A edição mais recente não tem próxima (hoje a Cartoon, 2026.2; edição em campanha nunca é histórico).
 
 **Teclado (`teclado.js`, `tests/edicoes-teclado.test.mjs`):** ⛔ a página **não captura**
 setas, PageUp/PageDown, Home/End nem gestos. `teclaDaGaleria` só responde com o foco numa
@@ -105,7 +105,7 @@ premiação de `handoff/awardsData.js`; fotos de `editionPhotos()`; marca de
 `editionMark()`; texto longo de `edicoesNarrativa.js`. Nada copiado para outro catálogo.
 
 **Testes:** `npm run test:edicoes` (dados e teclado, sem navegador) ·
-`npm run build && npm run test:edicoes-navegador` (as 16 edições por link direto nas duas
+`npm run build && npm run test:edicoes-navegador` (as 17 edições por link direto nas duas
 telas, voltar/avançar e recarregar, galeria e foto ampliada, marcas e premiação,
 movimento reduzido, documentos legais, sobreposição; capturas em
 `tests/capturas-edicoes/`, não versionadas).

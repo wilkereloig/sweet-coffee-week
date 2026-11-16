@@ -111,6 +111,12 @@ export const EDICOES_NARRATIVA = {
     curiosidade: 'Cinema, séries, música, viagens, contos de fadas, celebrações e referências potiguares voltaram em novas versões. Ao longo dos anos, grupos de amigos passaram a montar agenda para aproveitar melhor o festival, e dividir os combos virou estratégia comum para provar mais sabores.',
     legado: 'A edição dos dez anos fechou uma etapa e abriu outra: o festival chegou a 2026 como encontro entre gastronomia, cultura, criatividade, marcas locais e pessoas.',
   },
+  /* Cartoon: registrada em 16/11/2026, logo após o encerramento. Sem `legado`
+     até a organização escrever o balanço; premiação em apuração. */
+  '2026.2': {
+    lead: 'O universo da animação como tema: cada casa partiu de um desenho animado e o transformou em doce, salgado e bebida.',
+    marco: 'Cartoon teve um mapa ilustrado da cidade e a Caça aos Carimbos: cada visita a uma casa participante rendia um carimbo digital no celular.',
+  },
 }
 
 export default EDICOES_NARRATIVA

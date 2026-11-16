@@ -29,8 +29,8 @@ import { normalizeParticipantName } from './sweetHistoryStats.js'
 const EDICOES = SWEET_COFFEE_HISTORY.edicoes || []
 
 /* Uma marca conta UMA vez por edição (rede com várias unidades = 1 marca), com os
-   aliases resolvidos — é a mesma regra que dá as 410 participações e as 123 marcas
-   distintas do acervo. */
+   aliases resolvidos — é a mesma regra que dá as 437 participações e as 131 marcas
+   distintas do acervo (com a Cartoon, 2026.2). */
 const marcasPorEdicao = EDICOES.map((e) => new Set((e.participantes || []).map(normalizeParticipantName)))
 
 const historico = (() => {
@@ -54,7 +54,7 @@ const historico = (() => {
   }
 })()
 
-// Lojas da última edição: soma das unidades das marcas participantes (21 marcas, 33 lojas).
+// Lojas da edição Lovers (2026.1), a única com unidades em participants.js: 21 marcas, 33 lojas.
 const lojasUltimaEdicao = PARTICIPANTS.reduce((t, p) => t + ((p.locations && p.locations.length) || 1), 0)
 
 export const festivalFacts = {
@@ -70,7 +70,7 @@ export const festivalFacts = {
   newPerEdition:{ value: historico.estreiasPorEdicao, label: `${historico.estreiasPorEdicao} marcas novas`,
                   mede: 'média de estreias por edição desde 2016' },
   storesLastEdition:{ value: lojasUltimaEdicao,   label: `${lojasUltimaEdicao} lojas`,
-                  mede: `${PARTICIPANTS.length} marcas na última edição, somando todas as unidades` },
+                  mede: `${PARTICIPANTS.length} marcas na edição Lovers, somando todas as unidades` },
   // Padrão de 11 dias firmado a partir de 2019.1 — as edições de 2017.1, 2018.1 e
   // 2018.2 duraram 10 dias. Por isso o rótulo é "em cartaz", não "sempre".
   daysPerEdition:{ value: 11,                     label: '11 dias',

@@ -2,7 +2,7 @@
  * ADAPTER — base oficial → shape `sweetEditions` (legado).
  *
  * Fonte única de verdade: src/data/sweetCoffeeHistory.js (SWEET_COFFEE_HISTORY,
- * 16 edições incl. Lovers 2026.1). Este módulo deriva o array no formato que os
+ * 17 edições incl. Cartoon 2026.2). Este módulo deriva o array no formato que os
  * componentes do Hall (HistoricoAwards.jsx) e o resolvedor editionAssets.js já
  * consomem — sem reescrever o render. Substitui o antigo src/data/sweetHistory.js
  * (base legada de 15 edições, curada à mão).

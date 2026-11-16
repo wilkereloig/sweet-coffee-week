@@ -7,6 +7,7 @@
 // fixas de index.html, não as definidas aqui.
 
 import { CENAS } from '../data/conteudo/edicoes.js'
+import { CARTOON_PUBLICA, ENTRADA_PRINCIPAL } from '../edicao/config.js'
 
 const BASE = 'Sweet & Coffee Week'
 
@@ -71,6 +72,10 @@ const ANTIGOS_DA_HOME = ['/cartoon', '/mapa', '/rota', '/participantes']
 export function canonicoDe(path = '/') {
   const p = ('/' + String(path).replace(/^#?\/*/, '').split(/[?#]/)[0]).replace(/\/+$/, '') || '/'
   if (ANTIGOS_DA_HOME.includes(p) || p.startsWith('/lovers')) return '/'
+  // Edição fora do ar (encerrada, 16/11/2026): /cartoon/* mostra a Home, então o canônico é a Home. O mesmo para
+  // /festival quando a Home institucional já mora em /.
+  if (!CARTOON_PUBLICA && p.startsWith('/cartoon/')) return '/'
+  if (ENTRADA_PRINCIPAL !== 'cartoon' && p === '/festival') return '/'
   const ficha = p.match(/^\/cartoon\/participantes\/([a-z0-9-]+)$/)
   return ficha ? `/cartoon/combos/${ficha[1]}` : p
 }

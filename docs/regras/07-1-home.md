@@ -2,6 +2,16 @@
 
 ### 7.1 Home / O Festival — `/`, amarelo `#FDBB1A`
 
+> **16/11/2026 — edição Cartoon encerrada (pedido do Wilker).** A Home voltou a ser `/`. A abertura segue no modo
+> destaque, agora dizendo "Edição encerrada" (tema e período escritos em `destaqueEdicao.js`; ação "Ver a edição no
+> acervo" → `/edicoes/2026.2`). Logo abaixo entra a seção **Encerramento** (`secoes/Encerramento.jsx`, texto em
+> `ENCERRAMENTO` de `conteudo/home.js`, classes `.hm-fim*`): resultados em apuração com link do Instagram,
+> agradecimento às casas e aos Sweet Lovers, expectativa da próxima edição com três botões (Enviar sugestão →
+> Contato, Quero participar → `/quero-participar/`, Quero apoiar → Apoiar) e as marcas sobre branco: Sicredi
+> (patrocínio), Senac e Espaço Reduzido (apoio), F2 Experience (realização). É exceção declarada ao §9.6, pedida
+> pelo Wilker só para este agradecimento. ⛔ Nenhum resultado entra antes de a organização divulgar (A4).
+> Desligar: `ativo: false` em `destaqueEdicao.js` e em `ENCERRAMENTO`.
+
 ⛔ **Não alterar sem solicitação explícita.** É a página-mãe: as demais usam a Home como
 referência de margem, largura máxima, respiro, hierarquia, ritmo, nível de acabamento e
 tom institucional-afetivo. Extrair componente ou constante é permitido **desde que não

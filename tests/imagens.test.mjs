@@ -40,8 +40,8 @@ test('todo combo por marca das edições existe no disco', () => {
   }
 })
 
-test('as 16 edições têm acervo', () => {
-  assert.equal(Object.keys(EDITION_GALLERY).length, 16)
+test('as 17 edições têm acervo', () => {
+  assert.equal(Object.keys(EDITION_GALLERY).length, 17)
 })
 
 test('toda foto de combo existe no disco', () => {

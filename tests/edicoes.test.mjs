@@ -17,10 +17,13 @@ const { festivalFacts } = await import('../src/data/festivalFacts.js')
 
 const HIST = SWEET_COFFEE_HISTORY.edicoes
 
-test('as 16 edições do acervo, na ordem do acervo, e nenhuma em campanha', () => {
+test('as 17 edições do acervo, na ordem do acervo, com a Cartoon já encerrada', () => {
   assert.deepEqual(A.EDICOES.map((e) => e.code), HIST.map((e) => e.id))
   assert.equal(A.EDICOES.length, festivalFacts.editions.value)
-  assert.ok(!A.EDICOES.some((e) => /^2026\.2$/.test(e.code) || /cartoon/i.test(e.tema)), 'Cartoon não é histórico')
+  assert.equal(A.EDICOES.length, 17)
+  // Cartoon entrou no acervo em 16/11/2026, depois de encerrada (5 a 15 de novembro).
+  assert.equal(A.EDICOES.at(-1).code, '2026.2')
+  assert.equal(A.EDICOES.at(-1).tema, 'Cartoon')
 })
 
 test('tema, período e contagem vêm da base, sem cópia', () => {
@@ -42,7 +45,7 @@ test('coleção por ano: do mais recente à estreia, 1ª antes da 2ª dentro do 
     assert.ok(x.edicoes.every((e) => e.ano === x.ano))
     assert.deepEqual(x.edicoes.map((e) => e.code), [...x.edicoes.map((e) => e.code)].sort())
   }
-  assert.equal(g.flatMap((x) => x.edicoes).length, 16, 'nenhuma edição some nem repete')
+  assert.equal(g.flatMap((x) => x.edicoes).length, 17, 'nenhuma edição some nem repete')
 })
 
 test('a grade fecha sem buraco em 4 e em 2 colunas', () => {
@@ -86,7 +89,8 @@ test('rota: código válido abre o detalhe; o resto é a visão geral', () => {
   assert.equal(A.codigoDaRota('/edicoes/2016?x=1'), '2016')
   assert.equal(A.codigoDaRota('/edicoes'), null)
   assert.equal(A.codigoDaRota('/edicoes/'), null)
-  assert.equal(A.codigoDaRota('/edicoes/2026.2'), null, 'Cartoon não tem página de histórico')
+  assert.equal(A.codigoDaRota('/edicoes/2026.2'), '2026.2', 'Cartoon encerrada tem página de histórico')
+  assert.equal(A.codigoDaRota('/edicoes/2027.1'), null, 'edição que não está no acervo não tem página')
   assert.equal(A.codigoDaRota('/edicoes/1999'), null)
   assert.equal(A.codigoDaRota('/edicoes/2016/fotos'), null)
   for (const e of A.EDICOES) assert.equal(A.codigoDaRota(e.href.slice(1)), e.code)
@@ -115,7 +119,12 @@ test('detalhe: fotos, história, marcas e vizinhas de cada edição', () => {
   // Revisão editorial de 14/10/2026: a explicação geral do festival é da Home,
   // não se repete no detalhe da estreia.
   assert.ok(!('abertura' in A.detalhe('2016')), 'a estreia não repete a explicação geral do festival')
-  assert.equal(A.detalhe('2026.2'), null)
+  assert.equal(A.detalhe('2027.1'), null)
+  // Cartoon: os 27 combos aprovados, um por marca, e nenhuma foto de outra edição.
+  const cartoon = A.detalhe('2026.2')
+  assert.ok(cartoon.porMarca && cartoon.fotos.length === 27 && cartoon.n === 27)
+  assert.equal(cartoon.proxima, null)
+  assert.equal(A.detalhe('2026.1').proxima.code, '2026.2')
 })
 
 test('premiação: com e sem registro ficam diferentes', () => {
@@ -130,6 +139,11 @@ test('premiação: com e sem registro ficam diferentes', () => {
   assert.ok(com.categorias.every((c) => c.primeiro === null || c.primeiro.length >= 1))
   const lovers = A.detalhe('2026.1').premiacao
   assert.ok(lovers.teve && lovers.categorias.length === 8, 'Lovers: oito categorias')
+  // Cartoon: premiação em apuração — sem bloco de pódio, e a ficha diz isso (nunca "sem registro").
+  const cartoon = A.detalhe('2026.2').premiacao
+  assert.equal(cartoon.teve, false)
+  assert.equal(cartoon.categorias.length, 0)
+  assert.equal(cartoon.resumo, 'Premiação em apuração')
   // As edições premiadas são as do acervo do Awards, nem mais nem menos.
   const premiadas = A.EDICOES.filter((e) => A.detalhe(e.code).premiacao.teve).map((e) => e.code)
   assert.deepEqual(premiadas, ['2019.1', '2019.2', '2020.1', '2020.2', '2021.1', '2021.2', '2022', '2023', '2024', '2025', '2026.1'])

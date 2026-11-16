@@ -2,6 +2,7 @@ import React from 'react'
 import '../../styles/scw-home.css'
 import { useMovimentoReduzido } from '../../hooks/useCrossfade'
 import { Abertura } from './secoes/Abertura'
+import { Encerramento } from './secoes/Encerramento'
 import { ComoFunciona } from './secoes/ComoFunciona'
 import { Registros } from './secoes/Registros'
 import { Trajetoria } from './secoes/Trajetoria'
@@ -14,7 +15,7 @@ import { useDestaqueTitulos } from './useHome'
    Home / "O festival" — reequilíbrio de 12/10/2026 (pedido do Wilker).
    Apresenta o festival o ano inteiro; quando houver lançamento autorizado,
    a edição assume a abertura (destaqueEdicao.js) e o resto segue igual.
-   01 Abertura · 02 Como funciona · 03 Em registros · 04 Trajetória (→ Edições)
+   01 Abertura · (Encerramento da edição, enquanto ativo) · 02 Como funciona · 03 Em registros · 04 Trajetória (→ Edições)
    · 05 Sweet Awards · 06 Faça parte (→ Participar, Apoiar, Contato)
    · 07 Realização (F2).
    Texto editorial: src/data/conteudo/home.js. Fotos: fotosHome()/heroPhotos()
@@ -43,6 +44,7 @@ export function HomePage({ navigate }) {
   return (
     <div className="hm" ref={raizRef}>
       <Abertura ir={ir} rolarPara={rolarPara} />
+      <Encerramento ir={ir} />
       <ComoFunciona />
       <Registros ir={ir} />
       <Trajetoria ir={ir} />

@@ -5,11 +5,11 @@
  *
  *   npm run build && npm run test:edicoes-navegador
  *
- * 1. visão geral (1440×900, 390×844, 360×800): um h1, as 16 edições na ordem,
+ * 1. visão geral (1440×900, 390×844, 360×800): um h1, as 17 edições na ordem,
  *    casca do site (cabeçalho, rodapé com documentos legais), só capas
  *    carregadas, sem rolagem horizontal; navegação por ano presa abaixo do
  *    cabeçalho (desktop) ou no topo (celular), sem cobrir abas nem aviso;
- * 2. as 16 edições por link direto: título, período, marcas, foto da galeria
+ * 2. as 17 edições por link direto: título, período, marcas, foto da galeria
  *    carregada, sem erro e sem rolagem horizontal;
  * 3. percurso: cartão → detalhe → voltar do navegador (a coleção volta ao
  *    cartão, com foco) → avançar → anterior/próxima → recarregar;
@@ -161,7 +161,7 @@ async function visaoGeral (navegador) {
 }
 
 async function todasAsEdicoes (navegador) {
-  console.log('\n2 · as 16 edições por link direto')
+  console.log('\n2 · as 17 edições por link direto')
   const antes = falhas.length
   for (const [w, h] of [[1440, 900], [390, 844]]) {
     const { ctx, page, erros } = await contexto(navegador, w, h)
@@ -198,7 +198,7 @@ async function todasAsEdicoes (navegador) {
     if (erros.length) falha(`@${w}: erro — ${erros[0]}`)
     await ctx.close()
   }
-  if (falhas.length === antes) ok('16 × 2 telas: título, período, identificação, marcas, foto, premiação, vizinhas, foco')
+  if (falhas.length === antes) ok('17 × 2 telas: título, período, identificação, marcas, foto, premiação, vizinhas, foco')
 }
 
 async function percurso (navegador) {

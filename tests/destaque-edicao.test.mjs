@@ -1,5 +1,5 @@
 // Destaque de edição na abertura da Home (src/data/destaqueEdicao.js).
-// Garante: tema e período vêm da fonte única (proximaEdicao.js), nada de
+// Garante: edição encerrada dita com honestidade (16/11/2026), nada de
 // ativação pela metade, e a Home usa o contrato (não um segundo jeito de decidir).
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
@@ -20,12 +20,12 @@ const completo = {
   acao: { rotulo: 'Saiba mais', href: '/participar' },
 }
 
-test('ligado com o anúncio autorizado: tema, período e pré-cadastro vêm de proximaEdicao.js', () => {
+test('edição encerrada: o destaque diz que terminou, leva ao acervo e não usa a próxima edição', () => {
   assert.equal(destaqueValido(), true)
-  assert.equal(destaqueEdicao.tema, proximaEdicao.tema)
-  assert.equal(destaqueEdicao.periodo, proximaEdicao.periodo)
-  const aberto = proximaEdicao.status === 'pre-cadastro' && !!proximaEdicao.preCadastro
-  assert.equal(destaqueEdicao.acao?.href ?? null, aberto ? proximaEdicao.preCadastro : null)
+  assert.equal(destaqueEdicao.tema, 'Cartoon')
+  assert.match(destaqueEdicao.rotulo, /encerrada/i)
+  assert.equal(destaqueEdicao.acao.href, '/edicoes/2026.2')
+  for (const campo of ['ano', 'mes', 'tema', 'periodo']) assert.equal(proximaEdicao[campo], null, `próxima edição ainda não divulgada: ${campo}`)
   assert.equal(destaqueEdicao.imagem, undefined, 'nenhuma foto de edição anterior na abertura da edição')
   assert.match(destaqueEdicao.video.instagram, /^https:\/\/www\.instagram\.com\/reel\/[\w-]+\/$/, 'link do reel limpo, sem parâmetro de rastreio')
 })

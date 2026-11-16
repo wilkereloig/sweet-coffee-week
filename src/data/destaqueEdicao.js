@@ -1,26 +1,28 @@
 /*
  * Destaque de edição na abertura da Home — fonte única (12/10/2026).
  *
- * O institucional é permanente. Quando uma edição for lançada e o conteúdo
- * estiver APROVADO para o público, ela assume o protagonismo da abertura da
- * Home; o resto do site segue igual. Este arquivo é o único ponto de
- * configuração dessa chamada.
+ * O institucional é permanente. Quando uma edição tem algo a dizer ao público,
+ * ela assume a abertura da Home; o resto do site segue igual. Este arquivo é o
+ * único ponto de configuração dessa chamada.
  *
- * LIGADO em 13/10/2026: o Wilker autorizou mostrar o tema Cartoon e as datas
- * 5 a 15 de novembro de 2026. Tema, período e ano NÃO se escrevem aqui — vêm
- * de `proximaEdicao.js`, a fonte do que já é público sobre a próxima edição.
- * A ação principal também: só existe enquanto o pré-cadastro estiver aberto.
+ * 13/10/2026: ligado para ANUNCIAR a edição Cartoon (tema e datas vinham de
+ * proximaEdicao.js).
+ * 16/11/2026 (pedido do Wilker): a edição ENCERROU. O destaque segue ligado,
+ * agora dizendo que ela terminou e que os resultados estão em apuração. Tema e
+ * período são da edição encerrada, escritos aqui: proximaEdicao.js voltou a
+ * null, porque a edição seguinte ainda não foi divulgada. O agradecimento, a
+ * expectativa e as marcas moram logo abaixo, na seção Encerramento
+ * (conteudo/home.js → ENCERRAMENTO).
  *
- * COMO DESLIGAR: `ativo: false`. A Home volta à abertura institucional
- * completa, sem espaço vazio. Nada aqui liga ou desliga por data, e nada mexe
- * em flag de publicação (src/App.jsx) — sob o gate atual a Home nem aparece.
+ * COMO DESLIGAR: `ativo: false` aqui e em ENCERRAMENTO. A Home volta à
+ * abertura institucional completa, sem espaço vazio. Nada aqui liga ou desliga
+ * por data, e nada mexe em flag de publicação (src/App.jsx).
  *
- * ⚠️ Nada de dado não confirmado: participantes, combos, preço e duração ficam
- * fora até a organização divulgar (A4). Não usar "em cartaz" antes do início.
+ * ⚠️ Nada de dado não confirmado (A4): resultado do Sweet Awards, ranking da
+ * Caça aos Carimbos e sorteios só entram depois de divulgados pela organização.
  * Nenhuma foto de edição anterior aqui (pedido do Wilker, 13/10/2026): a
- * abertura usa só peças da edição nova — marca, fundo ilustrado e o vídeo.
+ * abertura usa só peças da própria edição — marca, fundo ilustrado e o vídeo.
  */
-import { proximaEdicao as PROX } from './proximaEdicao.js'
 import { fotoProximaEdicao } from './imageLibrary.js'
 
 /* Reel oficial do lançamento (@sweetcoffeeweek, 07/10/2026), sem os
@@ -31,13 +33,13 @@ const video = fotoProximaEdicao('video')
 
 export const destaqueEdicao = {
   ativo: true,
-  rotulo: PROX.ano ? `Próxima edição · ${PROX.ano}` : 'Próxima edição',
+  rotulo: 'Edição encerrada',
   titulo: 'Sweet & Coffee Week',
-  tema: PROX.tema,          // obrigatório — de proximaEdicao.js
-  periodo: PROX.periodo,    // obrigatório — de proximaEdicao.js
+  tema: 'Cartoon',
+  periodo: '5 a 15 de novembro de 2026',
   /* Lettering oficial do tema. Sem ele, o tema sai em tipografia real. */
   marca: fotoProximaEdicao('marca'),
-  texto: 'Combos criados pelas casas participantes a partir do universo da animação.',
+  texto: 'A edição terminou. As avaliações do público, o ranking da Caça aos Carimbos e os sorteios estão em apuração.',
   /* Fundo ilustrado da edição (imageLibrary.js). Sem ele, a chapa amarela. */
   fundo: fotoProximaEdicao('fundo'),
   /* Opcional: o vídeo de lançamento, com o botão para o reel no Instagram.
@@ -48,11 +50,8 @@ export const destaqueEdicao = {
     instagram: REEL_LANCAMENTO,
     rotulo: 'Ver no Instagram',
   },
-  /* Opcional: sem pré-cadastro aberto, a abertura fica só com "Conhecer o
-     festival". href externo ou com barra final (§10.4-b). */
-  acao: PROX.status === 'pre-cadastro' && PROX.preCadastro
-    ? { rotulo: 'Registrar interesse', href: PROX.preCadastro }
-    : null,
+  /* A edição já está no acervo: a ação principal leva ao registro dela. */
+  acao: { rotulo: 'Ver a edição no acervo', href: '/edicoes/2026.2' },
 }
 
 /**

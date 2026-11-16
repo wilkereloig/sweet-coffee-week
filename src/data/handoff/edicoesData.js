@@ -100,6 +100,10 @@ const CURIOSIDADES = {
     { t: 'Combo de aniversário', x: 'Doce, salgado e bebida a preço único, de 4 a 14 de junho.' },
     { t: 'Oito categorias no Sweet Awards', x: 'Maestro Café levou Melhor Combo, Melhor Salgado e Melhor Criatividade; Jolie Café Pâtisserie, Melhor Doce; Sweet Duo, Melhor Bebida; Rollab, Melhor Atendimento; Just Food&Coffee, Melhor Apresentação; Mr. Cupcake, Encantamento em Loja.' },
   ],
+  '2026.2': [
+    { t: 'Caça aos Carimbos', x: 'Quem visitava uma casa participante registrava um carimbo digital no mapa da edição.' },
+    { t: 'Júri técnico', x: 'O Senac formou o júri técnico da edição.' },
+  ],
 }
 
 /* Aplica os aliases oficiais para não contar a mesma casa duas vezes: a Fran's

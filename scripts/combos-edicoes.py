@@ -1,4 +1,6 @@
-# Fotos de combo por participante das edições 2017.2 a 2025 (14/10/2026).
+# Fotos de combo por participante das edições 2017.2 a 2025 (14/10/2026) e da
+# Cartoon, 2026.2 (16/11/2026: caminho ABSOLUTO no JSON, para os combos aprovados
+# em 03_COMBOS/02_ARTES da pasta da edição no Dropbox).
 #
 # Lê scripts/combos-edicoes.json — a escolha, feita olhando as pastas
 # "combos por participante" de acervo-bruto/EDIÇÕES DO FESTIVAL/COMBOS_ORGANIZADOS:
@@ -43,7 +45,7 @@ for code, marcas in escolha.items():
     manifesto[code] = lista
 
 linhas = ['// GERADO por scripts/combos-edicoes.py a partir de scripts/combos-edicoes.json.',
-          '// Um combo por marca participante, edições 2017.2 a 2025. Não editar à mão.',
+          '// Um combo por marca participante, edições 2017.2 a 2025 e 2026.2. Não editar à mão.',
           'export const EDITION_COMBOS = {']
 for code, lista in manifesto.items():
     itens = ',\n'.join(f'    {{ marca: {json.dumps(c["marca"], ensure_ascii=False)}, src: {json.dumps(c["src"])} }}' for c in lista)

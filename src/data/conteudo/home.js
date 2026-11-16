@@ -118,6 +118,45 @@ export const RECONHECIMENTO = {
   cta: 'Ver o Sweet Awards',
 }
 
+/* --- Encerramento da edição Cartoon (16/11/2026, pedido do Wilker) ---------
+   Entra logo abaixo da abertura enquanto `ativo` for true. Diz o que está em
+   apuração, agradece, abre a expectativa da próxima edição e mostra as marcas.
+   ⚠️ A4: nenhum resultado aqui antes de a organização divulgar. Quando sair,
+   esta seção passa a apontar para o resultado. Sem promessa de participação
+   nem de patrocínio (§8.4): os botões registram interesse.
+   Destinos: `interno` = rota do SPA; sem ele, link comum (página estática com
+   barra final, §10.4-b). Marcas: MARCAS_PARCEIROS e LOGO_F2 de imageLibrary. */
+export const ENCERRAMENTO = {
+  ativo: true,
+  id: 'encerramento',
+  rotulo: 'Edição Cartoon',
+  titulo: { antes: 'Obrigado por ', destaque: 'fazer parte.', depois: '' },
+  apuracao: {
+    titulo: 'Resultados em apuração',
+    texto: 'As avaliações do público para o Sweet Awards, o ranking da Caça aos Carimbos e os sorteios passam pela conferência final. Os resultados saem primeiro no Instagram do festival e depois aqui no site.',
+    instagram: { rotulo: '@sweetcoffeeweek', href: 'https://www.instagram.com/sweetcoffeeweek/' },
+  },
+  agradecimentos: [
+    { titulo: 'Às casas participantes', texto: 'Que criaram os combos da edição e receberam a cidade durante onze dias.' },
+    { titulo: 'Aos Sweet Lovers', texto: 'Que visitaram as casas, avaliaram os combos e carimbaram o mapa.' },
+  ],
+  proxima: {
+    titulo: 'A próxima edição começa por você.',
+    texto: 'Tema e data ainda não foram definidos. Conte o que você gostaria de ver, ou registre o interesse da sua casa ou da sua empresa nas próximas edições.',
+    acoes: [
+      { rotulo: 'Enviar sugestão', href: '/contato', interno: true, classe: 'hm-btn--choco' },
+      { rotulo: 'Quero participar', href: '/quero-participar/', classe: 'scw-btn--contorno-escuro' },
+      { rotulo: 'Quero apoiar', href: '/apoiar', interno: true, classe: 'scw-btn--contorno-escuro' },
+    ],
+  },
+  marcas: {
+    texto: 'Obrigado à Sicredi pela parceria e ao Senac e ao Espaço Reduzido pelo apoio.',
+    patrocinio: 'Patrocínio',
+    apoio: 'Apoio',
+    realizacao: 'Realização',
+  },
+}
+
 /* --- 06 Faça parte -------------------------------------------------------- */
 export const FACA_PARTE = {
   rotulo: 'Faça parte',
@@ -128,7 +167,7 @@ export const FACA_PARTE = {
     texto: 'Cafeterias, confeitarias, docerias, padarias, sorveterias, bistrôs e restaurantes de Natal e região.',
     proxima: 'Próxima edição',
     // ponytail: só o estado de hoje tem texto; outro status some com a linha até a Home ser revista.
-    estado: { 'pre-cadastro': 'casas já confirmadas' },
+    estado: { 'pre-cadastro': 'registro de interesse aberto' },
     nota: 'O registro de interesse vale para as próximas edições. A participação depende da curadoria e das vagas de cada edição.',
     acao: 'Registrar interesse',
     link: 'Como participar',
@@ -147,10 +186,10 @@ export const FACA_PARTE = {
 
 /* --- 07 Realização (F2 Experience) ---------------------------------------- */
 /* Números da F2 Experience — fornecidos pelo Wilker no patch da seção de
-   realização. Não saem do acervo do festival; só "16 edições" é conferível. */
+   realização. Não saem do acervo do festival; só "17 edições" é conferível. */
 export const F2_NUMEROS = [
   ['01', '+1', 'K', 'projetos realizados'],
   ['02', '+400', 'K', 'pessoas impactadas'],
-  ['03', '16', '', 'edições do festival assinadas'],
+  ['03', '17', '', 'edições do festival assinadas'],
   ['04', 'BR', '', 'atuação nacional'],
 ]

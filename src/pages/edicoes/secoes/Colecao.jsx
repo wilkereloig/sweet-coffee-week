@@ -6,7 +6,7 @@ import { anos, identificacao, quando, rotuloMarcas } from '../acervo'
 import { NavAnos } from './NavAnos'
 
 /*
- * COLEÇÃO — as 16 edições agrupadas por ano, do mais recente à estreia.
+ * COLEÇÃO — as edições do acervo agrupadas por ano, do mais recente à estreia.
  *
  * Cada ano é um grupo com o numeral em cima e as edições embaixo; anos com
  * duas edições mostram as duas lado a lado, cada uma dizendo se é a 1ª ou a 2ª
