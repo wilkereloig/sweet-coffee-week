@@ -76,7 +76,7 @@ Com resultado divulgado: título "O capítulo final da Cartoon: os destaques da 
 - Rótulo: Dez anos em Natal
 - Título: **O que 17 edições deixaram na cidade.**
 - Números: 437 participações de 131 marcas · mais de 44 mil combos vendidos · mais de R$ 1,1 milhão
-  movimentado nas casas · mais de 27 milhões de visualizações no Instagram
+  movimentado nas casas · mais de 1,6 milhão de interações no Instagram
 - Frase de apoio: Duas em cada três marcas voltaram para outra edição.
 - Nota: "Totais das 17 edições. A edição Cartoon ainda está em apuração."
 - Ação: "Ver o que o festival movimenta" → `/impacto`
@@ -165,10 +165,10 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 
 ### 2.6 Nas redes
 - Título: **O festival também acontece no feed.**
-- Números: mais de 27 milhões de visualizações · mais de 530 mil interações · mais de 1.700 publicações ·
-  mais de 65 mil seguidores
-- Nota: "Instagram oficial. Visualizações e interações desde 2016, com a edição Cartoon (16/09 a 15/11/2026).
-  Seguidores: total de junho de 2026."
+- Números: mais de 42 milhões de visualizações desde 2024 · mais de 1,6 milhão de interações · mais de 1.800
+  publicações e 13 mil stories · mais de 65 mil seguidores
+- Nota: "Instagram oficial, até 16/11/2026. O Instagram só informa visualizações a partir de outubro de 2024;
+  interações e publicações contam desde 2016. Seguidores: total de junho de 2026."
 
 ### 2.7 Na imprensa
 - Título: **Já noticiaram o festival.**
@@ -327,7 +327,7 @@ Natal? Veja como funciona participar do Sweet & Coffee Week e registre o interes
 - Rótulo: Por que participar
 - Título: **Quatro coisas que a casa leva da edição.**
   1. **Público novo na porta.** Na edição Cartoon, 4.285 pessoas avaliaram combos nas casas participantes.
-  2. **Vitrine.** O perfil do festival soma mais de 27 milhões de visualizações, e cada casa aparece na campanha da edição.
+  2. **Vitrine.** O perfil do festival soma mais de 42 milhões de visualizações desde 2024, e cada casa aparece na campanha da edição.
   3. **Assunto.** O tema dá à casa uma história para contar no balcão, na vitrine e nas redes. A imprensa de
      Natal cobre o festival: são 17 matérias em 13 veículos.
   4. **Reconhecimento.** O público avalia e o Sweet Awards premia. 44 marcas já subiram ao pódio.
@@ -388,7 +388,7 @@ em Natal, 131 marcas e um público que sai de casa para provar. Veja quem apoiou
 - Rótulo: Em números
 - Título: **Dez anos de público, nas casas e nas redes.**
 - Nas casas: 17 edições · 131 marcas · mais de 44 mil combos · mais de R$ 1,1 milhão movimentado
-- Nas redes: mais de 27 milhões de visualizações · mais de 530 mil interações · mais de 65 mil seguidores
+- Nas redes: mais de 42 milhões de visualizações desde 2024 · mais de 1,6 milhão de interações · mais de 65 mil seguidores
 - Nota: a mesma de 1.4 e 2.6 · link "De onde vêm os números" → `/impacto`
 
 ### 7.3 A última edição

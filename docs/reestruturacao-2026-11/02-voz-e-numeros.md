@@ -87,10 +87,46 @@ escritos em `03-textos.md` são os de hoje e mudam sozinhos quando a fonte mudar
 |---|---|---|---|
 | Combos vendidos | **+44 mil** | +34 mil | 34 mil (16 edições, apurado em jun/2026) + 10.124 lançados na Cartoon |
 | Movimento nas casas | **+R$ 1,1 milhão** | +R$ 712 mil | 712 mil + 393,8 mil (10.124 combos × R$ 38,90) |
-| Visualizações no Instagram | **+27 milhões** | +18 milhões | 18 milhões até a Lovers + 9,82 milhões de 16/09 a 15/11/2026 |
-| Interações no Instagram | **+530 mil** | +290 mil | 290 mil + 244.827 |
-| Publicações | **+1.700** | +1.600 | 1.667 + 99 |
+| Visualizações no Instagram | **+42 milhões** | não se aplica | 42.150.745 = posts 31.492.967 + stories 10.657.778, **out/2024 a 16/11/2026** (ver B2.1) |
+| Interações no Instagram | **+1,6 milhão** | não se aplica | 1.687.304 = curtidas + comentários + compartilhamentos + salvamentos dos posts, 2016 a 16/11/2026 |
+| Publicações no feed | **+1.800** | não se aplica | 1.804 posts, 2016 a 16/11/2026 |
+| Stories | **+13 mil** | não se aplica | 13.762 stories, 2018 a 16/11/2026 |
 | Seguidores | +65 mil | +65 mil | total de junho de 2026; o atual não consta |
+
+As linhas do Instagram não dependem de D1: saem da leitura do perfil inteiro até 16/11/2026, não de uma soma
+"total antigo + edição".
+
+#### B2.1 · Instagram ano a ano (fonte)
+
+Exportação "Export data" do Meta Business Suite, uma por ano e por tipo, gerada em 17/11/2026. Arquivos em
+`2026.2 SCW CARTOONS/11_RELATORIOS_AVALIACOES/instagram/export-todos-os-anos/` (Dropbox, fora do repo).
+Post repetido entre arquivos conta uma vez.
+
+| Ano | Posts | Stories | Visualizações (posts) | Visualizações (stories) | Interações (posts) |
+|---|---|---|---|---|---|
+| 2016 | 53 | — | — | — | 6.761 |
+| 2017 | 163 | — | — | — | 42.901 |
+| 2018 | 137 | 1.101 | — | — | 74.856 |
+| 2019 | 174 | 2.408 | — | — | 175.484 |
+| 2020 | 379 | 5.604 | — | — | 178.800 |
+| 2021 | 240 | 1.724 | — | — | 214.237 |
+| 2022 | 132 | 477 | — | — | 131.885 |
+| 2023 | 120 | 546 | — | — | 112.768 |
+| 2024 | 117 | 434 | 4.880.278 | 2.340.794 | 129.190 |
+| 2025 | 103 | 514 | 15.047.267 | 3.018.227 | 209.884 |
+| 2026 (até 16/11) | 186 | 954 | 11.565.422 | 5.298.757 | 410.538 |
+| **Total** | **1.804** | **13.762** | **31.492.967** | **10.657.778** | **1.687.304** |
+
+Limites da fonte:
+
+- **Visualizações só existem a partir de out/2024.** As exportações de 2016 a 2023 não trazem a coluna. O site
+  diz o período: "desde 2024", nunca "desde 2016".
+- **Compartilhamentos quase não foram medidos antes de 2024** (4 em 2016, 9 em 2018). As interações antigas são
+  um piso.
+- **Só entra o que ainda está no perfil.** Post apagado ou arquivado não aparece na exportação. Os posts de 2022
+  começam em agosto, os de 2023 em outubro e os de 2024 em outubro.
+- **Stories de 2016 e 2017:** a exportação veio vazia.
+- **Alcance** aparece em parte dos anos e com valores incompletos. Não entra no site.
 
 Ressalvas que acompanham o texto:
 
