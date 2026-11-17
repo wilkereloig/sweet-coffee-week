@@ -14,7 +14,7 @@ const PREMIADOS = SECOES.resultados.id
  * números, num conjunto só, sobre o herói fotográfico compartilhado (§6.9). A vitrine dos quatro primeiros lugares saiu em 06/08/2026
  * (§7.3, §11). A foto surge pelo scw-motion.css; o texto já abre legível.
  */
-export function Abertura({ numeros }) {
+export function Abertura({ numeros, destaquePublicado = false }) {
   return (
     <section className="scw-heroi-foto swa-hero" aria-labelledby="swa-titulo" data-mo-fora>
       <HeroFotos fotos={FOTOS} />
@@ -22,7 +22,7 @@ export function Abertura({ numeros }) {
         <h1 className="scw-h1" id="swa-titulo">{ABERTURA.titulo}</h1>
         <p className="scw-lead">{ABERTURA.lead}</p>
         <a className="scw-btn scw-btn--solido swa-hero__acao" href={`#${PREMIADOS}`} onClick={irPara(PREMIADOS)}>
-          {ABERTURA.acao} <Seta />
+          {destaquePublicado ? ABERTURA.acaoDestaque : ABERTURA.acao} <Seta />
         </a>
         <dl className="swa-numeros">
           <div>

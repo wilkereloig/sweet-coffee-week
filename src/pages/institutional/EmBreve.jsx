@@ -42,7 +42,7 @@ import React from 'react'
 import { MARCA_SCW } from '../../components/nav'
 import ScwIcon from '../../components/scw-icons/ScwIcon'
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
-import { festivalFacts } from '../../data/festivalFacts'
+import { festivalFacts, partesDoFato } from '../../data/festivalFacts'
 import { SWEET_COFFEE_HISTORY } from '../../data/sweetCoffeeHistory'
 import { EDICOES_DADOS } from '../../data/handoff/edicoesData'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData'
@@ -111,8 +111,14 @@ const TEMAS = EDICOES.map((e) => e.tema).filter(Boolean)
 const F = festivalFacts
 const NUMEROS = [
   { alvo: F.editions.value, rotulo: 'edições realizadas', cor: 'var(--scw-choco)', icone: 'edicao' },
-  { alvo: F.revenue.value, prefixo: '+R$ ', sufixo: ' mil', rotulo: 'movimentação direta', cor: 'var(--scw-roxo)', icone: 'moedas' },
-  { alvo: F.combosSold.value, prefixo: '+', sufixo: ' mil', rotulo: 'combos vendidos', cor: 'var(--scw-marrom)', icone: 'combo' },
+  /* Prefixo e unidade saem do próprio fato (partesDoFato); pendente some. */
+  ...[
+    { fato: F.revenue, rotulo: 'movimentação direta', cor: 'var(--scw-roxo)', icone: 'moedas' },
+    { fato: F.combosSold, rotulo: 'combos vendidos', cor: 'var(--scw-marrom)', icone: 'combo' },
+  ].flatMap(({ fato, ...resto }) => {
+    const p = partesDoFato(fato)
+    return p ? [{ alvo: p.valor, prefixo: p.antes, sufixo: p.depois, ...resto }] : []
+  }),
 ]
 
 /* Os três nomeiam o que o combo É — conteúdo, não enfeite (§6.13). */
@@ -433,7 +439,7 @@ export function EmBrevePage() {
             Uma <em className="scw-italico eb-h1__dest">nova edição</em> do Sweet &amp; Coffee Week vem aí.
           </h1>
           <p className="scw-lead eb-lead">
-            São 17 edições transformando Natal numa rota de doce, salgado e café. Os
+            São {F.editions.value} edições transformando Natal numa rota de doce, salgado e café. Os
             estabelecimentos que quiserem participar das próximas já podem registrar o interesse.
           </p>
         </div>

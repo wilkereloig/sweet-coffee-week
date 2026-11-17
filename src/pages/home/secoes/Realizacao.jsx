@@ -1,5 +1,6 @@
 import React from 'react'
 import { F2_NUMEROS } from '../../../data/conteudo/home'
+import { festivalFacts } from '../../../data/festivalFacts'
 import { Seta } from '../../../components/Seta'
 import { CONTATO_EMAIL } from '../../../config/channels'
 
@@ -42,7 +43,8 @@ export function Realizacao() {
           {F2_NUMEROS.map(([i, num, sufixo, rotulo]) => (
             <div key={i}>
               <span className="f2-realiza__ordem">{i}</span>
-              <dt>{num}{sufixo && <em>{sufixo}</em>}</dt>
+              {/* `{ fato }` = número do festival, lido da fonte; texto = número da agência. */}
+              <dt>{typeof num === 'object' ? festivalFacts[num.fato].value : num}{sufixo && <em>{sufixo}</em>}</dt>
               <dd>{rotulo}</dd>
             </div>
           ))}

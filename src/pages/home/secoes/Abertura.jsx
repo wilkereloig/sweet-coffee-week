@@ -37,7 +37,10 @@ const temTexto = (v) => typeof v === 'string' && v.trim().length > 0
 const FICHA = [
   [T.ficha.edicoes, `${F.editions.value}, desde ${F.firstYear}`],
   [T.ficha.marcas, `${F.brands.value} já participaram`],
-  PROX.mes ? [T.ficha.proxima, PROX.periodo || maiuscula(PROX.mes)] : null,
+  /* Sem próxima edição divulgada, a terceira linha é a última realizada (da base). */
+  PROX.mes
+    ? [T.ficha.proxima, PROX.periodo || maiuscula(PROX.mes)]
+    : F.lastEdition.tema ? [T.ficha.ultima, `${F.lastEdition.tema} · ${F.lastEdition.ano}`] : null,
 ].filter(Boolean)
 
 export function Abertura({ ir, rolarPara, destaque = destaqueEdicao }) {

@@ -13,7 +13,8 @@ acervo, desligar o site da edição sem apagar nada e avisar na Home que os resu
 | QR impressos | `src/edicao/qrPontos.js` → com a edição fora do ar, todo código vai para `/` | a leitura continua sendo contada em `api/q.js` |
 | Canônico e sitemap | `src/lib/pageMeta.js`, `public/sitemap.xml` | `/cartoon/*` e `/festival` apontam para `/`; saíram do sitemap; entrou `/edicoes/2026.2` |
 | Acervo | `src/data/sweetCoffeeHistory.js` e derivados | Cartoon é a 17ª edição, 27 participantes, galeria com um combo por casa, premiação `em-apuracao` |
-| Home | `src/data/destaqueEdicao.js`, `ENCERRAMENTO` em `src/data/conteudo/home.js`, `src/pages/home/secoes/Encerramento.jsx` | abertura "Edição encerrada" + seção de agradecimento, próxima edição e marcas |
+| Home | `src/data/destaqueEdicao.js` (desligado), `CAPITULO_CARTOON` em `src/data/conteudo/home.js`, `src/pages/home/secoes/CapituloCartoon.jsx`, `src/data/resultadosEdicao.js` | abertura do festival + Capítulo Cartoon: cidade ilustrada oficial, estado do Sweet Awards, agradecimento e créditos (revisão do mesmo dia; a primeira versão era a seção "Encerramento") |
+| Sweet Awards | `src/pages/sweet-awards/secoes/AberturaApuracao.jsx`, `APURACAO` em `src/data/conteudo/sweet-awards.js` | abre com a Cartoon em apuração; os resultados logo abaixo são os últimos publicados (Lovers) |
 | Próxima edição | `src/data/proximaEdicao.js` | tema, período, mês e ano em `null`; registro de interesse segue aberto |
 
 ## 2. O que NÃO foi apagado (e como religar)
@@ -35,10 +36,12 @@ anuncia, o que se vende, endereço da página e de onde vem o dado do anunciante
 
 1. **Resultados.** Sweet Awards (apuração é da organização), pódio da Caça aos Carimbos e sorteios saem
    primeiro no Instagram. Depois da divulgação: preencher `premiacao.categorias` da 2026.2 em
-   `sweetCoffeeHistory.js` (o Hall e o histórico do Awards derivam sozinhos) e trocar o texto de
-   `ENCERRAMENTO.apuracao` para apontar o resultado. Nada de resultado no código antes disso (A4).
+   `sweetCoffeeHistory.js` **e** trocar `premiacao.status` para `completa` (o Hall, o histórico, a Home e a
+   abertura do Awards acompanham sozinhos); Caça e sorteios têm estado próprio em `src/data/resultadosEdicao.js`.
+   Passo a passo em `docs/numeros-do-site.md` §8. Nada de resultado no código antes disso (A4).
 2. **Vendas.** Das 27 casas, 8 não lançaram vendas e 15 têm dias pendentes (leitura de 16/11). Por isso os
-   totais comerciais do site (`festivalFacts.combosSold`, `revenue`) continuam com a apuração de junho de 2026.
+   totais comerciais do site (`festivalFacts.combosSold`, `revenue`) continuam com a apuração de junho de 2026,
+   e as páginas dizem que ela vai até a 16ª edição (`docs/numeros-do-site.md` §3 e §6).
 3. **Instagram.** Os números de `festivalFacts` (visualizações, alcance, interações, seguidores, posts) ainda
    são os de junho de 2026. A atualização depende da exportação ano a ano do Meta Business Suite (limite de um
    ano por arquivo).

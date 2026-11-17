@@ -2,6 +2,15 @@
 
 ### 7.2 Edições — `/edicoes` e `/edicoes/<código>`, laranja `#FF4810`
 
+> **16/11/2026 — detalhe da Cartoon (`/edicoes/2026.2`).** Três acréscimos, todos vindos de dado: (1) a nota da
+> galeria diz que as imagens são ilustrativas (`CENAS[].ilustrativa` → `TEXTOS.notaIlustrativa`): os combos
+> aparecem em cenário criado para o tema de cada casa; (2) **"O lançamento da edição"** (`secoes/Lancamento.jsx`,
+> `.edx-lanc`): o vídeo que abria a Home, agora identificado como lançamento, com `preload="none"` e o link do
+> reel — só nas edições em que `videoLancamentoEdicao()` e `LANCAMENTOS` trazem arquivo, capa e link; (3) **Sweet
+> Awards em apuração** (`PremiacaoEmApuracao`): quando a premiação está `em-apuracao` e sem categorias, a chapa
+> chocolate diz o estado e leva ao Sweet Awards, sem lista nem pódio. Publicado o resultado, entra a seção
+> normal com o primeiro lugar de cada categoria.
+
 **Arquivo visual do festival em duas camadas — reconstruída em 13/10/2026** (pedido do
 Wilker: a apresentação de slides não foi aprovada; "o visitante precisa perceber o
 conjunto da história antes de entrar numa edição"). ⛔ **A apresentação de tela única

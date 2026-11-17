@@ -87,6 +87,22 @@ existe: `tests/rotas-edicao.test.mjs` reprova vazamento de `--ct-*`, e
 `tests/cartoon-sistema.test.mjs` reprova a fonte declarada fora da camada e mede o
 contraste a partir dos tokens.
 
+#### Exceção declarada — o Capítulo Cartoon na Home (16/11/2026)
+
+Com a edição encerrada, a Home institucional ganhou uma seção que fala a língua da Cartoon: a cidade ilustrada
+oficial, a paleta do manual da edição e a **Grandstander** (§7.1). É a única área do institucional fora da
+tabela de 9 cores e da família Nexa, restrita a `src/styles/scw-home-cartoon.css`, onde **todo seletor começa por
+`.hm-cap`** e os tokens são `--hc-*` (os da camada `/cartoon` continuam exclusivos dela). As cores são as
+mesmas de `scw-cartoon.css`: não existe segunda paleta. `tests/home-cartoon.test.mjs` reprova seletor fora do
+escopo, cor que não seja da paleta da edição e o uso da fonte ou dos tokens em qualquer outro arquivo;
+`tests/cartoon-sistema.test.mjs` aceita o `@font-face` da Grandstander só nesses dois arquivos.
+
+Contraste: chocolate da edição sobre amarelo, creme ou branco; creme sobre chocolate. Botão com contorno e sombra
+dura (a regra "botão chapado" do §6.6 não vale dentro de `.hm-cap`). Sem laço de animação.
+
+A abertura do Sweet Awards em apuração (§7.3) **não** é exceção: usa só chocolate, creme e roxo da paleta; o
+dourado existe apenas no arquivo do troféu.
+
 ### 6.2 Cor por página
 
 Tokens em `body.route-*`: `--scw-pagina` · `--scw-pagina-tinta` · `--scw-pagina-menu` ·

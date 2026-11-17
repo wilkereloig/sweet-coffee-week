@@ -14,6 +14,8 @@ import { semRepetir } from './participar.js'
 
 // Cada dado: número, nome curto e o que mede (festivalFacts), sem eco do nome.
 const dado = (fato, t, i) => ({ n: fato.curto, t, d: semRepetir(t, fato.mede), i })
+// Fato pendente (valor null) não tem texto: some da lista em vez de sair vazio.
+const exibivel = (item) => !!item.n
 
 export const ABERTURA = {
   titulo: 'Apoie o',
@@ -40,16 +42,18 @@ export const ALCANCE = {
   grupos: [
     {
       titulo: 'Nas casas participantes',
-      fonte: `Histórico comercial das ${F.editions.value} edições`,
+      /* O escopo vem do fato: a apuração cobre as edições até a Lovers, não
+         as 17 — a Cartoon ainda não fechou o lançamento das vendas. */
+      fonte: `Histórico comercial, ${F.revenue.periodo}`,
       apurado: F.revenue.apurado,
       itens: [
         dado(F.revenue, 'movimentação direta', 'moedas'),
         dado(F.combosSold, 'combos vendidos', 'combo'),
-      ],
+      ].filter(exibivel),
     },
     {
       titulo: 'No Instagram oficial',
-      fonte: 'Painel do perfil oficial do festival',
+      fonte: `Painel do perfil oficial do festival, ${F.igViews.periodo}`,
       apurado: F.igViews.apurado,
       nota: 'Visualizações, alcance e interações medem coisas diferentes e não se somam.',
       itens: [
@@ -57,7 +61,7 @@ export const ALCANCE = {
         dado(F.igReach, 'alcance', 'alcance'),
         dado(F.igInteractions, 'interações', 'coracao'),
         dado(F.igFollowers, 'seguidores', 'pessoas'),
-      ],
+      ].filter(exibivel),
     },
   ],
 }

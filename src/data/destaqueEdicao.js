@@ -14,9 +14,19 @@
  * expectativa e as marcas moram logo abaixo, na seção Encerramento
  * (conteudo/home.js → ENCERRAMENTO).
  *
- * COMO DESLIGAR: `ativo: false` aqui e em ENCERRAMENTO. A Home volta à
- * abertura institucional completa, sem espaço vazio. Nada aqui liga ou desliga
- * por data, e nada mexe em flag de publicação (src/App.jsx).
+ * 16/11/2026, segunda rodada (pedido do Wilker): DESLIGADO. A abertura da Home
+ * voltou a ser a do festival — ela não pode continuar parecendo a campanha de
+ * lançamento de uma edição encerrada. A Cartoon passou a ter seção própria logo
+ * abaixo (conteudo/home.js → CAPITULO_CARTOON, com a cidade ilustrada e o
+ * estado do Sweet Awards), e o vídeo de lançamento foi para o acervo da edição
+ * (/edicoes/2026.2, `videoLancamento()` em imageLibrary.js), identificado como
+ * lançamento. Os campos abaixo ficam como registro e como modelo: na próxima
+ * edição, tema e período voltam a vir de proximaEdicao.js e `ativo` volta a
+ * `true` (decisão do Wilker, nunca automática).
+ *
+ * COMO LIGAR/DESLIGAR: `ativo`. Desligado, a Home mostra a abertura
+ * institucional completa, sem espaço vazio. Nada aqui liga ou desliga por
+ * data, e nada mexe em flag de publicação (src/App.jsx).
  *
  * ⚠️ Nada de dado não confirmado (A4): resultado do Sweet Awards, ranking da
  * Caça aos Carimbos e sorteios só entram depois de divulgados pela organização.
@@ -32,7 +42,7 @@ const REEL_LANCAMENTO = 'https://www.instagram.com/reel/DeNRdZvBubh/'
 const video = fotoProximaEdicao('video')
 
 export const destaqueEdicao = {
-  ativo: true,
+  ativo: false,
   rotulo: 'Edição encerrada',
   titulo: 'Sweet & Coffee Week',
   tema: 'Cartoon',

@@ -34,3 +34,24 @@ export function Premiacao({ premiacao }) {
     </section>
   )
 }
+
+/*
+ * Edição encerrada, resultado ainda não divulgado: a mesma chapa, sem lista e
+ * sem pódio (A4) — o estado, uma frase e o caminho para a página do Awards,
+ * que acompanha a divulgação.
+ */
+export function PremiacaoEmApuracao() {
+  const A = TEXTOS.apuracao
+  return (
+    <section className="scw-secao scw-secao--choco edx-premio edx-premio--apuracao" aria-labelledby="edx-premio-titulo">
+      <div className="edx-premio__cabeca">
+        <h2 id="edx-premio-titulo" className="scw-h2">{TEXTOS.premiacao}</h2>
+      </div>
+      <div>
+        <h3 className="edx-premio__sub">{A.estado}</h3>
+        <p className="scw-corpo edx-premio__nota">{A.texto}</p>
+        <a className="scw-btn edx-premio__ir" href="#/sweet-awards">{A.acao}<Seta /></a>
+      </div>
+    </section>
+  )
+}

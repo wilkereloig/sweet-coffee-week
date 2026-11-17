@@ -3,6 +3,8 @@
    Fonte única: alimenta a interface (busca, filtros, accordions) e o schema FAQPage.
    Dados que mudam a cada edição ficam em EDICAO; links ficam em LINKS. */
 import { proximaEdicao as PROX } from './proximaEdicao.js'
+import { festivalFacts as F } from './festivalFacts.js'
+import { RESULTADOS } from './resultadosEdicao.js'
 
 const FAQ_DADOS = (function () {
   var EDICAO = {
@@ -15,8 +17,10 @@ const FAQ_DADOS = (function () {
     cidades: 'Natal e Parnamirim',
     avaliacoes: null,
     resultados: null,
-    // Última edição realizada (histórico, seguro para citar)
-    ultima: { code: '2026.2', tema: 'Cartoon', periodo: '5 a 15 de novembro de 2026', valorCombo: 'R$ 38,90', edicoes: 17 },
+    // Última edição realizada (histórico, seguro para citar). Código, tema,
+    // período e contagem vêm JUNTOS da base (festivalFacts.lastEdition): quando
+    // a próxima edição for registrada, nenhum deles fica para trás.
+    ultima: { code: F.lastEdition.code, tema: F.lastEdition.tema, periodo: F.lastEdition.periodo, edicoes: F.editions.value },
   };
 
   var LINKS = {
@@ -364,16 +368,31 @@ const FAQ_DADOS = (function () {
       r: ['A próxima edição acontece de ' + EDICAO.periodo + ANO + (EDICAO.tema ? ', com o tema ' + EDICAO.tema : '') +
         '. Participantes, combos e valor são divulgados no site e nos canais oficiais do Sweet & Coffee Week.'],
     },
-    tema: EDICAO.tema && {
+    /* Sem edição em cartaz não existe "edição atual": a pergunta fala da
+       próxima. Com o tema confirmado, cita o tema; sem ele, diz que ainda não
+       foi anunciado e lembra a última realizada (dado do acervo). */
+    tema: EDICAO.tema ? {
       p: 'Qual é o tema da próxima edição?',
       r: ['O tema da próxima edição é ' + EDICAO.tema + (EDICAO.periodo ? ', de ' + EDICAO.periodo + ANO : '') +
         '. Cada participante cria o próprio combo a partir dele.'],
+    } : {
+      p: 'Qual é o tema da próxima edição?',
+      r: ['O tema da próxima edição ainda não foi anunciado: ele sai no site e nos canais oficiais do Sweet & Coffee Week antes de cada edição. A última edição realizada foi a ' +
+        EDICAO.ultima.tema + (EDICAO.ultima.periodo ? ', de ' + EDICAO.ultima.periodo : '') + '.'],
+    },
+    /* Edição em destaque com o Sweet Awards em apuração (resultadosEdicao.js):
+       a resposta diz onde acompanhar. Divulgado o resultado, volta a genérica. */
+    resultados: RESULTADOS.awards.estado === 'em-apuracao' && {
+      r: ['Os vencedores são anunciados após o encerramento das avaliações, a conferência dos resultados e a validação da organização.',
+        'O resultado da edição ' + RESULTADOS.tema + ' está em apuração. Ele sai primeiro no Instagram do festival (@sweetcoffeeweek) e depois entra na página do Sweet Awards.'],
+      link: 'awards',
     },
   };
   P.forEach(function (q) {
     var d = q.dyn && DINAMICA[q.dyn];
     if (!d) return;
     if (d.p) q.p = d.p;
+    if (d.link) q.link = d.link;
     q.r = d.r;
   });
 

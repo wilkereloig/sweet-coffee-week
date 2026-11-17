@@ -1,0 +1,402 @@
+/* ============================================================================
+   Home · Capítulo Cartoon (16/11/2026) — src/pages/home/secoes/CapituloCartoon.jsx
+
+   EXCEÇÃO DECLARADA de paleta e fonte (docs/regras/06a §6.1): este é o único
+   bloco do institucional que fala a língua da edição Cartoon — paleta do
+   manual, Grandstander, contorno e sombra dura de desenho. Vale SÓ sob
+   `.hm-cap`: todo seletor deste arquivo começa por ele, e os tokens são
+   `--hc-*` (os tokens da camada /cartoon continuam exclusivos dela).
+   tests/home-cartoon.test.mjs confere o escopo e que cada cor daqui é a mesma
+   da paleta da edição (src/styles/scw-cartoon.css) — não existe segunda paleta.
+
+   Contraste (manual da edição): chocolate sobre amarelo, creme ou branco;
+   creme sobre chocolate. Nada de texto pequeno sobre vermelho, rosa ou azul.
+   ========================================================================= */
+
+/* Grandstander (OFL), servida pelo projeto. Mesma declaração da camada da
+   edição; aqui a família só é usada pelas regras `.hm-cap`. */
+@font-face {
+  font-family: 'Grandstander';
+  src: url('/fonts/grandstander/grandstander-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.hm-cap {
+  --hc-creme: #FDF0DE;
+  --hc-amarelo: #FDB901;
+  --hc-choco: #3A150F;
+  --hc-branco: #FCFCFC;
+  --hc-vermelho: #ED1C20;
+  --hc-fonte: 'Grandstander', system-ui, sans-serif;
+  --hc-traco: 3px solid var(--hc-choco);
+  --hc-sombra: 6px 6px 0 var(--hc-choco);
+
+  position: relative;
+  overflow: clip;
+  padding-top: clamp(64px, 7vw, 120px);
+  background: var(--hc-amarelo);
+  color: var(--hc-choco);
+  font-family: var(--hc-fonte);
+}
+/* Retícula de gibi só na diagonal do canto (manual: nunca no fundo inteiro). */
+.hm-cap::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto auto;
+  width: min(46vw, 620px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, var(--hc-choco) 1.6px, transparent 2px) 0 0 / 14px 14px;
+  opacity: .16;
+  -webkit-mask-image: linear-gradient(225deg, #000 0%, transparent 62%);
+  mask-image: linear-gradient(225deg, #000 0%, transparent 62%);
+  pointer-events: none;
+}
+
+.hm-cap .hm-cap__palco {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  column-gap: clamp(32px, 4.5vw, 88px);
+  padding: 0 var(--scw-trilho) clamp(72px, 7vw, 128px);
+}
+/* Três peças na grade: texto e aviso dos outros resultados empilhados na
+   coluna calma, a cidade ocupando as duas linhas ao lado. O bloco de texto
+   fica centrado na altura do quadro (as duas linhas crescem por igual). */
+.hm-cap .hm-cap__texto { grid-column: 1; grid-row: 1; align-self: end; }
+.hm-cap .hm-cap__outros { grid-column: 1; grid-row: 2; align-self: start; }
+.hm-cap .hm-cap__cena { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+
+/* --- texto: área calma ----------------------------------------------------- */
+.hm-cap .hm-cap__texto { display: flex; flex-direction: column; align-items: flex-start; }
+.hm-cap .hm-cap__rotulo {
+  margin: 0 0 clamp(18px, 1.8vw, 28px);
+  padding: 9px 14px 7px;
+  border: var(--hc-traco);
+  border-radius: 10px;
+  background: var(--hc-branco);
+  box-shadow: 4px 4px 0 var(--hc-choco);
+  font: 800 14px/1 var(--hc-fonte);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  rotate: -2deg;
+}
+.hm-cap .hm-cap__titulo {
+  margin: 0;
+  max-width: 14ch;
+  font: 800 clamp(36px, 4.5vw, 76px)/1.02 var(--hc-fonte);
+  letter-spacing: -.012em;
+  text-wrap: balance;
+}
+.hm-cap .hm-cap__titulo:focus { outline: none; }
+.hm-cap .hm-cap__apoio {
+  margin: clamp(16px, 1.6vw, 24px) 0 0;
+  max-width: 34ch;
+  font: 500 clamp(18px, 1.35vw, 22px)/1.4 var(--hc-fonte);
+}
+.hm-cap .hm-cap__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: clamp(18px, 1.8vw, 28px) 0 0;
+  padding: 13px 22px 10px 16px;
+  border-radius: 999px;
+  background: var(--hc-choco);
+  color: var(--hc-creme);
+  font: 800 clamp(17px, 1.3vw, 20px)/1 var(--hc-fonte);
+}
+.hm-cap .hm-cap__ponto {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--hc-amarelo);
+}
+.hm-cap .hm-cap__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 16px;
+  margin-top: clamp(22px, 2.2vw, 34px);
+}
+/* Botão de gibi: caixa arredondada, contorno e sombra dura; afunda no clique. */
+.hm-cap .hm-cap__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 4px 24px 0;
+  border: var(--hc-traco);
+  border-radius: 14px;
+  background: var(--hc-choco);
+  color: var(--hc-creme);
+  box-shadow: 5px 5px 0 var(--hc-branco);
+  font: 800 17px/1.1 var(--hc-fonte);
+  text-decoration: none;
+  transition: translate .16s ease, box-shadow .16s ease;
+}
+.hm-cap .hm-cap__btn--claro {
+  background: var(--hc-branco);
+  color: var(--hc-choco);
+  box-shadow: 5px 5px 0 var(--hc-choco);
+}
+@media (hover: hover) {
+  .hm-cap .hm-cap__btn:hover { translate: -2px -2px; box-shadow: 7px 7px 0 var(--hc-branco); }
+  .hm-cap .hm-cap__btn--claro:hover { box-shadow: 7px 7px 0 var(--hc-choco); }
+}
+.hm-cap .hm-cap__btn:active { translate: 4px 4px; box-shadow: 1px 1px 0 var(--hc-branco); }
+.hm-cap .hm-cap__btn--claro:active { box-shadow: 1px 1px 0 var(--hc-choco); }
+
+.hm-cap .hm-cap__outros {
+  margin: clamp(20px, 2vw, 30px) 0 0;
+  max-width: 44ch;
+  font: 500 15px/1.5 var(--hc-fonte);
+}
+.hm-cap .hm-cap__outros a {
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.hm-cap .hm-cap__insta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* --- a cidade: o elemento principal ---------------------------------------- */
+.hm-cap .hm-cap__cena { position: relative; margin: 0; }
+.hm-cap .hm-cap__quadro {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 4px solid var(--hc-choco);
+  border-radius: clamp(18px, 2vw, 30px);
+  background: var(--hc-creme) center / cover no-repeat;
+  box-shadow: 10px 10px 0 var(--hc-choco);
+}
+/* A arte tem 1,66:1; o quadro corta as laterais. O foco fica à esquerda do
+   centro: ponte, rio e estádio, que é o que diz "Natal" antes de qualquer texto. */
+.hm-cap .hm-cap__cidade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 22% 50%;
+}
+/* Selo oficial, no canto de cima do quadro: presente, fora da linha do título.
+   Arquivo original, sem efeito. */
+.hm-cap .hm-cap__selo {
+  position: absolute;
+  top: clamp(-76px, -4.8vw, -40px);
+  left: clamp(-64px, -4vw, -28px);
+  width: clamp(112px, 11.5vw, 190px);
+  height: auto;
+  max-width: none;
+}
+/* Placa do próximo capítulo: etiqueta inclinada + o troféu em desenho da edição. */
+.hm-cap .hm-cap__placa {
+  position: absolute;
+  right: clamp(-28px, -1.6vw, -10px);
+  bottom: clamp(-52px, -3.2vw, -30px);
+  display: flex;
+  align-items: flex-end;
+  margin: 0;
+  pointer-events: none;
+}
+.hm-cap .hm-cap__placa-texto {
+  display: block;
+  margin: 0 -14px 18px 0;
+  padding: 12px 26px 9px 18px;
+  border: var(--hc-traco);
+  border-radius: 12px;
+  background: var(--hc-branco);
+  box-shadow: var(--hc-sombra);
+  font: 800 clamp(20px, 1.9vw, 30px)/1 var(--hc-fonte);
+  rotate: -3deg;
+}
+.hm-cap .hm-cap__placa-texto small {
+  display: block;
+  margin-bottom: 6px;
+  font: 800 clamp(11px, .85vw, 13px)/1 var(--hc-fonte);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.hm-cap .hm-cap__placa img {
+  position: relative;
+  width: clamp(92px, 9.5vw, 156px);
+  height: auto;
+  max-width: none;
+}
+
+/* Controles pequenos (ver a cidade, aproximar, fechar): 44px de alvo. */
+.hm-cap .hm-cap__ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 3px 14px 0 12px;
+  border: var(--hc-traco);
+  border-radius: 12px;
+  background: var(--hc-branco);
+  color: var(--hc-choco);
+  font: 800 15px/1 var(--hc-fonte);
+  cursor: pointer;
+}
+.hm-cap .hm-cap__ver {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  box-shadow: 4px 4px 0 var(--hc-choco);
+}
+@media (hover: hover) {
+  .hm-cap .hm-cap__ctrl:hover { background: var(--hc-amarelo); }
+}
+
+/* --- agradecimento: folha creme, na mesma seção --------------------------- */
+.hm-cap .hm-cap__gratos {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(24px, 3vw, 56px) clamp(32px, 4.5vw, 88px);
+  align-items: start;
+  padding: clamp(48px, 5vw, 88px) var(--scw-trilho) clamp(56px, 6vw, 104px);
+  border-top: 4px solid var(--hc-choco);
+  background: var(--hc-creme);
+}
+.hm-cap .hm-cap__gratos-titulo {
+  margin: 0;
+  max-width: 16ch;
+  font: 800 clamp(28px, 2.9vw, 46px)/1.06 var(--hc-fonte);
+  text-wrap: balance;
+}
+.hm-cap .hm-cap__gratos-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px clamp(24px, 3vw, 48px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 500 clamp(17px, 1.25vw, 20px)/1.45 var(--hc-fonte);
+}
+.hm-cap .hm-cap__gratos-lista strong { display: block; font-weight: 800; }
+.hm-cap .hm-cap__creditos {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 28px clamp(40px, 5vw, 96px);
+  margin: 0;
+  padding: clamp(22px, 2.2vw, 32px) clamp(22px, 2.6vw, 40px);
+  border: var(--hc-traco);
+  border-radius: clamp(16px, 1.6vw, 22px);
+  background: #fff;
+}
+.hm-cap .hm-cap__creditos > div { display: grid; gap: 14px; }
+.hm-cap .hm-cap__creditos dt {
+  font: 800 12px/1 var(--hc-fonte);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.hm-cap .hm-cap__creditos dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 36px;
+  margin: 0;
+}
+.hm-cap .hm-cap__logo { display: block; width: auto; height: 26px; max-width: 100%; }
+.hm-cap .hm-cap__logo--sicredi { height: 42px; }
+
+/* --- a arte inteira, ampliada --------------------------------------------- */
+.hm-cap .hm-cap__ampliada {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--hc-choco);
+  color: var(--hc-creme);
+  font-family: var(--hc-fonte);
+}
+.hm-cap .hm-cap__ampliada[open] { display: flex; flex-direction: column; }
+.hm-cap .hm-cap__ampliada::backdrop { background: var(--hc-choco); }
+.hm-cap .hm-cap__ampliada-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 14px clamp(16px, 3vw, 40px);
+}
+.hm-cap .hm-cap__ampliada-titulo {
+  margin: 0 auto 0 0;
+  font: 800 clamp(18px, 1.6vw, 24px)/1.1 var(--hc-fonte);
+}
+.hm-cap .hm-cap__ampliada-palco {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+/* Inteira: a arte cabe na área, sem corte (contain). */
+.hm-cap .hm-cap__ampliada-palco img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: contain;
+}
+/* Aproximada: a arte passa da tela e a região rola nos dois eixos. */
+.hm-cap .hm-cap__ampliada-palco.is-perto img { width: 260vw; height: auto; }
+.hm-cap .hm-cap__ampliada-palco:focus-visible { outline: 3px solid var(--hc-amarelo); outline-offset: -3px; }
+.hm-cap .hm-cap__ampliada :is(button):focus-visible { outline-color: var(--hc-amarelo); }
+.hm-cap .hm-cap__ampliada-legenda {
+  margin: 0;
+  padding: 12px clamp(16px, 3vw, 40px) max(14px, env(safe-area-inset-bottom));
+  font: 500 14px/1.45 var(--hc-fonte);
+}
+
+/* --- celular e tablet: direção própria ------------------------------------ */
+@media (min-width: 1000px) {
+  .hm-cap .hm-cap__ampliada-palco.is-perto img { width: 170vw; }
+}
+@media (max-width: 999px) {
+  .hm-cap .hm-cap__palco { grid-template-columns: minmax(0, 1fr); padding-bottom: 72px; }
+  .hm-cap .hm-cap__texto,
+  .hm-cap .hm-cap__outros,
+  .hm-cap .hm-cap__cena { grid-column: 1; grid-row: auto; align-self: auto; }
+  .hm-cap .hm-cap__cena { margin-top: 68px; }
+  .hm-cap .hm-cap__outros { margin-top: 72px; }
+  /* O botão sobe: embaixo ficam a placa e o troféu. */
+  .hm-cap .hm-cap__ver { top: 10px; right: 10px; bottom: auto; left: auto; }
+  .hm-cap .hm-cap__titulo { max-width: 16ch; }
+  /* Quadro mais alto que no desktop: no celular a cidade não vira faixa. */
+  .hm-cap .hm-cap__quadro { aspect-ratio: 1; box-shadow: 7px 7px 0 var(--hc-choco); }
+  .hm-cap .hm-cap__cidade { object-position: 27% 50%; }
+  .hm-cap .hm-cap__cena { margin-right: 7px; }
+  .hm-cap .hm-cap__selo { top: -46px; left: -8px; width: 112px; }
+  .hm-cap .hm-cap__placa { right: -12px; bottom: -46px; }
+  .hm-cap .hm-cap__placa img { width: 96px; }
+  .hm-cap .hm-cap__gratos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 600px) and (max-width: 999px) {
+  .hm-cap .hm-cap__quadro { aspect-ratio: 3 / 2; }
+  .hm-cap .hm-cap__selo { width: 148px; top: -60px; }
+}
+@media (max-width: 599px) {
+  .hm-cap .hm-cap__acoes { flex-direction: column; align-items: stretch; align-self: stretch; }
+  .hm-cap .hm-cap__gratos-lista { grid-template-columns: minmax(0, 1fr); }
+  .hm-cap .hm-cap__creditos { flex-direction: column; align-items: flex-start; }
+}
+
+/* Sem laço de animação: a seção está completa parada. Só a resposta do botão. */
+@media (prefers-reduced-motion: reduce) {
+  .hm-cap .hm-cap__btn { transition: none; }
+}

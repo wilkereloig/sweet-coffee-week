@@ -177,6 +177,8 @@ async function todasAsEdicoes (navegador) {
         foto: (() => { const i = document.querySelector('.edx-gal__foto'); return i ? i.naturalWidth : 0 })(),
         minis: document.querySelectorAll('.edx-gal__mini').length,
         premio: !!document.querySelector('.edx-premio'),
+        apuracao: !!document.querySelector('.edx-premio--apuracao'),
+        podio: document.querySelectorAll('.edx-premio__lista li').length,
         ant: document.querySelector('.edx-seq__item--ant')?.getAttribute('href') || null,
         prox: document.querySelector('.edx-seq__item--prox')?.getAttribute('href') || null,
         titulo: document.title,
@@ -188,7 +190,10 @@ async function todasAsEdicoes (navegador) {
       if (!est.marcas.startsWith(`${d.n} marca`)) falha(`${rot}: contagem de marcas "${est.marcas}"`)
       if (!est.foto) falha(`${rot}: foto principal não carregou`)
       if (est.minis !== d.fotos.length) falha(`${rot}: ${est.minis} miniaturas de ${d.fotos.length}`)
-      if (est.premio !== d.premiacao.teve) falha(`${rot}: seção do Sweet Awards ${est.premio ? 'sobrando' : 'faltando'}`)
+      // A seção existe com resultado registrado OU em apuração (16/11/2026); em apuração, sem lista nem pódio (A4).
+      if (est.premio !== (d.premiacao.teve || d.premiacao.emApuracao)) falha(`${rot}: seção do Sweet Awards ${est.premio ? 'sobrando' : 'faltando'}`)
+      if (est.apuracao !== d.premiacao.emApuracao) falha(`${rot}: bloco "em apuração" ${est.apuracao ? 'sobrando' : 'faltando'}`)
+      if (d.premiacao.emApuracao && est.podio) falha(`${rot}: edição em apuração mostrando ${est.podio} linha(s) de pódio`)
       if (est.ant !== (d.anterior && d.anterior.href)) falha(`${rot}: anterior ${est.ant}`)
       if (est.prox !== (d.proxima && d.proxima.href)) falha(`${rot}: próxima ${est.prox}`)
       if (!est.titulo.startsWith(d.tema)) falha(`${rot}: título da aba "${est.titulo}"`)

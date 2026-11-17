@@ -14,11 +14,11 @@
  * edição em campanha não entra: ela mora em src/data/destaqueEdicao.js e na
  * Home até encerrar, e só então é registrada em sweetCoffeeHistory.js.
  */
-import { CENAS, FOTOS_ABERTURA, PREMIACAO } from '../../data/conteudo/edicoes.js'
+import { CENAS, FOTOS_ABERTURA, LANCAMENTOS, PREMIACAO } from '../../data/conteudo/edicoes.js'
 import { EDICOES_DADOS } from '../../data/handoff/edicoesData.js'
 import { AWARDS_DADOS } from '../../data/handoff/awardsData.js'
 import { EDICOES_NARRATIVA } from '../../data/edicoesNarrativa.js'
-import { editionCombos, editionPhotos } from '../../data/imageLibrary.js'
+import { editionCombos, editionPhotos, videoLancamentoEdicao } from '../../data/imageLibrary.js'
 import { editionMark } from '../../data/editionAssets.js'
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho',
@@ -48,6 +48,7 @@ function resumo(cena) {
     code: cena.code,
     tema: cena.tema,
     etapa: cena.etapa,
+    ilustrativa: cena.ilustrativa === true,
     ano,
     ordem: ordem ? Number(ordem[1]) : null,
     periodo: d.periodo || '',
@@ -134,6 +135,9 @@ function premiacaoDa(code) {
   return {
     status,
     teve: categorias.length > 0,
+    /* Encerrada, com o resultado ainda por divulgar: o detalhe diz isso e
+       leva ao Sweet Awards, sem lista nem pódio. */
+    emApuracao: status === 'em-apuracao' && categorias.length === 0,
     nota: (a && a.nota) || '',
     categorias,
     resumo: categorias.length
@@ -165,6 +169,11 @@ export function detalhe(code) {
     curiosidades: (d.curiosidades || []).filter(semPreco),
     participantes: d.participantes || [],
     premiacao: premiacaoDa(code),
+    /* Vídeo de lançamento: só inteiro — arquivo, capa e o link oficial. */
+    lancamento: (() => {
+      const v = videoLancamentoEdicao(code)
+      return v && LANCAMENTOS[code] ? { ...v, instagram: LANCAMENTOS[code] } : null
+    })(),
     anterior: EDICOES[i - 1] || null,
     proxima: EDICOES[i + 1] || null,
   }

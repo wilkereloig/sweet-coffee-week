@@ -22,6 +22,10 @@ export const TODAS = 'todas'
    senão o próprio nome. Sem isso "Canuto’s" × "Canuto's" virariam duas casas. */
 export const identidade = (nome) => resolveParticipant(nome).slug || nome
 
+/** Código da última edição com resultado publicado (a base vem em ordem
+ *  cronológica), ou `null` se nenhuma tem. */
+export const ultimaComResultado = (edicoes) => (edicoes.length ? edicoes[edicoes.length - 1].code : null)
+
 /** Separa a edição em destaque das demais (histórico, da mais recente para a
  *  mais antiga). Nenhuma edição some: recente + histórico = todas. */
 export function separarEdicoes(edicoes, codigoRecente) {

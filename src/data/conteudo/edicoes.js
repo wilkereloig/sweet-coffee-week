@@ -33,8 +33,18 @@ export const CENAS = [
   { code: '2024',   tema: 'Books',               etapa: 'Literatura e café',    capa: 8 },
   { code: '2025',   tema: 'Celebration',         etapa: 'Festa e rito',         capa: 2 },
   { code: '2026.1', tema: 'Lovers',              etapa: 'Especial 10 anos',     capa: 4 },
-  { code: '2026.2', tema: 'Cartoon',             etapa: 'Universo da animação', capa: 1 },
+  /* `ilustrativa`: as fotos de combo da Cartoon trazem o cenário criado para o
+     tema de cada casa — a galeria diz isso (§6.12: imagem que não é registro
+     cru se identifica). */
+  { code: '2026.2', tema: 'Cartoon',             etapa: 'Universo da animação', capa: 1, ilustrativa: true },
 ]
+
+/* Vídeo de lançamento da edição no Instagram oficial (link limpo, sem parâmetro
+   de rastreio). O arquivo e a capa vêm de imageLibrary.videoLancamentoEdicao().
+   Cartoon: reel de 07/10/2026 — saiu da abertura da Home em 16/11/2026. */
+export const LANCAMENTOS = {
+  '2026.2': 'https://www.instagram.com/reel/DeNRdZvBubh/',
+}
 
 /* Abertura da página: quatro registros de edições diferentes — um par de mãos,
    uma mesa montada, um gesto de servir e um doce de perto. Mesma regra da
@@ -78,6 +88,8 @@ export const TEXTOS = {
   notaCombos: (fotos, marcas) => (marcas && fotos < marcas
     ? `Um combo de cada marca participante. ${fotos} das ${marcas} marcas têm foto no acervo.`
     : 'Um combo de cada marca participante.'),
+  /* Galeria com cenário ilustrativo (CENAS[].ilustrativa). */
+  notaIlustrativa: 'Imagens ilustrativas: os combos aparecem em cenário criado para o tema de cada casa.',
   historia: 'A história da edição',
   marco: 'Por que essa edição marcou',
   destaque: 'Um destaque',
@@ -86,6 +98,19 @@ export const TEXTOS = {
   premiacao: 'Sweet Awards desta edição',
   primeiros: 'Primeiro lugar em cada categoria',
   verAwards: 'Ver o Sweet Awards',
+  /* Edição encerrada com resultado ainda não divulgado (premiação 'em-apuracao').
+     ⚠️ A4: sem data e sem nome de casa. */
+  apuracao: {
+    estado: 'Resultados em apuração',
+    texto: 'A avaliação do público passa pela conferência da organização. O resultado sai primeiro no Instagram do festival e depois entra nesta página.',
+    acao: 'Acompanhar o Sweet Awards',
+  },
+  lancamento: {
+    titulo: 'O lançamento da edição',
+    texto: 'O vídeo que anunciou o tema e as datas, publicado no Instagram do festival.',
+    video: (tema) => `Vídeo de lançamento da edição ${tema}`,
+    instagram: 'Ver no Instagram',
+  },
   anterior: 'Edição anterior',
   proxima: 'Próxima edição',
 }

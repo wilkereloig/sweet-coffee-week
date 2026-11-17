@@ -84,13 +84,15 @@ export const GANHOS = [
    apurados. Nada de contagem de marcas por edição (26/08/2026, pedido do Eloi). */
 export const NUMEROS = {
   titulo: 'Dez anos em números',
-  nota: `Movimentação e combos são históricos, apurados em ${F.revenue.apurado}.`,
+  /* Movimentação e combos são da apuração de junho de 2026: cobrem as edições
+     até a Lovers. O período vem do próprio fato (festivalFacts), não digitado. */
+  nota: `Movimentação e combos: apuração de ${F.revenue.apurado}, ${F.revenue.periodo}.`,
   itens: [
     { n: F.revenue.curto, t: 'movimentação direta', d: semRepetir('movimentação direta', F.revenue.mede), i: 'moedas', cor: 'var(--scw-amarelo)', tinta: 'var(--scw-choco)' },
     { n: F.combosSold.curto, t: 'combos vendidos', d: semRepetir('combos vendidos', F.combosSold.mede), i: 'combo', cor: 'var(--scw-cyan)', tinta: 'var(--scw-choco)' },
     { n: `${F.years.value} anos`, t: 'de Sweet & Coffee Week', d: `o festival de doces e cafés de Natal, desde ${F.firstYear}`, i: 'calendario', cor: 'var(--scw-roxo)', tinta: 'var(--scw-creme)' },
-    { n: `${F.editions.value} edições`, t: 'já realizadas', d: 'de Início, em 2016, a Lovers, em 2026', i: 'edicao', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
-  ],
+    { n: `${F.editions.value} edições`, t: 'já realizadas', d: `de Início, em ${F.firstYear}, a ${F.lastEdition.tema}, em ${F.lastEdition.ano}`, i: 'edicao', cor: 'var(--scw-laranja)', tinta: 'var(--scw-choco)' },
+  ].filter((item) => !!item.n),   // fato pendente (valor null) some da lista
 }
 
 /* 05 Depois do registro de interesse — só passos que existem de fato. Curadoria e

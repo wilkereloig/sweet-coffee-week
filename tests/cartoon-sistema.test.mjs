@@ -17,9 +17,13 @@ test('Grandstander servida pelo projeto e declarada só na camada da edição', 
   assert.ok(existe('public/fonts/grandstander/grandstander-latin.woff2'), 'falta o woff2')
   assert.ok(existe('public/fonts/grandstander/OFL.txt'), 'falta a licença OFL')
   assert.match(ler('src/styles/scw-cartoon.css'), /@font-face\s*{[^}]*font-family:\s*'Grandstander'[^}]*font-weight:\s*100 900/)
-  for (const f of cssDe('src').filter((f) => !f.endsWith('scw-cartoon.css'))) {
+  /* Exceção declarada (16/11/2026, docs/regras/06a §6.1): a seção Cartoon da Home institucional, com tudo sob
+     `.hm-cap` — escopo conferido em tests/home-cartoon.test.mjs. Qualquer outro arquivo continua reprovando. */
+  const HOME_CARTOON = path.join('src', 'styles', 'scw-home-cartoon.css')
+  for (const f of cssDe('src').filter((f) => !f.endsWith('scw-cartoon.css') && f !== HOME_CARTOON)) {
     assert.doesNotMatch(ler(f), /@font-face[^}]*Grandstander/, `${f} declara a fonte da edição`)
   }
+  assert.match(ler(HOME_CARTOON), /@font-face\s*{[^}]*font-family:\s*'Grandstander'[^}]*grandstander-latin\.woff2/, 'a exceção usa o mesmo arquivo de fonte')
 })
 
 const CSS = 'src/styles/scw-cartoon.css'

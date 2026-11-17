@@ -12,7 +12,20 @@ puras em `consulta.js`** (filtro, índice, Hall, contagens), testadas em
 `src/pages/institutional/HistoricoAwards.jsx` só reexporta. ⛔ **Não existe
 `SweetAwards.jsx` — não criar arquivo novo só para casar com documentação antiga.**
 
-**Ordem real (`index.jsx`):** `01 Abertura` · faixa de palavras (`Marquee`, §6.15) · `Índice` · `02 Resultados 2026.1` · `03 Quem dá a nota`
+> **16/11/2026 — Cartoon em apuração (pedido do Wilker).** A página separa três coisas, cada uma com a sua
+> fonte: a **edição em destaque** (`EDICAO_EM_DESTAQUE` em `src/data/resultadosEdicao.js`, hoje 2026.2), a
+> **última edição com resultado publicado** (derivada de `AWARDS_DADOS` por `ultimaComResultado`, hoje 2026.1 —
+> a constante `EDICAO_RECENTE` saiu) e o **histórico/Hall**. Enquanto a edição em destaque está em apuração, a
+> abertura é a da expectativa (`secoes/AberturaApuracao.jsx`, `.swa-gala`, texto em `APURACAO`): chapa
+> chocolate, luz creme e o troféu oficial v15 com a marca permanente do Sweet Awards — o dourado só existe no
+> arquivo do troféu. Traz a edição, o título, o estado "Resultados em apuração", uma frase, o Instagram oficial
+> e "Ver resultados anteriores". ⛔ Sem pódio vazio, medalha, vencedor de exemplo, data ou contagem regressiva.
+> Os resultados logo abaixo são os da Lovers, rotulados "Último resultado publicado". Publicado o resultado da
+> Cartoon (base com pódio **e** `status` fora de `em-apuracao`), a abertura volta a ser a permanente, com a ação
+> "Conheça os vencedores", e Hall, contagens e histórico passam a incluir a edição. Passo a passo:
+> `docs/numeros-do-site.md` §8. A trilha "Quem dá a nota" não mudou: a Cartoon não teve júri técnico.
+
+**Ordem real (`index.jsx`):** `01 Abertura` (ou a da expectativa) · faixa de palavras (`Marquee`, §6.15) · `Índice` · `02 Resultados` (a última edição com resultado publicado) · `03 Quem dá a nota`
 · `04 Hall` · `05 Histórico`. A página é de **consulta**, e cada coisa tem um caminho só:
 categoria se escolhe no filtro, edição no acordeão, e o índice é o único atalho entre
 seções. Reorganizada em 12/10/2026: de ~13,8 mil para ~7,6 mil px de altura.
@@ -33,7 +46,8 @@ O que não muda sem autorização: flags de publicação, dados oficiais e deplo
   reintroduzir** — eram as mesmas quatro fotos que abrem a seção 02 logo abaixo, lá com
   pódio completo e medalha. Sem ela o desktop ficava com 216–268px de roxo chapado no
   topo; por isso a banda de foto passou a valer também no desktop.
-- **02 Resultados 2026.1:** 8 categorias × 3 colocações, cada card com a **foto da
+- **02 Resultados (hoje, 2026.1):** rótulo, título e apoio vêm de `textoResultados(edicao)` — texto próprio
+  da edição quando existe (`RESULTADOS_DA_EDICAO`), senão montado dos dados. 8 categorias × 3 colocações, cada card com a **foto da
   peça premiada**. **Filtro por categoria** ("Ver categoria"): "Todas" mostra os oito
   pódios em duas colunas no desktop; escolher uma mostra só o pódio dela, maior. Botões
   com `aria-pressed` e uma região viva que diz o que a tela passou a mostrar — o foco

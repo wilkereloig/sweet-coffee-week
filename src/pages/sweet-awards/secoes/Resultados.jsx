@@ -3,7 +3,7 @@ import ScwIcon from '../../../components/scw-icons/ScwIcon'
 import { FotoAcervo } from '../../../components/FotoAcervo'
 import { RESERVA } from '../../../data/imageLibrary'
 import {
-  SECOES, FILTRO, ICONE_CATEGORIA, ICONE_CATEGORIA_PADRAO, NAO_REGISTRADO,
+  FILTRO, ICONE_CATEGORIA, ICONE_CATEGORIA_PADRAO, NAO_REGISTRADO,
 } from '../../../data/conteudo/sweet-awards'
 import {
   TODAS, opcoesFiltro, filtrarCategorias, anuncioFiltro, podioCompleto, fotosDoPodio,
@@ -76,8 +76,8 @@ function Categoria({ cat, cor, fotos, grande }) {
  * pódio dela, maior. Botões com `aria-pressed` (estado anunciado por cada um) e
  * uma região viva que diz o que a tela passou a mostrar — o foco fica no botão.
  */
-export function Resultados({ edicao }) {
-  const t = SECOES.resultados
+export function Resultados({ edicao, secao }) {
+  const t = secao
   const [filtro, setFiltro] = React.useState(TODAS)
   const opcoes = React.useMemo(() => opcoesFiltro(edicao.cats, FILTRO.todas), [edicao])
   const fotos = React.useMemo(() => fotosDoPodio(edicao), [edicao])
@@ -121,7 +121,7 @@ export function Resultados({ edicao }) {
           ))}
         </div>
 
-        <p className="swa-fotos-nota">{t.legendaFotos}</p>
+        {t.legendaFotos && <p className="swa-fotos-nota">{t.legendaFotos}</p>}
       </div>
     </section>
   )

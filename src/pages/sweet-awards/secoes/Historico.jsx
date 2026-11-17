@@ -135,8 +135,8 @@ function EdicaoAcordeao({ edicao, aberto, onAlternar }) {
  * abre e fecha sozinha (dá para comparar duas abertas). A lista fecha com as
  * cinco primeiras edições, que não tiveram premiação — dito, não escondido.
  */
-export function Historico({ edicoes }) {
-  const t = SECOES.historico
+export function Historico({ edicoes, secao }) {
+  const t = secao || SECOES.historico
   const [abertas, setAbertas] = React.useState(() => new Set())
   const alternar = (code) => setAbertas((atual) => {
     const nova = new Set(atual)

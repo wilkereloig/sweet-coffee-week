@@ -401,6 +401,13 @@ export function fotoProximaEdicao(chave) {
   return PROXIMA_EDICAO[chave] || null
 }
 
+/** Vídeo de lançamento de uma edição do ACERVO ({ src, capa }), ou `null`. A
+ *  Cartoon encerrou em 15/11/2026: o vídeo que abria a Home passou a morar no
+ *  detalhe da edição (/edicoes/2026.2), identificado como lançamento. */
+export function videoLancamentoEdicao(code) {
+  return code === '2026.2' ? PROXIMA_EDICAO.video : null
+}
+
 /* Letreiros desenhados da edição 2026.2 no traço do título aprovado (MANUAL-CARTOON 1.0: "TÁ CHEGANDO!" —
    bolha amarela, contorno preto, sombra vermelha), gerados em 31/10 (05_SITE/07_LETREIROS_v02), recortados ao
    conteúdo e convertidos para WebP, fundo transparente. Título fixo de seção:
@@ -793,6 +800,36 @@ export function mundoEdicao() {
     bandeira: (n) => (m.bandeiras.includes(n) ? `${MUNDO_PASTA}/bandeiras/${String(n).padStart(2, '0')}.webp` : null),
     doceria: (slug) => (m.docerias.includes(slug) ? `${MUNDO_PASTA}/docerias/${slug}.webp` : null),
     logo: (slug) => (m.logos.includes(slug) ? `${MUNDO_PASTA}/logos/${slug}.webp` : null),
+  }
+}
+
+/* A cidade da Cartoon como ILUSTRAÇÃO, para o institucional (seção Cartoon da Home, 16/11/2026). É a arte final
+   aprovada do mapa (a mesma de mundoEdicao), em dois cortes:
+   · `recorte`  a arte sem a faixa do topo (selo e letreiro "Mapa da Doçura" pintados nela), gerada por
+                scripts/edicao/cidade-home.py — 768, 1280 e 1920 de largura, proporção fixa;
+   · `inteira`  a arte completa, para a ampliação, até 3072 de largura (a de 4096 fica só para o mapa).
+   Só imagem: nada do motor do mapa, de geolocalização, carimbo ou voucher vem junto. */
+const CIDADE_HOME = { larguras: [768, 1280, 1920], largura: 1920, altura: 1157 }
+export function cidadeEdicao() {
+  const m = mundoEdicao()
+  const recorte = (w) => `${MUNDO_PASTA}/cidade-home-${w}.webp`
+  const prefixo = m.arte?.arquivo || `base-v${m.versao}`
+  const inteiras = m.larguras.filter((w) => w <= 3072)
+  return {
+    aprovada: m.aprovada === true,
+    placeholder: m.arte?.placeholder || null,
+    recorte: {
+      src: recorte(CIDADE_HOME.larguras[1]),
+      srcSet: CIDADE_HOME.larguras.map((w) => `${recorte(w)} ${w}w`).join(', '),
+      largura: CIDADE_HOME.largura,
+      altura: CIDADE_HOME.altura,
+    },
+    inteira: {
+      src: `${MUNDO_PASTA}/${prefixo}-${inteiras[0]}.webp`,
+      srcSet: inteiras.map((w) => `${MUNDO_PASTA}/${prefixo}-${w}.webp ${w}w`).join(', '),
+      largura: m.quadro[0],
+      altura: m.quadro[1],
+    },
   }
 }
 

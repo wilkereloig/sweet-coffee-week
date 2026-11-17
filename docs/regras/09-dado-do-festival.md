@@ -137,6 +137,11 @@ lugares e Marlon Vinicius 24.
 Cinco números, com data de apuração e definição do que medem. A página Apoiar **lê da
 fonte canônica**, não de valores cravados no JSX.
 
+⚠️ **São da apuração de junho de 2026: cobrem as 16 edições até a Lovers. A Cartoon (17ª) não está em nenhum
+deles** (vendas com lançamento incompleto; Instagram à espera da exportação ano a ano). Cada fato declara o
+período no código, e as páginas mostram esse período ao lado do número. Quadro completo, pendências e como
+atualizar: `docs/numeros-do-site.md`.
+
 | Número | O que mede |
 |---|---|
 | **+R$ 712 mil** | movimentação direta |
@@ -153,7 +158,7 @@ como NÃO PUBLICAR.**
 
 ### 9.6 Patrocinadores e parceiros
 
-⛔ **Patrocinadores e parceiros não são exibidos por enquanto.** (Exceção de 16/11/2026, pedido do Wilker: a seção Encerramento da Home agradece Sicredi, Senac e Espaço Reduzido pela edição Cartoon, §7.1.) A página Apoiar mostra
+⛔ **Patrocinadores e parceiros não são exibidos por enquanto.** (Exceção de 16/11/2026, pedido do Wilker: o agradecimento do Capítulo Cartoon, na Home, credita Sicredi, Senac e Espaço Reduzido pela edição Cartoon, §7.1.) A página Apoiar mostra
 **formatos de ativação** — o que já foi feito, sem nomear a marca:
 
 | Formato | Exemplo real (não nomeado no site) |

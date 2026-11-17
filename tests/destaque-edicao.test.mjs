@@ -1,5 +1,6 @@
 // Destaque de edição na abertura da Home (src/data/destaqueEdicao.js).
-// Garante: edição encerrada dita com honestidade (16/11/2026), nada de
+// Garante: destaque DESLIGADO depois do encerramento (16/11/2026) — a abertura
+// da Home é a do festival, não a campanha de uma edição que acabou —, nada de
 // ativação pela metade, e a Home usa o contrato (não um segundo jeito de decidir).
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
@@ -20,14 +21,17 @@ const completo = {
   acao: { rotulo: 'Saiba mais', href: '/participar' },
 }
 
-test('edição encerrada: o destaque diz que terminou, leva ao acervo e não usa a próxima edição', () => {
-  assert.equal(destaqueValido(), true)
-  assert.equal(destaqueEdicao.tema, 'Cartoon')
-  assert.match(destaqueEdicao.rotulo, /encerrada/i)
-  assert.equal(destaqueEdicao.acao.href, '/edicoes/2026.2')
+test('edição encerrada: o destaque sai desligado, a próxima edição segue sem dado e o vídeo foi para o acervo', async () => {
+  assert.equal(destaqueEdicao.ativo, false)
+  assert.equal(destaqueValido(), false, 'a abertura da Home é a institucional')
   for (const campo of ['ano', 'mes', 'tema', 'periodo']) assert.equal(proximaEdicao[campo], null, `próxima edição ainda não divulgada: ${campo}`)
   assert.equal(destaqueEdicao.imagem, undefined, 'nenhuma foto de edição anterior na abertura da edição')
-  assert.match(destaqueEdicao.video.instagram, /^https:\/\/www\.instagram\.com\/reel\/[\w-]+\/$/, 'link do reel limpo, sem parâmetro de rastreio')
+  // O vídeo de lançamento não some: mora no detalhe da edição, identificado como lançamento.
+  const { detalhe } = await import('../src/pages/edicoes/acervo.js')
+  const d = detalhe('2026.2')
+  assert.ok(d.lancamento && d.lancamento.src && d.lancamento.capa, 'a Cartoon guarda o vídeo de lançamento')
+  assert.match(d.lancamento.instagram, /^https:\/\/www\.instagram\.com\/reel\/[\w-]+\/$/, 'link do reel limpo, sem parâmetro de rastreio')
+  assert.equal(detalhe('2026.1').lancamento, null, 'edição sem vídeo no acervo não ganha bloco vazio')
 })
 
 test('ligado e completo vale', () => {

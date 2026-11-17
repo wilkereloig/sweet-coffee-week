@@ -25,7 +25,7 @@ import { teclaDaGaleria } from '../teclado'
  */
 const pad2 = (n) => String(n).padStart(2, '0')
 
-export function GaleriaEdicao({ fotos, porMarca = false, marcas = null, tema, ano }) {
+export function GaleriaEdicao({ fotos, porMarca = false, marcas = null, tema, ano, ilustrativa = false }) {
   const [i, setI] = React.useState(0)
   const [aberta, setAberta] = React.useState(false)   // a foto grande só baixa ao ampliar
   const dialogo = React.useRef(null)
@@ -98,7 +98,10 @@ export function GaleriaEdicao({ fotos, porMarca = false, marcas = null, tema, an
     <section className="edx-gal" aria-labelledby="edx-gal-titulo">
       <div className="edx-gal__cabeca">
         <h2 id="edx-gal-titulo" className="edx-gal__titulo">{titulo}</h2>
-        <p className="edx-gal__nota">{porMarca ? TEXTOS.notaCombos(n, marcas) : TEXTOS.notaFotos}</p>
+        <p className="edx-gal__nota">
+          {porMarca ? TEXTOS.notaCombos(n, marcas) : TEXTOS.notaFotos}
+          {ilustrativa && <> {TEXTOS.notaIlustrativa}</>}
+        </p>
       </div>
 
       <div

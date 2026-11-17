@@ -111,16 +111,18 @@ Três regras que atravessam tudo:
 Os três interruptores de `src/edicao/config.js` estão desligados; `/cartoon/*` cai na Home e os QR impressos
 (`/q/<código>`) abrem a Home (`qrPontos.js`). **Nada da edição foi apagado**: código, mapa, Caça aos Carimbos,
 painel e banco seguem inteiros. A Cartoon entrou no acervo como 17ª edição (`/edicoes/2026.2`, premiação
-"em apuração") e a Home abre dizendo que a edição terminou, com a seção Encerramento logo abaixo
-(`destaqueEdicao.js` + `ENCERRAMENTO` em `conteudo/home.js`). Resultados (Sweet Awards, ranking da Caça,
+"em apuração"). A Home abre com a abertura do festival (destaque de edição desligado) e, logo abaixo, o
+Capítulo Cartoon: a cidade ilustrada da edição, o estado do Sweet Awards e o agradecimento (`CAPITULO_CARTOON`
+em `conteudo/home.js`, estado em `src/data/resultadosEdicao.js`). O Sweet Awards abre com a Cartoon em apuração. Resultados (Sweet Awards, ranking da Caça,
 sorteios) saem primeiro no Instagram e depois entram no site: até lá, nenhum resultado no código (A4).
 Registro e números: `docs/cartoon-2026-2/22-encerramento-da-edicao.md`. Próxima frente: **Rota da Doçura**
 (mapa como produto de anúncio), ainda sem especificação.
 
 ✅ **Desde 13/10/2026 o institucional completo está no ar** (pedido do Wilker: "pode
 publicar o site completo"): `PARTICIPAR_ONLY_PUBLICATION = false` e merge de
-`dev/site-completo` em `master`. O domínio mostra as seis páginas com menu e abas, e a
-Home abre anunciando a edição Cartoon (§7.1). O histórico abaixo fica como registro.
+`dev/site-completo` em `master`. O domínio mostra as seis páginas com menu e abas. (Naquela data a
+Home abria anunciando a edição Cartoon; desde 16/11/2026 a edição está encerrada — parágrafo acima.) O
+histórico abaixo fica como registro.
 
 **De 18/09 a 13/10/2026 (pedido do Wilke) o domínio abria na página Participar, e só nela:**
 `PARTICIPAR_ONLY_PUBLICATION = true` faz **qualquer endereço** — inclusive `/` e
@@ -142,7 +144,7 @@ Wilker por escrito.
 
 | Página | Papel | Estado |
 |---|---|---|
-| **Home** (`/`) | Anunciar a próxima edição (Cartoon, 5 a 15 de novembro — autorizado em 13/10/2026, `src/data/destaqueEdicao.js`) e apresentar o festival | existe, 7 seções (§7.1) |
+| **Home** (`/`) | Apresentar o festival o ano inteiro; com edição anunciada, ela assume a abertura (`src/data/destaqueEdicao.js`, hoje desligado). Desde 16/11/2026 traz o Capítulo Cartoon: a edição encerrada, com a cidade ilustrada e o estado do Sweet Awards | existe, 7 seções + Capítulo Cartoon (§7.1) |
 | **Edições** (`/edicoes`, `/edicoes/<código>`) | Memória e vitrine | existe — coleção por ano + detalhe de cada edição, desde 13/10/2026 (§7.2) |
 | **Sweet Awards** (`/sweet-awards`) | Reconhecimento | existe (§7.3) |
 | **Marcas** | Diretório das 123 casas | **não existe — a construir** |
@@ -193,6 +195,8 @@ duplicada dentro do código para fonte de verdade duplicada entre branches.
 | `npm run test:cartoon` (inclui `test:rotas-edicao`) · `npm run build && npm run test:cartoon-navegador` · `npm run qr:edicao` | camada de edição: interruptores do domínio desligados e coerentes, `/cartoon` só com rota pública ou preview, `/` só com entrada + rota pública, endereços Lovers nunca na edição, legais sob todas as chaves, cenas, rewrites, estilo da edição sem vazar · no navegador: link direto, recarregar, hash antigo virando caminho limpo, voltar/avançar, casca própria, 360 e 1440 |
 | `npm run test:cartoon-sistema` | vitrine do sistema visual da Cartoon (`/cartoon/sistema`, só no DEV) contra o `vite`: um `<h1>`, Grandstander aplicada, sem rolagem lateral e alvos ≥ 44px em 360/768/1440; capturas em `tests/capturas-sistema/` |
 | `npm run test:destaque` | o destaque de edição da Home sai desligado e nunca liga pela metade (`src/data/destaqueEdicao.js`) |
+| `npm run test:institucional` | números (fonte, período, unidade, pendente × zero × parcial × erro, nota por apuração), estado dos resultados da Cartoon e publicação futura com base sintética, escopo do módulo Cartoon da Home (`.hm-cap`), Sweet Awards e destaque. Guia: `docs/numeros-do-site.md` |
+| `npm run build && node tests/capitulo-cartoon-navegador.mjs` | no navegador, em 360/390/768/1440: ampliação da cidade pelo teclado (foco, Esc), alvos de 44px, sem rolagem lateral, o que o celular baixa, movimento reduzido e a abertura do Sweet Awards em apuração; capturas em `tests/capturas-capitulo-cartoon/` |
 | `npm run test:consentimento` | preferência de cookies (medição ligada por padrão, recusa, Global Privacy Control, inválida, vencida, storage quebrado, outra aba), endereço limpo do Analytics e documentos legais sob cada gate |
 | `npm run test:qr` | QR de contagem por peça (`/q/<código>`, plano `docs/cartoon-2026-2/12-plano-qr-leituras.md`): regra código → destino, `api/q.js` com banco fora/lento/estranho (**nunca pode quebrar o QR impresso**), destino manual só caminho do site, rewrite no `vercel.json`, migration com tabelas fechadas |
 | `npm run build && npm run test:privacidade` | pela REDE: primeira visita carrega o Analytics uma vez com endereço limpo; "Recusar", preferências e Global Privacy Control cortam os envios e apagam `_ga`; diálogo (foco, Tab, Escape); documentos por link direto; capturas em `tests/capturas-privacidade/`. ⚠️ O Analytics não liga em `localhost` — o teste liga com `localStorage.scw_ga_local = '1'` |
@@ -294,6 +298,8 @@ duas vezes da mesma fonte — não vira dois arquivos.
 | Variante responsiva de foto | `src/data/imageVariants.js` — **gerado**, ver §4.2 |
 | Largura pedida ao navegador | `SIZES` em `src/data/imageLibrary.js` (3 papéis, fechados) |
 | Dado histórico | `src/data/sweetCoffeeHistory.js` |
+| Número do festival (contagem, comercial, Instagram) e sua formatação | `src/data/festivalFacts.js` (`textoDoFato`, `partesDoFato`, `notasDeApuracao`) — guia em `docs/numeros-do-site.md` |
+| Estado dos resultados da edição em destaque (Sweet Awards, Caça, sorteios) | `src/data/resultadosEdicao.js` |
 | Pódios da edição 2026.1 | `src/data/loversAwardsResults.js` |
 | Perguntas frequentes | `src/data/faqCentral.js` |
 | Ícones | `icones/*.svg` → `npm run icones` → `src/components/scw-icons/gerado/` (§6.11, `icones/README.md`) |

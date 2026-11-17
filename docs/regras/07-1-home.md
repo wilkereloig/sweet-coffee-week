@@ -2,15 +2,32 @@
 
 ### 7.1 Home / O Festival — `/`, amarelo `#FDBB1A`
 
-> **16/11/2026 — edição Cartoon encerrada (pedido do Wilker).** A Home voltou a ser `/`. A abertura segue no modo
-> destaque, agora dizendo "Edição encerrada" (tema e período escritos em `destaqueEdicao.js`; ação "Ver a edição no
-> acervo" → `/edicoes/2026.2`). Logo abaixo entra a seção **Encerramento** (`secoes/Encerramento.jsx`, texto em
-> `ENCERRAMENTO` de `conteudo/home.js`, classes `.hm-fim*`): resultados em apuração com link do Instagram,
-> agradecimento às casas e aos Sweet Lovers, expectativa da próxima edição com três botões (Enviar sugestão →
-> Contato, Quero participar → `/quero-participar/`, Quero apoiar → Apoiar) e as marcas sobre branco: Sicredi
-> (patrocínio), Senac e Espaço Reduzido (apoio), F2 Experience (realização). É exceção declarada ao §9.6, pedida
-> pelo Wilker só para este agradecimento. ⛔ Nenhum resultado entra antes de a organização divulgar (A4).
-> Desligar: `ativo: false` em `destaqueEdicao.js` e em `ENCERRAMENTO`.
+> **16/11/2026 — edição Cartoon encerrada; Home revista no mesmo dia (dois pedidos do Wilker).**
+> A Home voltou a ser `/` e a **abertura voltou a ser a do festival**: o destaque de edição está DESLIGADO
+> (`destaqueEdicao.ativo = false`), porque a abertura não pode parecer a campanha de lançamento de uma edição que
+> acabou. O vídeo de lançamento foi para o acervo (`/edicoes/2026.2`, §7.2).
+> Logo abaixo da abertura entra o **Capítulo Cartoon** (`secoes/CapituloCartoon.jsx`, texto em `CAPITULO_CARTOON`
+> de `conteudo/home.js`, estilo em `src/styles/scw-home-cartoon.css`, classes `.hm-cap*`):
+> - a **cidade ilustrada oficial** da edição (arte final do Mapa da Doçura, `cidadeEdicao()` em `imageLibrary.js`)
+>   num quadro grande, sem véu, com o selo oficial e a placa "Próximo capítulo: Sweet Awards" + o troféu em
+>   desenho; "Ver a cidade inteira" abre a arte completa num `<dialog>` (aproximar, Esc, foco de volta ao botão);
+> - rótulo "Cartoon · 2026.2", título, apoio, **estado** e duas ações: "Acompanhar o Sweet Awards" →
+>   `/sweet-awards` e "Rever a edição Cartoon" → `/edicoes/2026.2`. O estado vem de `src/data/resultadosEdicao.js`
+>   (o Sweet Awards deriva da base; Caça aos Carimbos e sorteios têm o seu) e o texto de cada estado
+>   (`em-apuracao`, `divulgado`) de `CAPITULO_CARTOON.estados`. Publicado o resultado, a ação vira "Conheça os
+>   vencedores" sem mexer na seção (`docs/numeros-do-site.md` §8);
+> - o **agradecimento** na mesma seção (folha creme): casas (contagem da base) e Sweet Lovers, e os créditos sobre
+>   branco — Sicredi (patrocínio), Senac e Espaço Reduzido (apoio), F2 Experience (realização). Exceção declarada
+>   ao §9.6, só para este agradecimento; marcas nos arquivos oficiais, sem recolorir.
+>
+> É a **exceção declarada de paleta e fonte** do institucional (§6.1): paleta da edição e Grandstander valem só
+> sob `.hm-cap` (`tests/home-cartoon.test.mjs`). Direção própria no celular: texto, depois a cidade em quadro 1:1,
+> depois o aviso dos outros resultados. Sem laço de animação. É só ilustração e identidade: nada do mapa, da Caça
+> aos Carimbos, da avaliação ou dos vouchers foi religado.
+> ⛔ Saíram com a seção Encerramento: o bloco "A próxima edição começa por você" e seus três botões (repetiam
+> Faça parte) — a sugestão para a próxima edição virou a linha de contato de Faça parte.
+> ⛔ Nenhum resultado, data ou cerimônia entra antes de a organização divulgar (A4).
+> Desligar a seção: `ativo: false` em `CAPITULO_CARTOON`.
 
 ⛔ **Não alterar sem solicitação explícita.** É a página-mãe: as demais usam a Home como
 referência de margem, largura máxima, respiro, hierarquia, ritmo, nível de acabamento e
@@ -29,23 +46,25 @@ seção por arquivo em `secoes/`; `useHome.js` (destaque dos títulos) e
 Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
 
 **Sete seções:** `01 Abertura` · `02 Como funciona` · `03 Em registros` ·
-`04 Trajetória` · `05 Sweet Awards` · `06 Faça parte` · `07 Realização` (F2).
+`04 Trajetória` · `05 Sweet Awards` · `06 Faça parte` · `07 Realização` (F2). Desde 16/11/2026, entre a
+01 e a 02 fica o Capítulo Cartoon (acima), enquanto `CAPITULO_CARTOON.ativo`.
 
 - **01 Abertura (`secoes/Abertura.jsx`, `.hm-abre`)** — dois modos, **uma decisão só:
   `destaqueValido()`** de `src/data/destaqueEdicao.js`. Nunca decidir por `ativo`
   direto: um campo faltando abriria bloco vazio. A classe `.hm-abre` fica nos dois
   modos — `scw-motion.css` coreografa por ela. Altura do conteúdo, não de tela: a seção
   seguinte aparece na primeira dobra do desktop.
-  - **Sem destaque válido (`ativo: false`, ou campo faltando):** apresentação do
-    festival. Texto à esquerda: rótulo, H1 ("O festival dos *combos autorais* de
-    Natal."), lead, duas ações (**"Explorar as edições"** → `/edicoes`; **"Como
-    funciona"** rola até `#festival`) e uma ficha de até três linhas (edições desde o
-    primeiro ano · marcas · "Próxima edição" **só se `proximaEdicao.js` tiver o mês**).
+  - **Sem destaque válido (`ativo: false`, ou campo faltando) — o estado de hoje, desde
+    16/11/2026:** apresentação do festival. Texto à esquerda: rótulo, H1 ("O festival que
+    põe *Natal à mesa*."), lead (casas da cidade, combo autoral, Sweet Lovers), duas ações
+    (**"Explorar as edições"** → `/edicoes`; **"Como funciona"** rola até `#festival`) e
+    uma ficha de até três linhas (edições desde o primeiro ano · marcas · "Próxima edição"
+    **só se `proximaEdicao.js` tiver o mês**; sem ele, "Última edição", lida da base).
     Fotos à direita: **pessoas** em crossfade (`useCrossfade`, 6,2s) com um **combo** em
     recorte redondo sobreposto, trocando juntos, e o botão `PausaFotos` quando há
     rotação. Sem movimento, uma camada só.
-  - **Com destaque válido (o estado de hoje — ligado em 13/10/2026, autorização do
-    Wilker para tema Cartoon e datas 5 a 15 de novembro):** `.hm-abre--edicao`, composição
+  - **Com destaque válido (modo de anúncio de edição — valeu de 13/10 a 16/11/2026 para
+    a Cartoon, de 5 a 15 de novembro; hoje desligado, fica como modelo para a próxima):** `.hm-abre--edicao`, composição
     própria de anúncio. Rótulo "Próxima edição · 2026" → H1 com "Sweet & Coffee Week" e o
     **lettering oficial CARTOON** (`marcas-edicoes/2026.2/tema.webp`, do PNG da marca
     aprovada no Dropbox F2 — refeito do arquivo "(2)" novo em 13/10/2026; `alt="Cartoon"`, então o nome acessível do H1 é "Sweet & Coffee
@@ -104,17 +123,20 @@ Dado: `festivalFacts`, `proximaEdicao.js`, `AWARDS_DADOS`.
   não volta.
 - **04 Trajetória (`Trajetoria.jsx`, bege)** — quatro números (participações · combos
   vendidos · movimento nas casas · visualizações), contados uma vez ao entrar, **cada um
-  com o que mede** (`festivalFacts.*.mede`) e os comerciais com a data em que foram
-  apurados; a porta para Edições na cor do destino (laranja), com quatro fotos
+  com o que mede** (`festivalFacts.*.mede`). Prefixo e unidade saem do fato
+  (`partesDoFato`), nunca do texto da página; os comerciais ganham **uma nota por grupo de
+  apuração** (`notasDeApuracao`: data e período — hoje, junho de 2026, até a 16ª edição).
+  Fato pendente (valor `null`) some da faixa. Detalhe em `docs/numeros-do-site.md`; a porta para Edições na cor do destino (laranja), com quatro fotos
   (`fotosHome('edicoes')`); e a imprensa — uma matéria em destaque, quatro na lista e
   "ver todas".
 - **05 Sweet Awards (`Reconhecimento.jsx`, chapa roxa — cor do destino)** — foto de uma
   entrega real (`fotosHome('premio')`), quem dá a nota (premiação desde 2019; só Sweet
   Lovers desde 2022), o total de prêmios entregues (271, `estatisticas()` de `sweet-awards/consulta.js` sobre `AWARDS_DADOS` — a mesma conta do herói do Awards, nunca digitado) e
-  a ação "Ver o Sweet Awards".
+  a ação "Ver os premiados de cada edição" (a expectativa do resultado da Cartoon fica na
+  seção Cartoon, no alto — as duas chamadas não dizem a mesma coisa).
 - **06 Faça parte (`FacaParte.jsx`, creme)** — duas portas curtas na cor do destino:
   **casas → Participar (cyan)** e **empresas → Apoiar (marrom)**; embaixo, a linha
-  "Outra dúvida?" para o Contato. **O pré-cadastro mora aqui, como linha da porta de
+  de contato, que desde 16/11/2026 também recebe a sugestão para a próxima edição. **O pré-cadastro mora aqui, como linha da porta de
   Participar:** "Próxima edição · <período ou mês> · pré-cadastro aberto", a nota de
   curadoria e o botão "Fazer pré-cadastro" (`<a href>` com barra final, §10.4-b) — e
   **só aparecem quando `proximaEdicao.js` traz `status: 'pre-cadastro'` e o endereço**.

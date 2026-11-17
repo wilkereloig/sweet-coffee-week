@@ -719,6 +719,43 @@
 }
 
 /* ============================================================================
+   6-b · Detalhe — vídeo de lançamento (só nas edições que o acervo guarda)
+   Texto à esquerda, tela vertical à direita. O vídeo não toca sozinho.
+   ========================================================================= */
+.edx-lanc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(28px, 5vw, 96px);
+  align-items: center;
+  /* Chocolate: entre a história (creme) e as marcas (bege), irmãos não repetem cor (§6.3). */
+  background: var(--scw-choco);
+  color: var(--scw-creme);
+}
+.edx-lanc__texto .scw-corpo { margin-top: 16px; }
+.scw-raiz .edx-lanc__ir {
+  margin-top: var(--scw-gap-bloco);
+  gap: 10px;
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+}
+@media (hover: hover) {
+  .scw-raiz .edx-lanc__ir:hover { background: var(--scw-laranja); color: var(--scw-choco); }
+}
+.edx-lanc__tela {
+  width: min(300px, 62vw);
+  aspect-ratio: 9 / 16;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--scw-marrom);
+  outline: 2px solid color-mix(in srgb, var(--scw-creme) 40%, transparent);
+}
+.edx-lanc__tela video { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 760px) {
+  .edx-lanc { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ============================================================================
    7 · Detalhe — Sweet Awards (contraponto chocolate)
    ========================================================================= */
 

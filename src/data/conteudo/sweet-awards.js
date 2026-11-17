@@ -10,32 +10,52 @@
  * que todos existem (ícone inexistente não quebra a página, só some: §6.11).
  */
 
-/** Edição cujos resultados abrem a página, com foto da casa premiada.
- *  É escolha editorial: os títulos abaixo ("dez anos") falam desta edição. */
-export const EDICAO_RECENTE = '2026.1'
+/* TRÊS COISAS DIFERENTES (16/11/2026), cada uma com a sua fonte:
+   · edição em DESTAQUE editorial — a que acabou de acontecer, com resultado ou
+     não: `EDICAO_EM_DESTAQUE` em src/data/resultadosEdicao.js;
+   · ÚLTIMA EDIÇÃO COM RESULTADO PUBLICADO — a que abre a seção de resultados,
+     com foto: derivada de AWARDS_DADOS (`ultimaComResultado` em consulta.js),
+     nunca digitada aqui;
+   · histórico e Hall — todas as publicadas.
+   Enquanto a edição em destaque está em apuração, a página abre com APURACAO e
+   os resultados anteriores seguem logo abaixo. Publicado o resultado, as duas
+   primeiras passam a ser a mesma edição e a abertura volta a ser ABERTURA. */
 
+/* Abertura com resultado publicado (o estado permanente da página). */
 export const ABERTURA = {
   titulo: 'O prêmio que o público entrega.',
   lead: 'A cada edição, quem prova os combos dá a nota e define o pódio de cada categoria.',
   /* leva aos resultados (SECOES.resultados.id) */
   acao: 'Ver os premiados',
+  /* Quando os resultados que abrem a página são os da edição em destaque. */
+  acaoDestaque: 'Conheça os vencedores',
+}
+
+/* Abertura enquanto a edição em destaque está EM APURAÇÃO. Tema e código vêm
+   da base (resultadosEdicao.js). ⚠️ A4: sem data, sem cerimônia, sem contagem
+   regressiva e sem nome de casa — só o que está confirmado: a edição terminou,
+   a organização confere as avaliações e o resultado sai primeiro no Instagram
+   oficial (docs/cartoon-2026-2/22-encerramento-da-edicao.md §3). */
+export const APURACAO = {
+  rotulo: (tema, code) => `Edição ${tema} · ${code}`,
+  titulo: (tema) => `O reconhecimento da ${tema} está a caminho.`,
+  estado: 'Resultados em apuração',
+  texto:
+    'A edição terminou, e as avaliações dos Sweet Lovers passam pela conferência da organização. ' +
+    'O resultado sai primeiro no Instagram do festival e depois entra aqui, com o pódio de cada categoria.',
+  instagram: { rotulo: 'Acompanhar no Instagram', href: 'https://www.instagram.com/sweetcoffeeweek/' },
+  anteriores: 'Ver resultados anteriores',
+  trofeu: 'Troféu do Sweet Awards: uma fatia de bolo dourada com uma colher, sobre base em formato de selo.',
 }
 
 /* As quatro áreas de consulta. O `id` é a âncora (o índice aponta para ele) e o
    `indice` é o rótulo curto do índice; a contagem ao lado vem dos dados. */
 export const SECOES = {
+  /* O texto desta seção depende de QUAL edição ela mostra: vem de
+     `textoResultados(edicao)`, abaixo. Aqui só o que não muda. */
   resultados: {
     id: 'swa-resultados',
-    indice: 'Resultados 2026.1',
     icone: 'trofeu',
-    rotulo: 'Resultado oficial · 2026.1 Lovers',
-    titulo: 'Os vencedores dos dez anos',
-    apoio:
-      'Oito categorias decididas pelos Sweet Lovers entre 4 e 14 de junho de 2026. ' +
-      'Empates aparecem na mesma colocação.',
-    legendaFotos:
-      'As fotos mostram o combo de cada casa premiada na edição Lovers, não necessariamente ' +
-      'o item que venceu a categoria.',
   },
   nota: {
     id: 'swa-nota',
@@ -59,10 +79,41 @@ export const SECOES = {
     id: 'swa-historico',
     indice: 'Histórico por edição',
     icone: 'historico',
-    rotulo: 'Histórico completo · 2019 a 2025',
+    /* O intervalo de anos vem dos dados (index.jsx), não digitado. */
+    rotulo: (de, ate) => (de && ate ? `Histórico completo · ${de} a ${ate}` : 'Histórico completo'),
     titulo: 'Todos os pódios, edição por edição',
     apoio: 'O pódio de cada categoria, edição por edição.',
   },
+}
+
+/* Texto editorial próprio de uma edição, quando existe. Sem entrada aqui, a
+   seção usa o texto genérico montado dos dados (tema e categorias). */
+const RESULTADOS_DA_EDICAO = {
+  '2026.1': {
+    titulo: 'Os vencedores dos dez anos',
+    apoio:
+      'Oito categorias decididas pelos Sweet Lovers entre 4 e 14 de junho de 2026. ' +
+      'Empates aparecem na mesma colocação.',
+    legendaFotos:
+      'As fotos mostram o combo de cada casa premiada na edição Lovers, não necessariamente ' +
+      'o item que venceu a categoria.',
+  },
+}
+
+/** Texto da seção de resultados para a edição que ela mostra. `anterior` =
+ *  a edição em destaque ainda está em apuração, então estes são os últimos
+ *  resultados publicados, e o rótulo diz isso. */
+export function textoResultados(edicao, { anterior = false } = {}) {
+  const proprio = RESULTADOS_DA_EDICAO[edicao.code] || {}
+  const n = edicao.cats.length
+  return {
+    indice: `Resultados ${edicao.code}`,
+    rotulo: `${anterior ? 'Último resultado publicado' : 'Resultado oficial'} · ${edicao.code} ${edicao.tema}`,
+    titulo: proprio.titulo || `Os vencedores da edição ${edicao.tema}`,
+    apoio: proprio.apoio ||
+      `${n} ${n === 1 ? 'categoria decidida' : 'categorias decididas'} pela avaliação do público. Empates aparecem na mesma colocação.`,
+    legendaFotos: proprio.legendaFotos || '',
+  }
 }
 
 /** Ordem do índice no topo da página = ordem das seções. */

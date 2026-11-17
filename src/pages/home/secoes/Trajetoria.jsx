@@ -1,5 +1,5 @@
 import React from 'react'
-import { festivalFacts as F } from '../../../data/festivalFacts'
+import { festivalFacts as F, notasDeApuracao, partesDoFato } from '../../../data/festivalFacts'
 import { fotosHome } from '../../../data/imageLibrary'
 import { IMPRENSA, TRAJETORIA as T } from '../../../data/conteudo/home'
 import { semRepetir } from '../../../data/conteudo/participar'
@@ -16,13 +16,17 @@ import { useContagem } from '../useHome'
    ========================================================================= */
 
 /* Número só com o que ele mede (festivalFacts.*.mede) — nunca solto — e sem
-   repetir o título que vem logo acima ("Combos vendidos" + "combos vendidos…"). */
-const NUMEROS = T.numeros.map((n) => ({ ...n, alvo: F[n.fato].value, mede: semRepetir(n.titulo, F[n.fato].mede), apurado: F[n.fato].apurado }))
-const ALVOS = NUMEROS.map((n) => n.alvo)
-/* Os números comerciais não se derivam da base: dizem quando foram apurados. */
-const APURADOS = [...new Set(NUMEROS.map((n) => n.apurado).filter(Boolean))]
-const COMERCIAIS = NUMEROS.filter((n) => n.apurado).map((n) => n.titulo.toLowerCase())
-const juntar = (lista) => (lista.length > 1 ? `${lista.slice(0, -1).join(', ')} e ${lista[lista.length - 1]}` : lista[0])
+   repetir o título que vem logo acima ("Combos vendidos" + "combos vendidos…").
+   Prefixo e unidade vêm do próprio fato (partesDoFato): valor novo nunca sai
+   com unidade antiga. Fato pendente ou inválido (partes null) some da faixa. */
+const NUMEROS = T.numeros
+  .map((n) => ({ ...n, fato: F[n.fato], chave: n.fato, partes: partesDoFato(F[n.fato] || null) }))
+  .filter((n) => n.partes)
+  .map((n) => ({ ...n, mede: semRepetir(n.titulo, n.fato.mede) }))
+const ALVOS = NUMEROS.map((n) => n.partes.valor)
+/* Os comerciais não se derivam da base: cada grupo de mesma apuração e mesmo
+   período ganha a sua frase — datas diferentes não escondem a nota. */
+const NOTAS = notasDeApuracao(NUMEROS)
 
 export function Trajetoria({ ir }) {
   const faixaRef = React.useRef(null)
@@ -48,23 +52,19 @@ export function Trajetoria({ ir }) {
 
       <ul className="hm-numeros" ref={faixaRef}>
         {NUMEROS.map((n, i) => (
-          <li className="hm-numero" key={n.fato}>
+          <li className="hm-numero" key={n.chave}>
             <span className="hm-numero__cabeca">
               <ScwIcon nome={n.icone} tamanho={24} />
               <b>{n.titulo}</b>
             </span>
             <strong className="scw-numeral hm-numero__valor">
-              {n.antes}{contagens[i].toLocaleString('pt-BR')}{n.depois}
+              {n.partes.antes}{contagens[i].toLocaleString('pt-BR')}{n.partes.depois}
             </strong>
             <p className="hm-numero__texto">{n.mede}.</p>
           </li>
         ))}
       </ul>
-      {APURADOS.length === 1 && (
-        <p className="hm-numeros__nota">
-          {juntar(COMERCIAIS).replace(/^./, (c) => c.toUpperCase())}: apurados em {APURADOS[0]}.
-        </p>
-      )}
+      {NOTAS.map((nota) => <p className="hm-numeros__nota" key={nota}>{nota}</p>)}
 
       <a className="hm-destino hm-destino--edicoes" href="/edicoes" onClick={ir('/edicoes')}>
         <span className="hm-destino__fotos">

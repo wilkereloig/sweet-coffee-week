@@ -65,6 +65,129 @@
 }
 
 /* ----------------------------------------------------------------------------
+   01-b Abertura da expectativa (16/11/2026) — edição em destaque em apuração.
+   Mesma geometria do herói (.scw-heroi-foto); muda a cor da chapa e o que
+   ocupa a área da direita: em vez de foto, o troféu oficial sob luz creme.
+   Só cores da paleta: chocolate, creme e o roxo da página. O dourado existe
+   apenas no arquivo do troféu — não vira token, botão nem texto.
+   -------------------------------------------------------------------------- */
+.swa-gala {
+  --scw-heroi: var(--scw-choco);
+  --scw-heroi-tinta: var(--scw-creme);
+}
+/* Palco: ocupa a mesma área que a foto ocupa nas outras páginas. */
+.swa-gala__palco {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--scw-heroi-foto-largura);
+  background:
+    /* facho que desce do alto */
+    conic-gradient(from 158deg at 50% -6%, transparent 0deg, rgba(254, 240, 221, .13) 9deg, rgba(254, 240, 221, .13) 35deg, transparent 44deg),
+    /* halo atrás do troféu */
+    radial-gradient(46% 42% at 50% 62%, rgba(254, 240, 221, .30) 0%, rgba(254, 240, 221, .10) 52%, transparent 76%),
+    /* o roxo da página, bem ao fundo, à direita */
+    radial-gradient(70% 90% at 100% 100%, color-mix(in srgb, var(--scw-roxo) 55%, transparent) 0%, transparent 70%);
+}
+/* Chão: a sombra de contato do troféu. */
+.swa-gala__palco::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: clamp(34px, 4.6vw, 76px);
+  width: min(46%, 380px);
+  height: clamp(22px, 2.6vw, 40px);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .5), transparent);
+  translate: -50% 0;
+}
+.swa-gala__trofeu {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(48px, 6vw, 96px);
+  z-index: 1;
+  width: auto;
+  height: min(62%, 500px);
+  max-width: none;
+  translate: -50% 0;
+}
+/* Marca permanente do Sweet Awards, no facho de luz, acima do troféu: as duas
+   peças formam um conjunto só. Fora da coluna do texto, onde já está a marca
+   do festival (cabeçalho). */
+.swa-gala__marca {
+  position: absolute;
+  left: 50%;
+  top: clamp(132px, 13vw, 176px);
+  z-index: 1;
+  width: clamp(120px, 10.5vw, 172px);
+  height: auto;
+  translate: -50% 0;
+}
+.swa-gala__rotulo {
+  margin: 0 0 clamp(10px, 1vw, 14px);
+  font: 700 clamp(12px, .95vw, 14px)/1.2 var(--scw-font-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(254, 240, 221, .82);
+}
+/* Título mais longo que o da abertura permanente: um degrau abaixo, para
+   "O reconhecimento" caber numa linha na coluna do texto. */
+.swa-gala .swa-hero__texto .scw-h1 { max-width: 17ch; font-size: clamp(34px, 3.7vw, 60px); }
+.swa-gala__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: clamp(16px, 1.6vw, 24px) 0 0;
+  padding: 10px 18px 10px 14px;
+  border-radius: 999px;
+  background: var(--scw-creme);
+  color: var(--scw-choco);
+  font: 700 clamp(14px, 1.05vw, 16px)/1 var(--scw-font-ui);
+}
+.swa-gala__estado > span { width: 10px; height: 10px; border-radius: 50%; background: var(--scw-roxo); }
+.swa-gala__acoes { display: flex; flex-wrap: wrap; gap: 12px 14px; margin-top: clamp(20px, 2vw, 28px); }
+.scw-raiz .swa-gala__acao { background: var(--scw-creme); color: var(--scw-choco); }
+@media (hover: hover) {
+  .scw-raiz .swa-gala__acao:hover { background: var(--scw-bege); }
+}
+.scw-raiz .swa-gala__acao:active { transform: translateY(1px); }
+
+@media (max-width: 1000px) {
+  /* Celular: o troféu vem primeiro, numa faixa própria (como a foto das outras
+     páginas), mais alta que 2:1 para ele não virar miniatura. */
+  .swa-gala__palco {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 4;
+    max-height: 420px;
+  }
+  /* A luz some na chapa antes da borda de baixo: sem emenda com o texto. */
+  .swa-gala__palco::before {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 26%;
+    background: linear-gradient(to top, var(--scw-choco), transparent);
+  }
+  .swa-gala__palco::after { bottom: 18px; width: 52%; }
+  .swa-gala__trofeu { bottom: 28px; height: 64%; left: 58%; }
+  /* Título, estado e ações antes da explicação: na primeira visita o aviso de
+     cookies ocupa a base da tela, e a ação principal tem de ficar acima dele
+     (tests/casca-institucional.mjs). A ordem no código não muda. */
+  .swa-gala .swa-hero__texto { display: flex; flex-direction: column; align-items: flex-start; }
+  .swa-gala .swa-gala__acoes { order: 1; align-self: stretch; }
+  .swa-gala .swa-hero__texto .scw-lead { order: 2; margin-top: clamp(20px, 5vw, 28px); }
+  .swa-gala .swa-numeros { order: 3; align-self: stretch; }
+  /* A marca desce para o lado do troféu: no alto fica a marca do festival. */
+  .swa-gala__marca { top: auto; bottom: 30px; left: var(--scw-trilho); width: clamp(88px, 24vw, 132px); translate: none; }
+}
+@media (max-width: 599px) {
+  .swa-gala__acoes { flex-direction: column; align-items: stretch; }
+  .swa-gala__acoes .scw-btn { justify-content: center; }
+}
+
+/* ----------------------------------------------------------------------------
    Índice da página — quatro atalhos, cada um com o que há lá
    -------------------------------------------------------------------------- */
 

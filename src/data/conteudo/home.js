@@ -15,16 +15,19 @@
    destaqueEdicao.js) ---------------------------------------------------- */
 export const ABERTURA = {
   rotulo: 'Festival gastronômico · Natal/RN',
-  titulo: { antes: 'O festival dos ', destaque: 'combos autorais', depois: ' de Natal.' },
+  /* 16/11/2026: a edição Cartoon terminou e a abertura voltou a ser a do
+     FESTIVAL (o destaque de edição está desligado). Frase curta que diz o que o
+     festival é para a cidade; casas e Sweet Lovers entram no lead. */
+  titulo: { antes: 'O festival que põe ', destaque: 'Natal à mesa', depois: '.' },
   lead:
-    'Desde 2016, o Sweet & Coffee Week convida casas da cidade a criar um combo exclusivo para o tema de cada edição. O público vai de casa em casa, prova e avalia.',
+    'Desde 2016, o Sweet & Coffee Week convida as casas da cidade a criar um combo autoral para o tema de cada edição. Os Sweet Lovers vão de casa em casa, provam e avaliam.',
   acaoPrincipal: 'Explorar as edições',
   acaoSecundaria: 'Como funciona',
   /* A legenda existe para ninguém ler as fotos como material da próxima
      edição: são registros da Lovers (2026.1). */
   /* Espaços inquebráveis em volta do ponto: a linha nunca começa com ele. */
   legenda: 'Registros da edição Lovers · 2026',
-  ficha: { edicoes: 'Edições', marcas: 'Marcas', proxima: 'Próxima edição' },
+  ficha: { edicoes: 'Edições', marcas: 'Marcas', ultima: 'Última edição', proxima: 'Próxima edição' },
   /* Modo destaque: o caminho para o resto da Home continua à vista. */
   destaqueSecundaria: 'Conhecer o festival',
 }
@@ -65,12 +68,15 @@ export const REGISTROS = {
 export const TRAJETORIA = {
   rotulo: 'Trajetória',
   titulo: { antes: 'Dez anos, ', destaque: 'um tema novo', depois: ' a cada edição.' },
-  /* Cada número diz o que mede (texto vem de festivalFacts.*.mede). */
+  /* Cada número diz o que mede (festivalFacts.*.mede). Prefixo, unidade e
+     apuração NÃO moram aqui: saem do próprio fato (partesDoFato e
+     notasDeApuracao em festivalFacts.js), para valor novo nunca sair com
+     unidade antiga. Fato pendente (valor null) some da faixa. */
   numeros: [
-    { fato: 'participations', icone: 'loja', titulo: 'Participações', antes: '', depois: '' },
-    { fato: 'combosSold', icone: 'combo', titulo: 'Combos vendidos', antes: '+', depois: ' mil' },
-    { fato: 'revenue', icone: 'moedas', titulo: 'Movimento nas casas', antes: '+R$ ', depois: ' mil' },
-    { fato: 'igViews', icone: 'instagram', titulo: 'Visualizações', antes: '+', depois: ' mi' },
+    { fato: 'participations', icone: 'loja', titulo: 'Participações' },
+    { fato: 'combosSold', icone: 'combo', titulo: 'Combos vendidos' },
+    { fato: 'revenue', icone: 'moedas', titulo: 'Movimento nas casas' },
+    { fato: 'igViews', icone: 'instagram', titulo: 'Visualizações' },
   ],
   edicoes: {
     eixo: 'Edições',
@@ -115,45 +121,76 @@ export const RECONHECIMENTO = {
   texto:
     'A premiação começou em 2019. Desde 2022, a nota vem só de quem provou os combos: os Sweet Lovers.',
   numero: 'prêmios entregues',
-  cta: 'Ver o Sweet Awards',
+  /* A seção Cartoon, no alto da Home, já leva ao Awards pela expectativa do
+     resultado. Aqui o convite é outro: o histórico de quem já subiu ao pódio. */
+  cta: 'Ver os premiados de cada edição',
 }
 
-/* --- Encerramento da edição Cartoon (16/11/2026, pedido do Wilker) ---------
-   Entra logo abaixo da abertura enquanto `ativo` for true. Diz o que está em
-   apuração, agradece, abre a expectativa da próxima edição e mostra as marcas.
-   ⚠️ A4: nenhum resultado aqui antes de a organização divulgar. Quando sair,
-   esta seção passa a apontar para o resultado. Sem promessa de participação
-   nem de patrocínio (§8.4): os botões registram interesse.
-   Destinos: `interno` = rota do SPA; sem ele, link comum (página estática com
-   barra final, §10.4-b). Marcas: MARCAS_PARCEIROS e LOGO_F2 de imageLibrary. */
-export const ENCERRAMENTO = {
+/* --- Capítulo Cartoon (16/11/2026, pedido do Wilker) -----------------------
+   Logo abaixo da abertura enquanto `ativo` for true: a cidade ilustrada oficial
+   da edição, o estado do resultado e os dois caminhos (Sweet Awards e acervo).
+   "A cidade viveu o desenho. O próximo capítulo é o reconhecimento."
+
+   O ESTADO não mora aqui: vem de src/data/resultadosEdicao.js (o Sweet Awards
+   deriva da base; Caça aos Carimbos e sorteios têm o seu). Este arquivo só tem
+   o texto de cada estado. ⚠️ A4: nenhum resultado, data ou cerimônia antes da
+   divulgação oficial.
+
+   A arte é a do Mapa da Doçura (imageLibrary.cidadeEdicao). É só ilustração: o
+   mapa, a Caça aos Carimbos e os vouchers continuam encerrados.
+   Para desligar a seção inteira (com o agradecimento): `ativo: false`. */
+export const CAPITULO_CARTOON = {
   ativo: true,
-  id: 'encerramento',
-  rotulo: 'Edição Cartoon',
-  titulo: { antes: 'Obrigado por ', destaque: 'fazer parte.', depois: '' },
-  apuracao: {
-    titulo: 'Resultados em apuração',
-    texto: 'As avaliações do público para o Sweet Awards, o ranking da Caça aos Carimbos e os sorteios passam pela conferência final. Os resultados saem primeiro no Instagram do festival e depois aqui no site.',
+  id: 'cartoon',
+  rotulo: 'Cartoon · 2026.2',
+  estados: {
+    'em-apuracao': {
+      titulo: 'Essa história ainda tem um próximo capítulo.',
+      apoio: 'A edição Cartoon terminou. Agora, o Sweet Awards prepara o anúncio dos destaques.',
+      estado: 'Resultados em apuração.',
+      acao: 'Acompanhar o Sweet Awards',
+      placa: ['Próximo capítulo', 'Sweet Awards'],
+    },
+    divulgado: {
+      titulo: 'O capítulo final da Cartoon: os destaques da edição.',
+      apoio: 'A edição Cartoon terminou, e o Sweet Awards divulgou o resultado da avaliação do público.',
+      estado: 'Resultado divulgado.',
+      acao: 'Conheça os vencedores',
+      placa: ['Resultado no ar', 'Sweet Awards'],
+    },
+  },
+  secundaria: { rotulo: 'Rever a edição Cartoon', href: '/edicoes/2026.2' },
+  /* Os outros dois resultados, cada um com o seu estado (resultadosEdicao.js). */
+  outros: {
+    /* `nomes` = lista dos que seguem pendentes (um ou dois): o verbo concorda
+       e a frase começa em maiúscula, qualquer que seja o primeiro nome. */
+    'em-apuracao': (nomes) => {
+      const lista = nomes.length > 1 ? `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}` : nomes[0]
+      const frase = `${lista} também ${nomes.length > 1 ? 'estão' : 'está'} em conferência.`
+      return `${frase.charAt(0).toUpperCase()}${frase.slice(1)} ${nomes.length > 1 ? 'Cada resultado' : 'O resultado'} sai primeiro no Instagram do festival.`
+    },
+    verResultado: (nome) => `Resultado no ar: ${nome}.`,
     instagram: { rotulo: '@sweetcoffeeweek', href: 'https://www.instagram.com/sweetcoffeeweek/' },
   },
-  agradecimentos: [
-    { titulo: 'Às casas participantes', texto: 'Que criaram os combos da edição e receberam a cidade durante onze dias.' },
-    { titulo: 'Aos Sweet Lovers', texto: 'Que visitaram as casas, avaliaram os combos e carimbaram o mapa.' },
-  ],
-  proxima: {
-    titulo: 'A próxima edição começa por você.',
-    texto: 'Tema e data ainda não foram definidos. Conte o que você gostaria de ver, ou registre o interesse da sua casa ou da sua empresa nas próximas edições.',
-    acoes: [
-      { rotulo: 'Enviar sugestão', href: '/contato', interno: true, classe: 'hm-btn--choco' },
-      { rotulo: 'Quero participar', href: '/quero-participar/', classe: 'scw-btn--contorno-escuro' },
-      { rotulo: 'Quero apoiar', href: '/apoiar', interno: true, classe: 'scw-btn--contorno-escuro' },
-    ],
+  cidade: {
+    alt: 'Natal desenhada como cidade de desenho animado, arte oficial da edição Cartoon: a ponte sobre o rio Potengi, o Forte dos Reis Magos, o estádio e casas temáticas entre ruas e árvores.',
+    ampliar: 'Ver a cidade inteira',
+    titulo: 'A cidade da edição Cartoon',
+    legenda: 'Arte oficial do Mapa da Doçura, edição Cartoon (2026.2). O mapa interativo e a Caça aos Carimbos foram encerrados com a edição.',
+    aproximar: 'Aproximar',
+    afastar: 'Ver inteira',
+    fechar: 'Fechar',
   },
-  marcas: {
-    texto: 'Obrigado à Sicredi pela parceria e ao Senac e ao Espaço Reduzido pelo apoio.',
-    patrocinio: 'Patrocínio',
-    apoio: 'Apoio',
-    realizacao: 'Realização',
+  /* Agradecimento: curto, na mesma seção. `casas` recebe a contagem da base. */
+  gratidao: {
+    titulo: 'Obrigado a quem fez a Cartoon acontecer.',
+    itens: [
+      { titulo: (n) => `Às ${n} casas participantes`, texto: 'que criaram os combos da edição e receberam a cidade durante onze dias.' },
+      { titulo: () => 'Aos Sweet Lovers', texto: 'que foram de casa em casa, provaram e avaliaram os combos.' },
+    ],
+    /* Créditos autorizados (exceção ao §9.6, só para este agradecimento).
+       Marcas: MARCAS_PARCEIROS e LOGO_F2 de imageLibrary, sobre branco. */
+    creditos: { patrocinio: 'Patrocínio', apoio: 'Apoio', realizacao: 'Realização' },
   },
 }
 
@@ -178,18 +215,22 @@ export const FACA_PARTE = {
     texto: 'Patrocínio, ativação de marca, mídia ou brindes, ao lado das casas e do público do festival.',
     acao: 'Quero apoiar',
   },
+  /* A sugestão para a próxima edição mora aqui (antes era um botão do bloco de
+     encerramento, repetindo Participar e Apoiar logo acima). */
   contato: {
-    texto: 'Outra dúvida? Busque nas perguntas frequentes ou escreva para a equipe.',
+    texto: 'Tem uma sugestão para a próxima edição ou outra dúvida? Busque nas perguntas frequentes ou escreva para a equipe.',
     link: 'Falar com a equipe',
   },
 }
 
 /* --- 07 Realização (F2 Experience) ---------------------------------------- */
 /* Números da F2 Experience — fornecidos pelo Wilker no patch da seção de
-   realização. Não saem do acervo do festival; só "17 edições" é conferível. */
+   realização. São da AGÊNCIA, não do festival, e não se misturam com
+   festivalFacts. A exceção é o terceiro: "edições do festival assinadas" é a
+   mesma contagem do acervo, então vem da fonte (`fato`) em vez de digitado. */
 export const F2_NUMEROS = [
   ['01', '+1', 'K', 'projetos realizados'],
   ['02', '+400', 'K', 'pessoas impactadas'],
-  ['03', '17', '', 'edições do festival assinadas'],
+  ['03', { fato: 'editions' }, '', 'edições do festival assinadas'],
   ['04', 'BR', '', 'atuação nacional'],
 ]

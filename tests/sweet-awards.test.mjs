@@ -18,12 +18,18 @@ const T = await import('../src/data/conteudo/sweet-awards.js')
 const { temDesenho } = await import('./_icones.mjs')
 
 const EDICOES = AWARDS_DADOS.edicoes
-const { recente, historico } = C.separarEdicoes(EDICOES, T.EDICAO_RECENTE)
+/* A edição que abre os resultados é a última com resultado PUBLICADO, derivada
+   da base (16/11/2026) — não mais uma constante digitada no conteúdo. */
+const RECENTE = C.ultimaComResultado(EDICOES)
+const { recente, historico } = C.separarEdicoes(EDICOES, RECENTE)
+const SECOES = { ...T.SECOES, resultados: { ...T.SECOES.resultados, ...T.textoResultados(recente) } }
 const chaveDe = (e, c, p) => `${e.code}|${c.trilha}|${c.nome}|${p.pos}|${p.nomes.join('+')}`
 const todasColocacoes = (eds) => eds.flatMap((e) => e.cats.flatMap((c) => c.pod.map((p) => chaveDe(e, c, p))))
 
 test('a edição em destaque existe e nenhuma edição some do histórico', () => {
-  assert.ok(recente, `a edição ${T.EDICAO_RECENTE} precisa existir na base`)
+  assert.equal(T.EDICAO_RECENTE, undefined, 'a edição dos resultados não é mais digitada')
+  assert.equal(RECENTE, '2026.1', 'hoje a última com resultado publicado é a Lovers; a Cartoon está em apuração')
+  assert.ok(recente, `a edição ${RECENTE} precisa existir na base`)
   assert.equal(recente.cats.length, 8, 'a edição dos dez anos teve oito categorias')
   const codes = [recente, ...historico].map((e) => e.code).sort()
   assert.deepEqual(codes, EDICOES.map((e) => e.code).sort(), 'recente + histórico = todas as edições, uma vez cada')
@@ -155,7 +161,7 @@ test('foto só onde o vínculo marca↔combo existe, e casa premiada várias vez
 test('índice: uma entrada por seção, âncoras únicas e contagens tiradas da base', () => {
   const hall = C.ranking(EDICOES, 10)
   const indice = C.indiceDaPagina({
-    secoes: T.SECOES, ordem: T.ORDEM_SECOES, recente, historico, hall, trilha: T.TRILHA,
+    secoes: SECOES, ordem: T.ORDEM_SECOES, recente, historico, hall, trilha: T.TRILHA,
   })
   assert.deepEqual(indice.map((i) => i.chave), T.ORDEM_SECOES)
   assert.deepEqual(new Set(indice.map((i) => i.id)).size, indice.length, 'âncora repetida')
@@ -167,6 +173,28 @@ test('índice: uma entrada por seção, âncoras únicas e contagens tiradas da 
   assert.match(por.resultados, new RegExp(`^${recente.cats.length} categorias`))
   assert.match(por.hall, new RegExp(`\\b${hall.length}\\b`))
   assert.match(por.historico, /^10 edições, de 2019 a 2025$/)
+})
+
+test('texto dos resultados acompanha a edição mostrada, e diz quando são os anteriores', () => {
+  const lovers = T.textoResultados(recente)
+  assert.equal(lovers.indice, 'Resultados 2026.1')
+  assert.equal(lovers.rotulo, 'Resultado oficial · 2026.1 Lovers')
+  assert.equal(lovers.titulo, 'Os vencedores dos dez anos')
+  assert.match(T.textoResultados(recente, { anterior: true }).rotulo, /^Último resultado publicado · 2026\.1 Lovers$/)
+  // Edição sem texto próprio: nada da Lovers sobra no rótulo, no título ou na legenda.
+  const outra = T.textoResultados({ code: '2030', tema: 'Exemplo', cats: [{}, {}] })
+  assert.equal(outra.rotulo, 'Resultado oficial · 2030 Exemplo')
+  assert.equal(outra.titulo, 'Os vencedores da edição Exemplo')
+  assert.match(outra.apoio, /^2 categorias decididas pela avaliação do público/)
+  assert.equal(outra.legendaFotos, '')
+  // Abertura da expectativa: identifica a edição, sem data e sem nome de casa.
+  assert.equal(T.APURACAO.rotulo('Cartoon', '2026.2'), 'Edição Cartoon · 2026.2')
+  assert.equal(T.APURACAO.titulo('Cartoon'), 'O reconhecimento da Cartoon está a caminho.')
+  assert.match(T.APURACAO.instagram.href, /^https:\/\/www\.instagram\.com\/sweetcoffeeweek\/$/)
+  assert.doesNotMatch(T.APURACAO.texto, /\d{1,2} de \w+|\d{4}/, 'sem data na expectativa')
+  // Histórico sem nenhuma edição: rótulo sem "undefined".
+  assert.equal(T.SECOES.historico.rotulo(undefined, undefined), 'Histórico completo')
+  assert.equal(T.SECOES.historico.rotulo('2019', '2025'), 'Histórico completo · 2019 a 2025')
 })
 
 test('todo ícone citado no conteúdo existe no sistema (ícone ausente some sem erro, §6.11)', () => {
