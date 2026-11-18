@@ -4,7 +4,7 @@
 
 | Público | Pergunta que traz | Onde o site responde | Ação que queremos |
 |---|---|---|---|
-| **Sweet Lovers** (público) | O que é? Quando é a próxima? Quem ganhou? Posso opinar? | Festival, Edições, Sweet Awards, Sua opinião, Dúvidas | Seguir o Instagram, dar opinião, voltar na próxima edição |
+| **Sweet Lovers** (público) | O que é? Quando é a próxima? Quem ganhou? Posso opinar? | Festival, Edições, Sweet Awards, Dúvidas (sugestão pelo Contato) | Seguir o Instagram, dar opinião, voltar na próxima edição |
 | **Casas** (cafeterias, docerias, restaurantes) | Vale a pena? Como entro? Quanto trabalho dá? | Participar, O festival em Natal, Marcas | Registrar interesse |
 | **Casas que já participaram** | Onde vejo meu histórico? Onde dou minha opinião? | Marcas (ficha da casa), Painel SCW | Opinar no painel, voltar |
 | **Empresas** | Quem é o público? Quem já apoiou? Onde minha marca aparece? | Apoiar, O festival em Natal | Abrir conversa de apoio |
@@ -22,7 +22,6 @@
 | **Sweet Awards** | `/sweet-awards` | Reconhecimento: resultado, como a nota é dada, Hall, histórico | existe; reescrever |
 | **Participar** | `/participar` | Vender a participação para casas | existe; reescrever |
 | **Apoiar** | `/apoiar` | Vender o apoio para empresas; mostrar quem apoiou a última edição | existe; reescrever |
-| **Sua opinião** | `/sua-opiniao` | O público sugere, indica, conta e critica | **nova** |
 | **Dúvidas** | `/contato` | Central de dúvidas por público e formulário | existe; reorganizar |
 | **Registro de interesse** | `/quero-participar/` | Formulário das casas | existe; duas perguntas a mais |
 | **Painel SCW** | `/painel/` | Organização e casas | existe; ganha "Escuta" |
@@ -35,20 +34,19 @@ A rota `/contato` não muda de endereço, só de rótulo no menu ("Dúvidas"). A
 **Cabeçalho (seis itens):**
 Festival · Edições · Marcas · Sweet Awards · Faça parte · Dúvidas, mais o botão "Painel SCW".
 
-"Faça parte" abre três caminhos, cada um com uma linha de apoio:
+"Faça parte" abre dois caminhos, cada um com uma linha de apoio:
 
 - **Participar** — para casas que querem criar um combo
 - **Apoiar** — para empresas que querem estar na próxima edição
-- **Sua opinião** — para quem quer sugerir, elogiar ou criticar
 
 **Abas do celular (cinco):** Festival · Edições · Awards · Faça parte · Mais.
-"Faça parte" abre a mesma folha de três caminhos. "Mais" traz Marcas, O festival em Natal, Dúvidas,
+"Faça parte" abre a mesma folha de dois caminhos. "Mais" traz Marcas, O festival em Natal, Dúvidas,
 Instagram e documentos legais.
 
 **Rodapé (três colunas):**
 
 - *O festival:* Festival · O festival em Natal · Edições · Marcas · Sweet Awards
-- *Faça parte:* Participar · Apoiar · Sua opinião · Dúvidas
+- *Faça parte:* Participar · Apoiar · Dúvidas
 - *Acompanhe:* Instagram · Fale com a organização
 - Linha final: realização F2 Experience · Política de Privacidade · Cookies · Termos · Uso de imagem
 
@@ -57,26 +55,26 @@ Instagram e documentos legais.
 - Toda página termina com a próxima ação do seu público, nunca com as três ao mesmo tempo.
 - Edição → marcas daquela edição → ficha da marca → prêmios da marca → Sweet Awards → edição premiada.
 - Todo número exibido leva a "O festival em Natal", seção "De onde vêm os números".
-- "Sua opinião" aparece no fim da Home, de cada edição, do Sweet Awards e das Dúvidas.
+- A chamada "Tem algo a dizer?" (sugestão pelo Contato, assunto "Sugestão ou feedback") aparece no fim da Home, de cada edição e do Sweet Awards.
 
 ## 4. Rotas novas e antigas
 
 Novas (cada uma precisa de rewrite no `vercel.json` e de entrada em `tests/rotas-edicao.test.mjs`):
-`/impacto`, `/marcas`, `/marcas/:marca`, `/sua-opiniao`.
+`/impacto`, `/marcas`, `/marcas/:marca`.
 
 Continuam: `/`, `/festival`, `/edicoes`, `/edicoes/:codigo`, `/sweet-awards`, `/historico-sweet-awards`,
 `/participar`, `/apoiar`, `/contato`, documentos legais, `/quero-participar/`, `/preencher/`, `/painel/`,
 `/q/:codigo`, `/cartoon/*` (fora do ar, cai na Home).
 
 Redirecionamentos a acrescentar: `/participantes` → `/marcas` (hoje cai na Home), `/casas` → `/marcas`,
-`/opiniao` e `/sugestoes` → `/sua-opiniao`, `/numeros` → `/impacto`.
+`/opiniao` e `/sugestoes` → `/contato`, `/numeros` → `/impacto`.
 
 ## 5. Os momentos do site
 
 O site tem cinco momentos. Cada um sai de fontes que já existem (`proximaEdicao.js`, `destaqueEdicao.js`,
 `src/edicao/config.js`, `resultadosEdicao.js`); nenhuma fonte nova é necessária.
 
-| Momento | Como o site sabe | Abertura da Home | Ação principal do público | "Sua opinião" pergunta |
+| Momento | Como o site sabe | Abertura da Home | Ação principal do público | Chamada de sugestão (Contato) pergunta |
 |---|---|---|---|---|
 | **1. Entre edições** | sem próxima edição anunciada, resultado divulgado | o festival | conhecer as edições | "Que tema você quer ver?" |
 | **2. Edição anunciada** | `proximaEdicao` com tema e data | a edição que vem | salvar a data, seguir o Instagram | "O que não pode faltar?" |
@@ -105,7 +103,7 @@ em 4 e 5, "Sua opinião sobre a edição" no painel e "Registrar interesse para 
 5. Sweet Awards da edição: primeiro lugar de cada categoria, ou o aviso de apuração, ou "esta edição não teve premiação".
 6. Lançamento: vídeo e reel, quando existirem.
 7. Quem apoiou: só quando a base registra (hoje: 2019.2, 2021.2, 2022, 2024 e 2026.2).
-8. "Você esteve nesta edição? Conte como foi." → Sua opinião, com a edição já escolhida.
+8. "Você esteve nesta edição? Conte como foi." → Contato, assunto "Sugestão ou feedback".
 9. Edição anterior e próxima.
 
 Sem bloco de números por edição (decisão D8). O retrato em números existe só para a edição mais recente e
@@ -145,9 +143,8 @@ comparação entre participantes, que é permitida.
 | Números e formatação | `src/data/festivalFacts.js` | entram os fatos da Cartoon (arquivo 02) |
 | Estado dos resultados | `src/data/resultadosEdicao.js` | não |
 | Próxima edição | `src/data/proximaEdicao.js` | não |
-| Textos das páginas | `src/data/conteudo/*.js` | reescritos (arquivo 03); entram `impacto.js`, `marcas.js`, `sua-opiniao.js` |
+| Textos das páginas | `src/data/conteudo/*.js` | reescritos (arquivo 03); entram `impacto.js` e `marcas.js` |
 | Perguntas frequentes | `src/data/faqCentral.js` | reagrupadas por público; perguntas novas (arquivo 03) |
-| Opiniões do público | tabela nova `opinioes` | arquivo 04 |
 
 ## 9. O que sai, o que se funde
 
@@ -155,5 +152,5 @@ comparação entre participantes, que é permitida.
 - Home: "Na imprensa" vai para `/impacto`.
 - Home: "Realização F2" e o agradecimento da Cartoon fundem-se em "Quem faz o festival" (apoio da última edição + realização).
 - Participar e Apoiar: os blocos de números passam a ler o mesmo conjunto de fatos da Home, sem lista própria.
-- Contato: os três caminhos ("Antes de escrever") passam a ser quatro, com "Sua opinião".
+- Contato: o assunto "Sugestão ou feedback" vira a porta de escuta do público (D4: sem página própria).
 - Rota da Doçura: continua fora da estrutura até ter especificação. As nove perguntas da central ficam ocultas enquanto o produto não existir.

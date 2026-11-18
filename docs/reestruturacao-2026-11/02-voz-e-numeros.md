@@ -48,7 +48,7 @@ Não repetir em sequência: experiência, cidade, rota, memória, marcas.
 | Sweet Awards | reconhecimento | "Quem prova dá a nota. O festival entrega o prêmio." |
 | Participar | conversa de dono para dono | "Você cria o combo. O festival leva a cidade até a sua porta." |
 | Apoiar | objetivo, com dado | "Sua marca diante de quem sai de casa para provar." |
-| Sua opinião | escuta | "A próxima edição começa com o que você tem a dizer." |
+| Chamada de sugestão (Contato) | escuta | "A próxima edição começa com o que você tem a dizer." |
 | Dúvidas | resposta na primeira frase | "Não. Registrar interesse não garante vaga." |
 
 ### Mensagens de formulário (padrão único)

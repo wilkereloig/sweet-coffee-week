@@ -17,7 +17,6 @@ documentos legais, exceto os acréscimos listados em `04-escuta-e-painel.md`.
 **Folha "Faça parte":**
 - Participar — "Tenho uma casa e quero criar um combo."
 - Apoiar — "Minha empresa quer estar na próxima edição."
-- Sua opinião — "Quero sugerir, elogiar ou criticar."
 
 **Rodapé, frase de assinatura:** "Sweet & Coffee Week. Desde 2016, um tema novo e Natal à mesa."
 **Rodapé, linha de crédito:** "Realização: F2 Experience."
@@ -25,8 +24,8 @@ documentos legais, exceto os acréscimos listados em `04-escuta-e-painel.md`.
 **Página não encontrada:** título "Esta página saiu do cardápio." · apoio "O endereço mudou ou não existe.
 Estes caminhos funcionam:" · ações "Ir para o festival" → `/` · "Ver as edições" → `/edicoes` · "Tirar uma dúvida" → `/contato`
 
-**Chamada final de "Sua opinião"** (usada no fim de várias páginas):
-"Tem algo a dizer sobre o festival? A organização lê." · ação "Dar minha opinião" → `/sua-opiniao`
+**Chamada final de sugestão** (usada no fim de várias páginas):
+"Tem algo a dizer sobre o festival? A organização lê." · ação "Dar minha opinião" → `/contato` (assunto "Sugestão ou feedback")
 
 ---
 
@@ -87,7 +86,7 @@ Com resultado divulgado: título "O capítulo final da Cartoon: os destaques da 
 - Crédito: Fernando Gurgel, Paneer Pâtisserie · abaixo, a frase inteira da base
 - Segundo depoimento: Carol Barreto, Jolie Café Pâtisserie (frase integral da base)
 - Trechos do público entram aqui quando houver textos publicados com autorização. Antes disso, só as casas.
-- Ações: "Ouvir as casas" → `/participar#depoimentos` · "Contar a minha história" → `/sua-opiniao`
+- Ações: "Ouvir as casas" → `/participar#depoimentos` · "Contar a minha história" → `/contato` (assunto "Sugestão ou feedback")
 
 ### 1.6 Tema a tema
 - Rótulo: As edições
@@ -108,7 +107,7 @@ Com resultado divulgado: título "O capítulo final da Cartoon: os destaques da 
 - Título: **O festival é feito por quem cria, por quem apoia e por quem prova.**
 - **Tem uma casa?** Crie um combo para as próximas edições. → "Registrar interesse" (`/quero-participar/`) · "Como participar" (`/participar`)
 - **Tem uma empresa?** Coloque a sua marca diante de quem sai de casa para provar. → "Quero apoiar" (`/apoiar`)
-- **É Sweet Lover?** Sugira um tema, indique uma casa, diga o que achou. → "Dar minha opinião" (`/sua-opiniao`)
+- **É Sweet Lover?** Sugira um tema, indique uma casa, diga o que achou. → "Dar minha opinião" (`/contato` (assunto "Sugestão ou feedback"))
 
 ### 1.9 Quem faz o festival
 - Rótulo: Edição Cartoon · novembro de 2026
@@ -161,7 +160,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 - Texto: Desde 2022, a nota do Sweet Awards é só dos Sweet Lovers.
 - Na edição Cartoon: 4.285 pessoas avaliaram · 6.859 avaliações · nota média do festival 9,2 · seis em cada
   dez notas foram 10 · 1.001 comentários e 565 sugestões enviados junto da avaliação
-- Ação: "Dar minha opinião" → `/sua-opiniao`
+- Ação: "Dar minha opinião" → `/contato` (assunto "Sugestão ou feedback")
 
 ### 2.6 Nas redes
 - Título: **O festival também acontece no feed.**
@@ -189,7 +188,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 
 ### 2.9 Fechamento
 - Título: **Faça parte da próxima edição.**
-- Ações: "Sou uma casa" → `/participar` · "Sou uma empresa" → `/apoiar` · "Sou Sweet Lover" → `/sua-opiniao`
+- Ações: "Sou uma casa" → `/participar` · "Sou uma empresa" → `/apoiar` · "Sou Sweet Lover" → `/contato` (assunto "Sugestão ou feedback")
 
 ---
 
@@ -227,7 +226,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 - Galeria parcial: "X das N marcas têm foto no acervo."
 - Imagens ilustrativas (Cartoon): manter o aviso atual.
 - Foto ampliada: "Marca · Edição" · "Ver a marca" · "Pedir a retirada desta imagem"
-- Chamada final: **"Você esteve nesta edição? Conte como foi."** → `/sua-opiniao?edicao=<código>`
+- Chamada final: **"Você esteve nesta edição? Conte como foi."** → `/contato` (assunto "Sugestão ou feedback")
 
 ---
 
@@ -301,7 +300,7 @@ avalia, como a nota é dada e todos os pódios desde 2019."
 - Notas mantidas: "As cinco primeiras edições não tiveram premiação." · ausência de 2º ou 3º lugar dita, nunca preenchida.
 
 ### 5.6 Fechamento
-- Chamada "Sua opinião" (peça comum) com o texto: "Avaliou os combos e quer dizer mais? A organização lê."
+- Chamada final de sugestão (peça comum) com o texto: "Avaliou os combos e quer dizer mais? A organização lê."
 
 ---
 
@@ -417,74 +416,17 @@ em Natal, 131 marcas e um público que sai de casa para provar. Veja quem apoiou
 
 ---
 
-## 8 · Sua opinião (`/sua-opiniao`) — página nova
-
-**SEO.** Título: "Sua opinião | Sweet & Coffee Week" · Descrição: "Sugira um tema, indique uma casa, conte como
-foi ou diga o que precisa melhorar. A organização do Sweet & Coffee Week lê."
-
-### 8.1 Abertura
-- Rótulo: Sua opinião
-- Título: **A próxima edição começa com o que você tem a dizer.**
-- Apoio: Sugira um tema, indique uma casa, conte como foi ou diga o que precisa melhorar. A organização lê e
-  usa o que ouve para planejar a próxima edição.
-- Linha por momento (ver `01-estrutura.md` §5). Hoje: **"O que você achou da edição Cartoon?"**
-
-### 8.2 Escolha o assunto
-| Assunto | Pergunta que abre | Campo extra |
-|---|---|---|
-| **Sugerir um tema** | "Que tema você quer ver em uma edição?" | "Por que esse tema?" (opcional) |
-| **Indicar uma casa** | "Que casa de Natal deveria estar no festival?" | nome da casa, Instagram da casa (opcional) |
-| **Contar como foi** | "Como foi a sua edição? Vale lembrança, roteiro, combo preferido." | edição (lista das 17, opcional) |
-| **Sugerir uma melhoria** | "O que o festival precisa fazer melhor?" | — |
-| **Outro assunto** | "Escreva à vontade." | — |
-
-- Texto principal: até 1.000 caracteres.
-- Sobre você (tudo opcional): nome · bairro ou cidade · e-mail ("só se quiser resposta")
-- Caixas, as duas desmarcadas:
-  - "Autorizo o festival a publicar este texto, com o meu primeiro nome."
-  - "Quero receber novidades do festival por e-mail."
-- Linha de privacidade: "Seu texto vai para a organização do festival. Sem a autorização acima, ele não é
-  publicado. Veja a Política de Privacidade."
-- Botão: "Enviar"
-- Enviado: "Recebemos. Obrigado por escrever para o festival." + "Quem indica uma casa: o convite vale mais
-  quando a casa registra o próprio interesse." (só no assunto "Indicar uma casa", com link para `/participar`)
-- Problema com um pedido ou uma casa: "Teve um problema durante a edição? Use a central de dúvidas." → `/contato`
-
-### 8.3 O que já ouvimos
-- Título: **Na edição Cartoon, você já falou.**
-- Texto: Junto das avaliações dos combos, chegaram 1.001 comentários sobre o festival e 565 sugestões. A
-  organização está lendo.
-- Este bloco mostra só contagens. Os temas mais pedidos entram quando a organização publicar o resumo.
-
-### 8.4 O que mudou
-- Título: **Você pediu, o festival fez.**
-- Lista escrita pela organização no painel: "pedido" → "o que mudou" → "desde a edição …".
-- **Sem itens, a seção não aparece.** Nada é preenchido por suposição.
-
-### 8.5 Vozes
-- Título: **O que os Sweet Lovers contam.**
-- Trechos publicados com autorização: texto, primeiro nome, bairro (se informado), edição (se informada).
-- Sem itens, a seção não aparece.
-- Linha: "Quer retirar um texto seu? Escreva para a organização." → `/contato`
-
-### 8.6 Para as casas
-- Título: **Tem uma casa participante?**
-- Texto: A opinião das casas tem um lugar próprio, com perguntas sobre operação, materiais e resultado.
-- Ação: "Abrir o Painel SCW" → `/painel/#opiniao`
-
----
-
-## 9 · Dúvidas (`/contato`)
+## 8 · Dúvidas (`/contato`)
 
 **SEO.** Título: "Dúvidas e contato | Sweet & Coffee Week" · Descrição: "Respostas sobre o festival, os combos,
 o Sweet Awards, a participação de casas e o apoio de empresas. E o caminho para falar com a organização."
 
-### 9.1 Abertura
+### 8.1 Abertura
 - Rótulo: Dúvidas
 - Título: **Sua dúvida, respondida aqui.**
 - Busca: "Escreva a sua dúvida" · link "Escrever para a organização"
 
-### 9.2 Quem é você?
+### 8.2 Quem é você?
 A central passa a abrir por público. Os dez assuntos de hoje ficam dentro de quatro portas:
 
 | Porta | Assuntos que reúne |
@@ -497,14 +439,14 @@ A central passa a abrir por público. Os dez assuntos de hoje ficam dentro de qu
 As nove perguntas da Rota da Doçura ficam ocultas até o produto existir. As respostas atuais das 84 perguntas
 restantes ficam como estão; mudam só as abaixo.
 
-### 9.3 Perguntas novas
-1. **Como dou a minha opinião ou sugiro um tema?** Na página Sua opinião. Você escolhe o assunto, escreve e
-   envia. Nome e e-mail são opcionais.
+### 8.3 Perguntas novas
+1. **Como dou a minha opinião ou sugiro um tema?** Em "Escreva para a organização", no assunto "Sugestão ou
+   feedback".
 2. **Vocês leem o que eu escrevo?** Sim. A organização lê as mensagens e usa o que ouve para planejar a
    próxima edição. Na edição Cartoon, chegaram 1.001 comentários e 565 sugestões junto das avaliações.
-3. **Meu texto pode aparecer no site?** Só se você marcar a autorização ao enviar. O festival publica com o
-   seu primeiro nome e pode encurtar o texto, sem mudar o sentido. Para retirar, escreva para a organização.
-4. **Como indico uma casa para participar?** Em Sua opinião, no assunto "Indicar uma casa". A indicação ajuda,
+3. **Meu texto pode aparecer no site?** Não sem pedir antes. Se a organização quiser publicar um trecho, ela
+   escreve para você e só publica com a sua autorização.
+4. **Como indico uma casa para participar?** Em "Escreva para a organização", no assunto "Sugestão ou feedback". A indicação ajuda,
    mas quem registra o interesse é a própria casa, na página Participar.
 5. **Quem apoiou a última edição?** A edição Cartoon, em novembro de 2026, teve patrocínio do Sicredi, apoio
    do Senac e do Espaço Reduzido e realização da F2 Experience.
@@ -514,17 +456,18 @@ restantes ficam como estão; mudam só as abaixo.
 8. **Onde encontro a história da minha casa no festival?** Na página Marcas. Procure pelo nome e veja as
    edições, os combos e os prêmios. Achou um erro? Avise a organização.
 
-### 9.4 Perguntas que mudam de resposta
-- "Quem são os Sweet Lovers?": acrescentar ao fim "Sweet Lover também opina: veja a página Sua opinião."
+### 8.4 Perguntas que mudam de resposta
+- "Quem são os Sweet Lovers?": acrescentar ao fim "Sweet Lover também opina: escreva para a organização."
 - "Como patrocinar?": acrescentar "Veja quem apoiou a última edição na página Apoiar."
-- "Como entro em contato?": listar os quatro caminhos de 9.5.
+- "Como entro em contato?": listar os quatro caminhos de 8.5.
 
-### 9.5 Escreva para a organização
+### 8.5 Escreva para a organização
 - Título: **Escreva para a organização.**
 - Antes de escrever, quatro caminhos: "Tenho uma casa" → `/participar` · "Quero apoiar" → `/apoiar` ·
-  "Quero opinar ou sugerir" → `/sua-opiniao` · "Tive um problema" → dúvidas de suporte
+  "Quero opinar ou sugerir" → formulário abaixo, assunto "Sugestão ou feedback" · "Tive um problema" → dúvidas de suporte
 - Formulário: "Imprensa, correções e demais assuntos"
-- Assuntos: Dúvida sobre a edição · Problema com informação no site · Imprensa e entrevistas · Retirar um
-  texto ou uma imagem · Outro assunto
-  (saem "Estabelecimento interessado", "Parceria ou patrocínio" e "Sugestão ou feedback": cada um tem página própria)
+- Assuntos: Dúvida sobre a edição · Sugestão ou feedback · Problema com informação no site · Imprensa e
+  entrevistas · Retirar um texto ou uma imagem · Outro assunto
+  (saem "Estabelecimento interessado" e "Parceria ou patrocínio": cada um tem página própria. "Sugestão ou
+  feedback" fica: é a porta de escuta do público, D4)
 - Envio: "Recebemos. A organização responde pelo e-mail que você deixou."
