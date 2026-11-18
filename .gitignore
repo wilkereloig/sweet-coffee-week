@@ -62,3 +62,6 @@ supabase/.temp/
 # O repositório é público. Regenerar: src/edicao/dados/retrato/README.md.
 src/edicao/dados/retrato/cartoon.local.json
 public/retrato-local/
+
+# Cérebro compartilhado entre sessões (fora do repo público)
+_cerebro/
