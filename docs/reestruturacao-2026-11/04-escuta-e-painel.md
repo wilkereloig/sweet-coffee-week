@@ -4,7 +4,7 @@
 
 | Canal | Quem escreve | Onde cai | A organização lê onde | Problema |
 |---|---|---|---|---|
-| Contato, assunto "Sugestão ou feedback" | público | `contact_requests` | Contatos › Recebidos do site | misturado com dúvida e imprensa |
+| Contato, assunto "Sugestão ou feedback" (hoje) | público | `contact_requests` | Contatos › Recebidos do site | misturado com dúvida e imprensa |
 | Avaliação de combos: "O que você está achando do festival?" e "Tem alguma sugestão?" | público | `avaliacoes.comentario_evento` e `.sugestao_festival` | **em lugar nenhum** | 1.001 comentários e 565 sugestões gravados sem tela |
 | "Sua opinião" das casas (`/painel/#opiniao`) | casas | `feedback_casa` | só ficha a ficha, em Comunicação | não há lista geral nem resumo |
 | Temas propostos | casas | `temas_propostos` | Participantes › Temas | separado dos temas sugeridos pelo público |
@@ -16,7 +16,7 @@ e-mail à equipe quando chega mensagem, confirmação para quem enviou.
 
 ## 2. O desenho
 
-**O público fala pelo Contato** (assunto "Sugestão ou feedback") e pela avaliação de combos; **as casas falam
+**O público fala pelo Contato** (assunto "Sugestão ou opinião") e pela avaliação de combos; **as casas falam
 no painel** (já existe); **uma tela só para a organização ler tudo** (painel › Escuta).
 Sem página própria de opinião: decisão D4 do Wilker, 18/11/2026.
 
@@ -33,7 +33,7 @@ Princípios:
 ## 3. Público: sem página própria (D4)
 
 O Wilker decidiu em 18/11/2026 manter só o Contato. Sai do plano: a página `/sua-opiniao`, a tabela
-`opinioes`, o envio próprio e os e-mails de confirmação. O que fica: o assunto "Sugestão ou feedback" do
+`opinioes`, o envio próprio e os e-mails de confirmação. O que fica: o assunto "Sugestão ou opinião" do
 Contato, separado na tela "Escuta" de dúvida e imprensa.
 
 ## 4. Casas: o que muda
@@ -56,7 +56,7 @@ e publicar, a mesma permissão de escrita que hoje vale para Contatos › Recebi
 
 | Aba | Mostra | Ações |
 |---|---|---|
-| **Público** | comentários e sugestões da avaliação + "Sugestão ou feedback" do Contato, com filtro por assunto, edição, estado e origem | marcar como lida, responder por e-mail, arquivar, anotar |
+| **Público** | comentários e sugestões da avaliação + "Sugestão ou opinião" do Contato, com filtro por assunto, edição, estado e origem | marcar como lida, responder por e-mail, arquivar, anotar |
 | **Casas** | a lista geral de `feedback_casa` e o resumo do item 4 | abrir a ficha da casa, exportar |
 | **Temas** | todos os temas sugeridos, de público e de casas, agrupados por tema igual, com contagem | marcar "em estudo", "usado", "descartado" |
 | **Casas indicadas** | indicações do público, agrupadas por casa, com contagem e se a casa já registrou interesse | abrir a candidatura, convidar |

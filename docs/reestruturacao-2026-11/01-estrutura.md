@@ -55,7 +55,7 @@ Instagram e documentos legais.
 - Toda página termina com a próxima ação do seu público, nunca com as três ao mesmo tempo.
 - Edição → marcas daquela edição → ficha da marca → prêmios da marca → Sweet Awards → edição premiada.
 - Todo número exibido leva a "O festival em Natal", seção "De onde vêm os números".
-- A chamada "Tem algo a dizer?" (sugestão pelo Contato, assunto "Sugestão ou feedback") aparece no fim da Home, de cada edição e do Sweet Awards.
+- A chamada "Tem algo a dizer?" (sugestão pelo Contato, assunto "Sugestão ou opinião") aparece no fim da Home, de cada edição e do Sweet Awards.
 
 ## 4. Rotas novas e antigas
 
@@ -92,7 +92,7 @@ em 4 e 5, "Sua opinião sobre a edição" no painel e "Registrar interesse para 
 1. **Por ano** (padrão): de 2026 a 2016. É a coleção de hoje.
 2. **Por tema**: a lista dos 17 temas, em ordem de edição, cada um com a marca da edição. Serve a quem lembra
    do tema e não do ano ("aquela dos Contos de Fadas").
-3. **Por marca**: um campo de busca. Digito "Jolie" e vejo as edições em que ela esteve. Leva à ficha da marca.
+3. **Por marca**: abre o diretório `/marcas`. Uma busca só no site.
 
 **Detalhe da edição** (`/edicoes/<código>`), na ordem:
 
@@ -103,8 +103,7 @@ em 4 e 5, "Sua opinião sobre a edição" no painel e "Registrar interesse para 
 5. Sweet Awards da edição: primeiro lugar de cada categoria, ou o aviso de apuração, ou "esta edição não teve premiação".
 6. Lançamento: vídeo e reel, quando existirem.
 7. Quem apoiou: só quando a base registra (hoje: 2019.2, 2021.2, 2022, 2024 e 2026.2).
-8. "Você esteve nesta edição? Conte como foi." → Contato, assunto "Sugestão ou feedback".
-9. Edição anterior e próxima.
+8. Edição anterior e próxima.
 
 Sem bloco de números por edição (decisão D8). O retrato em números existe só para a edição mais recente e
 mora na Home e em "O festival em Natal".
@@ -117,7 +116,7 @@ identificada por marca."
 ## 7. Marcas
 
 **Diretório** (`/marcas`): as 131 marcas em ordem alfabética, com busca e quatro filtros:
-"Na última edição" · "Já subiram ao pódio" · "Desde o início" (estiveram em 2016) · "Todas".
+"Na última edição" · "Já subiram ao pódio" · "Desde a 1ª edição" (estiveram em 2016) · "Todas".
 Cada linha mostra nome, número de edições e, quando há, o selo de premiada.
 
 **Ficha da marca** (`/marcas/<marca>`):
@@ -152,5 +151,5 @@ comparação entre participantes, que é permitida.
 - Home: "Na imprensa" vai para `/impacto`.
 - Home: "Realização F2" e o agradecimento da Cartoon fundem-se em "Quem faz o festival" (apoio da última edição + realização).
 - Participar e Apoiar: os blocos de números passam a ler o mesmo conjunto de fatos da Home, sem lista própria.
-- Contato: o assunto "Sugestão ou feedback" vira a porta de escuta do público (D4: sem página própria).
+- Contato: o assunto "Sugestão ou feedback" passa a se chamar "Sugestão ou opinião" e vira a porta de escuta do público (D4: sem página própria).
 - Rota da Doçura: continua fora da estrutura até ter especificação. As nove perguntas da central ficam ocultas enquanto o produto não existir.

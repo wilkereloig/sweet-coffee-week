@@ -3,6 +3,7 @@
 > **18/11/2026 — D1–D8 decididas pelo Wilker** (tabela abaixo). Este plano é a **fase 1** do site novo:
 > fase 2 = KV novo a partir de referências do Wilker; fase 3 = reconstruir o site sobre esta estrutura e o KV.
 > Nada se codifica antes do KV.
+> **18/11/2026 — textos de `03-textos.md` revisados página a página com o Wilker.** Fase 1 fechada.
 
 Pedido do Wilker em 16/11/2026: reescrever e reestruturar o site inteiro, sem mexer no visual. Este
 conjunto é o plano: páginas, navegação, acervo, painel, linguagem, todos os textos e todos os números
@@ -26,7 +27,7 @@ continuam como estavam no commit `410fc0d2`.
    (empresas) e quem noticia (imprensa). Cada um acha a sua porta em um clique.
 3. **O acervo é o produto.** Edições, marcas e Sweet Awards viram três entradas do mesmo acervo, ligadas
    entre si: da edição chego à marca, da marca chego ao prêmio.
-4. **O festival escuta.** O público fala pelo Contato (assunto "Sugestão ou feedback") e pela avaliação de
+4. **O festival escuta.** O público fala pelo Contato (assunto "Sugestão ou opinião") e pela avaliação de
    combos; as casas, pela "Sua opinião" do painel. O painel ganha uma tela de leitura, "Escuta".
 5. **Número com dono.** Todo número tem fonte, período e ressalva. A edição mais recente tem o seu retrato;
    as outras edições não ganham placar, para não virar competição entre edições.
@@ -40,7 +41,7 @@ continuam como estavam no commit `410fc0d2`.
 | D1 | Os totais do festival passam a **somar a Cartoon, mesmo parcial**: +44 mil combos, +R$ 1,1 milhão. Os números do Instagram não entram nesta decisão: saem do perfil inteiro, ano a ano, até 16/11/2026 (`02-voz-e-numeros.md` B2.1). O texto diz que a Cartoon ainda está em apuração | Você pediu para usar todos os dados de hoje, vendas inclusive. Isso inverte a regra de hoje cedo ("não somar histórico com parcial") e a de não multiplicar combos por preço | **Aprovada**: somar parcial, com aviso de apuração (alertado: 111 de 297 dias lançados) |
 | D2 | **Apoiadores da última edição aparecem** em Apoiar e na Home, com data ("Edição Cartoon, novembro de 2026") | Pedido seu. Altera a regra "sem patrocinador exibido" (§2.2). A data impede que o bloco minta quando a próxima edição chegar | **Aprovada**: Apoiar e Home |
 | D3 | **Página nova "O festival em Natal"** (`/impacto`): economia, cidade, cultura, redes, imprensa e método | É o argumento que você pediu (importância para a cidade) e serve a casas, apoiadores e imprensa com um endereço só | **Aprovada**: página própria |
-| D4 | **Página nova "Sua opinião"** (`/sua-opiniao`), com publicação só mediante autorização e leitura da organização | "A gente quer escutar as pessoas." Hoje o único canal público é o assunto "Sugestão ou feedback" do Contato | **Reprovada**: fica só o Contato. Página, tabela `opinioes` e envio próprio saem do plano |
+| D4 | **Página nova "Sua opinião"** (`/sua-opiniao`), com publicação só mediante autorização e leitura da organização | "A gente quer escutar as pessoas." Hoje o único canal público é o assunto "Sugestão ou opinião" do Contato | **Reprovada**: fica só o Contato. Página, tabela `opinioes` e envio próprio saem do plano |
 | D5 | **Diretório de marcas** (`/marcas` e `/marcas/<marca>`) entra no plano | Estava previsto e nunca foi feito. É o que liga edição, combo e prêmio | **Aprovada** |
 | D6 | Menu passa a ser: Festival · Edições · Marcas · Sweet Awards · Faça parte · Dúvidas. "Faça parte" abre Participar e Apoiar | Uma porta por público, sem crescer o menu | **Aprovada**, sem "Sua opinião" (D4) |
 | D7 | **"Na imprensa" sai da Home** e vai para "O festival em Natal" | A Home fica mais curta e a imprensa vira prova de impacto | **Aprovada** |

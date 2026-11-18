@@ -25,7 +25,7 @@ documentos legais, exceto os acréscimos listados em `04-escuta-e-painel.md`.
 Estes caminhos funcionam:" · ações "Ir para o festival" → `/` · "Ver as edições" → `/edicoes` · "Tirar uma dúvida" → `/contato`
 
 **Chamada final de sugestão** (usada no fim de várias páginas):
-"Tem algo a dizer sobre o festival? A organização lê." · ação "Dar minha opinião" → `/contato` (assunto "Sugestão ou feedback")
+"Tem algo a dizer sobre o festival? A organização lê." · ação "Dar minha opinião" → `/contato` (assunto "Sugestão ou opinião")
 
 ---
 
@@ -38,8 +38,8 @@ festival, as edições e o Sweet Awards."
 ### 1.1 Abertura
 - Rótulo: Natal/RN · desde 2016
 - Título: **O festival que põe Natal à mesa.**
-- Apoio: A cada edição, um tema. Cafeterias, docerias e restaurantes criam um combo autoral, com doce, salgado
-  e bebida, e a cidade sai de casa para provar, avaliar e escolher os destaques.
+- Apoio: A cada edição, um tema. Cafeterias, docerias e restaurantes criam um combo autoral inspirado no tema,
+  e a cidade sai de casa para provar, avaliar e escolher os destaques.
 - Ficha: 17 edições · 131 marcas · 10 anos · Última edição: Cartoon, novembro de 2026
 - Ações: "Conhecer as edições" → `/edicoes` · "Como funciona" → seção 1.3
 
@@ -65,6 +65,7 @@ Com resultado divulgado: título "O capítulo final da Cartoon: os destaques da 
 - Rótulo: Como funciona
 - Título: **Um tema, um combo por casa, a cidade inteira provando.**
 - Três partes do combo: **Um doce** · **Um salgado** · **Uma bebida** — "criados pela casa para o tema da edição."
+  Linha de apoio: "É o formato padrão. Algumas ações têm variações, como o Sweet Gift."
 - Três frases:
   - **Para as casas:** uma vitrine. O tema dá o assunto, o festival traz o público.
   - **Para quem prova:** um roteiro. Casas novas para conhecer e uma nota para dar a cada combo.
@@ -86,7 +87,7 @@ Com resultado divulgado: título "O capítulo final da Cartoon: os destaques da 
 - Crédito: Fernando Gurgel, Paneer Pâtisserie · abaixo, a frase inteira da base
 - Segundo depoimento: Carol Barreto, Jolie Café Pâtisserie (frase integral da base)
 - Trechos do público entram aqui quando houver textos publicados com autorização. Antes disso, só as casas.
-- Ações: "Ouvir as casas" → `/participar#depoimentos` · "Contar a minha história" → `/contato` (assunto "Sugestão ou feedback")
+- Ações: "Ouvir as casas" → `/participar#depoimentos`
 
 ### 1.6 Tema a tema
 - Rótulo: As edições
@@ -106,13 +107,13 @@ Com resultado divulgado: título "O capítulo final da Cartoon: os destaques da 
 - Rótulo: Faça parte
 - Título: **O festival é feito por quem cria, por quem apoia e por quem prova.**
 - **Tem uma casa?** Crie um combo para as próximas edições. → "Registrar interesse" (`/quero-participar/`) · "Como participar" (`/participar`)
-- **Tem uma empresa?** Coloque a sua marca diante de quem sai de casa para provar. → "Quero apoiar" (`/apoiar`)
-- **É Sweet Lover?** Sugira um tema, indique uma casa, diga o que achou. → "Dar minha opinião" (`/contato` (assunto "Sugestão ou feedback"))
+- **Tem uma empresa?** Coloque a sua marca diante de quem vai às casas provar o tema. → "Quero apoiar" (`/apoiar`)
+- **É Sweet Lover?** Sugira um tema, indique uma casa, diga o que achou. → "Dar minha opinião" (`/contato` (assunto "Sugestão ou opinião"))
 
 ### 1.9 Quem faz o festival
 - Rótulo: Edição Cartoon · novembro de 2026
 - Título: **Obrigado a quem fez a Cartoon acontecer.**
-- Créditos: Patrocínio: Sicredi · Apoio: Senac e Espaço Reduzido · Realização: F2 Experience
+- Créditos: Patrocinador: Sicredi · Apoio: Senac e Espaço Reduzido · Realização: F2 Experience
 - Linha da realizadora: "A F2 Experience realiza o Sweet & Coffee Week desde a primeira edição." · link "Conhecer a F2 Experience"
 
 ---
@@ -142,7 +143,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 - Título: **Natal vira roteiro.**
 - Texto: Durante a edição, o público monta roteiro, divide combos para provar mais e cruza a cidade de casa em casa.
 - Na edição Cartoon: mais de 9 mil leituras de QR Code nas casas · 2.824 mapas da Caça aos Carimbos e 2.163
-  carimbos · duas pessoas visitaram as 27 casas · mais de 13 mil visitantes no site, nove em cada dez pelo celular
+  carimbos · mais de 13 mil visitantes no site, nove em cada dez pelo celular
 
 ### 2.4 Na cultura
 - Título: **Um tema novo. Uma cidade inteira criando.**
@@ -160,7 +161,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 - Texto: Desde 2022, a nota do Sweet Awards é só dos Sweet Lovers.
 - Na edição Cartoon: 4.285 pessoas avaliaram · 6.859 avaliações · nota média do festival 9,2 · seis em cada
   dez notas foram 10 · 1.001 comentários e 565 sugestões enviados junto da avaliação
-- Ação: "Dar minha opinião" → `/contato` (assunto "Sugestão ou feedback")
+- Ação: "Como a nota é dada" → `/sweet-awards`
 
 ### 2.6 Nas redes
 - Título: **O festival também acontece no feed.**
@@ -188,7 +189,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 
 ### 2.9 Fechamento
 - Título: **Faça parte da próxima edição.**
-- Ações: "Sou uma casa" → `/participar` · "Sou uma empresa" → `/apoiar` · "Sou Sweet Lover" → `/contato` (assunto "Sugestão ou feedback")
+- Ações: "Sou uma casa" → `/participar` · "Sou uma empresa" → `/apoiar` · "Sou Sweet Lover" → "Seguir no Instagram" (perfil oficial)
 
 ---
 
@@ -200,7 +201,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 ### 3.1 Abertura
 - Rótulo: O acervo
 - Título: **Cada edição, uma nova história à mesa.**
-- Apoio: De 2016 a 2026, 17 edições e 17 temas. Escolha por ano, por tema ou procure uma marca.
+- Apoio: De 2016 a 2026, 17 edições e 17 temas. Escolha por ano, por tema ou pela marca.
 - Três entradas: **Por ano** · **Por tema** · **Por marca**
 
 ### 3.2 Por ano
@@ -212,9 +213,7 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 - Apoio: Lembra do tema e não do ano? Comece por aqui.
 
 ### 3.4 Por marca
-- Título: **Em quais edições ela esteve?**
-- Campo: "Digite o nome da casa" · resultado: "Jolie Café Pâtisserie · N edições" → ficha da marca
-- Sem resultado: "Nenhuma marca com esse nome. Confira a grafia ou veja todas as marcas." → `/marcas`
+- Sem busca própria: a entrada "Por marca" abre o diretório (`/marcas`). Uma busca só no site.
 
 ### 3.5 Detalhe da edição (`/edicoes/<código>`) — rótulos
 - Voltar: "Todas as edições"
@@ -226,7 +225,6 @@ em Natal: 131 marcas, 437 participações, mais de 44 mil combos e dez anos de t
 - Galeria parcial: "X das N marcas têm foto no acervo."
 - Imagens ilustrativas (Cartoon): manter o aviso atual.
 - Foto ampliada: "Marca · Edição" · "Ver a marca" · "Pedir a retirada desta imagem"
-- Chamada final: **"Você esteve nesta edição? Conte como foi."** → `/contato` (assunto "Sugestão ou feedback")
 
 ---
 
@@ -241,7 +239,7 @@ Coffee Week: em quais edições estiveram, que combos criaram e que prêmios rec
 - Apoio: Cafeterias, docerias e restaurantes que já criaram um combo para o Sweet & Coffee Week. Procure pelo
   nome e veja a história de cada uma.
 - Busca: "Procurar uma marca"
-- Filtros: Todas · Na última edição · Já subiram ao pódio · Desde o início
+- Filtros: Todas · Na última edição · Já subiram ao pódio · Desde a 1ª edição
 - Linha de cada marca: nome · "N edições" · "premiada" (quando for o caso)
 - Nota: "Uma rede com várias lojas aparece uma vez. Marcas que mudaram de nome estão no nome atual."
 
@@ -285,8 +283,9 @@ avalia, como a nota é dada e todos os pódios desde 2019."
 - Título: **Quem prova dá a nota.**
 - Texto: Quem consome o combo avalia a casa em cada critério. A organização confere as avaliações e apura o
   resultado. Desde 2022, só os Sweet Lovers avaliam. (As regras de apuração não mudam com este plano.)
-- Categorias: Melhor Combo · Melhor Doce · Melhor Salgado · Melhor Bebida · Melhor Apresentação · Melhor
-  Atendimento · Melhor Criatividade · Encantamento em Loja
+- Categorias: as da última edição premiada, lidas da fonte (mudam por edição: já houve Sabor, Delivery,
+  Takeaway). Cada edição do histórico mostra as suas. Onde o acervo grava "Envolvimento", o site exibe
+  "Encantamento em Loja" (§8.2); o dado é corrigido na fase 3
 - Linha do tempo (três marcos, como hoje): 2019, a primeira premiação · de 2020.2 a 2021.2, júri técnico
   e Sweet Lovers · de 2022 em diante, só os Sweet Lovers
 - Link: "Dúvidas sobre a avaliação" → `/contato` (assunto Sweet Awards)
@@ -300,7 +299,7 @@ avalia, como a nota é dada e todos os pódios desde 2019."
 - Notas mantidas: "As cinco primeiras edições não tiveram premiação." · ausência de 2º ou 3º lugar dita, nunca preenchida.
 
 ### 5.6 Fechamento
-- Chamada final de sugestão (peça comum) com o texto: "Avaliou os combos e quer dizer mais? A organização lê."
+- Ação: "Ver as marcas premiadas" → `/marcas`, filtro "Já subiram ao pódio"
 
 ---
 
@@ -338,12 +337,12 @@ Natal? Veja como funciona participar do Sweet & Coffee Week e registre o interes
 - Título: **Do interesse ao combo no balcão.**
   1. **Registre o interesse.** Leva dois minutos e não é inscrição: é o começo da conversa.
   2. **A organização entra em contato.** A participação passa por curadoria.
-  3. **O tema é anunciado.** A casa cria o seu combo: um doce, um salgado e uma bebida.
+  3. **O tema é anunciado.** A casa cria o seu combo. O padrão é um doce, um salgado e uma bebida; algumas
+     ações, como o Sweet Gift, pedem outro formato.
   4. **Tudo pelo Painel SCW.** Cadastro, combo, fotos e materiais ficam em um lugar só.
   5. **A edição.** O público prova, avalia e a casa acompanha.
-  6. **Depois.** A casa diz o que funcionou e o que precisa mudar em "Sua opinião", no painel.
-- ⚠ Confirmar antes de publicar: se cada casa recebe o relatório das próprias avaliações ao fim da edição.
-  Se sim, entra no passo 6: "…e recebe o relatório das avaliações que recebeu."
+  6. **Depois.** A casa recebe o relatório das avaliações que recebeu e diz o que funcionou e o que precisa
+     mudar em "Sua opinião", no painel. (Regra confirmada pelo Wilker em 18/11/2026: relatório em toda edição.)
 
 ### 6.5 Quem pode
 - Título: **Casas que criam doce, salgado e café.**
@@ -399,7 +398,7 @@ em Natal, 131 marcas e um público que sai de casa para provar. Veja quem apoiou
 ### 7.4 Quem apoiou a última edição
 - Rótulo: Edição Cartoon · novembro de 2026
 - Título: **Quem esteve com o festival.**
-- Créditos, com logo oficial: **Patrocínio** Sicredi · **Apoio** Senac · Espaço Reduzido · **Realização** F2 Experience
+- Créditos, com logo oficial: **Patrocinador** Sicredi · **Apoio** Senac · Espaço Reduzido · **Realização** F2 Experience
 - Linha: "A sua marca pode estar aqui na próxima edição." → 7.6
 - ⚠ Números da ação do patrocinador só entram com autorização dele.
 
@@ -441,14 +440,14 @@ restantes ficam como estão; mudam só as abaixo.
 
 ### 8.3 Perguntas novas
 1. **Como dou a minha opinião ou sugiro um tema?** Em "Escreva para a organização", no assunto "Sugestão ou
-   feedback".
+   opinião".
 2. **Vocês leem o que eu escrevo?** Sim. A organização lê as mensagens e usa o que ouve para planejar a
    próxima edição. Na edição Cartoon, chegaram 1.001 comentários e 565 sugestões junto das avaliações.
 3. **Meu texto pode aparecer no site?** Não sem pedir antes. Se a organização quiser publicar um trecho, ela
    escreve para você e só publica com a sua autorização.
-4. **Como indico uma casa para participar?** Em "Escreva para a organização", no assunto "Sugestão ou feedback". A indicação ajuda,
+4. **Como indico uma casa para participar?** Em "Escreva para a organização", no assunto "Sugestão ou opinião". A indicação ajuda,
    mas quem registra o interesse é a própria casa, na página Participar.
-5. **Quem apoiou a última edição?** A edição Cartoon, em novembro de 2026, teve patrocínio do Sicredi, apoio
+5. **Quem apoiou a última edição?** A edição Cartoon, em novembro de 2026, teve o Sicredi como patrocinador, apoio
    do Senac e do Espaço Reduzido e realização da F2 Experience.
 6. **Onde vejo os números do festival?** Na página O festival em Natal, com a fonte e o período de cada um.
 7. **Tenho uma casa participante. Onde dou a minha opinião sobre a edição?** No Painel SCW, em "Sua opinião".
@@ -464,10 +463,10 @@ restantes ficam como estão; mudam só as abaixo.
 ### 8.5 Escreva para a organização
 - Título: **Escreva para a organização.**
 - Antes de escrever, quatro caminhos: "Tenho uma casa" → `/participar` · "Quero apoiar" → `/apoiar` ·
-  "Quero opinar ou sugerir" → formulário abaixo, assunto "Sugestão ou feedback" · "Tive um problema" → dúvidas de suporte
-- Formulário: "Imprensa, correções e demais assuntos"
-- Assuntos: Dúvida sobre a edição · Sugestão ou feedback · Problema com informação no site · Imprensa e
+  "Quero opinar ou sugerir" → formulário abaixo, assunto "Sugestão ou opinião" · "Tive um problema" → dúvidas de suporte
+- Formulário: "Sugestões, imprensa e demais assuntos"
+- Assuntos: Dúvida sobre a edição · Sugestão ou opinião · Problema com informação no site · Imprensa e
   entrevistas · Retirar um texto ou uma imagem · Outro assunto
   (saem "Estabelecimento interessado" e "Parceria ou patrocínio": cada um tem página própria. "Sugestão ou
-  feedback" fica: é a porta de escuta do público, D4)
+  opinião" fica: é a porta de escuta do público, D4)
 - Envio: "Recebemos. A organização responde pelo e-mail que você deixou."

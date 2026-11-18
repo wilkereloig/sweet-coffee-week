@@ -21,7 +21,8 @@ ao ponto. Não é a agência falando do evento, nem a casa falando do próprio d
 - **O sabor é das casas.** O festival não cozinha: ele dá o tema, a vitrine e o público. Nenhum texto elogia
   a comida como obra do festival.
 - O público **avalia** (não "vota"). Quem avalia é **Sweet Lover**.
-- O combo é **um doce, um salgado e uma bebida**, criados pela casa para o tema.
+- O combo padrão é **um doce, um salgado e uma bebida**, criados pela casa para o tema. Há variações em
+  ações especiais (ex.: Sweet Gift: só doces, ou doces e salgados).
 
 ### Palavras
 
@@ -156,7 +157,7 @@ Retrato da edição, sem ranking de casa. Vai na Home (capítulo da edição), e
 | carimbos | 2.163 carimbos | 2.163 | válidos; 2 pessoas completaram as 27 casas |
 | instagram | 9,8 milhões de visualizações | 9.815.672 | 99 posts e 428 stories, 16/09 a 15/11 |
 | combos | mais de 10 mil combos registrados | 10.124 | **parcial** |
-| apoio | Patrocínio: Sicredi · Apoio: Senac e Espaço Reduzido · Realização: F2 Experience | — | base da edição |
+| apoio | Patrocinador: Sicredi · Apoio: Senac e Espaço Reduzido · Realização: F2 Experience | — | base da edição |
 
 ### B4 · O que não vai para o site
 
