@@ -156,12 +156,28 @@ precisa de decisão.
 
 | Item | Decisão do Wilker |
 |---|---|
-| B1–B10 | — |
-| C1 Toalha xadrez | — |
-| C2 Arco | — |
-| C3 Combo recortado | — |
-| C4 Faixa de estado | — |
-| C5 Etiquetas no herói da Home | — |
-| C6 Selo | — |
-| C7 Setas à mão | — |
-| C8 Tons claros | — |
+Decidido com o Wilker em 18/11/2026, item a item:
+
+| Item | Decisão do Wilker |
+|---|---|
+| B1 Título-cartaz | **Aprovado** |
+| B2 Itálico magenta no máximo um por página | **Aprovado** |
+| B3 Bento | **Aprovado** |
+| B4 Faixa de capítulo | **Trocada:** em vez de faixa, a passagem entre seções é **foto atravessando** (metade em cada seção) **e combo recortado atravessando** a divisa, com legenda casa · edição |
+| B5 Etiquetas nas fotos | **Aprovado** |
+| B6 Card de marca estilo expositor | **Aprovado** |
+| B7 Rolagem horizontal de combos | **Aprovado** |
+| B8 Números em display | **Aprovado** |
+| B9 Depoimento em card de contorno | **Aprovado** |
+| B10 Rótulo em pílula contornada | **Aprovado** |
+| C1 Toalha xadrez | **Testar na prancha** |
+| C2 Arco | **Testar na prancha** |
+| C3 Combo recortado | **Aprovado** como passagem entre seções (B4) |
+| C4 Faixa de estado no topo | **Aprovado** |
+| C5 Etiquetas no herói da Home | **Testar na prancha** |
+| C6 Selo | **Testar na prancha** (segue reprovado até lá) |
+| C7 Setas à mão | **Testar na prancha** |
+| C8 Tons claros | **Testar na prancha** (paleta segue em 9 até lá) |
+
+A prancha do KV mostra os itens aprovados já aplicados e os seis "testar" lado a lado,
+com e sem, para a decisão final.
