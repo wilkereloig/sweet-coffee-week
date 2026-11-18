@@ -18,6 +18,7 @@ continuam como estavam no commit `410fc0d2`.
 | `02-voz-e-numeros.md` | Como o site fala e a tabela de todos os números, com fonte, período e ressalva |
 | `03-textos.md` | O texto de cada página, seção por seção: títulos, apoios, ações, formulários, mensagens e SEO |
 | `04-escuta-e-painel.md` | Como o público e as casas falam com o festival, o que o painel ganha, banco e privacidade |
+| `05-estudo-referencias-kv.md` | Fase 2: estudo das referências do Wilker para o KV — diagnóstico, propostas B1–B10 e C1–C8, aguardando decisão |
 
 ## A ideia em seis linhas
 
